@@ -1,0 +1,6 @@
+//query for non-trap landings shrimp database
+select bcode, licence, xset, fdate, ldate, blat, blong, sfa, depth, fhours, weight, xcount
+from shrcomlog
+where btype != 4
+and sfa = 16
+order by bcode, fdate

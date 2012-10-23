@@ -1,0 +1,798 @@
+Return-Path: <ChoiJ@mar.dfo-mpo.gc.ca>
+Received: from barracuda.queensu.ca (bc400a.its.QueensU.CA [130.15.126.70])
+	by post.queensu.ca (8.10.1/8.10.1) with ESMTP id i7OCL5G03355
+	for <choij@post.queensu.ca>; Tue, 24 Aug 2004 08:21:05 -0400 (EDT)
+X-ASG-Debug-ID: 1093344506-25378-472-0
+X-Barracuda-URL: http://130.15.126.70:8000/cgi-bin/mark.cgi
+Received: from bionet.bio.dfo.ca (59xt.mar.dfo-mpo.gc.ca [142.176.61.181])
+	by barracuda.queensu.ca (Spam Firewall) with ESMTP id 74858D000480
+	for <choij@post.queensu.ca>; Tue, 24 Aug 2004 08:21:03 -0400 (EDT)
+Received: from georgs.bio.dfo.ca ([142.2.2.10])
+ by bionet.bio.dfo.ca (PMDF V5.2-32 #39490)
+ with ESMTP id <0I2Y00C4FA4679@bionet.bio.dfo.ca> for choij@post.queensu.ca;
+ Tue, 24 Aug 2004 09:16:54 -0300 (ADT)
+Received: by georgs.bio.dfo.ca (Postfix)	id A4EF31C024; Tue,
+ 24 Aug 2004 09:17:09 -0300 (ADT)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by georgs.bio.dfo.ca (Postfix) with ESMTP id 9561B1C023	for
+ <jae@georgs.bio.dfo.ca>; Tue, 24 Aug 2004 09:17:09 -0300 (ADT)
+Received: from bionet.bio.dfo.ca (bionet.BIO.dfo.ca [142.2.1.3])
+	by georgs.bio.dfo.ca (Postfix) with ESMTP id BEBA61C022	for
+ <jae@georgs.bio.dfo.ca>; Tue, 24 Aug 2004 09:17:08 -0300 (ADT)
+Received: from MSGMARBIO01.bio.dfo.ca ([142.2.12.122])
+ by bionet.bio.dfo.ca (PMDF V5.2-32 #39490)
+ with ESMTP id <0I2Y00CM9A1J3U@bionet.bio.dfo.ca> for jae@georgs.bio.dfo.ca;
+ Tue, 24 Aug 2004 09:15:19 -0300 (ADT)
+Received: by msgmarbio01.bio.dfo.ca with Internet Mail Service (5.5.2657.72)
+	id <RQ999SCJ>; Tue, 24 Aug 2004 09:15:45 -0300
+Content-return: allowed
+Date: Tue, 24 Aug 2004 09:15:45 -0300
+From: "Hum, Flo" <HumF@mar.dfo-mpo.gc.ca>
+X-ASG-Orig-Subj: RE: data access
+Subject: RE: data access
+To: "Jae choi georgs (E-mail)" <jae@georgs.bio.dfo.ca>
+Message-id: <1A4AC4BAB9C50A42854582B69B08C03405EA798B@MSGMARBIO05>
+MIME-version: 1.0
+X-Mailer: Internet Mail Service (5.5.2657.72)
+Content-type: multipart/mixed;	boundary="----_=_NextPart_000_01C489D4.14EDFE30"
+Delivered-to: jae@georgs.bio.dfo.ca
+X-Virus-Scanned: by AMaViS 0.3.12
+X-Virus-Scanned: by Barracuda Spam Firewall at queensu.ca
+X-Barracuda-Spam-Score: 0.0
+X-Barracuda-Spam-Status: No, SCORE=0.0 using global scores of TAG_LEVEL=3.5 QUARANTINE_LEVEL=1000.0 KILL_LEVEL=1000.0 tests=
+X-Barracuda-Spam-Report: Code version 2.61, rules version 1.6.820
+	Rule breakdown below
+	pts        rule name                           description
+	---- ---------------------- -------------------------------------------
+X-Filtered-With: renattach 1.2.0
+X-RenAttach-Info: mode=badlist action=rename count=0
+X-UIDL: "d&#!BA\"!C6C!!SW8"!
+
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
+
+------_=_NextPart_000_01C489D4.14EDFE30
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Jae.
+Attached are the scripts for the views
+
+I've granted select privileges for the following tables in the =
+marfis@bank
+schema
+
+areas
+catch_usages
+column_defns
+communities
+gears
+licences
+licences_sf_old
+log_efrt_entrd_dets
+log_efrt_std_info
+log_spc_entrd_dets
+log_spc_std_info
+mon_docs
+mon_doc_defns
+mon_doc_defn_cols
+mon_doc_entrd_dets
+mon_doc_lics
+sd_logs
+sd_log_eff_std_info
+sd_log_entrd_dets
+sd_log_spc_std_info
+sd_slps
+sd_slp_byr_std_info
+sd_slp_entrd_dets
+sd_slp_lnd_std_info
+sd_slp_spc_std_info
+slip_buyr_std_info
+slip_offld_std_info
+slip_spc_entrd_dets
+slip_spc_std_info
+species
+specie_size_forms
+ssf_factors
+sum_docs
+sum_doc_defns
+sum_doc_defn_cols
+sum_doc_entr_dets
+unit_of_measures
+vessels
+
+
+Flo Hum=20
+Phone:=A0 (902) 426-9973=20
+E-Mail: HumF@mar.dfo-mpo.gc.ca=20
+
+
+-----Original Message-----
+From: Jae S. Choi [mailto:choij@mar.dfo-mpo.gc.ca]=20
+Sent: August 23, 2004 3:46 PM
+To: Hum, Flo
+Subject: Re: data access
+
+Dear Flo,
+
+Yes, I would love to see the SQL scripts used and the underlying tables =
+if
+at all possible. While access to the views would most likely be =
+sufficient,
+I would really like to understand where the data came from and what was =
+done
+to them.=20
+
+Jae
+
+
+On Mon, 23 Aug 2004 14:37:43 -0300
+"Hum, Flo" <HumF@mar.dfo-mpo.gc.ca> wrote:
+
+> Hi Jae.
+> I've granted select access to the marfis_crab, marfis_crab2, and
+> crab_md_slip_wt views in my HUMF account.  The marfis_crab and
+marfis_crab2
+> views are still in a validation phase with Alan so haven't been =
+promoted
+to
+> the MARFIS@BANK account yet.  The crab_md_slip_wt is just a =
+supporting
+view.
+>=20
+> There are 15 to 20 underlying tables used in the views.  Were you
+interested
+> at the SQL statements to create the views, and also looking for =
+access to
+> the 15-20 tables?
+>=20
+> Flo Hum=20
+> Phone:=A0 (902) 426-9973=20
+> E-Mail: HumF@mar.dfo-mpo.gc.ca=20
+>=20
+>=20
+> -----Original Message-----
+> From: Jae S. Choi [mailto:choij@mar.dfo-mpo.gc.ca]=20
+> Sent: August 23, 2004 2:15 PM
+> To: HumF@mar.dfo-mpo.gc.ca
+> Subject: data access
+>=20
+> Dear Flo,
+>=20
+> I am working with Alan Reeves on the snow crab project and would like =
+to
+> obtain access to some of the relevant data tables for the project. =
+Would
+you
+> please provide me this read (select) access and for the views and
+underlying
+> tables.
+>=20
+> Thanks in advance,=20
+> Jae
+> =20
+> ---
+> Jae S. Choi
+> Department of Fisheries and Oceans, Bedford Institute of Oceanography
+> P.O. Box 1006, 1 Challenger Drive, Dartmouth, NS, Canada, B2Y 4A2
+> +902-426-1616, choij@mar.dfo-mpo.gc.ca
+>=20
+
+
+--=20
+---
+Jae S. Choi
+Department of Fisheries and Oceans, Bedford Institute of Oceanography
+P.O. Box 1006, 1 Challenger Drive, Dartmouth, NS, Canada, B2Y 4A2
++902-426-1616, choij@mar.dfo-mpo.gc.ca
+
+
+------_=_NextPart_000_01C489D4.14EDFE30
+Content-Type: application/octet-stream;
+	name="Copy of crab2_pro_rated.sql"
+Content-Disposition: attachment;
+	filename="Copy of crab2_pro_rated.sql"
+Content-Transfer-Encoding: quoted-printable
+
+CREATE or REPLACE VIEW MARFIS_CRAB AS=20
+(	SELECT=20
+		'MD-' || slips.mon_doc_id doc_id, --mon doc id=20
+		slips.vr_number,  --CFV=20
+		(select vessel_name from vessels where vr_number =3D slips.vr_number) =
+vessel_name, --VESSEL NAME=20
+		to_number(to_char(slips.landing_date_time,'yyyy')) year,
+		slips.captain_name, -- CAPTAIN NAME=20
+		slips.LFA, --lobster fishing area=20
+		nvl(logs.CFA,slips.CFA) CFA,
+		logs.licence_id, --LICENCE=20
+		slips.community_code, --PORT=20
+		slips.landing_date_time  date_landed, --DATE LANDED=20
+		slips.ssf_species_code species_code, --SPECIES=20
+		round( slips.slip_weight_lbs, 0) slip_weight_lbs,  -- LIVE WEIGHT=20
+		decode( /* if  estimated log weights is 0*/
+			(select nvl(sum(ls.weight),0) from log_spc_std_info ls, =
+log_efrt_std_info le=20
+											where ls.ssf_species_code =3D slips.ssf_species_code and =
+slips.mon_doc_id =3D le.mon_doc_id=20
+											and le.log_efrt_std_info_id =3D ls.log_efrt_std_info_id) ,0,
+			/*THEN  there are no estimated log weights - have to use a count*/
+				slips.slip_weight_lbs / (select =
+decode(count(le.log_efrt_std_info_id),0,1, =
+null,1,count(le.log_efrt_std_info_id))
+											from log_spc_std_info ls, log_efrt_std_info le=20
+											where  slips.mon_doc_id =3D le.mon_doc_id=20
+												and le.log_efrt_std_info_id =3D ls.log_efrt_std_info_id(+)=20
+												and nvl(ls.ssf_species_code, slips.ssf_species_code) =3D =
+slips.ssf_species_code) ,
+			 /* ELSE pro-rate based on log estimated weights*/
+			(logs.est_weight_log_lbs/
+				(select =
+sum(decode(ls.unit_of_measure_id,10,ls.weight*2.2046,ls.weight) )
+				 from log_spc_std_info ls, log_efrt_std_info le=20
+				 where ls.ssf_species_code =3D slips.ssf_species_code and =
+slips.mon_doc_id =3D le.mon_doc_id and le.log_efrt_std_info_id =3D =
+ls.log_efrt_std_info_id)
+			) * 	 slips.slip_weight_lbs
+		) pro_rated_slip_wt_lbs,
+		logs.log_efrt_std_info_id, --need to include this so the distinct =
+behaviour of the UNION does not eliminate log records that look the =
+same=20
+		logs.fv_fished_datetime  date_fished, -- DATE FISHED=20
+		logs.est_weight_log_lbs,--ESTIMATE-QTY-LBS=20
+		logs.ent_latitude latitude, --LATITUDE=20
+		logs.ent_longitude longitude, --LONGITUDE=20
+		to_number(logs.depth_fm) depth_fm,--DEPTH=20
+		to_number(logs.num_of_traps) num_of_traps,--NBR-TRAPS=20
+		to_number(logs.soak_days) soak_days, --NBR-HOURS -soak days=20
+		logs.catch_usage_code, --KEPT/DISCARD=20
+		logs.target_spc, -- license target species=20
+		'MD-' || slips.mon_doc_defn_id doc_type--  mon doc type=20
+	FROM=20
+		(-- slip info -all crab slips=20
+			select=20
+				mon_doc_id,=20
+				vr_number,=20
+				captain_name,=20
+				LFA, CFA,
+				community_code,=20
+				landing_date_time,=20
+				ssf_species_code,=20
+				sum(live_wt_kgs*2.2046 ) slip_weight_lbs,=20
+				-- use sum for case of multiple slip_spc_info recs for same species =
+
+				mon_doc_defn_id=20
+			from(=20
+					select=20
+						md.mon_doc_id, md.vr_number,=20
+						(select data_value from mon_doc_entrd_dets where mon_doc_id =3D =
+md.mon_doc_id and column_defn_id =3D 17) captain_name,=20
+						(select data_value from mon_doc_entrd_dets where mon_doc_id =3D =
+md.mon_doc_id and column_defn_id =3D 147) LFA,=20
+						(select area from areas where area_id =3D md.fv_fishing_area_id =
+and area_type_id =3D 9 /* crab fishing area type */) CFA,
+						so.community_code,=20
+						so.landing_date_time,=20
+						ss.slip_spc_std_info_id,=20
+						(nvl(ss.weight,0) / nvl(   (select factor from unit_of_measures =
+where unit_of_measure_id =3D ss.unit_of_measure_id)   ,1))  *=20
+									(select form_factor from ssf_factors where ss.ssf_species_code =
+=3D ssf_species_code=20
+									and nvl(ss.ssf_species_size_code,9) =3D ssf_species_size_code=20
+									and nvl(ss.ssf_landed_form_code,1) =3D ssf_landed_form_code=20
+						) live_wt_kgs,--account for uom and ssf_factor for round weight =
+in kgs=20
+						ss.ssf_species_code,=20
+						md.mon_doc_defn_id=20
+					from=20
+						mon_docs md, slip_offld_std_info so, slip_buyr_std_info sb, =
+slip_spc_std_info ss=20
+					where=20
+						 md.mon_doc_id =3D so.mon_doc_id=20
+						and so.slip_offld_std_info_id =3D sb.slip_offld_std_info_id=20
+						and sb.slip_buyr_std_info_id =3D ss.slip_buyr_std_info_id=20
+						and (ss.ssf_species_code =3D 704 /*rock*/or ss.ssf_species_code =
+=3D 703 /*jonah*/or=20
+								ss.ssf_species_code =3D 708 /*stone*/or ss.ssf_species_code =3D =
+701 /*toad*/or ss.ssf_species_code =3D 705/*snow*/)=20
+			)=20
+			group by=20
+				mon_doc_id,=20
+				vr_number,=20
+				captain_name,=20
+				LFA, CFA,
+				community_code,=20
+				landing_date_time,=20
+				ssf_species_code,=20
+				mon_doc_defn_id=20
+		)SLIPS,=20
+		(-- log info -all logs and effort associated with a mon_doc_id that =
+had a crab slip.  If no catch for effort, the species is set to the =
+licence targeted species and weight =3D 0=20
+			select=20
+				mds.mon_doc_id, mds.licence_id,=20
+				le.log_efrt_std_info_id,=20
+				le.fv_fished_datetime, -- DATE FISHED=20
+				nvl((select area from areas where area_id =3D le.fv_fishing_area_id =
+and area_type_id =3D 9 /* crab fishing area type */),
+							(select area from areas where area_id =3D le.det_fishing_area_id =
+and area_type_id =3D 9) ) CFA,
+				nvl (ls.ssf_species_code, mds.target_spc) species_code,  -- species =
+caught=20
+				decode(ls.unit_of_measure_id,10,ls.weight*2.2046,ls.weight) =
+est_weight_log_lbs,--ESTIMATE-QTY-LBS=20
+				le.ent_latitude, --LATITUDE=20
+				le.ent_longitude, --LONGITUDE=20
+				ls.catch_usage_code, --KEPT/DISCARD=20
+				mds.target_spc,=20
+				(select data_value from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id =3D =
+158) depth_fm,--DEPTH=20
+				(select data_value from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id =
+in(702,112)) num_of_traps,--NBR-TRAPS=20
+				(select data_value from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id in =
+(703,111)) soak_days --NBR-HOURS -SOAK DAYS
+			from=20
+				(	select distinct=20
+						mdLic.mon_doc_id, mdLic.licence_id,=20
+						(select species_code from licences where licence_id =3D =
+mdLic.licence_id) target_spc
+					from slip_spc_std_info ss, mon_doc_lics mdLic=20
+					where=20
+						(ss.ssf_species_code =3D 704 /*rock*/or ss.ssf_species_code =3D =
+703 /*jonah*/or=20
+									ss.ssf_species_code =3D 708 /*stone*/or ss.ssf_species_code =
+=3D 701 /*toad*/or ss.ssf_species_code =3D 705/*snow*/)=20
+						and ss.mon_doc_lic_id =3D mdLic.mon_doc_lic_id=20
+				)mds,=20
+				log_efrt_std_info le, log_spc_std_info ls=20
+			where=20
+				mds.mon_doc_id =3D le.mon_doc_id(+)=20
+				and le.log_efrt_std_info_id =3D ls.log_efrt_std_info_id(+)=20
+		)LOGS
+	WHERE=20
+		slips.mon_doc_id =3D logs.mon_doc_id=20
+		and slips.ssf_species_code =3D logs.species_code
+UNION ALL
+	SELECT=20
+		'SD-' || slips.sum_doc_id doc_id, -- sum doc id=20
+		slips.vr_number,  --CFV=20
+		slips.vessel_name, --VESSEL NAME=20
+		to_number(to_char(slips.date_landed,'yyyy')) year,
+		to_char(null) captain_name, --CAPTAIN=20
+		(select area from areas where area_id =3D le.fv_ent_fishing_area_id =
+and area_type_id =3D 5)  LFA,  -- area_type 5 is lobster fishing area=20
+		(select area from areas where area_id =3D le.fv_ent_fishing_area_id =
+and area_type_id =3D 9 /* crab fishing area type */) CFA,
+		slips.licence_id, --LICENCE=20
+		slips.fv_community_code, --PORT=20
+		slips.date_landed, --DATE LANDED=20
+		slips.fv_ssf_species_code, --SPECIES=20
+		round(slips.live_wt * 2.2046, 0) slip_weight_lbs,-- LIVE WEIGHT=20
+	/*  there are no estimated log weights -  use a count*/
+		((slips.live_wt * 2.2046)  / (select =
+decode(count(le.sd_log_eff_std_info_id),0,1, =
+null,1,count(le.sd_log_eff_std_info_id))
+														from sd_log_eff_std_info le=20
+														where  slips.sum_doc_id =3D le.sum_doc_id)=20
+		) pro_rated_slip_wt_lbs,		=09
+		le.sd_log_eff_std_info_id,=20
+		le.fv_date_fished, -- DATE FISHED=20
+		to_number(null) est_weight_log_lbs,--ESTIMATE-QTY-LBS=20
+		nvl(le.fv_ent_latitude,le.fv_det_latitude) latitude, --LATITUDE=20
+		nvl(le.fv_ent_longitude, le.fv_det_longitude) longitude, --LONGITUDE=20
+		to_number(null)  depth_fm,--DEPTH=20
+		decode(le.fv_gear_code, 62, le.fv_num_of_gear_units, null) =
+num_of_traps, --gear_code 62 is TRAP=20
+		to_number(null)  soak_days, --NBR-HOURS -soak days=20
+		to_number(null) catch_usage_code, --KEPT/DISCARD=20
+		(select species_code from licences where licence_id =3D =
+slips.licence_id) target_spc, -- license target species=20
+		'SD-' || slips.sum_doc_defn_id doc_type-- sum doc type=20
+	FROM=20
+		(-- SD slip info=20
+			select=20
+				sd.sum_doc_id,=20
+				sd.vr_number,  --CFV=20
+				sd.vessel_name, --VESSEL NAME=20
+				sd.submitr_fname || sd.submitr_sname captain_name, --CAPTAIN=20
+				sd.licence_id, --LICENCE=20
+				lnd.fv_community_code, --PORT=20
+				lnd.fv_landed_date date_landed, --DATE LANDED=20
+				spc.fv_ssf_species_code, --SPECIES=20
+				sum((nvl(spc.fv_weight,0) / nvl(   (select factor from =
+unit_of_measures where unit_of_measure_id =3D =
+spc.fv_unit_of_measure_id)   ,1))  *=20
+													(select form_factor from ssf_factors where =
+spc.fv_ssf_species_code =3D ssf_species_code=20
+													and nvl(spc.fv_ssf_species_size_code,9) =3D =
+ssf_species_size_code=20
+													and nvl(spc.fv_ssf_landed_form_code,1) =3D =
+ssf_landed_form_code)=20
+				)live_wt,=20
+				sd.sum_doc_defn_id -- sum doc type=20
+			from=20
+				sum_docs sd, sd_slp_lnd_std_info lnd, sd_slp_byr_std_info byr, =
+sd_slp_spc_std_info spc=20
+			where=20
+				(spc.fv_ssf_species_code =3D 704 /*rock*/or spc.fv_ssf_species_code =
+=3D 703 /*jonah*/or=20
+							spc.fv_ssf_species_code =3D 708 /*stone*/or =
+spc.fv_ssf_species_code =3D 701 /*toad*/or spc.fv_ssf_species_code =3D =
+705/*snow*/)=20
+				and sd.sum_doc_id =3D lnd.sum_doc_id=20
+				and lnd.sd_slp_lnd_std_info_id =3D byr.sd_slp_lnd_std_info_id=20
+				and byr.sd_slp_byr_std_info_id =3D spc.sd_slp_byr_std_info_id=20
+			group by=20
+				sd.sum_doc_id,=20
+				sd.vr_number,  --CFV=20
+				sd.vessel_name, --VESSEL NAME=20
+				sd.submitr_fname , sd.submitr_sname, --CAPTAIN=20
+				sd.licence_id, --LICENCE=20
+				lnd.fv_community_code, --PORT=20
+				lnd.fv_landed_date , --DATE LANDED=20
+				spc.fv_ssf_species_code, --SPECIES=20
+				sd.sum_doc_defn_id=20
+		)SLIPS,=20
+		sd_log_eff_std_info le=20
+	WHERE=20
+	slips.sum_doc_id =3D le.sum_doc_id(+)=20
+);
+
+------_=_NextPart_000_01C489D4.14EDFE30
+Content-Type: application/octet-stream;
+	name="crab2_pro_rated.sql"
+Content-Disposition: attachment;
+	filename="crab2_pro_rated.sql"
+Content-Transfer-Encoding: quoted-printable
+
+CREATE or REPLACE VIEW MARFIS_CRAB2 AS=20
+(	SELECT=20
+	-- any mon docs with a crab slip record, with any associated effort.  =
+slip weight is prorated based on estimated log weights if exists else =
+overall count of effort recs
+		'MD-' || slips.mon_doc_id doc_id, --mon doc id=20
+		slips.vr_number,  --CFV=20
+		(select vessel_name from vessels where vr_number =3D slips.vr_number) =
+vessel_name, --VESSEL NAME=20
+		to_number(to_char(slips.landing_date_time,'yyyy')) year,
+		slips.captain_name, -- CAPTAIN NAME=20
+		slips.LFA, --lobster fishing area=20
+		nvl(logs.CFA,slips.CFA) CFA,
+		logs.licence_id, --LICENCE=20
+		(select licence_id_old from licences_sf_old where licence_id =3D =
+logs.licence_id) licence_id_old,
+		slips.community_code, --PORT=20
+		slips.landing_date_time  date_landed, --DATE LANDED=20
+		slips.ssf_species_code species_code, --SPECIES=20
+		round( slips.slip_weight_lbs, 0) slip_weight_lbs,  -- LIVE WEIGHT=20
+		decode( /* IF  estimated log weights is 0*/
+			(select nvl(sum(ls.weight),0) from log_spc_std_info ls, =
+log_efrt_std_info le=20
+											where ls.ssf_species_code =3D slips.ssf_species_code and =
+slips.mon_doc_id =3D le.mon_doc_id=20
+											and le.log_efrt_std_info_id =3D ls.log_efrt_std_info_id) ,0,
+			/*THEN  there are no estimated log weights - have to use a count*/
+				slips.slip_weight_lbs / (select =
+decode(count(le.log_efrt_std_info_id),0,1, =
+null,1,count(le.log_efrt_std_info_id))
+											from log_spc_std_info ls, log_efrt_std_info le=20
+											where  slips.mon_doc_id =3D le.mon_doc_id=20
+												and le.log_efrt_std_info_id =3D ls.log_efrt_std_info_id(+)=20
+												and nvl(ls.ssf_species_code, slips.ssf_species_code) =3D =
+slips.ssf_species_code) ,
+			 /* ELSE pro-rate based on log estimated weights*/
+			(logs.est_weight_log_lbs/
+				(select =
+sum(decode(ls.unit_of_measure_id,10,ls.weight*2.2046,ls.weight) )
+				 from log_spc_std_info ls, log_efrt_std_info le=20
+				 where ls.ssf_species_code =3D slips.ssf_species_code and =
+slips.mon_doc_id =3D le.mon_doc_id and le.log_efrt_std_info_id =3D =
+ls.log_efrt_std_info_id)
+			) * 	 slips.slip_weight_lbs
+		) pro_rated_slip_wt_lbs,
+		logs.log_efrt_std_info_id, --shouldn't need to include this since the =
+UNION ALL should not eliminate log records that look the same, but....
+		logs.fv_fished_datetime  date_fished, -- DATE FISHED=20
+		logs.est_weight_log_lbs,--ESTIMATE-QTY-LBS=20
+		logs.ent_latitude latitude, --LATITUDE=20
+		logs.ent_longitude longitude, --LONGITUDE=20
+		to_number(logs.depth_fm) depth_fm,--DEPTH=20
+		to_number(logs.num_of_traps) num_of_traps,--NBR-TRAPS=20
+		to_number(logs.soak_days) soak_days, --NBR-HOURS -soak days=20
+		logs.catch_usage_code, --KEPT/DISCARD=20
+		logs.target_spc, -- license target species=20
+		'MD-' || slips.mon_doc_defn_id doc_type--  mon doc type=20
+	FROM=20
+		(-- slip info -all crab slips=20
+				select=20
+						mon_doc_id,=20
+						vr_number,=20
+						captain_name,=20
+						LFA, CFA,
+						community_code,=20
+						landing_date_time,=20
+						ssf_species_code,=20
+						sum(live_wt_kgs*2.2046 ) slip_weight_lbs,=20
+						-- use sum for case of multiple slip_spc_info recs for same =
+species=20
+						mon_doc_defn_id=20
+				from(=20
+						select=20
+								md.mon_doc_id, md.vr_number,=20
+								(select data_value from mon_doc_entrd_dets where mon_doc_id =3D =
+md.mon_doc_id and column_defn_id =3D 17) captain_name,=20
+								(select data_value from mon_doc_entrd_dets where mon_doc_id =3D =
+md.mon_doc_id and column_defn_id =3D 147) LFA,=20
+								(select area from areas where area_id =3D md.fv_fishing_area_id =
+and area_type_id =3D 9 /* crab fishing area type */) CFA,
+								so.community_code,=20
+								so.landing_date_time,=20
+								ss.slip_spc_std_info_id,=20
+								(nvl(ss.weight,0) / nvl(   (select factor from unit_of_measures =
+where unit_of_measure_id =3D ss.unit_of_measure_id)   ,1))  *=20
+											(select form_factor from ssf_factors where =
+ss.ssf_species_code =3D ssf_species_code=20
+											and nvl(ss.ssf_species_size_code,9) =3D =
+ssf_species_size_code=20
+											and nvl(ss.ssf_landed_form_code,1) =3D ssf_landed_form_code=20
+								) live_wt_kgs,--account for uom and ssf_factor for round weight =
+in kgs=20
+								ss.ssf_species_code,=20
+								md.mon_doc_defn_id=20
+						from=20
+								mon_docs md, slip_offld_std_info so, slip_buyr_std_info sb, =
+slip_spc_std_info ss=20
+						where=20
+								 md.mon_doc_id =3D so.mon_doc_id=20
+								and so.slip_offld_std_info_id =3D sb.slip_offld_std_info_id=20
+								and sb.slip_buyr_std_info_id =3D ss.slip_buyr_std_info_id=20
+								and (ss.ssf_species_code =3D 704 /*rock*/or ss.ssf_species_code =
+=3D 703 /*jonah*/or=20
+								ss.ssf_species_code =3D 708 /*stone*/or ss.ssf_species_code =3D =
+701 /*toad*/or ss.ssf_species_code =3D 705/*snow*/)=20
+				)=20
+				group by=20
+						mon_doc_id,=20
+						vr_number,=20
+						captain_name,=20
+						LFA, CFA,
+						community_code,=20
+						landing_date_time,=20
+						ssf_species_code,=20
+						mon_doc_defn_id=20
+		)SLIPS,=20
+		(-- log info -all logs and effort associated with a mon_doc_id that =
+had a crab slip.  If no catch for effort, the species is set to the =
+licence targeted species and weight =3D 0=20
+				select=20
+						mds.mon_doc_id, mds.licence_id,=20
+						le.log_efrt_std_info_id,=20
+						le.fv_fished_datetime, -- DATE FISHED=20
+						nvl((select area from areas where area_id =3D =
+le.fv_fishing_area_id and area_type_id =3D 9 /* crab fishing area type =
+*/),
+									(select area from areas where area_id =3D =
+le.det_fishing_area_id and area_type_id =3D 9) ) CFA,
+						nvl (ls.ssf_species_code, mds.target_spc) species_code,  -- =
+species caught=20
+						decode(ls.unit_of_measure_id,10,ls.weight*2.2046,ls.weight) =
+est_weight_log_lbs,--ESTIMATE-QTY-LBS=20
+						le.ent_latitude, --LATITUDE=20
+						le.ent_longitude, --LONGITUDE=20
+						ls.catch_usage_code, --KEPT/DISCARD=20
+						mds.target_spc,=20
+						(select data_value from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id =3D =
+158) depth_fm,--DEPTH=20
+						(select data_value from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id =
+in(702,112)) num_of_traps,--NBR-TRAPS=20
+						(select data_value from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id in =
+(703,111)) soak_days --NBR-HOURS -SOAK DAYS
+				from=20
+						(	select distinct=20
+								mdLic.mon_doc_id, mdLic.licence_id,=20
+								(select species_code from licences where licence_id =3D =
+mdLic.licence_id) target_spc
+							from slip_spc_std_info ss, mon_doc_lics mdLic=20
+							where=20
+								(ss.ssf_species_code =3D 704 /*rock*/or ss.ssf_species_code =3D =
+703 /*jonah*/or=20
+											ss.ssf_species_code =3D 708 /*stone*/or ss.ssf_species_code =
+=3D 701 /*toad*/or ss.ssf_species_code =3D 705/*snow*/)=20
+								and ss.mon_doc_lic_id =3D mdLic.mon_doc_lic_id=20
+						)mds,=20
+						log_efrt_std_info le, log_spc_std_info ls=20
+				where=20
+						mds.mon_doc_id =3D le.mon_doc_id(+)=20
+						and le.log_efrt_std_info_id =3D ls.log_efrt_std_info_id(+)=20
+		)LOGS
+	WHERE=20
+		slips.mon_doc_id =3D logs.mon_doc_id=20
+		and slips.ssf_species_code =3D logs.species_code
+UNION ALL
+	SELECT=20
+		-- get the rest of the effort associated with mon_don_defn_id's =3D =
+10 and 19 (crab mon. doc. and offshore lobster mon. doc.) that did not =
+have a crab slip record
+		'MD-' || md.mon_doc_id doc_id,=20
+		md.vr_number,
+		(select vessel_name from vessels where vr_number =3D md.vr_number) =
+vessel_name,
+		to_number(to_char(le.fv_fished_datetime,'yyyy')) year,
+		(select data_value from mon_doc_entrd_dets where mon_doc_id =3D =
+md.mon_doc_id and column_defn_id =3D 17) captain_name,=20
+		nvl((select data_value from mon_doc_entrd_dets where mon_doc_id =3D =
+md.mon_doc_id and column_defn_id =3D 147),
+				(select area from areas where area_id =3D md.fv_fishing_area_id and =
+area_type_id =3D 5)
+			) LFA,=20
+		nvl(
+				(select area from areas where area_id =3D md.fv_fishing_area_id and =
+area_type_id =3D 9 /* crab fishing area type */) ,
+				(nvl(	(select area from areas where area_id =3D =
+le.fv_fishing_area_id and area_type_id =3D 9 ),	(select area from areas =
+where area_id =3D le.det_fishing_area_id and area_type_id =3D 9))	)=20
+			)CFA,
+		to_char(null) /*licence_id*/, to_char(null) /*licence_id_old*/, =
+to_number(null) /*community_code*/, to_date(null) /*date_landed*/,=20
+		to_number(null) /*species_code*/, to_number(null) =
+/*slip_weight_lbs*/, to_number(null)/*pro_rated_slip_wt_lbs*/,
+		le.log_efrt_std_info_id,
+		le.fv_fished_datetime  date_fished,
+		to_number(null) /*est_weight*/,
+		le.ent_latitude latitude,
+		le.ent_longitude longitude,
+		(select to_number(data_value) from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id =3D =
+158) depth_fm,--DEPTH=20
+		(select to_number(data_value) from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id =
+in(702,112)) num_of_traps,--NBR-TRAPS=20
+		(select to_number(data_value) from log_efrt_entrd_dets where =
+log_efrt_std_info_id =3D le.log_efrt_std_info_id and column_defn_id in =
+(703,111)) soak_days, --NBR-HOURS -SOAK DAYS
+		to_number(null) /*catch_usage_code*/, to_number(null) /*target_spc*/,
+		'MD-' || md.mon_doc_defn_id doc_type
+	FROM mon_docs md, log_efrt_std_info le
+	WHERE  (md.mon_doc_defn_id =3D 10 or md.mon_doc_defn_id =3D 19)
+		and md.mon_doc_id =3D le.mon_doc_id
+		and md.mon_doc_id not in	(	select distinct mdLic.mon_doc_id
+										from slip_spc_std_info ss, mon_doc_lics mdLic=20
+										where (ss.ssf_species_code =3D 704 /*rock*/or =
+ss.ssf_species_code =3D 703 /*jonah*/or=20
+											ss.ssf_species_code =3D 708 /*stone*/or ss.ssf_species_code =
+=3D 701 /*toad*/or ss.ssf_species_code =3D 705/*snow*/)=20
+										and ss.mon_doc_lic_id =3D mdLic.mon_doc_lic_id 	)	=09
+UNION ALL
+	SELECT=20
+	-- all sum docs with a crab slip rec with any associated effort, slip =
+weight prorated by number of effort records
+			'SD-' || slips.sum_doc_id doc_id, -- sum doc id=20
+			slips.vr_number,  --CFV=20
+			slips.vessel_name, --VESSEL NAME=20
+			to_number(to_char(slips.date_landed,'yyyy')) year,
+			to_char(null) captain_name, --CAPTAIN=20
+			(select area from areas where area_id =3D le.fv_ent_fishing_area_id =
+and area_type_id =3D 5)  LFA,  -- area_type 5 is lobster fishing area=20
+			(select area from areas where area_id =3D le.fv_ent_fishing_area_id =
+and area_type_id =3D 9 /* crab fishing area type */) CFA,
+			slips.licence_id, --LICENCE=20
+			(select licence_id_old from licences_sf_old where licence_id =3D =
+slips.licence_id) licence_id_old,
+			slips.fv_community_code, --PORT=20
+			slips.date_landed, --DATE LANDED=20
+			slips.fv_ssf_species_code, --SPECIES=20
+			round(slips.live_wt * 2.2046, 0) slip_weight_lbs,-- LIVE WEIGHT=20
+		/*  there are no estimated log weights -  use a count*/
+			((slips.live_wt * 2.2046)  / (select =
+decode(count(le.sd_log_eff_std_info_id),0,1, =
+null,1,count(le.sd_log_eff_std_info_id))
+															from sd_log_eff_std_info le=20
+															where  slips.sum_doc_id =3D le.sum_doc_id)=20
+			) pro_rated_slip_wt_lbs,		=09
+			le.sd_log_eff_std_info_id,=20
+			le.fv_date_fished, -- DATE FISHED=20
+			to_number(null) est_weight_log_lbs,--ESTIMATE-QTY-LBS=20
+			nvl(le.fv_ent_latitude,le.fv_det_latitude) latitude, --LATITUDE=20
+			nvl(le.fv_ent_longitude, le.fv_det_longitude) longitude, --LONGITUDE =
+
+			to_number(null)  depth_fm,--DEPTH=20
+			decode(le.fv_gear_code, 62, le.fv_num_of_gear_units, null) =
+num_of_traps, --gear_code 62 is TRAP=20
+			to_number(null)  soak_days, --NBR-HOURS -soak days=20
+			to_number(null) catch_usage_code, --KEPT/DISCARD=20
+			(select species_code from licences where licence_id =3D =
+slips.licence_id) target_spc, -- license target species=20
+			'SD-' || slips.sum_doc_defn_id doc_type-- sum doc type=20
+	FROM=20
+		(-- SD slip info=20
+			select=20
+					sd.sum_doc_id,=20
+					sd.vr_number,  --CFV=20
+					sd.vessel_name, --VESSEL NAME=20
+					sd.submitr_fname || sd.submitr_sname captain_name, --CAPTAIN=20
+					sd.licence_id, --LICENCE=20
+					lnd.fv_community_code, --PORT=20
+					lnd.fv_landed_date date_landed, --DATE LANDED=20
+					spc.fv_ssf_species_code, --SPECIES=20
+					sum((nvl(spc.fv_weight,0) / nvl(   (select factor from =
+unit_of_measures where unit_of_measure_id =3D =
+spc.fv_unit_of_measure_id)   ,1))  *=20
+														(select form_factor from ssf_factors where =
+spc.fv_ssf_species_code =3D ssf_species_code=20
+														and nvl(spc.fv_ssf_species_size_code,9) =3D =
+ssf_species_size_code=20
+														and nvl(spc.fv_ssf_landed_form_code,1) =3D =
+ssf_landed_form_code)=20
+					)live_wt,=20
+					sd.sum_doc_defn_id -- sum doc type=20
+			from=20
+					sum_docs sd, sd_slp_lnd_std_info lnd, sd_slp_byr_std_info byr, =
+sd_slp_spc_std_info spc=20
+			where=20
+					(spc.fv_ssf_species_code =3D 704 /*rock*/or =
+spc.fv_ssf_species_code =3D 703 /*jonah*/or=20
+								spc.fv_ssf_species_code =3D 708 /*stone*/or =
+spc.fv_ssf_species_code =3D 701 /*toad*/or spc.fv_ssf_species_code =3D =
+705/*snow*/)=20
+					and sd.sum_doc_id =3D lnd.sum_doc_id=20
+					and lnd.sd_slp_lnd_std_info_id =3D byr.sd_slp_lnd_std_info_id=20
+					and byr.sd_slp_byr_std_info_id =3D spc.sd_slp_byr_std_info_id=20
+			group by=20
+					sd.sum_doc_id,=20
+					sd.vr_number,  --CFV=20
+					sd.vessel_name, --VESSEL NAME=20
+					sd.submitr_fname , sd.submitr_sname, --CAPTAIN=20
+					sd.licence_id, --LICENCE=20
+					lnd.fv_community_code, --PORT=20
+					lnd.fv_landed_date , --DATE LANDED=20
+					spc.fv_ssf_species_code, --SPECIES=20
+					sd.sum_doc_defn_id=20
+		)SLIPS,=20
+		sd_log_eff_std_info le=20
+	WHERE=20
+	slips.sum_doc_id =3D le.sum_doc_id(+)=20
+);
+
+------_=_NextPart_000_01C489D4.14EDFE30
+Content-Type: application/octet-stream;
+	name="crab_md_slip_wt.sql"
+Content-Disposition: attachment;
+	filename="crab_md_slip_wt.sql"
+Content-Transfer-Encoding: quoted-printable
+
+CREATE OR REPLACE VIEW CRAB_MD_SLIP_WT
+AS=20
+(	select md.mon_doc_id, ss.ssf_species_code,=20
+		sum(=09
+			(	nvl(ss.weight,0) / nvl((select factor from unit_of_measures where =
+unit_of_measure_id =3D ss.unit_of_measure_id),1)	)  *=20
+																(select form_factor from ssf_factors where =
+ss.ssf_species_code =3D ssf_species_code=20
+																and nvl(ss.ssf_species_size_code,9) =3D =
+ssf_species_size_code=20
+																and nvl(ss.ssf_landed_form_code,1) =3D =
+ssf_landed_form_code )
+		) live_wt_kgs  --account for uom and ssf_factor for round weight in =
+kgs=20
+	from mon_docs md, slip_offld_std_info so, slip_buyr_std_info sb, =
+slip_spc_std_info ss=20
+	where  md.mon_doc_id =3D so.mon_doc_id=20
+		and so.slip_offld_std_info_id =3D sb.slip_offld_std_info_id=20
+		and sb.slip_buyr_std_info_id =3D ss.slip_buyr_std_info_id=20
+		and (ss.ssf_species_code =3D 704 /*rock*/or ss.ssf_species_code =3D =
+703 /*jonah*/or ss.ssf_species_code =3D 708 /*stone*/or =
+ss.ssf_species_code =3D 701 /*toad*/or ss.ssf_species_code =3D =
+705/*snow*/)=20
+	group by md.mon_doc_id, ss.ssf_species_code
+);
+
+
+
+------_=_NextPart_000_01C489D4.14EDFE30--
+

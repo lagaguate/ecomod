@@ -1,0 +1,23 @@
+model {
+
+	Zmu ~ dunif( eps, 1 )
+	Ztau ~ dgamma( 10e-3, 10e-3 )
+	for ( i in 1: nStations) {
+		Z[i] ~ dnorm( Zmu, Ztau )  
+	}
+	
+	q ~ dunif( eps, 2 )
+	B ~ dnorm( 0, 10e-6 ) 
+	
+	Rtau ~ dgamma( 10e-3, 10e-3) 
+	
+	for (i in 1:nStations) {
+		for (j in 1:nSizes) {
+			Rhat[i,j] <- max( eps, q * pow( B*SA[j], Z[i] ) ) 
+			Robs[i,j] ~  dlnorm( log(Rhat[i,j]), Rtau )
+		}
+	}
+
+
+}
+

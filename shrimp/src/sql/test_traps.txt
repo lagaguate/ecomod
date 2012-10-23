@@ -1,0 +1,6 @@
+select bcode, fdate, blat, blong
+from shrcomlog
+where btype = 4
+and sfa = 16
+and bcode not in ('101963','102865','101096','100200','101300','103490,',101430')
+and fdade between '01-JAN-1997' and '31-DEC-1997';

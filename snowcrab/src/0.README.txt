@@ -1,0 +1,21 @@
+
+# ----------------------------------------------------------------------------------
+# NOTE to all: 
+#  
+#     The year in the file "current.assessment.year.r" must be changed every year.
+#     It must be kept separate from "load.snowcrab.environment" as running in parallel mode 
+#     requires occasionally overrding some parameters in "p". This override cannot be completed as  
+#     "load.snowcrab.environment.r" is sourced with every initialisation of a a new CPU.
+#
+#     Begin in sequence due to data dependencies starting with 1.snowcrab.r, 2. ....
+#
+# ----------------------------------------------------------------------------------
+   
+
+# scdir is the base snow crab source directory, defined in "/home/jae/.Rprofile" 
+#  ... set this to the appropriate location on your own system
+
+# look in load.snowcrab.environment to ensure your directory structure matches that found within 
+# ... modify the file or your filesystem to match
+    
+
