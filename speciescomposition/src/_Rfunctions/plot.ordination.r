@@ -1,6 +1,6 @@
 
 
-  plot.ordination = function( X, type="pca", fn=file.path( tmpdir, "tmp.pdf") ) {
+  plot.ordination = function( X, type="pca", fn=tempfile()  ) {
 
     if (type == "pca") {
       pdf( file=fn, pointsize=8 )

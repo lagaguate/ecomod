@@ -55,9 +55,10 @@
 
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
 			
+			tmpdir  = tempdir()
 			outdir = file.path( project.directory("bathymetry"), "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
-			
+ 
 			fn.interp.z = file.path( outdir,  paste(  p$spatial.domain, "Z.interpolated.xyz", sep=".") )
 			fn.interp.dz = file.path( outdir,  paste( p$spatial.domain, "dZ.interpolated.xyz", sep=".") )
 			fn.interp.ddz = file.path( outdir,  paste( p$spatial.domain, "ddZ.interpolated.xyz", sep=".") )

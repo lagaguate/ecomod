@@ -1,5 +1,7 @@
   gmt.map = function( params, data, year, vname, conversions="ps2png" ) {
 
+		tmpdir  = tempdir()
+ 
     with( params, {
 
     # tmp local GMT files

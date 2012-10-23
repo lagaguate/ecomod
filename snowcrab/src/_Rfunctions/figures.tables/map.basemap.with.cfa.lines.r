@@ -22,6 +22,8 @@
     
     toplot = u[1,]
 
+		tmpdir  = tempdir()
+
     with( p, {
 
     # tmp local GMT files

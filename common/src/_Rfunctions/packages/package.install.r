@@ -1,6 +1,9 @@
-
-  ## if problem, use a direct download from R-forge:
-  ##  install.packages("foo", repos="http://R-Forge.R-project.org")
+ 
+	# To update/install useful packages
+  #	source( file.path( project.directory("common"), "functions.packages.r") )
+  # package.install ()
+  # if there are problems, use a direct download from R-forge:
+  # install.packages("foo", repos="http://R-Forge.R-project.org")
 
 	package.install = function( X="all", override=F ) {
 		

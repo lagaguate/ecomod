@@ -24,7 +24,7 @@
 
     bottom=NULL
     outfile=file.path(R.sc, "bottom.rdata")
-    tmpfile =  file.path(tmpdir, make.random.string(".tmp.minilog.csv"))
+    tmpfile =  file.path( tempdir(), make.random.string(".tmp.minilog.csv"))
 
     if (DS=="file") load(outfile)
 

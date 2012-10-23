@@ -6,12 +6,9 @@
   ) )
 
 
-  if ( is.null( rprofile ) ) rprofile="~/.Rprofile" 
-
 	# files required to initialised the same base state when running in parallel mode
-  # rprofile is defined in the "Rprofile.site" or ".Rprofile" 
   init.files = loadfunctions( c("common", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat" ) )
-	init.files = c( rprofile, init.files )
+	init.files = c( ecomod.rprofile, init.files )
  
 	workpath = file.path( project.directory("snowcrab"), "R" )
   dir.create( workpath, recursive=T, showWarnings=F )

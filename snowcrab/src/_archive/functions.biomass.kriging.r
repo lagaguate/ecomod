@@ -1,6 +1,6 @@
   
 
-  kriging.db = function( ip=NULL, DS, p=NULL, yrs, overwrite.reference=homedir, overwrite.threshold=NULL,  env.init=NULL ) {
+  kriging.db = function( ip=NULL, DS, p=NULL, yrs, overwrite.threshold=NULL,  env.init=NULL ) {
     
     outdir = file.path( project.directory("snowcrab"), "R", "kriging" )
     dir.create(path=outdir, recursive=T, showWarnings=F)

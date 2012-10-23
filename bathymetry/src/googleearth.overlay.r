@@ -8,7 +8,7 @@
   
   cmd = function(x, ...) { system(paste(x, ...)) }
 
-
+	tmpdir = tempdir()
 
   # 1.  map of bathymetry contours : colour background and lines
 

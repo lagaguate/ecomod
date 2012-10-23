@@ -1,6 +1,5 @@
 
 # species composition analysis from snow crab data
-  # source( file.path( homedir, "projects", "sorted.ordination", "sorted.ordination.functions.r" ) )
   	
 	loadfunctions( project.directory("sorted.ordination") )
 	loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
@@ -37,7 +36,7 @@
     y = cbind( evec[,1] * sqrt(eval[1] ) , evec[,2] * sqrt( eval[2]) )
 
   
-    fn = file.path( tmpdir, "temp.pdf" )
+    fn = file.path( tempdir(), "temp.pdf" )
     Cairo( file=fn, type="pdf", dpi=150 )
       plot(y, pch=".", col="red" )
       text(y,labels= colnames(m), cex=0.6 )

@@ -24,7 +24,8 @@
 			p$bathy.tension = "-T0.75"
 			p$bathy.zrange="-Sa1010/NaN -Sb1/NaN"
       
-			tmpdir = file.path(  project.directory("bathymetry"), "isobaths" )
+			tmpdir =  tempdir()
+
 
 			for (id in ip ) {
 

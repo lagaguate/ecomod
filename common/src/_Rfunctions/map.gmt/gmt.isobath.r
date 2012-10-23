@@ -5,6 +5,8 @@
     params = gmt.projection(params)
     params = gmt.defineregion(params)
 
+		tmpdir  = tempdir()
+  
     a = with(params, {
       append = "-O -K"
 

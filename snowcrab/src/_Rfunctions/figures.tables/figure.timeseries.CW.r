@@ -32,7 +32,7 @@
       odb = odb[ which(odb$cw>=95),]
       v = "cw"
       fn = file.path( outdir, paste( v, "combined.observer", sep="." ) )
-      td =  get.time.series (odb, areas, v, outfile=file.path(tmpdir, "ts.tmp.csv") )
+      td =  get.time.series (odb, areas, v, outfile=file.path(tempdir(), "ts.tmp.csv") )
     }
  
     td = td[ order(td$region, td$year) , ]

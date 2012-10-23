@@ -33,7 +33,9 @@
     }
 
     if (method=="gmt") {
-
+		
+			tmpdir  = tempdir()
+ 
 # not used ... and not complete ... do not use until checked
       require(ncvar)
       with(params, {
@@ -60,7 +62,9 @@
     if (method=="gmt1") {
 
       # primarily intended for lon/lat but can be used for planar coords too .. check GMT options
-
+		
+			tmpdir  = tempdir()
+ 
       require(ncvar)
       out = with(params, {
         xyz.tmp = file.path(tmpdir, make.random.string("xyz.tmp"))

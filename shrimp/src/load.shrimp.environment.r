@@ -6,7 +6,7 @@
 
   localfiles = loadfunctions( c("common", "bathymetry", "shrimp") )
 	
-  init.files = c( rprofile, localfiles )  
+  init.files = c( ecomod.rprofile, localfiles )  
 
   
   # working directory for temporary/work files 

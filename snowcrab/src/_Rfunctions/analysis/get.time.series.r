@@ -13,7 +13,7 @@
     # ra.jit(2)  # JIT optimisation
 
       out = NULL
-      tmpfile = file.path(tmpdir, make.random.string(".ts.csv"))
+      tmpfile = file.path( tempdir(), make.random.string(".ts.csv"))
 
       for (r in regions) {
         print (r)

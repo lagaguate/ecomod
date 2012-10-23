@@ -1,6 +1,8 @@
 
   gmt.xyplot = function( params, data, year, conversions="ps2png" ) {
 
+		tmpdir  = tempdir()
+ 
     with(params, {
 
     # tmp local GMT files

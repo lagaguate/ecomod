@@ -3,6 +3,8 @@
      params = gmt.projection(params)
      params = gmt.defineregion(params)
 
+		 tmpdir  = tempdir()
+  
      with(params, {
       append = "-O -K"
       bathy.mask = file.path(tmpdir, make.random.string("gmt.depth.mask") )
