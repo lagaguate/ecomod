@@ -13,7 +13,7 @@
   rjags::load.module("glm")
 
   loadfunctions( project.directory("bayesian") )
-  loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+  loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
  
 
   data( fish, package="bayesmix")

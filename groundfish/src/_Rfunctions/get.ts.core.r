@@ -2,7 +2,7 @@
 get.ts.core = function(id=NULL, sm, do.parallel=T, regions, plottimes, variables, custom, init.files=NULL ) {
 
   source( "/home/jae/.Rprofile" )
-	loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
+	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
   # the first index is a list that is passed from the calling prog: in this case "ssplt" (if parallel)
   if (do.parallel) id = as.numeric(id)

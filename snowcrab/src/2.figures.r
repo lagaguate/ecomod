@@ -2,7 +2,7 @@
   # Figures obtained after completion of data assimilation and processing up to the end of "1.snowcrab.r"
    
 	
-	 loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+	 loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
  
    
    p$clusters = rep("localhost", 12 )

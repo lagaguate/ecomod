@@ -1,5 +1,5 @@
 
-	loadfunctions( "shrimp", functionpattern="load.shrimp.environment.r" )
+	loadfunctions( "shrimp", functionname="load.shrimp.environment.r" )
 
   refresh.data=F
   if (refresh.data) {

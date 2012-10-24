@@ -12,7 +12,7 @@
 #        project.directory("snowcrab") =  file.path( "J:", "projects", "snowcrab" )
 #    }
 	
-	loadfunctions( "snowcrab", functionpattern="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
   if (debug) {
     p$do.parallel =F
@@ -108,7 +108,7 @@
 # Run BIO.DB to update the multi-survey databases /home/jae/projects/bio/src/bio.r
 # -------------------------------------------------------------------------------------
   loadfunctions ("bio" )
-	loadfunctions ( "bio", functionpattern="bio.r" )  # glue everything together
+	loadfunctions ( "bio", functionname="bio.r" )  # glue everything together
 
 
 # -------------------------------------------------------------------------------------

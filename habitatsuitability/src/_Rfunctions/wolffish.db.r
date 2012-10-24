@@ -156,7 +156,7 @@
     if ( DS=="snowcrab" ) {      ############ no biomass only counts
       #  snow crab trawl-based data tables
     
-      loadfunctions( "snowcrab", functionpattern="initialise.local.environment.r"  ) 
+      loadfunctions( "snowcrab", functionname="initialise.local.environment.r"  ) 
       loadfunctions( "taxonomy" )
 	
       p = get.parameters ( current.assessment.year=current.assessment.year, set="kriging.params")

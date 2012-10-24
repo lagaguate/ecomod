@@ -1,7 +1,7 @@
 
 # ----------------------
 # mixtures analysis using snowcrab data
-	loadfunctions( "snowcrab", functionpattern="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   loadfunctions( "bayesian" ) 
 
 

@@ -10,7 +10,7 @@
   # 4.figures.r
 
    	
-	loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
   
 
   

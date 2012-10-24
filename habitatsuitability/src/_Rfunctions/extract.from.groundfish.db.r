@@ -4,8 +4,8 @@
 
       # groundfish data 
       	
-		loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
-		loadfunctions( "groundfish", functionpattern="current.year.r") 
+		loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
+		loadfunctions( "groundfish", functionname="current.year.r") 
 
       sm = groundfish.db( "sm.base" )
       wf = groundfish.db( "catchbyspecies", taxa=spname )

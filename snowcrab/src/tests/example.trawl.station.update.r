@@ -1,7 +1,7 @@
 
   # used to identify points to modify and obtain coords for new points
    	
-	loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
   
   set = snowcrab.db("set")
   set = set[ which(set$yr==2007), ]

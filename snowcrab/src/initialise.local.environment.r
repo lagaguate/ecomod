@@ -8,8 +8,8 @@
   #       Copying the following into each relevent file is not a solution as it is error prone and  repetitive. 
   # ----------------------------------------------------------------------------------
    
-  	loadfunctions( "snowcrab", functionpattern="current.assessment.year.r") 
-		loadfunctions( "snowcrab", functionpattern="default.project.environment.r") 
+  	loadfunctions( "snowcrab", functionname="current.assessment.year.r") 
+		loadfunctions( "snowcrab", functionname="default.project.environment.r") 
 	  
     p = get.parameters ( current.assessment.year=current.assessment.year, set="kriging.params")
 

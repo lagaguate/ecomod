@@ -5,8 +5,8 @@
 # ------------------  Common initialisation for groundfish 
 # ------------------
 	
-	loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
-	loadfunctions( "groundfish", functionpattern="current.year.r") 
+	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
+	loadfunctions( "groundfish", functionname="current.year.r") 
 
 # not too many as it has high memory requirements
 # clusters=c("tethys", "tethys", "io", "io", "io" )

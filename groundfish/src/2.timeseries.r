@@ -1,6 +1,6 @@
 
 	
-	loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
+	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
   data.location = file.path( project.directory("groundfish"), "data", "2006")
   sm =  groundfish.db( "sm.complete" )

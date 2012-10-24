@@ -1,7 +1,7 @@
 
   # Tables based upon data created by "1.snowcrab.r"
 	
-	loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
 
   odb0 = observer.db("odb")
   regions = c("cfanorth", "cfasouth", "cfa4x")

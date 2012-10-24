@@ -37,7 +37,7 @@
 > email: Ben.Laurel@noaa.gov 
 
 
-loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
+loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
 loc = file.path( project.directory("groundfish"), "data", "2006")
 require(chron)

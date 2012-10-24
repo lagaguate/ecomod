@@ -4,7 +4,7 @@
 # ------------------------------------------------
 # create data -- annual summariesbroken down by CA 1 and 2 categories
 	
-	loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
+	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
   data.location = file.path( project.directory("groundfish"), "data", "2006")
 
@@ -151,7 +151,7 @@ print(quant2)
   # ---------------
   # figure -- xy-plot of ca1 and depth
 	
-	loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
+	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
   data.location = file.path(gs.datadir, "2006")
   season = "summer"
@@ -180,7 +180,7 @@ print(quant2)
 
   # load CA results
 	
-	loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
+	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
   data.location = file.path(gs.datadir, "2006")
 

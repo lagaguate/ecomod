@@ -4,7 +4,7 @@
   
   # ++++++++++ must check timing of 4X to make sure that the season is not an issue ++++++++++
 
-  loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+  loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
 
  
   p$clusters = "localhost"

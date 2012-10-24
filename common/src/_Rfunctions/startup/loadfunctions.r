@@ -1,23 +1,23 @@
 
 	# used to load local functions conveniently
 	loadfunctions = function( projectname, filepattern=NULL, directorypattern=NULL, 
-		functionpattern=NULL, keydirectories = NULL ) {
+		functionname=NULL, keydirectories = NULL ) {
 
 		projectdirectory = project.directory( name=projectname )
 		searchdirectories = file.path( projectdirectory, "src" )
 
 		if (is.null( filepattern ) ) filepattern="\\.r$"
 		
-		if (!is.null(functionpattern)) {
+		if (!is.null(functionname)) {
 			projectfiles = list.files( path=searchdirectories, pattern=filepattern, 
 				full.names=T, recursive=T,  ignore.case=T, include.dirs=F )
-			keep = grep ( functionpattern, projectfiles, ignore.case =T )
+			keep = grep ( functionname, projectfiles, ignore.case =T )
 			if (length(keep)>0) {
 				projectfiles = projectfiles[keep]
 				for ( nm in projectfiles ) source( file=nm )
 				return( projectfiles )
 			}
-			return( paste( "File not found", functionpattern ) ) 
+			return( paste( "File not found", functionname ) ) 
 		}
 
 		if (is.null(keydirectories)) {

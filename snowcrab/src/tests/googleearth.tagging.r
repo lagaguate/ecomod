@@ -1,6 +1,6 @@
 	
-	loadfunctions( project.directory("googleearth"), functionpattern="functions.googleearth.r") 
-  loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+	loadfunctions( project.directory("googleearth"), functionname="functions.googleearth.r") 
+  loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
   
 
   workdir = file.path( project.directory("snowcrab"), "R" )

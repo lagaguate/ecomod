@@ -1,6 +1,6 @@
 
 	
-	init.files = loadfunctions( "groundfish", functionpattern="load.groundfish.environment.r") 
+	init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
 	gs.datayear = 2009
 	data.dir = file.path( project.directory("groundfish"), "data", gs.datayear )

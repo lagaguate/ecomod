@@ -3,7 +3,7 @@
   # Maxmimum Likelihood optimization approach (aka, "timeseries modelling") 
 
  	
-  loadfunctions( project.directory("snowcrab"), functionpattern="initialise.local.environment.r") 
+  loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
   
    
   ###  all data follow this sequence: c("cfanorth", "cfasouth", "cfa4x")

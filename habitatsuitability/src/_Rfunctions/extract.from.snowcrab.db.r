@@ -3,7 +3,7 @@
 
      #  snow crab trawl-based data tables
 
-      loadfunctions( "snowcrab", functionpattern="initialise.local.environment.r"  ) 
+      loadfunctions( "snowcrab", functionname="initialise.local.environment.r"  ) 
       loadfunctions( "taxonomy" )
 	
       tx = taxa.db( "complete" )
