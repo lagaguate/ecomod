@@ -12,15 +12,23 @@ For help using git, see: http://git-scm.com/book/ .
 
 To use these functions, you will need to add the following to the end of your Rprofile.site (Windows) or .Rprofile (Linux, MacOSX):
 
+<<<<<<< HEAD
     ecomod.workdirectory = file.path( "C:", "R", "workspace" )    ### replace with correct path
     ecomod.directory = file.path( "C:", "path", "to", "ecomod" )  ### replace with correct path
 	
     source( file.path( ecomod.directory, "default.rprofile.r" ) ) ### initializes the ecomod environment
+=======
+  ecomod.workdirectory = file.path( "C:", "R", "workspace" )    ### replace with correct path
+  ecomod.directory = file.path( "C:", "path", "to", "ecomod" )  ### replace with correct path
+	
+  source( file.path( ecomod.directory, "default.rprofile.r" ) ) ### initializes the ecomod environment
+>>>>>>> e20db11cd4f5962b67e62e10ef82e9aa3a7f9703
 
 
 
 To load in functions, you can either:
 
+<<<<<<< HEAD
     loadfunctions( c("common", "snowcrab") )  
 
 The above loads all functions under the common/src/_Rfunctions/ and snowcrab/src/_Rfunctions/   
@@ -28,6 +36,17 @@ The above loads all functions under the common/src/_Rfunctions/ and snowcrab/src
 or, 
 
     loadfunctions( "snowcrab", functionname="current.assessment.year.r")  
+=======
+  loadfunctions( c("common", "snowcrab") )  
+
+The above loads all functions under the common/src/_Rfunctions/ and snowcrab/src/_Rfunctions/   
+
+or, 
+
+  loadfunctions( "snowcrab", functionname="current.assessment.year.r")  
+
+The above loads a specific function that fuzzy matches the functionname criterion under the directory snowcrab/src/_Rfunctions/ .
+>>>>>>> e20db11cd4f5962b67e62e10ef82e9aa3a7f9703
 
 The above loads a specific function that fuzzy matches the functionname criterion under the directory snowcrab/src/_Rfunctions/ .
 
