@@ -52,9 +52,9 @@
   # ----------------------------------------------------------
   # Peter Koeller -- N immature male > 56 mm CW in areas 23ab and 24ab
   #  == R2 + R3 + R4
-
-  scdir = "~/projects/snowcrab/src/"
-  source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+     
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+     
   p = get.parameters ( current.assessment.year=2010, set="kriging.params")
   set = snowcrab.db("set.complete")
   # overrides:
@@ -93,7 +93,8 @@
   
   # reulsts in: ~/projects/snowcrab/issues/briefing.note.glace.bay/2005
   
-  source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+     
   p = get.parameters ( current.assessment.year=2006, set="kriging.params")
   set = snowcrab.db("set")
 
@@ -127,7 +128,8 @@
   # ------------------------
   # size freq distributions
 
-  source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+     
   p = get.parameters ( current.assessment.year=2006, set="kriging.params") # <---------- !!!
 
   loc = file.path(p$annual.results, "size.data")
@@ -347,7 +349,8 @@ observer.data.request.oracle = function () {
 # ----------------------------------
 # Hebert: mean size of mature females
 
-    source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+
+		loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
     det = snowcrab.db("det.georef")  # this contains year
     det = det[ which(det$mat ==1 & det$sex==2) ,]
@@ -376,8 +379,7 @@ observer.data.request.oracle = function () {
 # ----------------------------------
 # Gordon MacDonald: CFA 23/24 partitionning
 
-
-  source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
   p = get.parameters ( current.assessment.year=2006, set="kriging.params")
   set = snowcrab.db("set")
@@ -486,7 +488,7 @@ observer.data.request.oracle = function () {
  
   # results location: ~/projects/snowcrab/issues/briefing.note.glace.bay/2006
   
-  source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
   p = get.parameters ( current.assessment.year=2006, set="kriging.params")
   set = snowcrab.db("set")
@@ -588,9 +590,10 @@ observer.data.request.oracle = function () {
 
 
 # Sherrylynn Rowe: sea cucumber and whelks in surveys:
- 
-source( file.path( scdir, "initialise.local.environment.r" ) )
-load(file.path( project.directory("snowcrab"), "R", "cat_georef.rdata"))
+
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+
+	load(file.path( project.directory("snowcrab"), "R", "cat_georef.rdata"))
    
 whelks = c(4210, 4211, 4212, 4227, 4228)  # Family Buccinidae 
 cucumbers = c(6600, 6600, 6611, 6700 , 6705, 6710 , 6711 , 6712, 6713, 6714, 6715, 6716, 6717, 6718, 6719, 6720 ) # class Holothuroidea
@@ -614,8 +617,8 @@ write.table( out, file="temp.csv", sep =";")
 # ---------------- Zwanenburg / MPAs etc
  
 
-scdir = "~/projects/snowcrab/src/"
-source( file.path( scdir, "initialise.local.environment.r" ) )
+loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+     
 load(file.path( project.directory("snowcrab"), "R", "cat.georef.rdata"))
 cat$totno = cat$totno * cat$sa
 to.extract = c("lon", "lat", "yr", "totno", "spec") 
@@ -628,7 +631,8 @@ write.table( out, file="temp.csv", sep =";")
 
 # 4X trawl locations
 #
-  source( file.path( project.directory("snowcrab"), "src", "load.snowcrab.environment.r"  ) )
+loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+     
   set = snowcrab.db("setInitial")
   ii = filter.region.polygon(set, region="cfa4x")
   set = set[ ii, ]

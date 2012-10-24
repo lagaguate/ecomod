@@ -2,7 +2,7 @@
 get.parameters = function( current.assessment.year, set="kriging.params" ) {
  
   p = list()
-  p$env.init = init.files  # from load.snowcrab.environment.r 
+  p$env.init = init.files  # from initialise.local.environment.r
   p$gmt.projection.long = "Lambert.conformal.conic.crab"
   # p$spatial.domain = "snowcrab"
   p$current.assessment.year = current.assessment.year 

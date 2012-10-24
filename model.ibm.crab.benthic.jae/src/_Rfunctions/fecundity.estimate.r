@@ -1,8 +1,8 @@
 
   fecundity.estimate = function( O, G, type ) {
 
-    source( file.path( scdir, "functions.trawl.r" ) ) # contains fecundity.allometric
-    
+    loadfunctions( "snowcrab", functionname="fecundity.allometric" )
+
     # wrapper to determine fecunity from cw
     if (type == "allometric") {
       fecundity.predicted = floor( fecundity.allometric(O$cw) )

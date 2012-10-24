@@ -10,11 +10,8 @@
   #################
   # parameters
 
-  source( file.path( scdir, "load.snowcrab.environment.r"  ) )
-  
-  srcdir = file.path( projects, "model.crab.ibm" )
-  source( file.path( srcdir,  "functions.ibm.r"  ) )
-# source( file.path( srcdir,  "parameters.ibm.r"  ) )
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+	loadfunctions( "model.ibm.crab.benthic.jae" )
 
   # this is run once to start the generator as it does not use the set.seed() mechanism
   # it is apparently 2X faster than the Mersenne

@@ -154,8 +154,7 @@
           }
 
         if ("groundfish" %in% additional.data ) {
-
-					source( file.path( project.directory("groundfish"), "src", "functions.groundfish.r") )
+					loadfunctions( "groundfish")
           gf = groundfish.db( "gshyd.georef" )
 					gf = gf[ which( gf$yr == yt ) , ]
 					if (nrow(gf) > 0) {
@@ -166,13 +165,9 @@
 				}
 
         if ("snowcrab" %in% additional.data ) {
-	        require(RSQLite)
-          source( file.path( project.directory("snowcrab"), "src", "Rprofile.project.r" ) )
-          source( file.path( project.directory("snowcrab"), "src", "functions.trawl.r") ) 
-          source( file.path( project.directory("snowcrab"), "src", "functions.minilog.r") )
-          source( file.path( project.directory("snowcrab"), "src", "functions.netmind.r") )
-
-          sn.profiles = try( minilog.db( DS="basedata", Y=yt ), silent=T )
+	        loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+				  
+					sn.profiles = try( minilog.db( DS="basedata", Y=yt ), silent=T )
 					if ( ! "try-error" %in% class(sn.profiles)  & !is.null( nrow(sn.profiles)) ) {
 						sn.profiles = sn.profiles[, c("temperature", "depth", "unique_id") ] 
 						sn = snowcrab.db( DS="set.clean" ) 

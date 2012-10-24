@@ -106,7 +106,7 @@
   # -------------------------------------------------------------------------------------
   # source required functions
 
-      source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
 
 
   # -------------------------------------------------------------------------------------

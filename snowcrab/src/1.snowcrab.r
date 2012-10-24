@@ -2,9 +2,9 @@
 # NOTE : 
 #  
 #  1. The year in the file "current.assessment.year.r" must be changed every year.
-#     It must be kept separate from "load.snowcrab.environment" as running in parallel mode 
+#     It must be kept separate from "initialise.local.environment.r" as running in parallel mode 
 #     requires occasionally overrding some parameters in "p". This override cannot be completed as  
-#     "load.snowcrab.environment.r" is sourced with every initialisation of a a new CPU.
+#     "initialise.local.environment.r" is sourced with every initialisation of a a new CPU.
 # ----------------------------------------------------------------------------------
    
 # load required functions and parameters 
@@ -12,7 +12,7 @@
 #        project.directory("snowcrab") =  file.path( "J:", "projects", "snowcrab" )
 #    }
 	
-	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
   if (debug) {
     p$do.parallel =F

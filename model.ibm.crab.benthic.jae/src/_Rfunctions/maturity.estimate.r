@@ -24,8 +24,10 @@
     }
 
     if (type == "redo.relationships" ) {
-        source( file.path( scdir, "functions.maturity.r"  ) )
-        det = snowcrab.db("det.georef")
+
+        loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+        
+				det = snowcrab.db("det.georef")
          
         # recode maturity to be (0,1) for logistic regression (0 = imm, 1=mat)
         det$maturity = NA
@@ -56,8 +58,7 @@
         out = maturity.estimate( cw, sex, type="interpolated", subtype=subtype)
       }
       if (type == "model.solutions.redo" ) {
-        source( file.path( scdir, "load.snowcrab.environment.r"  ) )
-        source( file.path( scdir, "functions.maturity.r"  ) )
+        loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
         det = snowcrab.db("det.georef")
          
         # recode maturity to be (0,1) for logistic regression (0 = imm, 1=mat)

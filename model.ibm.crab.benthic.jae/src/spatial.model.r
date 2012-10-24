@@ -1,7 +1,8 @@
 
   # snow crab simulation model
   
-  source( file.path( scdir, "load.snowcrab.environment.r"  ) )
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+	loadfunctions( "model.ibm.crab.benthic.jae" )
 
   assessment.year = 2007 # <---------- !!!
 
