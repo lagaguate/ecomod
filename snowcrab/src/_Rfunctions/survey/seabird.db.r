@@ -11,7 +11,8 @@
     if (DS=="load") {
       # this safely replaces any updates
       dirlist = list.files(path=seabird.rawdata.location, full.names=T, recursive=T)
-      dirlist = dirlist[ -grep("backup", dirlist) ]
+      oo = grep("backup", dirlist)
+      if (length(oo) > 0) dirlist = dirlist[ -oo ]
       nfiles = length(dirlist)
       filelist = matrix( NA, ncol=3, nrow=nfiles) 
       for (f in 1:nfiles) {

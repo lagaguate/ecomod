@@ -19,7 +19,7 @@
 
 	# load bootstrapping functions to finish initial setup
 	startupdirectory = file.path( ecomod.directory, "common", "src", "_Rfunctions", "startup" )
-	startupfiles = list.files( path=startupdirectory )
+	startupfiles = list.files( path=startupdirectory, full.names=T, recursive=T,  ignore.case=T, include.dirs=F  )
 	for ( sf in startupfiles ) source( sf )
 
 

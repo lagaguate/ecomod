@@ -1,31 +1,26 @@
 
+  
     seabirdDate = function( fnSeaBird=NULL, header=NULL, outvalue="year" ) {
       # input can be file name or the file header
       out = NULL
       if (!is.null( fnSeaBird) && file.exists(fnSeaBird) ) {
-        header = readLines( fnSeaBird, n=8)
-        if ( ! any( grepl("Seabird", header) )) return( out )
-      }  
-      lineformat = grep( "^\\*.Date\\(", header, perl=T )
-      lineno = grep( "Start Time=", header, perl=T )
-      
-      if ( !length(lineformat)==1 | !length(lineno)==1 ) return(out)
-      # seabird date format is variable must extract and convert to chron format
-      date.format = gsub( "^\\*.Date\\(", "", header[lineformat])
-      date.format = gsub( "\\).*$", "", date.format)
-      date.format = gsub( "dd", "d", date.format )
-      date.format = gsub( "mm", "m", date.format )
-      date.format = gsub( "yyyy", "y", date.format )
-      date.format = gsub( "yy", "y", date.format )
-
-      Mdate = gsub( "^.*Time=", "", header[lineno])
-      Mdate = gsub( "[[:space:],]+.*$", "", Mdate ) # break on space or comma (convention changes in 2000-2001)
-      
-      out = dates( Mdate, format=date.format)  
-
-      if (outvalue=="year") out = as.numeric( as.character( years( out ) ) ) 
-      if (outvalue=="date") out = chron( out, out.format="y-m-d" )
-      if (outvalue=="format") out = date.format
+        header = readLines( fnSeaBird, n=52)
+        if ( any( grepl("Sea-Bird", header) )) {
+          lineno = grep( "^start\\ time\\ =", header, perl=T )
+          if ( length(lineno)==1 ) {
+            date.format = c(dates = "dd-mon-yyyy", times = "h:m:s")
+            out.format = c(dates = "yyyy-m-d", times = "h:m:s")
+            Mdate = gsub( "^start\\ time\\ =", "", header[lineno])
+            Mdate = gsub( "^[[:space:]]{1,}", "", Mdate) # empty space at beginning
+            Mdate = gsub( "[[:space:]]{1,}", " ", Mdate) # multiple spaces into one space
+            y =  matrix(unlist(strsplit(Mdate, " ")), ncol=4, byrow=T)
+            dstring = paste(y[1], y[2], y[3], sep="-") 
+            tstring = y[4]
+            out = chron( dates.=dstring, times.=tstring, format=date.format, out.format=out.format )   
+            if (outvalue=="year") out = as.numeric( as.character( years( out ) ) ) 
+            if (outvalue=="date") out = out
+            if (outvalue=="format") out = date.format
+      }}}
       return (out)
     }
 
