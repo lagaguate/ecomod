@@ -5,16 +5,16 @@
 	}
 
 
-	# ecomod.work.directory
-	if (is.null( ecomod.work.directory )) {
-		ecomod.work.directory = getwd()
+	# ecomod.workdirectory
+	if (is.null( ecomod.workdirectory )) {
+		ecomod.workdirectory = getwd()
 	} else {
-		setwd( ecomod.work.directory )
+		setwd( ecomod.workdirectory )
 	}
 
 
 	# name of the start-up file (this file) .. used for initializing parallel processing
-	ecomod.rprofile  = file.path( ecomod.directory, "default.rprofile.r" )  
+	ecomod.rprofile  = file.path( ecomod.directory, "ecomod.rprofile.r" )  
 	
 
 	# load bootstrapping functions to finish initial setup

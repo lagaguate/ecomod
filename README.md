@@ -21,7 +21,7 @@ To fully use this respository, you will need to add the following to the end of 
     ecomod.workdirectory = file.path( "C:", "R", "workspace" )    ### replace with correct path
     ecomod.directory = file.path( "C:", "path", "to", "ecomod" )  ### replace with correct path
 	
-    source( file.path( ecomod.directory, "default.rprofile.r" ) ) ### initializes the ecomod environment
+    source( file.path( ecomod.directory, "ecomod.rprofile.r" ) ) ### initializes the ecomod environment
 
 
 
