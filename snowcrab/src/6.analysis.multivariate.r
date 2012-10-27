@@ -2,8 +2,8 @@
  ...  incomplete
 
 #   source(file.path(ordination.package, "ordination.package.r"))
-	loadfunctions( project.directory("sorted.ordination") )
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "sorted.ordination") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 	
 
 

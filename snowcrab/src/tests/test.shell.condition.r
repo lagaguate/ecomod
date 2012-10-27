@@ -1,7 +1,7 @@
   
   require(lattice)
  
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
   k = snowcrab.db( DS ="det.georeferenced")
   

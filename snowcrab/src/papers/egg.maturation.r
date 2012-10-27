@@ -14,9 +14,9 @@
 
   } else { # assume linux
     
-    workdir = file.path( path.expand( "~"), "projects", "snowcrab", "R" )  # linux
-  	loadfunctions( project.directory("common") )
-		loadfunctions( project.directory("snowcrab") ) 
+    workdir = file.path( project.directory( "snowcrab"), "R" )  # linux
+  	loadfunctions( ("common") )
+		loadfunctions( ("snowcrab") ) 
  
   }
 

@@ -36,7 +36,7 @@
 
 	loadfunctions( "model.ibm.crab.planktonic" ) 
 
-  workdir = file.path( projects, "model.planktonic" )
+  workdir = file.path( ecomod, "model.planktonic" )
   archive = file.path( workdir, "GSS4", "data", "Flux_GSS4_1" )
 
   setwd( workdir )
@@ -78,7 +78,7 @@
 octave ::: it works with octave ... something is funny about the "double" class of R
 
 kk = "
-fid = fopen('/home/jae/projects/model.planktonic/GSS4/data/Flux_GSS4_1.u', 'r'); 
+fid = fopen('/home/jae/ecomod/model.planktonic/GSS4/data/Flux_GSS4_1.u', 'r'); 
 system( 'touch ~/tmp/octave.output' );
 while( ! feof (fid ) )
 fread( fid, 1, 'int' );
@@ -113,7 +113,7 @@ system( "mv ~/tmp/octave.output ~/tmp/gss4.u" )
 octave ::: it works with octave ... something is funny about the "double" class of R
 
 kk = "
-fid = fopen('/home/jae/projects/model.planktonic/GSS4/data/Flux_GSS4_1.v', 'r'); 
+fid = fopen('/home/jae/ecomod/model.planktonic/GSS4/data/Flux_GSS4_1.v', 'r'); 
 system( 'touch ~/tmp/octave.output' );
 while( ! feof (fid ) )
 fread( fid, 1, 'int' );
@@ -149,7 +149,7 @@ system( "mv ~/tmp/octave.output ~/tmp/gss4.v" )
 octave ::: it works with octave ... something is funny about the "double" class of R
 
 kk = "
-fid = fopen('/home/jae/projects/model.planktonic/GSS4/data/Flux_GSS4_1.w', 'r'); 
+fid = fopen('/home/jae/ecomod/model.planktonic/GSS4/data/Flux_GSS4_1.w', 'r'); 
 system( 'touch ~/tmp/octave.output' );
 while( ! feof (fid ) )
 fread( fid, 1, 'int' );

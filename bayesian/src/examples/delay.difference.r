@@ -63,9 +63,7 @@ tuna = matrix( c (
   require (rjags)
   # require(coda)
   
-  source( "/home/jae/projects/models/src/functions.jags.r")
-  # source( "delay.difference.functions.bugs.r")
-
+  loadfunctions( c("common", "bayesian" ) )
 
   m = jags.model( file=jags.setup( delay.difference.jags ), data=sb, n.chains=3, n.adapt=5000 )  
 

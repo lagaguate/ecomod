@@ -1,5 +1,5 @@
 
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
   det = snowcrab.db("det.georef")
 

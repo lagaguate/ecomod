@@ -144,7 +144,7 @@ z           -0.96     0.66
   require(rjags)
   require(coda)
     
-  source( file.path( project.directory("common"), "src", "functions.jags.r") )
+  loadfunctions( c("common", "bayesian"))
 
   v = "hepato.mercury.ng.g"  
   ii = which( is.finite( gully$G[, v] ) )

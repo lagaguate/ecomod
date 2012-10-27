@@ -86,26 +86,26 @@
 
 
 # -------------------------------------------------------------------------------------
-# Run BIO.DB to update the multi-survey databases /home/jae/projects/bio/src/bio.r
+# Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
 # -------------------------------------------------------------------------------------
   source( file.path( project.directory("bio"), "src", "bio.r") )
 
 
 # -------------------------------------------------------------------------------------
 # Temperature data
-# must manually obtain data from the Biochem web site and run the sequence in ~/projects/temperature/src/temperature.r
+# must manually obtain data from the Biochem web site and run the sequence in ~/ecomod/temperature/src/temperature.r
 
 # -------------------------------------------------------------------------------------
 # Species area data
-# must manually update the species area database in ~/projects/speciesarea/src/speciesarea.r
+# must manually update the species area database in ~/ecomod/speciesarea/src/speciesarea.r
   
 # -------------------------------------------------------------------------------------
 # Species composition data
-# must manually update the species area database in ~/projects/speciescomposition/src/speciescomposition.r
+# must manually update the species area database in ~/ecomod/speciescomposition/src/speciescomposition.r
  
 # -------------------------------------------------------------------------------------
 # Metabolism data
-# must manually update the species area database in ~/projects/metabolism/src/metabolism.r
+# must manually update the species area database in ~/ecomod/metabolism/src/metabolism.r
 
   
 # ---------
@@ -116,12 +116,12 @@
 # -------------------------------------------------------------------------------------
 # Habitat data 
 # Glue all the above together in planar coord system to allow fast lookup of data for matching with set, logbook data
-# run sequence in /home/jae/projects/habitat/src/habitat.r
+# run sequence in /home/jae/ecomod/habitat/src/habitat.r
 
 
 
 # ---------
-# 9 final save --- much of the above has moved to separate projects ... need to re-integrate ...
+# 9 final save --- much of the above has moved to separate ecomod ... need to re-integrate ...
   groundfish.db( "sm.complete.redo", p=p )
   sm = groundfish.db( "sm.complete", p=p )
 

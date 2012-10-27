@@ -1167,7 +1167,8 @@
 
       
       # 3 merge nss 
-      source( file.path( project.directory("sizespectrum"), "src", "functions.sizespectrum.r" ) )
+      loadfunctions( "sizespectrum")
+      
       nss = sizespectrum.db( DS="sizespectrum.stats.filtered", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
       nss$strat = NULL
@@ -1177,7 +1178,7 @@
 
       
       # 4 merge sar
-      source( file.path( project.directory("speciesarea"), "src", "functions.speciesarea.r" ) )
+      loadfunctions( "speciesarea")
       sar = speciesarea.db( DS="speciesarea.stats.filtered", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
       if ( length(w) > 1 ) w = c( "id", setdiff( names(sar), names(sm)) )

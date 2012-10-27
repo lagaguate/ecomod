@@ -1,7 +1,7 @@
 
   observer.historical.data.concatenate = function(type, outfile) {
 
-    rootdir = file.path( "/home", "jae", "projects", "snowcrab", "data", "observer" )
+    rootdir = file.path( project.directory ("snowcrab"), "data", "observer" )
 
     directories =  file.path( rootdir, "archive", c(2001:2003) )
     directories =  file.path( rootdir, "archive", c(1996, 1999:2000) )

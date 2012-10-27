@@ -44,7 +44,7 @@
 
     if (map.method=="googleearth" ) {
       
-      source(  file.path( project.directory("googleearth"), "src", "functions.googleearth.r" ) )
+      loadfunctions("googleearth")
   
       outfile =  file.path( basedir, "survey.locations.googleearth.kml" ) 
       set$desc = paste( 

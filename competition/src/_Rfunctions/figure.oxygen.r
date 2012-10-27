@@ -5,7 +5,7 @@
 
 figure.oxygen = function() {
 
-  biochem.dir = file.path( "/home", "jae", "projects", "biochem" )
+  biochem.dir = project.directory("biochem" )
   source( file.path( biochem.dir, "biochem.r" ) )
  
   to.extract = c( "lon", "lat", "sal", "temp", "oxysat", "Z", "yr", "julian", "region" )

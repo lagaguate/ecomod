@@ -1,24 +1,6 @@
 
   # Species-area analysis 
-  env.init = c(
-		file.path( project.directory("common"), "src", "functions.map.r" ),
-		file.path( project.directory("common"), "src", "functions.spatial.r" ),
-		file.path( project.directory("common"), "src", "functions.date.r" ),
-		file.path( project.directory("common"), "src", "functions.filter.r" ),
-    file.path( project.directory("common"), "src", "functions.parallel.r" ),
-		file.path( project.directory("common"), "src", "functions.conversion.r" ),
-		file.path( project.directory("common"), "src", "functions.utility.r" ),
-		file.path( project.directory("common"), "src", "geodesy.r" ),
-    file.path( project.directory("bathymetry"), "src", "functions.bathymetry.r" ),
-    file.path( project.directory("temperature"), "src", "functions.temperature.r" ),
-    file.path( project.directory("habitat"), "src", "functions.habitat.r" ),  # watch out: this accesses temperatures -- must be run before
-    file.path( project.directory("taxonomy"), "src", "functions.taxonomy.r" ),
-    file.path( project.directory("taxonomy"), "src", "functions.itis.r" ),
-    file.path( project.directory("bio"), "src", "functions.bio.r" ),
-    file.path( project.directory("speciesarea"), "src", "functions.speciesarea.r" )
-  )
-  
-  for (i in env.init) source (i)
+  env.init = loadfunctions( c("common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"    ) )
 
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"

@@ -1,12 +1,12 @@
 
 
 # analyses for the inter-specific competition paper
-# primary datasets are derived from the groundfish data set: /home/jae/projects/src/groundfish.r
+# primary datasets are derived from the groundfish data set: /home/jae/ecomod/src/groundfish.r
 
 # ------------------  Common initialisation for groundfish 
 # ------------------
    
-  competitiondir = file.path( projects, "competition" )
+  competitiondir = file.path( ecomod, "competition" )
 
   dir.create( competitiondir,  showWarnings=F, recursive =T )
   dir.create( file.path( competitiondir, "data" ),  showWarnings=F, recursive =T )

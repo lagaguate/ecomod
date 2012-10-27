@@ -3,7 +3,7 @@ require("R.oo")
 require("geosphere")
 
 rootdir = file.path("C:", "Users", "brent", "Desktop", "RObjects" )
-if ( Sys.info()["sysname"] == "Linux"  ) rootdir = file.path("~", "projects", "crab.ibm.benthic", "src" )
+if ( Sys.info()["sysname"] == "Linux"  ) rootdir = file.path("~", "ecomod", "crab.ibm.benthic", "src" )
 
 environ = file.path( rootdir, c("Env.r", "GeoPos.r", "Schedule.r", "SnowCrab.r" ) )
 

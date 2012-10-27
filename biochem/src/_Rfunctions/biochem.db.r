@@ -8,7 +8,7 @@
  
   biochem.db = function(DS="", ss=NULL) {
       
-    biochem.dir = file.path( "/home", "jae", "projects", "biochem") 
+    biochem.dir = file.path( "/home", "jae", "ecomod", "biochem") 
     
     if (DS %in% c("scotian.shelf.redo", "scotian.shelf") ){
 

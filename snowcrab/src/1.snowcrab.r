@@ -8,9 +8,6 @@
 # ----------------------------------------------------------------------------------
    
 # load required functions and parameters 
-#if (.Platform$OS.type=="windows")  {
-#        project.directory("snowcrab") =  file.path( "J:", "projects", "snowcrab" )
-#    }
 	
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
@@ -89,23 +86,23 @@
 
 # -------------------------------------------------------------------------------------
 # Bathymetry data
-# must run sequence in ~/projects/bathymetry/src/bathymetry.r 
+# must run sequence in ~/ecomod/bathymetry/src/bathymetry.r 
 # only if updating bathymetry data ( e.g., add snow crab depth data )
 
 
 # -----------------------------------------------------------------------------------
 # Substrate type
-# do not update unless substrate data has been changed ... see ~/projects/substrate/src/substrate.r
+# do not update unless substrate data has been changed ... see ~/ecomod/substrate/src/substrate.r
 
 # -------------------------------------------------------------------------------------
 # Groundfish data 
 #  required also for updates to temps and species
-# ... see ~/projects/groundfish/src/groundfish.r -- require sm.base and gs.hydro
+# ... see ~/ecomod/groundfish/src/groundfish.r -- require sm.base and gs.hydro
 
 
 
 # -------------------------------------------------------------------------------------
-# Run BIO.DB to update the multi-survey databases /home/jae/projects/bio/src/bio.r
+# Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
 # -------------------------------------------------------------------------------------
   loadfunctions ("bio" )
 	loadfunctions ( "bio", functionname="bio.r" )  # glue everything together
@@ -114,36 +111,36 @@
 # -------------------------------------------------------------------------------------
 # Temperature data
 # must manually obtain data from the Biochem web site and 
-# run the sequence in ~/projects/temperature/src/temperature.r
+# run the sequence in ~/ecomod/temperature/src/temperature.r
 
 
 # -------------------------------------------------------------------------------------
 # Update the taxonomy database .. esp after groundfishdata refresh
-# see: ~/projects/taxonomy/src/taxonomy.r
+# see: ~/ecomod/taxonomy/src/taxonomy.r
 
 
 # -------------------------------------------------------------------------------------
 # Species area data
-# must manually update the species area database in ~/projects/speciesarea/src/speciesarea.r
+# must manually update the species area database in ~/ecomod/speciesarea/src/speciesarea.r
   
 # -------------------------------------------------------------------------------------
 # Species composition data
-# must manually update the species area database in ~/projects/speciescomposition/src/speciescomposition.r
+# must manually update the species area database in ~/ecomod/speciescomposition/src/speciescomposition.r
   
 # -------------------------------------------------------------------------------------
 # Sizespectrum data
-# must manually update the species area database in ~/projects/sizespectrum/src/sizespectrum.r
+# must manually update the species area database in ~/ecomod/sizespectrum/src/sizespectrum.r
  
 
 # -------------------------------------------------------------------------------------
 # Metabolism data
-# must manually update the species area database in ~/projects/metabolism/src/metabolism.r
+# must manually update the species area database in ~/ecomod/metabolism/src/metabolism.r
 
 
 # -------------------------------------------------------------------------------------
 # Habitat data 
 # Glue all the above together in planar coord system to allow fast lookup of data for matching with set, logbook data
-# run sequence in /home/jae/projects/habitat/src/habitat.r
+# run sequence in /home/jae/ecomod/habitat/src/habitat.r
 
 # -------------------------------------------------------------------------------------
 # final data lookup/matching .. AFTER refreshing all above tables (where relevent/possible)

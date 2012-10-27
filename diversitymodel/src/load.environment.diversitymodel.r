@@ -1,27 +1,6 @@
 
-  env.init = c(
-		file.path( project.directory("common"), "src", "functions.map.r" ),
-		file.path( project.directory("common"), "src", "functions.spatial.r" ),
-		file.path( project.directory("common"), "src", "functions.date.r" ),
-		file.path( project.directory("common"), "src", "functions.filter.r" ),
-    file.path( project.directory("common"), "src", "functions.parallel.r" ),
-		file.path( project.directory("common"), "src", "functions.conversion.r" ),
-		file.path( project.directory("common"), "src", "functions.utility.r" ),
-		file.path( project.directory("common"), "src", "geodesy.r" ),
-    file.path( project.directory("bathymetry"), "src", "functions.bathymetry.r" ),
-    file.path( project.directory("temperature"), "src", "functions.temperature.r" ),
-    file.path( project.directory("habitat"), "src", "functions.habitat.r" ),  # watch out: this accesses temperatures -- must be run before
-    file.path( project.directory("taxonomy"), "src", "functions.taxonomy.r" ),
-    file.path( project.directory("taxonomy"), "src", "functions.itis.r" ),
-    file.path( project.directory("bayesian"), "src", "functions.jags.r" ), 
-    file.path( project.directory("bio"), "src", "functions.bio.r" ),
-    file.path( project.directory("speciesarea"), "src", "functions.speciesarea.r" ),
-    file.path( project.directory("diversity")model, "src", "functions.diversitymodel.r" )
-  )
+  env.init = loadfunctions( c("common", "bathymetry" , "temperature", "habitat", "taxonomy", "bayesian", "bio", "speciesarea", "diversitymodel"  ))
   
-  for (i in env.init) source (i)
-
-
   p = list()
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$init.files = env.init

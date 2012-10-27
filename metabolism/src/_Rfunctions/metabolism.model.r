@@ -52,7 +52,7 @@
       }
       
       if (modeltype=="complex") { 
-        source ( file.path(project.directory("habitat"), "src", "functions.habitat.r" ) ) 
+        loadfunctions("habitat")
         SC = habitat.lookup(x=SC, p=p, dist.scale=p$dist.scale, keep.lon.lat=TRUE,  datatype="all.data" )
 
         formu = formula( paste( ww, 

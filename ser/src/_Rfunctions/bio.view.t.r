@@ -1,6 +1,5 @@
-bio.view.t = function (b, title, print, t0, t1)
-{ 
-  source(file.path(grdfishdir, "colour.functions.r"))
+bio.view.t = function (b, title, print, t0, t1) { 
+  loadfunctions( "common" )
   corel = cor(b, use="pairwise.complete.obs")  
   # Z = lower.tri(corel,diag=F) * corel
   Z = corel

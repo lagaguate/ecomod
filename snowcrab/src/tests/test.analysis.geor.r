@@ -44,7 +44,7 @@ names(ca20)
 
 # ----------------------
   
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 
 p = get.parameters ( current.assessment.year=2006, set="kriging.params")  # <---------- !!!

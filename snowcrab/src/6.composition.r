@@ -1,8 +1,8 @@
 
 # species composition analysis from snow crab data
   	
-	loadfunctions( project.directory("sorted.ordination") )
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "sorted.ordination") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
   C = snowcrab.db( DS="cat.georeferenced" )

@@ -6,7 +6,6 @@
 		if (  Sys.info()["sysname"] == "Windows" ) {
 			.Library.site <- "D://R//library-local"
 			.libPaths("D://R//library-local")
-      project.directory("snowcrab") = file.path("C:", "datadump")
     }
 
 
@@ -438,7 +437,7 @@
 			mw = mw[which(is.finite(mw$meanweight)) ,]
 		
 			# add groundfish data if it does not exist already
-			source( file.path( project.directory("groundfish"), "src", "functions.groundfish.r")) 
+			loadfunctions( "groundfish" )
 			gs = groundfish.db( "set" )  
 			meanwgt = gs$totwgt / gs$totno
 			good = which( is.finite( meanwgt) & is.finite( 1/meanwgt ) )

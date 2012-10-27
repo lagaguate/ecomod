@@ -8,7 +8,7 @@ Test:     Biomass estimation via GAM / LME
   require(mgcv)
   require(nlme4)
   
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 
       

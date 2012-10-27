@@ -6,7 +6,6 @@
 			if (  Sys.info()["sysname"] == "Windows" ) {
 				.Library.site <- "D://R//library-local"
 				.libPaths("D://R//library-local")
-				project.directory("snowcrab") = file.path("C:", "datadump")
 			}
 
 			fn.root =  file.path( project.directory("snowcrab"), "data", "observer", "datadump" )

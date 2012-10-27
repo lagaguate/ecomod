@@ -5,8 +5,8 @@
   require(geoRglm)
 
 	
-	loadfunctions( project.directory("common") )
-  loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "common" )
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 	
 	set = snowcrab.db("set")

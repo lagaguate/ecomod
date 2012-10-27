@@ -59,12 +59,12 @@
       gc()
   
       if (modtype=="time.invariant") { 
-        source ( file.path(project.directory("habitat"), "src", "functions.habitat.r" ) ) 
+        loadfunctions ( "habitat")
         sc = habitat.lookup(x=sc, p=p, dist.scale=p$interpolation.distances, keep.lon.lat=TRUE, datatype="time.invariant"  )
       }
     
       if (modtype=="complex") { 
-        source ( file.path(project.directory("habitat"), "src", "functions.habitat.r" ) ) 
+        loadfunctions ( "habitat")
         sc = habitat.lookup(x=sc, p=p, dist.scale=p$interpolation.distances, keep.lon.lat=TRUE, datatype="all.data"  )
       }
 

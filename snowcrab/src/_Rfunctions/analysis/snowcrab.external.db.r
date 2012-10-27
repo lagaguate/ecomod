@@ -2,8 +2,9 @@
   snowcrab.external.db = function( p=NULL, DS="", vname="" ) {
   
     if ( DS=="det.snowcrab.in.groundfish.survey" ) {
-      source( file.path( project.directory("groundfish"), "src", "current.year.r" ))
-      source( file.path( project.directory("groundfish"), "src", "load.groundfish.environment.r" ) )
+      loadfunctions( "groundfish", functionname="current.year.r" )
+      loadfunctions( "groundfish", functionname="load.groundfish.environment.r" )
+
 
       ct = groundfish.db( "det" )
       ct = filter.taxa( x=ct, method="snowcrab")
@@ -53,8 +54,8 @@
         return (sm)
       }
 
-      source( file.path( project.directory("groundfish"), "src", "current.year.r" ))
-      source( file.path( project.directory("groundfish"), "src", "load.groundfish.environment.r" ) )
+      loadfunctions( "groundfish", functionname="current.year.r" )
+      loadfunctions( "groundfish", functionname="load.groundfish.environment.r" )
 
       ct = snowcrab.external.db( DS="det.snowcrab.in.groundfish.survey", vname=vname )
       if (nrow(ct)==0) return()

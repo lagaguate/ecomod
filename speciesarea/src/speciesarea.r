@@ -43,11 +43,11 @@
 
 
 # -------------------------------------------------------------------------------------
-# Run BIO.DB to update the multi-survey databases /home/jae/projects/bio/src/bio.r
+# Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
 # -------------------------------------------------------------------------------------
 
 
-  # count and record rarification curves from all available data --- refresh "bio.db" ~/projects/bio/src/bio.r  
+  # count and record rarification curves from all available data --- refresh "bio.db" ~/ecomod/bio/src/bio.r  
   p$clusters = rep( "localhost", 24 )
   speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
   

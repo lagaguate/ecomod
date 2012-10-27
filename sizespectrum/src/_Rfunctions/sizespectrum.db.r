@@ -4,7 +4,7 @@
    
     if (DS %in% c( "sizespectrum.stats", "sizespectrum.stats.redo" ) ) {
 
-      source ( file.path( project.directory("groundfish"), "src", "functions.groundfish.r")) 
+      loadfunctions( "groundfish")
 
       ddir = file.path( project.directory("sizespectrum"), "data"  )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
@@ -159,7 +159,7 @@
         return (ss )
       }
 
-      source ( file.path( project.directory("groundfish"), "src", "functions.groundfish.r")) 
+      loadfunctions( "groundfish")
       
       x =  groundfish.db( "det" )  # mass and length are not transformed
       x = x[ which(x$settype %in% c(1,2,5) ), ]
@@ -208,7 +208,7 @@
 
     if (DS %in% c( "sizespectrum.collapse.yr", "sizespectrum.collapse.yr.redo") ) {
 
-      source ( file.path( project.directory("groundfish"), "src", "functions.groundfish.r")) 
+      loadfunctions( "groundfish")
       
       fn = file.path(  project.directory("sizespectrum"), "data", "nss.yr.rdata" )
       if ( DS=="sizespectrum.collapse.yr" ) {

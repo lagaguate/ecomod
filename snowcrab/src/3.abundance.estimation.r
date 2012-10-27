@@ -5,7 +5,7 @@
   required.libraries = c( "mgcv", "chron", "lattice"  )
   for ( L in required.libraries) require( L, character.only=T )
 	 
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
 

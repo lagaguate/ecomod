@@ -1,7 +1,7 @@
 
 
 	
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 
   # white hake
@@ -91,7 +91,7 @@
 
   # for Glace Bay comparisons: override with ..
   
-  # reulsts in: ~/projects/snowcrab/issues/briefing.note.glace.bay/2005
+  # reulsts in: ~/ecomod/snowcrab/issues/briefing.note.glace.bay/2005
   
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
@@ -486,7 +486,7 @@ observer.data.request.oracle = function () {
 # ----------------------------------
 # MacMullin: GBH vs NENS partitionning
  
-  # results location: ~/projects/snowcrab/issues/briefing.note.glace.bay/2006
+  # results location: ~/ecomod/snowcrab/issues/briefing.note.glace.bay/2006
   
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 

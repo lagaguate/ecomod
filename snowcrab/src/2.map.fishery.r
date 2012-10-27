@@ -1,7 +1,7 @@
   
-	 loadfunctions( project.directory("common") )
-	 loadfunctions( project.directory("googleearth"), functionname="functions.googleearth") 
-	 loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	 loadfunctions( ("common") )
+	 loadfunctions( ("googleearth"), functionname="functions.googleearth") 
+	 loadfunctions( ("snowcrab"), functionname="initialise.local.environment.r") 
 
 
 

@@ -2,7 +2,7 @@
 
 # 1 .generate Z estimates and possibly relate them to changes in prey and pred abundance.
   
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 
   p = get.parameters ( current.assessment.year=2006, set="kriging.params")  # <---------- !!!
@@ -106,7 +106,7 @@
   # -------------------------------------------------------------------------------------
   # source required functions
 
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
   # -------------------------------------------------------------------------------------

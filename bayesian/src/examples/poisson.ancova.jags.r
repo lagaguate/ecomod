@@ -1,6 +1,6 @@
 
 
-u = read.csv( file="/home/jae/projects/nath/poissonregression/data.csv", sep=";", stringsAsFactors=F )
+u = read.csv( file="/home/jae/ecomod/nath/poissonregression/data.csv", sep=";", stringsAsFactors=F )
 u$urban_dens = as.factor(u$urban_dens)
 u$mortality = 100000*u$COUNT/(u$pop_pct01_15_plus*11)
 # u$offset = log(u$pop_pct01_15_plus*11/100000)

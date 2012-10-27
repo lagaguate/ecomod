@@ -97,7 +97,7 @@
 		if ( datatype=="temperature.weekly" ) { 
 
 			if (! exists("weekno", x) ) {
-        x$dayno = convert.datecodes(x$chron, "julian")  # from  source ("/home/jae/projects/common/functions.date.r")
+        x$dayno = convert.datecodes(x$chron, "julian")  # from  source ("/home/jae/ecomod/common/functions.date.r")
 			  x$weekno = ceiling (x$dayno / 365 * 52 )
 			}
       weeknos = sort( unique( x$weekno ) )

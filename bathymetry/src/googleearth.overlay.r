@@ -2,9 +2,7 @@
   # Googleearth overlays: 
 
   # common functions:
-  
-  source( file.path( project.directory("common"), "src", "functions.map.r") )
-  source( file.path( project.directory("bathymetry"), "src", "functions.bathymetry.r" ) )
+  loadfunctions( c("common", "bathymetry")) 
   
   cmd = function(x, ...) { system(paste(x, ...)) }
 
@@ -46,7 +44,7 @@
   )
   for ( L in required.libraries) require( L, character.only=T )
 
-  source( file.path( project.directory("snowcrab"), "src", "initialise.local.environment.r" ) )
+  loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
 
   gmt = list()
   gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
@@ -98,7 +96,7 @@
   )
   for ( L in required.libraries) require( L, character.only=T )
 
-  source( file.path( project.directory("snowcrab"), "src", "initialise.local.environment.r" ) )
+  loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
 
   gmt = list()
   gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )

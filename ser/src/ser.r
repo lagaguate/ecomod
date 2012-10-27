@@ -22,9 +22,9 @@
     datadir= file.path( project.directory( "ser"), "data" )
     mapdir = file.path( project.directory( "ser"), "maps" )
 
-    bottomT.integral = read.table( file="~/projects/ser/data/BtmT4VW_NAO.txt", sep=";", header=T, as.is=T, strip.white=T)
+    bottomT.integral = read.table( file="~/ecomod/ser/data/BtmT4VW_NAO.txt", sep=";", header=T, as.is=T, strip.white=T)
     
-    load ( "~/projects/speciescomposition/R/4VW_log" )  # species composition of fish -- already log-transformed
+    load ( "~/ecomod/speciescomposition/R/4VW_log" )  # species composition of fish -- already log-transformed
     rv4vw = t(VW)
     rv4vw = as.data.frame( cbind( rv4vw, yr=c(1970:2002)) )
 
@@ -52,7 +52,7 @@
     mixed = mixedlayer[c(1, 2, 6, 10, 14)]  # ignore the normalised and time averages
 
 # merge CA of species associations
-#ca = read.table(file="/home/jae/projects/speciescomposition/R/years.ca.dat", header=T, sep=",")
+#ca = read.table(file="/home/jae/ecomod/speciescomposition/R/years.ca.dat", header=T, sep=",")
  
 #ca = ca[,c("CA1", "CA2")]
 #    ca$yr = c(1970:2002)
@@ -72,13 +72,13 @@
     tssout2 = cbind(yr=as.numeric(as.character(row.names(tssout))), tssout )
 
   # merge invertebrate abundances
-    s = read.table(file="/home/jae/projects/ser/R/inverts.csv", header=T, sep=",")
+    s = read.table(file="/home/jae/ecomod/ser/R/inverts.csv", header=T, sep=",")
     s$snowcrab.kg.h = scale (log10(s$snowcrab.kg.h), center=T, scale=T)
     s$shrimp.gulf.cpue  = scale (log10(s$shrimp.gulf.cpue), center=T, scale=T)
     invert = data.frame(yr=s$yr, invert.cpue=rowMeans(s[,2:3], na.rm=T))
 
   # merge recruitment estimates
-    recruits = read.csv("/home/jae/projects/ser/data/recruitment.csv", header=T)
+    recruits = read.csv("/home/jae/ecomod/ser/data/recruitment.csv", header=T)
     t0 = 1970
     t1 = 1998
     recruits = recruits[ recruits$yr>=t0 & recruits$yr <=t1,]
@@ -96,7 +96,7 @@
 
   # landings
   # inflation corrected total landed values (grdfish, pel, invert)
-    lndgs = read.table("/home/jae/projects/hysteresis/greed.csv", header=T, sep=";")
+    lndgs = read.table("/home/jae/ecomod/hysteresis/greed.csv", header=T, sep=";")
     
 
   # merge all data

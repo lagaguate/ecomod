@@ -330,7 +330,7 @@
         return(Z)
       }         
       
-      source( file.path( project.directory("groundfish"), "src", "load.groundfish.environment.r"))
+      loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
         
       # data from groundfish data series
       sm = groundfish.db( "sm.complete" )
@@ -488,7 +488,7 @@
         return(res)
       } 
 
-      source( file.path( project.directory("snowcrab"), "src", "initialise.local.environment.r" ) )
+      loadfunctions( "snowcrab") functionname="initialise.local.environment.r" )
       
       # fishery data
       landings = get.landingsdb()

@@ -3,9 +3,9 @@
 
   require(chron)
 
-	loadfunctions( project.directory("common") )
-	loadfunctions( project.directory("sorted.ordination") ) 
-	loadfunctions( project.directory("indicators") ) 
+	loadfunctions( ("common") )
+	loadfunctions( ("sorted.ordination") ) 
+	loadfunctions( ("indicators") ) 
  
   setwd( project.directory("indicators") )
   
@@ -34,7 +34,7 @@
 
   sub = indic$data[, c("T_bottom_misaine", "SST_halifax", "ice_coverage.km.2", "Gulf.Stream.front.Ref.62lon", "T_sable_annual", "snowcrab.bottom.habitat.area", "snowcrab.kriged.R0.mass", "snowcrab.fishery.landings", "snowcrab.fishery.cpue", "groundfish.stratified.mean.temp" )]
 
-  write.table(sub, file="~/projects/snowcrab/research/environ.management/data.csv", sep=";")
+  write.table(sub, file=file.path( project.directory( "snowcrab"), "research", "environ.management", "data.csv"), sep=";")
 
 
 inn = names (indic$data) 

@@ -10,7 +10,7 @@
   # 4.figures.r
 
    	
-	loadfunctions( project.directory("snowcrab"), functionname="initialise.local.environment.r") 
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
 
   
@@ -28,7 +28,7 @@
    )
    p$regions.to.model = "cfaall"
 
-   p$ofname = "/home/jae/projects/snowcrab/R/egg.production.rdata"
+   p$ofname = file.path( project.directory("snowcrab"), "R", "egg.production.rdata" )
    
    p = make.list( list(p$vars.to.model, p$years.to.model), Y=p)
 
@@ -39,7 +39,7 @@
     K = krige.block ( p, init.files=init.files  ) # to est CI and get data summaries ~ 2 days
     krige.map ( p, init.files=init.files  )  # ~ 1 day?
     gmt.cleanup() # clean up any stragglers
-    cmd( "rsync -avzn tethys:/home/jae/projects/snowcrab/R /home/jae/projects/snowcrab/" )
+    cmd( "rsync -avzn tethys:/home/jae/ecomod/snowcrab/R /home/jae/ecomod/snowcrab/" )
 
 
 
@@ -50,7 +50,7 @@
 
  # ------------------------------------------
   # Fecundity estimated directly via kriging and individual-based fecundity estimate
-  # p$ofname="/home/jae/projects/snowcrab/R/females.kriged.results.rdata"
+  # p$ofname="/home/jae/ecomod/snowcrab/R/females.kriged.results.rdata"
   
   fec.krig = figure.timeseries.fecundity(p,  outdir=file.path( p$annual.results, "timeseries",  "kriged"  ) )
   fec.krig2 = tapply( fec.krig$total, fec.krig$yr, sum, na.rm=T) 
@@ -78,7 +78,7 @@
   A = fecundity.indirect(  outdir=file.path( p$annual.results, "timeseries", "survey" ) )
   A$yr = A$years + 7
   A = A[ which(A$years >= 1997) ,]
-  #   p$ofname = "/home/jae/projects/snowcrab/R/instar8.rdata"
+  #   p$ofname = "/home/jae/ecomod/snowcrab/R/instar8.rdata"
  
   load (p$ofname)
   B = K

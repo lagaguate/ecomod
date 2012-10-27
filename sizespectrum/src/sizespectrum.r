@@ -53,7 +53,7 @@
 
   
 # -------------------------------------------------------------------------------------
-# Run BIO.DB to update the multi-survey databases /home/jae/projects/bio/src/bio.r
+# Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
 # -------------------------------------------------------------------------------------
 
 

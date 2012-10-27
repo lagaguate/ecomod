@@ -79,7 +79,7 @@
       }
 
 
-      source( file.path( project.directory("groundfish"), "src", "functions.groundfish.r" ) )
+      loadfunctions("groundfish")
 
       det = groundfish.db( DS="det" ) # size information, no, cm, kg
       set = groundfish.db( "set" ) # kg/km^2, no/km^2

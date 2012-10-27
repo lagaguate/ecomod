@@ -29,7 +29,7 @@ Example usage: To load in all functions under the common/src/_Rfunctions/ and sn
 
     loadfunctions( c("common", "snowcrab") )  
 
-or to load a specific function that fuzzy matches the 'functionname' criterion under the directory snowcrab/src/_Rfunctions/
+or to load a specific function that fuzzy matches the 'functionname' criterion under the directory snowcrab/src/
 
     loadfunctions( "snowcrab", functionname="current.assessment.year.r")  
 

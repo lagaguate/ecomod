@@ -4,7 +4,7 @@
     if (  DS %in% c("z.lonlat.rawdata.redo", "z.lonlat.rawdata") ) {
 			# raw data minimally modified all concatenated
       
-      datadir = file.path( project.directory("bathymetry"), "data" )
+      datadir = project.directory("bathymetry", "data" )
 			fn = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.rdata" )
       
       if (DS =="z.lonlat.rawdata" ) {
@@ -32,14 +32,16 @@
 			#		bathy = bathy[ - i, ]
 
 			if ( "snowcrab" %in% additional.data ) {
-				source( file.path( project.directory("snowcrab"), "src", "functions.trawl.r" ) )
-				sc = snowcrab.db("set.clean")[,c("lon", "lat", "z") ]
+				
+        loadfunctions( "snowcrab",  functionname="initialise.local.environment.r" )
+				
+        sc = snowcrab.db("set.clean")[,c("lon", "lat", "z") ]
 				sc = sc [ which (is.finite( rowSums( sc ) ) ) ,]
 				bathy = rbind( bathy, sc )
 			}
 
 			if ( "groundfish" %in% additional.data ) {
-				source( file.path( project.directory("groundfish"), "src", "functions.groundfish.r" ) )
+				loadfunctions("groundfish")
 				gf = groundfish.db( "set" )[, c("lon","lat", "sdepth") ]
 				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
 				names(gf) = names( bathy )
@@ -56,7 +58,7 @@
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
 			
 			tmpdir  = tempdir()
-			outdir = file.path( project.directory("bathymetry"), "interpolated" )
+			outdir = project.directory("bathymetry", "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
  
 			fn.interp.z = file.path( outdir,  paste(  p$spatial.domain, "Z.interpolated.xyz", sep=".") )
@@ -102,7 +104,7 @@
    
 		if ( DS %in% c( "Z.redo", "Z.lonlat", "Z.lonlat.grid", "Z.planar", "Z.planar.grid" ) ) { 
 
-			outdir = file.path( project.directory("bathymetry"), "interpolated" )
+			outdir = project.directory("bathymetry", "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 		
 			fn.lonlat = file.path( outdir, paste( p$spatial.domain, "Z.interpolated.lonlat.rdata", sep=".") )
