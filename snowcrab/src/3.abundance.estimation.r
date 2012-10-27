@@ -2,7 +2,7 @@
   # --------------------------
   # 0. Initialise work space 
 
-  required.libraries = c( "mgcv", "chron", "lattice"  )
+  loadlibraries( "mgcv", "chron", "lattice"  ) 
   for ( L in required.libraries) require( L, character.only=T )
 	 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
