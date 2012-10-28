@@ -4,4 +4,10 @@
 *.bak
 *.old
 .tmp.*
+*.rdata
 
+_pkg
+_src
+maps
+
+/diversity

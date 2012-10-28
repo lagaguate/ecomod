@@ -20,13 +20,14 @@
   # get data tables from Oracle server and store local copies
   # !!!!!! --------- these should be run on a windows machine: !!!!!!!!! <--------- READ THIS
 
+
   if (obtain.database.snapshot) {
     snowcrab.db( DS="set.odbc.redo", yrs=1996:p$current.assessment.year ) 
     snowcrab.db( DS="det.odbc.redo", yrs=1996:p$current.assessment.year ) 
     snowcrab.db( DS="cat.odbc.redo", yrs=1996:p$current.assessment.year ) 
-    logbook.db( DS="odbc.logbook.redo", yrs=1996:p$current.assessment.year ) 
-    logbook.db( DS="odbc.licence.redo" ) 
-    logbook.db( DS="odbc.areas.redo" ) 
+    logbook.db(  DS="odbc.logbook.redo", yrs=1996:p$current.assessment.year ) 
+    logbook.db(  DS="odbc.licence.redo" ) 
+    logbook.db(  DS="odbc.areas.redo" ) 
     observer.db( DS="odbc.redo", yrs=1996:p$current.assessment.year )  
   }
 

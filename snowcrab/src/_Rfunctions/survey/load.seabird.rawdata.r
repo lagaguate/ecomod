@@ -54,7 +54,7 @@
 	  date.format = seabirdDate( header=header, outvalue="format"  ) 
     seabird$chron = chron( dates.=seabird$mdate, times.=seabird$mtime, format=date.format, out.format=dateformat.snow )
     
-    yr = from header .. filename or data blob.
+    ### TODO ::: yr = from header .. filename or data blob.
     if (!is.finite(yr) ) yr = seabirdDate( header=header, outvalue="year"  ) 
     
     error = ""

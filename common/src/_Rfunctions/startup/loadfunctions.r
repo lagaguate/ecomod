@@ -55,9 +55,9 @@
   			for ( nm in projectfiles ) source( file=nm )
 				return( projectfiles )
 			}
-			return( paste( "File not found", functionname ) ) 
-		
-    } else { 
+			paste( "File not found", functionname, "trying a general search" )  
+    } 
+    
       
       projectfiles = NULL
       projectfiles = list.files( path=searchdirectories, pattern=filepattern, full.names=T, 
@@ -81,7 +81,7 @@
         for ( nm in projectfiles ) source( file=nm )
         return(projectfiles ) 
       }
-    }
+    
 	}
 
 
