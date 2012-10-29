@@ -1,7 +1,10 @@
 
   
     seabirdDate = function( fnSeaBird=NULL, header=NULL, outvalue="year" ) {
-      # input can be file name or the file header
+      
+      # read dates from file name or the file header and then return the dates 
+      # or the date format for seabirds
+      
       out = NULL
       date.format = c(dates = "dd mon year", times = "h:m:s")
       out.format = c(dates = "year-m-d", times = "h:m:s")
