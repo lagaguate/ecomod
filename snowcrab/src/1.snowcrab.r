@@ -166,7 +166,7 @@
 # simple geometric means of raw data:  used by indicators ordination and some figures
   # takes many hours ... need to make parallel 
   tsdata =  get.time.series ( x=snowcrab.db( DS="set.logbook", p=p, yrs=1996:p$current.assessment.year ),
-    regions=p$regions, vars=get.variables("all.data"), from.file=F, trim=0 )
+    regions=p$regions, vars=variable.list.expand("all.data"), from.file=F, trim=0 )
 
 
 

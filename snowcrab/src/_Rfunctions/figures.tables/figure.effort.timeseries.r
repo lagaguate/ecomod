@@ -1,6 +1,6 @@
   figure.effort.timeseries = function( type="line", yearmax, outdir=NULL, outfile=NULL ) {
    
-    landings = get.landingsdb()  
+    landings = landings.db()  
     uyrs = sort(unique(landings$yr))
     uyrs = uyrs[ uyrs <= yearmax ]
     YR = data.frame( yr=uyrs )

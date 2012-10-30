@@ -12,7 +12,7 @@
     if (Reg=="cfasouth") region = c("cfa23", "cfa24", "cfasouth", "cfaslope")
     if (Reg=="cfa4x") region = "cfa4x"
     
-    if (is.null(landings0)) landings0 = get.landingsdb()
+    if (is.null(landings0)) landings0 = landings.db()
     
     lnd = landings0[ which(landings0$cfa %in% region) ,]
      

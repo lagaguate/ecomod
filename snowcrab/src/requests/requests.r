@@ -55,7 +55,7 @@
      
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-  p = get.parameters ( current.assessment.year=2010, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2010, set="kriging.params")
   set = snowcrab.db("set.complete")
   # overrides:
   p$regions.to.model = "cfa.23ab.24ab"
@@ -95,7 +95,7 @@
   
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-  p = get.parameters ( current.assessment.year=2006, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")
   set = snowcrab.db("set")
 
   # overrides:
@@ -130,7 +130,7 @@
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-  p = get.parameters ( current.assessment.year=2006, set="kriging.params") # <---------- !!!
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params") # <---------- !!!
 
   loc = file.path(p$annual.results, "size.data")
  
@@ -381,7 +381,7 @@ observer.data.request.oracle = function () {
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
-  p = get.parameters ( current.assessment.year=2006, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")
   set = snowcrab.db("set")
 
   # overrides:
@@ -490,7 +490,7 @@ observer.data.request.oracle = function () {
   
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
-  p = get.parameters ( current.assessment.year=2006, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")
   set = snowcrab.db("set")
 
   # overrides:  

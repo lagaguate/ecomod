@@ -10,7 +10,7 @@
     
     params = NULL
     params = list()
-    params = get.gmtparams() # default settting here
+    params = params.gmt() # default settting here
     # params$overlay = c("nafo.2j", "nafo.3k", "nafo.3l", "nafo.3n", "nafo.3o", "nafo.3p", 
     #                    "nafo.4r", "nafo.4s", "nafo.4t", "nafo.4v", "nafo.4w", "nafo.4x", 
     #                    "nafo.5y", "nafo.5ze", "nafo.5zw" )

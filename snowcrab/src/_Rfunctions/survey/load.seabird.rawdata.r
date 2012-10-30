@@ -42,14 +42,21 @@
 	  filename2 = fileinfo[length(fileinfo)] #Changed from postions in file location to the last entry since last entry is the filename
     filename2 = tolower(filename2)
 	  
-    colnames(seabird) = c( "temperature", "depth", "mdate", "mtime")
-    numerics = c("temperature", "depth")
-    seabird = factor2number(seabird, numerics)
+    latitude = 
 
-    # depth offets as this can be large sometimes (Esp 2009 ~ 50 m)
-    surface =  mean( seabird$depth[c(1:10) ], trim=0.1, na.rm=T)  
-    if ( is.finite( surface) ) seabird$depth = seabird$depth - surface
+    colnames(seabird) = c( "temperature", "pressure", "mdate", "mtime")
+    numerics = c("temperature", "pressure")
+    seabird = factor2number(seabird, numerics)
     
+    seabird$depth = decibar2depth ( P=seabird$pressure, lat=seabird$latitude )
+
+    # in case there are depth/pressure offsets 
+    surface =  mean( seabird$pressure[c(1:10) ], trim=0.1, na.rm=T)  
+    if ( is.finite( surface) ) seabird$pressure = seabird$pressure - surface
+
+    # up to this point the
+
+
     # obtain date format from the seabird header
 	  date.format = seabirdDate( header=header, outvalue="format"  ) 
     seabird$chron = chron( dates.=seabird$mdate, times.=seabird$mtime, format=date.format, out.format=dateformat.snow )
@@ -65,7 +72,7 @@
     unique.id = paste( yr, unique.id, "seabird", sep=".")
     seabird$unique_id = unique.id
     
-    zmaxi = which.max( as.numeric( seabird$depth) )
+    zmaxi = which.max( as.numeric( seabird$pressure) )
     if (length(zmaxi)==0) zmaxi = which.min( as.numeric( seabird$temperature) )
     if (length(zmaxi)==0) zmaxi = floor( nrow(seabird) / 2 )  # take midpoint
     if ( !(length(zmaxi)==1) ) stop( filename )

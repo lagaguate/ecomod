@@ -19,7 +19,7 @@
       )
     }
     
-    variables =  c( get.variables("all.to.model"), get.variables("snowcrab.cw"), get.variables("physical"),"landings", "cpue", "notraps", "effort" )
+    variables =  c( variable.list.expand("all.to.model"), variable.list.expand("snowcrab.cw"), variable.list.expand("physical"),"landings", "cpue", "notraps", "effort" )
     names.set = names(set)
 
     for ( v in variables ) {

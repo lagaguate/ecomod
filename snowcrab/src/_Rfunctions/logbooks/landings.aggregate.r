@@ -1,7 +1,7 @@
 
   landings.aggregate = function( format="default"  ) {
 
-    landings = get.landingsdb() 
+    landings = landings.db() 
     # year is year of capture
     # yr is "fishing year" relative to the assessment cycle 
 

@@ -1,4 +1,4 @@
-  get.landingsdb = function ( ) {
+  landings.db = function ( ) {
     
     threshold.year = 2004
     

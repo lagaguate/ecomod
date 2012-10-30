@@ -1,7 +1,7 @@
   map.set.information = function(p, plottimes, outdir, conversions, init.files, method="gmt" ) {
     
     set = snowcrab.db( DS="set.complete")
-    variables = get.variables("all.data")
+    variables = variable.list.expand("all.data")
 
     if (method =="gmt") {
       p$mapres = "2min"

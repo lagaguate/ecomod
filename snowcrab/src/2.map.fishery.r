@@ -18,7 +18,7 @@
   res = 2 # resolution in minutes
 
  # bring in fishery data
-  sm = get.landingsdb( )
+  sm = landings.db( )
   sm = sm[ filter.region.polygon ( sm, region="scotia.fundy" ), ]
   
   # rename a few vars to allow use of function "aggregate.fish.stats", below 

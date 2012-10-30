@@ -75,7 +75,7 @@
 #        cmd( "blockmode", xyz.tmp, xyz2.tmp, region, res )
         cmd( "surface", xyz.tmp, paste("-G", tmp.grid, sep=""), region, res, "-T0.35" )
         cmd( "grdsample", tmp.grid, paste("-G", tmp2.grid, sep=""),  region, res)
-        out = get.netcdf.grid(tmp2.grid)
+        out = grid.netcdf(tmp2.grid)
         remove.files ( c( xyz.tmp, tmp.grid, tmp2.grid ) )
         return(out)
       }) # end with

@@ -11,6 +11,6 @@
   	loadfunctions( "snowcrab", functionname="current.assessment.year.r") 
 		loadfunctions( "snowcrab", functionname="default.project.environment.r") 
 	  
-    p = get.parameters ( current.assessment.year=current.assessment.year, set="kriging.params")
+    p = parameter.list.snowcrab ( current.assessment.year=current.assessment.year, set="kriging.params")
 
   

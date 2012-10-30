@@ -1,10 +1,54 @@
 
 
 
-  get.variables = function(component="all.data") {
+  variable.list.expand = function(component="all.data") {
     
     V = switch( EXPR=component,
-      physical = c("z", "t", "julian"),
+      
+    sp.list = c( 
+      "forage.fish", "all", "allfish", "elasmobranchs", "gadoid", "flatfish",
+      "demersal", "large.demersal", "small.demersal",
+      "pelagic", "large.pelagic", "small.pelagic",
+      "commercial", "noncommercial", 
+      "cod", "haddock", "american.plaice", "silver.hake", "white.hake", 
+      "capelin", "herring", "mackerel", "sandlance", "redfish", "wolffish",
+      "winter.flounder", 
+      "spiny.dogfish",  "thornyskate",
+      "crabs", "snowcrab", "northernshrimp", "squid" 
+    ), 
+    multispecies = c( "all", "elasmobranchs", "demersal", "large.demersal", "small.demersal",
+      "pelagic", "large.pelagic", "small.pelagic", "flatfish", "commercial", "noncommercial"
+    ),
+    days = c("all.1km.10day", "all.50km.10day", "all.1km.50day", "all.50km.50day" 
+    ),
+
+    all = c(
+      paste( "totno", variable.list.expand("sp.list"), sep="." ),
+      paste( "totwgt", variable.list.expand("sp.list"),  sep="." ),
+      paste( "ntaxa", variable.list.expand("multispecies"),  sep="." ),
+      paste( "rmean", variable.list.expand("sp.list"),  sep="." ),
+      paste( "pmean", variable.list.expand("sp.list"),  sep="." ),
+      paste( "mmean", variable.list.expand("sp.list"),  sep="." ),
+#      paste( "lmean", variable.list.expand("sp.list"),  sep="." ),
+      paste( "nss.rsquared", variable.list.expand("days"), sep="."),
+      paste( "nss.df", variable.list.expand("days"), sep="."),
+      paste( "nss.b0", variable.list.expand("days"), sep="."),
+      paste( "nss.b1", variable.list.expand("days"), sep="."),
+      paste( "nss.shannon", variable.list.expand("days"), sep="."),
+      paste( "nss.evenness", variable.list.expand("days"), sep="."),
+      paste( "nss.Hmax", variable.list.expand("days"), sep="."),
+      paste( "ntaxa", "annual",c(1,seq(20,200,20)), sep="."),
+      "C", "Z", "sar.rsq", "Npred", 
+      "mr", "mrT", "smr", "smrT", "mrPvalue", "mrPvalueT",
+      "ca1", "ca2", "shannon", "evenness", "Hmax",
+      "sdepth", "temp", "sal", "oxyml", "julian"
+    ),
+
+      catch.summary = variable.list.expand("sp.list") ,
+  
+               
+       physical = c("z", "t", "julian"),
+       
        males.general = c(
         "totmass.male.com", "totno.male.com", "totno.male.mat", "totno.male.imm", "totno.male", 
         "R0.mass", "R0a.mass","R0.no","R0a.no","R1.no", "R1a.no", "R2.no", "R3.no", "R4.no", "R5p.no",
@@ -78,38 +122,42 @@
       ),
       
       all.data = c(
-        get.variables("physical"),
-        get.variables("males.general"),
-        get.variables("males.CC"),
-        get.variables("males.instar"),
-        get.variables("females.instar"),
-        get.variables("females.general"),
-        get.variables("snowcrab.general"),
-        get.variables("snowcrab.unused"),
-        get.variables("snowcrab.bycatch"),
-        get.variables("snowcrab.indicators"),
-        get.variables("snowcrab.cw")
+        variable.list.expand("physical"),
+        variable.list.expand("males.general"),
+        variable.list.expand("males.CC"),
+        variable.list.expand("males.instar"),
+        variable.list.expand("females.instar"),
+        variable.list.expand("females.general"),
+        variable.list.expand("snowcrab.general"),
+        variable.list.expand("snowcrab.unused"),
+        variable.list.expand("snowcrab.bycatch"),
+        variable.list.expand("snowcrab.indicators"),
+        variable.list.expand("snowcrab.cw")
       ),
      
       all.to.model = c( 
-        get.variables("males.general"),
-        get.variables("males.CC"),
-        get.variables("males.instar"),
-        get.variables("females.instar"),
-        get.variables("females.general")
+        variable.list.expand("males.general"),
+        variable.list.expand("males.CC"),
+        variable.list.expand("males.instar"),
+        variable.list.expand("females.instar"),
+        variable.list.expand("females.general")
       ),
 
       scaled.centered =c (), # swtich does not like a null vector
 
+
       log.transform = c(
-        get.variables("males.general"),
-        get.variables("males.CC"),
-        get.variables("males.instar"),
-        get.variables("females.instar"),
-        get.variables("females.general"),
-        get.variables("snowcrab.general"),
-        get.variables("snowcrab.unused"),
-        get.variables("snowcrab.bycatch"),
+        paste( "totno", variable.list.expand("sp.list"), sep="." ),
+        paste( "totwgt", variable.list.expand("sp.list"),  sep="." ),
+        "Npred", "mr", "mrT",
+        variable.list.expand("males.general"),
+        variable.list.expand("males.CC"),
+        variable.list.expand("males.instar"),
+        variable.list.expand("females.instar"),
+        variable.list.expand("females.general"),
+        variable.list.expand("snowcrab.general"),
+        variable.list.expand("snowcrab.unused"),
+        variable.list.expand("snowcrab.bycatch"),
  
 #      "landings", "cpue", "notraps", "effort",
         "dZ", "ddZ"

@@ -5,7 +5,7 @@
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 
-  p = get.parameters ( current.assessment.year=2006, set="kriging.params")  # <---------- !!!
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")  # <---------- !!!
   q = get.population.projection.parameters( assessment.year = p$current.assessment.year )
   
   scenario = "mature.only"
@@ -119,7 +119,7 @@
 
 # ---------------------------------
 # exploratory data plots ... generic timeseries of landings ..
-  landings =  get.landingsdb()
+  landings =  landings.db()
 
 #vars = c("tac.tons","landings.tons","cpue.kg.trap","effort.100traps")
 #for (v in vars) plot.fisheries.ts(landings, v, "ts.fisheries")

@@ -7,10 +7,10 @@
   #   res is the resolution of the output ... default in seconds
   #   seed is the random number seed if manual control is desired
   #
-  #   e.g. usage : coordinates = get.lonlat(n=10)
+  #   e.g. usage : coordinates = select.position.random.lonlat.grid(n=10)
   # ----------------------------------------------------------------------------
 
-  get.lonlat = function ( n=1, gridsize=10, seed=1 ) {
+  select.position.random.lonlat.grid = function ( n=1, gridsize=10, seed=1 ) {
     if (seed != 1) .Random.seed = seed  # do we need to reset the random number generator?
     nx = gridsize * 60   # lowest resolution is in seconds
     labels = seq(1:nx)      # these contain the actual list of lons or lats

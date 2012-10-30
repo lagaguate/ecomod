@@ -15,7 +15,7 @@
   clusters=c("localhost")
 
 # choose taxa or taxonomic groups of interest
-  taxa = get.variables("catch.summary")
+  taxa = variable.list.expand("catch.summary")
 
   season = "summer"
 

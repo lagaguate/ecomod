@@ -21,7 +21,7 @@ conversions = c("ps2png", "ps2pdf")
 
 params = NULL
 params = list()
-params = get.gmtparams() # default settings
+params = params.gmt() # default settings
 
 params$overlay = ""
   #    choose from:
@@ -70,7 +70,7 @@ if (get.isobath) {  # tighter isobath-related outline of shelf at 1000m
 # ----------------------------
 # 4 - map data from the set-level database
 # the variables being numerous are defined in a separate file which is called by
-# "get.variables" in "variablelist.r"
+# "variable.list.expand" in "variablelist.r"
 
 if (map="sm") {
   dirbase = "maps"
@@ -84,7 +84,7 @@ if (map="sm") {
   params$interpres = "-S16k"
   params$do.parallel = F
 
-  variables =  get.variables("all")
+  variables =  variable.list.expand("all")
   outdir = paste(dirbase, params$mapres, params$spatial.domain, season, sep=".")
   make.maps( sm, params, variables, plottimes, outdir, conversions, init.files=init.files, db="groundfish" )
 

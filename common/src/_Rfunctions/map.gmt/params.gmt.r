@@ -1,5 +1,5 @@
 
-  get.gmtparams = function(params=NULL) {
+  params.gmt = function(params=NULL) {
 
     params = NULL
 

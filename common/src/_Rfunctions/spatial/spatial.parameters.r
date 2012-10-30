@@ -5,7 +5,7 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
   if (is.null(p)) p=list()
 
   if (type=="gmt") {
-    p = c( p, get.gmtparams() )  # default core GMT setting here
+    p = c( p, params.gmt() )  # default core GMT setting here
     p$overlay = c( "cfanorth", "cfasouth", "cfa4x")
 		p$gmt.projection.long = "Lambert.conformal.conic.crab"  # for gmt maps
 		p$mapres = "15sec"  # "15sec" is currently the highest resolution

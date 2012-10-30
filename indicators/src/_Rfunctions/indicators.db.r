@@ -334,7 +334,7 @@
         
       # data from groundfish data series
       sm = groundfish.db( "sm.complete" )
-      variables = c( get.variables("all"), "area")
+      variables = c( variable.list.expand("all"), "area")
       byyear = ts.getdata(sm=sm, fname="byear.4vw", from.file=F, variables=variables, plottimes="annual", 
         regions="nafo.4vw", custom="normal") 
       yrs = sort( unique( byyear$yr ) )
@@ -491,7 +491,7 @@
       loadfunctions( "snowcrab") functionname="initialise.local.environment.r" )
       
       # fishery data
-      landings = get.landingsdb()
+      landings = landings.db()
       uyrs = sort(unique(landings$yr))
       YR = data.frame( yr=uyrs )
       res = get.fishery.stats.by.region(landings0=landings, y=YR)

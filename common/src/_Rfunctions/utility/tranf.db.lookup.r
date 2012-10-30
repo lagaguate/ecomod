@@ -2,15 +2,15 @@
   tranf.db.lookup = function( db ) {
 
     if (db=="snowcrab") {
-      log.transform = get.variables("log.transform")
-      scaled.centered = get.variables("scaled.centered")
-      sn = get.variables("all.data")
+      log.transform = variable.list.expand("log.transform")
+      scaled.centered = variable.list.expand("scaled.centered")
+      sn = variable.list.expand("all.data")
       set = snowcrab.db("set.complete") # base transform characteristics 
       repository = file.path( project.directory("snowcrab"), "R", "transform.lookup.rdata" )
     } else if (db=="groundfish") {
-      log.transform = get.variables("log.transform")
-      scaled.centered = get.variables("scaled.centered")
-      sn = get.variables("all")
+      log.transform = variable.list.expand("log.transform")
+      scaled.centered = variable.list.expand("scaled.centered")
+      sn = variable.list.expand("all")
       set = groundfish.db("sm.complete" )    
       repository = file.path( project.directory("groundfish"), "R", "transform.lookup.rdata" )
     } else {

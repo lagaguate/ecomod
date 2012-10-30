@@ -1,5 +1,5 @@
 
-get.parameters = function( current.assessment.year, set="kriging.params" ) {
+parameter.list.snowcrab = function( current.assessment.year, set="kriging.params" ) {
  
   p = list()
   p$env.init = init.files  # from initialise.local.environment.r
@@ -26,7 +26,7 @@ get.parameters = function( current.assessment.year, set="kriging.params" ) {
     p$ofname = file.path(p$annual.results, paste("TSresults", p$current.assessment.year, "rdata", sep=".") )
     
     p$regions.to.model = c( "cfanorth", "cfasouth", "cfa4x", "cfaall" )
-    p$vars.to.model = get.variables("all.to.model")
+    p$vars.to.model = variable.list.expand("all.to.model")
     p$years.to.model = c(1998:p$current.assessment.year)
     
     p$yearswithTdata = c(1950:p$current.assessment.year)  

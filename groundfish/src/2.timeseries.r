@@ -5,7 +5,7 @@
   data.location = file.path( project.directory("groundfish"), "data", "2006")
   sm =  groundfish.db( "sm.complete" )
 
-  variables = get.variables("all")
+  variables = variable.list.expand("all")
   plottimes = c("annual")
   regions = c("4v", "4w", "4x", "4vwx", "4vw")
   season = "summer"

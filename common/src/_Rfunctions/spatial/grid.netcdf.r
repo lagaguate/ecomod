@@ -1,5 +1,5 @@
 
-  get.netcdf.grid = function(ncdf.fname) {
+  grid.netcdf = function(ncdf.fname) {
     require(ncvar) # to handle netcdf files (binary output format of GMT)
     z = var.get.ncv(path=ncdf.fname, name="z", mode="nometa")
     dims = var.get.ncv(path=ncdf.fname, name="dim")
