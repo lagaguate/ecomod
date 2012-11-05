@@ -360,6 +360,7 @@
 			# clean species codes ... this causes multiple entries for some species that need to be summed up
       cat$spec =  taxa.specid.correct( cat$spec ) 
 				
+      # update catch biomass/numbers due to altering of species id's
 				cat = cat[,catvars]
 				catn = as.data.frame( xtabs( cat$totno ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
 				catb = as.data.frame( xtabs( cat$totmass ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
@@ -380,10 +381,10 @@
 				catn = catn[ which(catn$totno > 0) , ] 
 				catb = catb[ which(catb$totmass > 0) , ] 
 
-			# this contains all the data from the by-catch tables
-			x = merge( catn, catb, by=c("trip", "set", "spec"), all.x=T, all.y=T, sort=F )
-				oo = which( !is.finite(x$totno) & !is.finite(x$totmass) )
-				if (length(oo)>0) x = x[-oo,]
+        # this contains all the data from the by-catch tables
+        x = merge( catn, catb, by=c("trip", "set", "spec"), all.x=T, all.y=T, sort=F )
+          oo = which( !is.finite(x$totno) & !is.finite(x$totmass) )
+          if (length(oo)>0) x = x[-oo,]
 
       # compute snow crab abundance from det tables
       numbers = as.data.frame( xtabs( rep(1,nrow(det)) ~ as.factor(trip) + as.factor(set), data=det ) )

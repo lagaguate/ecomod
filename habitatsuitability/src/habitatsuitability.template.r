@@ -1,65 +1,56 @@
 
-  # Habitat suitability estimation
+  # Habitat suitability estimation template 
+   
+  ### define parameter list to determine the correct category of taxa/size from "bio.db" 
 
-	
+
 	loadlibraries (c("chron", "fields", "rgdal", "snow", "mgcv", "arm" ))
+
 
 	p = list()
   p$env.init = loadfunctions(c( "common", "habitat", "temperature",  "bathymetry"	)) 
   p = spatial.parameters( type="SSE" ) # 4VWX
   
   p$optimizers = c( "nlm", "perf" )  # used by GAM
-  p$studyarea = c("4vwx", "5yz" )
+  
+  p$studyarea = c( "4vwx" )
+  # p$studyarea = c("4vwx", "5yz" )
+  
   p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-  p$prediction.month = 10
+  p$prediction.month = 7  # July
+
 
   # --------------
   # do spatial predictions using GAM
-  p$nsims = 1000
 
-#  p$gam.model.pa = formula( presence ~  s( yr ) + s(month, k=3) 
-#        + s( dt.seasonal ) + s( dt.annual ) + s( tmean.annual ) + s( tamp.annual) +  s( wmin.annual )
-#        + s( plon, plat, k=400) + s( z ) + s( substrate.mean) + s( dZ ) + s(ddZ) 
-#        + s( Npred) + s(smr)  + s(ca1) +s(ca2) 
-#      )
+  debug = TRUE;  # debug = FALSE
+
+  p$nsims = 1000;  if (debug) p$nsims = 100
   
-#  p$gam.model.ra = formula( qn ~ s( yr )+ s(month, k=3)  
-#        + s( dt.seasonal ) + s( dt.annual ) + s( tmean.annual )  + s( tamp.annual) + s( wmin.annual) 
-#        + s( plon, plat, k=400) + s( z ) + s( substrate.mean)  +s( dZ) + s(ddZ)  
-#        + s( Npred) + s(smr) + s(ca1) +s(ca2)  
-#      )
-
-  p$gam.model.pa = formula( presence ~  s( yr ) + s(month, k=3) 
-        + s( tmean.annual ) + s( tamp.annual) +  s( wmin.annual )
-        + s( plon, plat, k=400) + s( z ) + s( substrate.mean) + s( dZ ) + s(ddZ) 
-        + s( Npred) + s(smr)  + s(ca1) +s(ca2) 
-      )
-  
-  p$gam.model.ra = formula( qn ~ s( yr )+ s(month, k=3)  
-        + s( tmean.annual )  + s( tamp.annual) + s( wmin.annual) 
-        + s( plon, plat, k=400) + s( z ) + s( substrate.mean)  +s( dZ) + s(ddZ)  
-        + s( Npred) + s(smr) + s(ca1) +s(ca2)  
-      )
-
-
   p$yearstomodel = 1970:2011 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+
+
+  # modeltype choice
+  p$modeltype="simple"
+  p$gam.model.pa = habitat.model.lookup (p$modeltype)
+
  
   # choose:
-  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+  p$clusters = rep( "localhost", 1)  
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
   # p$clusters = rep( "localhost", 24 )
+  # p$clusters = c( rep( "nyx.beowulf", 4), rep("tartarus.beowulf", 4), rep("kaos", 4 ) )
 
-  p$clusters = c( rep( "nyx.beowulf", 4), rep("tartarus.beowulf", 4), rep("kaos", 4 ) )
 
-
-  speciesofinterest = c( "wolffish", "white.hake", "thornyskate", "american.plaice", "cod", "redfish" )
+  p$taxalist = c( "snowcrab.f.small", "snowcrab.f.large" , "snowcrab.m.small" ,"snowcrab.m.large" )
+  # p$taxalist = c( "wolffish", "white.hake", "thornyskate", "american.plaice", "cod", "redfish" )
   
   # --------------
   # data
 
   if (refresh.databases) {
-    for (sp in speciesofinterest ) {
+    for (sp in taxalist ) {
       print (sp )
       p$speciesofinterest = sp
       habitatsuitability.generic.db( DS="complete.redo", p=p )

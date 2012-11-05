@@ -19,7 +19,7 @@
       names(wf) =  c("trip", "set", "abundance" )
 
       sc = snowcrab.db ( DS="set.complete" ) 
-      sc = sc[ sc$yr >=2004 ,]
+      # sc = sc[ sc$yr >=2004 ,]
       sc = merge( sc, wf, by=c("trip", "set"), all.x=T, all.y=F )
       sc$survey = "snowcrab"
       sc$metric = "number"

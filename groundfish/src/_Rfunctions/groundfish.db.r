@@ -99,7 +99,8 @@
   
 	# 	ll = which( gscat$totno == 0 & gscat$totwgt == 0 ) 
 		# 	length(ll) 
-
+      
+      # filter out strange data
 			ii = which( gscat$totwgt >= 9999 )  # default code for NAs -- 
       if (length(ii)>0) gscat$totwgt[ii] = NA 
     
@@ -112,7 +113,7 @@
 			kk = which( gscat$totno == 0 ) 
       if (length(kk)>0) gscat$totno[kk] = NA
        
-	
+      # as species codes have been altered, look for duplicates and update totals	
       d = which(duplicated(gscat$id2))
       s = NULL
       for (i in d) {

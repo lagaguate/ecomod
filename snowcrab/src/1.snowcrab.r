@@ -83,68 +83,31 @@
     snowcrab.db( DS="set.merge.det.redo" )
     snowcrab.db( DS="set.merge.cat.redo" )  
 
-   }
-
-# -------------------------------------------------------------------------------------
-# Bathymetry data
-# must run sequence in ~/ecomod/bathymetry/src/bathymetry.r 
-# only if updating bathymetry data ( e.g., add snow crab depth data )
-
-
-# -----------------------------------------------------------------------------------
-# Substrate type
-# do not update unless substrate data has been changed ... see ~/ecomod/substrate/src/substrate.r
-
-# -------------------------------------------------------------------------------------
-# Groundfish data 
-#  required also for updates to temps and species
-# ... see ~/ecomod/groundfish/src/groundfish.r -- require sm.base and gs.hydro
-
+   }  # end base data
 
 
 # -------------------------------------------------------------------------------------
-# Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
-# -------------------------------------------------------------------------------------
-  loadfunctions ("bio" )
-	loadfunctions ( "bio", functionname="bio.r" )  # glue everything together
+# External Dependencies: (must be completed before the final lookup/mathcing phase)
+#
+#     Bathymetry data :: loadfunctions("bathymetry", functionname="bathymetry.r" ) # if necessary
+#     Substrate type  :: loadfunctions("substrate", functionname="substrate.r" ) # if necessary
+#     Groundfish data :: loadfunctions( "groundfish", functionname="1.groundfish.r" ) 
+#       NOTE  groundfish.db( DS="odbc.redo" ) must be done manually on a windows machine and data snapshots moved to local system
+#     Taxonomy :: loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary
+#     BIO db update :: loadfunctions ( "bio", functionname="bio.r" ) 
+#     Temperatures ::  loadfunctions ( "temperature", functionname="temperature.r" ) 
+#     Species area data :: loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
+#     Species composition data :: loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
+#     Size spectrum data :: loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
+#     Metabolism data :: loadfunctions ( "metabolism", functionname="metabolism.r" ) 
+#     Habitat data :: loadfunctions ( "habitat", functionname="habitat.r" ) 
+#       NOTE:: This glues all the above together in planar coord system to allow fast lookup of data for 
+#       matching with set, logbook data
 
-
-# -------------------------------------------------------------------------------------
-# Temperature data
-# must manually obtain data from the Biochem web site and 
-# run the sequence in ~/ecomod/temperature/src/temperature.r
-
-
-# -------------------------------------------------------------------------------------
-# Update the taxonomy database .. esp after groundfishdata refresh
-# see: ~/ecomod/taxonomy/src/taxonomy.r
-
-
-# -------------------------------------------------------------------------------------
-# Species area data
-# must manually update the species area database in ~/ecomod/speciesarea/src/speciesarea.r
-  
-# -------------------------------------------------------------------------------------
-# Species composition data
-# must manually update the species area database in ~/ecomod/speciescomposition/src/speciescomposition.r
-  
-# -------------------------------------------------------------------------------------
-# Sizespectrum data
-# must manually update the species area database in ~/ecomod/sizespectrum/src/sizespectrum.r
- 
-
-# -------------------------------------------------------------------------------------
-# Metabolism data
-# must manually update the species area database in ~/ecomod/metabolism/src/metabolism.r
 
 
 # -------------------------------------------------------------------------------------
-# Habitat data 
-# Glue all the above together in planar coord system to allow fast lookup of data for matching with set, logbook data
-# run sequence in /home/jae/ecomod/habitat/src/habitat.r
-
-# -------------------------------------------------------------------------------------
-# final data lookup/matching .. AFTER refreshing all above tables (where relevent/possible)
+# Final data lookup/matching .. AFTER refreshing all above tables (where relevent/possible)
   logbook.db( DS="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
   snowcrab.db( DS ="set.logbook.redo", p=p, yrs=1996:p$current.assessment.year ) # add gridded fisheries data
@@ -157,22 +120,22 @@
 
 # snow crab found in external databases tapped into for habitat determination
   for ( vs in c( "R0.mass", "male.large", "male.small", "female.large", "female.small" ) ) {
-    -------- not yet finished this one ... 
+    ### -------- not yet finished this one ...  TODO
     snowcrab.external.db(p=p, DS="set.snowcrab.in.groundfish.survey.redo", vname=vs )
   }
 
 
 
 # simple geometric means of raw data:  used by indicators ordination and some figures
-  # takes many hours ... need to make parallel 
+  # takes many hours ... need to make parallel  TODO 
   tsdata =  get.time.series ( x=snowcrab.db( DS="set.logbook", p=p, yrs=1996:p$current.assessment.year ),
     regions=p$regions, vars=variable.list.expand("all.data"), from.file=F, trim=0 )
 
 
 
-
-  #  ----- experimental / tests
-
+#  ----- experimental / tests / ideas
+testing = F
+if (testing) {
   s =  snowcrab.db( DS ="set.complete" )
   d =   snowcrab.db( DS ="det.georeferenced" ) 
   l = merge( d, s[, c("trip", "set", "t")], by=c("trip", "set"), all.x=T, all.y=F)
@@ -194,8 +157,8 @@
   plot(k)
 
 
-# -------------------------------------------------------------------------------------
-# make size at maturity estimates in a spatial context
+  # -------------------------------------------------------------------------------------
+  # make size at maturity estimates in a spatial context
 
   if( make.maturity.db ) {
     maturity = make.maturity.spatial( distance=50 )
@@ -205,11 +168,12 @@
 
 
 
-# -------------------------------------------------------------------------------------
-# example plot mechanism
+
+  # -------------------------------------------------------------------------------------
+  # example plot mechanism
   p = spatial.parameters( type="snowcrab" )
 	xyz=bathymetry.db(p=p, DS="baseline.planar.500")
   map( xyz, xyz.coords="planar", cfa.regions=T, depthcontours=T, pts=NULL, annot=NULL, fn="test", loc=getwd() )
 
-
+} # end testing
 

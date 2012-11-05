@@ -11,7 +11,7 @@
 			
 	
 		if (is.data.frame(x) ) { 
-			# return a filtered data frame subset **AND** with corrected spcies names
+			# return a filtered data frame subset **AND** with corrected species names
 			x = inp
 			inp$spec = taxa.specid.correct( inp$spec )  # recoding of species id's done here!
 			keep = which( is.finite( inp$spec ) & inp$spec %in% species.codes( method ) )

@@ -18,10 +18,5 @@
   bio.db( DS="det.redo", p=p )
  
 	bio.db( DS="cat.fixed.redo", p=p ) # a catch db where zero's are explicit and error checked
-  bio.db( DS="subset.redo", p=p ) 
-
-
-	# example extraction  
-	gf = bio.db( DS="subset", p=p ) 
 
 

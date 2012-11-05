@@ -58,8 +58,9 @@
 		tx = "Microgadus tomcod"
 			itis.taxa.to.tsn(  tx=tx, itaxa=itaxa )
     
-    tx = "EUROPEAN  ling"
-			itis.vernacular.to.tsn( tx=tx, itaxa=itaxa )
+    tx = "ling"
+			txids = itis.vernacular.to.tsn( tx=tx, itaxa=itaxa )
+      lookup.tsn2taxa(txids) 
 
     # ITIS data from tsn's
     tsn = c(164714:164780)

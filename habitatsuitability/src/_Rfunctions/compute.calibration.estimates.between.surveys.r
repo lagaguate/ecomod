@@ -12,7 +12,7 @@
       return ( sq )
     }
 
-		OO = bio.db( DS="subset", p=p) 
+		OO = habitatsuitability.db( DS="subset", p=p) 
 
 		sset = OO$set
 		sset = lonlat2planar( sset, proj.type=p$internal.projection )

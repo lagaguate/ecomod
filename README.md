@@ -13,7 +13,7 @@ To download this repository, you can either:
     Get the current snapshot of the whole repository (zip-compressed; see link near top), or 
     Clone it using git (if on MSWindows, use Msysgit; for help see http://git-scm.com/book/). 
 
-The latter would allow you to contribute or merge updates. 
+The latter would allow you to contribute or merge your own work or modifications. 
 
 
 To fully use this respository, you will need to add the following to the end of your Rprofile.site (Windows; usually found in the "etc" directory where install R) or ~/.Rprofile (Linux, MacOSX):
@@ -39,4 +39,6 @@ The function, 'loadfunctions()' is simply a convenience wrapper for reading in a
 More later.
 
 Enjoy,
+
 Jae
+
