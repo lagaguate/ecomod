@@ -11,7 +11,6 @@
   p$taxa =  "maxresolved"
   # p$seasons = "allseasons"
 	p$data.sources = c("groundfish", "snowcrab") 
-	p$fn.bio.subset = file.path( project.directory("bio"), "data", "SSE.default.subset.rdata" )
 
   bio.db( DS="set.redo", p=p )
   bio.db( DS="cat.redo", p=p )

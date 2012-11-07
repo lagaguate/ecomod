@@ -8,31 +8,48 @@
 
 
 	p = list()
-  p$env.init = loadfunctions(c( "common", "habitat", "temperature",  "bathymetry"	)) 
+  p$env.init = loadfunctions(c( "common", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
+  
   p = spatial.parameters( type="SSE" ) # 4VWX
-  
-  p$optimizers = c( "nlm", "perf" )  # used by GAM
-  
   p$studyarea = c( "4vwx" )
   # p$studyarea = c("4vwx", "5yz" )
   
-  p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-  p$prediction.month = 7  # July
-
+  # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2011 
+  # p$seasons = "allseasons"
+  
+  p$taxa =  "maxresolved"
+  # p$taxa.secondary.filter = "" 
 
   # --------------
   # do spatial predictions using GAM
 
   debug = TRUE;  # debug = FALSE
-
   p$nsims = 1000;  if (debug) p$nsims = 100
+  p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
+  p$prediction.month = 7  # July
   
-  p$yearstomodel = 1970:2011 # set map years separately to temporal.interpolation.redo allow control over specific years updated
-
+  p$optimizers = c( "nlm", "perf" )  # used by GAM
 
   # modeltype choice
   p$modeltype="simple"
   p$gam.model.pa = habitat.model.lookup (p$modeltype)
+
+
+
+  # database creation
+  p$subset = "snowcrab.female.large"  # also used as a label
+	p$data.sources = c("groundfish", "snowcrab") 
+  
+    update.bio = FALSE # Remember to update BIO data if not already up to date
+    if (update.bio) loadfunctions( "bio", functionname="bio.r" )
+
+
+  # must generate or regenerate the correct data selection
+  update.local.subset = FALSE
+  if (update.local.subset) habitatsuitability.db( DS="bio.subset.redo", p=p ) 
+
+  # example extraction  x = bio.db( DS="subset", p=p ) 
 
  
   # choose:
@@ -53,7 +70,7 @@
     for (sp in taxalist ) {
       print (sp )
       p$speciesofinterest = sp
-      habitatsuitability.generic.db( DS="complete.redo", p=p )
+      habitatsuitability.db( DS="complete.redo", p=p )
     }
   }
 
@@ -118,9 +135,4 @@
     parallel.run( clusters=p$clusters, n=p$nruns,  predict.discretised.habitat, DS="map.habitat", p=p ) 
 
   }  # end for each species
-
-
-
-
-
 

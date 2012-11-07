@@ -26,5 +26,6 @@ habitat.model.lookup = function( modeltype ) {
       )
   }
 
-  return ( modeltype )
+  return ( gam.model.pa )
 }
+
