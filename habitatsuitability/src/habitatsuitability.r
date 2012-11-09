@@ -21,11 +21,15 @@
   p$taxa =  "maxresolved"
   # p$taxa.secondary.filter = "" 
 
+  p$interpolation.distances=c(1, 5, 10)
+
   # --------------
   # do spatial predictions using GAM
 
   debug = TRUE;  # debug = FALSE
   p$nsims = 1000;  if (debug) p$nsims = 100
+  
+  
   p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
   p$prediction.month = 7  # July
   
@@ -83,6 +87,7 @@
   for ( sp in speciesofinterest)  {
   
     # sp = speciesofinterest = "wolffish"
+    # sp = speciesofinterest = "snowcrab.female.large"
     print(sp)
     p$speciesofinterest = sp
    

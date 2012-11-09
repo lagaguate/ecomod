@@ -47,20 +47,17 @@
 
 
 
-  bio = bio.db(DS="subset", p)
+  bio = bio.db(DS="XXX", p)
   
 # --- the following need to be modified ... 
-  sc = bio.db.subset(DS="snowcrab", p)
+  sc = bio[ which(bio$data.source =="snowcrab") ,]
   
-	gf = bio.db.subset(DS="groundfish", p)
-
-  rm (gfset, scset, bioset )
+	gf = bio[ which(bio$data.source =="groundfish") ,]
 
   length( unique(sc$sp$spec) )
   length( unique(gf$sp$spec) )
   length( unique(bio$sp$spec) )
 
-  
   # breakdown by large taxonomic groups
   tx = taxa.db("complete")  # contains a cleaned list of all taxa found in region
   sc$sp = merge( sc$sp, tx, by="spec", all.x=T, all.y=F, sort=F )

@@ -3,9 +3,9 @@
 
   require(RSQLite)
 
-	p = list( init.files = loadfunctions ( c( 
-		"common", "taxonomy", "groundfish", "snowcrab", "bio" 
-	) ) ) 
+	p = list( init.files=loadfunctions( c( "common", "taxonomy", "groundfish", "snowcrab", "bio" ))) 
+
+  loadfunctions( "snowcrab", functionname="default.project.environment" )
 
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$taxa =  "maxresolved"
@@ -16,6 +16,6 @@
   bio.db( DS="cat.redo", p=p )
   bio.db( DS="det.redo", p=p )
  
-	bio.db( DS="cat.fixed.redo", p=p ) # a catch db where zero's are explicit and error checked
+	bio.db( DS="cat.fixed.redo", p=p ) # a catch db where quantiles are computed
 
 

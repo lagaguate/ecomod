@@ -1,19 +1,14 @@
 
   speciesarea.db = function( ip=NULL, DS="", p=NULL, yr=NULL ) {
    
-    if (DS %in% c("speciesarea.counts", "speciesarea.counts.ny", "speciesarea.counts.redo", "speciesarea.set.intermediate") ) {
+    if (DS %in% c("speciesarea.counts", "speciesarea.counts.ny", "speciesarea.counts.redo") ) {
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".")  )
       
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
      
       fn = file.path( ddir, paste( "speciesarea.counts", "rdata", sep=".") )
       fn.ny = file.path( ddir, paste( "speciesarea.counts.ny", "rdata", sep=".") )
-      fn.set.intermediate = file.path( ddir, paste( "speciesarea.set.tmp", "rdata", sep=".") )
 
-      if (DS=="speciesarea.set.intermediate") {
-        load( fn.set.intermediate )
-        return (set)
-      }
       if (DS=="speciesarea.counts") {
         load( fn)
         return (SC)
@@ -23,14 +18,8 @@
         return (SC.ny)
       }
  
-      OO = bio.db (DS="subset", p=p) 
-
-      set = OO$set
-      scat = OO$cat
-
-      rm(OO); gc()
-
-      save ( set, file=fn.set.intermediate, compress=T )  # this file is used later to complete the merge
+      set = bio.db (DS="set", p=p)
+      scat = bio.db (DS="cat", p=p)
 
       p$nsets = nrow( set )
       p$nlengthscale = length(p$lengthscale)
@@ -134,7 +123,7 @@
 
       save ( o, file=fn, compress=T )
            
-      set = speciesarea.db( DS="speciesarea.set.intermediate", p=p )
+      set = bio.db (DS="set", p=p)
 
       if ( nrow(set) != nrow(o ) ) {
         print( "Error: data merge failure" )

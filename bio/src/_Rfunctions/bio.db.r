@@ -22,6 +22,7 @@
         y$data.source = "groundfish"
         set = rbind( set, y[ ,c("data.source", "id", "chron", "yr", "julian",  "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype", "sakm2", "cf") ] )
         names(set) = set.names
+        set = set[ set$settype %in% c(1,2,5) ,] # remove bad sets
         rm (y); gc()
       }
       if ( "snowcrab" %in% p$data.sources ) {
@@ -106,14 +107,11 @@
     }
 
 
-
 		# --------------------
-
 
 
     if (DS %in% c("cat.fixed","cat.fixed.redo") ) {
 
-      # fix for unreliable ero values, 
 			# estimate quantiles for postive and nonero-values, etc..
 
       cat = NULL # trip/cat loc information
@@ -126,8 +124,10 @@
 			cat = bio.db( DS="cat", p=p)
   
 			# these are determined below ...
-			spec.todrop =  c(90, 1091, 1092, 1093, 1094, 1095, 1100, 1200, 1224, 1300, 1600, 1701, 4223, 6120,
-											 9000, 9001, 9200,  9310, 9400, 9600, 9991, 9992, 9993, 9994, 9995, 9996, 9997, 9998, 9999)
+			spec.todrop =  c(90, 1091, 1092, 1093, 1094, 1095, 1100, 1200, 1224, 1300, 
+                       1600, 1701, 4223, 6120,
+											 9000, 9001, 9200,  9310, 9400, 9600, 9991, 9992, 9993, 
+                       9994, 9995, 9996, 9997, 9998, 9999)
     
 			to.drop = which (cat$spec %in% spec.todrop)
 			cat = cat[ - to.drop, ]
@@ -143,8 +143,10 @@
 				print( "Need to check these species code in taxa db:")
 				print( sp.strange )
 				
-				# To drop: c( 90, 1091, 1092, 1093, 1094, 1095, 1100, 1200, 1224, 1300, 1600, 1701, 4223, 6120,
-				#							9000, 9001, 9200, 9310, 9400, 9600, 9991, 9992, 9993, 9994, 9995, 9996, 9997, 9998, 9999)
+				# To drop: c( 90, 1091, 1092, 1093, 1094, 1095, 1100, 1200, 1224,
+        # 1300, 1600, 1701, 4223, 6120,
+				#							9000, 9001, 9200, 9310, 9400, 9600, 9991, 9992, 9993, 
+        #							9994, 9995, 9996, 9997, 9998, 9999)
 			
 				# 90 Unident fish
 				# "Unidentified Species"|1091
@@ -195,7 +197,16 @@
 						cat$qm[ii] = quantile.estimate( cat$totmass[ii]  )  # convert to quantiles, by species and survey	
 					}
       }}
-			
+		
+     # convert from quantile to z-score 
+      maxqm = max( cat$qm[ which( cat$qm < 1 ) ] , na.rm=T )   
+      maxqn = max( cat$qn[ which( cat$qn < 1 ) ] , na.rm=T )   
+      cat$qm[ which(cat$qm==1) ] = maxqm
+      cat$qn[ which(cat$qn==1) ] = maxqn
+      cat$zm = qnorm( cat$qm )
+      cat$zn = qnorm( cat$qn )
+
+
 			debug = F
 			if (debug) {
 				
@@ -206,7 +217,6 @@
 				i = which(kmin==1)
 				uu = as.numeric(names(kmin[i]))
 				lookup.spec2taxa(uu)
-
 
 				oo = which( !is.finite( kmin) | !is.finite(kmax))
 				strange.spec = as.numeric( names(kmin)[oo] )

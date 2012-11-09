@@ -1,6 +1,6 @@
 
   habitat.lookup.simple = function( X,  p, vnames="", lookuptype="", sp.br=c(2,4,8,16,32,64) ) {
-
+    # a simplified wrapper for the habitat.lookup function
     nl = length( vnames)
     for ( ii in 1:nl ) {
       v = vnames[ii]
