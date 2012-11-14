@@ -14,12 +14,23 @@
   p$studyarea = c( "4vwx" )
   # p$studyarea = c("4vwx", "5yz" )
   
+  # p$taxa =  "maxresolved"  # required for bio.db
+  # p$taxa.secondary.filter = "" 
+  # p$det.filter = ""
+  
+  # p$seasons = "allseasons"
+	p$data.sources = c("groundfish", "snowcrab") 
+
+
+  habitatsuitability.db( DS="initial.redo", p=p )
+
+
   # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$yearstomodel = 1970:2011 
   # p$seasons = "allseasons"
-  
-  p$taxa =  "maxresolved"
-  # p$taxa.secondary.filter = "" 
+ 
+  p$depthrange = c(10,700) # in meters ... allowable values of depth
+  # p$temperaturerange = c() 
 
   p$interpolation.distances=c(1, 5, 10)
 
@@ -43,17 +54,17 @@
 
   # database creation
   p$subset = "snowcrab.female.large"  # also used as a label
-	p$data.sources = c("groundfish", "snowcrab") 
-  
+ 
+
     update.bio = FALSE # Remember to update BIO data if not already up to date
     if (update.bio) loadfunctions( "bio", functionname="bio.r" )
 
 
   # must generate or regenerate the correct data selection
-  update.local.subset = FALSE
-  if (update.local.subset) habitatsuitability.db( DS="bio.subset.redo", p=p ) 
+  initialize.database = FALSE
+  if (initialize.database) habitatsuitability.db( DS="initial.redo", p=p ) 
 
-  # example extraction  x = bio.db( DS="subset", p=p ) 
+  # example extraction  x = habitatsuitability.db( DS="subset", p=p ) 
 
  
   # choose:

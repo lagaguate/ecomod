@@ -1,13 +1,17 @@
  
-  habitat.lookup = function( x, p, datatype="all.data", discretization.scale = 0, dist.scale=5, keep.lon.lat=F ) {
+  habitat.lookup = function( x, p, datatype="all.data", discretization.scale = 0, dist.scale=5, 
+    keep.lon.lat=F, truncatequantiles=c(0.01, 0.99) ) {
     
+    # truncation by quantiles is the default behaviour 
+    # .. to turn off, an explicit truncatequantiles=FALSE must be given
+
     require(fields)
 
     # x must contain plon, plat, and chron
     
 		nx = nrow(x)
-		x$id = 1:nx
-		x0 = data.frame( id = x$id )
+		x$hid = 1:nx
+		x0 = data.frame( hid = x$hid )
     
     if (exists( "yr",x ) )  yrs = sort( unique( x$yr ))
 
@@ -52,15 +56,16 @@
 				tmp = NULL
 				tmp = merge( H, PS, by=c("plon", "plat" ), all.x=T, all.y=F, suffixes=c("", ".redundant") )
 				
-				if (length( grep("redundant", names( tmp ) ) > 0 )) {
-					print( "Redundant vars found: Error in merge? Dropping ..." )
-          print( names(tmp) )
-          tmp = tmp[, -grep("redundant", names( tmp )) ] 
+        oo =  grep("redundant", names( tmp)) 
+				if (length(oo) > 0 ) {
+					print( "Redundant vars found: Error in merge? Dropping the following..." )
+          print( names(tmp)[oo] )
+          tmp = tmp[, -oo ] 
 				}
 
 				miss = which( !is.finite( tmp$z ) )
 				if( length(miss) >0 ) {
-          hvars = setdiff( names( tmp) , c("plon", "plat", "yr", "chron", "id" )  )
+          hvars = setdiff( names( tmp) , c("plon", "plat", "yr", "chron", "hid" )  )
 					distances =  rdist( PS[,c("plon", "plat")], H[miss, c("plon", "plat")] )
 					for( jj in 1:length(miss) ) {
 						dd = which.min( distances[,jj] )
@@ -73,6 +78,11 @@
 				
 			}
 
+      if ( !truncatequantiles ) {
+        # limit to certain quantiles as the interpolation/extrapolation can give extreme results
+        for (i in hvars) out[,i] = truncate.distribution( out[,i], Ql=truncatequantiles[1], Qu=truncatequantiles[2] )
+      }
+
 			if (keep.lon.lat) { 
         to.remove = which(names(out) %in% c("chron")) 
       } else {
@@ -82,9 +92,9 @@
       res = out 
       if (length(to.remove)>0) res = res[ , - to.remove ]
 			
-      res = merge( x0, res, by="id", all.x=T, all.y=F, sort=T ) 
-	    res = res[ order(res$id) , ]
-			res$id = NULL
+      res = merge( x0, res, by="hid", all.x=T, all.y=F, sort=T ) 
+	    res = res[ order(res$hid) , ]
+			res$hid = NULL
 
 			if ( nrow(res) != nx ) {
 				print( "Merge error -- duplicated coords" )
@@ -146,10 +156,16 @@
 
 			if ( is.null( out) )  return( x$t )  # nothing to do, return itself
 
-      res = merge( x0, out[ , c("id", "t" )], by="id", all.x=T, all.y=F, sort=T )
-	    res = res[ order(res$id) , ]
-			res$id = NULL
+      
+      if ( !truncatequantiles ) {
+        # limit to certain quantiles as the interpolation/extrapolation can give extreme results
+        hvars = setdiff( names(out) , c("hid", "t" )  )
+        for (i in hvars) out[,i] = truncate.distribution( out[,i], Ql=truncatequantiles[1], Qu=truncatequantiles[2] )
+      }
 
+      res = merge( x0, out[ , c("hid", "t" )], by="hid", all.x=T, all.y=F, sort=T )
+	    res = res[ order(res$hid) , ]
+			res$hid = NULL
 
 			if ( nrow(res) != nx ) {
 				print( "Merge error -- duplicated coords" )
@@ -186,7 +202,7 @@
 
 				miss = which( !is.finite( tmp$z ) )
 				if( length(miss) >0 ) {
-					hvars = setdiff( names( tmp) , c("plon", "plat", "yr", "chron", "id" )  )
+					hvars = setdiff( names( tmp) , c("plon", "plat", "yr", "chron", "hid" )  )
 					distances =  rdist( PS[,c("plon", "plat")], H[miss, c("plon", "plat")] )
 					for( jj in 1:length(miss) ) {
 						dd = which.min( distances[,jj] )
@@ -199,11 +215,17 @@
 				
 			}
       rm (SAG) 
+      
+      if ( !truncatequantiles ) {
+        # limit to certain quantiles as the interpolation/extrapolation can give extreme results
+        hvars = setdiff( names(out) , c("plon","plat","chron", "yr")  )
+        for (i in hvars) out[,i] = truncate.distribution( out[,i], Ql=truncatequantiles[1], Qu=truncatequantiles[2] )
+      }
 
 			res = out[ , - which(names(out) %in% c("plon","plat","chron", "yr")) ]
-			res = merge( x0, res, by="id", all.x=T, all.y=F, sort=T )
-	    res = res[ order(res$id) , ]
-			res$id = NULL
+			res = merge( x0, res, by="hid", all.x=T, all.y=F, sort=T )
+	    res = res[ order(res$hid) , ]
+			res$hid = NULL
 
 			if ( nrow(res) != nx ) {
 				print( "Merge error -- duplicated coords" )
@@ -241,8 +263,9 @@
         }
 			}
 
-			res = merge( x0, tmp[ , c("id", "z" )], by="id", all.x=T, all.y=F, sort=T )
-		  res = res[ order(res$id) , ]
+			res = merge( x0, tmp[ , c("hid", "z" )], by="hid", all.x=T, all.y=F, sort=T )
+		  res = res[ order(res$hid) , ]
+			res$hid = NULL
 
 			if ( nrow(res) != nx ) {
 				print( "Merge error -- duplicated coords" )
@@ -277,10 +300,11 @@
 				}
 			}
 
-			res = merge( x0, tmp[ , c("id", "substrate.mean" )], by="id", all.x=T, all.y=F, sort=T )
-		  res = res[ order(res$id) , ]
-
-			if ( nrow(res) != nx ) {
+			res = merge( x0, tmp[ , c("hid", "substrate.mean" )], by="hid", all.x=T, all.y=F, sort=T )
+		  res = res[ order(res$hid) , ]
+			res$hid = NULL
+			
+      if ( nrow(res) != nx ) {
 				print( "Merge error -- duplicated coords" )
 				stop()
 			}

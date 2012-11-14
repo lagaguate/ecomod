@@ -76,7 +76,7 @@
    
   res = as.data.frame( cbind(res, res2, res3 ) )
   names(res) = c("mean", "sd", "n")
-  res$se = res$mean/ sqrt(res$n+1)
+  res$se = res$sd/ sqrt(res$n+1)
 
   out = res[, c("mean", "se")]
   out$year = as.numeric(rownames(out))
