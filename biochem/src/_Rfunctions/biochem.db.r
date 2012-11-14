@@ -1,14 +1,9 @@
 
-## http://www.meds-sdmm.dfo-mpo.gc.ca/biochemQuery/authenticate.do?errors=yes
-
-## Login : choij
-## Pwd : BIOjc!290
-
-# Biochem data analysis  .. focus on bottom oxygen
+# Biochem data analysis  .. focus on bottom oxygen for now
  
   biochem.db = function(DS="", ss=NULL) {
       
-    biochem.dir = file.path( "/home", "jae", "ecomod", "biochem") 
+    biochem.dir = project.directory("biochem") 
     
     if (DS %in% c("scotian.shelf.redo", "scotian.shelf") ){
 
@@ -20,6 +15,10 @@
       }
 
       if (DS=="scotian.shelf.redo") {
+        print( "Data needs to be downloaded manually from the server:")
+        print( "  http://www.meds-sdmm.dfo-mpo.gc.ca/biochemQuery/authenticate.do?errors=yes ")
+        print( "TODO: make this automatic ..." )
+
         ess = read.table(file= file.path(biochem.dir, "ess.dat"), sep=",",header=T)
         ess$region = "4VW"
         wss = read.table(file= file.path(biochem.dir, "wss.dat"), sep=",",header=T)
