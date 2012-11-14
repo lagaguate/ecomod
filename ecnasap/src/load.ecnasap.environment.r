@@ -7,10 +7,10 @@
   tmpdir            = tempdir()
 
 # source directories
-  srcdir            = file.path( project.directory("ecnasap"), "src" )
-  gs.srcdir         = file.path( project.directory("groundfish"), "src" )
-  ecnasapdir        = file.path( project.directory("ecnasap"), "src" )
-  commondir         = file.path( project.directory("common" ), "src" )
+  srcdir            = project.directory("ecnasap", "src" )
+  gs.srcdir         = project.directory("groundfish", "src" )
+  ecnasapdir        = project.directory("ecnasap", "src" )
+  commondir         = project.directory("common" , "src" )
 
 	
 	loadfunctions( c("common", "taxonomy", "ecnasap", "speciesarea", "groundfish" )
