@@ -66,7 +66,7 @@
        
 			out = NULL
 	    if ( is.null(DS) | DS=="gscat.odbc" ) {
-        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+        fl = list.files( path=fn.root, pattern="*.rdata", full.names=T ) 
  				for ( fny in fl ) {
 					load (fny)
 					out = rbind( out, gscat )
@@ -79,16 +79,21 @@
 
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
-        gscat = sqlQuery( connect,  paste( "select * from groundfish.gscat where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
-        odbcClose(connect)
+        gscat = sqlQuery( connect,  paste( 
+               "select i.*, j.YEAR " , 
+        "    from groundfish.gscat i, groundfish.gsmissions j " , 
+        "    where i.MISSION(+)=j.MISSION " ,
+        "    and YEAR=", YR, ";"
+        ) )
+     
         names(gscat) =  tolower( names(gscat) )
         print(fny)
         save(gscat, file=fny, compress=T)
 				gc()  # garbage collection
 				print(YR)
 			}
-			odbcClose(con)
-              
+   
+      odbcClose(connect)             
       return (datayrs)
 
 		}
@@ -96,7 +101,6 @@
 
 
     # --------------------
-
 
 
  
@@ -110,7 +114,8 @@
       }
 
       gscat = groundfish.db( DS="gscat.odbc" )
-      
+      gscat$year = NULL
+
       # update taxa codes to a clean state:
       gscat$spec = taxa.specid.correct( gscat$spec ) 
      
@@ -151,7 +156,7 @@
 				gscat$sampwgt[r] = sum( gscat$sampwgt[q], na.rm=T )
         s = c(s, q[-r])
       }
-      gscat = gscat[-s,]
+      if (length(s)>0) gscat = gscat[-s,]
  
 	
 		mw = meansize.crude(Sp=gscat$spec, Tn=gscat$totno, Tw=gscat$totwgt )
@@ -212,7 +217,7 @@
        
 			out = NULL
 	    if ( is.null(DS) | DS=="gsdet.odbc" ) {
-        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+        fl = list.files( path=fn.root, pattern="*.rdata", full.names=T  ) 
  				for ( fny in fl ) {
 					load (fny)
 					out = rbind( out, gsdet )
@@ -225,15 +230,19 @@
 
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
-        gsdet = sqlQuery( connect,  paste( "select * from groundfish.gsdet where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
-        odbcClose(connect)
+        gsdet = sqlQuery( connect,  paste( 
+        "select i.*, j.YEAR " , 
+        "    from groundfish.gsdet i, groundfish.gsmissions j " , 
+        "    where i.MISSION(+)=j.MISSION " ,
+        "    and YEAR=", YR, ";"
+        ) )
         names(gsdet) =  tolower( names(gsdet) )
         save(gsdet, file=fny, compress=T)
         print(fny)
 				gc()  # garbage collection
 				print(YR)
 			}
-			odbcClose(con)
+      odbcClose(connect)
               
       return (datayrs)
 
@@ -263,6 +272,7 @@
       }
 
       gsdet = groundfish.db( DS="gsdet.odbc" )
+      gsdet$year = NULL
 
       gsdet$id = paste(gsdet$mission, gsdet$setno, sep=".")
       gsdet$id2 = paste(gsdet$mission, gsdet$setno, gsdet$spec, sep=".")
@@ -287,7 +297,7 @@
        
 			out = NULL
 	    if ( is.null(DS) | DS=="gsinf.odbc" ) {
-        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+        fl = list.files( path=fn.root, pattern="*.rdata", full.names=T  ) 
  				for ( fny in fl ) {
 					load (fny)
 					out = rbind( out, gsinf )
@@ -300,16 +310,17 @@
 
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
-        gsinf = sqlQuery( connect,  paste( "select * from groundfish.gsinf where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
-        odbcClose(connect)
+        gsinf = sqlQuery( connect,  paste( 
+        "select * from groundfish.gsinf where EXTRACT(YEAR from SDATE) = ", YR, ";"
+        ) )
         names(gsinf) =  tolower( names(gsinf) )
         save(gsinf, file=fny, compress=T)
         print(fny)
 				gc()  # garbage collection
 				print(YR)
 			}
-			odbcClose(con)
-              
+	        
+      odbcClose(connect)	              
       return (datayrs)
 
 		}
@@ -365,7 +376,7 @@
        
 			out = NULL
 	    if ( is.null(DS) | DS=="gshyd.odbc" ) {
-        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+        fl = list.files( path=fn.root, pattern="*.rdata", full.names=T  ) 
  				for ( fny in fl ) {
 					load (fny)
 					out = rbind( out, gshyd )
@@ -378,15 +389,19 @@
 
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
-        gshyd = sqlQuery( connect,  paste( "select * from groundfish.gshyd where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
-        odbcClose(connect)
+        gshyd = sqlQuery( connect,  paste( 
+        "select i.*, j.YEAR " , 
+        "    from groundfish.gshyd i, groundfish.gsmissions j " , 
+        "    where i.MISSION(+)=j.MISSION " ,
+        "    and YEAR=", YR, ";"
+        ) )
         names(gshyd) =  tolower( names(gshyd) )
         save(gshyd, file=fny, compress=T)
         print(fny)
 				gc()  # garbage collection
 				print(YR)
 			}
-			odbcClose(con)
+			odbcClose(connect)
               
       return (datayrs)
 
@@ -560,9 +575,7 @@
       require(RODBC)
       connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, 
           pwd=oracle.personal.password, believeNRows=F)
-    # ----------------------
-        gsmissions = sqlQuery(connect, "select * from nwags.gsmission_list")
-        # gsmissions = sqlQuery(connect, "select MISSION, VESEL, CRUNO from groundfish.gsmissions")
+        gsmissions = sqlQuery(connect, "select MISSION, VESEL, CRUNO from groundfish.gsmissions")
         odbcClose(connect)
         names(gsmissions) =  tolower( names(gsmissions) )
         save(gsmissions, file=fnmiss, compress=T)

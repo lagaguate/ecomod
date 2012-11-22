@@ -25,7 +25,6 @@
   p$taxa =  "maxresolved"
 
 
-  odbc.data.yrs=1970:2012  #  <<<<< ---- DATA YEAR can be a single year update too --- for import of data year only
 
 
 # ------------------
@@ -34,6 +33,11 @@
 # ---------
 # primary data sets
 # these should be run on a windows machine: NULL values get mangled for some reason
+  
+  odbc.data.yrs=1970:2012  
+    #  <<<<< ---- DATA YEAR can be a single year update too 
+    # --- for import of data year only
+  
   groundfish.db( DS="odbc.redo", datayrs=odbc.data.yrs )  
   
   refresh.bio.species.codes = F
