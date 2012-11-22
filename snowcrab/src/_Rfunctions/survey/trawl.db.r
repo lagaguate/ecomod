@@ -334,7 +334,9 @@
       }     
 
 
-			# two -steps:: bycatch from the cat tables (missing snow crab) and determine totals from the snow crab det tables
+			# two steps:: bycatch from the cat tables (missing snow crab) 
+      # and determine totals from the snow crab det tables
+      
       det = snowcrab.db( DS="det.initial" )
       
       cat = snowcrab.db( DS="cat.odbc", yrs=1996:p$current.assessment.year )
@@ -399,7 +401,7 @@
 
       snowcrab = merge(x=numbers, y=biomass, by=c("trip", "set"), all=T)
       snowcrab = snowcrab[ which( as.character(snowcrab$trip) != "-1") , ]
-			snowcrab$spec = 2526
+			snowcrab$spec = taxa.specid.correct(2526)  # 2526 is the code used in the snow crab surveys .. convert to internally consistent state
       
 			final = snowcrab[,names(x)]  # get the right sequence of variables
 			

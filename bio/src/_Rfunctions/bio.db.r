@@ -52,9 +52,9 @@
         if (file.exists( fn) ) load( fn)
         return ( cat )
       }
-      cat.names =  c("data.source", "id", "spec", "totno", "totmass") 
+      cat.names =  c("data.source", "id", "spec", "totno", "totmass", "cf") 
       if ( "groundfish" %in% p$data.sources ) {
-        x = groundfish.db( "set" )  
+        x = groundfish.db( "set" )  # sa corrected
         x$data.source = "groundfish"
         x$totmass = x$totwgt
 				x = x[, cat.names]
@@ -62,9 +62,10 @@
         rm (x); gc()
       }
       if ( "snowcrab" %in% p$data.sources ) {
-        x =  snowcrab.db( DS ="cat.initial" )  
+        x =  snowcrab.db( DS ="cat.georeferenced" ) # sa corrected  
         x$data.source = "snowcrab"
         x$id = paste( x$trip, x$set, sep="." )
+        x$cf = 1/x$sa  # no other correction factors
         x = x[, cat.names]
 				cat = rbind( cat, x  )
         rm (x); gc()
@@ -83,21 +84,62 @@
         if (file.exists( fn) ) load( fn)
         return ( det )
       }
-      det.names =  c("data.source", "id", "spec", "detid", "sex", "mass", "len", "mat" ) 
+      det.names =  c("data.source", "id", "spec", "detid", "sex", "mass", "len", "mat", "cf" ) 
       if ( "groundfish" %in% p$data.sources ) {
         x = groundfish.db( "det" )  
         x$data.source = "groundfish"
         x$detid = x$fshno
+      
+        # convert sex codes to snow crab standard
+        sx = x$sex
+        x$sex = NA
+        oo = which( sx %in% c(0, 3) ); if (length(oo)>0) x$sex[oo] = 2 # unknown
+        oo = which( sx %in% c(1) ); if (length(oo)>0) x$sex[oo] = 0 # male
+        oo = which( sx %in% c(2) ); if (length(oo)>0) x$sex[oo] = 1 # female
+        
+        # convert maturity to snow crab standard
+        mt = x$mat
+        x$mat = NA
+        oo = which( mt %in% c(0) ); if (length(oo)>0) x$sex[oo] = 2 # unknown
+        oo = which( mt %in% c(1) ); if (length(oo)>0) x$sex[oo] = 0  # immature
+        oo = which( mt %in% c(2,3,4,5,6,7,8) ); if (length(oo)>0) x$sex[oo] = 1 # mature  -- investment into gonads has begun
+        
+        # x$cf is the multiplier used to scale for subsampling, trawl sa, species, etc.
+         
         det = rbind( det, x[, det.names] )
-        rm (x); gc()
+          # --------- codes ----------------
+          # sex: 0=?, 1=male, 2=female,  3=?
+          # mat: 0=observed but undetermined, 1=imm, 2=ripening(1), 3=ripening(2), 4=ripe(mature), 
+          #      5=spawning(running), 6=spent, 7=recovering, 8=resting
+          # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
+          #      4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
+          #      6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
+          # --------- codes ----------------
+         rm (x); gc()
       }
       if ( "snowcrab" %in% p$data.sources ) {
+               
+        # sex codes
+        #  male = 0 
+        #  female = 1
+        #  sex.unknown = 2
+
+        # maturity codes
+        #  immature = 0
+        #  mature = 1 
+        #  mat.unknown = 2
+        
         x =  snowcrab.db( DS ="det.georeferenced" )  
         x$data.source = "snowcrab"
         x$id = paste( x$trip, x$set, sep="." )
-        x$spec = 2526
+        x$spec = taxa.specid.correct(2526)
         x$detid = x$crabno
         x$len = x$cw
+        x$cf = 1/x$sa  ########## <<<<<< ------ NOTE THIS accounts only for SA as there is no subsampling
+        x$sex = as.numeric( as.character( x$sex) )
+        x$mat = as.numeric( as.character( x$mat) )
+        x$mass = x$mass /1000  # g to kg
+        
         det = rbind( det, x[, det.names] )
         rm (x); gc()
       }
@@ -124,10 +166,7 @@
 			cat = bio.db( DS="cat", p=p)
   
 			# these are determined below ...
-			spec.todrop =  c(90, 1091, 1092, 1093, 1094, 1095, 1100, 1200, 1224, 1300, 
-                       1600, 1701, 4223, 6120,
-											 9000, 9001, 9200,  9310, 9400, 9600, 9991, 9992, 9993, 
-                       9994, 9995, 9996, 9997, 9998, 9999)
+			spec.todrop =  c(9991:9999)
     
 			to.drop = which (cat$spec %in% spec.todrop)
 			cat = cat[ - to.drop, ]
@@ -137,10 +176,14 @@
 
 			debug = F
 			if (debug) {
-				sp.names =  lookup.spec2taxa(species) 
+				    
+		  	surveys = sort( unique( cat$data.source ) ) 
+        species = sort( unique( cat$spec ) )
+
+        sp.names =  lookup.spec2taxa(species) 
 				i.strange = which( is.na( sp.names$tx ))
 				sp.strange = sp.names$spec[ i.strange]
-				print( "Need to check these species code in taxa db:")
+				print( "Need to check these species codes in taxa db:")
 				print( sp.strange )
 				
 				# To drop: c( 90, 1091, 1092, 1093, 1094, 1095, 1100, 1200, 1224,

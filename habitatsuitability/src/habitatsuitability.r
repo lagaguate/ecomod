@@ -1,11 +1,12 @@
 
-  # Habitat suitability estimation template 
+  # Habitat suitability estimation begins 
    
-  ### define parameter list to determine the correct category of taxa/size from "bio.db" 
+  
+  # this depends upon the bio.db -- make sure it is up to date:
+  # loadfunctions( "bio", functionname="bio.r" )
 
 
 	loadlibraries (c("chron", "fields", "rgdal", "snow", "mgcv", "arm" ))
-
 
 	p = list()
   p$env.init = loadfunctions(c( "common", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
@@ -14,18 +15,7 @@
   p$studyarea = c( "4vwx" )
   # p$studyarea = c("4vwx", "5yz" )
   
-  # p$taxa =  "maxresolved"  # required for bio.db
-  # p$taxa.secondary.filter = "" 
-  # p$det.filter = ""
-  
-  # p$seasons = "allseasons"
-	p$data.sources = c("groundfish", "snowcrab") 
-
-
-  habitatsuitability.db( DS="initial.redo", p=p )
-
-
-  # set map years separately to temporal.interpolation.redo allow control over specific years updated
+   # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$yearstomodel = 1970:2011 
   # p$seasons = "allseasons"
  
@@ -33,6 +23,18 @@
   # p$temperaturerange = c() 
 
   p$interpolation.distances=c(1, 5, 10)
+  
+  
+  # ---------
+  # *** this is required *** 
+  #
+  # for choosing the right bio.db snapshot  ----
+  # p$seasons = "allseasons"
+	p$data.sources = c("groundfish", "snowcrab")  # absence defaults to "use all available data"
+  p$taxa = "maxresolved"  
+  # ---------
+
+
 
   # --------------
   # do spatial predictions using GAM
@@ -52,17 +54,28 @@
 
 
 
+
+
   # database creation
-  p$subset = "snowcrab.female.large"  # also used as a label
- 
-
-    update.bio = FALSE # Remember to update BIO data if not already up to date
-    if (update.bio) loadfunctions( "bio", functionname="bio.r" )
-
 
   # must generate or regenerate the correct data selection
   initialize.database = FALSE
-  if (initialize.database) habitatsuitability.db( DS="initial.redo", p=p ) 
+  if (initialize.database) {
+    habitatsuitability.db( DS="initial.set.redo", p=p )  
+  }
+
+
+
+  p$speciesofinterest = "snowcrab"
+  
+  p$subset = "snowcrab.female.large"  # see lookup.biological.filter for predefined types
+  # p$subset = "female" # p$subset = "female.immature" , etc
+
+
+  habitatsuitability.db( DS="taxasubset.cat.redo", p=p ) 
+  habitatsuitability.db( DS="taxasubset.det.redo", p=p ) 
+  
+
 
   # example extraction  x = habitatsuitability.db( DS="subset", p=p ) 
 
@@ -80,6 +93,7 @@
   
   # --------------
   # data
+
 
   if (refresh.databases) {
     for (sp in taxalist ) {

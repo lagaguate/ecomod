@@ -65,7 +65,7 @@
   tx = data.frame( spec=isp )
   tx = merge(tx, taxa.db("gstaxa"), by="spec", all.x=T, all.y=F, sort=F )
   #  tx = tx [ which(tx$spec<3000) ,]  # an initial lm suggests that those with spec# >3000  have minimal linear influence .. drop as there are too many vars
-  tx = tx [ - which(tx$spec==2526), ] #get rid of snow crab
+  tx = tx [ - which(tx$spec== taxa.specid.correct(2526)), ] #get rid of snow crab
     
   iv = gsub("[[:space:]]+", "", tx$namecom )
   iv = gsub("[[:punct:]]+", "", iv )

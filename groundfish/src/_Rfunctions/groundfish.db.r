@@ -1,5 +1,5 @@
 
-  groundfish.db = function(  DS="complete", p=NULL, taxa="all", r2crit=0.75, threshold=0, type="number", season="summer"  ) {
+  groundfish.db = function(  DS="complete", p=NULL, taxa="all", r2crit=0.75, threshold=0, type="number", season="summer", datayrs=NULL  ) {
   
     loc = file.path( project.directory("groundfish"), "data" )
     DataDumpFromWindows = F
@@ -7,13 +7,15 @@
       project.directory("taxonomy") = loc = file.path("C:", "datadump")
     }
     dir.create( path=loc, recursive=T, showWarnings=F )
-  
+    
     if (DS %in% c("odbc.redo") ) {
       
       # ODBC data dump of groundfish tables
-      groundfish.db( DS="gscat.odbc.redo" )
-      groundfish.db( DS="gsdet.odbc.redo" )
-      groundfish.db( DS="gsinf.odbc.redo" )
+      groundfish.db( DS="gscat.odbc.redo", datayrs=datayrs )
+      groundfish.db( DS="gsdet.odbc.redo", datayrs=datayrs )
+      groundfish.db( DS="gsinf.odbc.redo", datayrs=datayrs )
+      groundfish.db( DS="gshyd.profiles.odbc.redo", datayrs=datayrs )
+
       groundfish.db( DS="gsmissions.odbc.redo" ) #  not working?
       
       update.infrequently = F
@@ -46,6 +48,7 @@
         odbcClose(connect)
         names(spcodes) =  tolower( names(spcodes) )
         save(spcodes, file=fnspc, compress=T)
+        print( fnspc )
         print("Should follow up with a refresh of the taxonomy.db " )
         return( fnspc )
       }
@@ -54,35 +57,59 @@
 
     # --------------------
 
- 
-    if (DS %in% c("gscat", "gscat.redo", "gscat.odbc", "gscat.odbc.redo"  ) ) {
+
+
+		if (DS %in% c( "gscat.odbc", "gscat.odbc.redo" ) ) {
       
+      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gscat" )
+			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
+       
+			out = NULL
+	    if ( is.null(DS) | DS=="gscat.odbc" ) {
+        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+ 				for ( fny in fl ) {
+					load (fny)
+					out = rbind( out, gscat )
+				}
+				return (out)
+      }
+
+      require(RODBC)
+      connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+
+			for ( YR in datayrs ) {
+				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+        gscat = sqlQuery( connect,  paste( "select * from groundfish.gscat where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
+        odbcClose(connect)
+        names(gscat) =  tolower( names(gscat) )
+        print(fny)
+        save(gscat, file=fny, compress=T)
+				gc()  # garbage collection
+				print(YR)
+			}
+			odbcClose(con)
+              
+      return (datayrs)
+
+		}
+
+
+
+    # --------------------
+
+
+
+ 
+    if (DS %in% c("gscat", "gscat.redo"  ) ) {
+       
       fn = file.path( loc,"gscat.rdata")
-      fncat = file.path( loc, "gscat0.rdata" )
       
       if ( DS=="gscat" ) {
         load( fn )
         return (gscat)
       }
-      if ( DS=="gscat.odbc" ) {
-        load( fncat )
-        return(gscat)
-      }
 
-      if ( DS=="gscat.odbc.redo" ) {
-        require(RODBC)
-        connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, 
-          pwd=oracle.personal.password, believeNRows=F)
-        gscat = sqlQuery( connect, "select * from groundfish.gscat" )
-        odbcClose(connect)
-        names(gscat) =  tolower( names(gscat) )
-        save(gscat, file=fncat, compress=T)
-        return (fncat)
-      }
-      
-      # else default 
-
-      gscat = groundfish.db( DS="gscat.odbc")
+      gscat = groundfish.db( DS="gscat.odbc" )
       
       # update taxa codes to a clean state:
       gscat$spec = taxa.specid.correct( gscat$spec ) 
@@ -178,9 +205,47 @@
   # ----------------------
 
 
-    if (DS %in% c("gsdet", "gsdet.redo", "gsdet.odbc", "gsdet.odbc.redo") ) {
+		if (DS %in% c( "gsdet.odbc", "gsdet.odbc.redo" ) ) {
+      
+      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gsdet" )
+			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
+       
+			out = NULL
+	    if ( is.null(DS) | DS=="gsdet.odbc" ) {
+        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+ 				for ( fny in fl ) {
+					load (fny)
+					out = rbind( out, gsdet )
+				}
+				return (out)
+      }
+
+      require(RODBC)
+      connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+
+			for ( YR in datayrs ) {
+				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+        gsdet = sqlQuery( connect,  paste( "select * from groundfish.gsdet where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
+        odbcClose(connect)
+        names(gsdet) =  tolower( names(gsdet) )
+        save(gsdet, file=fny, compress=T)
+        print(fny)
+				gc()  # garbage collection
+				print(YR)
+			}
+			odbcClose(con)
+              
+      return (datayrs)
+
+		}
+     
+   
+
+  # ----------------------
+
+
+    if (DS %in% c("gsdet", "gsdet.redo") ) {
       fn = file.path( loc,"gsdet.rdata")
-      fndet = file.path( loc, "gsdet0.rdata")
     
     # --------- codes ----------------
     # sex: 0=?, 1=male, 2=female,  3=?
@@ -195,21 +260,6 @@
       if ( DS=="gsdet" ) {
         load( fn )
         return (gsdet)
-      }
-      if ( DS=="gsdet.odbc" ) {
-        load( fndet )
-        return (gsdet)
-      }
-    
-      if ( DS=="gsdet.odbc.redo" ) {
-        require(RODBC)
-        connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, 
-          pwd=oracle.personal.password, believeNRows=F)
-        gsdet =  sqlQuery(connect, "select * from groundfish.gsdet")
-        odbcClose(connect)
-        names(gsdet) =  tolower( names(gsdet) )
-        save(gsdet, file=fndet, compress=T)
-        return (fndet)
       }
 
       gsdet = groundfish.db( DS="gsdet.odbc" )
@@ -228,29 +278,55 @@
  # ----------------------
 
 
-    if (DS %in% c("gsinf", "gsinf.redo", "gsinf.odbc", "gsinf.odbc.redo") ) {
+
+
+		if (DS %in% c( "gsinf.odbc", "gsinf.odbc.redo" ) ) {
+      
+      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gsinf" )
+			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
+       
+			out = NULL
+	    if ( is.null(DS) | DS=="gsinf.odbc" ) {
+        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+ 				for ( fny in fl ) {
+					load (fny)
+					out = rbind( out, gsinf )
+				}
+				return (out)
+      }
+
+      require(RODBC)
+      connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+
+			for ( YR in datayrs ) {
+				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+        gsinf = sqlQuery( connect,  paste( "select * from groundfish.gsinf where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
+        odbcClose(connect)
+        names(gsinf) =  tolower( names(gsinf) )
+        save(gsinf, file=fny, compress=T)
+        print(fny)
+				gc()  # garbage collection
+				print(YR)
+			}
+			odbcClose(con)
+              
+      return (datayrs)
+
+		}
+     
+    
+
+  # ----------------------
+
+
+    if (DS %in% c("gsinf", "gsinf.redo" ) ) {
       fn = file.path( loc,"gsinf.rdata")
-      fninf = file.path(loc, "gsinf0.rdata")
       
       if ( DS=="gsinf" ) {
         load( fn )
         return (gsinf)
       }
-      if ( DS=="gsinf.odbc" ) {
-        load( fninf )
-        return (gsinf)
-      }
-      if ( DS=="gsinf.odbc.redo" ) {
-        require(RODBC)
-        connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, 
-          pwd=oracle.personal.password, believeNRows=F)
-        gsinf = sqlQuery(connect, "select * from groundfish.gsinf" )
-        odbcClose(connect)
-        names(gsinf) =  tolower( names(gsinf) )
-        save(gsinf, file=fninf, compress=T)
-        return (fninf )
-      } 
-
+ 
       gsinf = groundfish.db( DS="gsinf.odbc" )
       names(gsinf)[which(names(gsinf)=="type")] = "settype"
       gsinf$strat = as.character(gsinf$strat)
@@ -282,29 +358,51 @@
  # ----------------------
 
 
-    if (DS %in% c("gshyd.profiles", "gshyd.profiles.redo", "gshyd.profiles.odbc" , "gshyd.profiles.odbc.redo" ) ) {
+		if (DS %in% c( "gshyd.profiles.odbc" , "gshyd.profiles.odbc.redo" ) ) {
+      
+      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gshyd" )
+			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
+       
+			out = NULL
+	    if ( is.null(DS) | DS=="gshyd.odbc" ) {
+        fl = list.files( path=fn.root, pattern="*.rdata" ) 
+ 				for ( fny in fl ) {
+					load (fny)
+					out = rbind( out, gshyd )
+				}
+				return (out)
+      }
+
+      require(RODBC)
+      connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+
+			for ( YR in datayrs ) {
+				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+        gshyd = sqlQuery( connect,  paste( "select * from groundfish.gshyd where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
+        odbcClose(connect)
+        names(gshyd) =  tolower( names(gshyd) )
+        save(gshyd, file=fny, compress=T)
+        print(fny)
+				gc()  # garbage collection
+				print(YR)
+			}
+			odbcClose(con)
+              
+      return (datayrs)
+
+		}
+     
+ # ----------------------
+
+
+   
+    if (DS %in% c("gshyd.profiles", "gshyd.profiles.redo" ) ) {
       # full profiles
       fn = file.path( loc,"gshyd.profiles.rdata")
-      fnhyd = file.path( loc, "gshyd.profiles0.rdata")
       
       if ( DS=="gshyd.profiles" ) {
         load( fn )
         return (gshyd)
-      }
-      if ( DS=="gshyd.profiles.odbc" ) {
-        load( fn )
-        return (gshyd)
-      }
-      if ( DS=="gshyd.profiles.odbc.redo" ) {
-        require(RODBC)
-        connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, 
-          pwd=oracle.personal.password, believeNRows=F)
-        gshyd = sqlQuery(connect, "select * from groundfish.gshyd")
-        odbcClose(connect)
-        names(gshyd) =  tolower( names(gshyd) )
-        gshyd$id = paste(gshyd$mission, gshyd$setno, sep=".")
-        save(gshyd, file=fnhyd, compress=T)
-        return (fnhyd)
       }
       
       gshyd = groundfish.db( DS="gshyd.profiles.odbc" )
@@ -403,7 +501,8 @@
       gsstratum =  sqlQuery(connect, "select * from groundfish.gsstratum", as.is=T) 
       odbcClose(connect)
       names(gsstratum) =  tolower( names(gsstratum) )
-      save(gsstratum, file=file.path(loc,"gsstratum.rdata"), compress=T)
+      save(gsstratum, file=fn, compress=T)
+      print(fn)
       return( "Done" )
     }
 
@@ -424,10 +523,10 @@
       odbcClose(connect)
       names(coords) =  tolower( names(coords) )
       save(coords, file=fn, compress=T)
+      print(fn)
       return( "Done" )
     }
  
- # ----------------------
  # ----------------------
 
  
@@ -444,6 +543,7 @@
       odbcClose(connect)
       names(gslist) =  tolower( names(gslist) )
       save(gslist, file=fn, compress=T)
+      print(fn)
       return( "Done" )
     }
 
@@ -466,6 +566,7 @@
         odbcClose(connect)
         names(gsmissions) =  tolower( names(gsmissions) )
         save(gsmissions, file=fnmiss, compress=T)
+      print(fnmiss)
       return( fnmiss )
     }
 

@@ -129,8 +129,11 @@
       )
       out = c( out, spid )
     }
-    
-    return ( sort( unique( out) ) ) 
+   
+    out = sort( unique( out) ) 
+    out = taxa.specid.correct( out )  # recode to internally consistent codes
+
+    return (out ) 
   }
 
 

@@ -9,6 +9,7 @@
 			return(i)
 		} 
 		
+    sp.codes = NULL 
     sp.codes = species.codes( method ) 
 	  if (is.null(sp.codes) ) stop( paste( method, "was not found .. check/modify 'species.codes'" ))
 
