@@ -18,7 +18,7 @@
     
     if ( DS=="limit.to.near.survey.stations" ) {
       ## add points within X km of a survey station
-      S = snowcrab.db( DS="set.logbook", yrs=y, p=p ) 
+      S = snowcrab.db( DS="set.logbook") 
       if ( ! is.null(S) ) { 
 				S = S[ , c("plon", "plat") ]
 				distances =  rdist( PS[,c("plon", "plat")], S)

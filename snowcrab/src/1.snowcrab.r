@@ -110,7 +110,7 @@
 # Final data lookup/matching .. AFTER refreshing all above tables (where relevent/possible)
   logbook.db( DS="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
-  snowcrab.db( DS ="set.logbook.redo", p=p, yrs=1996:p$current.assessment.year ) # add gridded fisheries data
+  snowcrab.db( DS ="set.logbook.redo", yrs=1996:p$current.assessment.year ) # add gridded fisheries data
   
   make.timeseries.data(p=p, areas=p$regions )  #  timeseries of means of all survey data
   #  tsdata = snowcrab.db("set.timerseries")
@@ -128,7 +128,7 @@
 
 # simple geometric means of raw data:  used by indicators ordination and some figures
   # takes many hours ... need to make parallel  TODO 
-  tsdata =  get.time.series ( x=snowcrab.db( DS="set.logbook", p=p, yrs=1996:p$current.assessment.year ),
+  tsdata =  get.time.series ( x=snowcrab.db( DS="set.logbook"),
     regions=p$regions, vars=variable.list.expand("all.data"), from.file=F, trim=0 )
 
 

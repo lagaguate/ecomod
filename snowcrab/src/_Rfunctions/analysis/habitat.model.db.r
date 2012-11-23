@@ -40,7 +40,7 @@
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
 
         fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") )
-        set = snowcrab.db( DS="set.logbook", yrs=predictionYears, p=p )
+        set = snowcrab.db( DS="set.logbook" )
         set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
         set = presence.absence( set, v, p$habitat.threshold.quantile, 1 )  # determine presence absence and weighting  
         set$wt = ceiling( 1000 * set$wt )
@@ -198,7 +198,7 @@
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
         fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
-        set = snowcrab.db( DS="set.logbook", yrs=predictionYears, p=p )
+        set = snowcrab.db( DS="set.logbook" )
         set$Y = set[, v]
         set = set[ which(set$yr %in% p$years.to.model ) , ]
         set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]

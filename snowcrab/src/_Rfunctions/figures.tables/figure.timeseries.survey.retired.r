@@ -7,7 +7,7 @@
     if (from.file) {
       tsdata =  get.time.series ( from.file=T )  # this returns 1.96SE as "se"
     } else {
-      tsdata =  get.time.series ( x=snowcrab.db( DS="set.logbook", p=p, yrs=1996:p$current.assessment.year ), regions=areas, vars=variables, from.file=F, trim=0 )
+      tsdata =  get.time.series ( x=snowcrab.db( DS="set.logbook" ), regions=areas, vars=variables, from.file=F, trim=0 )
     }
 
     plot.timeseries(x=tsdata, vars=variables, regions=areas, outdir=outdir, backtransform=F)

@@ -284,7 +284,6 @@
       }
       
       # get data for the whole area
-      all.set.years = c(1998:p$current.assessment.year)
       var.list= c( all.vars( p$kformula), "yr", "plon", "plat")
       K = NULL
 
@@ -312,7 +311,7 @@
           }
         }
   
-        S  = snowcrab.db( DS="set.logbook", yrs=all.set.years,p=p ) 
+        S  = snowcrab.db( DS="set.logbook") 
       
         if (p$transgaussian.kriging) {
           # S = S[ which( S[,v] > 0) ,]

@@ -139,7 +139,7 @@
 
       ### --------- prediction success:
       
-      set = snowcrab.db( DS="set.logbook", yrs=p$years.to.model, p=p )
+      set = snowcrab.db( DS="set.logbook" )
       set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
       set = presence.absence( set, "R0.mass", p$habitat.threshold.quantile, 1 )  # determine presence absence and weighting  
       set$wt = ceiling( 1000 * set$wt )

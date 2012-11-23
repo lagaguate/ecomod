@@ -16,12 +16,10 @@
 
 	    if (DS=="set.odbc") {
 				out = NULL
-				for ( YR in yrs ) {
-					fny = file.path( fn.root, paste( YR,"rdata", sep="."))
-					if (file.exists(fny)) {
-						load (fny)
-						out = rbind( out, SNCRABSETS )
-					}
+				fl = list.files( path=fn.root, pattern="*.rdata", full.names=T ) 
+        for ( fny in fl ) {
+					load (fny)
+					out = rbind( out, SNCRABSETS )
 				}
 				return (out)
 			}
@@ -51,12 +49,10 @@
   
 	    if (DS=="det.odbc") {
 				out = NULL
-				for ( YR in yrs ) {
-					fny = file.path( fn.root, paste( YR,"rdata", sep="."))
-					if (file.exists(fny)) {
-						load (fny)
-						out = rbind( out, SNCRABDETAILS )
-					}
+        fl = list.files( path=fn.root, pattern="*.rdata", full.names=T ) 
+				for ( fny in fl ) {
+					load (fny)
+					out = rbind( out, SNCRABDETAILS )
 				}
 				return (out)
 			}
@@ -90,12 +86,10 @@
   
 	    if (DS=="cat.odbc") {
 				out = NULL
-				for ( YR in yrs ) {
-					fny = file.path( fn.root, paste( YR,"rdata", sep="."))
-					if (file.exists(fny)) {
-						load (fny)
-						out = rbind( out, SNTRAWLBYCATCH )
-					}
+        fl = list.files( path=fn.root, pattern="*.rdata", full.names=T ) 
+				for ( fny in fl ) {
+					load (fny)
+					out = rbind( out, SNTRAWLBYCATCH )
 				}
 				return (out)
 			}
@@ -136,7 +130,7 @@
       # Female abdomen width measure if CW >= 30 mm .. changed in 2007 .. previously all were measured.
 
       # data dump from the observer system
-      set = snowcrab.db( DS="set.odbc", yrs=1996:p$current.assessment.year )
+      set = snowcrab.db( DS="set.odbc")
       names( set ) = rename.snowcrab.variables(names( set))
       setvars = c("trip", "set", "station", "stime", "observer", "cfa", "lon", "lat", "towquality", "Zx", "Tx", "gear", "sa" )  
       set$trip = as.character(set$trip)
@@ -235,7 +229,7 @@
       }
       
       X = snowcrab.db( DS="set.clean" )
-      det = snowcrab.db( DS="det.odbc", yrs=1996:p$current.assessment.year  )
+      det = snowcrab.db( DS="det.odbc"  )
 
       names( det ) = rename.snowcrab.variables(names(det) )
       detvars = c( "trip", "set", "crabno", "sex", "cw", "mass", "abdomen", "chela", "mat",
@@ -324,7 +318,6 @@
 
     # ------------------------------
 
-    # -------------
 
     if (DS %in% c("cat.initial", "cat.initial.redo") ) {
       fn = file.path(project.directory("snowcrab"), "R", "cat.initial.rdata")
@@ -339,7 +332,7 @@
       
       det = snowcrab.db( DS="det.initial" )
       
-      cat = snowcrab.db( DS="cat.odbc", yrs=1996:p$current.assessment.year )
+      cat = snowcrab.db( DS="cat.odbc" )
       names( cat ) = rename.snowcrab.variables(names( cat ) )
       
       # two different time periods (pre and post Moncton)
@@ -1019,37 +1012,19 @@
     
     if (DS %in% c("set.logbook", "set.logbook.redo" )) {
       
-      outdir = file.path( project.directory("snowcrab"), "R", "set.logbook" )
+      outdir = file.path( project.directory("snowcrab"), "data" )
       dir.create(path=outdir, recursive=T, showWarnings=F)
-
+      fn = file.path( outdir, "set.logbook.rdata" ) 
+      
       if (DS =="set.logbook") {
-        out = NULL
-        for ( yr in yrs ) {
-					fn = file.path( outdir, paste("set.logbook", yr, "rdata", sep=".") ) 
-          if ( ! file.exists( fn) ) next()
-          load(fn)
-          out = rbind( out, set )
-        }
-        return(out)
+        if ( file.exists( fn) ) load(fn)
+        return(set)
       }
    
       set0 = snowcrab.db( DS="set.complete" )
-      
-      # why ?
-      # set0$z.H = set0$zsd =NULL
-      # set0$wmin.annual = set0$wmin
-
-      ip = 1:length(yrs)
-      for ( iy in ip )  {
-        yr = yrs[iy]
-        fn = file.path( outdir, paste("set.logbook", yr, "rdata", sep=".") ) 
-        print (fn)
-        set = set0[ which(set0$yr == yr ) ,]
-        set = logbook.fisheries.stats.merge( set )
-        save ( set, file=fn, compress=T )
-      }
-
-      return ("Complete")
+      set = logbook.fisheries.stats.merge( set )
+      save ( set, file=fn, compress=T )
+      return (fn)
     }
   
 

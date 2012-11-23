@@ -7,7 +7,7 @@
 
     qq =  grep( "redo", model.type)
     if ( length(qq) != 0  ) {
-      set = snowcrab.db( DS="set.logbook", yrs=p$years.to.model, p=p )
+      set = snowcrab.db( DS="set.logbook")
       q = quantile( set[which(set[,hvar]>0), hvar], p$habitat.threshold.quantile ) 
       set$Y = 0 
       set$Y[ which( set[,hvar] > q ) ] = 1  

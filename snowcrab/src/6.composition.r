@@ -57,7 +57,7 @@
 
   source( file.path( project.directory("snowcrab"), "src", "initialise.local.environment.r" ) )
 
-  S = snowcrab.db( DS ="set.logbook", p=p, yrs=1996:p$current.assessment.year ) 
+  S = snowcrab.db( DS ="set.logbook" ) 
   Sn = colnames( S )
 
   iv0 = Sn[ grep( "^ms.no." , Sn ) ]
