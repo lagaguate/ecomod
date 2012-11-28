@@ -7,7 +7,8 @@
 		out$usage = NA
     for ( i in 1:length(tsn) ) {
       itx = which( tx$tsn == tsn[i] )
-      if (length(itx) == 1 ) {
+      if (length(itx) == 1 & tx$name_usage[itx]=="accepted" ) {
+
 	      out$sci[i] = tx$completename[itx]
 		    out$tx[i] = tx$vernacular_name[itx]
 				out$usage[i] = tx$name_usage[itx]

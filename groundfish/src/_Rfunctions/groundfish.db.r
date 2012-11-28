@@ -94,7 +94,7 @@
 			}
    
       odbcClose(connect)             
-      return (datayrs)
+      return (fn.root)
 
 		}
 
@@ -117,8 +117,61 @@
       gscat$year = NULL
 
       # update taxa codes to a clean state:
-      gscat$spec = taxa.specid.correct( gscat$spec ) 
-     
+      spec.pass1 = taxa.specid.correct( gscat$spec ) 
+      
+      oo = which( !is.finite(spec.pass1) ) 
+      if (length(oo) > 0 ) {
+        res = data.frame( spec.pass1=NA, itis.tsn=NA, rem=gscat$remarks[oo], tolookup=TRUE, flag="", stringsAsFactors=F )
+        
+        qq = which( is.na( res$rem ) )
+        if (length( qq) > 0 ) {
+          res$tolookup[qq] = FALSE
+          res$flag[qq] = "No data in remarks"
+        }
+
+        res = taxonomy.flag.keywords( res, "rem" )
+        res = taxonomy.flag.keywords( res, "rem", wds=c("perhaps", "empty shells", "unknown", "pink lump", "frozen", "shells scal" ) )
+
+        # singleton characters
+        res$rem = gsub( "\\<[[:alnum:]]{1}\\>", " ", res$rem, ignore.case=T )  # remove ()/, etc.
+
+        res = taxonomy.keywords.remove( res, "rem", withpunctuation=T )
+        res = taxonomy.keywords.remove( res, "rem", withpunctuation=F )
+        
+        res = taxonomy.keywords.remove( res, "rem", withpunctuation=F, wds.toremove=c("no", "new", "not as before") )
+        
+        res$rem = strip.unnecessary.characters(res$rem )
+        
+        oo = which( res$tolookup ) 
+        if (length(oo) > 0) res = res[oo,]
+
+
+        vnames = c( "rem", "rem" )
+        vtypes = c( "default", "vernacular" )
+
+        res = itis.lookup.exhaustive.search( res, vnames, vtypes, parallelrun=FALSE )
+
+        res$spec.pass1 = lookup.tsn2spec( res$itis.tsn )
+        ww = which( !is.finite( res$spec.pass1 ) )
+        if (length(ww)>0) res$spec.pass1[ww] = - res$itis.tsn[ww]  ## take the negative value of the itis tsn
+        xx = which( !is.finite( res$spec.pass1) ) 
+        if (length(xx)>0) res = res[ -xx, ] 
+
+        update gscat
+        update the taxa sb ... use negative values to flag spec's that are just created
+        remainder create new spec from -tsn and put these in a local database
+        taxa.db( "local" 
+        taxa.db( "refresh"
+        
+        # final pass of species id's for gscat
+        spec.pass1 = taxa.specid.correct( gscat$spec ) 
+        etc ...
+        last check for missing spec/tsn and drop them
+
+      }
+
+
+
       min.number.observations.required = 3
       species.counts = as.data.frame( table( gscat$spec) )
       species.to.remove = as.numeric( as.character( species.counts[ which( species.counts$Freq < min.number.observations.required) , 1 ] ))
@@ -129,8 +182,6 @@
       gscat$id = paste(gscat$mission, gscat$setno, sep=".")
       gscat$id2 = paste(gscat$mission, gscat$setno, gscat$spec, sep=".")
   
-	# 	ll = which( gscat$totno == 0 & gscat$totwgt == 0 ) 
-		# 	length(ll) 
       
       # filter out strange data
 			ii = which( gscat$totwgt >= 9999 )  # default code for NAs -- 
@@ -144,7 +195,10 @@
 
 			kk = which( gscat$totno == 0 ) 
       if (length(kk)>0) gscat$totno[kk] = NA
-       
+ 		
+      ll = which( is.na(gscat$totno) & is.na(gscat$totwgt) ) 
+      if (length(ll) > 0) gscat$totno[ ll ] = 1
+        
       # as species codes have been altered, look for duplicates and update totals	
       d = which(duplicated(gscat$id2))
       s = NULL
@@ -158,7 +212,8 @@
       }
       if (length(s)>0) gscat = gscat[-s,]
  
-	
+	  # oo = which( duplicated( gscat$id2 ))
+
 		mw = meansize.crude(Sp=gscat$spec, Tn=gscat$totno, Tw=gscat$totwgt )
 		mw2 = meansize.direct() 
 		mw = merge(mw, mw2, by="spec", all=T, sort=T, suffixes=c(".crude", ".direct") )
@@ -237,6 +292,7 @@
         "    and YEAR=", YR, ";"
         ) )
         names(gsdet) =  tolower( names(gsdet) )
+        gsdet$mission = as.character( gsdet$mission )
         save(gsdet, file=fny, compress=T)
         print(fny)
 				gc()  # garbage collection
@@ -244,7 +300,7 @@
 			}
       odbcClose(connect)
               
-      return (datayrs)
+      return (fn.root)
 
 		}
      
@@ -254,7 +310,6 @@
 
 
     if (DS %in% c("gsdet", "gsdet.redo") ) {
-      fn = file.path( loc,"gsdet.rdata")
     
     # --------- codes ----------------
     # sex: 0=?, 1=male, 2=female,  3=?
@@ -266,6 +321,8 @@
     # --------- codes ----------------
 
 
+      fn = file.path( loc,"gsdet.rdata")
+      
       if ( DS=="gsdet" ) {
         load( fn )
         return (gsdet)
@@ -273,6 +330,15 @@
 
       gsdet = groundfish.db( DS="gsdet.odbc" )
       gsdet$year = NULL
+             
+      gsdet$spec = taxa.specid.correct( gsdet$spec ) 
+      oo = which(is.duplicated(gsdet$spec) )
+      oo
+      oo = which(!is.finite(gsdet$spec) )
+      oo
+      stop()
+
+
 
       gsdet$id = paste(gsdet$mission, gsdet$setno, sep=".")
       gsdet$id2 = paste(gsdet$mission, gsdet$setno, gsdet$spec, sep=".")
@@ -321,7 +387,7 @@
 			}
 	        
       odbcClose(connect)	              
-      return (datayrs)
+      return (fn.root)
 
 		}
      
@@ -340,6 +406,7 @@
  
       gsinf = groundfish.db( DS="gsinf.odbc" )
       names(gsinf)[which(names(gsinf)=="type")] = "settype"
+      gsinf$mission = as.character( gsinf$mission )
       gsinf$strat = as.character(gsinf$strat)
       gsinf$strat[ which(gsinf$strat=="") ] = "NA"
       gsinf$id = paste(gsinf$mission, gsinf$setno, sep=".")
@@ -375,7 +442,7 @@
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
        
 			out = NULL
-	    if ( is.null(DS) | DS=="gshyd.odbc" ) {
+	    if ( is.null(DS) | DS=="gshyd.profiles.odbc" ) {
         fl = list.files( path=fn.root, pattern="*.rdata", full.names=T  ) 
  				for ( fny in fl ) {
 					load (fny)
@@ -396,6 +463,7 @@
         "    and YEAR=", YR, ";"
         ) )
         names(gshyd) =  tolower( names(gshyd) )
+        gshyd$mission = as.character( gshyd$mission )
         save(gshyd, file=fny, compress=T)
         print(fny)
 				gc()  # garbage collection
@@ -403,7 +471,7 @@
 			}
 			odbcClose(connect)
               
-      return (datayrs)
+      return ( fn.root )
 
 		}
      
@@ -414,13 +482,13 @@
     if (DS %in% c("gshyd.profiles", "gshyd.profiles.redo" ) ) {
       # full profiles
       fn = file.path( loc,"gshyd.profiles.rdata")
-      
       if ( DS=="gshyd.profiles" ) {
         load( fn )
         return (gshyd)
       }
       
       gshyd = groundfish.db( DS="gshyd.profiles.odbc" )
+      gshyd$id = paste(gshyd$mission, gshyd$setno, sep=".")
       gshyd = gshyd[, c("id", "sdepth", "temp", "sal", "oxyml" )]
       save(gshyd, file=fn, compress=T)
       return( fn )
@@ -470,7 +538,7 @@
       gshyd$sal[gshyd$sal<5 ] = NA
       
       save(gshyd, file=fn, compress=T)
-      return( "Done" )
+      return( fn )
     }
 
  # ----------------------
@@ -496,7 +564,7 @@
       gshyd = merge( gshyd, gsinf, by="id", all.x=T, all.y=F, sort=F )
       gshyd$sal[gshyd$sal<5]=NA
       save(gshyd, file=fn, compress=T)
-      return( "Done" )
+      return( fn )
     }
 
 
@@ -518,7 +586,7 @@
       names(gsstratum) =  tolower( names(gsstratum) )
       save(gsstratum, file=fn, compress=T)
       print(fn)
-      return( "Done" )
+      return( fn )
     }
 
   # ----------------------
@@ -539,7 +607,7 @@
       names(coords) =  tolower( names(coords) )
       save(coords, file=fn, compress=T)
       print(fn)
-      return( "Done" )
+      return( fn )
     }
  
  # ----------------------
@@ -559,7 +627,7 @@
       names(gslist) =  tolower( names(gslist) )
       save(gslist, file=fn, compress=T)
       print(fn)
-      return( "Done" )
+      return( fn )
     }
 
  # ----------------------
@@ -586,7 +654,7 @@
  # ----------------------
 
     if (DS %in% c("set.base", "set.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "set.base.rdata")
+      fn = file.path( project.directory("groundfish"), "data", "set.base.rdata")
       if ( DS=="set.base" ) {
         load( fn )
         return (set)
@@ -615,9 +683,10 @@
       rm (gstaxa)
 
       # initial merge without any real filtering
-      save(set, file=file.path( project.directory("groundfish"), "R", "set0.rdata"), compress=T)  
+      # save(set, file=file.path( project.directory("groundfish"), "data", "set0.rdata"), compress=T)  
 
-			set = set[ - which( !is.finite( set$sdate)) ,]  # NED1999842 has no accompanying gsinf data ... drop it
+			oo = which( !is.finite( set$sdate)) # NED1999842 has no accompanying gsinf data ... drop it
+      if (length(oo)>0) set = set[ -oo  ,]  
       set$chron = as.chron(set$sdate)
       set$sdate = NULL
       set$yr = convert.datecodes(set$chron, "year" )
@@ -625,13 +694,13 @@
 
       save(set, file=fn, compress=T )
 
-      return ( "Done" )
+      return ( fn )
     }
     
      # ----------------------
 
     if (DS %in% c("det.base", "det.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "det.base.rdata")
+      fn = file.path( project.directory("groundfish"), "data", "det.base.rdata")
       if ( DS=="det.base" ) {
         load( fn )
         return (det)
@@ -674,20 +743,20 @@
       det$mass[oo] = det$predicted.mass[oo]
 
       save( det, file=fn, compress=T )
-      return( "Done"  )
+      return( fn )
     }
  
 
  # ----------------------
 
     if (DS %in% c("set", "set.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "set.rdata")
+      fn = file.path( project.directory("groundfish"), "data", "set.rdata")
       if ( DS=="set" ) {
         load( fn )
         return (set)
       }
       
-      set = groundfish.db( "set.base" )  # kg/set, no/set
+      set = groundfish.db( DS="set.base" )  # kg/set, no/set
      
       # combine correction factors or ignore trapability corrections .. 
       # plaice correction ignored as they are size-dependent
@@ -697,7 +766,7 @@
       # for missing data due to subsampling methodology
       # totals in the subsample that was taken should == sampwgt (in theory) but do not 
       # ... this is a rescaling of the sum to make it a proper subsample
-      gsdet = groundfish.db( "det" )
+      gsdet = groundfish.db( "det.base" )
       massTotSet = sumById( ee=gsdet$mass, id=gsdet$id2, idnames=c("id2","massTotdet" ) )  
       noTotSet = sumById( ee=rep(1,nrow(gsdet)), id=gsdet$id2, idnames=c("id2","noTotdet" ) )
 
@@ -711,9 +780,11 @@
 #[1] 184372     32
 
       set$cfsubsample =  set$totwgt/ set$massTotdet 
-      set$cfsubsample [ which ( !is.finite( set$cfsubsample ) ) ] = 1  # assume no subsampling -- all weights determined from the subsample
-      set$cfsubsample [ which ( set$cfsubsample==0) ] = 1  # assume no subsampling -- all weights determined from the subsample
-
+      oo = which ( !is.finite( set$cfsubsample ) )
+      if (length(oo)>0) set$cfsubsample [oo] = 1  # assume no subsampling -- all weights determined from the subsample
+      
+      pp = which ( set$cfsubsample==0)
+      if (length(pp) > 0) set$cfsubsample [pp ] = 1  # assume no subsampling -- all weights determined from the subsample
 
       # at the set level, some species are not sampled even though sampwgt's are recorded
       # this makes the total biomass > than that estimated from "DET" 
@@ -729,7 +800,6 @@
       set = merge( set, mm[, c("id", "cfDet2Set")], by="id", all.x=T, all.y=F, sort=F)
 
       set$cf = set$cfvessel * set$cfsampling / set$sakm2 
-      # set[ which( !is.finite(set$cf)) ] 
 
       # the following conversion are done here as sakm2 s not available in "gscat"
       # .. needs to be merged before use from gsinf
@@ -741,7 +811,7 @@
 
       save(set, file=fn, compress=T )
 
-      return ( "Done" )
+      return (fn)
     }
     
 
@@ -751,7 +821,7 @@
 
 
     if (DS %in% c("det", "det.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "det.rdata")
+      fn = file.path( project.directory("groundfish"), "data", "det.rdata")
       if ( DS=="det" ) {
         load( fn )
         return (det)
@@ -759,14 +829,17 @@
       set = groundfish.db( "set" ) # kg/set, no/set 
       set = set[, c("id2", "cf", "spec", "settype" )]
       set = set[ which(is.finite( set$spec+set$settype)) , ]
-      if (any(duplicated( set$id) ) ) stop("Duplcated id's" )
-
+      oo = which( duplicated( set$id2) )
+      if ( length( oo )>0 ) {
+        print( set[ oo , "id2"] )
+        stop("Duplcated id's" )
+      }
       gsdet = groundfish.db( "det.base" )  # kg, cm
       gsdet = gsdet[, c("id", "id2", "fshno", "sex", "mat", "len", "mass", "age", "residual", "pvalue") ]
       det = merge(x=gsdet, y=set, by=c("id2"), all.x=T, all.y=F, sort=F)
 
       save( det, file=fn, compress=T )
-      return( "Done"  )
+      return( fn  )
     }
  
 
@@ -775,7 +848,7 @@
 
   
     if (DS %in% c("sm.base", "sm.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "sm.base.rdata")
+      fn = file.path( project.directory("groundfish"), "data", "sm.base.rdata")
       if ( DS=="sm.base" ) {
         load( fn )
         return ( sm )
@@ -787,14 +860,14 @@
       sm = sm[ !duplicated(sm$id) ,] 
       sm$oxysat = compute.oxygen.saturation( t.C=sm$temp, sal.ppt=sm$sal, oxy.ml.l=sm$oxyml)
       save ( sm, file=fn, compress=T)
-      return( "Done"  )
+      return( fn  )
     }
      
      # ----------------------
 
     
     if (DS %in% c("catchbyspecies", "catchbyspecies.redo") ) {
-     fn = file.path( project.directory("groundfish"), "R", "sm.catchbyspecies.rdata")
+     fn = file.path( project.directory("groundfish"), "data", "sm.catchbyspecies.rdata")
      if ( DS=="catchbyspecies" ) {
        load( fn )
        return ( sm )
@@ -835,7 +908,7 @@
       sm$ntaxa = NULL
       sm$yr = NULL
       save ( sm, file=fn, compress=T)
-      return( "Done"  )
+      return( fn  )
     }
 
 
@@ -843,7 +916,7 @@
 
 
     if (DS %in% c("sm.det", "sm.det.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "sm_det.rdata")
+      fn = file.path( project.directory("groundfish"), "data", "sm_det.rdata")
       if ( DS=="sm.det" ) {
         load( fn )
         return ( sm )
@@ -935,13 +1008,13 @@
       sm$yr = NULL  # dummy var
 
       save ( sm, file=fn, compress=T)
-      return( "Done"  )
+      return( fn  )
     }
     
  # ----------------------
 
     if (DS %in% c("metabolic.rates","metabolic.rates.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "sm_mrate.rdata" )
+      fn = file.path( project.directory("groundfish"), "data", "sm_mrate.rdata" )
       if (DS=="metabolic.rates") {
         load( fn)
         return (sm)
@@ -1048,7 +1121,7 @@
       sm = merge( sm, mr, by=c("id"), sort=F, all.x=T, all.y=F )
       sm$temp = NULL
       save (sm, file=fn, compress=T)
-      return( "Done"  )
+      return( fn  )
  
     }
 
@@ -1056,9 +1129,9 @@
 
     if (DS %in% c("speciescomposition", "ordination.speciescomposition", "scores.speciescomposition", "speciescomposition.redo") ) {
     
-      fn = file.path( project.directory("groundfish"), "R", "ordination.rdata" )
-      fn.ord = file.path( project.directory("groundfish"), "R", "ordination.all.rdata" )
-      fn.scores = file.path( project.directory("groundfish"), "R", "ordination.scores.rdata" )
+      fn = file.path( project.directory("groundfish"), "data", "ordination.rdata" )
+      fn.ord = file.path( project.directory("groundfish"), "data", "ordination.all.rdata" )
+      fn.scores = file.path( project.directory("groundfish"), "data", "ordination.scores.rdata" )
 
       if ( DS=="speciescomposition" ) {
         load( fn )
@@ -1181,14 +1254,14 @@
         plot(hclust(d, "centroid"), cex=0.5); printfigure()
       
       }
-      return ( "Done" )
+      return ( c(fn, fn.ord, fn.scores)  )
     }
 
     # ----------------------
 
     if (DS %in% c("shannon.information", "shannon.information.redo" ) ) {
     
-      fn = file.path( project.directory("groundfish"), "R", "sm_shannon_information.rdata" )
+      fn = file.path( project.directory("groundfish"), "data", "sm_shannon_information.rdata" )
 
       if (DS=="shannon.information") {
         load( fn )
@@ -1229,13 +1302,13 @@
       sm$yr = NULL
 
       save(sm, file=fn, compress=T)
-      return( "Done" )
+      return( fn )
     }
 
     # ----------------------
 
     if (DS %in% c("sm.complete", "sm.complete.redo") ) {
-      fn = file.path( project.directory("groundfish"), "R", "sm.rdata")
+      fn = file.path( project.directory("groundfish"), "data", "sm.rdata")
       if ( DS=="sm.complete" ) {
         load( fn )
         return ( sm )
@@ -1302,7 +1375,7 @@
 
 
       # 5 merge metabolic rates
-      source( file.path( project.directory("metabolism"), "src", "functions.metabolism.r" ) )
+      loadfunctions( "metabolism")
       meta = metabolism.db( DS="metabolism.filtered", 
           p=list( spatial.domain="SSE", taxa="alltaxa", season="allseasons" ) )
       if ( length(w) > 1 ) w = c( "id", setdiff( names(meta), names(sm)) )
@@ -1310,7 +1383,7 @@
       rm (meta)
 
       # 6 merge species composition
-      source( file.path( project.directory("speciescomposition"), "src", "functions.speciescomposition.r" ) )
+      loadfunctions( "speciescomposition")
       sc = speciescomposition.db( DS="speciescomposition.filtered", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
       w = c( "id", setdiff( names(sc), names(sm)) )
@@ -1331,7 +1404,7 @@
       sm$area = as.numeric(sm$area)
       
       save ( sm, file=fn, compress=F )
-      return( "Done" )
+      return( fn )
     }
     
 

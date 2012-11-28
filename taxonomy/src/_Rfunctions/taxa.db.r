@@ -1,6 +1,6 @@
 
 
-  taxa.db = function( DS="complete", itis.taxa.lowest="species", parallelrun=T, find.parsimonious.spec=T ) {
+  taxa.db = function( DS="complete", itis.taxa.lowest="species", parallelrun=TRUE, find.parsimonious.spec=TRUE ) {
 
     if ( DS == "gstaxa" ) return( taxa.db( "life.history") )  
 
@@ -40,47 +40,45 @@
       }
      
       
-      spi = taxa.db( DS="spcodes" )
+      spi = taxa.db( DS="spcodes" )  # load groundfish table
       names(spi) = tolower( names(spi) )
       
       spi$name.common = as.character( spi$comm )
       spi$name.scientific = as.character( spi$spec )
       spi$spec = as.numeric(spi$code)
       spi = spi[ , c("spec", "name.common", "name.scientific" ) ]
-      spi$tolookup = TRUE
-      spi$flag = ""
-			
+  	
+
 			# update tsn's directly using any local corrections/additions
 			# these have been manually verified: http://www.itis.gov/servlet/SingleRpt/SingleRpt
 			# these also help speed up the lookup through itis as that is slow
-
 			print( "Updating from manually verified tsn/spec codes:")
 			print( "maintained in file: gstaxa_taxonomy.xls/csv -- must be'|' delimited and 'quotes used for export' " )
+			print( "### New additions can be placed here too " )
 			
 			fn.local.taxa.lookup = file.path( project.directory("taxonomy"), "data", "gstaxa_taxonomy.csv" )
 			tx.local = read.table( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T) 
-			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "comments", "name.common.bio")]
+			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "name.common.bio", "comments" )]
 			it = which( duplicated( tx.local$spec))
 			if (length(it)>0) {
 				print ( "Warning: Duplicated spec codes found in gstaxa_taxonomy.csv")
 				print ( tx.local[ which(tx.local$spec %in% unique(tx.local$spec[it]) ), ])
 				tx.local = tx.local[ -it, ]
 			}
+
 			spi.n0 = nrow(spi)
 			spi_id = unique( spi$spec )
-			spi = merge( spi, tx.local, by="spec", all.x=T, all.y=F, sort=F )
-			if ( nrow(spi) != spi.n0 ) {
-				print("New species records have been entered via the local lookup table:")
-				print( spi[ - which(spi$spec %in% spi_id ), ] ) 
-			}
+			spi = merge( spi, tx.local, by="spec", all.x=T, all.y=T, sort=F )
 
-			
-			# over write completely as this is the first data layer for the tsn's
+
+			# overwrite completely as this is the first data layer for the tsn's
 			spi$itis.tsn = spi$itis.tsn_manually_maintained = spi$accepted_tsn
 			spi$accepted_tsn = NULL
-	
 
-			
+      # additional vars to help with lookup
+      spi$tolookup = TRUE
+      spi$flag = ""
+
 			# mark nonliving items to not be looked up
 			ib = which( spi$itis.tsn == -1  )
 			if (length (ib)>0 ) {
@@ -88,114 +86,46 @@
 				spi$flag[ib] = "manually rejected"
 				spi$itis.tsn[ ib] = NA  # reset to NA
 			}
-			
 
 			lu = which( is.finite(spi$itis.tsn))
 			spi$tolookup[lu] = FALSE
 			spi$flag[lu] = "manually determined"
-		
-			
-      #  words to use to flag as not needing a tsn lookup
-      wds = c( "eggs", "egg", "reserved",  "remains", "debris", "remains", "stones", "mucus", 
-							"bait", "foreign", "fluid", "operculum", "crude", "water", "Unidentified Per Set", 
-							"Unidentified Species", "Unid Fish And Invertebrates", "Parasites", "Groundfish", "Marine Invertebrates",
-							"Sand Tube" )
-      for (w in wds) {
-        iv = grep( paste("\\<", w, "\\>", sep=""), spi$name.scientific, ignore.case=T ) 
-        iw = grep( paste("\\<", w, "\\>", sep=""), spi$name.common.bio, ignore.case=T ) 
-        iw = sort( unique( c(iv, iw) ) )
-				spi$tolookup[iw] = FALSE
-        spi$flag[iw] = w
-      } 
-  
-			# words to remove -- with punctuation
-      wds.toremove = c( "etc\\.", "sps\\.", "unid\\.", "unid", "unidentified", "spp\\.", "sp\\.", "s\\.f\\.", 
-											  "sf\\.", "s\\.p\\.", "s\\.o\\.", "so\\.", "s\\.c\\.", "\\(ns\\)",  "o\\.", "f\\.", "p\\.", "c\\." ) 
-      for (w in wds.toremove) {
-        wgr =  paste("[[:space:]]+", w, sep="")
-        spi$name.scientific = gsub( wgr, "", spi$name.scientific, ignore.case=T ) 
-        spi$name.common = gsub( wgr, "", spi$name.common, ignore.case=T ) 
-			} 
 
-      # words to remove -- with no punctuation 
-      wds.toremove = c( "unidentified", "adult", "SUBORDER", "ORDER", "etc", "sp", "spp", "so", "ns",  "c", "p", "o",
-											  "f", "s", "obsolete", "berried", "short", "larvae", "larval", "megalops" , "purse" ) 
-      for (w in wds.toremove) {
-        wgr =  paste("\\<", w, "\\>", sep="")
-        spi$name.scientific = gsub( wgr, "", spi$name.scientific, ignore.case=T ) 
-        spi$name.common = gsub( wgr, "", spi$name.common, ignore.case=T ) 
-			} 
 
+
+      # check for keywords that flag that no lookup is necessary
+      spi = taxonomy.flag.keywords( spi, "name.scientific" )
+      spi = taxonomy.flag.keywords( spi, "name.common" )
+      spi = taxonomy.flag.keywords( spi, "name.common.bio" )
+
+      # remove words with punctuation
+      spi = taxonomy.keywords.remove( spi, "name.scientific", withpunctuation=T )
+      spi = taxonomy.keywords.remove( spi, "name.common", withpunctuation=T )
+      spi = taxonomy.keywords.remove( spi, "name.common.bio", withpunctuation=T )
+
+      # remove words without punctuation
+      spi = taxonomy.keywords.remove( spi, "name.scientific", withpunctuation=F )
+      spi = taxonomy.keywords.remove( spi, "name.common", withpunctuation=F )
+      spi = taxonomy.keywords.remove( spi, "name.common.bio", withpunctuation=F )
+
+      # final formatting of names
       spi$name.scientific = strip.unnecessary.characters(spi$name.scientific)
       spi$name.common = strip.unnecessary.characters(spi$name.common)
-
-
-      iToLookup = which( spi$tolookup & !is.finite(spi$itis.tsn )) 
-
-			kingdoms = itis.db( DS="kingdoms")
-			kingdoms = sort( kingdoms$kingdom_name  )  # this makes sure Animalia is first .. speeds things up
-
-      for ( k in kingdoms ) { 
-
-				print (k)
-				itaxa = itis.db( "itaxa", itis.kingdom=k )
- 
-        if ( parallelrun ) {
-
-          lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          res = mclapply( lookup, itis.lookup, tx=spi$name.scientific, itaxa=itaxa, mc.preschedule=F  )
-          spi$itis.tsn[lookup] = as.numeric( unlist( res ) )
-           
-					# some vernaculars used in scientific names 
-          lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          res = mclapply( lookup, itis.lookup, tx=spi$name.scientific, itaxa=itaxa, type="vernacular", mc.preschedule=F )
-          spi$itis.tsn[lookup] = as.numeric( unlist( res ) )
-
-         
-          lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          res = mclapply( lookup, itis.lookup, tx=spi$name.common, itaxa=itaxa, type="vernacular", mc.preschedule=F )
-          spi$itis.tsn[lookup] = as.numeric( unlist( res ) )
-
-					lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          res = mclapply( lookup, itis.lookup, tx=spi$name.common.bio, itaxa=itaxa, mc.preschedule=F  )
-          spi$itis.tsn[lookup] = as.numeric( unlist( res ) )
+      spi$name.common.bio = strip.unnecessary.characters(spi$name.common.bio)
 
     
-        } else {
+      vnames = c( "name.scientific", "name.scientific", "name.common", "name.common.bio" )
+      vtypes = c( "default", "vernacular", "vernacular", "default" )
 
-          lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          for ( ii in lookup ) {
-						jj = itis.lookup(  ii, tx=spi$name.scientific, itaxa=itaxa )          
-						if (length(jj) == 1) spi$itis.tsn[ ii] = jj
-					}
+      spi = itis.lookup.exhaustive.search( spi, vnames, vtypes, parallelrun=parallelrun )
 
-					# some vernaculars used in scientific names 
-					lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          for ( ii in lookup ) {
-						jj = itis.lookup(  ii, tx=spi$name.scientific, itaxa=itaxa, type="vernacular" )
-						if (length(jj) == 1) spi$itis.tsn[ ii] = jj
-					}
 
-					lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          for ( ii in lookup ) {
-						jj = itis.lookup(  ii, tx=spi$name.common, itaxa=itaxa, type="vernacular" )
-						if (length(jj) == 1) spi$itis.tsn[ ii] = jj
-					}
-
-					lookup = intersect( iToLookup, which( !is.finite( spi$itis.tsn ) ) )
-          for ( ii in lookup )  {
-						jj = itis.lookup(  ii, tx=spi$name.common.bio, itaxa=itaxa )
-						if (length(jj) == 1) spi$itis.tsn[ ii] = jj
-					}
-        }
-
-			}
-
-			# remainder of missing spec.clean points to spec
+			# now that tsn's have been completed, it is necessary to update 
+      # the tsn's to reflect the manually set spec.clean 
+			# but before that, make sure the remainder of missing spec.clean points to spec
 			i = which( !is.finite(spi$spec.clean) )
 			if (length(i)>0) spi$spec.clean[i] = spi$spec[i]
 
-			# now that tsn's have been completed, it is necessary to update the tsn's to reflect the manually set spec.clean 
 			i = which( (spi$spec != spi$spec.clean) & spi$tolookup )
 			if (length(i)>0) {
 				for (j in i) {
@@ -204,7 +134,8 @@
 				}
 			}
 
-  		# need to go through duplicated tsn's and code them all  spec.clean id's to point to a single spec id (choose min value as default)
+  		# need to go through duplicated tsn's and code them all  
+      # spec.clean id's to point to a single spec id (choose min value as default)
 			dup.tsn = sort( unique( spi$itis.tsn[ duplicates.toremove( spi$itis.tsn )]  )) 
 			for (tsni in dup.tsn) {
 				oi = which( spi$itis.tsn ==tsni )
@@ -212,7 +143,7 @@
 				spi$spec.clean[oi] = min( spi$spec[oi[op]],  spi$spec[oi] )
 			}
 
-			i = which( !is.finite(spi$itis.tsn) & spi$tolookup ) 
+			i = which( !is.finite(spi$itis.tsn) & spi$tolookup )
 			if (length(i)>0) {
 				print( "The following have no itis tsn matches or are duplicated ")
 				print( " ... assuming their spec id's are OK" )
@@ -222,7 +153,7 @@
 				fn2 = file.path( project.directory("taxonomy"), "data", "spcodes.no.itis.matches.csv" )
 				print (fn2 )
 				write.csv ( spi[i,], file=fn2 )
-			}											 
+			}
 
       save( spi, file=fn, compress=T )
 
@@ -243,6 +174,7 @@
       return ( fn )
     }
 
+    # ------------------
 
     if (DS %in% c("full.taxonomy", "full.taxonomy.redo") ) {
       
