@@ -56,8 +56,11 @@
       e2 = which( tolower(itaxa$unit_name2) == txs[2] )  # case insensitive
       ec = intersect( e1, e2 ) 
       if ( length(ec)==1 ) {
+        
         out = ec
+
       } else {
+
         # there must be no subcategories as there is only a single noun
         ec2 = which( itaxa$unit_name3 =="" ) 
         ex = intersect( ec, ec2 )
@@ -173,16 +176,9 @@
       }
     } # end if # txs=3
 
-    res = NA
-    if (length( out ) == 1) {
-      res=itaxa$tsn[out]
-      if ( is.finite( itaxa$tsn_accepted[out] ) )  res=itaxa$tsn_accepted[out] 
-    } else if (length( out ) > 1) {
-      res= c( itaxa$tsn[out], itaxa$tsn_accepted[out] )
-      rr = which.max( tabulate( res ) )
-      ss = sort( unique( res ) )
-      res = c( rr, ss[-(which(ss==rr))] )  # first element is the best "guess"
-    }
+    # out contains candidate row indices of itaxa
+    # nwo refine search using 
+    res = itis.refine.search( out, itaxa )
 
     return (res)
 

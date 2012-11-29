@@ -19,7 +19,7 @@
       
 			print( "" )
 			print( "Warning:: spec = bio species codes -- use this to match data but not analysis" )
-			print( "          spec.clean = manually updated codes to use for taxonomic work in gstaxa_taxonomy.xls/csv" )
+			print( "          spec.clean = manually updated codes to use for taxonomic work in gstaxa_taxonomy.csv" )
 			print( "" )
 			
 			# add itis tsn's to spcodes -- this completes the lookup table
@@ -59,6 +59,12 @@
 			fn.local.taxa.lookup = file.path( project.directory("taxonomy"), "data", "gstaxa_taxonomy.csv" )
 			tx.local = read.table( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T) 
 			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "name.common.bio", "comments" )]
+      
+      tx.local = tx.local[  which( is.finite( tx.local$spec.clean ) ) ,]
+      oo =  which( !is.finite( tx.local$spec ) ) 
+      tx.local$spec[oo] = tx.local$spec.clean[oo]  # overwrite missing with new species id's ( == spec.clean == - itis.tsn )
+
+      tx.local = tx.local[ which( is.finite( tx.local$spec ) ) ,]
 			it = which( duplicated( tx.local$spec))
 			if (length(it)>0) {
 				print ( "Warning: Duplicated spec codes found in gstaxa_taxonomy.csv")
@@ -66,7 +72,8 @@
 				tx.local = tx.local[ -it, ]
 			}
 
-			spi.n0 = nrow(spi)
+			# this adds new species to the local lookup
+      spi.n0 = nrow(spi)
 			spi_id = unique( spi$spec )
 			spi = merge( spi, tx.local, by="spec", all.x=T, all.y=T, sort=F )
 
@@ -148,7 +155,7 @@
 				print( "The following have no itis tsn matches or are duplicated ")
 				print( " ... assuming their spec id's are OK" )
 				print( "Their tsn's should be manually identified and updated in the local updates file:" )
-				print( "gstaxa_taxonomy.csv -- see spcodes.itis.redo, above .. these are stored in " ) 
+				print( "gstaxa_taxonomy.csv -- see spcodes.itis.redo, above .. these are stored in with '|' as delimiter " ) 
 				print( spi[i,] )
 				fn2 = file.path( project.directory("taxonomy"), "data", "spcodes.no.itis.matches.csv" )
 				print (fn2 )

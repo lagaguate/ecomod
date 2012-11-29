@@ -157,16 +157,16 @@
         xx = which( !is.finite( res$spec.pass1) ) 
         if (length(xx)>0) res = res[ -xx, ] 
 
-        update gscat
-        update the taxa sb ... use negative values to flag spec's that are just created
-        remainder create new spec from -tsn and put these in a local database
-        taxa.db( "local" 
-        taxa.db( "refresh"
+        #update gscat
+        #update the taxa sb ... use negative values to flag spec's that are just created
+        #remainder create new spec from -tsn and put these in a local database
+        #taxa.db( "local" 
+        #taxa.db( "refresh"
         
         # final pass of species id's for gscat
-        spec.pass1 = taxa.specid.correct( gscat$spec ) 
-        etc ...
-        last check for missing spec/tsn and drop them
+        #spec.pass1 = taxa.specid.correct( gscat$spec ) 
+        #etc ...
+        #last check for missing spec/tsn and drop them
 
       }
 
