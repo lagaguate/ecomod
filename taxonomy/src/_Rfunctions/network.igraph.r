@@ -1,12 +1,10 @@
 	
 
-	network.igraph = function( spec=NULL, tsn=NULL, method="default" ) {
+	network.igraph = function( spec=NULL, tsn=NULL, method="default", tx=taxa.db("complete") ) {
 
 		# create an igraph network graph for a given set of species (spec id's or tsn's)
 		# and then return some relevant data concerning each node (# children, children, etc)
 	
-		tx = taxa.db("complete")
-
 		if ( !is.null(spec)) {
 			out = data.frame( spec = sort( unique(spec) ))
 			out = merge( out, tx, by="spec", all.x=T, all.y=F )
@@ -20,8 +18,9 @@
 		nodata = which( !is.finite( out$itis.tsn ) )
 		if (length(nodata) > 0) {
 			print(" WARNING ::: data without valid tsn's are being dropped" ) 
+		  print( out[nodata,c("itis.tsn", "spec", "name.scientific", "tolookup")] )
 			out= out[-nodata,]
-		}
+    }
 
 		# debug
 		# out=tx[ sample(200),]

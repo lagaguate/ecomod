@@ -1,6 +1,6 @@
 
 
-  taxa.db = function( DS="complete", itis.taxa.lowest="species", parallelrun=TRUE, find.parsimonious.spec=TRUE ) {
+  taxa.db = function( DS="complete", itis.taxa.lowest="species", parallelrun=TRUE, find.parsimonious.spec=TRUE, res=NULL ) {
 
     if ( DS == "gstaxa" ) return( taxa.db( "life.history") )  
 
@@ -14,7 +14,22 @@
       groundfish.db( DS="spcodes.odbc.redo" ) 
       return ( fn )
     }
- 
+
+
+    if ( DS %in% c("gscat.update" ) ) {
+      
+      fn = file.path( project.directory( "taxonomy"), "data", "taxa.gscat.update.rdata" )
+      if ( is.null(res) ) {
+        if (file.exists(fn) ) load(fn)
+        return( res )
+      }
+
+      save( res, file=fn, compress=T)
+      return ( fn )
+    }
+
+    
+
     if (DS %in% c("spcodes.itis", "spcodes.itis.redo", "spcodes.itis.parsimonious" )) {
       
 			print( "" )
@@ -53,14 +68,15 @@
 			# these have been manually verified: http://www.itis.gov/servlet/SingleRpt/SingleRpt
 			# these also help speed up the lookup through itis as that is slow
 			print( "Updating from manually verified tsn/spec codes:")
-			print( "maintained in file: gstaxa_taxonomy.xls/csv -- must be'|' delimited and 'quotes used for export' " )
+			print( "maintained in file: gstaxa_taxonomy.csv -- must be'|' delimited and 'quotes used for export' " )
 			print( "### New additions can be placed here too " )
 			
 			fn.local.taxa.lookup = file.path( project.directory("taxonomy"), "data", "gstaxa_taxonomy.csv" )
-			tx.local = read.table( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T) 
+			tx.local = read.csv( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T, fill=T) 
 			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "name.common.bio", "comments" )]
       
       tx.local = tx.local[  which( is.finite( tx.local$spec.clean ) ) ,]
+      
       oo =  which( !is.finite( tx.local$spec ) ) 
       tx.local$spec[oo] = tx.local$spec.clean[oo]  # overwrite missing with new species id's ( == spec.clean == - itis.tsn )
 
@@ -77,7 +93,6 @@
 			spi_id = unique( spi$spec )
 			spi = merge( spi, tx.local, by="spec", all.x=T, all.y=T, sort=F )
 
-
 			# overwrite completely as this is the first data layer for the tsn's
 			spi$itis.tsn = spi$itis.tsn_manually_maintained = spi$accepted_tsn
 			spi$accepted_tsn = NULL
@@ -86,7 +101,9 @@
       spi$tolookup = TRUE
       spi$flag = ""
 
-			# mark nonliving items to not be looked up
+
+      # items to drop identified in gstaxa_taxonomy.csv 
+			# mark items to not be looked up
 			ib = which( spi$itis.tsn == -1  )
 			if (length (ib)>0 ) {
 				spi$tolookup[ ib] = FALSE
@@ -97,7 +114,6 @@
 			lu = which( is.finite(spi$itis.tsn))
 			spi$tolookup[lu] = FALSE
 			spi$flag[lu] = "manually determined"
-
 
 
       # check for keywords that flag that no lookup is necessary
@@ -120,19 +136,63 @@
       spi$name.common = strip.unnecessary.characters(spi$name.common)
       spi$name.common.bio = strip.unnecessary.characters(spi$name.common.bio)
 
-    
+   
+
       vnames = c( "name.scientific", "name.scientific", "name.common", "name.common.bio" )
       vtypes = c( "default", "vernacular", "vernacular", "default" )
 
       spi = itis.lookup.exhaustive.search( spi, vnames, vtypes, parallelrun=parallelrun )
 
+       
+      add.local.database.gscat = TRUE 
+      if (add.local.database.gscat) {
 
-			# now that tsn's have been completed, it is necessary to update 
-      # the tsn's to reflect the manually set spec.clean 
-			# but before that, make sure the remainder of missing spec.clean points to spec
+        print("these additions will lag behind by a year unless a second update of gscat is performed" )
+        print("after running taxa.db( DS='spcodes.itis.redo')" )
+
+        res = taxa.db( DS="gscat.update" )  # created in groundfish.db( DS="gscat.redo"), ie. rerun this to update this snapshot
+        oo = which( !duplicated( res$spec ) & res$tolookup )
+        if (length(oo) >0 ) {
+          res = res[ oo ,]
+          nspi = names( spi)
+          res$itis.tsn_manually_maintained = res$itis.tsn
+          res$comments = "updated from gscat"
+          res$name.common.bio = res$name.scientific = res$name.common = res$taxa
+          res$spec.clean = NA
+          spi = rbind( spi, res[, names(spi) ] )
+          spi$todrop = FALSE
+
+          pp = which( duplicated( spi$spec ) )
+          if (length( pp) > 0 ) {
+            for ( ip in pp ) {
+              iip = which( spi$spec == spi$spec[ip] )
+              if (length(iip) > 1) {
+                print (spi[ iip, ] )
+                tokeep = which( is.finite( spi$spec.clean[iip] ) | !is.finite(spi$itis.tsn_manually_maintained[iip]) )
+                if ( length( tokeep)==1) {
+                  print( "Keeping: ")
+                  print( spi [ iip [tokeep] , ] )
+                  spi$todrop[ iip[-tokeep] ] = TRUE
+                } else {
+                  print ("Keeping: First evaluation")
+                  spi$todrop[ iip[ setdiff( 1:length(iip), 1) ] ] = TRUE
+                }
+              }
+            }
+          }
+          todrop = which( spi$todrop )
+          if (length(todrop) > 0 ) spi = spi[ -todrop, ]
+        }
+      }
+      spi$todrop = NULL
+
+  		# make sure the remainder of missing spec.clean points to spec
 			i = which( !is.finite(spi$spec.clean) )
 			if (length(i)>0) spi$spec.clean[i] = spi$spec[i]
-
+    
+      
+      # now that tsn lookup's have been completed, it is necessary to update 
+      # the tsn's to reflect any manually determined spec.clean from tx.local
 			i = which( (spi$spec != spi$spec.clean) & spi$tolookup )
 			if (length(i)>0) {
 				for (j in i) {
@@ -141,7 +201,7 @@
 				}
 			}
 
-  		# need to go through duplicated tsn's and code them all  
+  		# for all duplicated tsn's, point them to the same species id:   
       # spec.clean id's to point to a single spec id (choose min value as default)
 			dup.tsn = sort( unique( spi$itis.tsn[ duplicates.toremove( spi$itis.tsn )]  )) 
 			for (tsni in dup.tsn) {
@@ -150,10 +210,11 @@
 				spi$spec.clean[oi] = min( spi$spec[oi[op]],  spi$spec[oi] )
 			}
 
+
 			i = which( !is.finite(spi$itis.tsn) & spi$tolookup )
 			if (length(i)>0) {
-				print( "The following have no itis tsn matches or are duplicated ")
-				print( " ... assuming their spec id's are OK" )
+				print( "The following have no itis tsn matches ")
+				print( "for now, assuming their spec id's are OK" )
 				print( "Their tsn's should be manually identified and updated in the local updates file:" )
 				print( "gstaxa_taxonomy.csv -- see spcodes.itis.redo, above .. these are stored in with '|' as delimiter " ) 
 				print( spi[i,] )
@@ -166,12 +227,13 @@
 
 			# find.parsimonious.spec = T
 			if (find.parsimonious.spec) {
-				# find most parsimonious list of species and place into spec.clean
-				spi$spec.parsimonius = taxa.specid.correct( spi$spec )
-				psm = which(spi$spec.parsimonius != spi$spec.clean)
+				ii = which( spi$tolookup )
+        # find most parsimonious list of species and place into spec.clean
+				spi$spec.parsimonius[ii] = taxa.specid.correct( spi$spec[ii] )
+				psm = which(spi$spec.parsimonius != spi$spec.clean )
 				if (length(psm)>0) spi$spec.clean[psm] = spi$spec.parsimonius[psm]
 
-				spi$spec.parsimonius2 = taxa.specid.correct( spi$spec.clean )
+				spi$spec.parsimonius2[ii] = taxa.specid.correct( spi$spec.clean[ii] )
 				psm2 = which(spi$spec.parsimonius2 != spi$spec.clean)
 				if (length(psm2)>0) spi$spec.clean[psm2] = spi$spec.parsimonius2[psm2]
 			  
@@ -198,12 +260,23 @@
       spf = taxa.db( "spcodes.itis" )
       itaxa = itis.db( "itaxa" )
       tunits =  itis.db( "taxon.unit.types" )
-   
+      kingdom =  itis.db( "kingdoms" )
+
       # reduce memory requirements: drop information below some taxonomic level
       tx_id = unique( tunits$rank_id[ which( tolower(tunits$rank_name)==itis.taxa.lowest ) ] )
       tunits = tunits[ which( tunits$rank_id <= tx_id ) , ]
 			tunits = tunits[ -which(duplicated(tunits$rank_id)) ,]
 			tunits = tunits[ order( tunits$rank_id) , ]
+      tunits = merge( tunits, kingdom, by="kingdom_id", sort=F ) 
+
+      
+      fd = which( duplicated ( tunits$rank_name) )
+      if ( length(fd) > 0 ) {
+        for (fi in fd ) {
+          d0 = which( tunits$rank_name == tunits$rank_name[ fi] )
+          tunits$rank_name[d0] = paste( tunits$kingdom_name[d0], tunits$rank_name[d0],sep=".")
+        }
+      }
 
       test = NULL
       while ( is.null( test) | is.null(names(test)) ) {
@@ -233,47 +306,6 @@
     
     }
 
-    if ( DS %in% c("complete", "complete.redo") ) {
-		  fn = file.path( project.directory("taxonomy"), "data", "spcodes.complete.rdata") 
-  	  sps = NULL
-			if (DS == "complete" ) {
-        if (file.exists(fn)) load(fn)
-        return(sps)
-      }
-
-			sp = NULL
-
-			tx = taxa.db("life.history")
-			# tx = tx[, c("spec", "spec.clean", "itis.tsn", "rank", "rank_id", "tsn.hierarchy")]  
-			# spec.clean contains manually updated spec id's
-			# this routine will update these by starting with the itis tsn hierarchy
-		
-			spec = sort( unique( tx$spec) )
-
-			sp.graph = network.igraph( spec=spec )
-			sp.graph = network.statistics.igraph( g=sp.graph )  # add some stats about children, etc.
-			
-			# upack the attributes
-			att = data.frame( index=1:length(V(sp.graph)) )  # dummy index to get the right number of rows
-			for ( v in  list.vertex.attributes(sp.graph) ) {
-				att[,v] = get.vertex.attribute(sp.graph, v)
-			}
-			
-			# go through the list of taxa and identify updated spec.clean id's
-			n0 = length(spec)
-			sp = data.frame( spec=spec ) 
-			sp = merge( sp, tx, by="spec", all.x=T, all.y=F )
-			jj = which( !is.finite( sp$spec.clean ) )
-			sp$spec.clean[jj] = sp$spec[jj] 
-			
-			sps = merge( sp, att[,c("id","usage","children.n","children", "sci", "parent" )], 
-				by.x="itis.tsn", by.y="id", all.x=T, all.y=F) 
-			
-			save (sps, file=fn, compress=T)
-			return (fn)
-		} 
-		
-
     if (DS %in% c( "life.history", "life.history.redo") ) {
       
       fn = file.path( project.directory("taxonomy"), "data", "spcodes.lifehistory.rdata") 
@@ -288,7 +320,7 @@
       print( "Export to CSV if they have been updated to with '|' as a delimiter and remove last xx lines:" )
       print( fn.local )
 
-      lifehist = read.table( fn.local, sep="|", as.is=T, strip.white=T, header=T, stringsAsFactors=F ) 
+      lifehist = read.csv( fn.local, sep="|", as.is=T, strip.white=T, header=T, stringsAsFactors=F ) 
       names( lifehist ) = tolower( names( lifehist ) ) 
 			lifehist$spec = as.numeric( as.character( lifehist$spec ))
       
@@ -334,6 +366,46 @@
 
     }
 
+
+    # ----------------------------------------------
+
+    if ( DS %in% c("complete", "complete.redo") ) {
+		  fn = file.path( project.directory("taxonomy"), "data", "spcodes.complete.rdata") 
+  	  sps = NULL
+			if (DS == "complete" ) {
+        if (file.exists(fn)) load(fn)
+        return(sps)
+      }
+
+			sp = NULL
+
+			tx = taxa.db("life.history")
+			# tx = tx[, c("spec", "spec.clean", "itis.tsn", "rank", "rank_id", "tsn.hierarchy")]  
+			# spec.clean contains manually updated spec id's
+			# this routine will update these by starting with the itis tsn hierarchy
+		
+			spec = sort( unique( tx$spec) )
+
+			sp.graph = network.igraph( spec=spec, tx=tx )
+			sp.graph = network.statistics.igraph( g=sp.graph )  # add some stats about children, etc.
+      spi = network.igraph.unpack( g=sp.graph )
+		
+      # go through the list of taxa and identify updated spec.clean id's
+			n0 = length(spec)
+			sp = data.frame( spec=spec ) 
+			sp = merge( sp, tx, by="spec", all.x=T, all.y=F )
+			jj = which( !is.finite( sp$spec.clean ) )
+			sp$spec.clean[jj] = sp$spec[jj] 
+			
+			sps = merge( sp, spi[,c("id", "usage", "children.n","children", "sci", "parent" )], 
+  			by.x="itis.tsn", by.y="id", all.x=T, all.y=F) 
+	  
+			save (sps, file=fn, compress=T)
+			return (fn)
+		} 
+		
+
+    # ----------------------------------------------
     
     if (DS %in% c( "itis.oracle", "itis.oracle.redo" ) ) {
       fn.itis = file.path( project.directory("taxonomy"), "itis.oracle.rdata" )

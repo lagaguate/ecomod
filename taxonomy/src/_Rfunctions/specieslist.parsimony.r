@@ -10,7 +10,10 @@
     }
 
 		sp = taxa.db("complete")
-		
+	
+    sp.additions = taxa.db( "gscat.update" )
+
+
 		ranks = sort( unique( sp$rank_id ),decreasing=T )
 		ranks = setdiff( ranks, 220 )  # 220 is the lowest level of discrimination (species)
 		

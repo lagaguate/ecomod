@@ -33,7 +33,10 @@
             lookup = intersect( iToLookup, which( !is.finite( X$itis.tsn ) ) )
             for ( ii in lookup ) {
               jj = itis.lookup( ii, tx=X[,vn], itaxa=itaxa, type=vt )          
-              if (length(jj) == 1) X$itis.tsn[ii] = jj
+              if (length(jj) == 1) {
+                X$itis.tsn[ii] = jj
+                print( X[ii,] )
+              }
             }
           }
        } # end if

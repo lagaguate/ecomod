@@ -8,15 +8,7 @@
     } else if (type=="vernacular") {
       res = itis.vernacular.to.tsn(  tx=tx[lookup], itaxa=itaxa )
     }
-    
-    o = NA
-    if ( (length(res)==1 )) {
-      if ( is.finite(res) ) {
-        if ( res>0 ) {
-          o=res
-			}} 
-		}
-    return (o)
+    return (res)
   }
 
 

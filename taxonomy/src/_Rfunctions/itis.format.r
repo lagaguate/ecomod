@@ -6,8 +6,8 @@
 		if ( !is.finite( tsn[i] )) return (res)
 
     o = itis.traverse( tsn[i], itaxa )
-		if ( is.null(o)) return(res)  # "vernacular" and "possible.error", etc are added below
-	  if ( o$rank_id> max(tunits$rank_id)) { 
+		if ( is.null(o) ) return(res)  # "vernacular" and "possible.error", etc are added below
+	  if ( min(o$rank_id) > max(tunits$rank_id)) { 
 			# likely an error
 			return(res)
 		}
@@ -28,7 +28,6 @@
    
     otj = setdiff( otj, real.na ) 
     ot$unit_name1[ otj ] = ""
-      # ot$unit_name1[ real.na ] = NA  # should already be NA
     res = c( ot$unit_name1, ot$vernacular[ ol ], ot$possible.error[ ol ], rank_id_lowest,
 						 tunits$rank_name[which(tunits$rank_id==rank_id_lowest) ], tsn.hierarchy )
     names(res) = c( ot$rank_name, "vernacular", "possible.error", "rank_id", "rank", "tsn.hierarchy")

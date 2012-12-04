@@ -16,7 +16,7 @@ itis.refine.search = function( out, itaxa, lower.taxa.limit=220 ) {
       }
       
       # last try
-      if ( is.na(res) ) {
+      if ( is.null(nrow(res)) ) {
         tsnall = c( itaxa$tsn[out], itaxa$tsn_accepted[out], itaxa$parent_tsn[out] ) # add parent taxa in case
         tsnall = unique( tsnall[ is.finite( tsnall) ] )
         tsnall = tsnall[ which( tsnall > 0 ) ]
@@ -37,6 +37,7 @@ itis.refine.search = function( out, itaxa, lower.taxa.limit=220 ) {
       }
     }
 
+  return (res)
 }
 
 

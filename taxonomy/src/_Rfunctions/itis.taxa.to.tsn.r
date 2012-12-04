@@ -177,8 +177,14 @@
     } # end if # txs=3
 
     # out contains candidate row indices of itaxa
-    # nwo refine search using 
+    # now refine search using 
     res = itis.refine.search( out, itaxa )
+    
+    if (is.data.frame( res) ) {
+      res = res$tsn
+    } else {
+      res = NA
+    }
 
     return (res)
 

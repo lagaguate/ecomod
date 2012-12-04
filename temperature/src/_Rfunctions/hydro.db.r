@@ -50,7 +50,7 @@
 					fn.all = list.files( path=inloc, pattern="osd.clim.*.gz", full.names=T) 
 					data = NULL
 					for (fn in fn.all) {
-						f = read.table( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
+						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
 						f = f[,varlist] 
 						fyears = as.numeric( matrix( unlist( strsplit( f$CRUISE_DATE, "/" ) ), ncol=3, byrow=T) [,3] )
 						years = sort( unique( fyears ))
@@ -73,7 +73,7 @@
 						data = NULL
 						fn.all = list.files( path=inloc, pattern="osd.clim.*.gz", full.names=T) 
 						fn = fn.all[ grep (as.character(y), fn.all) ]
-						f = read.table( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
+						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
 						data = f[,varlist]
 						 
 						fn.out = file.path( outloc, paste( "osd.rawdata", y, "rdata", sep=".") )
@@ -89,7 +89,7 @@
             data = NULL
 						fn.all = list.files( path=inloc, pattern="partial.*.gz", full.names=T) 
 						fn = fn.all[ grep (as.character(yr), fn.all) ]
-						f = read.table( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
+						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
 						colnames(f) =  c( "cruiseid", "latitude", "longitude", "cruise_date", "time", 
                 "pressure", "temperature", "salinity", "sigmat", "stationid" ) 
             f$depth = decibar2depth ( P=f$pressure, lat=f$latitude )

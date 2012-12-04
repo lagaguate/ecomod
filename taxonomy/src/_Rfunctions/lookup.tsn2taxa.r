@@ -2,20 +2,10 @@
 
   lookup.tsn2taxa = function( tsn, tx=itis.db() ) { 
     out = data.frame( tsn=tsn )
-    out$tx = NA
-		out$sci = NA
-		out$usage = NA
-    for ( i in 1:length(tsn) ) {
-      itx = which( tx$tsn == tsn[i] )
-      if (length(itx) == 1 & tx$name_usage[itx]=="accepted" ) {
+    tx=itis.db() [, c("tsn", "completename", "vernacular_name", "name_usage", "rank_id", "parent_tsn" ) ]
 
-	      out$sci[i] = tx$completename[itx]
-		    out$tx[i] = tx$vernacular_name[itx]
-				out$usage[i] = tx$name_usage[itx]
-				out$rank[i] = tx$rank_id[itx]
-				out$parent[i] = tx$parent_tsn[itx]
-			}
-    }
+    out = merge (out, tx, by="tsn", all.x=T, all.y=F, sort=F )
+    names(out) = c("tsn", "sci", "tx", "usage", "rank", "parent") 
     return (out) 
   }
 

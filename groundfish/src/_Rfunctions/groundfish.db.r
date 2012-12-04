@@ -99,7 +99,6 @@
 		}
 
 
-
     # --------------------
 
 
@@ -118,58 +117,18 @@
 
       # update taxa codes to a clean state:
       spec.pass1 = taxa.specid.correct( gscat$spec ) 
-      
       oo = which( !is.finite(spec.pass1) ) 
+ 
       if (length(oo) > 0 ) {
-        res = data.frame( spec.pass1=NA, itis.tsn=NA, rem=gscat$remarks[oo], tolookup=TRUE, flag="", stringsAsFactors=F )
-        
-        qq = which( is.na( res$rem ) )
-        if (length( qq) > 0 ) {
-          res$tolookup[qq] = FALSE
-          res$flag[qq] = "No data in remarks"
-        }
-
-        res = taxonomy.flag.keywords( res, "rem" )
-        res = taxonomy.flag.keywords( res, "rem", wds=c("perhaps", "empty shells", "unknown", "pink lump", "frozen", "shells scal" ) )
-
-        # singleton characters
-        res$rem = gsub( "\\<[[:alnum:]]{1}\\>", " ", res$rem, ignore.case=T )  # remove ()/, etc.
-
-        res = taxonomy.keywords.remove( res, "rem", withpunctuation=T )
-        res = taxonomy.keywords.remove( res, "rem", withpunctuation=F )
-        
-        res = taxonomy.keywords.remove( res, "rem", withpunctuation=F, wds.toremove=c("no", "new", "not as before") )
-        
-        res$rem = strip.unnecessary.characters(res$rem )
-        
-        oo = which( res$tolookup ) 
-        if (length(oo) > 0) res = res[oo,]
-
-
-        vnames = c( "rem", "rem" )
-        vtypes = c( "default", "vernacular" )
-
-        res = itis.lookup.exhaustive.search( res, vnames, vtypes, parallelrun=FALSE )
-
-        res$spec.pass1 = lookup.tsn2spec( res$itis.tsn )
-        ww = which( !is.finite( res$spec.pass1 ) )
-        if (length(ww)>0) res$spec.pass1[ww] = - res$itis.tsn[ww]  ## take the negative value of the itis tsn
-        xx = which( !is.finite( res$spec.pass1) ) 
-        if (length(xx)>0) res = res[ -xx, ] 
-
-        #update gscat
-        #update the taxa sb ... use negative values to flag spec's that are just created
-        #remainder create new spec from -tsn and put these in a local database
-        #taxa.db( "local" 
-        #taxa.db( "refresh"
-        
-        # final pass of species id's for gscat
-        #spec.pass1 = taxa.specid.correct( gscat$spec ) 
-        #etc ...
-        #last check for missing spec/tsn and drop them
-
+        res = lookup.taxa2tsn2spec( taxa=gscat$remarks[oo] )
+        gscat$spec[oo] = res$spec
+        taxa.db( DS="gscat.update", res=res )  # this saves a local copy of the "res" file which can then be used to update the specieslist 
       }
 
+      gscat$spec = taxa.specid.correct( gscat$spec ) 
+
+      xx = which( !is.finite( gscat$spec) ) 
+      if (length(xx)>0) gscat = gscat[ -xx, ] 
 
 
       min.number.observations.required = 3

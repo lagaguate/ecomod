@@ -40,22 +40,20 @@
   
   groundfish.db( DS="odbc.redo", datayrs=odbc.data.yrs )  
   
-  refresh.bio.species.codes = F
-  if (refresh.bio.species.codes ) {
-    # the folowing is copied from taxaonomy/src/taxonomy.r
-    # refresh BIO's species codes from Oracle 
-
-    require ( multicore ) # simple parallel interface (using threads)
-    taxa.db( "spcodes.redo" ) 
-    taxa.db( "spcodes.itis.redo" ) 
-    taxa.db( "full.taxonomy.redo",  itis.kingdom="animalia", itis.taxa.lowest="Species" ) 
-    taxa.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.xls )
-    tx = taxa.db( "complete" )
-  }
-
+ 
   groundfish.db( DS="gscat.redo" )
-  groundfish.db( DS="gsdet.redo" )
+    refresh.bio.species.codes = F
+    if (refresh.bio.species.codes ) {
+      # the folowing is copied from taxaonomy/src/taxonomy.r
+      # refresh BIO's species codes from Oracle 
+      require ( multicore ) # simple parallel interface (using threads)
+      taxa.db( "spcodes.itis.redo" )  # new identitfication that have not yet moved into the official taxa databases added here
+      taxa.db( "full.taxonomy.redo",  itis.kingdom="animalia", itis.taxa.lowest="Species" ) 
+      taxa.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.xls )
+      tx = taxa.db( "complete" )
+    }
 
+  groundfish.db( DS="gsdet.redo" )
   groundfish.db( DS="gsinf.redo" )
   groundfish.db( DS="gshyd.profiles.redo" )
   groundfish.db( DS="gshyd.redo" )

@@ -5,7 +5,7 @@
 		splist = specieslist.parsimony()
     out = merge( out, splist [, c("spec", "spec.clean")], by="spec", all.x=T, all.y=F, sort=F )
 		out = out[ order( out$sortorder) , ]
-		return( out$spec.clean )  
+    return( out$spec.clean )  
 	}
 
 

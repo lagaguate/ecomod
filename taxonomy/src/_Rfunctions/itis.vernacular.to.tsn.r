@@ -23,8 +23,14 @@
 
     
     # ox contains candidate row indices of itaxa
-    # nwo refine search using 
+    # now refine search using 
     res = itis.refine.search( ox, itaxa )
+  
+    if (is.data.frame( res) ) {
+      res = res$tsn
+    } else {
+      res = NA
+    }
 
     return (res)
   }

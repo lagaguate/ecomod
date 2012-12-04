@@ -1,6 +1,6 @@
 
   
-  lookup.tsn2spec = function( tsn, tx=taxa.db() ) {
+  lookup.tsn2spec = function( tsn, tx=taxa.db(), alldata=FALSE ) {
     out = data.frame( tsn=tsn, spec=NA, name=NA )
     for ( i in 1:length(tsn) ) {
       itx = which( tx$itis.tsn == tsn[i] )
@@ -9,7 +9,11 @@
         out$name[i] = tx$name.scientific[itx] # for debugging
       }
     }
-    return(out$spec)
+    if (alldata) {
+      return( out) 
+    } else {
+      return(out$spec)
+    }
 	}
 
 
