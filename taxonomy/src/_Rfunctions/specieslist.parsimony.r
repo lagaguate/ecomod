@@ -2,7 +2,8 @@
 	specieslist.parsimony = function( DS="default" ) {
 		
 		# take BIO species codes and determine recodes based upon taxonomic databases such as ITIS, etc.
-    fn = file.path( project.directory("taxonomy"), "data", paste( "spcodes.itis", DS, "rdata", sep=".") )
+    
+    fn = file.path( project.directory("taxonomy"), "data", paste( "spcodes.itis", gsub("\\.redo$", "", DS) , "rdata", sep=".") )
 	  sp = NULL
 		if (DS == "default" ) {
       if (file.exists(fn)) load(fn)
@@ -12,7 +13,6 @@
 		sp = taxa.db("complete")
 	
     sp.additions = taxa.db( "gscat.update" )
-
 
 		ranks = sort( unique( sp$rank_id ),decreasing=T )
 		ranks = setdiff( ranks, 220 )  # 220 is the lowest level of discrimination (species)
