@@ -1,4 +1,3 @@
-
 Welcome.
 
 
@@ -11,7 +10,7 @@ Rather than implementing the repository as 'R-packages', we use the GIT version 
 To download this repository, you can either:
 
   1. Get the current snapshot of the whole repository (zip-compressed; see link near top), or 
-  2. Clone it using git (if on MSWindows, use Msysgit; for help see http://git-scm.com/book/; again the link is near the top of this page). The latter would allow you to contribute or merge your own work or modifications. 
+  2. Clone it using git (if on MSWindows, use Msysgit; for help see http://git-scm.com/book/; again the link is near the top of this page). This would allow you to contribute to the project. 
 
 
 To fully use this respository, you will need to add the following to the end of your Rprofile.site in MSWindows (usually found in the "etc" directory where install R) or ~/.Rprofile in Linux and other UNIX variants, including MacOSX:
@@ -35,5 +34,6 @@ or to load a specific function that fuzzy matches the 'functionname' criterion u
 The function, 'loadfunctions()' is a convenience wrapper for reading in all files under a particular project directory. 
 
 Best,
+
 Jae
 
