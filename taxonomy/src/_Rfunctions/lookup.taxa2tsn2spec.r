@@ -1,4 +1,4 @@
-  lookup.taxa2tsn2spec = function( taxa, parallelrun=FALSE  ) {
+  lookup.taxa2tsn2spec = function( taxa  ) {
     
     # 1. clean up taxa information 
     # 2. lookup itis.tsn 
@@ -32,7 +32,7 @@
     
     vnames = c( "taxa", "taxa" )
     vtypes = c( "default", "vernacular" )
-    res = itis.lookup.exhaustive.search( res, vnames, vtypes, parallelrun=parallelrun )
+    res = itis.lookup.exhaustive.search( res, vnames, vtypes )
 
     res$spec = lookup.tsn2spec( res$itis.tsn )
     ww = which( !is.finite( res$spec ) )

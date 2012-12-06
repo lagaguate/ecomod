@@ -1,6 +1,6 @@
 
 
-  taxa.db = function( DS="complete", itis.taxa.lowest="species", parallelrun=TRUE, find.parsimonious.spec=TRUE, res=NULL ) {
+  taxa.db = function( DS="complete", itis.taxa.lowest="species", find.parsimonious.spec=TRUE, res=NULL ) {
 
     if ( DS == "gstaxa" ) return( taxa.db( "life.history") )  
 
@@ -141,7 +141,7 @@
       vnames = c( "name.scientific", "name.scientific", "name.common", "name.common.bio" )
       vtypes = c( "default", "vernacular", "vernacular", "default" )
 
-      spi = itis.lookup.exhaustive.search( spi, vnames, vtypes, parallelrun=parallelrun )
+      spi = itis.lookup.exhaustive.search( spi, vnames, vtypes )
 
        
       add.local.database.gscat = TRUE 

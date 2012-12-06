@@ -130,6 +130,8 @@
       xx = which( !is.finite( gscat$spec) ) 
       if (length(xx)>0) gscat = gscat[ -xx, ] 
 
+# n = 186303
+
 
       min.number.observations.required = 3
       species.counts = as.data.frame( table( gscat$spec) )
@@ -138,10 +140,12 @@
       ii = which( gscat$spec %in% species.to.remove )
       gscat = gscat[ -ii , ]
 
+# n = 186040
+      
       gscat$id = paste(gscat$mission, gscat$setno, sep=".")
       gscat$id2 = paste(gscat$mission, gscat$setno, gscat$spec, sep=".")
   
-      
+
       # filter out strange data
 			ii = which( gscat$totwgt >= 9999 )  # default code for NAs -- 
       if (length(ii)>0) gscat$totwgt[ii] = NA 
@@ -163,24 +167,27 @@
       s = NULL
       for (i in d) {
         q = which(gscat$id2 == gscat$id2[i])
-        r = which.max(gscat$totno[q])
-				gscat$totno[r] = sum( gscat$totno[q], na.rm=T )
-				gscat$totwgt[r] = sum( gscat$totwgt[q], na.rm=T )
-				gscat$sampwgt[r] = sum( gscat$sampwgt[q], na.rm=T )
-        s = c(s, q[-r])
+				gscat$totno[q[1]] = sum( gscat$totno[q], na.rm=T )
+				gscat$totwgt[q[1]] = sum( gscat$totwgt[q], na.rm=T )
+				gscat$sampwgt[q[1]] = sum( gscat$sampwgt[q], na.rm=T )
+        s = c(s, q[2:length(q)])
       }
       if (length(s)>0) gscat = gscat[-s,]
- 
-	  # oo = which( duplicated( gscat$id2 ))
 
-		mw = meansize.crude(Sp=gscat$spec, Tn=gscat$totno, Tw=gscat$totwgt )
-		mw2 = meansize.direct() 
-		mw = merge(mw, mw2, by="spec", all=T, sort=T, suffixes=c(".crude", ".direct") )
-		# directly determined mean size has greater reliability --- replace
-		mm = which( is.finite(mw$meanweight.direct))
-		mw$meanweight = mw$meanweight.crude
-		mw$meanweight[mm] = mw$meanweight.direct[mm]
-		mw = mw[which(is.finite(mw$meanweight)) ,]
+      oo = which( duplicated( gscat$id2) )
+      if ( length( oo )>0 ) {
+        print( gscat[ oo , "id2"] )
+        stop("Duplcated id2's in gscat"  )
+      }
+
+      mw = meansize.crude(Sp=gscat$spec, Tn=gscat$totno, Tw=gscat$totwgt )
+      mw2 = meansize.direct() 
+      mw = merge(mw, mw2, by="spec", all=T, sort=T, suffixes=c(".crude", ".direct") )
+      # directly determined mean size has greater reliability --- replace
+      mm = which( is.finite(mw$meanweight.direct))
+      mw$meanweight = mw$meanweight.crude
+      mw$meanweight[mm] = mw$meanweight.direct[mm]
+      mw = mw[which(is.finite(mw$meanweight)) ,]
 
 
       ii = which( is.na(gscat$totno) & gscat$totwgt >  0 ) 
@@ -210,13 +217,13 @@
         }
       }
 
-
       # many cases have measurements but no subsampling info
       gscat$cfsampling = gscat$totwgt / gscat$sampwgt
       gscat$cfsampling[ which( !is.finite(gscat$cfsampling)) ] = 1 # can only assume everything was measured (conservative estimate)
 
       gscat = gscat[, c("id", "id2", "spec", "totwgt", "totno", "sampwgt", "cfsampling")] # kg, no/set
 
+ 
       save(gscat, file=fn, compress=T)
       return( fn )
     }
@@ -264,8 +271,7 @@
 		}
      
    
-
-  # ----------------------
+    # ----------------------
 
 
     if (DS %in% c("gsdet", "gsdet.redo") ) {
@@ -291,28 +297,23 @@
       gsdet$year = NULL
              
       gsdet$spec = taxa.specid.correct( gsdet$spec ) 
-      oo = which(is.duplicated(gsdet$spec) )
-      oo
       oo = which(!is.finite(gsdet$spec) )
-      oo
-      stop()
-
-
+      if (length(oo)>0) gsdet = gsdet[-oo,]
 
       gsdet$id = paste(gsdet$mission, gsdet$setno, sep=".")
       gsdet$id2 = paste(gsdet$mission, gsdet$setno, gsdet$spec, sep=".")
       gsdet = gsdet[, c("id", "id2", "spec", "fshno", "fsex", "fmat", "flen", "fwt", "age") ]  
       names(gsdet)[which(names(gsdet)=="fsex")] = "sex"
       names(gsdet)[which(names(gsdet)=="fmat")] = "mat"
-      names(gsdet)[which(names(gsdet)=="flen")] = "len" # cm
+      names(gsdet)[which(names(gsdet)=="flen")] = "len"  # cm
       names(gsdet)[which(names(gsdet)=="fwt")]  = "mass" # g
       save(gsdet, file=fn, compress=T)
+
       return( fn )
     }
-
- # ----------------------
-
-
+  
+    
+    # ----------------------
 
 
 		if (DS %in% c( "gsinf.odbc", "gsinf.odbc.redo" ) ) {
@@ -527,8 +528,7 @@
     }
 
 
- # ----------------------
-
+    # ----------------------
 
 
     if (DS %in% c("gsstratum", "gsstratum.obdc.redo") ) {
@@ -548,7 +548,8 @@
       return( fn )
     }
 
-  # ----------------------
+
+    # ----------------------
 
 
     if (DS %in% c("gscoords", "gscoords.odbc.redo") ) {
@@ -610,7 +611,7 @@
       return( fnmiss )
     }
 
- # ----------------------
+ # ----------------------taxa.specid.correct
 
     if (DS %in% c("set.base", "set.base.redo") ) {
       fn = file.path( project.directory("groundfish"), "data", "set.base.rdata")
@@ -640,6 +641,7 @@
 
       set = merge(x=set, y=gstaxa, by=c("spec"), all.x=T, all.y=F, sort=F) 
       rm (gstaxa)
+
 
       # initial merge without any real filtering
       # save(set, file=file.path( project.directory("groundfish"), "data", "set0.rdata"), compress=T)  
@@ -714,12 +716,16 @@
         load( fn )
         return (set)
       }
-      
+     
+
+
+
       set = groundfish.db( DS="set.base" )  # kg/set, no/set
      
       # combine correction factors or ignore trapability corrections .. 
       # plaice correction ignored as they are size-dependent
       set = correct.vessel(set)
+     
       
       # correction factors for sampling etc after determination of mass and len 
       # for missing data due to subsampling methodology
@@ -730,7 +736,7 @@
       noTotSet = sumById( ee=rep(1,nrow(gsdet)), id=gsdet$id2, idnames=c("id2","noTotdet" ) )
 
 #dim(set)
-#[1] 184372     30
+#185990
 
       set = merge( set, massTotSet, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
       set = merge( set, noTotSet, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
@@ -788,11 +794,6 @@
       set = groundfish.db( "set" ) # kg/set, no/set 
       set = set[, c("id2", "cf", "spec", "settype" )]
       set = set[ which(is.finite( set$spec+set$settype)) , ]
-      oo = which( duplicated( set$id2) )
-      if ( length( oo )>0 ) {
-        print( set[ oo , "id2"] )
-        stop("Duplcated id's" )
-      }
       gsdet = groundfish.db( "det.base" )  # kg, cm
       gsdet = gsdet[, c("id", "id2", "fshno", "sex", "mat", "len", "mass", "age", "residual", "pvalue") ]
       det = merge(x=gsdet, y=set, by=c("id2"), all.x=T, all.y=F, sort=F)

@@ -8,7 +8,7 @@
 					"gee", "geepack", "gamm4", "graph",  "Hmisc", "igraph", "its", "jit", "lattice", "lme4", 
 					"MASS", "maxLik", "mgcv", "mixdist", "mvtnorm", "nlme", "multcomp", "nlme", "nnet", "oz",
 					"qcc", "quadprog", "randomForest",
-					"ppso", "Rcmdr", "rgl", "Rcompression", "RColorBrewer",  "plotrix",
+					"ppso", "Rcmdr", "Rcpp", "rgl", "Rcompression", "RColorBrewer",  "plotrix",
 					"scatterplot3d",  "systemfit", "sm", "sampling",
 					"SparseM", "splines", "stats", "stats4", "SuppDists", "TeachingDemos", "tools",
 					"tcltk",  "tseries", "utils",  "vegan", "waveslim", , 
