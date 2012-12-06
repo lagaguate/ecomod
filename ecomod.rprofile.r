@@ -23,9 +23,16 @@ for ( sf in startupfiles ) source( sf )
 
 
 
+<<<<<<< HEAD
 # base environment .. used to manipulate namespace -- to remove??
 lib.init = search()
 obj.init = ls()
 namespaces.init = loadedNamespaces()
+=======
+	# base environment .. used to manipulate namespace 
+  lib.init = search()
+  obj.init = ls()
+  namespaces.init = loadedNamespaces()
+>>>>>>> develop
 
 
