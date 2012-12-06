@@ -46,9 +46,8 @@
     if (refresh.bio.species.codes ) {
       # the folowing is copied from taxaonomy/src/taxonomy.r
       # refresh BIO's species codes from Oracle 
-      require ( multicore ) # simple parallel interface (using threads)
       taxa.db( "spcodes.itis.redo" )  # new identitfication that have not yet moved into the official taxa databases added here
-      taxa.db( "full.taxonomy.redo",  itis.kingdom="animalia", itis.taxa.lowest="Species" ) 
+      taxa.db( "full.taxonomy.redo" ) 
       taxa.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.xls )
       tx = taxa.db( "complete" )
     }

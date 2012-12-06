@@ -17,10 +17,10 @@
     taxa.db( "spcodes.odbc.redo" ) # refresh BIO's species codes from Oracle -- done also from groundfish update
     groundfish.db( DS="gscat" ) # creates intermediate files to update species list
 		# merge in itis taxonomy tsn's ... use parallel=F to debug
-    taxa.db( "spcodes.itis.redo", parallel=T )  
+    taxa.db( "spcodes.itis.redo" )  
     
     # merge full taxonomic hierrachy (limit to animalia and resolved to species)
-    taxa.db( "full.taxonomy.redo",  itis.taxa.lowest="Species" ) 
+    taxa.db( "full.taxonomy.redo" ) 
     taxa.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.csv )
     taxa.db( "complete.redo" )
 		
