@@ -1,5 +1,4 @@
 
-
 Welcome.
 
 
@@ -11,7 +10,7 @@ Rather than implementing the repository as 'R-packages' (which are also excellen
 
 To download this repository, you can either:
     Get the current snapshot of the whole repository (zip-compressed; see link near top), or 
-    Clone it using git (if on MSWindows, use Msysgit; for help see http://git-scm.com/book/). 
+    Clone it using git (if on MSWindows, use Msysgit; for help see http://git-scm.com/book/; again the link is near the top of this page). 
 
 The latter would allow you to contribute or merge your own work or modifications. 
 
