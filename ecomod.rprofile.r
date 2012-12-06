@@ -23,7 +23,7 @@ for ( sf in startupfiles ) source( sf )
 
 
 
-# base environment .. used to manipulate namespace 
+# base environment .. used to manipulate namespace -- to remove??
 lib.init = search()
 obj.init = ls()
 namespaces.init = loadedNamespaces()
