@@ -23,16 +23,9 @@ for ( sf in startupfiles ) source( sf )
 
 
 
-<<<<<<< HEAD
-	# base environment .. used to manipulate namespace -- not used?? 
-  lib.init = search()
-  obj.init = ls()
-  namespaces.init = loadedNamespaces()
-=======
 # base environment .. used to manipulate namespace 
 lib.init = search()
 obj.init = ls()
 namespaces.init = loadedNamespaces()
->>>>>>> 0dbe958ee59b7b3a134d6f58df921d1884240b61
 
 
