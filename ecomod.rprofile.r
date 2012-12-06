@@ -22,17 +22,9 @@ startupfiles = list.files( path=startupdirectory, full.names=T, recursive=T,  ig
 for ( sf in startupfiles ) source( sf )
 
 
-
-<<<<<<< HEAD
-# base environment .. used to manipulate namespace -- to remove??
+# base environment .. used to manipulate namespace
 lib.init = search()
 obj.init = ls()
 namespaces.init = loadedNamespaces()
-=======
-	# base environment .. used to manipulate namespace 
-  lib.init = search()
-  obj.init = ls()
-  namespaces.init = loadedNamespaces()
->>>>>>> develop
 
 
