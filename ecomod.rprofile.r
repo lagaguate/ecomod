@@ -24,7 +24,7 @@
 
 
 
-	# base environment .. used to manipulate namespace -- not used?? 
+	# base environment .. used to manipulate namespace 
   lib.init = search()
   obj.init = ls()
   namespaces.init = loadedNamespaces()
