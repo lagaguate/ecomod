@@ -186,6 +186,27 @@
       }
       spi$todrop = NULL
 
+
+      # fill in missing names, etc
+      i = which(is.na( spi$name.scientific))
+      if (length(i) > 0 ) spi$name.scientific[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="sci" )
+
+      
+      i = which(is.na( spi$name.common))
+      if (length(i) > 0 ) spi$name.common[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="tx" )
+        # have to do it again and fill with scientific name if missing
+        i = which(is.na( spi$name.common))
+        if (length(i) > 0 ) spi$name.common[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="sci" )
+
+
+      i = which(is.na( spi$name.common.bio))
+      if (length(i) > 0 ) spi$name.common.bio[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="tx" )
+        # have to do it again and fill with scientific name if missing
+        i = which(is.na( spi$name.common.bio))
+        if (length(i) > 0 ) spi$name.common.bio[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="sci" )
+
+
+
   		# make sure the remainder of missing spec.clean points to spec
 			i = which( !is.finite(spi$spec.clean) )
 			if (length(i)>0) spi$spec.clean[i] = spi$spec[i]
@@ -196,19 +217,21 @@
 			i = which( (spi$spec != spi$spec.clean) & spi$tolookup )
 			if (length(i)>0) {
 				for (j in i) {
-					ii = which( spi$spec== spi$spec.clean[j] )
-					if (length(ii)>0) spi$itis.tsn[ j ] = spi$itis.tsn[ ii ]
+					k = which( spi$spec== spi$spec.clean[j] )
+          if (length(k)>0) spi$itis.tsn[ j ] = spi$itis.tsn[ k ]
 				}
 			}
 
   		# for all duplicated tsn's, point them to the same species id:   
       # spec.clean id's to point to a single spec id (choose min value as default)
 			dup.tsn = sort( unique( spi$itis.tsn[ duplicates.toremove( spi$itis.tsn )]  )) 
-			for (tsni in dup.tsn) {
-				oi = which( spi$itis.tsn ==tsni )
-				op = which.min( spi$spec[ oi ] )
-				spi$spec.clean[oi] = min( spi$spec[oi[op]],  spi$spec[oi] )
-			}
+			if (length( dup.tsn) > 0 ) {
+        for (tsni in dup.tsn) {
+          oi = which( spi$itis.tsn ==tsni )
+          op = which.min( spi$spec[ oi ] )
+          spi$spec.clean[oi] = min( spi$spec[oi[op]],  spi$spec[oi] )
+        }
+      }
 
 
 			i = which( !is.finite(spi$itis.tsn) & spi$tolookup )
@@ -408,6 +431,9 @@
     # ----------------------------------------------
     
     if (DS %in% c( "itis.oracle", "itis.oracle.redo" ) ) {
+      
+      ### NOT USED ??? TO DELETE ?
+      
       fn.itis = file.path( project.directory("taxonomy"), "itis.oracle.rdata" )
       if (DS=="itis.oracle" ) {  
         load( fn.itis )
@@ -424,6 +450,10 @@
     }
     
     if (DS %in% c( "itis.groundfish", "itis.groundfish.redo" ) ) {
+      
+      
+      ### NOT USED ??? TO DELETE ?
+      
       fn.itis = file.path( project.directory("taxonomy"), "data", "itis.groundfish.rdata" )
       if (DS=="itis.groundfish" ) {  
         load( fn.itis )
@@ -440,6 +470,10 @@
     }
     
     if (DS %in% c( "itis.observer", "itis.observer.redo" ) ) {
+      
+      
+      ### NOT USED ??? TO DELETE ?
+      
       fn.itis = file.path( project.directory("taxonomy"), "data", "itis.observer.rdata" )
       if (DS=="itis.observer" ) {  
         load( fn.itis )

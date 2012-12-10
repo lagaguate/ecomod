@@ -17,8 +17,7 @@
     fileinfo = tolower(unlist(strsplit(filename, split="/")))
      
     # break down file into separate stations /set no.
-    seabird = as.data.frame(read.table( file=filename, sep=",", as.is=T, colClasses="character", 
-      header=F, skip= data.start, strip.white=T))
+    seabird = as.data.frame(read.table( file=filename, sep=",", as.is=T, colClasses="character", header=F, skip= data.start, strip.white=T))
     
     if ( nrow(seabird) < 10 ) return( out )
     

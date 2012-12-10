@@ -165,11 +165,6 @@
  
 			cat = bio.db( DS="cat", p=p)
   
-			# these are determined below ...
-			spec.todrop =  c(9991:9999)
-    
-			to.drop = which (cat$spec %in% spec.todrop)
-			cat = cat[ - to.drop, ]
     
 			surveys = sort( unique( cat$data.source ) ) 
       species = sort( unique( cat$spec ) )
@@ -259,15 +254,17 @@
 				# these have minima that are == 1  ! why?
 				i = which(kmin==1)
 				uu = as.numeric(names(kmin[i]))
-				lookup.spec2taxa(uu)
+				if (length(uu > 0 ))  lookup.spec2taxa(uu)
 
 				oo = which( !is.finite( kmin) | !is.finite(kmax))
 				strange.spec = as.numeric( names(kmin)[oo] )
 				strange.spec.id = lookup.spec2taxa( strange.spec )
-				nas = which( is.na( strange.spec.id ) )
-				pp = strange.spec[ nas]
-				print ("Strange data?")
-				print(pp)
+				nas = which( is.na( strange.spec.id$spec ) )
+				if (length(pp) >  0 ) {
+          pp = strange.spec[ nas]
+	  			print ("Strange data?")
+		  		print(pp)
+        }
 			}
 
 			over.write.missing.data = FALSE

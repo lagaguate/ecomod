@@ -7,7 +7,7 @@
     if (is.null( tx )) tx = taxa.db("complete")
 
     out = NULL
-    
+     
     for (tg in txgrp) { 
       
       spid = switch(tg,

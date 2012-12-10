@@ -57,13 +57,12 @@
     minilog.yToload = 1999:p$current.assessment.year
     netmind.yToload = 1999:p$current.assessment.year
     seabird.yToload = 2012:p$current.assessment.year
-   
-    # bring in minilog and netmind data -- slow
-    # could also just add the new year Y=p$current.assessment.year -- faster 
-    # but prefer to refresh everything in case of gremlins
-    minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
-    netmind.db( DS="load", Y=netmind.yToload ) # netmind data series "begins" in 1998 -- 60 min?
-    seabird.db( DS="load", Y=seabird.yToload ) 
+  
+
+    # bring in minilog and netmind data for current year
+    minilog.db( DS="load", Y=p$current.assessment.year ) # minilog data series "begins" in 1999 -- 60 min?
+    netmind.db( DS="load", Y=p$current.assessment.year) # netmind data series "begins" in 1998 -- 60 min?
+    seabird.db( DS="load", Y=p$current.assessment.year ) 
   
 
     # creates initial rdata and sqlite db

@@ -127,11 +127,12 @@
 
       gscat$spec = taxa.specid.correct( gscat$spec ) 
 
+      
+      # remove data where species codes are ambiguous, or missing or non-living items
       xx = which( !is.finite( gscat$spec) ) 
       if (length(xx)>0) gscat = gscat[ -xx, ] 
 
-# n = 186303
-
+      gscat = gscat[ filter.taxa( gscat$spec, method="living.only" ) , ]
 
       min.number.observations.required = 3
       species.counts = as.data.frame( table( gscat$spec) )
@@ -139,9 +140,6 @@
 
       ii = which( gscat$spec %in% species.to.remove )
       gscat = gscat[ -ii , ]
-
-# n = 186040
-      
       gscat$id = paste(gscat$mission, gscat$setno, sep=".")
       gscat$id2 = paste(gscat$mission, gscat$setno, gscat$spec, sep=".")
   
@@ -299,6 +297,10 @@
       gsdet$spec = taxa.specid.correct( gsdet$spec ) 
       oo = which(!is.finite(gsdet$spec) )
       if (length(oo)>0) gsdet = gsdet[-oo,]
+      
+      # remove data where species codes are ambiguous, or missing or non-living items
+      gsdet = gsdet[ filter.taxa( gsdet$spec, method="living.only" ) , ]
+
 
       gsdet$id = paste(gsdet$mission, gsdet$setno, sep=".")
       gsdet$id2 = paste(gsdet$mission, gsdet$setno, gsdet$spec, sep=".")
@@ -611,7 +613,7 @@
       return( fnmiss )
     }
 
- # ----------------------taxa.specid.correct
+ # ----------------------
 
     if (DS %in% c("set.base", "set.base.redo") ) {
       fn = file.path( project.directory("groundfish"), "data", "set.base.rdata")

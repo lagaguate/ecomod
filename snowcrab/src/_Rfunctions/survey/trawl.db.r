@@ -351,7 +351,13 @@
 
 			# clean species codes ... this causes multiple entries for some species that need to be summed up
       cat$spec =  taxa.specid.correct( cat$spec ) 
-				
+
+      # remove data where species codes are ambiguous, or missing or non-living items
+      xx = which( !is.finite( cat$spec) ) 
+      if (length(xx)>0) cat = cat[ -xx, ] 
+      cat = cat[ filter.taxa( cat$spec, method="living.only" ) , ]
+
+
       # update catch biomass/numbers due to altering of species id's
 				cat = cat[,catvars]
 				catn = as.data.frame( xtabs( cat$totno ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
