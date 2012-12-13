@@ -9,7 +9,7 @@
       date.format = c(dates = "dd mon year", times = "h:m:s")
       out.format = c(dates = "year-m-d", times = "h:m:s")
       
-      if (outvalue=="format") out = date.format
+      if (outvalue=="format") return (date.format)
 
       if (!is.null( fnSeaBird) && file.exists(fnSeaBird) ) {
         header = readLines( fnSeaBird, n=52)

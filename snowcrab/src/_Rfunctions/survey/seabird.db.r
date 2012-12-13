@@ -1,6 +1,7 @@
 	
 	# mostly a copy over of the MINILOG functions with variable nemaes being replaced
 	# some modifications to the 
+ 
 
   seabird.db = function( DS="", Y=NULL ){
     
@@ -31,7 +32,7 @@
         if (length(fs)==0) next()
         for (f in 1:length(fs)) {
           j = load.seabird.rawdata( fs[f], unique.id=f)  # variable naming conventions in the past
-          if (is.null(j)) next() 
+          if (is.null(j)) next()
           dbWriteTable(con, sMeta, j$metadata, overwrite=F, row.names=F, append=T)
           dbWriteTable(con, sBase, j$seabird.data, overwrite=F, row.names=F, append=T)
         }
