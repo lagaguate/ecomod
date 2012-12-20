@@ -1,4 +1,6 @@
   landings.db = function ( ) {
+
+    # glue historical data with marfis data 
     
     threshold.year = 2004
     
@@ -18,7 +20,7 @@
     a$landings = a$landings.tons * 1000
     a$effort = a$effort.100traps * 100
     a$soak.time = NA
-    a$cpue = NA
+    a$cpue = a$cpue.kg.trap
     a$trap.type = NA
     a$cfv = NA
     a$status = NA

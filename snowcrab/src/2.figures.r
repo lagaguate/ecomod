@@ -20,7 +20,7 @@
 
   # ------------------------------------------
   # Time-series: Fisheries CPUE
-    figure.effort.cpue( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts" )
+    figure.cpue.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts" )
 
   # ------------------------------------------
   # Size frequency distributions, broken down by moult category from at-sea observed data 

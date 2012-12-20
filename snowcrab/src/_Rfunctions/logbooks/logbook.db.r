@@ -2,13 +2,7 @@
 
   logbook.db = function( DS, prorate=T, p=NULL, yrs=NULL ) {
     		
-		if (  Sys.info()["sysname"] == "Windows" ) {
-			.Library.site <- "D://R//library-local"
-			.libPaths("D://R//library-local")
-			project.directory("snowcrab") = file.path("C:", "datadump")
-		}
-
-		if (DS %in% c("odbc.logbook", "odbc.logbook")) {
+		if (DS %in% c("odbc.logbook", "odbc.logbook.redo")) {
 			fn.root =  file.path( project.directory("snowcrab"), "data", "logbook", "datadump" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
 				
@@ -140,21 +134,29 @@
 			# stop(" MUST ADD EXTERNAL DATA -- landings in GULF ")
       
 			
-			# logbooks from historical data tables 
+			# logbooks from historical data tables (1996-2003; but 2002 and 2003 seem to be partial records) 
       lb.historical = logbook.db( DS="fisheries.historical" )
       lb.historical$cfa = NA
 
       # logbooks from marfis tables 
       x = logbook.db( DS="odbc.logbook", yrs=1996:p$current.assessment.year )
-      if (prorate) x = logbook.prorate( x )
-      
+ 
       names( x ) = tolower( names( x ) )
       names( x ) = rename.snowcrab.variables(names( x ))
-
       to.char = c( "cfa", "licence_id_old", "licence", "date.fished", "date.landed",
                    "captain", "vessel", "doc_id", "doc_type")
       for (i in to.char) x[,i] = as.character(x[,i])
 
+      iy = which(!is.finite(x$year))
+      if (length(iy) > 0) {
+        x$year[iy] = years(x$date.landed) [iy]
+        iy = which(!is.finite(x$year))
+        if (length(iy) > 0)  x = x[ -iy, ] 
+      }
+
+
+      if (prorate) x = logbook.prorate( x )  # assume pro-rating not required for historical data as it was maintained manually by Moncton
+      
       x$soak.time = x$soak_days * 24  # make into hours
       x$trap.type = "" # dummy value until this can be added to the views .. check with Alan
       x$status = ""  # "" "" ""
@@ -168,14 +170,6 @@
       x$lat =   round( as.numeric(substring(x$lat, 1,2)) + as.numeric(substring(x$lat, 3,6))/6000 ,6)
       x$lon = - round((as.numeric(substring(x$lon, 1,2)) + as.numeric(substring(x$lon, 3,6))/6000), 6)
     
-      iy = which(!is.finite(x$year))
-      if (length(iy) > 0) x$year[iy] = years(x$date.landed) [iy]
-
-      toremove = which(!is.finite(x$year))
-      #    dups = which(duplicated(x))
-      #    toremove = sort(unique(c(iy, dups)))
-      if (length(toremove) > 0) x = x[-toremove,]
-
       to.extract = c( "year","lat","lon","depth","landings","effort","soak.time",
                       "cpue","trap.type","cfv","status","licence",
                       "date.landed", "date.fished", "cfa" )
@@ -184,12 +178,18 @@
       
       x = NULL
       x = rbind( lb.historical, lb.marfis )
+      
+      #    dups = which(duplicated(x))
+      #    toremove = sort(unique(c(iy, dups)))
+      # if (length(toremove) > 0) x = x[-toremove,]
+
 
       # known errors:  manual fixes
-      ifix = which( round(x$lat)==46 & round(x$lon)==-5930 )
-      if ( length(ifix > 0 ))  x$lon[ ifix ]  = x$lon[ ifix ] / 100
+      ix = which( round(x$lat)==46 & round(x$lon)==-5930 )
+
+      if ( length(ix > 0 ))  x$lon[ ix ]  = x$lon[ ix ] / 100
    
-      x = logbook.determine.region(x)  # using licencen info and geographics
+      x = logbook.determine.region(x)  # using licence info and geographics
 
       i.cfa4x = which( x$cfa == "cfa4x" )
       i.offset = which( months(x$date.landed) >= "Jan" & months(x$date.landed) <= "Jul" )
@@ -198,9 +198,20 @@
       x$yr = x$year
       x$yr[to.offset] = x$yr[to.offset] - 1
       x$yr[i.cfa4x] = x$yr[i.cfa4x] + 1  # ie:: fishery from 1999-2000 in 4X is now coded as 2000
+     
+      # enforce bounds in effort and cpue
+      oo = which( x$cpue > 650 * 0.454 )  # 600 - 650 lbs / trap is a real/reasonable upper limit
+      if ( length(oo) > 0 ) x$cpue[oo] = NA  
+
+      pp = which ( x$effort > 240 ) # small traps were used at times with large 240 trap compliments 
+      if ( length(pp) > 0 ) x$effort[pp] = NA
+
       logbook = x
+      
       save (logbook, file=filename, compress=T )  # this is for plotting maps, etc
+
       return( "Complete" )
+    
     }
 
   # ---------------------
@@ -336,6 +347,7 @@
                         "cpue","trap.type","cfv","status","licence",
                         "date.landed", "date.fished")
        logs = logs[, to.extract]
+       logs = logs[ -which( !is.finite(logs$year) ), ]
 
        save(logs, file=fn, compress=T)
 

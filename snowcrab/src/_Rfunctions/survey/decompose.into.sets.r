@@ -24,13 +24,22 @@
     threshold = quantile( X$X, probs=PrThreshold ) 
     if (abs (threshold - expectedValue ) > (2 * sd( X$X[ X$X <= threshold] )) ) {
       print( "----------")
-      print( "A significant deviation was detected in the data stream for the following data files" )
+      print( "A significant deviation was detected in the data stream for the data file, above" )
       print( "Assuming it was drift, but the data should be checked." )
       print( paste( "observed:", threshold) ) 
-      print( "expected: 0.014 decibar" )
-      print( head( x ) )
+      print( "expected: ~ 0.1 decibar" )
+      print( paste( "mean: ", mean( x[x<=threshold] ) ) )
+      print( paste( "sd: ", sd( x[x<=threshold] ) ) )
       print( "----------")
-      X$X = X$X - (threshold - expectedValue)
+      
+      if (abs(threshold) > 1) {
+        print( "In fact, the deviation was > 1 decibar" )
+        print( "Stopping now as there may be something wrong with the data" )
+        stop()
+      }
+      
+      X$X = X$X - threshold 
+    
     }
 
     

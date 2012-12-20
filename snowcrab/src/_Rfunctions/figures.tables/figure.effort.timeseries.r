@@ -1,24 +1,29 @@
-  figure.effort.timeseries = function( type="line", yearmax, outdir=NULL, outfile=NULL ) {
+  figure.effort.timeseries = function( yearmax, outdir=NULL, outfile=NULL, type="line" ) {
    
-    landings = landings.db()  
-    uyrs = sort(unique(landings$yr))
-    uyrs = uyrs[ uyrs <= yearmax ]
-    YR = data.frame( yr=uyrs )
     regions = c("cfanorth", "cfasouth", "cfa4x")
-    l = e = c = NULL
+    e = NULL
     for (r in regions) {
-      res = get.fishery.stats.by.region(landings ,r, YR)
-      e = cbind( e, res$effort / 1000 )
+      res = get.fishery.stats.by.region(Reg=r)
+      e = cbind( e, res$effort  )
     }
-    rownames(e) = uyrs
-    e[is.na(e)] = 0
-    formed.data = t(as.matrix(e))
+    
+    e = e / 1000
+
+    e = as.data.frame( e )
+    colnames(e) = regions
+    rownames(e) = res$yr
+   
+    e = e[ which( as.numeric(rownames(e)) <= yearmax ), ] 
+    uyrs = as.numeric(rownames(e) ) 
+
     
     dir.create( outdir, recursive=T, showWarnings=F )
     fn = file.path( outdir, paste(outfile,"png",sep="." ) )
     Cairo( file=fn, type="png", bg="white",, pointsize=30, units="in", width=6, height=4, dpi=300  )
 
     if (type=="bar") {
+      e[is.na(e)] = 0
+      formed.data = t(as.matrix(e))
       barplot( formed.data, space=0, xlab="Year", ylab="Effort (1000 trap hauls)", col=cols)
       legend(x=1, y=130, c("N-ENS", "S-ENS", "4X"), fill=cols[reverse], bty="n")
     }

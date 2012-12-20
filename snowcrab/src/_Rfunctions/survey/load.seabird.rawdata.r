@@ -31,6 +31,7 @@
     yr = as.numeric( as.character( years( seabird$chron[1]) ))
     
     # break down multi-set records into separate records using a simple depth rule .... make sure this is in correct units (TODO)
+    print (filename)
     seabird$id = decompose.into.sets( seabird$pressure )  
     seabird = seabird[ which(is.finite( seabird$id ) ) , ]
     seabird$unique_id = NA  #initiate
@@ -40,7 +41,6 @@
     set$chron = string2chron(set$chron )
     set = set[ which( set$yr == yr ) ,]
 
-    error = ""  # dummy to fit in with other data streams
     seabird$depth = NA
     
     metadata = NULL
@@ -55,27 +55,34 @@
       zmaxi = which.max( as.numeric( seabird$pressure[o] ) )
       if (length(zmaxi)==0) zmaxi = which.min( as.numeric( seabird$temperature[o]) )
       if (length(zmaxi)==0) zmaxi = floor( length(o) / 2 )  # take midpoint
-      if ( !(length(zmaxi)==1) ) stop( filename )
         
-      tdiff = set$chron - seabird$chron[o[zmaxi]] # in days
+      tdiff = seabird$chron[o[zmaxi]] - set$chron  # in days
       ip = which( tdiff > 0 ) # set time must be before seabird contact at bottom
+      
+      error = ""
       if ( length(ip) == 0 ) {
         print( "Time matching failed for seabird data .. ")
         print( filename )
-        stop()
+        error = "No matching seabird time found" 
+        studyid = gsub( "^.*Trip #:", "", header[9] )
+        seabird$depth[o] = decibar2depth ( P=seabird$pressure[o], lat=44.5  ) # arbitarily fixed at mid-point of the ESS
+        station = "-999"  # unknown
+      } else {
+
+        im = which.min( tdiff[ip] )
+        itdiff = ip[im]
+        setx =  set[itdiff,] # matching trip/set/station  
+        studyid = paste( setx$trip, setx$set, setx$station, sep="." )
+        seabird$depth[o] = decibar2depth ( P=seabird$pressure[o], lat=setx$lat )
+        station = setx$station
       }
 
-      im = which.min( tdiff[ip] )
-      itdiff = ip[im]
-    
-      setx =  set[itdiff,] # matching trip/set/station  
-      studyid = paste( setx$trip, setx$set, setx$station, sep="." )
-      
-      seabird$depth[o] = decibar2depth ( P=seabird$pressure[o], lat=setx$lat )
-
-      out = data.frame(unique_id, yr, seabird$chron[o[zmaxi]], setx$station, studyid, error, filename2, headerall, stringsAsFactors=F )
+      out = data.frame(unique_id, yr, seabird$chron[o[zmaxi]], station, studyid, error, filename2, headerall, stringsAsFactors=F )
       names( out ) = c( "unique_id", "yr", "timestamp", "stationid", "studyid", "error", "filename", "headerall" )
+      out$timestamp = as.character(  out$timestamp )
+
       metadata = rbind( metadata, out )
+    
     }
    
 

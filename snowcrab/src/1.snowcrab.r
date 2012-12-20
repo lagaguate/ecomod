@@ -72,14 +72,14 @@
     # in 2004, new BIO data streams began: Assume historical data are correct
     minilog.yToload = 1999:p$current.assessment.year
       minilog.db( DS="load", Y=p$current.assessment.year ) # minilog data series "begins" in 1999 -- 60 min?
-      minilog.db( DS="set.minilog.lookuptable", Y=minilog.yToload )  
+      minilog.db( DS="set.minilog.lookuptable", Y=minilog.yToload ) ## annual updates seem not to work -- need to check .. use full refresh until fixed 
       minilog.db( DS="stats.redo", Y=minilog.yToload ) # ~ 2hr for 1999 to 2010 
       
 
     netmind.yToload = 1999:p$current.assessment.year
       netmind.db( DS="load", Y=p$current.assessment.year) # netmind data series "begins" in 1998 -- 60 min?
       netmind.db( DS="set.netmind.lookuptable", Y=netmind.yToload )
-      netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog stats .. do last ~ 6 hrs
+      netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog stats .. do last ~ 3.5 hrs
 
 
     seabird.yToload = 2012:p$current.assessment.year

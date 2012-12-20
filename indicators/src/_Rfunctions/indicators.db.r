@@ -491,10 +491,7 @@
       loadfunctions( "snowcrab") functionname="initialise.local.environment.r" )
       
       # fishery data
-      landings = landings.db()
-      uyrs = sort(unique(landings$yr))
-      YR = data.frame( yr=uyrs )
-      res = get.fishery.stats.by.region(landings0=landings, y=YR)
+      res = get.fishery.stats.by.region()
       res$landings = res$landings / 1000 
       res$effort = res$effort / 1000 
       rownames(res) = uyrs

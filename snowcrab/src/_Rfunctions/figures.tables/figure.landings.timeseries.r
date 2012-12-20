@@ -1,16 +1,19 @@
-  figure.landings.timeseries = function( type="line", yearmax, outdir=NULL, outfile=NULL ) {
-     
-    landings = landings.db( )  
-    uyrs = sort(unique(landings$yr))
-    uyrs = uyrs[ uyrs <= yearmax ]
-    YR = data.frame( yr=uyrs )
+  figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, type="line" ) {
+
     regions = c("cfanorth", "cfasouth", "cfa4x")
-    l = e = c = NULL
+    l = NULL
     for (r in regions) {
-      res = get.fishery.stats.by.region(landings ,r, YR)
-      l = cbind( l, res$landings / 1000 )
+      res = get.fishery.stats.by.region( Reg=r)
+      l = cbind( l, res$landings  )
     }
-    rownames(l) = uyrs
+    l = l / 1000
+
+    l = as.data.frame( l )
+    colnames(l) = regions
+    rownames(l) = res$yr
+   
+    l = l[ which( as.numeric(rownames(l)) <= yearmax ), ] 
+    uyrs = as.numeric(rownames(l) ) 
 
     dir.create( outdir, recursive=T, showWarnings=F  )
     fn = file.path( outdir, paste(outfile,"png",sep="." ) )
