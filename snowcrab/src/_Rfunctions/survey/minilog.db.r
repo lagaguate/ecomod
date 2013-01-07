@@ -1,13 +1,59 @@
 	
 
   minilog.db = function( DS="", Y=NULL ){
-    
-    iY = which( Y>=1998 )  # no historical data prior to 1998
-    if (length(iY)==0) return ("No data for specified years")
-    Y = Y[iY]
- 
-    if (DS=="load") {
-      # this safely replaces any updates
+      
+    minilog.dir = project.directory("snowcrab", "data", "seabird" )
+    minilog.rawdata.location = file.path( sb.dir, "archive" )
+   
+    if (!is.null(Y)) {
+  
+      iY = which( Y>=1998 )  # no historical data prior to 1998
+      if (length(iY)==0) return ("No data for specified years")
+      Y = Y[iY]
+    }
+
+
+    if ( DS %in% c("basedata", "metadata", "load") ) {
+       
+      if (DS=="basedata" ){
+        flist = list.files(path=sb.dir, pattern="basedata", full.names=T, recursive=FALSE)
+        if (!is.null(Y)) {
+          mm = NULL
+          for (yy in Y ) {
+            ll = grep( yy, flist)
+            if (length(ll)>0 ) mm = c( mm, ll) 
+          }
+          if (length(mm) > 0 ) flist= flist[mm]
+        }
+        out = NULL
+        for ( i in flist ) {
+          load( flist )
+          out= rbind( out, basedata )
+        }
+        return( out )
+      }
+
+      if (DS=="metadata" ){
+        flist = list.files(path=sb.dir, pattern="metadata", full.names=T, recursive=FALSE)
+        if (!is.null(Y)) {
+          mm = NULL
+          for (yy in Y ) {
+            ll = grep( yy, flist)
+            if (length(ll)>0 ) mm = c( mm, ll) 
+          }
+          if (length(mm) > 0 ) flist= flist[mm]
+        }
+        out = NULL
+        for ( i in flist ) {
+          load( flist )
+          out= rbind( out, metadata )
+        }
+        return( out )
+      }
+
+      # default is to "load"
+      #
+
       dirlist = list.files(path=minilog.rawdata.location, full.names=T, recursive=T)
       oo = grep("backup", dirlist)
       if (length(oo) > 0) dirlist = dirlist[ -oo ]
@@ -20,22 +66,32 @@
       }
       filelist = filelist[ which( !is.na( filelist[,1] ) ) , ]
 
-      con <- dbConnect( dbDriver("SQLite"), mDB)
-      dbSendQuery( con, " PRAGMA synchronous=OFF ;" ) # speeds up writes using buffers ... but no longer atomic
+      set = snowcrab.db( DS="setInitial" ) 
+    
       for ( yr in Y ) {
         print(yr)
-        minilog.delete( con, yr ) # remove any data matching this year
+        fn.meta = file.path( minilog.dir, paste( "minilog", "metadata", yr, "rdata", sep="." ) )
+        fn.raw = file.path( minilog.dir, paste( "minilog", "basedata", yr, "rdata", sep="." ) )
         fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
+
         if (length(fs)==0) next()
+
+        basedata = NULL
+        metadata = NULL
+
         for (f in 1:length(fs)) {
-          j = load.minilog.rawdata( fs[f], unique.id=f)  # variable naming conventions in the past
+          j = load.minilog.rawdata( fs[f], unique.id=f, set=set)  # variable naming conventions in the past
           if (is.null(j)) next() 
-          dbWriteTable(con, mMeta, j$metadata, overwrite=F, row.names=F, append=T)
-          dbWriteTable(con, mBase, j$minilog.data, overwrite=F, row.names=F, append=T)
+          metadata = rbind( metadata, j$metadata)
+          basedata = rbind( basedata, j$basedata)
+
         }
+        
+        save( metadata, file=fn.meta, compress=TRUE ) 
+        save( basedata, file=fn.raw, compress=TRUE ) 
+
       }
-      dbDisconnect(con) 
-      return ( mDB )
+      return ( minilog.dir )
     }
 
 

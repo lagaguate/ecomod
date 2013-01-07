@@ -79,7 +79,7 @@
         minilog$chron = chron( times( minilog$chron ) + offset, out.format=dateformat.snow )
     }}
    
-    minilog$chron = as.character( minilog$chron )  # for sqlite .. chron objects convert to reals otherwise
+    # minilog$chron = as.character( minilog$chron )  # for sqlite .. chron objects convert to reals otherwise
     unique.id = paste( yr, unique.id, "minilog", sep=".")
     minilog$unique_id = unique.id
     

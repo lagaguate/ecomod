@@ -20,7 +20,6 @@
       # for the seabird there is a ping every 5 sec ; 2min minimum = 2*60/5 = 24 pings required 
     }
 
-
     threshold = quantile( X$X, probs=PrThreshold ) 
     if (abs (threshold - expectedValue ) > (2 * sd( X$X[ X$X <= threshold] )) ) {
       print( "----------")
@@ -57,7 +56,7 @@
     for (o in 1:(length((intervals))-1)) { 
       i0 = intervals[o]
       i1 = intervals[o+1]
-      if ( (i1 - i0) < lscale/2 ) next()  # take 1/2 the expected number of pings to be safe 
+      if ( (i1 - i0) < lscale*0.75 ) next()  # accept only if the number of pings > 75% of expected number to be safe 
       # number of pings is sufficient ... now check if fishing or not
       if (mean( X$X[i0:i1], na.rm=T) < 2*fishing.threshold ) next()
       count = count + 1

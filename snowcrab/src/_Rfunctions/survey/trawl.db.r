@@ -121,6 +121,7 @@
       if (DS =="setInitial") {
         set = NULL
 				set = sqlite.read ( db.snow, "setInitial" )
+        set$chron = string2chron(set$chron )
         return(set)
       }
         
@@ -670,6 +671,21 @@
       return ( set )
     }
 
+
+    # --------------------------------
+ 
+   
+    if (DS=="set.seabird") {
+      # merge setInitial and seabird metadata
+      sb.lookup = seabird.db( DS="set.seabird.lookuptable" )
+      set = snowcrab.db( DS="setInitial") 
+      set.names= names(set)
+      set = merge( set, sb.lookup, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".seabird") )
+      set = set[, c(set.names, "seabird_uid") ]
+      return ( set )
+    }
+
+
     
     # --------------------------------
     
@@ -679,7 +695,7 @@
       dbGetQuery(con, paste("ATTACH '", nDB, "' AS netmind", sep="") ) 
       qry = paste( 
         " SELECT * FROM (SELECT s.*, n.netmind_uid FROM ", setInitial, " s",  
-          " LEFT OUTER JOIN ", setNetmindLookup, " n ", 
+          " LEFT OUTER JOIN ", setNetmindLookup, " n ",
           " ON s.trip=n.trip AND s.'set'=n.'set') sn ",
         " LEFT OUTER JOIN ", nMeta, " nm ", 
         " ON sn.netmind_uid=nm.unique_id ; "
@@ -693,7 +709,7 @@
    
        # --------------------------------
   
-    if (DS=="set.minilog.netmind") {
+    if (DS=="set.minilog.netmind.seabird") {
       # merge setInitial with minilog stats and netmind metadata to generate netmind stats
       con = dbConnect( dbDriver("SQLite"), db.snow )
       dbSendQuery( con, " PRAGMA synchronous=OFF ;" ) # speeds up writes using buffers ... but no longer atomic .. (saves about 2 seconds)

@@ -66,7 +66,12 @@
     
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-   
+  
+    seabird.yToload = 2012:p$current.assessment.year
+      seabird.db( DS="load", Y=p$current.assessment.year ) # this begins 2012; requires "setInitial"
+      seabird.db( DS="set.seabird.lookuptable.redo", Y=seabird.yToload )
+      seabird.db( DS="stats.redo", Y=seabird.yToload ) # requires minilog stats .. do last ~ 2min/yr hrs
+
     
     # bring in the raw data for netmind and minilogs: incremental or a sequence of years
     # in 2004, new BIO data streams began: Assume historical data are correct
@@ -80,12 +85,6 @@
       netmind.db( DS="load", Y=p$current.assessment.year) # netmind data series "begins" in 1998 -- 60 min?
       netmind.db( DS="set.netmind.lookuptable", Y=netmind.yToload )
       netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog stats .. do last ~ 3.5 hrs
-
-
-    seabird.yToload = 2012:p$current.assessment.year
-      seabird.db( DS="load", Y=p$current.assessment.year ) # this begins 2012; requires "setInitial"
-      seabird.db( DS="set.seabird.lookuptable", Y=seabird.yToload )
-      seabird.db( DS="stats.redo", Y=seabird.yToload ) # requires minilog stats .. do last ~ 6 hrs
 
 
     snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )

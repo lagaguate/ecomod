@@ -62,7 +62,7 @@
 
 
     if (DS=="stats.redo") {
-      set = snowcrab.db( DS="set.minilog.netmind" ) # a view specific to this step only
+      set = snowcrab.db( DS="set.minilog.netmind.seabird" ) # a view specific to this step only
       con = dbConnect( dbDriver("SQLite"), nDB)
       dbSendQuery( con, " PRAGMA synchronous=OFF ;" ) # speeds up writes using buffers ... but no longer atomic
       tableExists = dbExistsTable( con, nStats )
@@ -281,7 +281,6 @@
       dbDisconnect(con)
 
     }
-
 
   }
 
