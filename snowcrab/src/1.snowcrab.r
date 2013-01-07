@@ -66,25 +66,31 @@
     
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-  
-    seabird.yToload = 2012:p$current.assessment.year
-      seabird.db( DS="load", Y=p$current.assessment.year ) # this begins 2012; requires "setInitial"
-      seabird.db( DS="set.seabird.lookuptable.redo", Y=seabird.yToload )
-      seabird.db( DS="stats.redo", Y=seabird.yToload ) # requires minilog stats .. do last ~ 2min/yr hrs
+ 
+    if (full.redo) {
+      seabird.yToload = 2012:p$current.assessment.year
+      minilog.yToload = 1999:p$current.assessment.year
+      netmind.yToload = 1999:p$current.assessment.year
+    } else {
+      # unless there are structural changes in approach, incremental update is fine
+      seabird.yToload = p$current.assessment.year
+      minilog.yToload = p$current.assessment.year
+      netmind.yToload = p$current.assessment.year
+    }
+
+    seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012; requires "setInitial"
+    minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
+    netmind.db( DS="load", Y=netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
+
+
+    seabird.db( DS="set.seabird.lookuptable.redo", Y=seabird.yToload )
+    minilog.db( DS="set.minilog.lookuptable.redo", Y=minilog.yToload ) ## annual updates seem not to work -- need to check .. use full refresh until fixed 
+    netmind.db( DS="set.netmind.lookuptable.redo", Y=netmind.yToload )
 
     
-    # bring in the raw data for netmind and minilogs: incremental or a sequence of years
-    # in 2004, new BIO data streams began: Assume historical data are correct
-    minilog.yToload = 1999:p$current.assessment.year
-      minilog.db( DS="load", Y=p$current.assessment.year ) # minilog data series "begins" in 1999 -- 60 min?
-      minilog.db( DS="set.minilog.lookuptable", Y=minilog.yToload ) ## annual updates seem not to work -- need to check .. use full refresh until fixed 
-      minilog.db( DS="stats.redo", Y=minilog.yToload ) # ~ 2hr for 1999 to 2010 
-      
-
-    netmind.yToload = 1999:p$current.assessment.year
-      netmind.db( DS="load", Y=p$current.assessment.year) # netmind data series "begins" in 1998 -- 60 min?
-      netmind.db( DS="set.netmind.lookuptable", Y=netmind.yToload )
-      netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog stats .. do last ~ 3.5 hrs
+    seabird.db( DS="stats.redo", Y=seabird.yToload ) # requires minilog stats .. do last ~ 2min/yr hrs
+    minilog.db( DS="stats.redo", Y=minilog.yToload ) # ~ 2hr for 1999 to 2010 
+    netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog stats .. do last ~ 3.5 hrs
 
 
     snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )

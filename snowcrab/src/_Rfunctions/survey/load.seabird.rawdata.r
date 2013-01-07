@@ -105,7 +105,7 @@
       seabird$unique_id[o] = unique_id
       seabird$depth[o] = decibar2depth ( P=seabird$pressure[o], lat=setx$lat )
       studyid = paste( setx$trip, setx$set, setx$station, sep="." )
-      out = data.frame( unique_id, yr, seabird$chron[o[zmaxi]], setx$trip, setx$set, setx$station, studyid, error, filename2, headerall, stringsAsFactors=F )
+      out = data.frame( unique_id, yr, seabird$chron[o[zmaxi]], setx$trip, setx$set, setx$station, studyid, error, filename2, headerall, stringsAsFactors=FALSE )
       names( out ) = c( "unique_id", "yr", "timestamp", "trip", "set", "stationid", "studyid", "error", "filename", "headerall" ) 
       metadata = rbind( metadata, out )
     } 

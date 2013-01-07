@@ -657,17 +657,11 @@
  
     if (DS=="set.minilog") {
       # merge setInitial and minilog metadata
-      con = dbConnect( dbDriver("SQLite"), db.snow )
-      dbGetQuery(con, paste("ATTACH '", mDB, "' AS minilog", sep="") ) 
-      qry = paste( 
-        " SELECT * FROM (SELECT s.*, m.minilog_uid FROM ", setInitial, " s",  
-          " LEFT OUTER JOIN ", setMinilogLookup, " m ", 
-          " ON s.trip=m.trip AND s.'set'=m.'set') sm ",
-        " LEFT OUTER JOIN ", mMeta, " mini ", 
-        " ON sm.minilog_uid=mini.unique_id ; "
-        , sep="") 
-      set = dbGetQuery(con,qry) 
-      dbDisconnect(con) 
+      mini.lookup = minilog.db( DS="set.minilog.lookuptable" )
+      set = snowcrab.db( DS="setInitial") 
+      set.names= names(set)
+      set = merge( set, mini.lookup, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".minilog") )
+      set = set[, c(set.names, "minilog_uid") ]
       return ( set )
     }
 

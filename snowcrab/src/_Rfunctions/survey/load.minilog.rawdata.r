@@ -1,21 +1,27 @@
-	load.minilog.rawdata = function(filename, unique.id) {
+	load.minilog.rawdata = function(fn, f, set ) {
    	
     out = NULL
     minilog=NULL
+    
+    filename = fn
+
     header =  readLines(filename, n=21)
     headerall = paste( header[1:6], collapse="~")
 
-    if (length(header) < 20)  return( out )
+    if (length(header) < 20)  return( NULL )
       
     l.study = grep( "Study ID=", header, perl=T )
     studyid = tolower( gsub("^.*Study ID=", "", header[ l.study ] ) )
-    if (grepl( "test", studyid, ignore.case=T) ) return(out)
-    if (grepl( "testage", studyid, ignore.case=T) ) return(out)
-     
+    if (grepl( "test", studyid, ignore.case=T) ) return( NULL )
+    if (grepl( "testage", studyid, ignore.case=T) ) return( NULL )
+    
+
+    minute = 1 / 24 / 60 # 1 minute in chron terms
+
     minilog = as.data.frame(read.table( file=filename, sep=",", as.is=T, colClasses="character", header=F, skip=7))
    
-    if ( nrow(minilog) < 10 ) return( out )
-    
+    if ( nrow(minilog) < 10 ) return( NULL )
+   
 	  fileinfo = tolower(unlist(strsplit(filename, split="/")))
 	  stationid = tolower(unlist(strsplit(basename(filename), "\\."))[1])
       if (grepl("^ep", stationid, ignore.case=T)) {
@@ -34,12 +40,14 @@
         if ( gsub("[[:space:]]", "", studyid) == gsub("[[:space:]]", "", "ens 2001 zone 20 162") ) stationid = "162"
       }
       
+    
       if (nchar(stationid)>=1) {
-        stationid = as.numeric(stationid) 
+        stationid = as.numeric( gsub("[[:alpha:]]", "", stationid) ) 
       } else {
         stationid = NA
       }
-    
+
+
 	  filename2 = fileinfo[length(fileinfo)] #Changed from postions in file location to the last entry since last entry is the filename
     filename2 = tolower(filename2)
 	  
@@ -50,12 +58,12 @@
     minilog = factor2number(minilog, numerics)
 
     # depth offets as this can be large sometimes (Esp 2009 ~ 50 m)
-    surface =  mean( minilog$depth[c(1:20, (nrow(minilog)-c(1:20))) ], trim=0.1, na.rm=T)  # take from tail and head
+    surface = quantile( minilog$depth, probs=0.01, na.rm=TRUE )
     if ( is.finite( surface) ) minilog$depth = minilog$depth - surface
     
     # obtain date format from the minilog header
 	  headerdateformat = minilogDate( header=header, outvalue="format"  ) 
-    if (is.null(headerdateformat) ) return(out)
+    if (is.null(headerdateformat) ) return( NULL )
     
     minilog$mdate = gsub("^80-", "2000-", minilog$mdate )  # there are incorrect year entries
     date.format = c( dates=headerdateformat, times="h:m:s")
@@ -63,7 +71,59 @@
     
     yr = as.numeric( as.character( years(minilog$chron[1]) ))
     if (!is.finite(yr) ) yr = minilogDate( header=header, outvalue="year"  ) 
+
+    minilog.date.range = range( minilog$chron )
+    sets.in.date.range = which( set$chron >= minilog.date.range[1] & set$chron <= minilog.date.range[2] )
+    n.sets = length( sets.in.date.range )  # expected number of sets
     
+    if (n.sets != 1 ) return (NULL) # no matching data -- break
+    
+    setx = set[sets.in.date.range,] # matching trip/set/station  
+
+    # reduce size of minilog data stream
+    istart = which.min( abs(minilog$chron - setx$chron ))
+      
+      j0 = istart
+      while ( j0 > 1 ) {
+        if (minilog$depth[j0] <= surface ) break() 
+        j0 = j0 - 1
+      }
+      tdiff0 = abs(minilog$chron[j0] - setx$chron )
+      if ( tdiff0 > (10 * minute) ) { 
+        # then something went wrong .. default to a few minutes before set$chron
+        j0 = which.min( abs( minilog$chron - (setx$chron - 5 * minute) )) 
+      }
+
+    
+      j1 = istart
+      while ( j1 < nrow(minilog) ) {
+        if (minilog$depth[j1] <= surface ) break() 
+        j1 = j1 + 1
+      }
+      tdiff1 = abs(minilog$chron[j1] - setx$chron )
+      if ( tdiff1 > (15 * minute) ) { 
+        # then something went wrong .. default to a few minutes before set$chron
+        j1 = which.min( abs( minilog$chron - (setx$chron + 12 * minute) )) 
+      }
+
+      o = j0:j1
+
+      if (length(o) < 30) {
+        # no matching time range found ... use closest match and raise a flag
+        # data stream did not start appropriately .. use minilogs
+        ot = which.min( abs( minilog$chron - setx$chron) )
+        o =  which( minilog$chron >= (minilog$chron[ot]- 2*minute) & 
+                 minilog$chron <= (minilog$chron[ot] + 10*minute)  )  # 5 min tow + 5 min in case
+        print( "No minilog match for set:")
+        print( filename )
+        print( setx)
+        print( "The following are the closest match in the minilog file")  
+        print( head( minilog[ o,] ) )
+        return( NULL )
+      }
+
+    minilog = minilog[o,]
+
     error = ""
     if (any(is.na(minilog$chron))) error = paste(error, "Ambiguous time format" )
     if (years(minilog$chron[1]) != yr)  error = paste(error, "Years inconsistent" )
@@ -72,26 +132,27 @@
     
     # error corrections:  This one is hard to fix without changing the raw data file
     if  (yr == 2006) {
-      if ( is.finite(stationid) && stationid==124 ) {
+      if ( setx$station==124 ) {
         d0 = chron( dates.="2006-10-11", times.="16:37:16", format=c(dates="y-m-d", times="h:m:s"))
         d1 = chron( dates.="2006-10-16", times.="05:40:50", format=c(dates="y-m-d", times="h:m:s"))
         offset = times(d1) - times(d0)
         minilog$chron = chron( times( minilog$chron ) + offset, out.format=dateformat.snow )
     }}
    
-    # minilog$chron = as.character( minilog$chron )  # for sqlite .. chron objects convert to reals otherwise
-    unique.id = paste( yr, unique.id, "minilog", sep=".")
-    minilog$unique_id = unique.id
     
     zmaxi = which.max( as.numeric( minilog$depth) )
     if (length(zmaxi)==0) zmaxi = which.min( as.numeric( minilog$temperature) )
     if (length(zmaxi)==0) zmaxi = floor( nrow(minilog) / 2 )  # take midpoint
     if ( !(length(zmaxi)==1) ) stop( filename )
-        
-    out = data.frame(unique.id, yr, minilog$chron[zmaxi], stationid, studyid, error, filename2, headerall)
-    names( out ) = c( "unique_id", "yr", "timestamp", "stationid", "studyid", "error", "filename", "headerall" )
+    tstamp = minilog$chron[o[zmaxi]]
+    unique.id = paste( "minilog",  setx$trip, setx$set, setx$station, hours(tstamp), minutes(tstamp), f, sep=".")
+    minilog$unique_id = unique.id
+
+    out = data.frame(unique.id, yr, minilog$chron[zmaxi], setx$trip, setx$set, setx$station, studyid, error, filename2, headerall, stringsAsFactors=FALSE)
+
+    names( out ) = c( "unique_id", "yr", "timestamp", "trip", "set", "stationid", "studyid", "error", "filename", "headerall" )
     
-    return( list( metadata=out, minilog.data=minilog ) )
+    return( list( metadata=out, basedata=minilog ) )
   }
  
 

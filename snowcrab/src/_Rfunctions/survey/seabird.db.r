@@ -28,7 +28,7 @@
         }
         out = NULL
         for ( i in flist ) {
-          load( flist )
+          load( i )
           out= rbind( out, basedata )
         }
         return( out )
@@ -46,7 +46,7 @@
         }
         out = NULL
         for ( i in flist ) {
-          load( flist )
+          load( i )
           out= rbind( out, metadata )
         }
         return( out )
@@ -114,7 +114,6 @@
         sb.meta = seabird.db( DS="metadata", Y=Y )
 
         res = merge( sb.meta, sb.stat,  by="unique_id", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
-        res$timestamp = string2chron( res$timestamp )
         return (res)
 
       }
@@ -131,11 +130,12 @@
         sbRAW = seabird.db( DS="basedata", Y=yr )
         rid = seabird.db( DS="metadata", Y=yr )
 
-        for ( id in rid$unique_id ) {
-          sso = unlist( strsplit( id, split=".", fixed=TRUE) )
-          sso.trip = sso[2] 
-          sso.set = as.numeric(sso[3] )
-          sso.station = as.numeric(sso[4])
+        for ( i in 1:nrow(rid) ) {
+     
+          id = rid$unique_id[i]
+          sso.trip = rid$trip[i] 
+          sso.set = rid$set[i]
+          sso.station = rid$stationid[i]
 
           Mi = which( sbRAW$unique_id == id )
           if (length( Mi) == 0 ) next()
