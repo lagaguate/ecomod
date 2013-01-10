@@ -1,5 +1,5 @@
 
-    netmindDate = function( fnNetmind=NULL, header=NULL, outvalue="year", linenumber=16 ) {
+    netmindDate = function( fnNetmind=NULL, header=NULL, outvalue="year", linenumber=20 ) {
       # input can be file name or the file header
       out = NULL
       if (!is.null( fnNetmind) && file.exists(fnNetmind) ) {
@@ -29,7 +29,11 @@
       if (outvalue=="linetime") {
         rec = stringsplit( header[linenumber], "[[:space:]]+" )
         recdate = paste(substring(rec[1],1,2), substring(rec[1],3,4), substring(rec[1],5,6), sep="-")
-        rectime = paste(substring(rec[2],1,2), substring(rec[2],3,4), substring(rec[2],5,6), sep=":")
+        recyr = (substring(rec[2],1,2))
+
+        
+        rectime = paste(recyr, substring(rec[2],3,4), substring(rec[2],5,6), sep=":")
+        
         recchron = chron( dates(recdate, format="y-m-d" ), times(rectime), out.format=c("y-m-d", "hh:mm:ss") )
         return( recchron )
       }
@@ -48,9 +52,9 @@
       if (outvalue=="timeoffset") {
         locdate = netmindDate( header=header, outvalue="localtime" )
         recdate = netmindDate( header=header, outvalue="linetime", linenumber=linenumber )
-        houroffset = times(locdate) - times(recdate)
-        houroffset = round( as.numeric( houroffset - trunc( houroffset ))*24  )  # keep only the non-day component (hours, assuming that at least time of day is correct)
-        return (houroffset )
+        toffset = as.numeric(locdate - recdate)  # in "days" .. keep only up to hour differences
+        toffset = round( toffset *24) / 24 
+        return (toffset )
       }
 
       return (out)

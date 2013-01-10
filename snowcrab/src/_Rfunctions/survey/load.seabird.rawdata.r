@@ -17,7 +17,7 @@
     fileinfo = tolower(unlist(strsplit(filename, split="/")))
     seabird = as.data.frame(read.table( file=filename, sep=",", as.is=T, colClasses="character", header=F, skip= data.start, strip.white=T))
     
-    if ( nrow(seabird) < 10 ) return( out )
+    if ( nrow(seabird) < 10 ) return( NULL )
     
     colnames(seabird) = c( "temperature", "pressure", "mdate", "mtime")
     numerics = c("temperature", "pressure")
@@ -26,12 +26,13 @@
     # obtain date format from the seabird header
 	  date.format = seabirdDate( header=header, outvalue="format"  ) 
     seabird$chron = chron( dates.=seabird$mdate, times.=seabird$mtime, format=date.format, out.format=dateformat.snow )
-  
+ 
+    # check time first
     seabird.date.range = range( seabird$chron )
-    sets.in.date.range = which( set$chron >= seabird.date.range[1] & set$chron <= seabird.date.range[2] )
-    n.sets = length( sets.in.date.range )  # expected number of sets
-    
-    yr = as.numeric( as.character( years( seabird.date.range[1]) ))
+    setxi = which( set$chron >= seabird.date.range[1] & set$chron <= seabird.date.range[2] )
+    if ( length( setxi ) == 0 ) return(NULL)
+        
+    yr = as.numeric( as.character( years( seabird$chron[1]) ))
     
     # First pass: 
     # break down multi-set records into separate records using a simple depth rule 
@@ -41,16 +42,16 @@
     surface = quantile( seabird$pressure, probs=0.5 ) # pressure at which it is assumed the sensor in at surface (most data will be shallow)
     
     # initiate new variables
-    seabird$unique_id = NA  
+    seabird$seabird_uid = NA
     seabird$depth = NA
     minute = 1 / 24 / 60 # 1 minute in chron terms
 
     metadata = NULL
-    for ( ssid in 1:n.sets ) {
+    for ( ssid in 1:length(setxi) ) {
       
 	    filename2 = tolower( fileinfo[length(fileinfo)] )
 
-      iset = sets.in.date.range[ssid]
+      iset = setxi[ssid]
       setx =  set[iset,] # matching trip/set/station  
      
       # find sets by running until some threshold depth is found, stating with set$chron 
@@ -88,11 +89,11 @@
         ot = which.min( abs( seabird$chron - setx$chron) )
         o =  which( seabird$chron >= (seabird$chron[ot]- 2*minute) & 
                  seabird$chron <= (seabird$chron[ot] + 10*minute)  )  # 5 min tow + 5 min in case
-        print( "No seabird match for set:")
+        print( "No set data matched for seabird data:")
         print( filename )
-        print( setx)
-        print( "The following are the closest match in the seabird file")  
         print( head( seabird[ o,] ) )
+        print( "The following is the closest matching in set:")  
+        print( setx)
         next()
       }
 
@@ -101,16 +102,16 @@
       if (length(zmaxi)==0) zmaxi = floor( length(o) / 2 )  # take midpoint
      
       tstamp = seabird$chron[o[zmaxi]] 
-      unique_id =  paste( "seabird", setx$trip, setx$set, setx$station, hours(tstamp), minutes(tstamp), f, sep=".")
-      seabird$unique_id[o] = unique_id
+      uid =  paste( "seabird", setx$trip, setx$set, setx$station, hours(tstamp), minutes(tstamp), f, sep=".")
+      seabird$seabird_uid[o] = uid
       seabird$depth[o] = decibar2depth ( P=seabird$pressure[o], lat=setx$lat )
       studyid = paste( setx$trip, setx$set, setx$station, sep="." )
-      out = data.frame( unique_id, yr, seabird$chron[o[zmaxi]], setx$trip, setx$set, setx$station, studyid, error, filename2, headerall, stringsAsFactors=FALSE )
-      names( out ) = c( "unique_id", "yr", "timestamp", "trip", "set", "stationid", "studyid", "error", "filename", "headerall" ) 
+      out = data.frame( uid, yr, seabird$chron[o[zmaxi]], setx$trip, setx$set, setx$station, studyid, setx$Zx, setx$chron, error, filename2, headerall, stringsAsFactors=FALSE )
+      names( out ) = c( "seabird_uid", "yr", "timestamp", "trip", "set", "station", "studyid", "setZx", "setChron", "error", "filename", "headerall" ) 
       metadata = rbind( metadata, out )
     } 
 
-    basedata = seabird[ which( !is.na( seabird$unique_id) ) ,]
+    basedata = seabird[ which( !is.na( seabird$seabird_uid) ) ,]
 
     return( list( metadata=metadata, basedata=basedata ) )
   }

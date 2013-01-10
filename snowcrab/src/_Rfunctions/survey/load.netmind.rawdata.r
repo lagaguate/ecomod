@@ -1,8 +1,9 @@
 
-    load.netmind.rawdata = function(fn, unique.id) {
+    load.netmind.rawdata = function(fn, f, set) {
 
       out=NULL
       netmind=NULL
+
       header = readLines(fn, n=20)
       outfmt = c(dates="year-m-d", times="h:m:s")
 
@@ -63,18 +64,16 @@
       netmind$ndate = paste(substring(netmind$ndate,1,2), substring(netmind$ndate,3,4), substring(netmind$ndate,5,6), sep="-")
       netmind$ntime = paste(substring(netmind$ntime,1,2), substring(netmind$ntime,3,4), substring(netmind$ntime,5,6), sep=":")
 
-      netmind$chrono = chron( dates.=netmind$ndate, times.=netmind$ntime, format=c(dates="y-m-d", times="h:m:s"), out.format=outfmt )
+      netmind$chron = chron( dates.=netmind$ndate, times.=netmind$ntime, format=c(dates="y-m-d", times="h:m:s"), out.format=outfmt )
 
       # netmind data stored in GMT from GPS; the offset varies depending upon season due to daylight savings time (3 or 4 hrs)
       # obtain time offset in hours
-      time.offset = netmindDate( header=header, outvalue="timeoffset" )  / 24 #  convert hours to fractional days
-      netmind$chrono = as.chron( as.numeric(netmind$chrono) + time.offset, out.format = outfmt )
+      time.offset = netmindDate( header=header, outvalue="timeoffset" )   #  rounded to hours of fractional days
+      netmind$chron = as.chron( as.numeric(netmind$chron) + time.offset, out.format = outfmt )
 
-      netmind.timestamp = netmind$chrono[deepest.point]
+      netmind.timestamp = netmind$chron[deepest.point]
       yr = as.numeric( as.character( years( netmind.timestamp ) ) )
-      unique.id = paste( yr, unique.id, "netmind", sep=".")
 
-      filename = basename(fn)
 
       line.localtime = grep("Local Time:", header, ignore.case=T  )
       line.ship = grep("Ship:", header, ignore.case=T  )
@@ -98,30 +97,111 @@
       setno = gsub( "^.*Tow:", "", header[ line.ship ] )
       setno = gsub( "[[:space:]]", "", setno )
       setno =  as.numeric( setno )
-
-      station = gsub("\\..*$", "", filename) # get rid of file extensions
-      station = gsub("^postr", "", station, ignore.case=T ) # must come before "r" which in some years are followed by repeat number
-      station = gsub("^posr", "", station, ignore.case=T ) # must come before "r" which in some years are followed by repeat number
-      station = gsub("^pos", "", station, ignore.case=T )
-      station = gsub("^ep", "", station, ignore.case=T )
-      station = gsub("r.*$", "", station, ignore.case=T  )
-      station = gsub("_.*$", "", station, ignore.case=T  )
-      station = gsub("bad.*$", "", station, ignore.case=T  )
-      station = gsub("#.*$", "", station, ignore.case=T  )
-      station = gsub("[[:alpha:]]", "", station)
+      
+      station = unlist(strsplit( header[[1]], "\\", fixed=TRUE ))
+      station = station[ length(station) ]
+      station = gsub( "[[:alpha:]]", "", station)
+      station = gsub( "[[:punct:]]", "", station)
       station = as.numeric( station )
+
+         
+      setxi = NULL
+         
+      if (is.null ( setxi ) ) {
+        # check time first
+        netmind.date.range = range( netmind$chron )
+        sets.in.date.range = which( set$chron >= netmind.date.range[1] & set$chron <= netmind.date.range[2] )
+        if ( length( sets.in.date.range ) == 1 ) setxi= sets.in.date.range
+      }
+
+      if (is.null ( setxi ) ) {
+        # check time first
+        netmind.date.range = range( netmind$chron )
+        sets.in.date.range = which( set$chron >= netmind.date.range[1] & set$chron <= netmind.date.range[2] 
+          & set$set==setno )
+        if ( length( sets.in.date.range ) == 1 ) setxi= sets.in.date.range
+      }
+
+      if (is.null ( setxi ) ) {
+        # check time and station
+        netmind.date.range = range( netmind$chron )
+        sets.in.date.range = which( set$chron >= netmind.date.range[1] & set$chron <= netmind.date.range[2] 
+          & set$trip==trip & set$station==station & set$set==setno )
+        if ( length( sets.in.date.range ) == 1 ) setxi= sets.in.date.range
+      }
+   
+      if (is.null ( setxi ) ) {
+        # check time and station
+        netmind.date.range = range( netmind$chron )
+        sets.in.date.range = which( set$chron >= netmind.date.range[1] & set$chron <= netmind.date.range[2] 
+          & set$station==station  )
+        if ( length( sets.in.date.range ) == 1 ) setxi= sets.in.date.range
+      }
+
+      if (is.null ( setxi ) ) {
+        # check distances
+        ni = trunc( nrow(netmind) / 2 )
+        dx = abs( set$lon - netmind$lon[ni] )
+        dy = abs( set$lat - netmind$lat[ni] )
+        sets.in.spatial.range = which( dx < 5/60 & dy < 5/60 
+          & set$yr==yr )  # less than 5 minutes away
+        if ( length( sets.in.spatial.range ) == 1 ) setxi= sets.in.spatial.range
+      }
+
+      if (is.null ( setxi ) ) {
+        # check distances
+        ni = trunc( nrow(netmind) / 2 )
+        dx = abs( set$lon - netmind$lon[ni] )
+        dy = abs( set$lat - netmind$lat[ni] )
+        sets.in.spatial.range = which( dx < 5/60 & dy < 5/60 
+          & set$trip==trip )  # less than 5 minutes away
+        if ( length( sets.in.spatial.range ) == 1 ) setxi= sets.in.spatial.range
+      }
+
+      if (is.null ( setxi ) ) {
+        # check staion, distance, and time
+        ni = trunc( nrow(netmind) / 2 )
+        dx = abs( set$lon - netmind$lon[ni] )
+        dy = abs( set$lat - netmind$lat[ni] )
+        sets.in.spatial.range = which( dx < 5/60 & dy < 5/60  
+          & set$station==station & set$trip==trip & set$set==setno )  # less than 10 minutes away
+        if ( length( sets.in.spatial.range ) == 1 ) setxi= sets.in.spatial.range
+      }
+    
+      if (is.null ( setxi ) ) {
+        # check staion, distance, and time
+        ni = trunc( nrow(netmind) / 2 )
+        dx = abs( set$lon - netmind$lon[ni] )
+        dy = abs( set$lat - netmind$lat[ni] )
+        sets.in.spatial.range = which( dx < 5/60 & dy < 5/60  
+          & set$station==station & set$trip==trip )  # less than 10 minutes away
+        if ( length( sets.in.spatial.range ) == 1 ) setxi= sets.in.spatial.range
+      }
+
+
+
+      if  (is.null ( setxi ) ) return (NULL) # no matching data -- break
+      
+      setx = set[ setxi , ] # matching trip/set/station  
+
+      netmind_uid =  paste( "netmind", setx$trip, setx$set, setx$station, hours(netmind.timestamp), minutes(netmind.timestamp), f, sep=".")
+
+      filename = basename(fn)
+
+      line.ship = grep("Ship:", header, ignore.case=T  )
+      line.comments = grep("Comments:", header, ignore.case=T )
 
       comments = gsub("^Comments: ", "", header[ line.comments] )
 
-      netmind$unique.id = unique.id
-      netmind$chrono = as.character( netmind$chrono )
-      netmind.timestamp = as.character( netmind.timestamp )
+      netmind$netmind_uid = netmind_uid 
 
-      metadata = data.frame( filename, unique.id, yr, netmind.timestamp, trip, setno, station, comments, stringsAsFactors =F )
-      names( metadata ) = c("filename", "unique_id", "yr", "netmind_timestamp", "trip", "setno", "station", "comments" )
+      metadata = data.frame( filename, netmind_uid, yr, netmind.timestamp, setx$trip, setx$set, setx$station, setx$Zx, setx$chron,comments, stringsAsFactors =FALSE )
+      names( metadata ) = c("filename", "netmind_uid", "yr", "netmind_timestamp", "trip", "set", "station", "setZx", "setChron",  "comments" )
       metadata$yr = as.numeric( as.character( metadata$yr ))
 
-      out = list( metadata=metadata, basedata=netmind )
+      basedata = netmind[ which( !is.na( netmind$netmind_uid) ) ,]
+      
+      out = list( metadata=metadata, basedata=basedata )
 
       return(out)
     }

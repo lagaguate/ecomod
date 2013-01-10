@@ -1,7 +1,7 @@
 
 
   loadlibraries ( c( 
-    "DBI", "RSQLite", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", 
+    "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", 
     "gstat", "rgdal", "maptools"
   ) )
 
@@ -13,39 +13,6 @@
 	workpath = file.path( project.directory("snowcrab"), "R" )
   dir.create( workpath, recursive=T, showWarnings=F )
   setwd (workpath)
-
-
-  # snow crab related data bases and tables
-  db.snow =  file.path( project.directory("snowcrab"), "R" , "snowcrab.sqlite.db" )
-  setInitial = "setInitial"
-  setMinilogLookup = "setMinilogLookup"
-  setNetmindLookup = "setNetmindLookup"
-  setLookup= "setLookup" # netmind and minilog lookup data
-  setClean= "setClean" 
-
-
-  minilog.rawdata.location = file.path( project.directory("snowcrab"), "data", "minilog", "archive" )
-  mDB = file.path( project.directory("snowcrab"), "data", "minilog", "minilog.sqlite.db" )
-  mMeta = "minilog_metadata"
-  mBase = "minilog_basedata"
-  mStats = "minilog_bottom_stats"
-
-
-  seabird.rawdata.location = file.path( project.directory("snowcrab"), "data", "seabird", "archive" )
-  sDB = file.path( project.directory("snowcrab"), "data", "seabird", "seabird.sqlite.db" )
-  sMeta = "seabird_metadata"
-  sBase = "seabird_basedata"
-  sStats = "seabird_bottom_stats"
-
-
-
-  # global vars internal to netmind world 
-  netmind.rawdata.location = file.path( project.directory("snowcrab"), "data", "netmind", "archive" )
-  nDB = file.path( project.directory("snowcrab"), "data", "netmind", "netmind.sqlite.db" )
-  nMeta = "netmind_metadata"
-  nBase = "netmind_basedata"
-  nStats = "netmind_stats"
-
 
 
   # Global snow crab parameters

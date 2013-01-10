@@ -55,8 +55,6 @@
       # default is to "load"
       #
       dirlist = list.files(path=seabird.rawdata.location, full.names=T, recursive=T)
-      oo = grep("backup", dirlist)
-      if (length(oo) > 0) dirlist = dirlist[ -oo ]
       nfiles = length(dirlist)
       filelist = matrix( NA, ncol=3, nrow=nfiles) 
       for (f in 1:nfiles) {
@@ -87,6 +85,8 @@
         save( basedata, file=fn.raw, compress=TRUE ) 
       }
       
+      seabird.db( DS="set.seabird.lookuptable.redo" )
+
       return ( sb.dir )
     }
 
@@ -113,14 +113,13 @@
    
         sb.meta = seabird.db( DS="metadata", Y=Y )
 
-        res = merge( sb.meta, sb.stat,  by="unique_id", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
+        res = merge( sb.meta, sb.stat,  by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
         return (res)
 
       }
       
       # default action  is "stats.redo"
-      #
-      set = snowcrab.db( DS="set.seabird") 
+     
       for ( yr in Y ) {
         print (yr )
 
@@ -128,37 +127,30 @@
         sbStats = NULL
 
         sbRAW = seabird.db( DS="basedata", Y=yr )
-        rid = seabird.db( DS="metadata", Y=yr )
-
+        
+        mta = seabird.db( DS="metadata", Y=yr )
+        rid = seabird.db( DS="set.seabird.lookuptable" )
+        rid = data.frame( seabird_uid=rid$seabird_uid, stringsAsFactors=FALSE )
+        rid = merge( rid, mta, by="seabird_uid", all.x=TRUE, all.y=FALSE )
+        rid = rid[ rid$yr== yr ,] 
+ 
+        if (nrow(rid) == 0 ) next()
+    
         for ( i in 1:nrow(rid) ) {
      
-          id = rid$unique_id[i]
+          id = rid$seabird_uid[i]
           sso.trip = rid$trip[i] 
           sso.set = rid$set[i]
-          sso.station = rid$stationid[i]
+          sso.station = rid$station[i]
 
-          Mi = which( sbRAW$unique_id == id )
+          Mi = which( sbRAW$seabird_uid == id )
           if (length( Mi) == 0 ) next()
           M = sbRAW[ Mi, ]
-          iS = which(set$seabird_uid==id ) 
-          if (length(iS) != 1) {
-            # probably due to a duplicated seabird entry
-            iS = which( set$trip==sso.trip & set$set==sso.set & set$station==sso.station )
-            if (length( iS) != 1 ) {
-              iS = which( set$trip==sso.trip & set$set==sso.set )
-                if (length( iS) != 1 ) {
-                  iS = which( set$trip==sso.trip & set$station==sso.station )
-                }
-            }
-          }
-          if (length(iS) == 1) {
-            res = bottom.contact( M , settimestamp=set$chron[iS], setdepth=set$Zx[iS] )
-          } else {
-            res = bottom.contact( M )
-          }
-          sbStats = rbind( sbStats, cbind( unique_id=id, res ) )
+          
+          res = bottom.contact( M , settimestamp=rid$setChron[i], setdepth=rid$setZx[i] )
+          sbStats = rbind( sbStats, cbind( seabird_uid=id, res ) )
         }
-        sbStats$unique_id =  as.character(sbStats$unique_id)
+        sbStats$seabird_uid =  as.character(sbStats$seabird_uid)
         sbdt = sbStats$dt
         sbStats$dt = NA
         i = which(!is.na( sbdt ) )
@@ -168,7 +160,7 @@
 
       }
       
-      return ( fn )
+      return ( sb.dir )
     }
 
 
@@ -186,15 +178,35 @@
       }
 
       B = seabird.db( DS="metadata" )
-      B$seabird_uid = B$unique_id
-      B$station = B$stationid
      
-      # duplicates are created sometime when datafiles are not reset completely and the same data is reloaded during the survey ... cleanup
-      uuid = paste( B$trip, B$set, B$station, sep="." ) # seabird_uid cannot be used as it has a file number attached to make each one unique, even with duplicated data streams
+      # duplicates are created when datafiles are not reset completely 
+      # and the same data is reloaded during the survey ... cleanup at this stage
+      
+      # seabird_uid cannot be used as it has a file number attached 
+      # to make each one unique, even with duplicated data streams
+      uuid = paste( B$trip, B$set, sep="." ) 
       dups = which( duplicated( uuid) )
-      if (length(dups > 0 ) ) B = B[ -dups, ]
 
-      B =  B[, c("trip", "set", "station", "seabird_uid" )]
+      if (length(dups > 0 ) ) {
+        toremove =NULL
+        for (i in dups) {
+          di = which( uuid == uuid[i] )
+          
+          tdiff = B$setChron[di] - B$timestamp[di]
+          oo = which.min( abs( tdiff) ) 
+          toremove = c(toremove, di[-oo] )
+          print("----")
+          print( "Matching based upon closest time stamps")
+          print(B[di, ])
+          print( "Choosing: ")
+          print(B[di[oo], ])
+          print("")
+          toremove = c(toremove, di[-oo] )
+        }
+        B = B[ -toremove, ]
+      }
+
+      B =  B[, c("trip", "set", "seabird_uid" )]
       save(B, file=fn, compress=TRUE )
       return(fn)
 

@@ -117,11 +117,11 @@
 
 
     if (DS %in% c("setInitial.redo", "setInitial")) {
+      fn = file.path( project.directory( "snowcrab", "data" ), "set.initial.rdata" )
 
       if (DS =="setInitial") {
         set = NULL
-				set = sqlite.read ( db.snow, "setInitial" )
-        set$chron = string2chron(set$chron )
+				if (file.exists( fn ) ) load( fn) 
         return(set)
       }
         
@@ -210,13 +210,10 @@
       
       set$julian =  convert.datecodes(set$chron, "julian")
       set$yr = convert.datecodes(set$chron, "year")
-      set$chron = as.character( set$chron) 
+     
+      save( set, file=fn, compress=TRUE )
 
-      con = dbConnect(dbDriver("SQLite"), db.snow )
-      dbWriteTable(con, setInitial, set, overwrite=T, row.names=F)
-      dbDisconnect(con)
-
-      return ( "Complete" )
+      return ( fn )
     }
      
 
@@ -654,169 +651,114 @@
 
 
     # --------------------------------
- 
-    if (DS=="set.minilog") {
-      # merge setInitial and minilog metadata
-      mini.lookup = minilog.db( DS="set.minilog.lookuptable" )
-      set = snowcrab.db( DS="setInitial") 
-      set.names= names(set)
-      set = merge( set, mini.lookup, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".minilog") )
-      set = set[, c(set.names, "minilog_uid") ]
-      return ( set )
-    }
-
-
-    # --------------------------------
- 
-   
-    if (DS=="set.seabird") {
-      # merge setInitial and seabird metadata
-      sb.lookup = seabird.db( DS="set.seabird.lookuptable" )
-      set = snowcrab.db( DS="setInitial") 
-      set.names= names(set)
-      set = merge( set, sb.lookup, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".seabird") )
-      set = set[, c(set.names, "seabird_uid") ]
-      return ( set )
-    }
-
 
     
-    # --------------------------------
-    
-    if (DS=="set.netmind") {
-      # merge setInitial and netmind metadata
-      con = dbConnect( dbDriver("SQLite"), db.snow )
-      dbGetQuery(con, paste("ATTACH '", nDB, "' AS netmind", sep="") ) 
-      qry = paste( 
-        " SELECT * FROM (SELECT s.*, n.netmind_uid FROM ", setInitial, " s",  
-          " LEFT OUTER JOIN ", setNetmindLookup, " n ",
-          " ON s.trip=n.trip AND s.'set'=n.'set') sn ",
-        " LEFT OUTER JOIN ", nMeta, " nm ", 
-        " ON sn.netmind_uid=nm.unique_id ; "
-        , sep="") 
-      set = dbGetQuery(con,qry) 
-      dbDisconnect(con) 
-      set$netmind_timestamp = string2chron( set$netmind_timestamp )
-      set$chron = string2chron( set$chron )
-      return ( set )
-    }
-   
-       # --------------------------------
   
-    if (DS=="set.minilog.netmind.seabird") {
-      # merge setInitial with minilog stats and netmind metadata to generate netmind stats
-      con = dbConnect( dbDriver("SQLite"), db.snow )
-      dbSendQuery( con, " PRAGMA synchronous=OFF ;" ) # speeds up writes using buffers ... but no longer atomic .. (saves about 2 seconds)
-      dbSendQuery( con, " PRAGMA read_uncommitted = True ;" )
-      dbGetQuery( con, paste("ATTACH '", mDB, "' AS minilog", sep="") ) 
-      dbGetQuery( con, paste("ATTACH '", nDB, "' AS netmind", sep="") ) 
-      qry = paste( 
-        " SELECT s.*, netmind_timestamp, z, t, zsd, tsd, n, t0, t1, dt, minilog_uid, netmind_uid ", 
-        " FROM ", setInitial, " s ", 
-        " LEFT OUTER JOIN ", " ( ",
-         " SELECT lun.*, z, t, zsd, tsd, n, t0, t1, dt ", 
-         " FROM "," ( ",
-            " SELECT lu.*, nm.netmind_timestamp FROM "," ( ",
-              " SELECT sml.trip, sml.'set', minilog_uid , netmind_uid ", 
-              " FROM ", setNetmindLookup, " snl ", 
-              " JOIN ", setMinilogLookup, " sml ",
-              " ON snl.trip=sml.trip AND snl.'set'=sml.'set' ", 
-              " ) lu ",
-            " JOIN ", nMeta, " nm ",
-            " ON lu.netmind_uid=nm.unique_id ",
-            " WHERE lu.netmind_uid != '' ",
-            " ) lun ",
-          " LEFT OUTER JOIN ", mStats, " ms ",
-          " ON lun.minilog_uid=ms.unique_id ",
-          " WHERE lun.minilog_uid != '' ",
-          " ) lunm ",
-        " ON s.trip=lunm.trip AND s.'set'=lunm.'set' " 
-        , sep="") 
-      set = dbGetQuery(con,qry) 
-      dbDisconnect(con)
+    if (DS=="set.minilog.seabird") {
+      # merge setInitial with minilog stats, seabird stats to generate sensible start and end times 
+      # used for creating netmind stats /metrics
+      
+      set = snowcrab.db( DS="setInitial") 
+      set.names= names(set)
+      
+      sb = seabird.db( DS="set.seabird.lookuptable" )
+      ml = minilog.db( DS="set.minilog.lookuptable" )
+      nm = netmind.db( DS="set.netmind.lookuptable" )
 
-      set$netmind_timestamp = string2chron( set$netmind_timestamp )
-      set$t0 = string2chron( set$t0 )
-      set$t1 = string2chron( set$t1 )
-      set$chron = string2chron( set$chron )
-      idt = which(!is.na( set$dt))
-      tt = times( set$dt[idt] )
-      set$dt = NA
-      set$dt[idt] = minutes(tt) + seconds(tt)/60  # decimal minutes 
+      set = merge( set, sb, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".seabird") )
+      set = merge( set, ml, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".minilog") )
+      set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
+      
+      set = set[ , c( set.names, "seabird_uid", "minilog_uid", "netmind_uid" ) ]
+
+      sbStats =  seabird.db( DS="stats" )
+      sbStats = sbStats[ , c("seabird_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+
+      mlStats =  minilog.db( DS="stats" )
+      mlStats = mlStats[ , c("minilog_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+      names( mlStats ) = c("minilog_uid", "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
+
+      set = merge( set, sbStats, by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      set = merge( set, mlStats, by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
+
+      # use seabird data as the standard, replace with minilog data where missing
+      ii = which(!is.finite( set$t0) )
+      if (length(ii) > 0 )  set$t0[ ii] = set$t0.ml[ii]
+ 
+      ii = which(!is.finite( set$t1) )
+      if (length(ii) > 0 )  set$t1[ ii] = set$t1.ml[ii]
+      
+      ii = which(!is.finite( set$z) )
+      if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]
+    
+      ii = which(!is.finite( set$zsd) )
+      if (length(ii) > 0 )  set$zsd[ ii] = set$zsd.ml[ii]
+       
+      ii = which(!is.finite( set$t) )
+      if (length(ii) > 0 )  set$t[ ii] = set$t.ml[ii]
+    
+      ii = which(!is.finite( set$tsd) )
+      if (length(ii) > 0 )  set$tsd[ ii] = set$tsd.ml[ii]
+       
+      ii = which(!is.finite( set$dt) )
+      if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
+    
+      set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
+
       return (set)
     }
 
     # --------------------------------
-  
-    if (DS=="set.clean.prepare") {
-
-      # merge into setInitial, minilog stats and netmind stats
-      con = dbConnect( dbDriver("SQLite"), db.snow )
-      dbSendQuery( con, " PRAGMA synchronous=OFF ;" ) # speeds up writes using buffers ... but no longer atomic .. (saves about 2 seconds)
-      dbSendQuery( con, " PRAGMA read_uncommitted = True ;" )
-      dbGetQuery( con, paste("ATTACH '", mDB, "' AS minilog", sep="") ) 
-      dbGetQuery( con, paste("ATTACH '", nDB, "' AS netmind", sep="") ) 
-          
-      qry = paste( 
-        " SELECT s.*, z, t, zsd, tsd, n, t0, t1, dt, minilog_uid, netmind_uid, ",
-        "   slon, slat, distance, spread, spread_sd, surfacearea, vel, vel_sd, netmind_n, t0n, t1n, dtn ", 
-        " FROM ", setInitial, " s ", 
-        " LEFT OUTER JOIN ", " ( ",
-         " SELECT lun.*, z, t, zsd, tsd, n, t0, t1, dt, t0n, t1n, dtn, netmind_n,",
-         "   slon, slat, distance, spread, spread_sd, surfacearea, vel, vel_sd ", 
-         " FROM "," ( ",
-            " SELECT lu.*, slon, slat, distance, spread, spread_sd, surfacearea, vel, vel_sd, ",
-            "   netmind_n, t0 as t0n, t1 as t1n, dt as dtn " ,
-            " FROM "," ( ",
-              " SELECT sml.trip, sml.'set', minilog_uid , netmind_uid ", 
-              " FROM ", setNetmindLookup, " snl ", 
-              " JOIN ", setMinilogLookup, " sml ",
-              " ON snl.trip=sml.trip AND snl.'set'=sml.'set' ", 
-              " ) lu ",
-            " JOIN ", nStats, " nm ",
-            " ON lu.netmind_uid=nm.unique_id ",
-            " WHERE lu.netmind_uid != '' ",
-            " ) lun ",
-          " LEFT OUTER JOIN ", mStats, " ms ",
-          " ON lun.minilog_uid=ms.unique_id ",
-          " WHERE lun.minilog_uid != '' ",
-          " ) lunm ",
-        " ON s.trip=lunm.trip AND s.'set'=lunm.'set' " 
-        , sep="") 
-
-      set = dbGetQuery(con,qry) 
-      dbDisconnect(con) 
-
-      set$chron = string2chron( set$chron )
-      set$t0 = string2chron( set$t0 )
-      set$t1 = string2chron( set$t1 )
-      set$dt = times( set$dt )  
-      set$t0n = string2chron( set$t0n )
-      set$t1n = string2chron( set$t1n )
-      set$dtn = times( set$dtn )  
  
-      return(set)
-    }
-  
-
-    # --------------------------------
   
 
     if ( DS %in% c("set.clean", "set.clean.redo") ) {
     
       # after the merging of minilog and netmind data .. do some checks and cleaning
-       
+      fn = project.directory( "snowcrab", "data", "set.clean.rdata" )
+
       if ( DS=="set.clean" ) {
-        con = dbConnect( dbDriver("SQLite"), db.snow )
-        set = dbGetQuery(con, paste( "SELECT * FROM ", setClean, ";", sep="" ) )
-        dbDisconnect(con) 
-        set$chron = string2chron( set$chron )
-        set$t0 = string2chron( set$t0 )
-        set$t1 = string2chron( set$t1 )
-        return (set)
+        set= NULL
+        if (file.exists( fn) ) load( fn )
+        return (set) 
       }
+   
+      missing.data.check = TRUE
+      if ( missing.data.check ) {
+        
+        set = snowcrab.db( DS="setInitial")
+        
+        sb = seabird.db( DS="set.seabird.lookuptable" )
+        set = merge( set, sb, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
+        isb = which( is.na( set$seabird_uid) & set$yr %in% seabird.yToload & set$yr >= 2012 )
+        print( "Missing seabird matches: ")
+        print( set[ isb,] )
+
+        ml = minilog.db( DS="set.minilog.lookuptable" )
+        set = merge( set, ml, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
+        iml = which( is.na( set$minilog_uid) & set$yr %in% minilog.yToload & set$yr >= 2004 )
+        print( "Missing minilog matches: ")
+        print( set[ iml,] )
+
+        nm = netmind.db( DS="set.netmind.lookuptable" )
+        set = merge( set, nm, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
+        inm = which( is.na( set$netmind_uid) & set$yr %in% netmind.yToload & set$yr >= 2004 )
+        print( "Missing netmind matches: ")
+        print( set[ inm,] )
+
+      }
+
+
       
-      set = snowcrab.db( DS="set.clean.prepare" ) 
+      set = snowcrab.db( DS="set.minilog.seabird" )
+      nm = netmind.db( DS="stats" )
+
+      set = merge( set, nm, by =c("trip", "set"), all.x=TRUE, all.y=FALSE )
+
+
+
+ #    SA -- historical data ? where are they? -- sntows?
+
       set = set[ order( set$yr, set$station, set$t0, set$chron) , ]
       set$dt = minutes(set$dt) + seconds(set$dt)/60  # convert to decimal minutes
       
@@ -905,13 +847,9 @@
       set$t1n = NULL
       set$dtn = NULL
 
-      set$chron = as.character( set$chron )
-      set$t0 = as.character( set$t0 )
-      set$t1 = as.character( set$t1 )
-
-      con = dbConnect(dbDriver("SQLite"), db.snow )
-      dbWriteTable(con, setClean, set, overwrite=T,row.names=F )
-      dbDisconnect(con)
+      save( set, file=fn, compress=TRUE )
+      
+      return(fn)
     }
 
 

@@ -68,29 +68,30 @@
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
  
     if (full.redo) {
+    
       seabird.yToload = 2012:p$current.assessment.year
       minilog.yToload = 1999:p$current.assessment.year
       netmind.yToload = 1999:p$current.assessment.year
+    
     } else {
+    
       # unless there are structural changes in approach, incremental update is fine
       seabird.yToload = p$current.assessment.year
       minilog.yToload = p$current.assessment.year
       netmind.yToload = p$current.assessment.year
+    
     }
 
-    seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012; requires "setInitial"
+    # The following requires "setInitial"
+
+    seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012;
     minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
     netmind.db( DS="load", Y=netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
 
-
-    seabird.db( DS="set.seabird.lookuptable.redo", Y=seabird.yToload )
-    minilog.db( DS="set.minilog.lookuptable.redo", Y=minilog.yToload ) ## annual updates seem not to work -- need to check .. use full refresh until fixed 
-    netmind.db( DS="set.netmind.lookuptable.redo", Y=netmind.yToload )
-
     
-    seabird.db( DS="stats.redo", Y=seabird.yToload ) # requires minilog stats .. do last ~ 2min/yr hrs
-    minilog.db( DS="stats.redo", Y=minilog.yToload ) # ~ 2hr for 1999 to 2010 
-    netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog stats .. do last ~ 3.5 hrs
+    seabird.db( DS="stats.redo", Y=seabird.yToload ) # ~ 20 min
+    minilog.db( DS="stats.redo", Y=minilog.yToload ) # ~ 5 min for 1999 to 2010 
+    netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog and seabird stats .. do last ~ 30 min
 
 
     snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )
@@ -101,7 +102,7 @@
     snowcrab.db( DS="set.merge.det.redo" )
     snowcrab.db( DS="set.merge.cat.redo" )  
 
-   }  # end base data
+  }  # end base data
 
 
 # -------------------------------------------------------------------------------------
@@ -183,7 +184,6 @@ if (testing) {
     save(maturity, file="maturity.rdata", compress=T)
     # load(file.path( project.directory("snowcrab"), "snowcrab", "R", "maturity.rdata"))
   }
-
 
 
 

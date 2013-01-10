@@ -5,7 +5,6 @@
 
     n.req = 30
 
-    N$chron = string2chron( N$chrono )
     N$tinc = 1:nrow(N)
 
     # create default output should the following fail
@@ -24,12 +23,8 @@
     out$dt=NA
     out$yr=NA
 
-    if ( length( which( is.finite( N$depth))) < n.req ) {
-      out$t0 = as.character( out$t0 )
-      out$t1 = as.character( out$t1 )
-      out$dt = as.character( out$dt )
-      return(out)
-    }
+    if ( length( which( is.finite( N$depth))) < n.req ) return(out)
+    
     problem = F
 
     # time checks
@@ -95,11 +90,6 @@
       # only return t0 estimate to force a more global solution in cleaning step
       out$t1 = NA
       out$dt = NA
-
-      out$t0 = as.character( out$t0 )
-      out$t1 = as.character( out$t1 )
-      out$dt = as.character( out$dt )
-
       return( out )
     }
 
@@ -167,9 +157,6 @@
       out$t0 = t0
       out$t1 = NA
       out$dt = NA
-      out$t0 = as.character( out$t0 )
-      out$t1 = as.character( out$t1 )
-      out$dt = as.character( out$dt )
       return(out)
     }
 
@@ -228,10 +215,6 @@
       out$distance=n$distances[end]
       out$netmind_n=end
 
-
-    out$t0 = as.character( out$t0 )
-    out$t1 = as.character( out$t1 )
-    out$dt = as.character( out$dt )
 
     return (out)
   }

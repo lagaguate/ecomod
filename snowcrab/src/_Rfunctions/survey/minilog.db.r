@@ -55,7 +55,11 @@
 
       dirlist = list.files(path=minilog.rawdata.location, full.names=T, recursive=T)
       oo = grep("backup", dirlist)
-      if (length(oo) > 0) dirlist = dirlist[ -oo ]
+      if (length(oo) > 0) {
+        backups = dirlist[ oo ]
+        dirlist = dirlist[-oo]
+      }
+
       nfiles = length(dirlist)
       filelist = matrix( NA, ncol=3, nrow=nfiles) 
       for (f in 1:nfiles) {
@@ -85,10 +89,26 @@
           basedata = rbind( basedata, j$basedata)
         }
         
+        # now do a last pass for the "backups" ....
+        # incomplete ....
+        add.backup.minilogs=FALSE
+        if (add.backup.minilogs) {
+          fb = backups[ which( as.numeric(backups[,3])==yr ) , 2 ]
+          for (f in 1:length(fb)) {
+            j = load.minilog.rawdata.backups( fn=fb[f], f=f, set=set)  # variable naming conventions in the past
+            if (is.null(j)) next() 
+            metadata = rbind( metadata, j$metadata)
+            basedata = rbind( basedata, j$basedata)
+          }
+        }
+
         save( metadata, file=fn.meta, compress=TRUE ) 
         save( basedata, file=fn.raw, compress=TRUE ) 
 
       }
+
+      minilog.db( DS="set.minilog.lookuptable.redo" )
+        
       return ( minilog.dir )
     }
 
@@ -107,64 +127,57 @@
         }
         mini.stat = NULL
         for ( i in flist ) {
-          load( flist )
+          load( i )
           mini.stat = rbind( mini.stat, miniStats )
         }
         mini.meta = minilog.db( DS="metadata", Y=Y )
-        res = merge( mini.meta, mini.stat,  by="unique_id", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
+        res = merge( mini.meta, mini.stat,  by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
         return (res)
        }
 
 
       # "stats.redo" is the default action
-      #
-      set = snowcrab.db( DS="set.minilog") 
       
       for ( yr in Y ) {
         print (yr )
         fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rdata", sep=".") )
         miniStats = NULL
         miniRAW = minilog.db( DS="basedata", Y=yr )
-        rid = minilog.db( DS="metadata", Y=yr )
+        
+        mta = minilog.db( DS="metadata", Y=yr )
+        rid = minilog.db( DS="set.minilog.lookuptable" )
+        rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
+        rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
+        rid = rid[ rid$yr== yr ,] 
+        
+        if (nrow(rid) == 0 ) next()
+        
         for ( i in 1:nrow(rid)  ) {
 
-          id = rid$unique_id[i]
+          id = rid$minilog_uid[i]
           sso.trip = rid$trip[i] 
           sso.set = rid$set[i]
-          sso.station = rid$stationid[i]
+          sso.station = rid$station[i]
 
-          Mi = which( miniRAW$unique_id == id )
+          Mi = which( miniRAW$minilog_uid == id )
           if (length( Mi) == 0 ) next()
           M = miniRAW[ Mi, ]
-          iS = which(set$seabird_uid==id ) 
-          if (length(iS) != 1) {
-            # probably due to a duplicated seabird entry
-            iS = which( set$trip==sso.trip & set$set==sso.set & set$station==sso.station )
-            if (length( iS) != 1 ) {
-              iS = which( set$trip==sso.trip & set$set==sso.set )
-                if (length( iS) != 1 ) {
-                  iS = which( set$trip==sso.trip & set$station==sso.station )
-                }
-            }
-          }
-
-          iS = which(set$minilog_uid==id ) 
-          if (length(iS) == 1) {
-            res = bottom.contact( M , settimestamp=set$chron[iS], setdepth=set$Zx[iS] )
-          } else {
-            res = bottom.contact( M )
-          }
-          miniStats = rbind(miniStats, cbind( unique_id=id, res ) )
+          
+          res = bottom.contact( M, settimestamp=rid$setChron[i], setdepth=rid$setZx[i] )
+          
+          miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
         }
         
-        miniStats$unique_id =  as.character(miniStats$unique_id)
+        miniStats$minilog_uid =  as.character(miniStats$minilog_uid)
         minidt = miniStats$dt
         miniStats$dt = NA
         i = which(!is.na( minidt ) )
         if (length(i) >0 ) miniStats$dt[i] = times( minidt[i] )
-      
+  
+        save( miniStats, file=fn, compress=TRUE )
       }
-      return ( fn )
+
+      return ( minilog.dir )
     }
 
     # --------------------------------
@@ -180,21 +193,32 @@
       }
      
       B = minilog.db( DS="metadata" )
-      B$minilog_uid = B$unique_id 
-      B$station = B$stationid
-
-      B = B[, c("trip", "set", "station", "minilog_uid" )]
       
       # double check .. should not be necessary .. but in case
-      uuid = paste( B$trip, B$set, B$station, sep="." ) 
+      uuid = paste( B$trip, B$set, sep="." ) 
       dups = which( duplicated( uuid) )
-      if (length(dups > 0 ) ) B = B[ -dups, ]
 
+      if (length(dups > 0 ) ) {
+        toremove =NULL
+        for (i in dups) {
+          di = which( uuid == uuid[i] )
+          tdiff = B$setChron[di] - B$timestamp[di]
+          oo = which.min( abs( tdiff) ) 
+          toremove = c(toremove, di[-oo] )
+          print("----")
+          print( "Matching based upon closest time stamps")
+          print(B[di, ])
+          print( "Choosing: ")
+          print(B[di[oo], ])
+          print("")
+          toremove = c(toremove, di[-oo] )
+        }
+        B = B[ -toremove, ]
+      }
+      B = B[, c("trip", "set", "minilog_uid" )]
       save(B, file=fn, compress=TRUE )
       return(fn)
-
     } 
-     
 	}
  
 

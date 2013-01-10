@@ -11,7 +11,10 @@
     if (length( which(is.finite(x$depth) ) )< n.req) return(O)  # no data 
     
     if (length(setdepth)==0) setdepth = NULL
+    if (is.na(setdepth)==0) setdepth = NULL
+    
     if (length(settimestamp)==0) settimestamp = NULL
+    if (is.na(settimestamp)==0) settimestamp = NULL
 
     if (!is.null( settimestamp) ) {
       O$t0=settimestamp
