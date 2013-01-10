@@ -7,7 +7,7 @@
 
 
 	# files required to initialised the same base state when running in parallel mode
-  init.files = loadfunctions( c("common", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability" ) )
+  init.files = loadfunctions( c("common", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry" ) )
 	init.files = c( ecomod.rprofile, init.files )
  
 	workpath = file.path( project.directory("snowcrab"), "R" )

@@ -117,19 +117,19 @@
           load( i )
           netmind.stat = rbind( netmind.stat, Stats )
         }
-        netmind.meta = netmind.db( DS="metadata", Y=Y )
-        res = merge( netmind.meta, netmind.stat,  by="netmind_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
+
+        netmind.stat$yr = NULL
+
+        nm = netmind.db( DS="set.netmind.lookuptable" )
+        res = merge( nm, netmind.stat,  by="netmind_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
+        
         return (res)
       }
 
 
       # "stats.redo" is the default action
       # bring in stats from each data stream and then calculate netmind stats
-      
-      O = data.frame(slon=0, slon=0.01, slat=0.01 , distance=0.01, spread=0.01, 
-        spread_sd=0.01, surfacearea=0.01, vel=0.01, vel_sd=0.01, netmind_n=0.01, 
-        t0=" ", t1=" ", dt=" ", yr=0.01, netmind_uid="dummy", stringsAsFactors=FALSE )
-
+  
       # bring in minilog and seabird data that has t0, t1 times for start and stop of bottom contact
       set = snowcrab.db( DS="set.minilog.seabird" )
       

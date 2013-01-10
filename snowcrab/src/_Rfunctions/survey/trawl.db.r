@@ -723,41 +723,13 @@
         return (set) 
       }
    
-      missing.data.check = TRUE
-      if ( missing.data.check ) {
-        
-        set = snowcrab.db( DS="setInitial")
-        
-        sb = seabird.db( DS="set.seabird.lookuptable" )
-        set = merge( set, sb, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
-        isb = which( is.na( set$seabird_uid) & set$yr %in% seabird.yToload & set$yr >= 2012 )
-        print( "Missing seabird matches: ")
-        print( set[ isb,] )
-
-        ml = minilog.db( DS="set.minilog.lookuptable" )
-        set = merge( set, ml, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
-        iml = which( is.na( set$minilog_uid) & set$yr %in% minilog.yToload & set$yr >= 2004 )
-        print( "Missing minilog matches: ")
-        print( set[ iml,] )
-
-        nm = netmind.db( DS="set.netmind.lookuptable" )
-        set = merge( set, nm, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
-        inm = which( is.na( set$netmind_uid) & set$yr %in% netmind.yToload & set$yr >= 2004 )
-        print( "Missing netmind matches: ")
-        print( set[ inm,] )
-
-      }
-
-
-      
+      # first complete set by adding netmind data
       set = snowcrab.db( DS="set.minilog.seabird" )
+      
       nm = netmind.db( DS="stats" )
+      nm = nm[,  c("netmind_uid", "distance", "spread", "spread_sd", "surfacearea", "vel", "vel_sd", "netmind_n", "slon", "slat" ) ]
+      set = merge( set, nm, by =c("netmind_uid"), all.x=TRUE, all.y=FALSE )
 
-      set = merge( set, nm, by =c("trip", "set"), all.x=TRUE, all.y=FALSE )
-
-
-
- #    SA -- historical data ? where are they? -- sntows?
 
       set = set[ order( set$yr, set$station, set$t0, set$chron) , ]
       set$dt = minutes(set$dt) + seconds(set$dt)/60  # convert to decimal minutes
@@ -780,38 +752,11 @@
       if ( length (ii) > 0 ) {
         set$t0[ii] = set$chron[ii]
       }
-      ii = which( is.na( set$t0 ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$t0[ii] = set$t0n[ii]
-      }
-      ii = which( is.na( set$t0 ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$t0[ii] = median( set$t0, na.rm=T)  # force to the global median
-      }
  
-
-      # fix dt
-      ii = which( is.na( set$dt ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$dt[ii] = set$dtn[ii]
-      }
-      ii = which( is.na( set$dt ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$dt[ii] = set$t1[ii] - set$t0[ii] 
-      }
-      ii = which( is.na( set$dt ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$dt[ii] = median (set$dt, na.rm=T)
-      }
-        
       # fix t1
       ii = which( is.na( set$t1 ) )  # historical data do not have these fields filled .. fill 
       if ( length (ii) > 0 ) {
-        set$t1[ii] = set$t1n[ii]
-      }
-      ii = which( is.na( set$t1 ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$t1[ii] = set$t0[ii] + median( set$dt , na.rm=T)
+        set$t1[ii] = set$t0[ii] + median(set$dt, na.rm=TRUE )
       }
 
       # positional data obtained directly from Netmind GPS and Minilog T0
@@ -828,9 +773,16 @@
       
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
+      problems = data.quality.check( set, type="seabird.mismatches" )
       problems = data.quality.check( set, type="minilog.mismatches" )
       problems = data.quality.check( set, type="netmind.mismatches" )
+
       problems = data.quality.check( set, type="tow.duration")
+      
+      problems = data.quality.check( set, type="seabird.load") 
+      problems = data.quality.check( set, type="minilog.load")
+      problems = data.quality.check( set, type="netmind.load")
+     
       problems = data.quality.check( set, type="minilog") # Check for duplicate timestamps 
       problems = data.quality.check( set, type="minilog.dateproblems") 
       problems = data.quality.check( set, type="netmind.timestamp" )
@@ -843,10 +795,7 @@
       set$observer = NULL
       set$cfa = NULL
       set$gear = NULL
-      set$t0n = NULL
-      set$t1n = NULL
-      set$dtn = NULL
-
+   
       save( set, file=fn, compress=TRUE )
       
       return(fn)

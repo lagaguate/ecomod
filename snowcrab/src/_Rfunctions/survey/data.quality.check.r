@@ -1,9 +1,44 @@
 
   data.quality.check = function( set, type ) {
     
+ 
+     
+    if (type=="seabird.load") {
+        SS = snowcrab.db( DS="setInitial")
+        sb = seabird.db( DS="set.seabird.lookuptable" )
+        SS = merge( SS, sb, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
+        isb = which( is.na( SS$seabird_uid) & SS$yr %in% seabird.yToload & SS$yr >= 2012 )
+        print( "Missing seabird matches: ")
+        print( SS[ isb,] )
+        return( SS[isb,])
+    }
   
+ 
+    if (type=="minilog.load") {
+        SS = snowcrab.db( DS="setInitial")
+        ml = minilog.db( DS="set.minilog.lookuptable" )
+        SS = merge( SS, ml, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
+        iml = which( is.na( SS$minilog_uid) & SS$yr %in% minilog.yToload & SS$yr >= 2004 )
+        print( "Missing minilog matches: ")
+        print( SS[ iml,] )
+        return( SS[iml,])
+    }
+  
+    if (type=="netmind.load") {
+        SS = snowcrab.db( DS="setInitial")
+        nm = netmind.db( DS="set.netmind.lookuptable" )
+        SS = merge( SS, nm, by=c("trip", "set"), all.x=TRUE, all.y=FALSE, sort=TRUE ) 
+        inm = which( is.na( SS$netmind_uid) & SS$yr %in% netmind.yToload & SS$yr >= 2004 )
+        print( "Missing netmind matches: ")
+        print( SS[ inm,] )
+        return( SS[inm,])
+    }
+
+
+
+
     if (type=="tow.duration") {
-      e0 = which( ( set$dt > 8 | set$dt < 4 )  & set$yr >=2004 )
+      e0 = which( ( set$dt > 8 / 24/60 | set$dt < 4/24/60 )  & set$yr >=2004 )
       if  (length(e0)>0 ) {
         print( "The following have rather short/long tow times (dt)" )
         print( set[e0,] )
