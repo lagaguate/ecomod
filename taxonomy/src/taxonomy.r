@@ -6,12 +6,14 @@
   require ( multicore ) # simple parallel interface (using threads)
 
 
+  refresh.itis.tables = FALSE
   if ( refresh.itis.tables ) {
     itis.db( "make.snapshot", lnk="http://www.itis.gov/downloads/itisMySQLTables.tar.gz") 
     itis.db( "main.redo")     # merge data and handle duplicates
   }
 
 
+  refresh.bio.species.codes = TRUE
   if ( refresh.bio.species.codes ) {
     
     taxa.db( "spcodes.odbc.redo" ) # refresh BIO's species codes from Oracle -- done also from groundfish update
@@ -34,6 +36,8 @@
   }
 
 
+  run.examples= FALSE
+  if (run.examples) {
 
     # -------------------------------
     # example usage to extract TSN's
@@ -74,6 +78,6 @@
     sid = itis.code.extract( DS="itaxa.vernacular", value="atlantic cod" )
 
 
-
+  }
    
 

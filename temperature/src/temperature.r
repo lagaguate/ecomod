@@ -7,8 +7,8 @@
  
 # ----------------
 # define basic parameters  ... years need to be updated as appropriate
-  tyears = c(1950:2011)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  newyear = c( 2011)
+  tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+  newyear = c( 2012)
 
 
 

@@ -27,10 +27,10 @@
   p$season = "allseasons"
 
   # choose:
-  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+  p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  p$clusters = rep( "localhost", 24 )
+  # p$clusters = rep( "localhost", 24 )
 
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
 

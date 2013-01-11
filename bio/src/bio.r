@@ -1,8 +1,6 @@
 
   # glue biological data sets together from various surveys
 
-  require(RSQLite)
-
 	p = list( init.files=loadfunctions( c( "common", "taxonomy", "groundfish", "snowcrab", "bio" ))) 
 
   loadfunctions( "snowcrab", functionname="default.project.environment" )

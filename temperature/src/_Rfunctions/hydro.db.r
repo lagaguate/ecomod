@@ -128,7 +128,29 @@
 
       # bring in snow crab, groundfish and OSD data ...
       require(chron)
-      dir.create( file.path(  project.directory("temperature"), "data", "climate", "profiles", p$spatial.domain ) , recursive=T )
+      dir.create( file.path(  project.directory("temperature"), "data", "climate", "profiles", p$spatial.domain ) , recursive=T,showWarnings = FALSE )
+      
+      p0 = p  #store parameters as snowcrab and groundfish functions will overwrite it
+
+      loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+      set = snowcrab.db( DS="setInitial" )
+      mlu = minilog.db( DS="set.minilog.lookuptable" )
+      slu = seabird.db( DS="set.seabird.lookuptable" )
+      set = merge( set, mlu, by= c("trip", "set"), all.x=TRUE, all.y=FALSE )
+      set = merge( set, slu, by= c("trip", "set"), all.x=TRUE, all.y=FALSE )
+      set$longitude =set$lon
+      set$latitude = set$lat
+      set$oxyml = NA
+      set$salinity = NA
+      set$sigmat = NA
+      
+      set = set[ ,c("minilog_uid", "seabird_uid", "longitude", "latitude", "oxyml", "salinity", "sigmat" ) ]
+			
+      loadfunctions( "groundfish")
+      grdfish = groundfish.db( "gshyd.georef" )
+			
+      p = p0
+
 
       for (iy in ip) {
         yt = yr[iy]
@@ -142,55 +164,68 @@
             ysse = hydro.db( DS="osd.rawdata", yr=yt, p=psse )
             Y = rbind( Y, ysse )
           }
-          if ( !is.null(Y) ) {
+          if ( is.null(Y) ) {
+        
+            Y = hydro.db( DS="osd.rawdata", yr=2009, p=p ) [1,]
+            Y$id =  "dummy"
+            Y$yr =  yt
+            Y$dayno = 1
+            Y$weekno = 1
+            Y$depth = -1
+            Y$oxyml = NA
+
+          } else {
+
             Y$id =  paste( Y$longitude, Y$latitude, Y$dayno, sep="~" )
             Y$yr =  as.numeric( as.character( years( Y$date ) ) )
             Y$dayno = convert.datecodes(Y$date, "julian") 
             Y$weekno = ceiling ( Y$dayno / 365 * 52 )
             Y$depth = decibar2depth ( P=Y$pressure, lat=Y$latitude )
-            Y$pressure = NULL
             Y$oxyml = NA
-            Ynames = names(Y) 
           }
+        
+        Y$pressure = NULL
 
         if ("groundfish" %in% additional.data ) {
-					loadfunctions( "groundfish")
-          gf = groundfish.db( "gshyd.georef" )
-					gf = gf[ which( gf$yr == yt ) , ]
+          gf = grdfish[ which( grdfish$yr == yt ) , ]
 					if (nrow(gf) > 0) {
 						gf$sigmat = NA
 						names(gf) = c( "id", "depth", "temperature", "salinity", "oxyml", "longitude", "latitude", "yr", "weekno", "dayno", "date", "sigmat"  )
-						Y = rbind( Y, gf[, Ynames] )
+						Y = rbind( Y, gf[, names(Y)] )
 					}
 				}
 
         if ("snowcrab" %in% additional.data ) {
-	        loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
-				  
-					sn.profiles = try( minilog.db( DS="basedata", Y=yt ), silent=T )
-					if ( ! "try-error" %in% class(sn.profiles)  & !is.null( nrow(sn.profiles)) ) {
-						sn.profiles = sn.profiles[, c("temperature", "depth", "unique_id") ] 
-						sn = snowcrab.db( DS="set.clean" ) 
-						sn$unique_id = as.character( sn$minilog_uid )
-						sn = sn[, c("chron", "unique_id", "lon", "lat") ]
-						sn = sn[ which( !is.na( sn$unique_id) ) , ]
+	        
+          minilog = minilog.db( DS="basedata", Y=yt )
 
-						sn = merge( sn.profiles, sn, by="unique_id", all.x=F, all.y=T, sort=F )
-						names(sn) = c("id", "temperature", "depth", "date", "longitude", "latitude" )
-						sn$yr =  as.numeric( as.character( years( sn$date ) ) )
-						sn$dayno = convert.datecodes(sn$date, "julian") 
-						sn$weekno = ceiling ( sn$dayno / 365 * 52 )
-						sn$salinity = NA
-						sn$sigmat = NA
-						sn$oxyml = NA
-						sn$temperature = as.numeric( sn$temperature )
-						sn$depth = as.numeric( sn$depth )
+          if (! is.null( nrow( minilog ) ) ) {
+            minilog = merge( minilog, set, by="minilog_uid", all.x=TRUE, all.y=FALSE ) 
+            minilog$id = minilog$minilog_uid 
+            minilog$yr = as.numeric( as.character( years( minilog$chron) ) )
+            minilog$dayno = convert.datecodes(minilog$chron, "julian") 
+            minilog$weekno = ceiling ( minilog$dayno / 365 * 52 )
+            minilog$date = minilog$chron
+            Y = rbind( Y, minilog[, names(Y) ] )
+          }
 
-						Y = rbind( Y, sn[, Ynames] )
-					}
-				}
+          seabird = seabird.db( DS="basedata", Y=yt )
+					if ( !is.null( nrow( seabird ) ) ) {
+            seabird = merge( seabird, set, by="seabird_uid", all.x=TRUE, all.y=FALSE ) 
+            seabird$id = seabird$seabird_uid
+            seabird$yr = as.numeric( as.character( years( seabird$chron) ) )
+            seabird$dayno = convert.datecodes( seabird$chron, "julian") 
+            seabird$weekno = ceiling ( seabird$dayno / 365 * 52 )
+            seabird$date = seabird$chron
+            seabird$oxyml = NA
+            Y = rbind( Y, seabird[, names(Y) ] )
+          }
+				
+        }
 
-        if ( is.null(Y) ) return()
+        Y = Y[ which( Y$id != "dummy"), ]
+
+        if ( is.null(Y) ) return( NULL )
         iiY = which(duplicated(Y))
         
         if (length(iiY)>0) Y = Y [ -iiY, ]
@@ -220,7 +255,7 @@
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
       if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
       if (is.null(ip)) ip = 1:length(yr)
-      dir.create( file.path(  project.directory("temperature"), "data", "climate", "bottom", p$spatial.domain ) , recursive=T )
+      dir.create( file.path(  project.directory("temperature"), "data", "climate", "bottom", p$spatial.domain ) , recursive=T, showWarnings=FALSE )
 
       for (iy in ip) {
         yt = yr[iy]
