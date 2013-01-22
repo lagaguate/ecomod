@@ -3,65 +3,52 @@
   hydro.db = function( ip=NULL, p=NULL, DS=NULL, yr=NULL, vname=NULL, additional.data=c("groundfish", "snowcrab"), ...) {
     
     # data source is http://www.meds-sdmm.dfo-mpo.gc.ca/zmp/climate/climate_e.htm
-
-    if ( DS %in% c("osd.rawdata", "osd.rawdata.all", "osd.rawdata.all.redo", "osd.rawdata.singleyear", "osd.rawdata.singleyear.redo","osd.rawdata.allfiles.redo" )) {
-      # must download manually to this directory and run gzip
-      # from choijae; "Jc#00390" :: (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
-      # depths: 500,500, "complete profile"   .. raw data  for the SS
+      ## must download manually to this directory and run gzip
+      ## from choijae; "Jc#00390" :: (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
+      ## depths: 500,500, "complete profile"   .. raw data  for the SS
       # (USER Defined -- region: jc.ss")
+      basedir = project.directory("temperature", "data" )
+      loc.archive = file.path( basedir, "archive", "profiles", p$spatial.domain )
+      loc.basedata = file.path( basedir, "basedata", "rawdata", p$spatial.domain )
       
-      loc = file.path( project.directory("temperature"), "data", "climate", "rawdata", p$spatial.domain )
-			dir.create( loc, recursive=T, showWarnings=F )
+      dir.create( loc.basedata, recursive=T, showWarnings=F )
       
-      outfilename = file.path( project.directory("temperature"), "data", "climate", paste("climate", p$spatial.domain, "rdata", sep=".") )
-			if ( DS == "osd.rawdata.all") {
-        load( outfilename) 
-        return (data)
-      }
-     
+      # OSD data series variables of interest
+			varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE" ,"SALINITY" ,"SIGMAT" ) 
+   
 
-      if ( DS == "osd.rawdata.all.redo") {
-        data = NULL
+
+      if ( DS == "osd.rawdata" ) {
+        # simple loading of annual data files
+        out = NULL
         for ( y in yr ) {
           print (y)
-          data = rbind( data, hydro.db( DS="osd.rawdata", yr=y, p=p ) )
+          fn = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+          if (file.exists ( fn ) ) {
+            load(fn)
+            out = rbind( out, X )
+          }
         }
-        save(data, file=outfilename, compress=T)
-        return ("complete")
-      }
-    
-    
-      if ( DS == "osd.rawdata" ) {
-        fn = file.path(  project.directory("temperature"), "data", "climate", "annual", p$spatial.domain, paste( "osd.rawdata", yr, "rdata", sep=".") )
-        data = NULL
-				if (file.exists ( fn ) ) load(fn)
-        return (data )
+        return ( out )
       }
 
-
-      if ( DS %in% c("osd.rawdata.singleyear.redo", "osd.rawdata.allfiles.redo") ) {  
-        outloc = file.path( project.directory("temperature"), "data", "climate", "annual", p$spatial.domain ) 
-		  	inloc = file.path( project.directory("temperature"), "data", "climate", "rawdata", p$spatial.domain ) 
-
-				dir.create( outloc, recursive=T, showWarnings=F )
-				varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE" ,"SALINITY" ,"SIGMAT" )
 				
 				if ( DS=="osd.rawdata.allfiles.redo" ) {
-					fn.all = list.files( path=inloc, pattern="osd.clim.*.gz", full.names=T) 
-					data = NULL
+					fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
+					X = NULL
 					for (fn in fn.all) {
 						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
 						f = f[,varlist] 
 						fyears = as.numeric( matrix( unlist( strsplit( f$CRUISE_DATE, "/" ) ), ncol=3, byrow=T) [,3] )
 						years = sort( unique( fyears ))
 						for (yrs in years) {
-							fn.out = file.path( outloc,  paste( "osd.rawdata", yrs, "rdata", sep=".") )
+							fn.out = file.path( loc.basedata,  paste( "osd.rawdata", yrs, "rdata", sep=".") )
 							print( paste(yrs, ":", fn.out) )
-							data = f[ which( fyears == yrs) ,]
-							names(data) = tolower( names(data) )
-							data$date = chron( dates.=data$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-							data$cruise_date = NULL
-							save( data, file=fn.out, compress=T) 
+							X = f[ which( fyears == yrs) ,]
+							names(X) = tolower( names(X) )
+							X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+							X$cruise_date = NULL
+							save( X, file=fn.out, compress=T) 
 
 						}
 					}
@@ -70,53 +57,83 @@
         
         if (DS=="osd.rawdata.singleyear.redo" ) {
 					for ( y in yr) {
-						data = NULL
-						fn.all = list.files( path=inloc, pattern="osd.clim.*.gz", full.names=T) 
+						X = NULL
+						fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
 						fn = fn.all[ grep (as.character(y), fn.all) ]
 						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
-						data = f[,varlist]
+						X = f[,varlist]
 						 
-						fn.out = file.path( outloc, paste( "osd.rawdata", y, "rdata", sep=".") )
-						names(data) = tolower( names(data) )
-						data$date = chron( dates.=data$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-						data$cruise_date = NULL
-						save( data, file=fn.out, compress=T)
+						fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+						names(X) = tolower( names(X) )
+						X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+						X$cruise_date = NULL
+						save( X, file=fn.out, compress=T)
 					}
 				} 
         
         if (DS=="osd.oneoff.singleyear.redo" ) {
 					  ## this is a data dump directly from Roger Petipas	
-            data = NULL
-						fn.all = list.files( path=inloc, pattern="partial.*.gz", full.names=T) 
+            X = NULL
+						fn.all = list.files( path=loc.archive, pattern="partial.*.gz", full.names=T) 
 						fn = fn.all[ grep (as.character(yr), fn.all) ]
 						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
 						colnames(f) =  c( "cruiseid", "latitude", "longitude", "cruise_date", "time", 
                 "pressure", "temperature", "salinity", "sigmat", "stationid" ) 
             f$depth = decibar2depth ( P=f$pressure, lat=f$latitude )
-            data = f[,tolower(varlist)]
+            X = f[,tolower(varlist)]
 
-						fn.out = file.path( outloc, paste( "osd.rawdata", yr, "rdata", sep=".") )
-						names(data) = tolower( names(data) )
-						data$date = chron( dates.=data$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-						data$cruise_date = NULL
-						save( data, file=fn.out, compress=T)
-					
+						fn.out = file.path( loc.basedata, paste( "osd.rawdata", yr, "rdata", sep=".") )
+						names(X) = tolower( names(X) )
+						X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+						X$cruise_date = NULL
+						save( X, file=fn.out, compress=T)
 				}
 
-        return ("Complete")
-      }  
+        if (DS=="osd.oneoff.petipas.redo" ) {
+ 					## this is another data dump directly from Roger Petipasfort 2010 to 2012 using MSACCESS -> text
+          ## and merging here
+            datadir = file.path( loc.archive, "petitpas" )
+            yrs = c(2010:2012)
+            for ( y in yrs ) {
+              fndata = file.path( datadir, paste( "temp_dt_", y, ".txt", sep="" ) )
+              fnset = file.path( datadir, paste( "temp_st_", y, ".txt", sep="" ) )
+              
+              tdata = read.csv( file=fndata, header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
+              names( tdata) = c("pressure", "temperature", "salinity", "sigmat", "stationid" )
+
+              tsets = read.csv( file=fnset, header=TRUE, stringsAsFactors=FALSE , na.strings="9999" )
+              names( tsets) = c("cruiseid", "latitude", "longitude", "cruise_date", "time", "depth_sounding", "pmax", "stationid" )
+
+              X = merge( tdata, tsets, by="stationid", all.x=TRUE, all.y=FALSE )
+              X$depth = decibar2depth ( P=X$pressure, lat=X$latitude )
+              
+              X = X[,tolower(varlist)]
+				
+              fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+  						names(X) = tolower( names(X) )
+	  					X$cruise_date = gsub(  "0:00:00", "", X$cruise_date )
+
+              X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+		  				X$cruise_date = NULL
+			  			save( X, file=fn.out, compress=T)
+            }
+           
+        }
+
+
       
-         
-    }
 
     # ----------------  
 
     if (DS %in% c( "profiles.annual.redo", "profiles.annual" ) ) {
-      # convert annual depth profiles from raw data into and Rdata file and then extract bottom temperatures 
+      # read in annual depth profiles then extract bottom temperatures 
       
+      basedir = project.directory("temperature", "data" )
+      loc.profile = file.path( basedir, "basedata", "profiles", p$spatial.domain )
+      dir.create( loc.profile, recursive=T, showWarnings=F )
+ 
       if (DS=="profiles.annual") {
-        fn = file.path(  project.directory("temperature"), "data", "climate", "profiles", p$spatial.domain,
-            paste("depthprofiles", yr, "rdata", sep="."))
+        fn = file.path(  loc.profile, paste("depthprofiles", yr, "rdata", sep="."))
         Y = NULL
 				if (file.exists( fn) ) load (fn )
         return(Y)
@@ -128,7 +145,6 @@
 
       # bring in snow crab, groundfish and OSD data ...
       require(chron)
-      dir.create( file.path(  project.directory("temperature"), "data", "climate", "profiles", p$spatial.domain ) , recursive=T,showWarnings = FALSE )
       
       p0 = p  #store parameters as snowcrab and groundfish functions will overwrite it
 
@@ -156,14 +172,7 @@
         yt = yr[iy]
   
         Y = hydro.db( DS="osd.rawdata", yr=yt, p=p )
-          debug = F
-          if  (debug) {
-            #  add SSE as it seems to contain more data than the canada.east ! check this with OSD people why 
-            #  this add together canada.east and SSE and 
-            psse = spatial.parameters( type="SSE" )
-            ysse = hydro.db( DS="osd.rawdata", yr=yt, p=psse )
-            Y = rbind( Y, ysse )
-          }
+  
           if ( is.null(Y) ) {
         
             Y = hydro.db( DS="osd.rawdata", yr=2009, p=p ) [1,]
@@ -222,21 +231,24 @@
           }
 				
         }
-
-        Y = Y[ which( Y$id != "dummy"), ]
-
-        if ( is.null(Y) ) return( NULL )
-        iiY = which(duplicated(Y))
         
+        oo = which( Y$id == "dummy" )
+        if (length(oo) > 0 ) Y = Y[ -oo, ]
+
+        if ( is.null( nrow(Y) ) ) next()
+        if ( nrow(Y) < 5 ) next()
+
+        if ( is.null(Y) ) next()
+
+        iiY = which(duplicated(Y))
         if (length(iiY)>0) Y = Y [ -iiY, ]
 
-        fn = file.path(  project.directory("temperature"), "data", "climate", "profiles", p$spatial.domain,  
-						paste("depthprofiles", yt, "rdata", sep="."))
-        print( fn  )
+        fn = file.path( loc.profile, paste("depthprofiles", yt, "rdata", sep="."))
+        print( fn )
         save( Y, file=fn, compress=T )
       }
-      return ("Completed")
 
+      return ("Completed")
     }
 
 
@@ -244,9 +256,13 @@
 
     if (DS %in% c( "bottom.annual", "bottom.annual.redo" ) ) {
       # extract bottom temperatures 
-      
+     
+      basedir = project.directory("temperature", "data" )
+      loc.bottom = file.path( basedir, "basedata", "bottom", p$spatial.domain )
+      dir.create( loc.bottom, recursive=T, showWarnings=F )
+ 
       if (DS=="bottom.annual") {
-        fn = file.path( project.directory("temperature"), "data", "climate", "bottom", p$spatial.domain, paste("bottom", yr, "rdata", sep="."))
+        fn = file.path( loc.bottom, paste("bottom", yr, "rdata", sep="."))
         Z = NULL
 				if (file.exists(fn) ) load (fn )
         return(Z)
@@ -255,7 +271,6 @@
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
       if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
       if (is.null(ip)) ip = 1:length(yr)
-      dir.create( file.path(  project.directory("temperature"), "data", "climate", "bottom", p$spatial.domain ) , recursive=T, showWarnings=FALSE )
 
       for (iy in ip) {
         yt = yr[iy]
@@ -284,7 +299,7 @@
         }
         
         Z = res
-        fn = file.path(  project.directory("temperature"), "data", "climate", "bottom", p$spatial.domain, paste("bottom", yt, "rdata", sep="."))
+        fn = file.path( loc.bottom, paste("bottom", yt, "rdata", sep="."))
 				print (fn)
         save( Z, file=fn, compress=T)
       }
@@ -293,24 +308,25 @@
     }
 
 
-
     # -----------------
 
     if (DS %in% c( "bottom.gridded", "bottom.gridded.redo" , "bottom.gridded.all", "bottom.gridded.all.redo" )){
       # this is stored locally and not as an archive for speed and flexibility
-      #
+      
+      basedir = project.directory("temperature", "data" )
+      loc.gridded = file.path( basedir, "basedata", "gridded", "bottom", p$spatial.domain )
+      dir.create( loc.gridded, recursive=T, showWarnings=F )
+
       if (DS == "bottom.gridded.all" ) {
-        outdir =  file.path( project.directory("temperature"), "data", p$spatial.domain, "bottom" )
-				fn = file.path( outdir, paste( "bottom.allyears", "rdata", sep="." ) )
+              
+				fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
         O = NULL
 				if (file.exists(fn) ) load(fn)
         return (O)
       }
       
       if (DS == "bottom.gridded.all.redo" ) {
-				outdir = file.path( project.directory("temperature"), "data", p$spatial.domain, "bottom" )
-				dir.create( outdir, recursive=T, showWarnings=F )
-        fn = file.path( outdir, paste( "bottom.allyears", "rdata", sep="." ) )
+        fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
         O = NULL
         for (y in yr) {
           print (y) 
@@ -324,8 +340,7 @@
 
 
       if (DS == "bottom.gridded" ) {
-				fng = file.path(  project.directory("temperature"), "data", p$spatial.domain, "bottom", "annual", 
-						paste( "bottom", yr, "rdata", sep="." ) )
+				fng = file.path(  loc.gridded, paste( "bottom", yr, "rdata", sep="." ) )
         tp = NULL
 				if (file.exists(fng) ) load(fng)
         return ( tp )
@@ -334,9 +349,7 @@
   
       if (DS == "bottom.gridded.redo" ) {
         for (y in yr) {
-   		  	outdir = file.path( project.directory("temperature"), "data", p$spatial.domain, "bottom", "annual" )
-			 	  dir.create( outdir, recursive=T, showWarnings=F )
-          fn = file.path( outdir , paste( "bottom", y, "rdata", sep="." ) )
+          fn = file.path( loc.gridded , paste( "bottom", y, "rdata", sep="." ) )
           print(fn)
           tp = NULL
           pcanada.east = p
@@ -379,9 +392,9 @@
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
          
 			# interpolated predictions for only missing data
-			
-			outdir =  file.path( project.directory("temperature"), "data", p$spatial.domain, "predictions", "temporal" )
-      dir.create( outdir, recursive=T, showWarnings=F )
+		
+      tinterpdir = project.directory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
+      dir.create( tinterpdir, recursive=T, showWarnings=F )
 			
 			# bigmemory's backingdir does not seem to be working? ... defaulting to home directory
 			
@@ -389,13 +402,13 @@
 			p$fn.tbot.se = file.path( "interpolated.se.bigmemory.rdata.tmp" )
 
       if (DS %in% c("temporal.interpolation")) {
-          fn1 = file.path( outdir, paste( "temporal.interpolation", yr, "rdata", sep=".") )
+          fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yr, "rdata", sep=".") )
           if (file.exists( fn1) ) load(fn1)
           return ( tinterp )
       }
       
 			if (DS %in% c("temporal.interpolation.se")) {
-          fn1 = file.path( outdir, paste( "temporal.interpolation.se", yr, "rdata", sep=".") )
+          fn1 = file.path( tinterpdir, paste( "temporal.interpolation.se", yr, "rdata", sep=".") )
           if (file.exists( fn1) ) load(fn1)
           return ( tinterp.se )
       }
@@ -405,8 +418,7 @@
       p$nP = nrow(P);	rm(P); gc()
 			p$wtimes = 1:52 
 			p$nw = length(p$wtimes)
-			p$ny = length(yr)
-			p$tyears = yr
+			p$ny = length(tyears)
 	
 			p$optimizers = c( "nlm", "bfgs", "perf", "optim", "newton",  "nlm.fd") # optimizers for gam
 			p$nMin.tbot = 200 # min number of data points req before attempting to model timeseries.
@@ -443,8 +455,8 @@
 
 			for ( r in 1:length(p$tyears) ) {
 				yt = p$tyears[r]
-				fn1 = file.path( outdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
-				fn2 = file.path( outdir, paste( "temporal.interpolation.se", yt, "rdata", sep=".") )
+				fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
+				fn2 = file.path( tinterpdir, paste( "temporal.interpolation.se", yt, "rdata", sep=".") )
 				
 				cstart = (r-1) * p$nw 
 				col.ranges = cstart + (1:p$nw) 
@@ -457,7 +469,6 @@
 			file.remove( p$fn.tbot , p$fn.tbot.se )
 			file.remove( paste( c(p$fn.tbot , p$fn.tbot.se), "desc", sep=".") )
 
-
 			return ("completed temporal interpolations ")
     }
    
@@ -466,18 +477,17 @@
     if (DS %in% c(  "temporal.interpolation.RAM", "temporal.interpolation.se.RAM", "temporal.interpolation.redo.RAM" )){
          
 			# interpolated predictions for only missing data
-			
-			outdir =  file.path( project.directory("temperature"), "data", p$spatial.domain, "predictions", "temporal" )
-      dir.create( outdir, recursive=T, showWarnings=F )
+		  tinterpdir = project.directory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
+      dir.create( tinterpdir, recursive=T, showWarnings=F )
 			
       if (DS %in% c("temporal.interpolation.RAM")) {
-          fn1 = file.path( outdir, paste( "temporal.interpolation", yr, "rdata", sep=".") )
+          fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yr, "rdata", sep=".") )
           if (file.exists( fn1) ) load(fn1)
           return ( tinterp )
       }
       
 			if (DS %in% c("temporal.interpolation.se.RAM")) {
-          fn1 = file.path( outdir, paste( "temporal.interpolation.se", yr, "rdata", sep=".") )
+          fn1 = file.path( tinterpdir, paste( "temporal.interpolation.se", yr, "rdata", sep=".") )
           if (file.exists( fn1) ) load(fn1)
           return ( tinterp.se )
       }
@@ -487,8 +497,7 @@
       p$nP = nrow(P);	rm(P); gc()
 			p$wtimes = 1:52 
 			p$nw = length(p$wtimes)
-			p$ny = length(yr)
-			p$tyears = yr
+			p$ny = length(p$tyears)
 	
 			p$optimizers = c( "perf", "bfgs", "nlm", "optim", "newton",  "nlm.fd") # optimizers for gam
 			p$nMin.tbot = 200 # min number of data points req before attempting to model timeseries.
@@ -518,8 +527,8 @@
 
 			for ( r in 1:length(p$tyears) ) {
 				yt = p$tyears[r]
-				fn1 = file.path( outdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
-				fn2 = file.path( outdir, paste( "temporal.interpolation.se", yt, "rdata", sep=".") )
+				fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
+				fn2 = file.path( tinterpdir, paste( "temporal.interpolation.se", yt, "rdata", sep=".") )
 				
 				cstart = (r-1) * p$nw 
 				col.ranges = cstart + (1:p$nw) 
@@ -545,14 +554,14 @@
     if (DS %in% c(  "spatial.interpolation", "spatial.interpolation.se", "spatial.interpolation.redo" )){
 			
 			# interpolated predictions over only missing data
-			outdir =  file.path( project.directory("temperature"), "data", p$spatial.domain, "predictions", "spatial" )
+			spinterpdir =  file.path( project.directory("temperature"), "data", "interpolated", "spatial", p$spatial.domain )
 			if (p$spatial.domain=="snowcrab") {
-        outdir = file.path( project.directory("temperature"), "data", "SSE", "predictions", "spatial" )
+        spinterpdir = file.path( project.directory("temperature"), "data", "interpolated", "spatial", "SSE" )
       }
     
 			if (DS %in% c("spatial.interpolation")) {
         P = NULL
-        fn1 = file.path( outdir,paste("spatial.interpolation",  yr, "rdata", sep=".") )
+        fn1 = file.path( spinterpdir, paste("spatial.interpolation",  yr, "rdata", sep=".") )
         if (file.exists( fn1) ) load(fn1)
         if ( p$spatial.domain =="snowcrab" ) {
           id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
@@ -563,7 +572,7 @@
      	
 			if (DS %in% c("spatial.interpolation.se")) {
         V = NULL
-				fn2 = file.path( outdir,paste("spatial.interpolation.se",  yr, "rdata", sep=".") )
+				fn2 = file.path( spinterpdir, paste("spatial.interpolation.se",  yr, "rdata", sep=".") )
         if (file.exists( fn2) ) load(fn2)
         if ( p$spatial.domain =="snowcrab" ) {
           id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
@@ -618,8 +627,8 @@
           rm ( ai, aj, pp, pp.se ); gc()
         }
        
-				fn1 = file.path( outdir,paste("spatial.interpolation",  y, "rdata", sep=".") )
-				fn2 = file.path( outdir,paste("spatial.interpolation.se",  y, "rdata", sep=".") )
+				fn1 = file.path( spinterpdir,paste("spatial.interpolation",  y, "rdata", sep=".") )
+				fn2 = file.path( spinterpdir,paste("spatial.interpolation.se",  y, "rdata", sep=".") )
 				save( P, file=fn1, compress=T )
 				save( V, file=fn2, compress=T )
  
@@ -627,112 +636,6 @@
       return ("Completed")
     }
  
-
-    if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo" )){
-      
-			outdir = file.path(project.directory("temperature"),  "data", p$spatial.domain, "stats" ) 
-      dir.create( outdir, showWarnings=F )
-
-			if (DS %in% c("bottom.statistics.annual")) {
-        O = NULL
-        fn = file.path( outdir, paste("bottom.statistics.annual",  yr, "rdata", sep=".") )
-        if (file.exists( fn) ) load(fn)
-        return ( O )
-      }
-        
-      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
-      if (is.null(ip)) ip = 1:length(yr)
- 
-      require( gstat )
-
-      for ( r in ip ) { 
-        y = yr[r]
-				print ( paste("Year:", y)  )
-				
-				O = bathymetry.db( p=p, DS="baseline" )
-        P = hydro.db( p=p, DS="spatial.interpolation", yr=y  )
-     		P[ P < -2 ] = -2  # shrink weighting of unreasonably small SEs
-			  P[ P > 30 ] = 30 
-			  ibaddata = which( !is.finite(P) )
-				P[ ibaddata ] = mean(P, na.rm=T )
-				
-				V = hydro.db( p=p, DS="spatial.interpolation.se", yr=y  )
-				V[ V < 0.1 ] = 100  # shrink weighting of unreasonably small SEs
-			  V[ which( !is.finite(V)) ] = 1000 # "
-				V[ ibaddata ] = 10000 # " smaller still
-
-        O$yr = y
-        O$wmin = NA
-        O$wmax = NA
-        O$tmin = NA
-        O$tmax = NA
-        O$tsd = NA
-        O$tmean = NA
-        O$tamplitude = NA
-        O$thalfperiod = NA
-        
-        O$wmin = apply( P, 1, which.min )
-        O$wmax = apply( P, 1, which.max )
-				O$tmin = apply( P, 1, min )
-        O$tmax = apply( P, 1, max )
-
-				W = 1/V^2   # weights: inverse variance, normalised
-				W = W / rowSums(W)
-				O$tmean = apply( P*W, 1, sum, na.rm=T)
-
-				SS = (P-O$tmean)^2 # sums of squares
-				O$tsd  = apply( SS*W, 1, sum, na.rm=T ) # weighted seasonal mean sums of squares
-
-				O$tamplitude = O$tmax- O$tmin  # approximate as sinusoid can span 2 yrs
-				
-				# half-period .. also approximate as sinusoid can also span 2 yrs
-				# sin tranf required to make circular and then take difference and rescale
-        O$thalfperiod = abs( sin(O$wmax/52*pi) - sin(O$wmin/52*pi) ) * 52/pi 
-      
-        fn =  file.path( outdir, paste("bottom.statistics.annual", y, "rdata", sep=".") )
-        save( O, file=fn, compress=T )
-    
-        rm (O, P) ; gc()
-      }
-      return ("Completed")
-    }
- 
-
-    if (DS %in% c( "bottom.mean", "bottom.mean.redo" )){
-			
-			# take a mean across all years
-			 
-			if (DS=="bottom.mean") {
-				fn = file.path( project.directory("temperature"), "data", p$spatial.domain, "predictions", paste(vname, "rdata", sep=".") )
-				P = NULL
-				if (file.exists(fn)) load(fn)
-				return(P)
-			}
-
-			if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
-      if (is.null(ip)) ip = 1:length(vname)
- 
-			for ( iv in ip ) {
-				vn = vname[iv]
-				B = NULL
-				for (y in yr ) {
-					H = hydro.db( p=p, DS="bottom.statistics.annual", yr=y ) 
-					B = cbind( B, H[, vn] )
-				}
-				
-				P = bathymetry.db( p=p, DS="baseline" )
-				P$new = rowMeans(B, na.rm=T)
-				P$z = NULL
-				names(P) = c("plon", "plat", vn)
-				fn = file.path( project.directory("temperature"), "data", p$spatial.domain, "predictions", paste(vn, "rdata", sep=".") )
-				save(P, file=fn, compress=T)
-
-			}
-
-      return( "Completed" )
-    }
-
     }
   
 

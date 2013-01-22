@@ -1,7 +1,7 @@
  
   make.maps.core = function( id=NULL, U, params, variables, plottimes, basedir, conversions, delta, init.files, db ) {
    
-    if (!is.null( init.files ) ) { for (ii in init.files) source(ii) }
+    if (!is.null( init.files ) )  for (ii in init.files) source(ii) 
     varnames = colnames(U)
      
     # the first index is a list that is passed from the calling prog: in this case "ssplt" (if parallel)
@@ -10,7 +10,8 @@
     
     for (i in id) {
       plotvar = variables[i]
-      if (! (plotvar %in% varnames) ) next
+      if (! (plotvar %in% varnames) ) next ()
+      
       for (ti in plottimes) {
         u = recode.time(U, ti, delta )  # delta is for running averages
         u[,plotvar] = variable.recode( u[,plotvar], plotvar, "forward", db=db) # check if log transform is needed
@@ -25,20 +26,17 @@
         
         dir.create ( params$outdir, recursive=T, showWarnings=F )
                 
-        for (i in sort(unique(u$yr)) ) {
-          toplot = u[which(u$yr==i),]
-          if (!is.null(dim)) {
-            toplot = toplot[,  c("lon", "lat", plotvar, "sa") ]
-            toplot = toplot[is.finite(toplot[,1]*toplot[,2]*toplot[,3] ),]
-            if (dim(toplot)[1]>0) {
-              params$outfile.basename = file.path(params$outdir, paste(plotvar, i, sep="."))
-              # print( params$outfile.basename )
-              smoothed = gmt.map( params, toplot, year=i, vname=plotvar, conversions=conversions )
-            }
+        for (j in sort(unique(u$yr)) ) {
+          oo = which(u$yr==j & is.finite( u[,1] + u[,2] + u[,3]+u[,4] ) )
+          if (length(oo) > 10 ) {
+            toplot = u[ oo,  c("lon", "lat", plotvar, "sa") ]
+            params$outfile.basename = file.path(params$outdir, paste(plotvar, j, sep="."))
+            # print( params$outfile.basename )
+            smoothed = gmt.map( params, toplot, year=j, vname=plotvar, conversions=conversions )
           }
         }
     }}
-    return (params)
+    return ()
   }
 
 

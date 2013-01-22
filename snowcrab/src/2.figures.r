@@ -66,6 +66,8 @@
   # Map: Basemap of the Scotian Shelf used by all other mapping routines
   #   creating a partial postscript file via GMT 
   #   .. only required if changing resolution or spatial extent
+    p$inp = ""
+
     gmt.basemap (p)
 
   # ------------------------------------------
@@ -79,44 +81,46 @@
 
 
 
-  # p$do.parallel = F
+  p$do.parallel = FALSE
+
   # ------------------------------------------
   # Map:  Mean/geometric mean of various variables in the set data table
-    map.set.information( p, plottimes=plottimes, outdir=file.path( project.directory("snowcrab"), "R", "maps", "survey" ), 
-      conversions=conversions, init.files=init.files  )
+    map.set.information( p, outdir=file.path( project.directory("snowcrab"), "R", "maps", "survey" )  )
 
   # ------------------------------------------
   # Map: Numerical density of by-catch species 
-    map.cat.information( p, plottimes=plottimes, outdir=file.path( project.directory("snowcrab"), "R", "maps", "species" ), 
-      conversions=conversions, init.files=init.files  )
+    map.cat.information( p, outdir=file.path( project.directory("snowcrab"), "R", "maps", "species" ) )
 
   # ------------------------------------------
   # Map:Fisheries logbook data (Effort, CPU, Landings)
-  map.fisheries.data( p, plottimes=plottimes, outdir=file.path(project.directory("snowcrab"), "R", "maps", "logbook") ,
-      conversions=conversions, init.files=init.files )
+    map.fisheries.data( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "logbook") )
 
   # ------------------------------------------
   # Map: Survey locations
     
-    map.survey.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps", "survey.locations"), conversions=conversions, newyear=F, map.method="lattice"  )
-    map.survey.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps", "survey.locations"), conversions=conversions, newyear=F, map.method="googleearth"  )
+    map.survey.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps", "survey.locations"),  newyear=F, map.method="lattice"  )
+    map.survey.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps", "survey.locations"),  newyear=F, map.method="googleearth"  )
 
   # ------------------------------------------
   # Map: Observer locations
-    map.observer.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps","observer.locations" ), conversions=conversions, newyear=F , map.method="lattice"  )
+    map.observer.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps","observer.locations" ), newyear=F , map.method="lattice"  )
 
   # ------------------------------------------
   # Map: Logbook recorded locations
-    map.logbook.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps","logbook.locations" ), conversions=conversions, newyear=F , map.method="lattice"  )
+    map.logbook.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps","logbook.locations" ), newyear=F , map.method="lattice"  )
 
   # ------------------------------------------
   # Map: Crab movement from mark-recapture data
-    map.movement( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "mark.recapture"), conversions=conversions, init.files=init.files  ) 
+    map.movement( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "mark.recapture") ) 
   
   # ------------------------------------------
   # Map: Spatial representation of maturity patterns of snow crab
-    map.maturity( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "maturity"), plottime=plottime, conversions=conversions init.files=init.files, newyear=T ) 
+    map.maturity( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "maturity"), newyear=T ) 
  
+
+
+
+
 
   ##########################################################################
   ###############################  Retired figures #########################

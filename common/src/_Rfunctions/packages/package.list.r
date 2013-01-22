@@ -3,7 +3,7 @@
 		
 		if (X=="basic") {
 			pkgs = c( "abind", "acepack", "ade4",  "aplpack",
-					"bigmemory", "boot", "car", "chron", "Cairo", "class" , "cluster", "colorout", "setwidth",
+					"bigmemory", "boot", "car", "chron", "Cairo", "class" , "cluster", "setwidth",
 					"date", "Design", "doBy", "eco", "effects", "filehash", "ff", "foreign", 
 					"gee", "geepack", "gamm4", "graph",  "Hmisc", "igraph", "its", "jit", "lattice", "lme4", 
 					"MASS", "maxLik", "mgcv", "mixdist", "mvtnorm", "nlme", "multcomp", "nlme", "nnet", "oz",
@@ -12,7 +12,7 @@
 					"scatterplot3d",  "systemfit", "sm", "sampling",
 					"SparseM", "splines", "stats", "stats4", "SuppDists", "TeachingDemos", "tools",
 					"tcltk",  "tseries", "utils",  "vegan", "waveslim", , 
-					"xtable","XML", "zoo", "R.oo", "geosphere", "VGAM", "vimcom", "colorout", "setwidth"  )	
+					"xtable","XML", "zoo", "R.oo", "geosphere", "VGAM", "vimcom", "setwidth"  )	
 			out = data.frame( cbind( pkgs=pkgs, repos=default.repository ) )
 		}
 		

@@ -44,7 +44,7 @@
   # Roger Pettipas .. bottom temperatures of Scotian shelf
   set = snowcrab.db( "set.merge.det" )
   varstoextract = c("t0", "lon", "lat", "z", "zsd", "t", "tsd")
-  t = set[ which(set$yr==2009), varstoextract]
+  t = set[ which(set$yr==2012), varstoextract]
 
   write.table(t, file="petipas.csv", col.names = T, row.names=F, quote=F, sep=" ; ")
 
@@ -55,7 +55,7 @@
      
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-  p = parameter.list.snowcrab ( current.assessment.year=2010, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2010, set="default")
   set = snowcrab.db("set.complete")
   # overrides:
   p$regions.to.model = "cfa.23ab.24ab"
@@ -95,7 +95,7 @@
   
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")
   set = snowcrab.db("set")
 
   # overrides:
@@ -130,7 +130,7 @@
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params") # <---------- !!!
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default") # <---------- !!!
 
   loc = file.path(p$annual.results, "size.data")
  
@@ -381,7 +381,7 @@ observer.data.request.oracle = function () {
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")
   set = snowcrab.db("set")
 
   # overrides:
@@ -490,7 +490,7 @@ observer.data.request.oracle = function () {
   
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")
   set = snowcrab.db("set")
 
   # overrides:  
@@ -638,4 +638,23 @@ loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
   set = set[ ii, ]
   set = set[ , c("yr", "lon", "lat") ]
   (set)
+
+
+
+# wolf fish extraction for Jim Simon
+loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+  
+Y = snowcrab.db( DS="cat.georeferenced" )
+
+lookup.spec2taxa(lookup.taxa2spec("wolffish"))
+spec = c(50, 51, 52)
+
+Y = Y[ which( Y$spec %in% spec & Y$yr %in% c(2009:2011) ) , ]
+Y$totmass = NULL
+Y$plon = NULL
+Y$plat = NULL
+Y$sa = NULL
+
+write.csv( Y, file="~/tmp/jim.csv" )
+
 

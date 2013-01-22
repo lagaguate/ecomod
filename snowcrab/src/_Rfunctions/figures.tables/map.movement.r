@@ -1,5 +1,5 @@
 
- map.movement = function( p, outdir,  conversions, init.files  ) {
+ map.movement = function( p, outdir ) {
  
     tags.datadir= file.path( project.directory("snowcrab"), "data", "tagging" )
 
@@ -17,7 +17,6 @@
     toplot = toplot[ is.finite(toplot$lon0 + toplot$lat0 + toplot$lon1 + toplot$lat1) ,]
     toplot = toplot[, c("lon0", "lat0", "lon1", "lat1")]
 
-    conversions = c("ps2png" )
     p$mapres = "2min"
     p$arrow = "-Svs0.01c/0.05c/0.03c -G50/50/250"
 
@@ -26,7 +25,7 @@
 
     if (redo.basemap) gmt.basemap (p)
 
-    gmt.arrows(p, toplot, conversions=c("ps2png", "ps2pdf"))
+    gmt.arrows(p, toplot, conversions=p$conversions )
    
     pause(30)
     files = sort( list.files( p$basedir, filter="[*.ps]$", all.files=T, full.names=T, recursive=T ))

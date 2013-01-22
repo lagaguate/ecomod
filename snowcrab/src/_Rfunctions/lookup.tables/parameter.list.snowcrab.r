@@ -1,5 +1,5 @@
 
-parameter.list.snowcrab = function( current.assessment.year, set="kriging.params" ) {
+parameter.list.snowcrab = function( current.assessment.year, set="default" ) {
  
   p = list()
   p$env.init = init.files  # from initialise.local.environment.r
@@ -49,7 +49,15 @@ parameter.list.snowcrab = function( current.assessment.year, set="kriging.params
     # p$inflection.z = 250
     # p$linearise.drift.terms = T
     p$threshold.distance = 5  # in km for merging fisheries data into the trawl data for external drift kriging
-    
+   
+
+    # default plotting time format
+    p$plottimes=c("annual", "globalaverage")
+
+    # default figure generation (from maps)
+    p$conversions=c("ps2png")
+
+
   return(p)
 }
 

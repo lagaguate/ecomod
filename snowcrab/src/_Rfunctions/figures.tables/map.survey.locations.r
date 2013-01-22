@@ -1,4 +1,4 @@
- map.survey.locations = function(p, basedir, conversions, newyear=T, map.method="GMT" ) {  
+ map.survey.locations = function(p, basedir, newyear=T, map.method="GMT" ) {  
 
     set = snowcrab.db( DS="set.clean")
     years = sort( unique( set$yr ) )
@@ -18,7 +18,7 @@
         toplot = set[ which(set$yr==y), c("lon", "lat")]
         p$outfile.basename = file.path(p$basedir, paste("survey.locations", y, sep=".") )
         print(  p$outfile.basename )
-        gmt.xyplot ( p, toplot, y, conversions=conversions  )
+        gmt.xyplot ( p, toplot, y, conversions=p$conversions  )
       }
 
       pause(30)

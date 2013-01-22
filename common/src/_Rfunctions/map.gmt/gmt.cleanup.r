@@ -1,7 +1,8 @@
 
-  gmt.cleanup = function( locations=tmpdir, pattern="^\\.gmt.*\\.ps$", time.filter=10 ) {
-  #gmt.cleanup = function( locations=tmpdir, pattern="^.gmt.*.ps$", time.filter=10 ) {
-    files.to.delete = list.files( path=tmpdir, pattern=pattern, all.files=T, 
+  gmt.cleanup = function( locations=NULL, pattern="^\\.gmt.*\\.ps$", time.filter=10 ) {
+    
+    if (is.null(locations)) locations=tempdir()
+    files.to.delete = list.files( path=locations, pattern=pattern, all.files=T, 
       full.names=T, recursive=F)
     dtime = which( 
         difftime( Sys.time(), file.info(files.to.delete)$mtime, units="mins") > time.filter 

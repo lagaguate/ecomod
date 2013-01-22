@@ -42,7 +42,7 @@
         y = yr[iy] 
         print(y)
         
-        H = hydro.db( p=p, DS="bottom.statistics.annual", yr=y )
+        H = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
         
         if ( p$spatial.domain=="snowcrab" ) {
           i = which( H$plon< 990 &  H$plon > 220  &   ## these are in planar coords  ..should fix this hack one day
@@ -109,7 +109,7 @@
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
  
         if (type %in% c("temperatures", "global") ) {
-          H = hydro.db( p=p, DS="bottom.mean",  vname="tmean" )
+          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tmean" )
           datacols = c("plon", "plat", "tmean")
           datarange = seq(-1,11, length.out=50)
           cols = color.code( "blue.black", datarange )
@@ -120,7 +120,7 @@
         }  
     
         if (type %in% c("amplitudes", "global") ) {
-          H = hydro.db( p=p, DS="bottom.mean",  vname="tamplitude")
+          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tamplitude")
           datacols = c("plon", "plat", "tamplitude")
           datarange = seq(0,10, length.out=50)
           cols = color.code( "blue.black", datarange )
@@ -131,7 +131,7 @@
         }  
     
         if (type %in% c("week.of.minima", "global") ) {
-          H = hydro.db( p=p, DS="bottom.mean",  vname="wmin")
+          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="wmin")
           datacols = c("plon", "plat", "wmin")
           datarange = seq(0,52, length.out=50)
           cols = color.code( "blue.yellow.blue", datarange )
@@ -142,7 +142,7 @@
                  }  
     
         if (type %in% c("halfperiod", "global") ) {
-          H = hydro.db( p=p, DS="bottom.mean",  vname="thalfperiod" )
+          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="thalfperiod" )
           datacols = c("plon", "plat", "thalfperiod")
           datarange = seq(0, 20, length.out=50)
           cols = color.code( "blue.black", datarange )
@@ -152,7 +152,7 @@
             fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
         }
         if (type %in% c("tsd", "global") ) {
-          H = hydro.db( p=p, DS="bottom.mean",  vname="tsd" )
+          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tsd" )
           datacols = c("plon", "plat", "tsd")
           datarange = seq(0, 5, length.out=50)
           cols = color.code( "blue.black", datarange )

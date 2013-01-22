@@ -1,33 +1,34 @@
-  map.set.information = function(p, plottimes, outdir, conversions, init.files, method="gmt" ) {
+  map.set.information = function(p, outdir, method="gmt" ) {
     
     set = snowcrab.db( DS="set.complete")
     variables = variable.list.expand("all.data")
 
     if (method =="gmt") {
       p$mapres = "2min"
-      p = gmt.resolution(p) # refresh due to change in mapres
-      
       p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
       p$maskres = "-S16k"
       p$interpres = "-Sb"
       
+      p = gmt.resolution(p) # refresh due to change in mapres
+      
       outdir = file.path( outdir, paste( p$mapres, p$spatial.domain, sep=".") )
            
-      make.maps( set, p=p, variables=variables, plottimes=plottimes, 
-        basedir=outdir, conversions=conversions, init.files=init.files )
+      make.maps( set, p=p, variables=variables, plottimes=p$plottimes, 
+        basedir=outdir, conversions=p$conversions, init.files=p$env.init )
     }
     
     if (method=="levelplot") {
       
       # define compact list of variable year combinations for parallel processing
-        p = list()
-        p = make.list( list(variables, mapyears ), Y=p )
- 
-      for (i in init.files) source( i )
+      mapyears = sort( unique(set$yr) )
+      p = make.list( list(variables, mapyears ), Y=p )
+
+      for (i in p$env.init ) source( i )
+     
       if ( is.null(id)) id = c(1: p$nruns ) 
       id = as.numeric(id)
 
-      for (i in ip ) {
+      for (i in id ) {
         v = p$runs[i,1]
         y = p$runs[i,2]
         outfn = paste( "test", sep=".")
@@ -38,7 +39,9 @@
         corners = data.frame(rbind( cbind( plon=c(220, 990), plat=c(4750, 5270) )))
         cols = colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
         # cols = colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
-        map( xyz, xyz.coords="planar", cfa.regions=T, depthcontours=T, pts=xyz, annot=y, fn=outfn, loc=outloc, at=datarange , col.regions=cols(length(datarange)+1), colpts=T, corners=planar.corners )
+        names( xyz) = c("plon", "plat", "z")
+        
+        map( xyz, xyz.coords="planar", cfa.regions=T, depthcontours=T, pts=xyz, annot=y, fn=outfn, loc=outloc, at=datarange , col.regions=cols(length(datarange)+1), colpts=T, corners=p$planar.corners )
       }
 
     }

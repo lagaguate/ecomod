@@ -5,7 +5,7 @@
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="kriging.params")  # <---------- !!!
+  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")  # <---------- !!!
   q = get.population.projection.parameters( assessment.year = p$current.assessment.year )
   
   scenario = "mature.only"

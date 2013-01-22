@@ -1,34 +1,34 @@
-  gmt.basemap = function( params, redo.bin=F ) {
-     params = gmt.resolution(params)
-     params = gmt.projection(params)
-     params = gmt.defineregion(params)
+  gmt.basemap = function( P, redo.bin=F ) {
+     
+     P = gmt.resolution(P)
+     P = gmt.projection(P)
+     P = gmt.defineregion(P)
 
 		 tmpdir  = tempdir()
   
-     with(params, {
-      append = "-O -K"
+      gmtappend = "-O -K"
       bathy.mask = file.path(tmpdir, make.random.string("gmt.depth.mask") )
       gmt.clip = file.path(tmpdir, make.random.string(".gmt.clip") )
       gmt.depths = file.path(tmpdir, make.random.string(".gmt.depths") )
       gmt.depth.mask = file.path(tmpdir, make.random.string(".gmt.depth.mask") )
       gmt.data.landmask = file.path(tmpdir, make.random.string(".gmt.data.landmask") )
 
-      # make the basemap with bathimetry; "basemap" is defined in the params list
-      bath.inp.bin = gsub(".xyz$", ".bin", inp)
+      # make the basemap with bathimetry; "basemap" is defined in the P list
+      bath.inp.bin = gsub(".xyz$", ".bin", P$inp)
 
-      if ( !file.exists(bath.inp.bin) | redo.bin ) cmd( "gmtconvert -bo", inp, ">", bath.inp.bin )
+      if ( !file.exists(bath.inp.bin) | redo.bin ) cmd( "gmtconvert -bo", P$inp, ">", bath.inp.bin )
 
-      cmd( "blockmedian -bi -bo", bath.inp.bin, region, res, ">", gmt.clip )
-      cmd( "surface -bi", gmt.clip, region, res, bathy.tension, paste("-G", gmt.depths, sep="" ) )
-      cmd( "psmask -bi",  bath.inp.bin, region, res, bathy.maskres, gmtproj, append, ">", basemap )
-      cmd( "grdclip", gmt.depths, bathy.zrange, paste("-G", gmt.depth.mask, sep="") )
-      cmd( "grdlandmask", region, res,"-N1/NaN/NaN/NaN/NaN -Di", paste("-G", gmt.data.landmask, sep="") )
+      cmd( "blockmedian -bi -bo", bath.inp.bin, P$region, P$res, ">", gmt.clip )
+      cmd( "surface -bi", gmt.clip, P$region, P$res, P$bathy.tension, paste("-G", gmt.depths, sep="" ) )
+      cmd( "psmask -bi",  bath.inp.bin, P$region, P$res, P$bathy.maskres, P$gmtproj, gmtappend, ">", P$basemap )
+      cmd( "grdclip", gmt.depths, P$bathy.zrange, paste("-G", gmt.depth.mask, sep="") )
+      cmd( "grdlandmask", P$region, P$res,"-N1/NaN/NaN/NaN/NaN -Di", paste("-G", gmt.data.landmask, sep="") )
       cmd( "grdmath", gmt.data.landmask,  gmt.depth.mask, "MUL =", bathy.mask)
-      cmd( "grdcontour", bathy.mask, gmtproj, bathy.contour, append, ">>", basemap )
-      cmd( "psmask -C", append, ">>", basemap )
+      cmd( "grdcontour", bathy.mask, P$gmtproj, P$bathy.contour, gmtappend, ">>", P$basemap )
+      cmd( "psmask -C", gmtappend, ">>", P$basemap )
 
       remove.files ( c( bathy.mask, gmt.clip, gmt.depths, gmt.depth.mask, gmt.data.landmask) )
-    }) # end with
+  
   }
 
 

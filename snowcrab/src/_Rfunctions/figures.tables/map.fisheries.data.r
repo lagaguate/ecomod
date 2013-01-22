@@ -1,5 +1,5 @@
 
-  map.fisheries.data = function(p, plottimes, outdir, conversions, init.files ) {
+  map.fisheries.data = function(p, outdir ) {
     x = logbook.db( DS="logbook" )
     x$landings = x$landings/1000  # convert kg to ton
     x$sa = 1  # this a dummy variable required by the mapping routine
@@ -20,11 +20,11 @@
 
     variables = c("landings", "effort")
     p$blocktype="sum"
-    make.maps( x, p, variables, plottimes, outdir, conversions, init.files=init.files)
+    make.maps( x, p, variables, p$plottimes, outdir, p$conversions, init.files=p$env.init)
 
     variables = c("cpue")
     p$blocktype="mean"
-    make.maps( x, p, variables, plottimes, outdir, conversions, init.files=init.files)
+    make.maps( x, p, variables, p$plottimes, outdir, p$conversions, init.files=p$env.init)
     return( "Done" )
   }
 

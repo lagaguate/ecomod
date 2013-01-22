@@ -1,5 +1,5 @@
 
-  map.observer.locations = function(p, basedir, conversions, newyear=T , map.method="GMT" ) {
+  map.observer.locations = function(p, basedir, newyear=T , map.method="GMT" ) {
     
     odb = observer.db( DS="odb")
     odb$yr = odb$fishyr  # use fishyr and not the real year ###################
@@ -20,7 +20,7 @@
         if ( length(ii)  < 10)  next()
         toplot = odb[ii, c("lon", "lat")]
         p$outfile.basename = file.path(p$basedir, paste("observer.locations", y, sep=".") )
-        gmt.xyplot ( p, toplot, y, conversions=conversions )
+        gmt.xyplot ( p, toplot, y, conversions=p$conversions )
       }
       pause(30)
       files.to.delete =  list.files( p$basedir, "^observer.locations.*.ps$", all.files=T, full.names=T, recursive=T )

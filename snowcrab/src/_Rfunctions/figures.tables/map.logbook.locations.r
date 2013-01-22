@@ -1,5 +1,5 @@
 
-  map.logbook.locations = function(p, basedir, conversions, newyear=T, map.method="GMT"  ) {
+  map.logbook.locations = function(p, basedir, newyear=T, map.method="GMT"  ) {
     
     x = logbook.db( DS="logbook" )
     x = x[filter.region.polygon(x, region="isobath1000m"),]
@@ -21,7 +21,7 @@
         if ( length(ii)  < 10 ) next()
         toplot = x[ ii, c("lon", "lat")]
         p$outfile.basename = file.path(p$basedir, paste("logbook.locations", y, sep=".") )
-        gmt.xyplot ( p, toplot, y, conversions=conversions )
+        gmt.xyplot ( p, toplot, y, conversions=p$conversions )
       }
 
       pause(30)

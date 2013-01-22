@@ -7,7 +7,7 @@
  
 # ----------------
 # define basic parameters  ... years need to be updated as appropriate
-  tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+  p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
   newyear = c( 2012)
 
 
@@ -37,33 +37,38 @@ Nafo5Zw
   # must download manually to this directory and run gzip
 
 
+  baseleveldata = TRUE
 
-  j = "canada.east"  # only one data stream necessary at present .. the largest extent
-    p = spatial.parameters( type=j )
-    p$env.init = env.init
-    
-    # ----------------
-    # extract all hydro data and add snow crab and groundfish data
-      hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) 
-    # hydro.db( DS="osd.oneoff.singleyear.redo", yr=2011, p=p ) 
-    # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical)
-    # hydro.db( DS="osd.rawdata.all.redo", yr=tyears, p=p )  
- 
-    # ----------------
-      hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=tyears
-    # or if in parallel mode: 
-    # parallel.run( clusters=rep("localhost",23), n=length(tyears), p=p, FUNC=hydro.db, yr=tyears, DS="profiles.annual.redo", env.init=env.init ) 
+    if (baseleveldata) {
 
-    # ----------------
-   	# extract bottom data
-      hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
-		# hydro.db( DS="bottom.annual.redo", yr=tyears )
-		# parallel.run( clusters=rep("localhost",16), n=length(tyears), FUNC=hydro.db, yr=tyears, p=p,  DS="bottom.annual.redo", env.init=env.init ) 
+      j = "canada.east"  # only one data stream necessary at present .. the largest extent
+      p = spatial.parameters( type=j )
+      p$env.init = env.init
+      
+      # ----------------
+      # extract all hydro data and add snow crab and groundfish data
+        hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) 
+      # hydro.db( DS="osd.oneoff.singleyear.redo", yr=2011, p=p ) 
+      # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical)
+      # hydro.db( DS="osd.rawdata.all.redo", yr=p$tyears, p=p )  
+   
+      # ----------------
+        hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=p$tyears
+      # or if in parallel mode: 
+      # parallel.run( clusters=rep("localhost",23), n=length(p$tyears), p=p, FUNC=hydro.db, yr=p$tyears, DS="profiles.annual.redo", env.init=env.init ) 
+
+      # ----------------
+      # extract bottom data
+        hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
+      # hydro.db( DS="bottom.annual.redo", yr=p$tyears )
+      # parallel.run( clusters=rep("localhost",16), n=length(p$tyears), FUNC=hydro.db, yr=p$tyears, p=p,  DS="bottom.annual.redo", env.init=env.init ) 
+
+  }
 
 
 
 
-  # area-specific divisions to optimize speed for snow crab /SSE only results 
+  # Now do area-specific divisions to optimize speed for snow crab /SSE only results 
   # ... canada.east can be completed when time permits
   #   j = "SSE"
 
@@ -78,11 +83,11 @@ Nafo5Zw
 		
  		# ----------------
     # grid bottom data    
-			hydro.db( p=p, DS="bottom.gridded.redo", yr=tyears )
+			hydro.db( p=p, DS="bottom.gridded.redo", yr=p$tyears )
 		
  		# ----------------
     # this glues all the years together
-      hydro.db( p=p, DS="bottom.gridded.all.redo", yr=tyears  ) 
+      hydro.db( p=p, DS="bottom.gridded.all.redo", yr=p$tyears  ) 
    			
  		# ----------------
     # temporal interpolations assuming a sinusoidal seasonal pattern 
@@ -90,42 +95,43 @@ Nafo5Zw
     # going across computers using a backing file and is slow and prone to overloading socket connections
     # but, cannot use RAM as bigmemory does not allocate RAM > 20GB ? 
     # It is faster to use RAM but this limits the no of CPUS that can be used to that found on a single machine:
+      uselocalonly = TRUE
       if ( uselocalonly ) {
-        p$clusters = rep("localhost",  24) # debug
-        hydro.db( p=p, DS="temporal.interpolation.redo.RAM", yr=tyears ) 
+        p$clusters = rep("localhost",  20) # debug
+        hydro.db( p=p, DS="temporal.interpolation.redo.RAM") 
       } else {
-        hydro.db( p=p, DS="temporal.interpolation.redo", yr=tyears ) 
+        hydro.db( p=p, DS="temporal.interpolation.redo" ) 
       }
 
  		# ----------------
     # simple spatial interpolation (complex takes too much time/cpu)
     # in parallel mode with 4 cpus ~ 30 minutes
-    # hydro.db( p=p, DS="spatial.interpolation.redo", yr=tyears ) 
+    # hydro.db( p=p, DS="spatial.interpolation.redo", yr=p$tyears ) 
     p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) )
-    parallel.run( clusters=p$clusters, n=length(tyears), 	hydro.db, p=p, DS="spatial.interpolation.redo", yr=tyears ) 
+    parallel.run( clusters=p$clusters, n=length(p$tyears), 	hydro.db, p=p, DS="spatial.interpolation.redo", yr=p$tyears ) 
   
  		# ----------------
     # extract relevant statistics
-    # hydro.db(  p=p, DS="bottom.statistics.annual.redo", yr=tyears )
+    # hydro.modelled.db(  p=p, DS="bottom.statistics.annual.redo" )
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
     p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) )
-    parallel.run( clusters=p$clusters, n=length(tyears), 	hydro.db, p=p, DS="bottom.statistics.annual.redo", yr=tyears ) 
+    parallel.run( clusters=p$clusters, n=length(p$tyears), 	hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
 
     # ----------------
     # annual means of key statistics
     # 4 cpu's ~ 5 min
     bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
-    # hydro.db(  p=p, DS="bottom.mean.redo", vname=bstats, yr=tyears ) 
+    # hydro.modelled.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
     p$clusters = rep( "nyx", length(bstats) )
-    parallel.run( clusters=p$clusters, n=length(bstats), hydro.db, p=p, DS="bottom.mean.redo", vname=bstats, yr=tyears  )  
+    parallel.run( clusters=p$clusters, n=length(bstats), hydro.modelled.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
 
     # ----------------
-    # hydro.map( p=p, yr=tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
-    # hydro.map( p=p, yr=tyears, type="global" ) # or run parallel ;;; type="annual does all maps
+    # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
+    # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
     p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
-    parallel.run( clusters=p$clusters, n=length(tyears), hydro.map, p=p, yr=tyears, type="annual"  ) 
-    parallel.run( clusters=p$clusters, n=length(tyears), hydro.map, p=p, yr=tyears, type="global") 
+    parallel.run( clusters=p$clusters, n=length(p$tyears), hydro.map, p=p, yr=p$tyears, type="annual"  ) 
+    parallel.run( clusters=p$clusters, n=length(p$tyears), hydro.map, p=p, yr=p$tyears, type="global") 
 
   }
 

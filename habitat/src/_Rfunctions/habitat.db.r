@@ -44,19 +44,19 @@
       PS = merge( PS, dZ, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       PS = merge( PS, ddZ, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       
-      E.tmean = hydro.db( p=p, DS="bottom.mean", vname="tmean" ) 
+      E.tmean = hydro.modelled.db( p=p, DS="bottom.mean", vname="tmean" ) 
       names(E.tmean) = c("plon", "plat", "tmean")
 
-      E.tamp  = hydro.db( p=p, DS="bottom.mean", vname="tamplitude"  ) 
+      E.tamp  = hydro.modelled.db( p=p, DS="bottom.mean", vname="tamplitude"  ) 
       names(E.tamp) = c("plon", "plat", "tamp")
 
-      E.wmin  = hydro.db( p=p,  DS="bottom.mean", vname="wmin"  ) 
+      E.wmin  = hydro.modelled.db( p=p,  DS="bottom.mean", vname="wmin"  ) 
       names(E.wmin) = c("plon", "plat", "wmin")
 
-      E.thp   = hydro.db( p=p,  DS="bottom.mean", vname="thalfperiod" ) 
+      E.thp   = hydro.modelled.db( p=p,  DS="bottom.mean", vname="thalfperiod" ) 
       names(E.thp) = c("plon", "plat", "thp")
 
-      E.tsd   = hydro.db( p=p,  DS="bottom.mean", vname="tsd" ) 
+      E.tsd   = hydro.modelled.db( p=p,  DS="bottom.mean", vname="tsd" ) 
       names(E.tsd) = c("plon", "plat", "tsd")
      
       PS = merge( PS, E.tmean, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
@@ -116,7 +116,7 @@
         print (yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
 
-        E = hydro.db( DS="bottom.statistics.annual", p=p, yr=yr  ) 
+        E = hydro.modelled.db( DS="bottom.statistics.annual", p=p, yr=yr  ) 
        
         PS = habitat.db( DS="baseline", p=p )  
         PS$id = 1:nrow(PS)
