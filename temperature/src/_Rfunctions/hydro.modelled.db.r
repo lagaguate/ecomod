@@ -1,5 +1,5 @@
 
-  hydro.modelled.db = function( p, DS, vname, yr ) {
+  hydro.modelled.db = function( p, DS, vname, yr=NULL ) {
 
     if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo" )){
       

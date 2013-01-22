@@ -98,9 +98,9 @@ Nafo5Zw
       uselocalonly = TRUE
       if ( uselocalonly ) {
         p$clusters = rep("localhost",  20) # debug
-        hydro.db( p=p, DS="temporal.interpolation.redo.RAM") 
+        temperature.interpolations( p=p, DS="temporal.interpolation.redo.RAM") 
       } else {
-        hydro.db( p=p, DS="temporal.interpolation.redo" ) 
+        temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
       }
 
  		# ----------------
