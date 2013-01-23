@@ -121,7 +121,7 @@
 			for (Y in yrs) {
 				print( Y )
 		  
-				PS = hydro.db( p=p, DS="spatial.interpolation", yr=Y  )
+				PS = temperature.interpolations( p=p, DS="spatial.interpolation", yr=Y  )
 				if (is.null(PS)) next ()
      		
 				PS[ PS < -2 ] = -2

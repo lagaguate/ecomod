@@ -36,7 +36,7 @@
 				PS$weekno = p$prediction.weekno  # must be same as above
 				PS$t = NA
          
-        PST = hydro.db( p=p, DS="spatial.interpolation", yr=y  )
+        PST = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
 				if (is.null(PST)) next ()
 				
         PS$t = PST[, p$prediction.weekno ]

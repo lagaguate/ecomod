@@ -1,127 +1,127 @@
 
 
   hydro.db = function( ip=NULL, p=NULL, DS=NULL, yr=NULL, vname=NULL, additional.data=c("groundfish", "snowcrab"), ...) {
+
+    # manipulate temperature databases from osd, groundfish and snow crab and grid them 
+
+    # OSD data source is 
+    # http://www.meds-sdmm.dfo-mpo.gc.ca/zmp/climate/climate_e.htm
+    # http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html 
+    ## must download manually to this directory and run gzip
+    ## use choijae/Jc#00390
+    ## depths: 500,500, "complete profile"   .. raw data  for the SS
+    # (USER Defined -- region: jc.ss")
+    basedir = project.directory("temperature", "data" )
+    loc.archive = file.path( basedir, "archive", "profiles", p$spatial.domain )
+    loc.basedata = file.path( basedir, "basedata", "rawdata", p$spatial.domain )
     
-    # data source is http://www.meds-sdmm.dfo-mpo.gc.ca/zmp/climate/climate_e.htm
-      ## must download manually to this directory and run gzip
-      ## from choijae; "Jc#00390" :: (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
-      ## depths: 500,500, "complete profile"   .. raw data  for the SS
-      # (USER Defined -- region: jc.ss")
-      basedir = project.directory("temperature", "data" )
-      loc.archive = file.path( basedir, "archive", "profiles", p$spatial.domain )
-      loc.basedata = file.path( basedir, "basedata", "rawdata", p$spatial.domain )
-      
-      dir.create( loc.basedata, recursive=T, showWarnings=F )
-      
-      # OSD data series variables of interest
-			varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE" ,"SALINITY" ,"SIGMAT" ) 
-   
-
-
-      if ( DS == "osd.rawdata" ) {
-        # simple loading of annual data files
-        out = NULL
-        for ( y in yr ) {
-          print (y)
-          fn = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
-          if (file.exists ( fn ) ) {
-            load(fn)
-            out = rbind( out, X )
-          }
+    dir.create( loc.basedata, recursive=T, showWarnings=F )
+    
+    # OSD data series variables of interest
+    varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE" ,"SALINITY" ,"SIGMAT" ) 
+ 
+    if ( DS == "osd.rawdata" ) {
+      # simple loading of annual data files
+      out = NULL
+      for ( y in yr ) {
+        print (y)
+        fn = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+        if (file.exists ( fn ) ) {
+          load(fn)
+          out = rbind( out, X )
         }
-        return ( out )
+      }
+      return ( out )
+    }
+
+				
+    if ( DS=="osd.rawdata.allfiles.redo" ) {
+      fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
+      X = NULL
+      for (fn in fn.all) {
+        f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
+        f = f[,varlist] 
+        fyears = as.numeric( matrix( unlist( strsplit( f$CRUISE_DATE, "/" ) ), ncol=3, byrow=T) [,3] )
+        years = sort( unique( fyears ))
+        for (yrs in years) {
+          fn.out = file.path( loc.basedata,  paste( "osd.rawdata", yrs, "rdata", sep=".") )
+          print( paste(yrs, ":", fn.out) )
+          X = f[ which( fyears == yrs) ,]
+          names(X) = tolower( names(X) )
+          X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+          X$cruise_date = NULL
+          save( X, file=fn.out, compress=T) 
+
+        }
       }
 
-				
-				if ( DS=="osd.rawdata.allfiles.redo" ) {
-					fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
-					X = NULL
-					for (fn in fn.all) {
-						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
-						f = f[,varlist] 
-						fyears = as.numeric( matrix( unlist( strsplit( f$CRUISE_DATE, "/" ) ), ncol=3, byrow=T) [,3] )
-						years = sort( unique( fyears ))
-						for (yrs in years) {
-							fn.out = file.path( loc.basedata,  paste( "osd.rawdata", yrs, "rdata", sep=".") )
-							print( paste(yrs, ":", fn.out) )
-							X = f[ which( fyears == yrs) ,]
-							names(X) = tolower( names(X) )
-							X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-							X$cruise_date = NULL
-							save( X, file=fn.out, compress=T) 
+    } 
+    
+    if (DS=="osd.rawdata.singleyear.redo" ) {
+      for ( y in yr) {
+        X = NULL
+        fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
+        fn = fn.all[ grep (as.character(y), fn.all) ]
+        f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
+        X = f[,varlist]
+         
+        fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+        names(X) = tolower( names(X) )
+        X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+        X$cruise_date = NULL
+        save( X, file=fn.out, compress=T)
+      }
+    } 
+    
+    if (DS=="osd.oneoff.singleyear.redo" ) {
+        ## this is a data dump directly from Roger Petipas	
+        X = NULL
+        fn.all = list.files( path=loc.archive, pattern="partial.*.gz", full.names=T) 
+        fn = fn.all[ grep (as.character(yr), fn.all) ]
+        f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
+        colnames(f) =  c( "cruiseid", "latitude", "longitude", "cruise_date", "time", 
+            "pressure", "temperature", "salinity", "sigmat", "stationid" ) 
+        f$depth = decibar2depth ( P=f$pressure, lat=f$latitude )
+        X = f[,tolower(varlist)]
 
-						}
-					}
+        fn.out = file.path( loc.basedata, paste( "osd.rawdata", yr, "rdata", sep=".") )
+        names(X) = tolower( names(X) )
+        X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+        X$cruise_date = NULL
+        save( X, file=fn.out, compress=T)
+    }
 
-				} 
+    if (DS=="osd.oneoff.petipas.redo" ) {
+      ## this is another data dump directly from Roger Petipasfort 2010 to 2012 using MSACCESS -> text
+      ## and merging here
+      datadir = file.path( loc.archive, "petitpas" )
+      yrs = c(2010:2012)
+      for ( y in yrs ) {
+        fndata = file.path( datadir, paste( "temp_dt_", y, ".txt", sep="" ) )
+        fnset = file.path( datadir, paste( "temp_st_", y, ".txt", sep="" ) )
         
-        if (DS=="osd.rawdata.singleyear.redo" ) {
-					for ( y in yr) {
-						X = NULL
-						fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
-						fn = fn.all[ grep (as.character(y), fn.all) ]
-						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
-						X = f[,varlist]
-						 
-						fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
-						names(X) = tolower( names(X) )
-						X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-						X$cruise_date = NULL
-						save( X, file=fn.out, compress=T)
-					}
-				} 
+        tdata = read.csv( file=fndata, header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
+        names( tdata) = c("pressure", "temperature", "salinity", "sigmat", "stationid" )
+
+        tsets = read.csv( file=fnset, header=TRUE, stringsAsFactors=FALSE , na.strings="9999" )
+        names( tsets) = c("cruiseid", "latitude", "longitude", "cruise_date", "time", "depth_sounding", "pmax", "stationid" )
+
+        X = merge( tdata, tsets, by="stationid", all.x=TRUE, all.y=FALSE )
+        X$depth = decibar2depth ( P=X$pressure, lat=X$latitude )
         
-        if (DS=="osd.oneoff.singleyear.redo" ) {
-					  ## this is a data dump directly from Roger Petipas	
-            X = NULL
-						fn.all = list.files( path=loc.archive, pattern="partial.*.gz", full.names=T) 
-						fn = fn.all[ grep (as.character(yr), fn.all) ]
-						f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
-						colnames(f) =  c( "cruiseid", "latitude", "longitude", "cruise_date", "time", 
-                "pressure", "temperature", "salinity", "sigmat", "stationid" ) 
-            f$depth = decibar2depth ( P=f$pressure, lat=f$latitude )
-            X = f[,tolower(varlist)]
+        X = X[,tolower(varlist)]
+  
+        fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+        names(X) = tolower( names(X) )
+        X$cruise_date = gsub(  "0:00:00", "", X$cruise_date )
 
-						fn.out = file.path( loc.basedata, paste( "osd.rawdata", yr, "rdata", sep=".") )
-						names(X) = tolower( names(X) )
-						X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-						X$cruise_date = NULL
-						save( X, file=fn.out, compress=T)
-				}
+        X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+        X$cruise_date = NULL
+        save( X, file=fn.out, compress=T)
+      }
+     
+    }
 
-        if (DS=="osd.oneoff.petipas.redo" ) {
- 					## this is another data dump directly from Roger Petipasfort 2010 to 2012 using MSACCESS -> text
-          ## and merging here
-            datadir = file.path( loc.archive, "petitpas" )
-            yrs = c(2010:2012)
-            for ( y in yrs ) {
-              fndata = file.path( datadir, paste( "temp_dt_", y, ".txt", sep="" ) )
-              fnset = file.path( datadir, paste( "temp_st_", y, ".txt", sep="" ) )
-              
-              tdata = read.csv( file=fndata, header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
-              names( tdata) = c("pressure", "temperature", "salinity", "sigmat", "stationid" )
-
-              tsets = read.csv( file=fnset, header=TRUE, stringsAsFactors=FALSE , na.strings="9999" )
-              names( tsets) = c("cruiseid", "latitude", "longitude", "cruise_date", "time", "depth_sounding", "pmax", "stationid" )
-
-              X = merge( tdata, tsets, by="stationid", all.x=TRUE, all.y=FALSE )
-              X$depth = decibar2depth ( P=X$pressure, lat=X$latitude )
-              
-              X = X[,tolower(varlist)]
-				
-              fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
-  						names(X) = tolower( names(X) )
-	  					X$cruise_date = gsub(  "0:00:00", "", X$cruise_date )
-
-              X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-		  				X$cruise_date = NULL
-			  			save( X, file=fn.out, compress=T)
-            }
-           
-        }
-
-
-      
 
     # ----------------  
 
@@ -166,7 +166,6 @@
       grdfish = groundfish.db( "gshyd.georef" )
 			
       p = p0
-
 
       for (iy in ip) {
         yt = yr[iy]

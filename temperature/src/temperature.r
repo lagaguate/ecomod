@@ -98,17 +98,17 @@ Nafo5Zw
       uselocalonly = TRUE
       if ( uselocalonly ) {
         p$clusters = rep("localhost",  20) # debug
-        temperature.interpolations( p=p, DS="temporal.interpolation.redo.RAM") 
+        temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="RAM" ) 
       } else {
-        temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
+        temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="FILE"  ) 
       }
 
  		# ----------------
     # simple spatial interpolation (complex takes too much time/cpu)
     # in parallel mode with 4 cpus ~ 30 minutes
-    # hydro.db( p=p, DS="spatial.interpolation.redo", yr=p$tyears ) 
+    # temperature.interpolations( p=p, DS="spatial.interpolation.redo" ) 
     p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) )
-    parallel.run( clusters=p$clusters, n=length(p$tyears), 	hydro.db, p=p, DS="spatial.interpolation.redo", yr=p$tyears ) 
+    parallel.run( clusters=p$clusters, n=length(p$tyears), temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
   
  		# ----------------
     # extract relevant statistics
@@ -116,7 +116,7 @@ Nafo5Zw
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
     p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) )
-    parallel.run( clusters=p$clusters, n=length(p$tyears), 	hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
+    parallel.run( clusters=p$clusters, n=length(p$tyears),	hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
 
     # ----------------
     # annual means of key statistics

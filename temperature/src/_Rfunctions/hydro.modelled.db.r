@@ -15,7 +15,7 @@
         
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
       if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
-      if (is.null(ip)) ip = 1:length(tyears)
+      if (is.null(ip)) ip = 1:length(p$tyears)
  
       require( gstat )
 
@@ -24,13 +24,13 @@
 				print ( paste("Year:", y)  )
 				
 				O = bathymetry.db( p=p, DS="baseline" )
-        P = hydro.db( p=p, DS="spatial.interpolation", yr=y  )
+        P = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
      		P[ P < -2 ] = -2  # shrink weighting of unreasonably small SEs
 			  P[ P > 30 ] = 30 
 			  ibaddata = which( !is.finite(P) )
 				P[ ibaddata ] = mean(P, na.rm=T )
 				
-				V = hydro.db( p=p, DS="spatial.interpolation.se", yr=y  )
+				V = temperature.interpolations( p=p, DS="spatial.interpolation.se", yr=y  )
 				V[ V < 0.1 ] = 100  # shrink weighting of unreasonably small SEs
 			  V[ which( !is.finite(V)) ] = 1000 # "
 				V[ ibaddata ] = 10000 # " smaller still

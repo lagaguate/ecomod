@@ -23,7 +23,7 @@
 			
 			for ( mm in ip ) {
 				Pi=P[mm,]
-						
+			  # print (mm)			
 				for ( dm in p$dist.multiplier ) { 
 					drange = p$dist.km * c(-1,1) * dm
 					plon0 = Pi$plon + drange
@@ -138,8 +138,6 @@
 					}
 				}
 				
-
-					
 				if ( "try-error" %in% class(e) ) next()  # no solutions
 
 				debug = F
