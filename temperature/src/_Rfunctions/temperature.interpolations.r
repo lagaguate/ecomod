@@ -49,6 +49,7 @@
       df2 = paste(bf2, "desc",sep=".")
 		
 
+      # create the data objects either in RAM or as a FILE
       if (method == "FILE" ) {
 
         # backingdirectory location does not seem to work in V 4.2.3 .. defaulting to home dir
@@ -62,7 +63,7 @@
 
       }
 
-      # required to operate in parallel 
+      # required to operate with bigmemory objects in parallel 
       p$tbot.desc = describe(tbot)
       p$tbot.se.desc = describe(tbot.se)
  

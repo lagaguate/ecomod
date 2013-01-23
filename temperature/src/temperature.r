@@ -3,14 +3,16 @@
   require(gstat)
   require(snow)
 
-	env.init = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+
  
-# ----------------
-# define basic parameters  ... years need to be updated as appropriate
-  p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  newyear = c( 2012)
-
-
+  # ----------------
+  # Prep OSD, snow crab and groundfish temperature profiles    
+  # this one has to be done manually .. 2008 data still pending,
+  # temperature.profiles = hydro.db( DS="osd.rawdata.refresh" )  
+  
+  # from choijae; Jc#00390 :: (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
+  # depths: 500,500, "complete profile"   .. raw data  for the SS (region: jc.ss")
+  # must download manually to this directory and run gzip
 
   NOTE :: SSE seems to contain more data than the canada.east ! check this with OSD people why
 "canada.east" =
@@ -26,59 +28,56 @@ Nafo4W
 Nafo4X
 Nafo5Ze
 Nafo5Zw
+     
+
+
+    # start data uptake and processing
+
+    p = list()
+    p$env.init = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+    p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+    p$newyear = newyear = c( 2012)
+    p = spatial.parameters( p=p, type= "canada.east" )  # only one data stream necessary at present .. the largest extent
+
+     
+    # ----------------
+    # extract all hydro data and add snow crab and groundfish data
+      hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) 
+    # hydro.db( DS="osd.oneoff.singleyear.redo", yr=2011, p=p ) 
+    # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical)
+    # hydro.db( DS="osd.rawdata.all.redo", yr=p$tyears, p=p )  
+ 
+    # ----------------
+      hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=p$tyears
+    # or if in parallel mode: 
+    # parallel.run( clusters=rep("localhost",23), n=length(p$tyears), p=p, FUNC=hydro.db, yr=p$tyears, DS="profiles.annual.redo", env.init=p$env.init ) 
+
+    # ----------------
+    # extract bottom data
+      hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
+    # hydro.db( DS="bottom.annual.redo", yr=p$tyears )
+    # parallel.run( clusters=rep("localhost",16), n=length(p$tyears), FUNC=hydro.db, yr=p$tyears, p=p,  DS="bottom.annual.redo", env.init=p$env.init ) 
+
   
+
+
   # ----------------
-  # Prep OSD, snow crab and groundfish temperature profiles    
-  # this one has to be done manually .. 2008 data still pending,
-  # temperature.profiles = hydro.db( DS="osd.rawdata.refresh" )  
+  # Basic data uptake now complete
   
-  # from choijae; Jc#00390 :: (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
-  # depths: 500,500, "complete profile"   .. raw data  for the SS (region: jc.ss")
-  # must download manually to this directory and run gzip
-
-
-  baseleveldata = TRUE
-
-    if (baseleveldata) {
-
-      j = "canada.east"  # only one data stream necessary at present .. the largest extent
-      p = spatial.parameters( type=j )
-      p$env.init = env.init
-      
-      # ----------------
-      # extract all hydro data and add snow crab and groundfish data
-        hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) 
-      # hydro.db( DS="osd.oneoff.singleyear.redo", yr=2011, p=p ) 
-      # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical)
-      # hydro.db( DS="osd.rawdata.all.redo", yr=p$tyears, p=p )  
-   
-      # ----------------
-        hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=p$tyears
-      # or if in parallel mode: 
-      # parallel.run( clusters=rep("localhost",23), n=length(p$tyears), p=p, FUNC=hydro.db, yr=p$tyears, DS="profiles.annual.redo", env.init=env.init ) 
-
-      # ----------------
-      # extract bottom data
-        hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
-      # hydro.db( DS="bottom.annual.redo", yr=p$tyears )
-      # parallel.run( clusters=rep("localhost",16), n=length(p$tyears), FUNC=hydro.db, yr=p$tyears, p=p,  DS="bottom.annual.redo", env.init=env.init ) 
-
-  }
-
-
-
-
-  # Now do area-specific divisions to optimize speed for snow crab /SSE only results 
-  # ... canada.east can be completed when time permits
+  # Now do area-specific divisions of data and gridding 
+  # to optimize speed for snow crab /SSE only results 
+  # do first:
   #   j = "SSE"
+  #   ... j = "canada.east" can be completed later (after assessment) when time permits
 
   for ( j in c("SSE", "canada.east" ) ) {
       
 		# ----------------
     # parameters 
-      p = spatial.parameters( type=j )
-			p$env.init = env.init
-		  # p$clusters = rep("localhost",  4) # debug
+      #  j = "SSE"
+      #  j = "canada.east"
+      p = spatial.parameters( p=p, type=j )
+		  p$clusters = rep("localhost",  1) # debug
       # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
 		
  		# ----------------
@@ -100,6 +99,8 @@ Nafo5Zw
         p$clusters = rep("localhost",  20) # debug
         temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="RAM" ) 
       } else {
+        # ssh tethys
+        p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
         temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="FILE"  ) 
       }
 
