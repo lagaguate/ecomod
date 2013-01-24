@@ -30,7 +30,6 @@
     # identify variables to interpolate and create abundance estimates
       
       p$vars.to.model = c( "R0.no", "R1.no")
-      p$vars.to.model = c("R0.mass",  "R1a.no")
       p$vars.to.model = c("R0.mass")
       p$vars.to.model = c("R0.mass", "male.large.mass", "male.small.mass", "female.large.mass", "female.small.mass" )
       p$vars.to.model = c("R0.mass", "R0.no", "R1.mass", "R1.no", "R2.no", "R3.no", "R4.no", "R5p.no", "totmass.male.com.CC1",

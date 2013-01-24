@@ -59,7 +59,7 @@
   outvars = c("yr", "region", "vars", "total", "lbound", "ubound")
   yy = c(1999:p$current.assessment.year)
   rr = c("cfasouth", "cfanorth", "cfa4x")
-  vv = c( "totmass.male.com", "R0.mass", "R0a.mass", "R0.no", "R0a.no", "R1.no", "R2.no", "R3.no", "totno.male.imm", "totno.male.com.CC1to2", "totno.male.com.CC3to4",
+  vv = c( "totmass.male.com", "R0.mass", "R0.no", "R1.no", "R2.no", "R3.no", "totno.male.imm", "totno.male.com.CC1to2", "totno.male.com.CC3to4",
           "totno.male.com.CC5" )
  
   p = make.list( list(y=yy, v=vv ), Y=p )

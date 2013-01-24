@@ -20,29 +20,14 @@
 
     if (type=="R0") {  # "fishable" biomass (by sex, size, carapace condition and shell hardness) -- mature only
       i = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$shell %in% c(3,4) )
-      j = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$shell==2 & x$durometer>=68 )
-      k = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 & !is.finite(x$shell) & x$durometer>=68)
-      i = sort(unique(c(i,j,k)))
+      j = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$durometer>=68)  # this captures CC2 as well
+      i = sort(unique(c(i,j)))
     }
     if (type=="R1") {  # terminally moulted soft-shells (new recruits), mature only
       i = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$shell==1 )
-      j = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$shell==2 & x$durometer<68 )
-      k = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 & !is.finite(x$shell) & x$durometer<68)
-      i = sort(unique(c(i,j,k)))
+      j = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$durometer<68 )  # this captures CC2 as well
+      i = sort(unique(c(i,j)))
     }
-    if (type=="R0all") {  # "fishable" biomass (by sex, size, carapace condition and shell hardness) imm + mat
-      i = which(x$sex==male & x$cw>=95 & x$cw<200 &  x$shell %in% c(3,4) )
-      j = which(x$sex==male & x$cw>=95 & x$cw<200 &  x$shell==2 & x$durometer>=68 )
-      k = which(x$sex==male & x$cw>=95 & x$cw<200 & !is.finite(x$shell) & x$durometer>=68)
-      i = sort(unique(c(i,j,k)))
-    }
-    if (type=="R1all") {  # recruits too soft to fish
-      i = which(x$sex==male & x$cw>=95 & x$cw<200 &  x$shell==1 )
-      j = which(x$sex==male & x$cw>=95 & x$cw<200 &  x$shell==2 & x$durometer<68 )
-      k = which(x$sex==male & x$cw>=95 & x$cw<200 & !is.finite(x$shell) & x$durometer<68)
-      i = sort(unique(c(i,j,k)))
-    }
-
     if (type=="R2")  i = which(x$sex==male & x$mat==immature & x$cw>=mb(8) & x$cw<95 )
     if (type=="skip.moulter") i = which(x$sex==male & x$mat==immature & x$cw<=200 & (x$shell %in% c(3,4,5) ) )
     if (type=="m.dwarf") i = which(x$sex==male & x$mat==mature & x$cw<95 )

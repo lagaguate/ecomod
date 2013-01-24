@@ -109,8 +109,6 @@
       "fa8.senile.no",  "fa8.senile",
       "fa9.senile.no",  "fa9.senile",
       "fa10.senile.no",  "fa10.senile",
-      "R0a.no",                  "R0all",
-      "R1a.no",                  "R1all",
       "R0.no",                  "R0",
       "R1.no",                  "R1",
       "R2.no",                  "R2",

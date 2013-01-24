@@ -33,7 +33,7 @@
       vt = gsub( ".no$", "", vt )
       vt = gsub( ".mass$", "", vt )
       
-      if ( vt %in% c("R0", "R0all", "m.com"  ) ) {
+      if ( vt %in% c("R0", "m.com"  ) ) {
         vi = which( ct$sex==male & ct$cw>=95 & ct$cw<200  ) 
       } else {
         vi = filter.class( ct, vt ) 

@@ -51,7 +51,7 @@
        
        males.general = c(
         "totmass.male.com", "totno.male.com", "totno.male.mat", "totno.male.imm", "totno.male", 
-        "R0.mass", "R0a.mass","R0.no","R0a.no","R1.no", "R1a.no", "R2.no", "R3.no", "R4.no", "R5p.no",
+        "R0.mass", "R0.no","R1.no", "R2.no", "R3.no", "R4.no", "R5p.no",
         "male.large.mass", "male.small.mass", "male.large.no", "male.small.no", "dwarf.no", "totno.male.skip.moulter"
       ),
       males.CC = c( 
@@ -105,7 +105,7 @@
         "totno.female.CC3", "totno.female.CC4", 
         "totno.female.CC1to2", "totno.female.CC3to4", "totno.female.CC5", 
         "totmass.female.CC1to2", "totmass.female.CC3to4", "totmass.female.CC5", 
-        "R1a.mass", "R1.mass", "R2.mass", "R3.mass", "R4.mass", "R5p.mass", "dwarf.mass" 
+        "R1.mass", "R2.mass", "R3.mass", "R4.mass", "R5p.mass", "dwarf.mass" 
       ),
       snowcrab.bycatch = c(
         "grd", "pel", "shark", "pred1", "pred2", "prey", "invert",

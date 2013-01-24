@@ -123,12 +123,29 @@
       return(climate)
     }
   
-    if (db=="cpi") {
-      # open cpi.xls and enter data manually from Bank of Canada stats
+    if ( db %in% c("cpi", "cpi.redo" ) ) {
       cpidir =  file.path( project.directory("indicators"), "data", "CPI" )
-      cpi = read.table( file.path( cpidir, "cpi.csv"), sep=",", header=T ) 
+      fn = file.path( cpidir, "cpi.csv")
+      
+      if (db=="cpi") {
+        cpi = read.table( fn, sep=",", header=T ) 
+        cpi$cpi = cpi$cpi / cpi$cpi[ which(cpi$yr==ref.year) ]
+        return(cpi)
+      }
+      
+      # read stored data
+      cpi = read.table( fn, sep=",", header=T ) 
       cpi$cpi = cpi$cpi / cpi$cpi[ which(cpi$yr==ref.year) ]
-      return(cpi)
+        
+      # update data
+      o = readLines( fn )
+      #Â
+      
+      save()
+
+      return()
+
+
     }
 
     if (db %in% c("landings" ) ) {
@@ -488,7 +505,7 @@
         return(res)
       } 
 
-      loadfunctions( "snowcrab") functionname="initialise.local.environment.r" )
+      loadfunctions( "snowcrab", functionname="initialise.local.environment.r" )
       
       # fishery data
       res = get.fishery.stats.by.region()
@@ -524,7 +541,7 @@
       x$yr = yrs
       
       # abundance estimated from interpolation
-      p = make.list( list(y=p$years.to.model, v=c("R0.mass", "R1a.no", "R2.no", "totno.female.berried", "totno.female.imm", "totno.female.mat") ), Y=p )
+      p = make.list( list(y=p$years.to.model, v=c("R0.mass", "R1.no", "R2.no", "totno.female.berried", "totno.female.imm", "totno.female.mat") ), Y=p )
       K = interpolation.db( DS="interpolation.simulation", p=p ) # to return the saved file
       yrs = sort( unique( K$yr ) )
       vars = sort( unique( K$vars ) )
@@ -602,33 +619,6 @@
       return(plankton)
     }
 
-
-    if (db %in% c("indicators.all.refresh.all.data.streams") ) {
-
-      # not all are fully refreshed automatically .. they are just place holders for now
-      
-      groundfish = indicators.db( db="groundfish.timeseries.redo" )
-      snowcrab = indicators.db( db="snowcrab.timeseries.redo") 
-      climate = indicators.db (db="climate.redo" )
-      shrimp = indicators.db( db="shrimp.timeseries.redo")
-
-      sar = indicators.db( db="species.area.redo" )
-      nss = indicators.db( db="size.spectrum.redo" )
-      metab = indicators.db( db="metabolism.redo" )
-      sc = indicators.db( db="species.composition.redo" )
-
-      economics = indicators.db( db="economic.data.redo" )
-
-      # hand constructed and updated ..
-      plankton = indicators.db( db="plankton.timeseries.redo" )
-      human = indicators.db( db="demographics.redo" )
-      climate = indicators.db (db="climate.redo" )
-      
-      seals = indicators.db( db="seal.timeseries.redo" ) 
-      landedvalue = indicators.db( db="landedvalue.annual.redo", ref.year=2008 )
-      landings = indicators.db( db="landings.annual.redo" )
-      
-    }
 
 
     if (db %in% c("indicators.all", "indicators.all.glue") ) {
@@ -776,7 +766,7 @@
          
           snowcrab = c( "snowcrab.fishery.landings", "snowcrab.exploitation.index", 
             "snowcrab.geometricmean.cw.male.mat.mean" , "snowcrab.geometricmean.cw.fem.mat.mean",  
-            "snowcrab.kriged.R0.mass", "snowcrab.kriged.R1a.no", "snowcrab.kriged.ma13.no", "snowcrab.kriged.ma12.no",
+            "snowcrab.kriged.R0.mass", "snowcrab.kriged.R1.no", "snowcrab.kriged.ma13.no", "snowcrab.kriged.ma12.no",
             "snowcrab.kriged.ma11.no", "snowcrab.kriged.ma10.no", "snowcrab.kriged.ma9.no", 
             "snowcrab.kriged.fa10.no", "snowcrab.kriged.fa9.no", "snowcrab.kriged.fa8.no", "snowcrab.kriged.fa7.no", 
             "snowcrab.kriged.totno.female.mat", "snowcrab.kriged.totno.female.imm"

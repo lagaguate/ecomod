@@ -37,7 +37,10 @@ Nafo5Zw
     p$env.init = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
     p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$newyear = newyear = c( 2012)
-    p = spatial.parameters( p=p, type= "canada.east" )  # only one data stream necessary at present .. the largest extent
+
+
+    # only one data stream necessary at present .. the largest extent
+    p = spatial.parameters( p=p, type= "canada.east" )
 
      
     # ----------------
@@ -74,8 +77,6 @@ Nafo5Zw
       
 		# ----------------
     # parameters 
-      #  j = "SSE"
-      #  j = "canada.east"
       p = spatial.parameters( p=p, type=j )
 		  p$clusters = rep("localhost",  1) # debug
       # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )

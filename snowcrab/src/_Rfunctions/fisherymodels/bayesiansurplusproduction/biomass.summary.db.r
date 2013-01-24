@@ -118,7 +118,7 @@
         return(Bx)
       } 
 
-      v = "R1a.no" 
+      v = "R1.no" 
       fm = formula( paste(v, "~yr+cfa"))
       
       set = snowcrab.db( DS ="set.complete", p=p, yrs=1996:p$current.assessment.year ) 
@@ -208,7 +208,7 @@
         return(Bx)
       } 
 
-      v = "R1a.no" 
+      v = "R1.no" 
       fm = formula( paste(v, "~yr+cfa"))
       
       set = snowcrab.db( DS ="set.complete", p=p, yrs=1996:p$current.assessment.year ) 
@@ -236,7 +236,7 @@
         return(R)
       } 
        
-        p$vars.to.model = "R1a.no"
+        p$vars.to.model = "R1.no"
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
         K = interpolation.db( DS="interpolation.simulation", p=p )
@@ -265,7 +265,7 @@
         return(R)
       } 
        
-        p$vars.to.model = "R1a.no"
+        p$vars.to.model = "R1.no"
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
         K = interpolation.db( DS="interpolation.simulation", p=p )

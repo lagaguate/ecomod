@@ -274,17 +274,20 @@
           } else {
          
             Q = try( 
-              gam(  model.formula (v ), data=set, optimizer=ops, weights=wgts, family=gaussian(link = "log"), select=T)
-              , silent = T
-            )
+              gam(  model.formula (v ), data=set, optimizer=ops, weights=wgts, family=gaussian(link = "log"), select=T), silent = T )
            
           }
           if ( ! ("try-error" %in% class(Q) ) ) break()
         }
           
         if ( "try-error" %in% class(Q) ) {
-          print( paste( "No solutions found for:", v ) )
-          next()
+          # last attempt with a simplified model
+          Q = try( 
+              gam(  model.formula ("simple" ), data=set, optimizer=ops, weights=wgts, family=gaussian(link = "log"), select=T), silent = T )
+          if ( "try-error" %in% class(Q) ) {
+            print( paste( "No solutions found for:", v ) )
+            next()
+          }
         }
         
         save( Q, file=fn, compress=T )

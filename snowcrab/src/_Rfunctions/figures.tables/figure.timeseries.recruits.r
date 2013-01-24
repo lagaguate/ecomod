@@ -14,7 +14,7 @@
     n.regions = length(regions)
     n.areas = length(areas)
 
-    v = "R1a.no"
+    v = "R1.no"
 
     td =  get.time.series ( from.file=T )
     td = td[ which( td$variable == v) ,]

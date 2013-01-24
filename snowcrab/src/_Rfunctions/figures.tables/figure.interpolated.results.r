@@ -6,10 +6,6 @@
        "R0.no", "Number of fishable crab", "N",
        "R1.no", "Number of recruits", "N",
 
-       "R0a.mass", "Fishable biomass", "B",
-       "R0a.no", "Number of fishable crab", "N",
-       "R1a.no", "Number of recruits", "N",
-
        "totno.female.imm",  "Number of immature females", "N",
        "totno.female.mat",  "Number of mature females", "N",
        "totno.female.berried",  "Number of berried females", "N",

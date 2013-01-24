@@ -50,7 +50,7 @@ names(ca20)
 p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")  # <---------- !!!
 
 
-kvar = "R0a.mass"
+kvar = "R0.mass"
 kyear = 2007
 
 formatted.data = get.PS.S.gridded (p, kyear, kvar )

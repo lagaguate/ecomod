@@ -7,7 +7,7 @@
 					"date", "Design", "doBy", "eco", "effects", "filehash", "ff", "foreign", 
 					"gee", "geepack", "gamm4", "graph",  "Hmisc", "igraph", "its", "jit", "lattice", "lme4", 
 					"MASS", "maxLik", "mgcv", "mixdist", "mvtnorm", "nlme", "multcomp", "nlme", "nnet", "oz",
-					"qcc", "quadprog", "randomForest",
+					"qcc", "quadprog", "randomForest","rCurl", "XML",
 					"ppso", "Rcmdr", "Rcpp", "rgl", "Rcompression", "RColorBrewer",  "plotrix",
 					"scatterplot3d",  "systemfit", "sm", "sampling",
 					"SparseM", "splines", "stats", "stats4", "SuppDists", "TeachingDemos", "tools",
@@ -77,7 +77,7 @@
 		}
 
 		if (X=="database") {
-			pkgs = c(  "RODBC", "DBI", "RSQLite" )
+			pkgs = c(  "RODBC", "DBI", "RSQLite", "XLConnect" )
 			out = data.frame( cbind( pkgs=pkgs, repos=default.repository ) )
 		}
 

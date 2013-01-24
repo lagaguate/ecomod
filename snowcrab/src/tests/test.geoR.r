@@ -10,7 +10,7 @@
  
 	
 	set = snowcrab.db("set")
-  ll = set[ which(set$yr==2000), c("plon","plat","R0a.mass")]
+  ll = set[ which(set$yr==2000), c("plon","plat","R0.mass")]
 
   rownames(ll) = c(1:nrow(ll))
   ad = dup.coords(ll[,c(1,2)])

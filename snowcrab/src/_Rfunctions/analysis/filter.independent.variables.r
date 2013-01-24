@@ -1,6 +1,6 @@
 
   filter.independent.variables = function( x, vtype="R0.mass")  {
-    if (vtype %in% c("R0.mass", "R1a.no") ) {
+    if (vtype %in% c("R0.mass", "R1.no") ) {
      
       ii =  which( x$t > 14  )
       if (length(ii) > 0)  x$t[ii] = 14

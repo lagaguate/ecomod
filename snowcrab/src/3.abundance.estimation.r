@@ -12,7 +12,7 @@
   #    choose various over-rides: these are initially defined in parameters.r
   
   p$regions = c("cfa4x", "cfanorth","cfasouth" )
-  p$vars.to.model = c("R0.mass",  "R1a.no")
+  p$vars.to.model = c("R0.mass",  "R1.no")
       
   debug = F
   if (debug) {
@@ -23,17 +23,16 @@
     
     # identify variables to interpolate and create abundance estimates
       
-      p$vars.to.model = c( "R0.no", "R1.no")
-      p$vars.to.model = c("R0.mass",  "R1a.no")
-      p$vars.to.model = c("R1a.no")
+      p$vars.to.model = c("R0.no", "R1.no")
+      p$vars.to.model = c("R0.mass",  "R1.no")
+      p$vars.to.model = c("R1.no")
       p$vars.to.model = c("R0.mass")
 
       p$vars.to.model = c("male.large.mass", "male.small.mass", "female.large.mass", "female.small.mass" )
       
-      p$vars.to.model = c("R0.mass", "R0.no", "R1.mass", "R1.no", "R2.no", "R3.no", "R4.no", "R5p.no", "totmass.male.com.CC1",
-        "totno.female.berried","totno.female.imm", "totno.female.mat", "totno.female.primiparous","totno.female.multiparous",
-        "fecundity", "totno.male.com", "totno.male.mat", "totno.male.imm","dwarf.no", "totno.male.skip.moulter", 
-        "totno.male.com.CC1to2",  "totno.male.com.CC5",  "male.large.mass", "male.small.mass", "female.large.mass", "female.small.mass", "male.large.no", "male.small.no", "female.large.no", "female.small.no"  )
+      p$vars.to.model = c("R0.mass", "R0.no", "R1.mass", "R1.no", "R2.no", "R3.no", "R4.no", "R5p.no", 
+        "totno.female.berried", "totno.female.imm", "totno.female.mat", "totno.female.primiparous","totno.female.multiparous",
+        "fecundity", "totno.male.com", "totno.male.mat", "totno.male.imm","dwarf.no", "totno.male.skip.moulter", "totno.male.com.CC5"   )
 
     # modify cluster requirements
       p$do.parallel =F

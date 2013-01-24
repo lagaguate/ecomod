@@ -47,8 +47,6 @@
             "fi8.mass",                    "fi8",
             "fi9.mass",                    "fi9",
             "fi10.mass",                   "fi10",
-            "R0a.mass",                  "R0all",
-            "R1a.mass",                  "R1all",
             "R0.mass",                  "R0",
             "R1.mass",                  "R1",
             "R2.mass",                  "R2",

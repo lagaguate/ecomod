@@ -8,12 +8,51 @@
 	loadfunctions( ("indicators") ) 
  
   setwd( project.directory("indicators") )
-  
+        
+  # not all are fully refreshed automatically .. they are just place holders for now
+      
+      groundfish = indicators.db( db="groundfish.timeseries.redo" )
+      snowcrab = indicators.db( db="snowcrab.timeseries.redo") 
+      climate = indicators.db (db="climate.redo" )
+      shrimp = indicators.db( db="shrimp.timeseries.redo")
+
+      sar = indicators.db( db="species.area.redo" )
+      nss = indicators.db( db="size.spectrum.redo" )
+      metab = indicators.db( db="metabolism.redo" )
+      sc = indicators.db( db="species.composition.redo" )
+
+      economics = indicators.db( db="economic.data.redo" )
+
+      # hand constructed and updated .. TODO :: find solutions!
+      plankton = indicators.db( db="plankton.timeseries.redo" )
+      human = indicators.db( db="demographics.redo" )
+      climate = indicators.db (db="climate.redo" )
+      
+      seals = indicators.db( db="seal.timeseries.redo" ) 
+      landedvalue = indicators.db( db="landedvalue.annual.redo", ref.year=2008 )
+      landings = indicators.db( db="landings.annual.redo" )
+      
+
   
   # refresh the survey data
   # DEMOGRAPHICS goto:: http://www.gov.ns.ca/finance/communitycounts/dataview.asp?gnum=pro9012&gnum2=pro9012&chartid=&whichacct=&year2=&mapid=&ptype=&gtype=&yearid=2006&acctype=0&gname=&dcol=&group=&group1=&group2=&group3=&gview=3&table=table_d17&glevel=pro
   
-  indic = indicators.db( db="indicators.all.refresh.all.data.streams" ) # refresh each timeseries
+  
+  
+require( xlsReadWrite )
+data = read.xls( "mydata.xls", sheet="Sheet1" )
+
+for ( y in 
+http://www.gov.ns.ca/finance/communitycounts/export.asp?bExcel=1&page=table_d17&dgroup=&dgroup1=&dgroup2=&dgroup3=&dgroup4=&yearid=2011&gnum=pro9012&gname=Nova%20Scotia&range= 
+  
+require( XLConnect )
+fn = "~/Downloads/estimates.xls"
+wb <- loadWorkbook( fn) 
+data <- readWorksheet(wb)
+
+
+
+
   indic = indicators.db( db="indicators.all.glue" )  # glue all time-series together
   # indic = indicators.db( db="indicators.all" ) # load the glued version
   
