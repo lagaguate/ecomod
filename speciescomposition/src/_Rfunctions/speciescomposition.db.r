@@ -29,8 +29,8 @@
       }
  
       sc = bio.db( DS="cat" )  # species catch
-      sc = sc[ which(is.finite( sc$qn ) ), ] 
-      sc = sc[ , c("id", "spec", "qn" ) ]
+      sc = sc[ which(is.finite( sc$zn ) ), ] 
+      sc = sc[ , c("id", "spec", "zn" ) ]  # zscore-transformed into 0,1
           
       set = bio.db( DS="set" ) # trip/set loc information
       set = set[ ,  c("id", "yr", "julian", "sa", "lon", "lat") ]
@@ -43,8 +43,8 @@
  
       # filter species 
       # sc$spec = taxa.specid.correct( sc$spec, method=p$taxa )
-      sc = filter.taxa( sc$spec, method=p$taxa )
-      set = set[ which( set$id %in% unique( sc$id) ),]
+      isc = filter.taxa( sc$spec, method=p$taxa )
+      set = set[ which( set$id %in% unique( sc$id[isc]) ),]
 
       if ( p$season != "allseasons" ) {
         set = set[ filter.season( set$julian, period=p$season, index=T ) , ]
@@ -54,8 +54,8 @@
       # .. data loss due to truncation is OK 
       # ... smallest abundance adds little information to ordinations
       k = 1e3         # a large constant number to make xtabs work  but not too large as truncation is desired
-      sc$qn = as.integer( sc$qn*k )
-      m = xtabs( qn ~ as.factor(id) + as.factor(spec), data=sc ) /k
+      sc$zn = as.integer( sc$zn*k )
+      m = xtabs( zn ~ as.factor(id) + as.factor(spec), data=sc ) /k
 
       # remove low counts (absence) in the timeseries  .. species (cols) only
       cthreshold = 0.05 * k  # quantiles to be removed 
@@ -76,14 +76,14 @@
       s = svd(corel)  # eigenanalysis via singular value decomposition
       scores = matrix.multiply (m, s$v)  # i.e., b %*% s$v  .. force a multiplication ignoring NAs
       evec = s$v
-      eval = s$d
-      x = cbind( scores[,1] / sqrt(eval[1] ), scores[,2] / sqrt( eval[2]) )
-      y = cbind( evec[,1] * sqrt(eval[1] ) , evec[,2] * sqrt( eval[2]) )
+      ev = s$d
+      x = cbind( scores[,1] / sqrt(ev[1] ), scores[,2] / sqrt( ev[2]) )
+      y = cbind( evec[,1] * sqrt(ev[1] ) , evec[,2] * sqrt( ev[2]) )
       rownames(y) = colnames(m) 
       
       scores = data.frame( id=rownames(m), pca1=as.numeric(x[,1]), pca2=as.numeric(x[,2]), stringsAsFactors=F )
       set = merge(set, scores, by="id", all.x=T, all.y=F, sort=F)
-      pca.out = list( scores=scores, eignenvectors=eval, eigenvalues=eval, cscores=y ) 
+      pca.out = list( scores=scores, eignenvectors=evec, eigenvalues=ev, cscores=y ) 
       save( pca.out, file=fn.pca, compress=T) 
       
 

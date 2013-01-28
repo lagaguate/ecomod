@@ -35,7 +35,7 @@
   # p$clusters = c( rep("tartarus.beowulf", 24), rep("kaos", 17 ) )
 
   p$varstomodel = c( "mr", "smr", "totno", "totwgt", "meanwgt", "meanlen"  )
-  p$yearstomodel = 1970:2011
+  p$yearstomodel = 1970:2012
   # p$mods = c("simple","simple.highdef", "complex" )  # model types to attempt
   p$mods = c("simple","simple.highdef" )  # model types to attempt
 

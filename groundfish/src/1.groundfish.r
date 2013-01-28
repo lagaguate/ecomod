@@ -67,7 +67,7 @@
 
 
 ******************
-##### <<<<<<<<<<<<<<<< MUST ADD new routines to bring in Temp and Sal as gshyd is no longer maintained as of 2012
+##### <<<<<<<<<<<<<<<< MUST ADD new routines to bring in Temp and Sal as gshyd is no longer maintained as of 2012/13
 *******************
 
 
@@ -95,7 +95,8 @@
 # -------------------------------------------------------------------------------------
 # Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
 # -------------------------------------------------------------------------------------
-  source( file.path( project.directory("bio"), "src", "bio.r") )
+  # source( file.path( project.directory("bio"), "src", "bio.r") )
+  loadfunctions ( "bio", functionname="bio.r" ) 
 
 
 # -------------------------------------------------------------------------------------
@@ -116,8 +117,8 @@
 
   
 # ---------
-# 8 sm_shannon_information.rdata
-  groundfish.db( "shannon.information.redo", season=season, taxa=c("species", "genus") )
+# 8 sm_shannon_information.rdata  -- TODO -- make into an autonomous project
+#   groundfish.db( "shannon.information.redo", season=season, taxa=c("species", "genus") )
 
 
 # -------------------------------------------------------------------------------------

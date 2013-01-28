@@ -35,8 +35,8 @@
       p$ntimescale = length(p$nss.stimes)
      
       require(bigmemory)
-        p$fn.tmp = file.path( "nss.bigmemory.tmp" )
-        p$fn.desc = file.path( "nss.bigmemory.desc.tmp" )
+        p$fn.tmp = file.path(  make.random.string( "nss.bigmemory.tmp" ) )
+        p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
         nss = big.matrix(nrow=p$nsets, ncol=length(p$newvars), 
             type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc )  
         p$bigmem.desc = describe(nss)

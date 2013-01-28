@@ -295,7 +295,8 @@
       fn = file.path( project.directory("snowcrab"), "data", "logbook", "logbook.historical.rdata" ) 
 
       if (DS=="fisheries.historical") {
-        load( fn)
+        logs = NULL
+        if (file.exists(fn)) load( fn)
         return( logs )
       }
     

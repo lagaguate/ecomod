@@ -53,14 +53,14 @@
           
       if (modeltype=="time.invariant") { 
         SC = habitat.lookup(x=SC, p=p, dist.scale=p$interpolation.distances, datatype="time.invariant" )
-        spcomp.model = function(ww) { gam( formula( paste( ww, 
+        formu = formula( paste( ww, 
           ' ~ s(plon,plat, k=400) + s(yr) + s(julian, k=3) 
             + s(z, k=3 , bs="ts" ) 
             + s(dZ, k=3, bs="ts" )  
             + s(substrate.mean, k=3, bs="ts" ) 
           '            
-            )) , data=SC, optimizer=c("outer","nlm"), na.action="na.omit"  ) 
-      }}
+        ))
+      }
     
       if (modeltype=="complex") { 
         loadfunctions("habitat")

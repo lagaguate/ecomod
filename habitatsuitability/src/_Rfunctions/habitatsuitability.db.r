@@ -97,7 +97,7 @@
     if ( DS=="initial.cat" ) {
       bs = habitatsuitability.db( "initial.set", p=p )
       bc =NULL
-      bc = bio.db( DS="cat.fixed",p=p )
+      bc = bio.db( DS="cat",p=p )
       bc$data.source = NULL 
       bc = bc[ which( bc$id %in% unique( bs$id) ) ,]
       return ( bc )

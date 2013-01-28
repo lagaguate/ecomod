@@ -2,12 +2,6 @@
 	snowcrab.db = function( DS , yrs=NULL , proj.type="", p=NULL) {
 		# long!
 		# handles all basic data tables, etc. ... can be broken into smaller pieces to make easier to maintain
-		
-		if (  Sys.info()["sysname"] == "Windows" ) {
-			.Library.site <- "D://R//library-local"
-			.libPaths("D://R//library-local")
-    }
-
 
 		if (DS %in% c("set.odbc.redo", "set.odbc") ) {
 
@@ -770,24 +764,7 @@
       set = lonlat2planar(set, proj.type=proj.type) # get planar projections of lon/lat in km
       
       set = clean.surface.area( set )
-      
-      problems = data.quality.check( set, type="stations")     
-      problems = data.quality.check( set, type="count.stations")
-      problems = data.quality.check( set, type="seabird.mismatches" )
-      problems = data.quality.check( set, type="minilog.mismatches" )
-      problems = data.quality.check( set, type="netmind.mismatches" )
-
-      problems = data.quality.check( set, type="tow.duration")
-      
-      problems = data.quality.check( set, type="seabird.load") 
-      problems = data.quality.check( set, type="minilog.load")
-      problems = data.quality.check( set, type="netmind.load")
-     
-      problems = data.quality.check( set, type="minilog") # Check for duplicate timestamps 
-      problems = data.quality.check( set, type="minilog.dateproblems") 
-      problems = data.quality.check( set, type="netmind.timestamp" )
-      problems = data.quality.check( set, type="position") 
-      
+         
       set$slon = NULL
       set$slat = NULL
       set$Tx = NULL

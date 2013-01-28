@@ -26,13 +26,16 @@
       p$ntimescale = length(p$timescale)
      
       require(bigmemory)
-        p$fn.tmp = file.path( "speciesarea.bigmemory.tmp" )
-        p$fn.desc = file.path( "speciesarea.bigmemory.desc.tmp" )
+
+        p$fn.tmp = file.path(  make.random.string("speciesarea.bigmemory.tmp" ))
+        p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
+
         sar = big.matrix(nrow=p$nsets, ncol=p$nlengthscale*p$ntimescale, 
             type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc  )  
         
-        p$fn.ny.tmp = file.path( "speciesarea.ny.bigmemory.tmp" )
-        p$fn.ny.desc = file.path( "speciesarea.ny.bigmemory.desc.tmp" )
+        p$fn.ny.tmp = file.path(  make.random.string("speciesarea.ny.bigmemory.tmp" ) )
+        p$fn.ny.desc = paste( p$fn.ny.tmp, "desc", sep=".") 
+
         sar.ny = big.matrix(nrow=p$nsets, ncol=p$nlengthscale*p$ntimescale, 
             type="double" , init=NA, backingfile=p$fn.ny.tmp, descriptorfile=p$fn.ny.desc )
              
@@ -95,8 +98,9 @@
 
       # bigmemory's backingdir does not seem to be working? ... defaulting to home directory
       require(bigmemory)
-      p$fn.tmp = file.path( "speciesarea.stats.bigmemory.tmp" )
-      p$fn.desc = file.path( "speciesarea.stats.bigmemory.desc.tmp" )
+      p$fn.tmp = file.path( make.random.string("speciesarea.stats.bigmemory.tmp") )
+      p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
+
       o = big.matrix(nrow=p$nsets, ncol=p$nvars, 
           type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc) 
       p$bigmem.desc = describe(o)

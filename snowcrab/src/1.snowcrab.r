@@ -30,8 +30,6 @@
     }
 
 
-
-
   if (obtain.database.snapshot) {
     snowcrab.db( DS="set.odbc.redo", yrs=1996:p$current.assessment.year ) 
     snowcrab.db( DS="det.odbc.redo", yrs=1996:p$current.assessment.year ) 
@@ -67,20 +65,16 @@
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
  
-    if (full.redo) {
-    
-      seabird.yToload = 2012:p$current.assessment.year
-      minilog.yToload = 1999:p$current.assessment.year
-      netmind.yToload = 1999:p$current.assessment.year
-    
-    } else {
-    
-      # unless there are structural changes in approach, incremental update is fine
-      seabird.yToload = p$current.assessment.year
-      minilog.yToload = p$current.assessment.year
-      netmind.yToload = p$current.assessment.year
-    
-    }
+    # unless there are structural changes in approach, incremental update is fine
+    seabird.yToload = p$current.assessment.year
+    minilog.yToload = p$current.assessment.year
+    netmind.yToload = p$current.assessment.year
+      if (full.redo) {
+        seabird.yToload = 2012:p$current.assessment.year
+        minilog.yToload = 1999:p$current.assessment.year
+        netmind.yToload = 1999:p$current.assessment.year
+      }     
+     
 
     # The following requires "setInitial"
 
@@ -95,6 +89,29 @@
 
 
     snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )
+    
+       
+      problems = data.quality.check( set, type="stations")     
+      problems = data.quality.check( set, type="count.stations")
+      problems = data.quality.check( set, type="position") 
+      
+      problems = data.quality.check( set, type="minilog.mismatches" )
+      problems = data.quality.check( set, type="minilog.load")
+      problems = data.quality.check( set, type="minilog.dateproblems") 
+      problems = data.quality.check( set, type="minilog") # Check for duplicate timestamps 
+      
+      problems = data.quality.check( set, type="netmind.load")
+      problems = data.quality.check( set, type="netmind.mismatches" )
+      
+      problems = data.quality.check( set, type="tow.duration")
+      problems = data.quality.check( set, type="tow.distance")
+      
+      problems = data.quality.check( set, type="seabird.mismatches" )
+      problems = data.quality.check( set, type="seabird.load") 
+      
+      problems = data.quality.check( set, type="netmind.timestamp" )
+
+    
     snowcrab.db( DS="det.initial.redo", p=p )
     snowcrab.db( DS="det.georeferenced.redo" ) 
     snowcrab.db( DS="cat.initial.redo", p=p )
@@ -107,21 +124,47 @@
 
 # -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
-#
-#     Bathymetry data :: loadfunctions("bathymetry", functionname="bathymetry.r" ) # if necessary
-#     Substrate type  :: loadfunctions("substrate", functionname="substrate.r" ) # if necessary
-#     Groundfish data :: loadfunctions( "groundfish", functionname="1.groundfish.r" ) 
-#       NOTE  groundfish.db( DS="odbc.redo" ) must be done manually on a windows machine and data snapshots moved to local system
-#     Taxonomy :: loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary
-#     BIO db update :: loadfunctions ( "bio", functionname="bio.r" ) 
-#     Temperatures ::  loadfunctions ( "temperature", functionname="temperature.r" ) 
-#     Species area data :: loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
-#     Species composition data :: loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
-#     Size spectrum data :: loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
-#     Metabolism data :: loadfunctions ( "metabolism", functionname="metabolism.r" ) 
-#     Habitat data :: loadfunctions ( "habitat", functionname="habitat.r" ) 
-#       NOTE:: This glues all the above together in planar coord system to allow fast lookup of data for 
-#       matching with set, logbook data
+
+  
+#     Bathymetry data :: 
+  loadfunctions("bathymetry", functionname="bathymetry.r" ) # if necessary
+
+#     Substrate type  :: 
+  loadfunctions("substrate", functionname="substrate.r" ) # if necessary
+
+#     Groundfish data :: 
+#     NOTE  groundfish.db( DS="odbc.redo" ) must first be done manually 
+#     on a windows machine and data snapshots moved to local system
+  loadfunctions( "groundfish", functionname="1.groundfish.r" ) 
+
+#     Taxonomy :: 
+  loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary
+
+#     BIO db update :: 
+  loadfunctions ( "bio", functionname="bio.r" ) 
+
+
+## The following are very SLOW: 
+
+#     Temperatures ::  
+  loadfunctions ( "temperature", functionname="temperature.r" )  # days
+
+#     Species area data :: 
+  loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
+
+#     Species composition data :: 
+  loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
+  
+#     Size spectrum data :: 
+  loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
+
+#     Metabolism data :: 
+  loadfunctions ( "metabolism", functionname="metabolism.r" ) 
+
+#     Habitat data :: NOTE:: This glues all the above together in 
+#     planar coord system to allow fast lookup of data for 
+#     matching with set, logbook data
+  loadfunctions ( "habitat", functionname="habitat.r" ) 
 
 
 
@@ -136,6 +179,13 @@
 
 # create a new lookuptable for data transformations after refreshing set data/ranges
   REPOS = recode.variable.initiate.db ( db="snowcrab" )
+
+
+
+
+
+
+
 
 # snow crab found in external databases tapped into for habitat determination
   for ( vs in c( "R0.mass", "male.large", "male.small", "female.large", "female.small" ) ) {

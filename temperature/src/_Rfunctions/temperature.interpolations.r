@@ -39,8 +39,10 @@
 			nr = p$nP
 			nc = p$nw * p$ny
 
-      p$fn.tbot = file.path( "interpolated.bigmemory.rdata.tmp" )
-	  	p$fn.tbot.se = file.path( "interpolated.se.bigmemory.rdata.tmp" )
+      basenm = file.path( make.random.string("interpolated.bigmemory.rdata.tmp") )
+      
+      p$fn.tbot =  paste( basenm, "pred", sep="." )
+	  	p$fn.tbot.se = paste( basenm, "se", sep="." )
       
       bf1 = basename(p$fn.tbot) 
       bf2 = basename(p$fn.tbot.se) 

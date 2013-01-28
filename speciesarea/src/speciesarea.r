@@ -36,7 +36,12 @@
 
    
   # map everything  ~ 30 minutes
-  p$yearstomodel = 1970:2011 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2012 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+
+
+
+
+
   p$varstomodel = c( "C", "Z", "T", "sar.rsq", "Npred" )
   # p$mods = c("simple","simple.highdef", "time.invariant", "complex" ) 
   p$mods =  c("simple","simple.highdef" )
@@ -58,12 +63,12 @@
 
 
 
-  # create a spatial interpolation model for each variable of interest 
+  # create a spatial interpolation model for each variable of interest ~ 10 min
   p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 
   parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, speciesarea.model.spatial, DS="redo", p=p ) 
  
 
-  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  # predictive interpolation to full domain (iteratively expanding spatial extent) ~ 30 min to 1 hr / year (simple)
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
   parallel.run( clusters=p$clusters, n=p$nruns, sar.interpolate, DS="redo", p=p ) 
 
@@ -73,5 +78,5 @@
   parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.map, p=p, type="annual"  ) 
 
   # to do: maps and gridding in 5 and 10 year blocks ... 
-
+#
 

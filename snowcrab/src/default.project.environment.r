@@ -1,7 +1,7 @@
 
 
   loadlibraries ( c( 
-    "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools"
+    "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
   ) )
 
 

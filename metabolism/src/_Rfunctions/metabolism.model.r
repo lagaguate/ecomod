@@ -48,9 +48,22 @@
       }
 
       if (modeltype=="simple.highdef") { 
-        formu = formula ( paste( ww, ' ~   s(plon,plat, k=400) + s(z, k=3) + s(t, k=3) + s(yr) + s(julian,k=3)' ))
+        formu = formula ( paste( ww, ' ~   s(plon,plat, k=400) + s(yr) + s(julian,k=3)' ))
       }
-      
+          
+      if (modeltype=="time.invariant") { 
+        loadfunctions("habitat")
+        SC = habitat.lookup(x=SC, p=p, dist.scale=p$interpolation.distances, datatype="time.invariant" )
+        formu = formula( paste( ww, 
+          ' ~ s(plon,plat, k=400) + s(yr) + s(julian, k=3) 
+            + s(z, k=4 , bs="ts" ) 
+            + s(dZ, k=4, bs="ts" )  
+            + s(substrate.mean, k=4, bs="ts" ) 
+          '            
+        ))
+      }
+    
+
       if (modeltype=="complex") { 
         loadfunctions("habitat")
         SC = habitat.lookup(x=SC, p=p, dist.scale=p$dist.scale, keep.lon.lat=TRUE,  datatype="all.data" )

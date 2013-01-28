@@ -120,7 +120,7 @@
 
       
       W = habitatsuitability.data.extract(p)
-      qs = quantile( W$qn, probs=c(0.05, 0.95), na.rm=T,names=F )
+      qs = c(0.05, 0.95)   ### <<<< is this too small a range? >>  c(0.01, 0.99) 
       rm(W); gc()
 
       for ( iip in 1:p$nruns ) {

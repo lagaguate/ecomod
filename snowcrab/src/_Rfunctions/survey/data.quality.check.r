@@ -38,12 +38,23 @@
 
 
     if (type=="tow.duration") {
-      e0 = which( ( set$dt > 8 / 24/60 | set$dt < 4/24/60 )  & set$yr >=2004 )
+      e0 = which( ( set$dt > 9  | set$dt < 3.5 )  & set$yr >=2004 )
       if  (length(e0)>0 ) {
         print( "The following have rather short/long tow times (dt)" )
-        print( set[e0,] )
+        print( set[e0, c("trip", "set", "station", "dt", "chron")] )
+        return (set[e0,] ) 
       }
-      return (set[e0,] ) 
+    }
+
+
+    if (type=="tow.distance") {
+      # expected = 2 knots * 5 min = 2 * 1.852 * 5/60 = 0.309 km ( so a good range is {-25%, +75%} = (0.232, 0.5408)
+      e0 = which( ( set$distance > 0.541  | set$distance < 0.232 )  & set$yr >=2004 )
+      if  (length(e0)>0 ) {
+        print( "The following have rather short/long tow distances" )
+        print( set[e0, c("trip", "set", "station", "distance", "chron")] )
+        return (set[e0,] ) 
+      }
     }
 
   

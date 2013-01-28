@@ -91,19 +91,20 @@ Nafo5Zw
    			
  		# ----------------
     # temporal interpolations assuming a sinusoidal seasonal pattern 
-    # operates in parallel mode only taking ~ 4 days for four processors
-    # going across computers using a backing file and is slow and prone to overloading socket connections
-    # but, cannot use RAM as bigmemory does not allocate RAM > 20GB ? 
-    # It is faster to use RAM but this limits the no of CPUS that can be used to that found on a single machine:
-      uselocalonly = TRUE
-      if ( uselocalonly ) {
-        p$clusters = rep("localhost",  20) # debug
+      #uselocalonly = TRUE
+      #if ( uselocalonly ) {
+        # NOTE:: takes about 20GB RAM -- use this 
+        # 1950-2012, SSE ,on kaos with 24 CPU took XX hrs
+        # It is faster to use RAM but this limits the no of CPUS that can be used to that found on a single machine:
+        p$clusters = rep("localhost",  24) # debug
         temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="RAM" ) 
-      } else {
-        # ssh tethys
-        p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
-        temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="FILE"  ) 
-      }
+      
+        #} else {
+        # 1950-2012, SSE took +46 hrs  
+        # -- DO NOT!!! use this as going across computers using a backing file is slow and prone to overloading socket connections
+        #p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) ) --- > 7 days!!
+        #temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="FILE"  ) 
+      #}
 
  		# ----------------
     # simple spatial interpolation (complex takes too much time/cpu)

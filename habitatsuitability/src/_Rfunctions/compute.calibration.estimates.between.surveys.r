@@ -1,7 +1,8 @@
 	
 	compute.calibration.estimates.between.surveys = function() { 
 		
-		#### TODO
+		#### TODO  --- compare zqn, zqm by survey ...
+
 
 		fn = file.path( project.directory("bio"), "data", "species.specific.calibration.estimates.rdata" )
     
@@ -18,9 +19,7 @@
 		sset = lonlat2planar( sset, proj.type=p$internal.projection )
 
 		scat = OO$cat
-		scat$qn = NULL
-		scat$qm = NULL
-
+    
 		rm (OO); gc()
 
 

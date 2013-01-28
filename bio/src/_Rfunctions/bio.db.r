@@ -9,7 +9,6 @@
       fn = file.path( project.directory("bio"), "data", "set.rdata"  )
       if (DS=="set") {
         if (file.exists( fn) ) load( fn)
-				set = set[ which( set$data.source %in% p$data.sources ) ,]
         return ( set )
       }
       
@@ -67,10 +66,109 @@
         x$id = paste( x$trip, x$set, sep="." )
         x$cf = 1/x$sa  # no other correction factors
         x = x[, cat.names]
+
+        oo = which( !is.finite(x$totno) & x$spec== taxa.specid.correct(2526) )  # snow crab are assumed to be real zeros
+        if (length(oo) > 0 ) x$totno[oo] = 0
+
+        oo = which( !is.finite(x$totmass) & x$spec== taxa.specid.correct(2526) )  # snow crab are assumed to be real zeros
+        if (length(oo) > 0 ) x$totmass[oo] = 0
+
 				cat = rbind( cat, x  )
         rm (x); gc()
       }
-      # cat = cat[ which(is.finite(cat$totno)) , ]
+      
+      
+     	surveys = sort( unique( cat$data.source ) ) 
+      species = sort( unique( cat$spec ) )
+
+			
+			# in the following:	quantiles are computed, 
+      cat$qn = NA  # default when no data
+      oo = which( cat$totno == 0 )  # retain as zero values 
+      if (length(oo)>0 ) cat$qn[oo] = 0
+
+      for ( s in surveys ) {
+        si = which( cat$data.source==s & cat$totno > 0 )
+        for (sp in species ){
+          spi = which( cat$spec == sp )
+          ii = intersect( si, spi )
+          if (length( ii) > 0 ) {
+						cat$qn[ii] = quantile.estimate( cat$totno[ii]  )  # convert to quantiles, by species and survey
+					} 
+      }}
+	
+			cat$qm = NA   # default when no data
+      oo = which( cat$totmass == 0 )  # retain as zero values 
+      if (length(oo)>0 ) cat$qm[oo] = 0
+      
+      for ( s in surveys ) {
+        si = which( cat$data.source==s & cat$totmass > 0 )
+        for (sp in species ){
+          spi = which( cat$spec == sp )
+          ii = intersect( si, spi )
+          if (length( ii) > 0 ) {
+						cat$qm[ii] = quantile.estimate( cat$totmass[ii]  )  # convert to quantiles, by species and survey	
+					}
+      }}
+		
+     # convert from quantile to z-score 
+        
+      cat$zm = quantile.to.normal( cat$qm )
+      cat$zn = quantile.to.normal( cat$qn )
+
+
+			over.write.missing.data = TRUE 
+			if (over.write.missing.data) {
+				
+				# over-write na's for n or mass from each other, where possible:
+				kxm = which( !is.finite( cat$qm) )
+				kxn = which( !is.finite( cat$qn) )
+				
+				kmn = setdiff( kxm, kxn )
+				knm = setdiff( kxn, kxm )
+				
+				if ( length( knm) > 0 ) cat$qn[knm] =  cat$qm[knm]
+				if ( length( kmn) > 0 ) cat$qm[kmn] =  cat$qn[kmn]
+
+				# remaining missing values take the median value for each species == 0.5
+				kxm = which( !is.finite( cat$qm ) )
+				if ( length( kxm) > 0 ) cat$qm[kxm] = 0.5
+				
+				kxn = which( !is.finite( cat$qn ) )
+				if ( length( kxn) > 0 ) cat$qn[kxn] = 0.5
+
+			}
+      
+      # qn, qm and zn, zm are quantiles and zscores for within each survey and species 
+      # create another one for overall relative abundance of each species within each survey (qs, zs) 
+      # zn * zs ==> zn(global across all surveys) 
+
+      xtn = as.data.frame( xtabs( totno ~ data.source + spec, cat ), stringsAsFactors =FALSE  )
+      xtn$qns = NA
+
+        for (sp in surveys ){
+          ii = which( xtn$data.source == sp )
+					xtn$qns[ii] = quantile.estimate( xtn$Freq[ii]  )  # convert to quantiles, by species and survey
+        }
+
+      xtm = as.data.frame( xtabs( totmass ~ data.source + spec, cat ), stringsAsFactors =FALSE  )
+      xtm$qms = NA
+        for (sp in surveys ){
+          ii = which( xtm$data.source == sp )
+					xtm$qms[ii] = quantile.estimate( xtm$Freq[ii]  )  # convert to quantiles, by species and survey
+        }
+
+
+      xtm$Freq = NULL
+      xtn$Freq = NULL
+      xt = merge (xtn, xtm, by=c("data.source", "spec") )
+      cat = merge( cat, xt, by=c("data.source", "spec"), all.x=TRUE, all.y=FALSE )
+
+
+      cat$zms = quantile.to.normal( cat$qms )
+      cat$zns = quantile.to.normal( cat$qns )
+
+     
       save( cat, file=fn, compress=T )
       return (fn) 
     }
@@ -132,7 +230,7 @@
         x =  snowcrab.db( DS ="det.georeferenced" )  
         x$data.source = "snowcrab"
         x$id = paste( x$trip, x$set, sep="." )
-        x$spec = taxa.specid.correct(2526)
+        x$spec = taxa.specid.correct(2526)  # in case there has been an interal alteration in species code for snowcrab
         x$detid = x$crabno
         x$len = x$cw
         x$cf = 1/x$sa  ########## <<<<<< ------ NOTE THIS accounts only for SA as there is no subsampling
@@ -149,152 +247,6 @@
     }
 
 
-		# --------------------
-
-
-    if (DS %in% c("cat.fixed","cat.fixed.redo") ) {
-
-			# estimate quantiles for postive and nonero-values, etc..
-
-      cat = NULL # trip/cat loc information
-      fn = file.path( project.directory("bio"), "data", "cat.fixed.rdata"  )
-      if (DS=="cat.fixed") {
-        if (file.exists( fn) ) load( fn)
-        return ( cat )
-      }
- 
-			cat = bio.db( DS="cat", p=p)
-  
-    
-			surveys = sort( unique( cat$data.source ) ) 
-      species = sort( unique( cat$spec ) )
-
-			debug = F
-			if (debug) {
-				    
-		  	surveys = sort( unique( cat$data.source ) ) 
-        species = sort( unique( cat$spec ) )
-
-        sp.names =  lookup.spec2taxa(species) 
-				i.strange = which( is.na( sp.names$tx ))
-				sp.strange = sp.names$spec[ i.strange]
-				print( "Need to check these species codes in taxa db:")
-				print( sp.strange )
-				
-				# To drop: c( 90, 1091, 1092, 1093, 1094, 1095, 1100, 1200, 1224,
-        # 1300, 1600, 1701, 4223, 6120,
-				#							9000, 9001, 9200, 9310, 9400, 9600, 9991, 9992, 9993, 
-        #							9994, 9995, 9996, 9997, 9998, 9999)
-			
-				# 90 Unident fish
-				# "Unidentified Species"|1091
-				# "Unidentified Species"|1092|
-				# Unidentified Species"|1093|
-				# Unidentified Species"|1094|
-				# "Unidentified Species"|1095|
-				# "Eggs Unid."|1100||
-				# "Fish Eggs-Unidentified"|1200|
-				# "Skate Unid. Eggs"|1224|
-				# "Crustacean Eggs"|1300|
-				# "Invertebrate Eggs"|1600|
-				# "Marine Invertebrates"|1701|
-				# "Unid Remains"|9000||"
-				# "Unid Fish And Invertebrates"|9001|
-				# "Stones And Rocks"|9200||
-				# "Foreign Articles"|9400|
-				# "Water"|9600|
-				# "Unidentified Per Set"|9991 --- 9999|
-			
-				
-				## to keep? -- yes for now 
-				# potential Taxa db problems:
-				# "Shanny"|645|
-				# "White Barracudina"|727||
-
-			}	
-		
-			# in the following:	quantiles are computed, 
-      cat$qn = NA  # default when no data
-      for ( s in surveys ) {
-        si = which( cat$data.source==s & cat$totno > 0 )
-        for (sp in species ){
-          spi = which( cat$spec == sp )
-          ii = intersect( si, spi )
-          if (length( ii) > 0 ) {
-						cat$qn[ii] = quantile.estimate( cat$totno[ii]  )  # convert to quantiles, by species and survey
-					} 
-      }}
-	
-			cat$qm = NA   # default when no data
-      for ( s in surveys ) {
-        si = which( cat$data.source==s & cat$totmass > 0 )
-        for (sp in species ){
-          spi = which( cat$spec == sp )
-          ii = intersect( si, spi )
-          if (length( ii) > 0 ) {
-						cat$qm[ii] = quantile.estimate( cat$totmass[ii]  )  # convert to quantiles, by species and survey	
-					}
-      }}
-		
-     # convert from quantile to z-score 
-      maxqm = max( cat$qm[ which( cat$qm < 1 ) ] , na.rm=T )   
-      maxqn = max( cat$qn[ which( cat$qn < 1 ) ] , na.rm=T )   
-      cat$qm[ which(cat$qm==1) ] = maxqm
-      cat$qn[ which(cat$qn==1) ] = maxqn
-      cat$zm = qnorm( cat$qm )
-      cat$zn = qnorm( cat$qn )
-
-
-			debug = F
-			if (debug) {
-				
-				kmin = tapply( cat$qn, cat$spec, min, na.rm=T)
-				kmax = tapply( cat$qn, cat$spec, max, na.rm=T)
-			
-				# these have minima that are == 1  ! why?
-				i = which(kmin==1)
-				uu = as.numeric(names(kmin[i]))
-				if (length(uu > 0 ))  lookup.spec2taxa(uu)
-
-				oo = which( !is.finite( kmin) | !is.finite(kmax))
-				strange.spec = as.numeric( names(kmin)[oo] )
-				strange.spec.id = lookup.spec2taxa( strange.spec )
-				nas = which( is.na( strange.spec.id$spec ) )
-				if (length(pp) >  0 ) {
-          pp = strange.spec[ nas]
-	  			print ("Strange data?")
-		  		print(pp)
-        }
-			}
-
-			over.write.missing.data = FALSE
-			if (over.write.missing.data) {
-				
-				# over-write na's for n or mass from each other, where possible:
-				kxm = which( !is.finite( cat$qm) )
-				kxn = which( !is.finite( cat$qn) )
-				
-				kmn = setdiff( kxm, kxn )
-				knm = setdiff( kxn, kxm )
-				
-				cat$qn[knm] =  cat$qm[knm]
-				cat$qm[kmn] =  cat$qn[kmn]
-
-				# remaining missing values take the median value for each species == 0.5
-				kxm = which( !is.finite( cat$qm ) )
-				cat$qm[kxm] = 0.5
-				
-				kxn = which( !is.finite( cat$qn ) )
-				cat$qn[kxn] = 0.5
-
-			}
-
-			save( cat, file=fn, compress=T )
-      return (fn) 
-    }
-
-
-		# --------------------
 
   }
 

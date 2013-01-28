@@ -1,11 +1,11 @@
 
 
-  species.codes = function (txgrp=NULL, tx=NULL) {  
+  species.codes = function (txgrp=NULL, tx=taxa.db("complete") ) {  
     
     # a lookup of table / translation table for various groups of species of interest
     # output: species code
-    if (is.null( tx )) tx = taxa.db("complete")
 
+    spid = NULL
     out = NULL
      
     for (tg in txgrp) { 
@@ -124,14 +124,18 @@
         invert.lobster = c(2550, 2552, 2551, 2553),
         seastars.asteroidea =c(6100, 6111, 6134, 6110, 6132, 6113, 6133, 6135, 6128, 6115, 6119, 6129, 
           6130, 6125, 6131, 6121, 6123, 6127, 6117),
-        
+        maxresolved= specieslist.parsimony()$spec.clean,  # full species list for bio
         spec              = id 
       )
+      
       out = c( out, spid )
+    
     }
-   
-    out = sort( unique( out) ) 
-    out = taxa.specid.correct( out )  # recode to internally consistent codes
+    
+    if (!is.null(out) ) {
+      out = sort( unique( out) ) 
+      out = taxa.specid.correct( out )  # recode to internally consistent codes
+    }
 
     return (out ) 
   }
