@@ -1,6 +1,5 @@
  
 
-
   require(chron)
 
 	loadfunctions( ("common") )
@@ -63,7 +62,7 @@ data <- readWorksheet(wb)
 
 
   t0 = 1960
-  t1 = 2011
+  t1 = 2012
 
   # ordination of selected key factors
   

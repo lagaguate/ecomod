@@ -1,7 +1,6 @@
 
   metabolism.interpolate = function( ip=NULL,  p=NULL, DS="saved", modtype=NULL, yr=NULL ) {
  
-          
     if (DS=="saved") {
       sc = NULL
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
@@ -16,52 +15,37 @@
 
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
+ 
+    P0 = habitat.db( DS="baseline", p=p )  
+    P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
+    P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
 
-    P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
-    P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )
-
-    ks = metabolism.db( DS="metabolism.filtered", p=p )
-
+    ks = metabolism.db( DS="metabolism.merged", p=p )
+    ks = ks[ , c("yr", "platplon", "t", p$varstomodel ) ]
+    gc()
 
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]
 
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
+      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       fn = file.path( ddir, paste("metabolism.annual.gridded", yr, "rdata", sep=".") )
+       
+      td = temperature.db( year=yr, p=p, DS="complete")
+			td$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
+      td = td[ , setdiff(names(td), c( "z", "yr", "plon", "plat") )  ]
+
+      PS = merge( P0, td, by=c("platplon"), all.x=TRUE, all.y=FALSE )
+ 
+      sc = merge( PS, ks[ which(ks$yr==yr), ], by="platplon", all.x=TRUE, all.y=FALSE )
+    
+      sc$yr = yr # update all other records
+      sc$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
+      sc$julian = convert.datecodes(  sc$chron, "julian" )
       
-      sc = merge( P0, ks[ which(ks$yr==yr), ], by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("", ".set") )
-      ii = which(!is.finite( sc$z) )
-      if (length(ii)>0) sc$z[ii] = sc$z.set[ii]
-      sc$z.set = NULL
-
-      if (nrow(sc) != nrow(P0) ) {
-        # some duplicates created by merge, keep first match and remove the rest 
-        dups = which( duplicated( sc$platplon ) )
-        if (length(dups) > 0 ) {
-          sc = merge( P0, sc[-dups,], by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("",".merge") )
-          sc$plon.merge = sc$plat.merge = NULL
-        }
-      }
-          
-      sc$yr = yr
-      sc$julian = 8/12 * 365  # 1 sept 
-      sc$chron = string2chron( paste( paste( yr, "Sep", "01", sep="-" ), "12:00:00") )  # required for time-dependent lookups
-
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
-  
-
-      # reduce dataframe size to reduce memory requirements/improve speed
-      sc = sc[ , c("plon","plat", "yr", "julian", "z", "t", p$varstomodel ) ]
-
-      gc()
-      
-      if (modtype=="complex") { 
-        loadfunctions("habitat" )
-
-        sc = habitat.lookup(x=sc, p=p, dist.scale=p$dist.scale, keep.lon.lat=TRUE, datatype="all.data"  )
-      }
-      
+ 
       for ( ww in p$varstomodel ) {
         idata = which( is.finite( sc[,ww] ) )
         scrange = range( sc[idata,ww], na.rm=T )

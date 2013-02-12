@@ -113,7 +113,7 @@
 
       for (tx in nss.taxa) {
 
-        i.tx = filter.taxa( x=x$spec, method=tx, index=T )
+        i.tx = filter.taxa( x=x$spec, method=tx )
         if ( is.null(i.tx) || length(i.tx) < 30) next
         XX = x[ i.tx, ]
         rm( i.tx ); gc()

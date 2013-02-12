@@ -1,10 +1,10 @@
 
-  hydro.modelled.db = function( p, DS, vname, yr=NULL ) {
+  hydro.modelled.db = function( ip=NULL, p, DS, vname, yr=NULL ) {
 
     if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo" )){
       
 			tstatdir = project.directory("temperature",  "data", "stats", p$spatial.domain ) 
-      dir.create( tstatdir, showWarnings=F )
+      dir.create( tstatdir, showWarnings=F, recursive = TRUE )
 
 			if (DS %in% c("bottom.statistics.annual")) {
         O = NULL
@@ -76,7 +76,7 @@
 			
 			# global / climatological mean across all years
 			tstatdir = project.directory("temperature", "data", "stats", p$spatial.domain )
-      dir.create( tstatdir, showWarnings=F )
+      dir.create( tstatdir, showWarnings=F, recursive = TRUE  )
 
 			if (DS=="bottom.mean") {
 				fn = file.path(tstatdir, paste(vname, "rdata", sep=".") )

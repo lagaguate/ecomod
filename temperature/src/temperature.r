@@ -77,6 +77,9 @@ Nafo5Zw
       
 		# ----------------
     # parameters 
+    
+    #   j = "SSE"
+ 
       p = spatial.parameters( p=p, type=j )
 		  p$clusters = rep("localhost",  1) # debug
       # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
@@ -91,26 +94,15 @@ Nafo5Zw
    			
  		# ----------------
     # temporal interpolations assuming a sinusoidal seasonal pattern 
-      #uselocalonly = TRUE
-      #if ( uselocalonly ) {
-        # NOTE:: takes about 20GB RAM -- use this 
-        # 1950-2012, SSE ,on kaos with 24 CPU took XX hrs
-        # It is faster to use RAM but this limits the no of CPUS that can be used to that found on a single machine:
-        p$clusters = rep("localhost",  24) # debug
-        temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="RAM" ) 
-      
-        #} else {
+      p$clusters = rep("localhost",  24) # ~ 155 hours with 24 cpus and 1950:2012, ESS; 20 GB total
+      # ?? p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) ) # speeded ??
+      temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
         # 1950-2012, SSE took +46 hrs  
-        # -- DO NOT!!! use this as going across computers using a backing file is slow and prone to overloading socket connections
-        #p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) ) --- > 7 days!!
-        #temperature.interpolations( p=p, DS="temporal.interpolation.redo", method="FILE"  ) 
-      #}
 
  		# ----------------
-    # simple spatial interpolation (complex takes too much time/cpu)
-    # in parallel mode with 4 cpus ~ 30 minutes
+    # simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
     # temperature.interpolations( p=p, DS="spatial.interpolation.redo" ) 
-    p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) )
+    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
     parallel.run( clusters=p$clusters, n=length(p$tyears), temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
   
  		# ----------------
@@ -118,16 +110,29 @@ Nafo5Zw
     # hydro.modelled.db(  p=p, DS="bottom.statistics.annual.redo" )
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
-    p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) )
+    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
     parallel.run( clusters=p$clusters, n=length(p$tyears),	hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
 
     # ----------------
-    # annual means of key statistics
+    # climatology database 
     # 4 cpu's ~ 5 min
     bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
     # hydro.modelled.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
     p$clusters = rep( "nyx", length(bstats) )
     parallel.run( clusters=p$clusters, n=length(bstats), hydro.modelled.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
+ 
+
+    # glue climatological stats together
+    temperature.db ( p=p, DS="climatology.redo") 
+    
+    # annual summary temperature statistics for all grid points --- used as the basic data level for interpolations 
+    parallel.run( clusters=p$clusters, n=length(p$tyears), temperature.db, p=p, DS="complete.redo") 
+
+
+
+
+
+
 
     # ----------------
     # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
@@ -135,6 +140,9 @@ Nafo5Zw
     p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
     parallel.run( clusters=p$clusters, n=length(p$tyears), hydro.map, p=p, yr=p$tyears, type="annual"  ) 
     parallel.run( clusters=p$clusters, n=length(p$tyears), hydro.map, p=p, yr=p$tyears, type="global") 
+
+
+
 
   }
 
@@ -154,7 +162,7 @@ Nafo5Zw
     require( gstat )
     p = spatial.parameters( type="SSE" )
     
-    O = hydro.db( p=p, DS="bottom.gridded"  )
+    O = hydro.db( p=p, DS="bottom.gridded" )
     O = O[, c("plon", "plat", "t", "yr", "weekno")]
     O = O[ which( is.finite(O$t)) ,]
 

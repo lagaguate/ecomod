@@ -17,7 +17,8 @@
     require(chron) 
     require(mgcv)
     require(snow)
-    
+    require(multicore)
+   
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
       modeltype = p$runs[iip,"modtype"]
@@ -27,49 +28,14 @@
       fn.models =  file.path( ddir, paste("speciescomposition.models", ww, "rdata", sep=".") )
 			
 			SC = speciescomposition.db( DS="speciescomposition.merged", p=p )
-			
-			if (modeltype=="simple" ) {
-        formu = formula( paste( ww, ' ~  s(plon,plat) + s(yr) + s(julian, k=3) ' ))
-      }
+			SC = habitat.lookup.modeltype( p=p, sc=SC, modtype=modeltype )
 
-      if (modeltype=="simple.highdef") { 
-        formu = formula ( paste( ww, ' ~   s(plon,plat, k=400) + s(yr) + s(julian,k=3)' ))
-      }
-    
-      if (modeltype=="time.invariant") { 
-        loadfunctions ( "habitat")
-        SC = habitat.lookup(x=SC, p=p, dist.scale=p$interpolation.distances, datatype="time.invariant" )
-        formu = formula( paste( ww, 
-          ' ~ s(plon,plat, k=400) + s(yr) + s(julian, k=3) 
-            + s(z, k=4 , bs="ts" ) 
-            + s(dZ, k=4, bs="ts" )  
-            + s(substrate.mean, k=4, bs="ts" ) 
-          '            
-            )) 
-      }
-    
-    
-      if (modeltype=="complex") { 
-        loadfunctions ( "habitat")
-        SC = habitat.lookup(x=SC, p=p, dist.scale=p$interpolation.distances, keep.lon.lat=TRUE,  datatype="all.data" )
+      formu =  habitat.model.selection( ww, modeltype )
+      fmly = gaussian()
 
-        formu = formula( paste( ww, 
-          ' ~ s(plon,plat, k=400) 
-            + s(yr, julian ) 
-            + s(tmean, k=3, bs="ts") 
-            + s(dt.annual, k=3, bs="ts" ) 
-            + s(dt.seasonal, k=3, bs="ts" ) 
-            + s(tamp.annual, k=3, bs="ts" )
-            + s(wmin.annual, k=3 , bs="ts" ) 
-            + s(z, k=3 , bs="ts" ) 
-            + s(dZ, k=3, bs="ts" )  
-            + s(substrate.mean, k=3, bs="ts" ) 
-          '      
-        ))
-      }
-
-      spcomp.model = function(ww) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=gaussian() )}
-      models = spcomp.model (ww)
+      spcomp.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family= )}
+      models = spcomp.model (ww, SC, fmly)
+      
       save( models, file=fn.models, compress=T)
 
     }

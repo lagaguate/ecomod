@@ -22,8 +22,7 @@
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$taxa = "alltaxa"   # do not use any other category
   p$season = "allseasons"
-  p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 )  # for lookup of temperature
-  p$dist.scale = 25  # second-pass habitat interpolation scale
+  p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 )  
   
   # choose:
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
@@ -36,13 +35,16 @@
 
   p$varstomodel = c( "mr", "smr", "totno", "totwgt", "meanwgt", "meanlen"  )
   p$yearstomodel = 1970:2012
-  # p$mods = c("simple","simple.highdef", "complex" )  # model types to attempt
-  p$mods = c("simple","simple.highdef" )  # model types to attempt
+  p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
+  # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
+  # p$mods = c("simple","simple.highdef" )  # model types to attempt
+   p$mods = "complex"
 
   # prepare data
   metabolism.db( DS="metabolism.redo", p=p )
   metabolism.db( DS="metabolism.filtered.redo", p=p )
+  metabolism.db( DS="metabolism.merged.redo", p=p )
    
   
   # model the data ~ 2hrs

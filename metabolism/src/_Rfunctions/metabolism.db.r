@@ -23,7 +23,7 @@
       MR = MR[, c( "id", "platplon", "yr", "julian", "chron", "z", "t", "sal", "oxysat", "cf",
           "totno", "totwgt", "mr", "mrA", "smr", "smrA", "meanwgt", "meanlen" )]
     
-      # check for duplicates
+      # check for duplicates --- should not be required but just in case
       for ( y in p$yearstomodel ) {
         yy = which (MR$yr == y)
         ii = which( duplicated( MR$id[yy] ) )
@@ -57,14 +57,48 @@
           if (length(iq1) > 0) MR[ which(MR[,ww] > qnts[2]), ww] = qnts[2]   
         }
       }
-
       save( MR, file=fn, compress=T )
-      
       return (fn) 
- 
+    }
+    
+    
+    if (DS %in% c( "metabolism.merged", "metabolism.merged.redo" ) ) {
+ 		
+      require( chron) 
+
+      ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season )
+      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
+      
+      fn = file.path( ddir, "set.metabolism.merged.rdata" )
+        
+      if (DS=="metabolism.merged") {
+        MR = NULL
+        if (file.exists( fn) ) load( fn ) 
+        return ( MR )
+      }
+      
+      P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
+			P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )
+
+      mm =  metabolism.db( DS="metabolism.filtered", p=p )
+
+      MR = merge( mm, P0, by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("",".P0") )
+			MR = MR[ -which(!is.finite( MR$plon+MR$plat ) ) , ]  # a required field for spatial interpolation
+		  rm(mm, P0); gc()
+
+      if (!exists( "z", MR)) MR$z = NA
+			MR$z = habitat.lookup.simple( MR,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances ) 
+			
+      if (!exists( "t", MR)) MR$t = NA
+      MR$t = habitat.lookup.simple( MR,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+		
+			save( MR, file=fn, compress=T )
+			return (fn)
     }
     
    
+    # -----------
+
     if (DS %in% c( "metabolism", "metabolism.redo" ) ) {
  
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season )
@@ -79,41 +113,36 @@
       }
 
 
-      loadfunctions("groundfish")
-
-      det = groundfish.db( DS="det" ) # size information, no, cm, kg
-      set = groundfish.db( "set" ) # kg/km^2, no/km^2
-      
-      set = set[ which(set$settype %in% c(1,2)) , ]  
-        # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
-        #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
-        #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
+      det = bio.db( DS="det" ) # size information, no, cm, kg
+      set = bio.db( DS="set" ) # kg/km^2, no/km^2
+      cat = bio.db( DS="cat" )
 
       # filter area
       igood = which( set$lon >= p$corners$lon[1] & set$lon <= p$corners$lon[2] 
             &  set$lat >= p$corners$lat[1] & set$lat <= p$corners$lat[2] )
-      set = set[igood, ]
+      if (length(igood)>0) set = set[igood, ]
 
       # filter taxa
-      # det$spec = taxa.specid.correct( det$spec, method=p$taxa )
+      # det$spec = taxa.specid.correct( det$spec )
       det = filter.taxa( det, method=p$taxa )
-      set = set[ which( set$id %in% unique( det$id) ),]
+      cat = filter.taxa( cat, method=p$taxa )
+      set = set[ which( set$id %in% unique( c(unique( det$id), unique(cat$id))) ),]
       
       if ( p$season != "allseasons" ) {
         set = set[ filter.season( set$julian, period=p$season, index=T ) , ]
-        det = det[ which( det$id %in% unique( set$id) ), ]
-      }
+     }
 
-      # filter years
+      # last filter on set:: filter years
       set = set[ which(set$yr %in% p$yearstomodel) , ]
-
-      sm = set [, c("id", "chron", "yr", "julian", "strat", "dist", 
-                 "sakm2", "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype", "cf")]
-      sm = rename.df( sm, "sdepth", "z")
-      sm = rename.df( sm, "temp", "t")
-      sm = rename.df( sm, "sakm2", "sa")
-      
-      sm = sm[ !duplicated(sm$id) ,] 
+     
+      # match sets and other data sources
+      det = det[ which( det$id %in% unique( set$id) ), ]
+      cat = cat[ which( cat$id %in% unique( set$id) ), ]
+ 
+      sm = set [, c("id", "chron", "yr", "julian",  
+                 "sa", "lon", "lat", "z", "t", "sal", "oxyml", "settype", "cf")]
+      oo =  which( !duplicated(sm$id) )
+      if (length(oo) > 0 ) sm = sm[ oo, ] 
    
       print( "Lookup of temperature and habitat data, prior to modelling") # used for Arrhenius correction
       
@@ -121,18 +150,14 @@
       sm$z = habitat.lookup.simple( sm,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
       sm$t = habitat.lookup.simple( sm,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
   
-      
-      # save( sm, file="~/sm.tmp", compress= T )
-      # load( "~/sm.tmp" )
-
-
+    
       # summary stats for each trip.set
       sm$oxysat = compute.oxygen.saturation( t.C=sm$t, sal.ppt=sm$sal, oxy.ml.l=sm$oxyml)
  
-      # compute a few stats (from set)
-      # set$totno and set$totwgt have already been cf corrected ---> already in per km2
-      qtotno  = sumById( ee=set$totno , id=set$id,  idnames=c("id","totno" ) ) # no/km^2
-      qtotwgt = sumById( ee=set$totwgt, id=set$id,  idnames=c("id","totwgt" ) ) # kg/km^2
+      # compute a few stats (from cat)
+      # cat$totno and cat$totmass have already been cf corrected ---> already in per km2
+      qtotno  = sumById( ee=cat$totno , id=cat$id,  idnames=c("id","totno" ) ) # no/km^2
+      qtotwgt = sumById( ee=cat$totmass, id=cat$id,  idnames=c("id","totwgt" ) ) # kg/km^2
       
       # stats derived from det  -- det$cf is a copy of set$cf ..identical 
       qtotwgt_d = sumById( ee=det$mass*det$cf, id=det$id,  idnames=c("id","totwgt_d" ) )
@@ -171,7 +196,7 @@
       
       MR$meanwgt = MR$totwgt / MR$totno
       MR$meanlen = MR$totlen / MR$totno
-
+      
       save( MR, file=fn, compress=T )
       
       return (fn) 

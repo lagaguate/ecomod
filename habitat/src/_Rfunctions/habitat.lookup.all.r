@@ -1,4 +1,4 @@
-speciesarea.lookup = function( x, p, discretization.scale=0, dist.scale=5 ) {
+habitat.lookup.all = function(x, p, discretization.scale, dist.scale) {
 
   require(fields)
   # x must contain plon, plat, and chron
@@ -21,54 +21,59 @@ speciesarea.lookup = function( x, p, discretization.scale=0, dist.scale=5 ) {
     yrs = sort( unique( x$yr ))
     if (is.null ( yrs) ) stop()
   }  
-   
+
+  if (! exists("weekno", x) ) {
+    x$dayno = convert.datecodes(x$chron, "julian")  # from  source ("/home/jae/ecomod/common/functions.date.r")
+    x$weekno = ceiling (x$dayno / 365 * 52 )
+  }
+  # weeknos = sort( unique( x$weekno ) )
+
   out = NULL
+
   for (Y in yrs) { 
     print( Y )
     ii = which( x$yr == Y )
+    if (length( ii) == 0) next()  
     H = x[ii,]  
 
-    SAG = speciesarea.interpolate( p=p, yr=y, modtype=p$speciesarea.modeltype )
-    if (is.null(SAG)) next ()
-    
-    SAG$yr = NULL
-    SAG$plon = round( SAG$plon, discretization.scale )
-    SAG$plat = round( SAG$plat, discretization.scale )
+    PS = habitat.db( DS="complete", p=p, year=Y )
+    if (is.null(PS)) next ()
+    PS$yr = NULL
+    PS$plon = round( PS$plon, discretization.scale )
+    PS$plat = round( PS$plat, discretization.scale )
     
     tmp = NULL
-    tmp = merge( H, SAG, by=c("plon", "plat" ), all.x=T, all.y=F, suffixes=c("", ".redundant") )
+    tmp = merge( H, PS, by=c("plon", "plat" ), all.x=T, all.y=F, suffixes=c("", ".redundant") )
     
-    if (length( grep("redundant", names( tmp ) ) > 0 )) {
-      print( "Error in merge" )
-      stop()
+    oo =  grep("redundant", names( tmp)) 
+    if (length(oo) > 0 ) {
+      print( "Redundant vars found: Error in merge? Dropping the following..." )
+      print( names(tmp)[oo] )
+      tmp = tmp[, -oo ] 
     }
 
     miss = which( !is.finite( tmp$z ) )
     if( length(miss) >0 ) {
-      hvars = setdiff( names( tmp) , c("plon", "plat", "yr", "chron", "hid" )  )
+      hvars = setdiff( names( tmp) , names(H) )
       distances =  rdist( PS[,c("plon", "plat")], H[miss, c("plon", "plat")] )
       for( jj in 1:length(miss) ) {
         dd = which.min( distances[,jj] )
         if (distances[ dd, jj ] < dist.scale ) {
-          tmp[ miss[jj], hvars ] = SAG[ dd, hvars ]
+          tmp[ miss[jj], hvars ] = PS[dd, hvars ]
         }
       }
-    }
+    }	
     out = rbind( out, tmp )
     
   }
-  rm (SAG, tmp) 
+  out = merge( x0, out, by="hid", all.x=T, all.y=F, sort=T ) 
+  out = out[ order(out$hid) , ]
+  out$hid = NULL
 
-  out = out[, - which(names(out) %in% c("plon","plat","chron", "yr")) ] 
-  x = merge( x0, out, by="hid", all.x=T, all.y=F, sort=T )
-  x = x[ order(x$hid) , ]
-  x$hid =NULL
-
-  if ( nrow(x) != nx ) {
+  if ( nrow(out) != nx ) {
     print( "Merge error -- duplicated coords" )
     stop()
   }
-  return( x )
+  return( out )
 
 }
-

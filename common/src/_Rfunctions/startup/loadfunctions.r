@@ -44,7 +44,7 @@
       
 
         # remove archived functions, etc.
-        toremove = c("retired", "_archive", "archive", "test", "orphan", "request", "example" )
+        toremove = c("retired", "_archive", "archive", "orphan", "request", "example" )
         rem  = NULL
         for (i in toremove) {
           rem0 = grep ( i, projectfiles,  ignore.case =T ) 

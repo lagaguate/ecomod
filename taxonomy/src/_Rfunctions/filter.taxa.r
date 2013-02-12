@@ -1,15 +1,11 @@
 
-  filter.taxa = function ( x, method=NULL, tx=NULL, index=T ) {
+  filter.taxa = function ( x, method=NULL, tx=NULL, return.species.list=FALSE ) {
 		
-    # default is to return the row index -- if codes are desired must use index=F
     # sequence is important here .. do not re-order unless you know what you are doing
-
 
 		if ( is.null(method) || method == "alltaxa" ) {
 			# do this first to keep things fast if there is nothing to do ... keep all species 
-			if (is.vector(x) )     i = x 
-			if (!index) i = 1:length(i)
-			return(i)
+      return(x)
 		} 
 		
     
@@ -54,12 +50,12 @@
 			x$spec = taxa.specid.correct( x$spec )  # recoding of species id's done here!
 			keep = which( is.finite( x$spec ) & x$spec %in% sp.codes  )
 			
-			if (index) {
-				return (keep)
-			} else {
+			if ( return.species.list) {
 				x$spec.out = NA
 				if (length(keep)>0) x$spec.out [keep] = x$spec[keep]
 				return ( x$spec.out )	
+			} else {
+				return (keep)
 			}
 		}
 	}

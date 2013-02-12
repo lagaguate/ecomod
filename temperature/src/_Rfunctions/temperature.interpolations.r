@@ -1,5 +1,5 @@
 
-  temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL, method="FILE" ) {
+  temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
     
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
          
@@ -51,19 +51,9 @@
       df2 = paste(bf2, "desc",sep=".")
 		
 
-      # create the data objects either in RAM or as a FILE
-      if (method == "FILE" ) {
-
-        # backingdirectory location does not seem to work in V 4.2.3 .. defaulting to home dir
-        tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA,   backingfile=bf1, descriptorfile=df1   )  
-        tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, backingfile=bf2, descriptorfile=df2  )
-
-      } else if (method == "RAM" ) {
-
-        tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA )  
-        tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA )
-
-      }
+      # backingdirectory location does not seem to work in V 4.2.3 .. defaulting to home dir
+      tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA,   backingfile=bf1, descriptorfile=df1   )  
+      tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, backingfile=bf2, descriptorfile=df2  )
 
       # required to operate with bigmemory objects in parallel 
       p$tbot.desc = describe(tbot)
@@ -113,7 +103,9 @@
 			if (p$spatial.domain=="snowcrab") {
         spinterpdir = file.path( project.directory("temperature"), "data", "interpolated", "spatial", "SSE" )
       }
-    
+  
+      dir.create( spinterpdir, recursive=T, showWarnings=F )
+	 
 			if (DS %in% c("spatial.interpolation")) {
         P = NULL
         fn1 = file.path( spinterpdir, paste("spatial.interpolation",  yr, "rdata", sep=".") )
@@ -163,6 +155,18 @@
             ai = which(is.finite(P[,ww]))
             aj = setdiff( 1:nrow(P), ai)
 						pp = pp.se = NULL
+
+            # testing
+            testing= FALSE
+            if (testing) {
+              gs =  try(
+                gstat( id="t", formula=P[ai,ww]~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]) 
+              , silent=T ) 
+              if ( "try-error" %in% class(e) ) { 
+                # simplest default inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
+                gs = gstat( id="t", formula=P[ai,ww]~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]) 
+              }
+            }
 
             # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
             gs = gstat( id="t", formula=P[ai,ww]~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]) 

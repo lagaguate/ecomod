@@ -24,10 +24,10 @@ temperature.lookup = function( x, p,  discretization.scale = 0, dist.scale=5 ) {
   }  
 
   if (! exists("weekno", x) ) {
-    x$dayno = convert.datecodes(x$chron, "julian")  # from  source ("/home/jae/ecomod/common/functions.date.r")
+    x$dayno = convert.datecodes(x$chron, "julian")  
     x$weekno = ceiling (x$dayno / 365 * 52 )
   }
-  weeknos = sort( unique( x$weekno ) )
+  # weeknos = sort( unique( x$weekno ) )
 
   O = bathymetry.db( p=p, DS="baseline" )
   O$plon = round( O$plon, discretization.scale )

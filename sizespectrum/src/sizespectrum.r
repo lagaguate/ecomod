@@ -24,7 +24,7 @@
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  p$clusters = rep( "localhost", 14 )
+  p$clusters = rep( "localhost", 24 )
 
   # p$clusters = c( rep( "nyx.beowulf", 14), rep("tartarus.beowulf", 14), rep("kaos", 13 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
@@ -34,8 +34,12 @@
   
   # for spatial interpolation of nss stats
   p$varstomodel = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
-  # p$mods = c("simple","simple.highdef", "complex" ) 
-  p$mods = c("simple","simple.highdef") 
+  # p$mods = c("simple","simple.highdef", "complex", "full" ) 
+  # p$mods = c("simple","simple.highdef") 
+  p$mods =  "complex" 
+  p$habitat.predict.time.julian = "Sept-1" # Sept 1
+
+
   p$timescale = c( 0,1,2,5,10 ) # yr  
   p$interpolation.distances =  25 # for interpolation of habitat vars
 
@@ -58,12 +62,9 @@
 
 
   sizespectrum.db( DS="sizespectrum.by.set.redo", p=p ) 
-  
   sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  # compute species-area relationships-- long 
-  
   sizespectrum.db( DS="sizespectrum.stats.filtered.redo", p=p )
-
-  sizespectrum.db( DS="sizespectrum.redo", p=p )
+  sizespectrum.db( DS="sizespectrum.stats.merged.redo", p=p )
 
 
   # create a spatial interpolation model for each variable of interest 

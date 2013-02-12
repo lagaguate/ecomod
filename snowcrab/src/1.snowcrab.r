@@ -149,6 +149,8 @@
 #     Temperatures ::  
   loadfunctions ( "temperature", functionname="temperature.r" )  # days
 
+
+# the folllowing depends upon the previous  
 #     Species area data :: 
   loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
 

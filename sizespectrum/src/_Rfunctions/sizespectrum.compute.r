@@ -18,12 +18,14 @@
         smdi = geodist.test( point=sm0[coords], locations=sm[,coords], method="great.circle", threshold=p$nss.distances, type="le")
         smd  = sm[smdi,]
 
-        smti = time.test( x0=sm0$chron, x1=smd$chron, threshold=p$nss.stimes, type="le")
+        tdiff = abs( as.numeric(sm0$chron  ) - as.numeric(smd$chron))
+        smti = which(tdiff <= p$nss.stimes)
+
         good.id = smd$id[ sort( smti) ]
 
         midpoints=p$nss.bins$mids
 
-        ss = sizespectrum.db( "sizespectrum.by.set", nss.taxa=p$nss.taxa, nss.type=p$nss.type, nss.base=p$nss.base )
+        ss = sizespectrum.db( DS="sizespectrum.by.set", p=p )
         
         ### add an offset (1% of min nonzero value) and then log transform it
         ss0 = as.matrix(ss)

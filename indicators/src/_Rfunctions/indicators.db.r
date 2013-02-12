@@ -128,7 +128,7 @@
       fn = file.path( cpidir, "cpi.csv")
       
       if (db=="cpi") {
-        cpi = read.table( fn, sep=",", header=T ) 
+        cpi = read.csv( fn, sep=",", header=T ) 
         cpi$cpi = cpi$cpi / cpi$cpi[ which(cpi$yr==ref.year) ]
         return(cpi)
       }
@@ -139,9 +139,9 @@
         
       # update data
       o = readLines( fn )
-      #Â
+      print( "Incomplete:: need an automated update process" )
       
-      save()
+      # save()
 
       return()
 
@@ -154,7 +154,7 @@
       # these have been exported from spreadsheets that need to be updated
       # need an automated update mechanism   
       infile = file.path(  project.directory("indicators"), "data", "fish", "landings.all.modern.csv")
-      ld = read.table( infile, sep=";", header=T, strip.white=T, stringsAsFactors=F ) # mt.live
+      ld = read.csv( infile, header=T, strip.white=T, stringsAsFactors=F ) # mt.live
       colnames(ld) = tolower(colnames(ld))
       ld$type = tolower( ld$type )
       for ( i in c("ns", "nb", "pei", "qc", "nfld", "atlantic", "bc", "canada" ) ) {
@@ -171,7 +171,7 @@
       # these have been exported from spreadsheets that need to be updated
       # need an automated update mechanism   
       infile = file.path( project.directory("indicators"), "data", "fish", "landedvalue.all.modern.csv")
-      lv = read.table( infile, sep=";", header=T, strip.white=T, stringsAsFactors=F ) # K dollar
+      lv = read.csv( infile, header=T, strip.white=T, stringsAsFactors=F ) # K dollar
       colnames(lv) = tolower(colnames(lv)) 
       lv$type = tolower( lv$type )
       for ( i in c("ns", "nb", "pei", "quebec", "nfld.", "atlantic", "bc", "canada" ) ) {
@@ -282,7 +282,7 @@
 
     }
   
-    if (db=="economic.data") {
+    if (db %in% c("economic.data","economic.data.redo" ) ) {
       data.file=file.path( project.directory("indicators"), "data", "economics.csv")
       economics = read.table(file=data.file, sep=";", header=T, as.is=T, strip.white=T)
       to.keep = c( "yr", "No.of.vessels.4vw", "Commercial.Licences.ns", "No.Fish.harvesters", "No.Fish.processors",
@@ -315,25 +315,17 @@
         load( fn )
         return ( shrimp )
       } 
-      a = read.table( file.path( project.directory("indicators"), "data", "ESS_shrimp07.csv"), sep=";", header=T, as.is=T, na.strings=c("NA", "NAN", "NaN"))
-      names(a) = c( "yr", "rv_cpue","g_cpue", "st_cpue",   "rv_cv",  "comm_area",  "rvssb",  "rv_2","rv_4",   
-        "sex_mm", "max_mm", "pred", "count",  "exp_tot", "exp_fem", "femcatch_prop",  "fem_size",   "ovig_fish",  
-        "pop_even",   "rvbotemp",   "ssjuly", "capelin","cod_r", "g_halibut",  "snow_c." 
-      )  
-      for (i in names(a))  a[,i] = as.numeric( as.character( a[,i] ) )
-      to.keep = c("yr", "rv_cpue", "sex_mm", "exp_tot",  "fem_size", "ssjuly", "capelin"  )
-      new.names = c("yr", "shrimp.abundance.index", "shrimp.size.sexchange.mm", "shrimp.exploitation.index", "shrimp.size.female", "shrimp.sst.july", "shrimp.capelin.index" )
+      shrimp = read.csv( file.path( project.directory("indicators"), "data", "ESS_shrimp.csv"), header=T, stringsAsFactors=FALSE, na.strings=c("NA", "NAN", "NaN"))
+      names(shrimp) = c("yr", "shrimp.abundance.index", "shrimp.size.sexchange.mm", "shrimp.exploitation.index", "shrimp.size.female", "shrimp.capelin.index" )
 
         # rv_cpue -- cpue of shrimp from dedicated shrimp trawls
         # sex_mm -- size at sex change -- lower size at sex change when growth rates are higher (density, temperature)
         # count -- number of shrimp per pound --- mean size estimate
         # exp_tot -- exploitation rates index
         # fem_size -- size of females -- index of exploitation of largest shrimp
-        # ssjuly -- july SST in shrimp fishing areas
+        # ssjuly -- july SST in shrimp fishing areas "shrimp.sst.july"
         # capelin -- abundance of capelin --  a cold-adapted species
 
-      shrimp = a[, to.keep]
-      names(shrimp) = new.names
       save( shrimp, file=fn, compress=T )
       return (shrimp)
     }
@@ -599,17 +591,8 @@
 
 
     if (db=="seal.timeseries") {
-      data.file = file.path( project.directory("indicators"), "data", "seals_adult.csv")       
+      data.file = file.path( project.directory("indicators"), "data", "seals.csv")       
       seal = read.table( data.file, sep=",", header=T,  as.is=T, strip.white=T)
-  #    seal = seal[seal$yr <= 2002 ,]  # some numbers are projections
-      seal$seals.adult = 10* seal$seals.adult
-      tmp = lm(log10(seal$seals.adult) ~ seal$yr, na.action=na.omit)
-      missingyear = 2001
-      n = tmp$coefficients[1]+tmp$coefficients[2]*missingyear
-      seal = rbind (seal, c(missingyear, 10^n) )
-      o = order(seal$yr)
-      sealnew = rbind(seal[o,])
-      seal = sealnew
       return(seal)
     }
 
@@ -772,7 +755,7 @@
             "snowcrab.kriged.totno.female.mat", "snowcrab.kriged.totno.female.imm"
        )
         
-          ecosystem = c(  "seals.adult", "groundfish.stratified.mean.shannon", "shrimp.capelin.index", "shrimp.sst.july", 
+          ecosystem = c(  "seals.total", "groundfish.stratified.mean.shannon", "shrimp.capelin.index", 
             "shrimp.size.female", "shrimp.exploitation.index", "shrimp.size.sexchange.mm", "shrimp.abundance.index", 
             "cpr_colour", "cpr_diatoms", "cpr_dino", "cpr_cf1_4", "cpr_cf5_6", "cpr_ch", "cpr_para_pseudo", 
             "groundfish.stratified.mean.totwgt.elasmobranchs", "groundfish.stratified.mean.totwgt.gadoid", 
@@ -818,7 +801,7 @@
         "groundfish.stratified.mean.oxyml", "groundfish.stratified.mean.temp", "groundfish.stratified.mean.sal",
         "nwells.drilled","seismic.2d","seismic.3d","pcb.sealblubber","pcb.atlantic.puffin.ppm.wet",
         "halifax.harbour.sst", "t.sable.c", "ss.slope.front.lon62.lat.mean", "seaice.sa.km2",
-         "seals.adult", "shrimp.capelin.index", "shrimp.abundance.index",
+         "seals.total", "shrimp.capelin.index", "shrimp.abundance.index",
         "cpr.diatoms", "groundfish.stratified.mean.shannon", "cpr.colour", 
         
         "groundfish.stratified.mean.totwgt.capelin",
@@ -851,7 +834,7 @@
         keyfactors = setdiff( keyfactors, c("landingsTotal.misc.ns.mt.live","landedvalue.NS.Total.miscellaneous" ) )
 
         to.log = c("snowcrab.kriged.totno.female.mat", "snowcrab.kriged.totno.female.imm" , 
-        "snowcrab.kriged.r0.mass",  "snowcrab.kriged.r1.no" ,"snowcrab.fishery.landings", "seaice.sa.km2", "seals.adult")
+        "snowcrab.kriged.r0.mass",  "snowcrab.kriged.r1.no" ,"snowcrab.fishery.landings", "seaice.sa.km2", "seals.total")
         
 
         keyfactors.names = matrix( c(
@@ -886,7 +869,7 @@
         "seaice.sa.km2","Ice coverage",
         "smr","RV: groundfish SMR",
         "mr","RV: groundfish MR",
-        "seals.adult", "Seal abundance adult",
+        "seals.total", "Seal abundance",
         "shrimp.capelin.index", "Shrimp: capelin abundance index",
         "shrimp.abundance.index","Shrimp: abundance index",
         "cpr.diatoms","CPR: diatoms",

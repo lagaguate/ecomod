@@ -1,5 +1,5 @@
 
-  hydro.map = function( ip=NULL, p=NULL, yr, type="annual", parallel=F, ... ) {
+  hydro.map = function( ip=NULL, p=NULL, yr, type="annual", ... ) {
     
     # ip is the first parameter passed in the parallel mode
     
@@ -80,7 +80,7 @@
           annot = y
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
             fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
-                 }  
+        }  
     
         if (type %in% c("halfperiod", "annual") ) {
           datacols = c("plon", "plat", "thalfperiod")
@@ -91,6 +91,7 @@
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
             fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
         }
+
         if (type %in% c("tsd", "annual") ) {
           datacols = c("plon", "plat", "tsd")
           datarange = seq(0, 4, length.out=50)

@@ -21,7 +21,11 @@
         smd  = sm[smdi,]
 
         for (ti in nss.stimes) {
-          smti = time.test( x0=sm0$chron, x1=smd$chron, threshold=ti, type="le")
+          
+            
+          tdiff = abs( as.numeric(sm0$chron  ) - as.numeric(smd$chron))
+          smti = which(tdiff <= p$nss.stimes)
+
           good.id = smd$id[ sort( smti) ]
 
           for (tx in nss.taxa) {

@@ -5,7 +5,9 @@
 			# raw data minimally modified all concatenated
       
       datadir = project.directory("bathymetry", "data" )
-			fn = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.rdata" )
+			dir.create( datadir, showWarnings=F, recursive=T )
+      
+      fn = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.rdata" )
       
       if (DS =="z.lonlat.rawdata" ) {
         load( fn)
@@ -365,7 +367,6 @@
 
       save( id, file=fn, compress=T )
     }     
-
 
   }  
 

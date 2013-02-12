@@ -37,16 +37,8 @@
     ns.pop = read.table(paste(datadir, "ns.pop.dat", sep="") , header=F)
     humpop = data.frame(yr=c(1970:2002), ns.pop = log10(ns.pop$V1))
     
-    seal = read.table(paste(datadir, "seals_adult.csv", sep=""), sep=",", header=T)
+    seal = read.table(paste(datadir, "seals.csv", sep=""), sep=",", header=T)
     seal = seal[seal$yr <= 2002 ,]  # some numbers are projections
-    seal$seals.adult = 10* seal$seals.adult
-      tmp = lm(log10(seal$seals.adult) ~ seal$yr, na.action=na.omit)
-      missingyear = 2001
-      n = tmp$coefficients[1]+tmp$coefficients[2]*missingyear
-      seal = rbind (seal, c(missingyear, 10^n) )
-      o = order(seal$yr)
-      sealnew = rbind(seal[o,])
-      seal = sealnew
 
     mixedlayer = read.table(paste(datadir, "mixedlayer.csv", sep=""), sep=",", header=T)
     mixed = mixedlayer[c(1, 2, 6, 10, 14)]  # ignore the normalised and time averages
@@ -126,7 +118,7 @@
   #   a log transform does little to help .. left alone
     transf = c("rv.biom.pel", "rv.biom.grd", "rv.num.pel", "rv.num.grd", "greyseal.pups",
                   "cpr.diatoms", "cpr.dino", "cpr.cf1.4", "cpr.cf5.6", "cpr.para.pseudo",
-                  "seals.adult", "landings.grd", "landings.pel", "landings.inv", "seismic.2D",
+                  "seals.total", "landings.grd", "landings.pel", "landings.inv", "seismic.2D",
                   "seismic.3D" )
 
     landings =c( "landings.grd", "landings.pel", "landings.inv")
@@ -147,7 +139,7 @@
 
   # various data groupings
     biotic.abund = c( "rv.biom.grd", "rv.biom.pel", "rv.num.grd", "rv.num.pel",
-                      "greyseal.pups", "seals.adult")
+                      "greyseal.pups", "seals.total")
     biotic.cpr =  c( "cpr.colour", "cpr.ch", "cpr.diatoms", "cpr.dino", "cpr.cf", "cpr.pp")
     biotic.eco = c( "cpr.ratio", "pel.dem.wgt", "pel.dem.num", "Margalef.diversity",
                     "Shannon.diversity", "Bray.Curtis.sim", "dem.meanwgt", "len.at.age.hadd6",

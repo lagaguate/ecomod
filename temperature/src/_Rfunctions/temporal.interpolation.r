@@ -76,12 +76,37 @@
 					optimizer = c( "outer", o ) 
 					if (o=="perf") optimizer=o
 						e = try ( 
+							gam( t ~ s(cos.w, sin.w) + as.factor(yr) + s(plon, plat, z), data=O, weights=w, optimizer=optimizer ), 
+							silent=T
+						)
+					if ( ! ("try-error" %in% class(e) ) ) break()  # take the first successful solution
+				}
+								
+        # try a simpler, unweighted model
+				if ( "try-error" %in% class(e) ) { 
+					for ( o in c("bfgs", "perf") ) {
+						print (o )
+						optimizer = c( "outer", o ) 
+						if (o=="perf") optimizer=o
+							e = try ( 
+								gam( t ~ s(cos.w, sin.w) + as.factor(yr) + s(plon, plat, z), data=O, optimizer=optimizer ), 
+								silent=T
+							)
+						if ( ! ("try-error" %in% class(e) ) ) break()  # take the first successful solution
+					}
+				}
+		
+				for ( o in p$optimizers ) {
+					print (o )
+					optimizer = c( "outer", o ) 
+					if (o=="perf") optimizer=o
+						e = try ( 
 							gam( t ~ s(cos.w, sin.w, yr) + s(plon, plat, z), data=O, weights=w, optimizer=optimizer ), 
 							silent=T
 						)
 					if ( ! ("try-error" %in% class(e) ) ) break()  # take the first successful solution
 				}
-				
+
 				# try a simpler, unweighted model
 				if ( "try-error" %in% class(e) ) { 
 					for ( o in c("bfgs", "perf") ) {

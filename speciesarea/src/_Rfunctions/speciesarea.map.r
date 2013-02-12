@@ -16,7 +16,7 @@
         v = p$runs[iip,"vars"]
         modtype = p$runs[iip,"modtype"]
 
-        sag = sar.interpolate( p=p, yr=y, modtype=modtype ) 
+        sag = speciesarea.interpolate( p=p, yr=y, modtype=modtype ) 
         if (is.null(sag)) next()
         sag = sag[ filter.region.polygon( sag, region=c("4vwx", "5yz" ), planar=T, proj.type=p$internal.projection ) , ]
   

@@ -23,22 +23,23 @@
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
   p$clusters = rep( "localhost", 24 )
-  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos.beowulf", 24 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
   
   p$yearstomodel = 1970:2012
   p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
-  # p$mods = c("simple","simple.highdef", "complex")   # GAM interpolation model types 
-  p$mods = c("simple.highdef" )   # GAM interpolation model types 
-  
-  
+  # p$mods = c("simple","simple.highdef", "complex", "full")   # GAM interpolation model types 
+  # p$mods = c("simple.highdef" )   # GAM interpolation model types 
+  p$mods = "complex"
+  p$habitat.predict.time.julian = "Sept-1" # Sept 1
+
+
   # ordination
   speciescomposition.db( DS="speciescomposition.redo", p=p )
   speciescomposition.db( DS="speciescomposition.filtered.redo", p=p )
   speciescomposition.db( DS="speciescomposition.merged.redo", p=p )
 			
-
 
   # model the data ~ 2hrs
   p = make.list( list(vars=p$varstomodel, modtype=p$mods), Y=p ) 
@@ -48,14 +49,14 @@
   # summary( speciescomposition.model ( p=p, modeltype="simple.highdef", var="ca2" ) )
 
 
-  # interpolate onto a grid via prediction
+  # interpolate onto a grid via predictioni ::: ~ 4hr / 1 year
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
   parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
 
  
   # map everything
   p = make.list( list(yrs=p$yearstomodel, vars=p$varstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  )  
 
 
   ca = speciescomposition.db(DS="ca", p=p) 

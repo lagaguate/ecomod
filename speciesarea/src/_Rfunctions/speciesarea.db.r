@@ -125,7 +125,7 @@
       names( o ) = c( "C", "Z", "T", "C.se", "Z.se", "T.se", "sar.rsq", "Npred", "Npred.se"   )
       o = factor2number( o, c( "C", "Z", "T", "C.se", "Z.se", "T.se", "sar.rsq", "Npred", "Npred.se"   ) )
 
-      save ( o, file=fn, compress=T )
+      # save ( o, file=fn, compress=T )
            
       set = bio.db (DS="set", p=p)
 
@@ -163,7 +163,6 @@
       ks = speciesarea.db( DS="speciesarea.stats", p=p )
       ks = lonlat2planar( ks, proj.type=p$internal.projection, ndigits=2 )
       ks$platplon = paste( round( ks$plat ), round(ks$plon), sep="_" )
-      
       ks$plon = ks$plat = NULL
       ks$lon = ks$lat = NULL
       
@@ -180,13 +179,48 @@
           ks = ks[ - ii,]
         }
       }
-    
       save( ks, file=fn, compress=T )
-      
       return (fn) 
- 
     }
     
+    # -------------------  
+
+    if (DS %in% c( "speciesarea.stats.merged", "speciesarea.stats.merged.redo" ) ) {
+      
+      require(chron)
+
+      ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".")   )
+      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
+      
+      fn = file.path( ddir, "set.speciesarea.merged.rdata" )
+        
+      if (DS=="speciesarea.stats.merged") {
+        SC = NULL
+        if (file.exists( fn) ) load( fn ) 
+        return ( SC )
+      }
+       
+      P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
+      P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )
+
+      ks = speciesarea.db( DS="speciesarea.stats.filtered", p=p )
+
+      SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F, , suffixes=c("", ".P0") )
+      SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
+      rm(ks); gc()
+
+      SC$chron = as.chron( as.numeric(string2chron( paste( paste( SC$yr, "Jan", "01", sep="-" ), "12:00:00") )) + SC$julian ) # required for time-dependent lookups
+  
+      if (!exists( "z", SC)) SC$z = NA
+      SC$z = habitat.lookup.simple( SC,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances ) 
+      if (!exists( "t", SC)) SC$t = NA
+      SC$t = habitat.lookup.simple( SC,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+
+      save( SC, file=fn, compress=T )
+      
+      return (fn) 
+    }
+
   }
 
 

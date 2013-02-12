@@ -27,10 +27,10 @@
   p$season = "allseasons"
 
   # choose:
-  p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  # p$clusters = rep( "localhost", 24 )
+  p$clusters = rep( "localhost", 24 )
 
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
 
@@ -39,12 +39,12 @@
   p$yearstomodel = 1970:2012 # set map years separately to temporal.interpolation.redo allow control over specific years updated
 
 
-
-
-
   p$varstomodel = c( "C", "Z", "T", "sar.rsq", "Npred" )
-  # p$mods = c("simple","simple.highdef", "time.invariant", "complex" ) 
-  p$mods =  c("simple","simple.highdef" )
+
+  # p$mods = c("simple","simple.highdef", "time.invariant", "complex", "full" ) 
+  p$mods = "complex" 
+  
+  p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
 
 # -------------------------------------------------------------------------------------
@@ -60,17 +60,17 @@
   # compute species-area relationships 
   speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
   speciesarea.db( DS="speciesarea.stats.filtered.redo", p=p ) # ~ 1 minute
-
+  speciesarea.db( DS="speciesarea.stats.merged.redo", p=p ) # intermediary file for modelling and interpolation
 
 
   # create a spatial interpolation model for each variable of interest ~ 10 min
   p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 
   parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, speciesarea.model.spatial, DS="redo", p=p ) 
- 
+
 
   # predictive interpolation to full domain (iteratively expanding spatial extent) ~ 30 min to 1 hr / year (simple)
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, sar.interpolate, DS="redo", p=p ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.interpolate, DS="redo", p=p ) 
 
 
   # map everything

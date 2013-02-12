@@ -852,7 +852,7 @@
       rm(set); gc()
       for (tx in taxa) {
         print(tx)
-        i = filter.taxa( x=set0$spec, method=tx, index=T )
+        i = filter.taxa( x=set0$spec, method=tx )
         set = set0[i,]
         index = list(id=set$id)
         qtotno = tapply(X=set$totno, INDEX=index, FUN=sum, na.rm=T)
@@ -1319,7 +1319,7 @@
       # 3 merge nss 
       loadfunctions( "sizespectrum")
       
-      nss = sizespectrum.db( DS="sizespectrum.stats.filtered", 
+      nss = sizespectrum.db( DS="sizespectrum.stats.merged", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
       nss$strat = NULL
       if ( length(w) > 1 ) w = c( "id", setdiff( names(nss), names( sm) ) )
@@ -1329,7 +1329,7 @@
       
       # 4 merge sar
       loadfunctions( "speciesarea")
-      sar = speciesarea.db( DS="speciesarea.stats.filtered", 
+      sar = speciesarea.db( DS="speciesarea.stats.merged", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
       if ( length(w) > 1 ) w = c( "id", setdiff( names(sar), names(sm)) )
       sm = merge( sm, sar[,w], by="id", sort=FALSE )
@@ -1338,7 +1338,7 @@
 
       # 5 merge metabolic rates
       loadfunctions( "metabolism")
-      meta = metabolism.db( DS="metabolism.filtered", 
+      meta = metabolism.db( DS="metabolism.merged", 
           p=list( spatial.domain="SSE", taxa="alltaxa", season="allseasons" ) )
       if ( length(w) > 1 ) w = c( "id", setdiff( names(meta), names(sm)) )
       sm = merge( sm, meta[,w], by="id", sort=FALSE )
@@ -1346,7 +1346,7 @@
 
       # 6 merge species composition
       loadfunctions( "speciescomposition")
-      sc = speciescomposition.db( DS="speciescomposition.filtered", 
+      sc = speciescomposition.db( DS="speciescomposition.stats.merged", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
       w = c( "id", setdiff( names(sc), names(sm)) )
       if ( length(w) > 1 ) sm = merge( sm, sc[,w], by="id", sort=FALSE )

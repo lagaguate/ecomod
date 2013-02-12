@@ -75,7 +75,7 @@
   lookuptable = rbind(lookuptable,  cbind("pel.dem.num", "Pelagic:demersal ratio (numbers)" ) )
   lookuptable = rbind(lookuptable,  cbind("pel.dem.wgt", "Pelagic:demersal ratio (biomass)" ) )
   lookuptable = rbind(lookuptable,  cbind("rv.num.pel", "Pelagic numerical abundance" ) )
-  lookuptable = rbind(lookuptable,  cbind("seals.adult", "Grey seal numerical abundance" ) )
+  lookuptable = rbind(lookuptable,  cbind("seals.total", "Grey seal numerical abundance" ) )
 
   lookuptable = rbind(lookuptable,  cbind("mmean", "Mean body mass" ) )
   lookuptable = rbind(lookuptable,  cbind("pmean", "Physiological condition" ) )
