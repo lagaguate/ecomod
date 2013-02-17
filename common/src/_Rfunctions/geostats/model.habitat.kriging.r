@@ -26,7 +26,7 @@
 
 #      .M.gam = formula( Y ~  s( yr ) + s( tmean ) + s( I(t-tmean) ) + s( tamp) + s( wmin ) + s( plon, plat) + s( z) 
 #        + s( substrate.mean) + s( ddZ) +s( dZ)  ) 
-      .M.gam = formula( Y ~  s( yr ) + s( t )  + s( tamp.annual) + s( wmin.annual ) + s( plon, plat) + s( z) 
+      .M.gam = formula( Y ~  s( yr ) + s( t )  + s( tamp) + s( wmin) + s( plon, plat) + s( z) 
         + s( substrate.mean) + s( ddZ) +s( dZ)  ) 
       Q = gam( .M.gam, data=set, na.action="na.pass", family=binomial() )
       AIC (Q) # = 3367.65
@@ -78,7 +78,7 @@
           set$plon = jitter(set$plon, amount=1)
           set$plat = jitter(set$plat, amount=1)
           # ~ 24 hr
-          Q = gamm(  Y ~ s(yr) + s(z) + s(substrate.mean) + s(dZ) + s(ddZ) + s( tamp.annual) + s( wmin.annual )+ s( substrate.mean) , correlation=corGaus(form=~plon+plat),
+          Q = gamm(  Y ~ s(yr) + s(z) + s(substrate.mean) + s(dZ) + s(ddZ) + s( tamp) + s( wmin)+ s( substrate.mean) , correlation=corGaus(form=~plon+plat),
           data=set, na.action="na.omit", family=binomial())
           # r = predict.gam( q.gamm.cor$gam, set, type="response")
           # cor(r,set$Y)^2 =  0.182554

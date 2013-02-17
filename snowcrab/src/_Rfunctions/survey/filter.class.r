@@ -17,23 +17,15 @@
     if (type=="m.com")  i = which(x$sex==male & x$cw>=95 & x$cw<200 )  # commerical size crab
     if (type=="m.ncom") i = which(x$sex==male & x$cw< 95 )
 
+    if (type=="R0") i = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 & x$shell %in% c(3,4,5) )
+    if (type=="R1") i = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 & x$shell %in% c(1,2) )
+    if (type=="R2") i = which(x$sex==male & x$mat==immature & x$cw>=mb(8) & x$cw<95 )
+    if (type=="R3") i = which(x$sex==male & x$mat==immature & x$cw>=mb(7) & x$cw<mb(8) )
+    if (type=="R4") i = which(x$sex==male & x$mat==immature & x$cw<=mb(6) & x$cw<mb(7))
+    if (type=="R5p") i = which(x$sex==male & x$mat==immature & x$cw<=mb(5) & x$cw<mb(6))
 
-    if (type=="R0") {  # "fishable" biomass (by sex, size, carapace condition and shell hardness) -- mature only
-      i = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$shell %in% c(3,4) )
-      j = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$durometer>=68)  # this captures CC2 as well
-      i = sort(unique(c(i,j)))
-    }
-    if (type=="R1") {  # terminally moulted soft-shells (new recruits), mature only
-      i = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$shell==1 )
-      j = which(x$sex==male & x$mat==mature & x$cw>=95 & x$cw<200 &  x$durometer<68 )  # this captures CC2 as well
-      i = sort(unique(c(i,j)))
-    }
-    if (type=="R2")  i = which(x$sex==male & x$mat==immature & x$cw>=mb(8) & x$cw<95 )
     if (type=="skip.moulter") i = which(x$sex==male & x$mat==immature & x$cw<=200 & (x$shell %in% c(3,4,5) ) )
     if (type=="m.dwarf") i = which(x$sex==male & x$mat==mature & x$cw<95 )
-    if (type=="R3")  i = which(x$sex==male & x$mat==immature & x$cw>=mb(7) & x$cw<mb(8) )
-    if (type=="R4")  i = which(x$sex==male & x$mat==immature & x$cw<=mb(6) & x$cw<mb(7))
-    if (type=="R5p")  i = which(x$sex==male & x$mat==immature & x$cw<=mb(5) & x$cw<mb(6))
 
     if (type=="mi123") i = which(x$sex==male & x$mat==immature & x$cw<mb(1) )
     if (type=="mi4") i = which(x$sex==male & x$mat==immature & x$cw>=mb(1) & x$cw<mb(2))
@@ -57,11 +49,11 @@
     if (type=="ma12") i = which(x$sex==male & x$mat==mature & x$cw>=mb(9) & x$cw<mb(10))
     if (type=="ma13") i = which(x$sex==male & x$mat==mature & x$cw>=mb(10) )
 
-    if (type=="ma9.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(6) & x$cw<mb(7) & (x$shell %in% c(1,2) | x$durometer<68) )
-    if (type=="ma10.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(7) & x$cw<mb(8) & (x$shell %in% c(1,2) | x$durometer<68) )
-    if (type=="ma11.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(8) & x$cw<mb(9) & (x$shell %in% c(1,2) | x$durometer<68) )
-    if (type=="ma12.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(9) & x$cw<mb(10) & (x$shell %in% c(1,2) | x$durometer<68) )
-    if (type=="ma13.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(10) & (x$shell %in% c(1,2) | x$durometer<68) )
+    if (type=="ma9.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(6) & x$cw<mb(7) & (x$shell %in% c(1,2) ) )
+    if (type=="ma10.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(7) & x$cw<mb(8) & (x$shell %in% c(1,2) ) )
+    if (type=="ma11.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(8) & x$cw<mb(9) & (x$shell %in% c(1,2) ) )
+    if (type=="ma12.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(9) & x$cw<mb(10) & (x$shell %in% c(1,2) ) )
+    if (type=="ma13.CC1to2") i = which(x$sex==male & x$mat==mature & x$cw>=mb(10) & (x$shell %in% c(1,2) ) )
 
     if (type=="ma9.CC3to4") i = which(x$sex==male & x$mat==mature & x$cw>=mb(6) & x$cw<mb(7) & x$shell %in% c(3,4) )
     if (type=="ma10.CC3to4") i = which(x$sex==male & x$mat==mature & x$cw>=mb(7) & x$cw<mb(8) & x$shell %in% c(3,4) )
@@ -148,25 +140,25 @@
 
     if (type=="f.soft") {
       i = which(x$sex==female & x$shell==1)
-      j = which(x$sex==female & !is.finite(x$shell) & x$durometer<68)
+      j = which(x$sex==female & !is.finite(x$shell))
       i = sort(unique(c(i,j)))
     }
 
     if (type=="f.hard") {
       i = which(x$sex==female & x$shell>1)
-      j = which(x$sex==female & !is.finite(x$shell) & x$durometer>=68)
+      j = which(x$sex==female & !is.finite(x$shell))
       i = sort(unique(c(i,j)))
     }
 
     if (type=="m.soft") {
       i = which(x$sex==male & x$shell==1)
-      j = which(x$sex==male & !is.finite(x$shell) & x$durometer<68)
+      j = which(x$sex==male & !is.finite(x$shell))
       i = sort(unique(c(i,j)))
     }
 
     if (type=="m.hard") {
       i = which(x$sex==male & x$shell>1)
-      j = which(x$sex==male & !is.finite(x$shell) & x$durometer>=68)
+      j = which(x$sex==male & !is.finite(x$shell))
       i = sort(unique(c(i,j)))
     }
  
@@ -175,11 +167,11 @@
     if (type=="female.small") i = which(x$sex==female & x$cw<fb(4) )
     if (type=="female.large") i = which(x$sex==female & x$cw>=fb(4) )
 
-    if (type=="m.CC1to2") i = which(x$sex==male & x$cw>=95 & x$cw<=200 & (x$shell %in% c(1,2) | x$durometer<68))
+    if (type=="m.CC1to2") i = which(x$sex==male & x$cw>=95 & x$cw<=200 & (x$shell %in% c(1,2) ))
     if (type=="m.CC3to4") i = which(x$sex==male & x$cw>=95 & x$cw<=200 & (x$shell %in% c(3,4) ))
     if (type=="m.CC1") {  # legal comercial males, carapace condition 1
       j = which(x$sex==male & x$cw>=95 & x$cw<200 & x$shell ==1 )
-      k = which(x$sex==male & x$cw>=95 & x$cw<200 & !is.finite(x$shell) & x$durometer<68)
+      k = which(x$sex==male & x$cw>=95 & x$cw<200 & !is.finite(x$shell))
       i = sort(unique(c(j,k)))
     }
     if (type=="m.CC2") i = which(x$sex==male & x$cw>=95 & x$cw<=200 & x$shell==2 )
@@ -187,7 +179,7 @@
     if (type=="m.CC4") i = which(x$sex==male & x$cw>=95 & x$cw<=200 & x$shell==4 )
     if (type=="m.CC5") i = which(x$sex==male & x$cw>=95 & x$cw<=200 & x$shell==5 )
 
-    if (type=="f.CC1to2") i = which(x$sex==female & (x$shell %in% c(1,2) | x$durometer<68))
+    if (type=="f.CC1to2") i = which(x$sex==female & (x$shell %in% c(1,2) ))
     if (type=="f.CC3to4") i = which(x$sex==female  & (x$shell %in% c(3,4) ))
     if (type=="f.CC3") i = which(x$sex==female & (x$shell %in% c(3) ))
     if (type=="f.CC4") i = which(x$sex==female & (x$shell %in% c(4) ))

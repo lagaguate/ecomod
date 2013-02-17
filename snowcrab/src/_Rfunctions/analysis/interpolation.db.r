@@ -15,7 +15,7 @@
   
       require (lattice)
       require (grid)
-
+      require(fields)
          
       if( DS=="interpolation.simulation.complete") {
         load( p$ofname )
@@ -94,11 +94,11 @@
 			  PS$t[ which(PS$t > 30) ] = 30 
 
         iitna = which( ! is.finite( PS$t ) ) 
-        if (length(iitna)>0) PS$t[iitna] = PS$tmean.annual[iitna]
+        if (length(iitna)>0) PS$t[iitna] = PS$tmean[iitna]
 
         PS$z = log(PS$z)
-        PS$dt.seasonal = PS$tmean.annual - PS$t 
-        PS$dt.annual = PS$tmean - PS$tmean.annual
+        PS$dt.seasonal = PS$tmean - PS$t 
+        PS$dt.annual = PS$tmean - PS$tmean.cl
         PS$sa = 1
 
 				# posterior simulations

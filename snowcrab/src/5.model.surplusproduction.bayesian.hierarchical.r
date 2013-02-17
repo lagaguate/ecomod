@@ -25,10 +25,10 @@
   res = biomass.summary.db(p=p)
      
   sb = list( 
-    b0x = c(1, 1, 1/4),  # prior: mean value possible in  N,S,4X 
+    b0x = c(4/5, 4/5, 2/5),  # prior: mean value possible in  N,S,4X 
     q0x = c(1, 1, 1),  # prior 
     r0x = c(1, 1, 1),  # hyper prior 
-    K0x = c(6, 60, 1 ),  # max carrying capacity estimate 
+    K0x = c(5, 50, 1 ),  # max carrying capacity estimate 
     IOA = as.matrix(res$B), # observed index of abundance
     IOAcv = as.matrix(res$B.sd ), # observed index of log abundance SD estimates
     IREC = as.matrix(res$R), # observed index of abundance
@@ -77,15 +77,15 @@
   n.chains = 3
   n.thin = 500
   n.iter.final = n.iter * n.thin
-  fnres = file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.rdata" )
+  fnres = file.path( project.directory("snowcrab"), "R", paste( "surplus.prod.mcmc", p$current.assessment.year,"rdata", sep=".") )
  
 
   debug =F
   if (debug) {
-    n.adapt = 10000 # burn-in
-    n.iter = 5000 
+    n.adapt = 1000 # burn-in
+    n.iter = 3000 
     n.chains = 3
-    n.thin = 10
+    n.thin = 5
     n.iter.final = n.iter 
     fnres = file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.debug.rdata" )
   }
@@ -95,6 +95,8 @@
   ##  simple surplus production with observation and process error
   # m = jags.model( file=file.path( project.directory("snowcrab"), "src", "bugs", "biomassdynamic_2010.bugs" ),
   #   data=sb, n.chains=n.chains, n.adapt=n.adapt )
+  m = jags.model( file=fishery.model.jags ( DS="biomass.dynamic.candidate", yr=2013 ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  
+ 
   m = jags.model( file=fishery.model.jags ( DS="biomass.dynamic" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  
   
   tomonitor =  c("B", "MSY", "BMSY", "FMSY", "Fcrash", "F", "P",    
@@ -160,8 +162,8 @@ Penalized deviance: 5415
   # final sampling from the posteriors
   #  y = jags.samples(m, variable.names=tomonitor, n.iter=200000, thin=100) # sample from posterior
     y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter.final, thin=n.thin) # sample from posterior
-		fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2011_final.rdata" )
-    fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2011c.rdata" )
+		fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2012_final.rdata" )
+    # fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2012a.rdata" )
     save(y, file=fnres, compress=T)
     # load( fnres )
 

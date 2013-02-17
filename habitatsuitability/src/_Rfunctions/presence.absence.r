@@ -1,9 +1,10 @@
 
-    presence.absence = function( X, vname, px, maxwgt=100 ) {
+    presence.absence = function( X, vname, px ) {
       
       # calc quantiles
-      sz = which( X[,vname] == 0) # real zeros
+      sz = which( X[,vname] == 0) # assumed to be real zeros
       si = which( X[,vname] > 0)  # positive values
+      
       X$q = NA
       X$q[si] = quantile.estimate ( X[si,vname]  )
       
@@ -27,10 +28,10 @@
       if (length(s01)>0) X$q0[s01] = pmax( 0.01,  1 - X$q[s01] )
       X$q0[sz] = 1
       
-      X$wt = X$q0*maxwgt  
+      X$wt = X$q0  
       X$q0 =X$q = NULL
       
-      return (X)
+      return (X)  # returns/adds X$Y and X$wt to data frame which represents the P/A and relative confidence of correctness
     }
 
 

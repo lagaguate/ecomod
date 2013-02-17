@@ -3,7 +3,7 @@
     bcat = snowcrab.db( DS="cat.georeferenced")
     species = c( "cod", "skates", "thornyskate", "northernshrimp",
                "brittlestar", "basketstar",
-               "bluecrab", "snowcrab", "greencrab", "hermitcrab", "jonahcrab",
+               "snowcrab",  "hermitcrab", "jonahcrab",
                "lessertoadcrab", "northernstonecrab", "porcupinestonecrab", "portlyspidercrab",
                "redcrab", "atlanticrockcrab", "toadcrab", "snowcrab")
     p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth

@@ -206,8 +206,12 @@
       ks = speciesarea.db( DS="speciesarea.stats.filtered", p=p )
 
       SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F, , suffixes=c("", ".P0") )
-      SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
+      
+      oo = which(!is.finite( SC$plon+SC$plat ) )
+      if (length(oo)>0) SC = SC[ -oo , ]  # a required field for spatial interpolation
+
       rm(ks); gc()
+
 
       SC$chron = as.chron( as.numeric(string2chron( paste( paste( SC$yr, "Jan", "01", sep="-" ), "12:00:00") )) + SC$julian ) # required for time-dependent lookups
   

@@ -22,6 +22,7 @@
 	) )
 
 
+  baseline.redo = FALSE
   if (baseline.redo) { 
     # physical characteristics (depth, temp, substrate)
     # Time-invariant data (depth, substate, etc) 
@@ -50,6 +51,7 @@
   p$speciesarea.method = "glm"   ## this is chosen in speciesarea.r ... make sure it matches up
   p$speciesarea.season = "allseasons"  
   p$speciesarea.taxa = "maxresolved"  # use only unique taxa
+  p$speciesarea.data.sources = c("groundfish", "snowcrab")
 
   p$speciescomposition.modeltype = "complex"  
   p$speciescomposition.season = "allseasons"  
@@ -64,7 +66,7 @@
   p$metabolism.season = "allseasons"
 
 	
-  for ( j in c( "SSE") ) {  # sse is the only relevent area for which all data exists 
+  for ( j in c( "SSE") ) {  # sse is the only relevent area for which all data exists ~ 5 min / yr 
 		p = spatial.parameters( p=p, type=j )
 		p$taxa = "maxresolved"
     p$season = "allseasons"

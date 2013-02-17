@@ -30,7 +30,7 @@ Test:     Biomass estimation via GAM / LME
     
     g =set
     g = g[ which(set$Y> p$habitat.threshold.quantile ) ,]
-    g = g[ , c("Y", "yr", "cfa", "plon", "plat", "t", "tamp.annual", "wmin.annual", "z", "substrate.mean", "dZ", "ddZ"  ) ]
+    g = g[ , c("Y", "yr", "cfa", "plon", "plat", "t", "tamp", "wmin", "z", "substrate.mean", "dZ", "ddZ"  ) ]
     
     Vrange = NULL
     Vpsill = NULL
@@ -65,13 +65,13 @@ Test:     Biomass estimation via GAM / LME
     # rm(set); gc()
 
     Q = gamm( 
-          formula = Y ~  yr + s(plon,plat) +  s(t)  + s( tamp.annual) + s( wmin.annual ) +  s( z) +  s( dZ) +s(ddZ), 
+          formula = Y ~  yr + s(plon,plat) +  s(t)  + s( tamp) + s( wmin) +  s( z) +  s( dZ) +s(ddZ), 
           correlation=corSpher(value=c( Vrange, Vpsill ), form=~plon+plat|yr, nugget=T ), 
           data=g, family=Gamma()
     )
 
     Ql = gamm( 
-          formula = Y ~  s(yr) + s(plon,plat)  + s( tamp.annual) + s( wmin.annual ) +  s(t)+ s( z) + s( dZ), 
+          formula = Y ~  s(yr) + s(plon,plat)  + s( tamp) + s( wmin) +  s(t)+ s( z) + s( dZ), 
           correlation=corSpher(value=c( Vrange, Vpsill ), form=~plon+plat|yr, nugget=T ), 
           data=g, family=Gamma("log")
     )
@@ -82,7 +82,7 @@ Test:     Biomass estimation via GAM / LME
 
     cor( predict( Q$gam, g, type="response"), g$Y, use="pairwise.complete.obs")^2 # = 0.038
 
-R = gls( Y ~  yr * cfa + ( bs( t )  + bs( tamp.annual) + bs( wmin.annual ) ) + bs( z) + bs( substrate.mean) + bs( ddZ) +bs( dZ), 
+R = gls( Y ~  yr * cfa + ( bs( t )  + bs( tamp) + bs( wmin) ) + bs( z) + bs( substrate.mean) + bs( ddZ) +bs( dZ), 
 correlation = corGaus(c( Vrange, Vpsill ), form=~plon+plat | yr, nugget=T ), data=g )
 cor( predict( R, g, type="response"), g$Y, use="pairwise.complete.obs")^2 # = 0.378962
 o = allEffects(R)
@@ -97,7 +97,7 @@ ms.mass = paste( "ms.mass", S, sep="." )
 ms.no = paste( "ms.no", S, sep="." )
 
 other = c( "total.effort" ,"total.cpue" , "total.landings", "total.visits", "cpue", "landings", "visits" ) 
-hab = c( "substrate.mean" , "dZ", "ddZ" , "tmean" , "tamp", "wmin" , "thp" , "tsd.H", "t.annual" , "tamp.annual" , "wmin.annual", "tsd.annual" , "t" , "tsd", "z"  )
+hab = c( "substrate.mean" , "dZ", "ddZ" , "tmean" , "tamp", "wmin" , "thp" , "tsd.H", "t" , "tamp.cl" , "wmin.cl", "tsd" , "t" , "tsd", "z"  )
 crab = c( "cw.male.mat.mean","cw.fem.mat.mean","totmass.female.berried","totmass.female.primiparous","totmass.female.multiparous","mi123.no","mi4.no","mi5.no","mi6.no","mi7.no","mi8.no","mi9.no","mi10.no","mi11.no","mi12.no","fi1234.no", "fi5.no", "fi6.no" ,"fi7.no", "fi8.no", "fi9.no", "fi10.no", "R0.no", "R1.no", "R2.no", "R3.no", "R4.no", "R5p.no", "dwarf.no", "ma9.no", "ma10.no" ,"ma11.no", "ma12.no", "ma13.no", "fa7.no", "fa8.no" ,"fa9.no","fa10.no"  )
 
 log10Y = log10( set$Y + min(set$Y[set$Y>0])/2 )

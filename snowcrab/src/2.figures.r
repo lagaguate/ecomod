@@ -5,7 +5,11 @@
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
    
-   p$clusters = rep("localhost", 12 )
+
+   p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
+
+
+   p$clusters = rep("localhost", 24 )
    p$clusters = rep("localhost", 8 )
 
 
@@ -78,10 +82,6 @@
     p$basemap = file.path( project.directory("snowcrab"), "R", p$basemap)
     map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
 
-
-
-
-  p$do.parallel = FALSE
 
   # ------------------------------------------
   # Map:  Mean/geometric mean of various variables in the set data table

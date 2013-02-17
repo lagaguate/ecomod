@@ -450,7 +450,7 @@
         res$smr[i] = mean( H$smr )
         res$meanlen[i] = mean( H$meanlen )
         res$meanwgt[i] = mean( H$meanwgt )
-        res$tmean[i] = mean( H$tmean.annual )
+        res$tmean[i] = mean( H$tmean )
       }
            
       save( res, file=outfn, compress=T )

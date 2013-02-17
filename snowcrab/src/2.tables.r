@@ -143,33 +143,6 @@
 
 
 
-
-
-# ----------------------------------------   NOT USED ____________
-#  Carapace condition from trawl data  < 95mm CW  ... not kriged .. simple proportions
-  
-    det0 = snowcrab.db( DS="det.georeferenced" )
-    det0$fishyr = det0$yr  ## the counting routine expectes this variable
-
-    det = det0[ which( det0$cw < 95 ) ,]  # commerical sized crab only
-    years = sort( unique( det$yr ) )
-
-    res = NULL
-    for (r in p$regions) {
-    for (y in years) {
-      out = proportion.cc (det, region=r, year=y)
-      res = rbind( res, cbind( r, y, t(out)) )
-    }}
-
-    cnames = c("region", "fishyr", c(1:5), "ntot")
-    colnames(res) = cnames
-    print(res)
-    res = as.data.frame(res)
-
-    for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
-    (res)
-
-
 # ---------------------------------------- USED 
 #  Carapace condition from trawl data  >= 95mm CW  ... not kriged .. simple proportions
   
@@ -193,8 +166,6 @@
 
     for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
     (res)
-
-
 
 
 
@@ -272,4 +243,35 @@ abline(h=50)
 # $ f.i.means: num   2.80  6.19 20.05 24.29 74.11 ...
 # $ cw       : num  12 14 16 18 20 22 24 26 28 30 ...
 # $ pmat     : num  0 0 0 0 0 ...
+
+
+
+
+# ----------------------------------------   NOT USED ____________
+#  Carapace condition from trawl data  < 95mm CW  ... not kriged .. simple proportions
+  
+    det0 = snowcrab.db( DS="det.georeferenced" )
+    det0$fishyr = det0$yr  ## the counting routine expectes this variable
+
+    det = det0[ which( det0$cw < 95 ) ,]  # commerical sized crab only
+    years = sort( unique( det$yr ) )
+
+    res = NULL
+    for (r in p$regions) {
+    for (y in years) {
+      out = proportion.cc (det, region=r, year=y)
+      res = rbind( res, cbind( r, y, t(out)) )
+    }}
+
+    cnames = c("region", "fishyr", c(1:5), "ntot")
+    colnames(res) = cnames
+    print(res)
+    res = as.data.frame(res)
+
+    for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
+    (res)
+
+
+
+
 

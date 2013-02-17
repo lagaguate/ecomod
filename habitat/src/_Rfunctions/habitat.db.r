@@ -58,13 +58,13 @@
 
 
 
-    if (DS %in% c("annual", "annual.redo") ) {
+    if (DS %in% c("complete", "complete.redo") ) {
       
       outdir =  file.path( project.directory("habitat"), "data", p$spatial.domain )
       if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE" )
       dir.create(outdir, recursive=T, showWarnings=F)
    
-      if ( DS=="annual" ) {
+      if ( DS=="complete" ) {
         outfile =  file.path( outdir, paste( "PS", year, "rdata", sep= ".") )
         PS = NULL
         if ( file.exists( outfile ) ) load( outfile )
@@ -89,62 +89,126 @@
         PS = habitat.db( DS="baseline", p=p )  
         PS$id = 1:nrow(PS)
         
-        E = hydro.modelled.db( DS="bottom.statistics.annual", p=p, yr=yr  ) 
-        
+        E = temperature.db( DS="complete", p=p, year=yr  ) 
+        E$z = NULL
 
-        PS = merge( PS, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".annual" ) )
-        
-        # names(PS)[ which(names(PS)=="tmean.annual") ] = "tmean.annual"
-        names(PS)[ which(names(PS)=="tamplitude") ] = "tamp.annual"
-        names(PS)[ which(names(PS)=="thalfperiod") ] = "thp.annual"
+        PS = merge( PS, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
 
+        # ---------------------
+        # Species-area
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
         pm = p
         pm$taxa = p$speciesarea.taxa
         pm$season = p$speciesarea.season
+        pm$data.sources = p$speciesarea.data.sources
         SAG =  speciesarea.interpolate( p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype )
-        SAG = SAG[ , c("plon", "plat", "C", "Z", "sar.rsq", "Npred" ) ]
+
+        # remove duplicates derived from repeated tows
+        SAGvars = c("C", "Z", "sar.rsq", "Npred")
+        oo = which( duplicated (SAG$platplon ) )
+        if (length( oo)> 0 ) {
+          todrop= NULL
+          for (o in oo ) {
+            i = which( SAG$platplon == SAG$platplon[o] )
+            for (w in SAGvars) {
+              SAG[i[1],w] = mean(SAG[i,w], na.rm=TRUE)
+              todrop = c(todrop, i[-1])
+            }
+          }
+          SAG = SAG[ -todrop, ]
+        }
+        SAG = SAG[ , c("plon", "plat", SAGvars ) ]
         PS = merge( PS, SAG, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sag" ) ) 
         rm (SAG)
 
+
+        # ---------------------
+        # Species composition
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
         pm = p
         pm$taxa = p$speciescomposition.taxa  
         pm$season = p$speciescomposition.season
         SC = speciescomposition.interpolate( p=pm, yr=max(1970,yr), modtype=pm$speciescomposition.modeltype ) 
-        SC = SC[ , c( "plon", "plat", "ca1", "ca2", "pca1", "pca2"  ) ]
-        PS = merge( PS, SC, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sc" ) ) 
-        rm(SC)
 
+        # remove duplicates derived from repeated tows --- slow ... 
+        SCvars = c("ca1", "ca2", "pca1", "pca2")
+        oo = which( duplicated (SC$platplon ) )
+        if (length( oo)> 0 ) {
+          todrop= NULL
+          for (o in oo ) {
+            i = which( SC$platplon == SC$platplon[o] )
+            for (w in SCvars) {
+              SC[i[1],w] = mean(SC[i,w], na.rm=TRUE)
+              todrop = c(todrop, i[-1])
+            }
+          }
+          SC = SC[ -todrop, ]
+        }
+        SC = SC[ , c("plon", "plat", SCvars ) ]
+        PS = merge( PS, SC, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sc" ) ) 
+        rm (SC)
+
+
+        # ---------------------
         # size spectrum stats
         pm = p
         pm$taxa = p$sizespectrum.taxa
         pm$season = p$sizespectrum.season
         SS = sizespectrum.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$sizespectrum.modeltype ) 
-        SS = SS[ , c( "plon", "plat", "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax" ) ]
+        
+        # remove duplicates derived from repeated tows --- slow ... 
+        SSvars = c("nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
+        oo = which( duplicated (SS$platplon ) )
+        if (length( oo)> 0 ) {
+          todrop= NULL
+          for (o in oo ) {
+            i = which( SS$platplon == SS$platplon[o] )
+            for (w in SSvars) {
+              SS[i[1],w] = mean(SS[i,w], na.rm=TRUE)
+              todrop = c(todrop, i[-1])
+            }
+          }
+          SS = SS[ -todrop, ]
+        }
+        SS = SS[ , c("plon", "plat", SSvars ) ]
         PS = merge( PS, SS, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".ss" ) ) 
         rm(SS)
 
+
+        # --------------- 
         # metabolic rates
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
         pm = p
         pm$taxa = p$metabolism.taxa 
         pm$season = p$metabolism.season 
         MR = metabolism.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$metabolism.modeltype ) 
-        MR = MR[ , c( "plon", "plat", "meanlen", "meanwgt", "smr", "mr", "totno", "totwgt"  ) ]
+                
+        # remove duplicates derived from repeated tows --- slow ... 
+        MRvars = c("meanlen", "meanwgt", "smr", "mr", "totno", "totwgt")
+        oo = which( duplicated (MR$platplon ) )
+        if (length( oo)> 0 ) {
+          todrop= NULL
+          for (o in oo ) {
+            i = which( MR$platplon == MR$platplon[o] )
+            for (w in MRvars) {
+              MR[i[1],w] = mean(MR[i,w], na.rm=TRUE)
+              todrop = c(todrop, i[-1])
+            }
+          }
+          MR = MR[ -todrop, ]
+        }
+        MR = MR[ , c("plon", "plat", MRvars ) ]
         PS = merge( PS, MR, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".mr" ) ) 
         rm(MR)
 
 
-        print( "Interpolating missing data with inverse-distance weighted means" )
         vars = setdiff( names(PS), c("plon", "plat") )
         require (gstat)
         for (v in vars) {
-          print(v)
           for (dists in p$interpolation.distances) { 
             ii = which ( !is.finite( PS[, v]) )
             if (length(ii)==0 | length(ii)==nrow(PS) ) break()
-            print( length(ii) )
+            print( paste( "Interpolating missing data with inverse-distance weighted means", v, ":", length(ii) ) )
             gs = gstat( id=v, formula=PS[-ii,v]~1, locations=~plon+plat, data=PS[-ii,], 
                 nmax=p$interpolation.nmax, maxdist=dists, set=list(idp=.5)) 
             PS[ii,v] = predict( object=gs, newdata=PS[ii,] ) [,3]

@@ -184,16 +184,15 @@
 
 
 
-
-
-
-
-
 # snow crab found in external databases tapped into for habitat determination
-  for ( vs in c( "R0.mass", "male.large", "male.small", "female.large", "female.small" ) ) {
+  #for ( vs in c( "R0.mass", "male.large", "male.small", "female.large", "female.small" ) ) {
     ### -------- not yet finished this one ...  TODO
+    vs="R0.mass"
     snowcrab.external.db(p=p, DS="set.snowcrab.in.groundfish.survey.redo", vname=vs )
-  }
+
+    ---- TODO !!! must replace this with bio.db proceeing step
+    
+    #}
 
 
 

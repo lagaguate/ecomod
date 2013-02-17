@@ -906,7 +906,7 @@
       for (tx in taxa) {
         print(tx)
         if (tx %in% c("northernshrimp") ) next
-        i = filter.taxa( x=det0$spec, method=tx, index=T )
+        i = filter.taxa( x=det0$spec, method=tx  )
         det = det0[i,]
         index = list(id=det$id)
         
@@ -1302,11 +1302,9 @@
 			# and then rename a few vars to prevent name conflicts
 			print ("Bring in all other habitat variables")
       
-      sH = habitat.lookup.grouped( sm,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 5) )
+      sH = habitat.lookup.grouped( sm,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
+      sH$z = log(sH$z) 
       sH = rename.df( sH, "z", "z.H" )
-      sH = rename.df( sH, "zsd", "zsd.H" )
-      sH = rename.df( sH, "t", "tmean.annual" )
-      sH = rename.df( sH, "tsd", "tsd.annual" )
 			sH$yr = NULL
 			vars = names (sH )
 

@@ -20,8 +20,8 @@
       ii =  which(  x$dZ > -2 ) 
       if (length(ii) > 0) x$dZ[ii] = -2
       
-      ii =  which( x$tamp.annual > 12   ) 
-      if (length(ii) > 0) x$tamp.annual[ ii ] = 12
+      ii =  which( x$tamp> 12   ) 
+      if (length(ii) > 0) x$tamp[ ii ] = 12
       
       ii =  which( x$dt.annual < -3  ) 
       if (length(ii) > 0) x$dt.annual[ ii ] = -3
@@ -35,8 +35,8 @@
       ii =  which( x$dt.seasonal > 3   ) 
       if (length(ii) > 0) x$dt.seasonal[ ii ] = 3
       
-      ii =  which( x$wmin.annual < -7   ) 
-      if (length(ii) > 0) x$wmin.annual[ ii ] = -7
+      ii =  which( x$wmin< -7   ) 
+      if (length(ii) > 0) x$wmin[ ii ] = -7
       
       ii =  which( x$smr < 0.0045  ) 
       if (length(ii) > 0) x$smr[ ii ] = 0.0045 

@@ -35,9 +35,9 @@ parameter.list.snowcrab = function( current.assessment.year, set="default" ) {
     
     
     # p$kformula = as.formula( "kv ~ z + t + total.cpue" )  # model in 2006-2008
-    # p$kformula = as.formula( "kv ~ z + t + tamp.annual + wmin.annual + dZ + ddZ + substrate.mean + total.cpue" )  # model in 2006-2008
-    p$kformula = as.formula( "kv ~ z + t + tamp.annual + wmin.annual + dZ + ddZ + substrate.mean" )  # model in 2006-2008
-#    p$kformula = as.formula( "kv ~ z + t + tamp.annual + wmin.annual + dZ + ddZ + substrate.mean " )  # model in 2006-2008
+    # p$kformula = as.formula( "kv ~ z + t + tamp + wmin + dZ + ddZ + substrate.mean + total.cpue" )  # model in 2006-2008
+    p$kformula = as.formula( "kv ~ z + t + tamp + wmin + dZ + ddZ + substrate.mean" )  # model in 2006-2008
+#    p$kformula = as.formula( "kv ~ z + t + tamp + wmin + dZ + ddZ + substrate.mean " )  # model in 2006-2008
     p$klocs = as.formula ( "~plon+plat" )
     p$vgm.dist = unique(sort(c( seq(10, 60, 4), seq(50, 100, 10), seq( 80, 160, 20) )))
     p$knmax=100  # must be greater than 30 for convergence

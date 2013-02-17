@@ -30,6 +30,7 @@
         return(Q)
       }
 
+      require(fields)
       require(mgcv)
       
       if (is.null(p$optimizers) ) p$optimizers = c("nlm", "bfgs", "perf", "bam", "newton", "optim", "nlm.fd")
@@ -42,13 +43,11 @@
         fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") )
         set = snowcrab.db( DS="set.logbook" )
         set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-        set = presence.absence( set, v, p$habitat.threshold.quantile, 1 )  # determine presence absence and weighting  
-        set$wt = ceiling( 1000 * set$wt )
+        
+        set = presence.absence( set, v, p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
 
-        # set$t.annual = set$t.H 
-     
-        tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "t", "tmean", "tmean.annual", 
-            "tamp.annual", "wmin.annual", "z", "substrate.mean", "dZ", "ddZ", "wt",
+        tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "t", "tmean", "tmean.cl", 
+            "tamp", "wmin", "z", "substrate.mean", "dZ", "ddZ", "wt",
             "pca1", "pca2", "ca1", "ca2", "mr", "smr", "C", "Z", "sar.rsq", "Npred" ) 
         set = set[ , tokeep ]
         n0 = nrow(set)
@@ -59,7 +58,7 @@
           # add groundfish data
           gf = snowcrab.external.db (p=p, DS="set.snowcrab.in.groundfish.survey", vname=v )
           # absense prior to 1999 is meaningless due to inconsistent recording
-          ii = which( gf$totno==0 & gf$yr<=1998)
+          ii = which( gf$n==0 & gf$yr<=1998)
           if (length(ii)>0) gf = gf[-ii,]
 
           ii = which( gf$z < log(50) ) # drop strange data
@@ -68,28 +67,18 @@
           ii = which( gf$z > log(650) ) # drop strange data
           if (length(ii)>0) gf = gf[-ii,]
 
-          wt = n0 / nrow(gf)  # essentially reweight everything such that total value of this data set is some % of the set data
-          gf = presence.absence( gf, "totno", p$habitat.threshold.quantile, wt )  # determine presence absence and weighting  
-          gf$wt = ceiling( 100 * gf$wt )
-
+          gf = presence.absence( gf, "n", p$habitat.threshold.quantile )  # determine presence absence and weighting  
 
           set = rbind( set, gf[, names(set)] )
          
           # add commerical fishery data
           lgbk = logbook.db( DS="fisheries.complete", p=p )
+          lgbk = lgbk[ which( is.finite( lgbk$landings)), ]
 
-          lgbk = lgbk[ which( is.finite( lgbk$Y ) ) , ]
-          lgbk = lgbk[ which( is.finite( lgbk$z ) ) , ] 
-          lgbk = lgbk[ - which(  lgbk$z < log(50)  ) , ] 
-          lgbk = lgbk[ - which(  lgbk$z > log(600)  ) , ] 
-          lgbk = lgbk[ which( is.finite( lgbk$t ) ) , ] 
-          # lgbk$t.annual = lgbk$t.H
-
-          wt = n0 / nrow(lgbk)   # essentially reweight everything such that total value of this data set is some % of the set data
-          lgbk = presence.absence( lgbk, "landings", p$habitat.threshold.quantile, wt )  # determine presence absence and weighting  
-          lgbk$wt = ceiling( 10 * lgbk$wt )
-          lgbk = lgbk[ which( is.finite( lgbk$wt ) ) , ] 
-              
+          lgbk = presence.absence( lgbk, "landings", p$habitat.threshold.quantile )  # determine presence absence and weighting  
+         
+          baddata = which( lgbk$z < log(50) | lgbk$z > log(600) )
+          if ( length(baddata) > 0 ) lgbk = lgbk[ -baddata,]
    
           lgbk$julian = convert.datecodes( lgbk$date.landed, "julian" )
           # lgbk$total.landings.scaled = scale( lgbk$landings, center=T, scale=T )
@@ -117,8 +106,8 @@
         set = set[ which(set$yr %in% p$years.to.model ) , ]
         set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]
         
-        set$dt.seasonal = set$tmean.annual -  set$t 
-        set$dt.annual = set$tmean - set$tmean.annual
+        set$dt.seasonal = set$tmean -  set$t 
+        set$dt.annual = set$tmean - set$tmean.cl
 
         # remove extremes where variance is high due to small n
         set = filter.independent.variables( x=set )
@@ -204,15 +193,15 @@
         set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]
         
         set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-        set$sa.scaled =rescale(set$sa)
+        set$sa.scaled =rescale.min.max(set$sa)
         set$sa.scaled[ which(set$sa.scaled==0)] = min (set$sa.scaled[ which(set$sa.scaled>0)], na.rm=T) / 2
      
         set$plon = jitter(set$plon)
         set$plat = jitter(set$plat)  
         
         set$weekno = floor(set$julian / 365 * 52) + 1
-        set$dt.seasonal = set$tmean.annual -  set$t 
-        set$dt.annual = set$tmean - set$tmean.annual
+        set$dt.seasonal = set$tmean -  set$t 
+        set$dt.annual = set$tmean - set$tmean.cl
 
         set$wgts = ceiling( set$sa.scaled * 1000 )
 
@@ -225,7 +214,7 @@
         set = set[ which( is.finite(set$Y + set$tmean + set$plon + set$z + set$wgts + set$weekno ) ) ,]
        
         set = set[ , c( "Y", "yr", "weekno", "plon", "plat", "tmean", "dt.annual", "dt.seasonal", 
-            "tamp.annual", "wmin.annual", 
+            "tamp", "wmin", 
              "z",  "dZ", "substrate.mean", "wgts", "ca1", "ca2", "Npred", "Z", "smr", "mr"  ) ]
  
         # remove extremes where variance is high due to small n

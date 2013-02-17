@@ -32,7 +32,7 @@
             toplot = u[ oo,  c("lon", "lat", plotvar, "sa") ]
             params$outfile.basename = file.path(params$outdir, paste(plotvar, j, sep="."))
             # print( params$outfile.basename )
-            smoothed = gmt.map( params, toplot, year=j, vname=plotvar, conversions=conversions )
+            gmt.map( params, toplot, year=j, vname=plotvar, conversions=conversions )
           }
         }
     }}

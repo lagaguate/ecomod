@@ -62,14 +62,14 @@
 
 
   sizespectrum.db( DS="sizespectrum.by.set.redo", p=p ) 
-  sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  # compute species-area relationships-- long 
+  sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  
   sizespectrum.db( DS="sizespectrum.stats.filtered.redo", p=p )
   sizespectrum.db( DS="sizespectrum.stats.merged.redo", p=p )
 
 
   # create a spatial interpolation model for each variable of interest 
   p = make.list( list(vars= p$varstomodel, mods=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
+  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
  
 
   # predictive interpolation to full domain (iteratively expanding spatial extent)

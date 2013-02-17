@@ -3,13 +3,13 @@ habitatsuitability.sanitycheck = function (W, p ) {
 
   if (exists( "speciesofinterest", p ) ) {
     if ( p$speciesofinterest=="wolffish") {
-      if (exists( "tmean.annual", W ) ) {
-        o = which( W$tmean.annual > 12 )
-        if (length(o) > 0) W[o,"tmean.annual"] = 12
+      if (exists( "tmean", W ) ) {
+        o = which( W$tmeanl > 12 )
+        if (length(o) > 0) W[o,"tmean"] = 12
       }
-      if (exists( "tamp.annual", W ) ) {
-        o = which( W$tamp.annual > 15 )
-        if (length(o) > 0) W[o,"tamp.annual"] = 15
+      if (exists( "tamp", W ) ) {
+        o = which( W$tamp > 15 )
+        if (length(o) > 0) W[o,"tamp"] = 15
       }
       if (exists( "massTot", W ) ) {
         o = which( W$massTot > 200 )
@@ -27,7 +27,7 @@ habitatsuitability.sanitycheck = function (W, p ) {
     }
 
     if ( p$speciesofinterest=="wolffish") {
-      if (exists( "tmean.annual", W ) ) {
+      if (exists( "tmean", W ) ) {
       
       }
     }
@@ -37,13 +37,13 @@ habitatsuitability.sanitycheck = function (W, p ) {
     
     # generic limits
     
-      if (exists( "tmean.annual", W ) ) {
-        o = which( W$tmean.annual > 15 )
-        if (length(o) > 0) W[o,"tmean.annual"] = 15
+      if (exists( "tmean", W ) ) {
+        o = which( W$tmean > 15 )
+        if (length(o) > 0) W[o,"tmean"] = 15
       }
-      if (exists( "tamp.annual", W ) ) {
-        o = which( W$tamp.annual > 15 )
-        if (length(o) > 0) W[o,"tamp.annual"] = 15
+      if (exists( "tamp", W ) ) {
+        o = which( W$tamp > 15 )
+        if (length(o) > 0) W[o,"tamp"] = 15
       }
    
   }

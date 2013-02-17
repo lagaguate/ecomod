@@ -48,8 +48,8 @@
 
       fn = file.path( project.directory("snowcrab"), "R", paste("set.groundfish", vname, "rdata", sep=".") )
 
+      sm = NULL
       if ( DS=="set.snowcrab.in.groundfish.survey" ) {
-        sm = NULL
         if ( file.exists( fn) )  load( fn )
         return (sm)
       }
@@ -61,7 +61,7 @@
       if (nrow(ct)==0) return()
 
       uu = sum.data( ct, factors="id", variable="number" )
-      names(uu) =c( "id", "totno" )
+      names(uu) =c( "id", "n" )
 
       sm = groundfish.db( "sm.base" )
       sm = lonlat2planar( sm, proj.type=p$internal.projection )  # utm20, WGS84 (snowcrab geoid) 
@@ -82,7 +82,7 @@
       sm$z = sm$sdepth
       sm$t = sm$temp
       sm$sa = sm$sakm2
-      sm$totno [ which( !is.finite( sm$totno)) ] = 0 # assume to be real zeros as dervied from trawls
+      sm$n [ which( !is.finite( sm$n)) ] = 0 # assume to be real zeros as dervied from trawls
       sm$temp = NULL
       sm$sdepth = NULL
       sm$cftow = NULL
@@ -90,82 +90,44 @@
       sm$yr = convert.datecodes(sm$chron, "year")
       sm$julian = convert.datecodes(sm$chron, "julian")
       sm$weekno = floor(sm$julian/365*52) + 1 
-
-
-      # zero values before ~ 1998 are uncertain 
-      # as sampling program was not capturing consistent information on invertebrates.
-      # to be safe, assume only 2000 and later to be "real" zeros
-      # sm$totno[ which(sm$yr < 2000 & sm$totno==0) ] = NA 
       
       #----------------------------
       # look up missing environmental data
       sp.br=c(1, 5, 10) # distances to interpolate ... short-scale only (km) if no exact match
-        
-      g = bathymetry.db( p,DS="Z.planar" ) 
-      
-      names(g)[which( names(g)=="z")] = "z.lookup"
-      n0 = nrow(sm)
-      sm = merge( sm, g, c("plon", "plat"), all.x=T, all.y=F, sort=F )
-      if ( n0 != nrow(sm) )  stop("Merge error")
-      
-      # unreliable depth records (possibly due to improper lon/lat) or just bad data .. use lookup table instead
-      iiz = which( abs( sm$z - sm$z.lookup) > 20 ) 
-      sm$z[ iiz ] =  sm$z.lookup[ iiz ]
-      
-      iizna = which( !is.finite( sm$z ) ) 
-      sm$z[ iizna ] = sm$z.lookup [iizna ]
-      
-      sm$z.lookup = NA
-      sm$z.lookup = habitat.lookup.simple( sm, p=p, vnames="z", lookuptype="depth", sp.br=sp.br  )  # takes 14GB!
-      iizna = which( !is.finite( sm$z ) ) 
-      sm$z[ iizna ] = sm$z.lookup [iizna ]
-      sm$z.lookup = NULL
-      sm = sm[ which( is.finite( sm$z ) ), ]
+       
+		# bring in time invariant features:: depth
+			print ("Bring in depth")
+      todrop = which(sm$z < 20 | sm$z > 500 )
+      if (length( todrop) > 0 ) sm$z [todrop ] = NA
+      sm$z = habitat.lookup.simple( sm,  p=p, vnames="z", lookuptype="depth" )
+      sm$z = log( sm$z )
+			
+		  # bring in time varing features:: temperature
+			print ("Bring in temperature")
+      sm$t = habitat.lookup.simple( sm,  p=p, vnames="t", lookuptype="temperature.weekly" )
+
+			# bring in all other habitat variables, use "z" as a proxy of data availability
+			# and then rename a few vars to prevent name conflicts
+			print ("Bring in all other habitat variables")
+      sH = habitat.lookup.grouped( sm,  p=p, lookuptype="all.data", sp.br=sp.br )
+      sH$z = NULL 
+			sH$yr = NULL
+			sH$weekno = NULL
+      sH
+      vars = names (sH )
+
+      sm = cbind( sm, sH )
+		
+      # return planar coords to correct resolution
+      sm = lonlat2planar( sm, proj.type=p$internal.projection )
+     
+      sm = sm[ which( is.finite( sm$z + sm$t + sm$substrate.mean ) ), ]
       gc()
 
-      # this breaks it down by year and so memory is not really a limitation
-      sm$t = NA
-      sm$t.lookup = habitat.lookup.simple( sm, p=p, vnames="t", lookuptype="temperature.weekly", sp.br=sp.br  )
-      iit = which( abs( sm$t - sm$t.lookup) > 5 ) # potentially unreliable temperatures due to improper lon/lat or bad data
-      sm$t[ iit ] =  sm$t.lookup[ iit ]
-      
-      iitna = which( ! is.finite( sm$t ) ) 
-      sm$t[ iitna ] =  sm$t.lookup[ iitna ]
-      sm$t.lookup = NULL
- 
-      sm = sm[ which( is.finite( sm$t ) ), ]
-      gc()
+      # convert non-zero values quantiles, 
+      oo = which( !is.finite( sm$sa )  )
+      if (length(oo)>0 ) sm$sa[oo ] = median( sm$sa, na.rm=TRUE )
 
-      WsH = habitat.lookup.grouped( sm, p=p, lookuptype="all.data", sp.br=sp.br )
-      names(WsH)[which( names(WsH)=="t")] = "tmean.annual"
-      WsH$z = NULL
-        
-      sm = cbind( sm, WsH)
-      rm (WsH); gc()
-
-
-      # ---------------------------------
-      # bring in fisheries stats
-      sm = logbook.fisheries.stats.merge( sm )
-      
-      # iii =  which( is.finite( sm$totno ) )
-      #  sm = sm[ iii, ]
-
-      si = which( sm$totno > 0 )
-      sn = which( sm$totno == 0)
-
-      sm$presence = NA
-      sm$presence[ si ] = 1
-      sm$presence[ sn ] = 0
-
-      # convert to quantile and then a z-score 
-      sm$q = NA
-      sm$q[si] = quantile.estimate ( sm$totno[si]  )  # convert to quantiles
-
-      maxq = max( sm$q[ which( sm$q < 1 ) ] , na.rm=T )  # keep it from being > 1 
-      sm$q[ which(sm$q==1) ] = maxq
-      sm$qn = qnorm( sm$q )
- 
 	    regs = c("cfanorth", "cfasouth", "cfa4x" )
       sm$cfa = NA
       for (r in regs) {
@@ -173,13 +135,11 @@
         sm$cfa[jj] = r
       }
 
-      sm$total.landings.scaled = scale( sm$total.landings, center=T, scale=T )
 
-      # convert non-zero values quantiles, 
-      sm$z = log( sm$z )
-      sm$sa[ which( !is.finite( sm$sa )  ) ] = median( sm$sa[ which( is.finite( sm$sa )  ) ] )
-      # if ( exists("t.annual", sm) ) sm$tmean.annual = sm$t.annual
-
+      # ---------------------------------
+      # bring in fisheries stats
+      sm = logbook.fisheries.stats.merge( sm )
+      
       save ( sm, file=fn, compress=T )
       
       return ( fn )

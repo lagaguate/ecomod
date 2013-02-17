@@ -271,7 +271,9 @@
     if (DS %in% c("full.taxonomy", "full.taxonomy.redo") ) {
       
       # add full taxonomic hierarchy to spcodes database .. 
-			
+	
+      require ( multicore ) # simple parallel interface (using threads)
+		
       itis.taxa.lowest = tolower(itis.taxa.lowest)
       fn = file.path( project.directory("taxonomy"), "data", paste("spcodes", itis.taxa.lowest, "rdata", sep=".") )
       

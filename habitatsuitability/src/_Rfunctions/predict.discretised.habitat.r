@@ -134,7 +134,6 @@
         PS = PS[ filter.region.polygon( PS, region=p$studyarea, planar=T, proj.type=p$internal.projection ) , ]
         PS$month = p$prediction.month
         # PS$sa = 1
-        # PS$t.annual = PS$tmean.annual   # in PS, t is the annual mean and tmean is the climatological mean
         # PS = PS[ sample( nrow(PS), size=5000 ) ,]
         Qp = predict.discretised.habitat( DS="model.pa", p=p )
         debug = F

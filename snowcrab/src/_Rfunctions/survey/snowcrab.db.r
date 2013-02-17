@@ -805,11 +805,8 @@
 			# bring in all other habitat variables, use "z" as a proxy of data availability
 			# and then rename a few vars to prevent name conflicts
 			print ("Bring in all other habitat variables")
-      sH = habitat.lookup.grouped( set,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 5) )
-      sH = rename.df( sH, "z", "z.H" )
-      sH = rename.df( sH, "zsd", "zsd.H" )
-      sH = rename.df( sH, "t", "tmean.annual" )
-      sH = rename.df( sH, "tsd", "tsd.annual" )
+      sH = habitat.lookup.grouped( set,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
+      sH$z = NULL
 			sH$yr = NULL
 			vars = names (sH )
 
@@ -902,7 +899,7 @@
       }
    
       set0 = snowcrab.db( DS="set.complete" )
-      set = logbook.fisheries.stats.merge( set )
+      set = logbook.fisheries.stats.merge( set0 )
       save ( set, file=fn, compress=T )
       return (fn)
     }

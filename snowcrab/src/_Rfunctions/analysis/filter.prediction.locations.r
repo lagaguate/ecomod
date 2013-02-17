@@ -3,6 +3,7 @@
   filter.prediction.locations = function( DS="", PS=NULL, y=NULL, p=NULL  ) {
     
     ips = NULL
+    require (fields)
 
     if( DS=="default" ) {
       # choose good habitat and 

@@ -3,61 +3,63 @@
 		
     # sequence is important here .. do not re-order unless you know what you are doing
 
-		if ( is.null(method) || method == "alltaxa" ) {
-			# do this first to keep things fast if there is nothing to do ... keep all species 
-      return(x)
-		} 
+    if (is.data.frame(x) ) { 
+      out = x 
+    } else if (is.vector(x)) {
+      out = data.frame(spec=x) 
+    }
 		
-    
-    sp.codes = NULL 
-    
+    if ( is.null(method) || method == "alltaxa" ) {
+      method = "all" # override
+		} 
+	
     if ( method=="living.only" ) {
-	    
-      tx = taxa.db("complete")
-			
-      if (is.data.frame(x) ) {
-        sps = taxa.specid.correct(x$spec)
-      } else if (is.vector(x) ) {
-        sps = taxa.specid.correct(x)
-      }
+      method = "all" #override
 
-      out = data.frame( spec=sps, order=1:length(x) )
-			out = merge(out, tx[, c("spec", "itis.tsn", "tolookup")], by="spec", sort=FALSE )
-      has.tsn = which( is.finite( out$itis.tsn ) & out$tolookup)
-      sp.codes = sort( unique( out$spec[ has.tsn] ) )
-
-    }  else {
-
-      # this is the real core of the function, the above catch exceptions
-      sp.codes = species.codes( method ) 
-	  
+      # nothing to do yet
+      # UPDate add itis checks ??? 
+      #       tx = taxa.db("complete")
+      #       
+      #       if (is.data.frame(x) ) {
+      #         sps = taxa.specid.correct(x$spec)
+      #       } else if (is.vector(x) ) {
+      #         sps = taxa.specid.correct(x)
+      #       }
+      # 
+      #       out = data.frame( spec=sps, order=1:length(x) )
+      #       out = merge(out, tx[, c("spec", "itis.tsn", "tolookup")], by="spec", sort=FALSE )
+      #       has.tsn = which( out$tolookup )  <<< this is wrong, tolookup does not mean it is living
+      #       sp.codes = sort( unique( out$spec[ has.tsn] ) )
+      # 
+      #     } 
+      
+    }
+    
+    # this is the real core of the function, the above catch exceptions
+    sp.codes = species.codes( method )  
+    if (is.null(sp.codes) ) stop( paste( method, "was not found .. check/modify 'species.codes'" ))
+ 
+		out$spec = taxa.specid.correct( out$spec )  # recoding of species id's done here!
+    keep = which( is.finite( out$spec ) & ( out$spec %in% sp.codes) )
+    
+    if (length(keep) == 0) {
+      print (paste("No data for ", method) )
+      return(NULL)
     }
 
-    if (is.null(sp.codes) ) stop( paste( method, "was not found .. check/modify 'species.codes'" ))
-  
-		if (is.data.frame(x) ) { 
-			# return a filtered data frame subset **AND** with corrected species names
-			x$spec = taxa.specid.correct( x$spec )  # recoding of species id's done here!
-			keep = which( is.finite( x$spec ) & ( x$spec %in% sp.codes) )
-			if (length(keep)>0) x = x[ keep, ]
-			return (x)
-		}
+    if (is.data.frame(x) ) return( out[ keep, ] )  # return the filtered data frame
+ 
+		if (is.vector(x)) {
+      # return only row indices **OR** new species codes
+      if ( return.species.list ) {
+				out$spec.out = NA
+				out$spec.out [keep] = out$spec[keep]
+				return ( out$spec.out )	
 			
-		if (is.vector(x) ) {
-			# return only row indices **OR** new species codes
-			# x must be a vector of species codes
-			x = data.frame( spec=x, order=1:length(x) )
-			x$spec = taxa.specid.correct( x$spec )  # recoding of species id's done here!
-			keep = which( is.finite( x$spec ) & x$spec %in% sp.codes  )
-			
-			if ( return.species.list) {
-				x$spec.out = NA
-				if (length(keep)>0) x$spec.out [keep] = x$spec[keep]
-				return ( x$spec.out )	
-			} else {
-				return (keep)
+      } else {
+				return ( keep )
 			}
-		}
+    } 
 	}
 
 

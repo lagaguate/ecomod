@@ -9,13 +9,13 @@
 
     c.r.y = unique( intersect (r, i) )
 
-    soft = which( odb$durometer < 68 )
+    # soft = which( odb$durometer < 68 ) # unreliable
 
     ccs = c(1:5)
     for (cc in ccs) {
       icc = which( odb$shell == cc )
-      if (cc==1) icc = unique( union( icc, soft ) )
-      if (cc>1)  icc = unique( setdiff( icc, soft ) )
+     # if (cc==1) icc = unique( union( icc, soft ) )
+     # if (cc>1)  icc = unique( setdiff( icc, soft ) )
       out = c(out, length( intersect( c.r.y, icc ) ) )
     }
 

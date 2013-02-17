@@ -26,7 +26,7 @@ habitat.model.selection = function( ww, modeltype, indicator="default" ) {
       full = paste( 
         ' ~ s(plon,plat, k=400) + as.factor(yr) + s(julian ) + s(tmean, k=3, bs="ts")',
         ' + s(dt.annual, k=3, bs="ts" ) + s(dt.seasonal, k=3, bs="ts" ) ', 
-        ' + s(tamp.annual, k=3, bs="ts" ) + s(wmin.annual, k=3 , bs="ts" ) + s(z, k=3 , bs="ts" )', 
+        ' + s(tamp, k=3, bs="ts" ) + s(wmin, k=3 , bs="ts" ) + s(z, k=3 , bs="ts" )', 
         ' + s(dZ, k=3, bs="ts" ) + s(substrate.mean, k=3, bs="ts" ) ' 
       )
     )

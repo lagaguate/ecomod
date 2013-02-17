@@ -4,7 +4,6 @@
 	 loadfunctions( ("snowcrab"), functionname="initialise.local.environment.r") 
 
 
-
   # mapping of fisher stats
   # loc = file.path( project.directory("shrimp"), "maps" ) # output directory <---- change this to a local 
                                             # drive/directory as you cannot write to the server (tethys)
@@ -29,7 +28,9 @@
   sm$julian = convert.datecodes( sm$chron, "julian" )
   sm$month = ceiling(sm$julian/365 *12)
   
-  sm = sm[ which( is.finite(sm$effort)project.directory("snowcrab")project.directory("snowcrab") ) ,]
+  sm = sm[ which( is.finite(sm$effort),]
+                 
+      project.directory("snowcrab")project.directory("snowcrab") ) 
   sm = sm[ which( is.finite(sm$catch) ) ,]
   sm = sm[ which( is.finite(sm$cpue) ) ,]
 

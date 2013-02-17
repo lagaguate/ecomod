@@ -1,5 +1,5 @@
 
-  fishery.model.jags = function( DS="" ) {
+  fishery.model.jags = function( DS="", yr=NULL ) {
     out = NULL
     
     if (DS=="biomass.dynamic" ) {
@@ -13,6 +13,9 @@
     }
     if (DS=="delay.difference.illegal") {
       out = file.path( project.directory("snowcrab"), "src", "bugs", "delaydifference.illegal.bugs" )   
+    }
+    if (DS=="biomass.dynamic.candidate" ) {
+      out = file.path( project.directory("snowcrab"), "src", "bugs", paste("biomassdynamic_",yr,"_candidate.bugs",sep="") )    
     }
 
     return(out)

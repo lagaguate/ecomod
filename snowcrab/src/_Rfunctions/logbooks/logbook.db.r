@@ -370,28 +370,29 @@
 
       nl0 = nrow( logbook ) 
       logbook = lonlat2planar( logbook ,  proj.type=p$internal.projection, ndigits=0 )
-      logbook$z = logbook$depth
-			logbook$chron = logbook$date.landed
-			logbook$depth = NULL
+			logbook$chron = logbook$date.landed  # required for temperature lookups
 
 			# bring in time invariant features:: depth
+      logbook$z = logbook$depth
+			logbook$depth = NULL
+      oo =  which( logbook$z < 10 | logbook$z > 500 ) # screen out large z's
+      if (length(oo) > 0 )  logbook$z[ oo ] = NA  
 			logbook$z = habitat.lookup.simple( logbook, p=p, vnames="z", lookuptype="depth" )
-      logbook$z[ which( logbook$z < 10) ] = NA  # screen out large z's
-      logbook$z[ which( logbook$z > 500) ] = NA  # screen out large z's
       logbook$z = log( logbook$z )
 			
+      ii = which( ! is.finite( logbook$z) )  
+      if (length(ii)>0) logbook = logbook[ -ii, ]
+
 		  # bring in time varing features:: temperature
 			logbook$t = NA
       logbook$t = habitat.lookup.simple( logbook, p=p, vnames="t", lookuptype="temperature.weekly" )
- 
+
 			# bring in habitat variables
-			sH = habitat.lookup.grouped( logbook, p=p, lookuptype="all.data", sp.br=seq(5, 25, 5) )
+			sH = habitat.lookup.grouped( logbook, p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
 			
       # rename a few vars to prevent name conflicts
+      sH$z = log(sH$z) 
       sH = rename.df( sH, "z", "z.H" )
-      sH = rename.df( sH, "zsd", "zsd.H" )
-      sH = rename.df( sH, "t", "tmean.annual" )
-      sH = rename.df( sH, "tsd", "tsd.annual" )
 			sH$yr = NULL
 			vars = names (sH )
 
@@ -419,7 +420,10 @@
         load(fn)
         return(gridded.fishery.data)
       }
-           
+     
+      yy = logbook.db(DS="logbook")
+      yrs = sort( unique( yy$year))
+
       for ( y in yrs ) {
 
         fn = file.path(loc, paste( "gridded.fishery", y, "rdata", sep=".") )
