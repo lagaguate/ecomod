@@ -1,5 +1,5 @@
 
-  figure.bugs = function( vname=NULL, type="density", sb=NULL, y=NULL, fn=NULL, labs=c("N-ENS","S-ENS","4X") ) {
+  figure.bugs = function( vname="", type="density", sb=NULL, y=NULL, fn=NULL, labs=c("N-ENS","S-ENS","4X") ) {
  
     ntacs = sb$nProj
     yrs0 = as.numeric( as.character( rownames(sb$IOA) ) )
@@ -7,6 +7,35 @@
     yrs.last = max(yrs0) + 0.5
     ndata = length(yrs0)
     hdat = 1:ndata
+
+
+    if (vname =="r.ts") {
+      # catch this first as the layout is different
+        br = 75
+
+        x11()
+        layout( matrix(c(1:(sb$N*3)), ncol=3, nrow=sb$N ))
+        par(mar = c(1., 1., 0.65, 0.75))
+
+        for (i in 1:3) {
+        for (yr in 1:sb$N) { 
+          dta = y$r[ yr,i,,]
+          qs = apply( dta, 2, quantile, probs=c(0.025, 0.5, 0.975) )
+          qs = signif( qs, 3 )
+          pdat = as.vector( dta)
+          xrange = range( pdat, na.rm=T )
+          postdat = hist( pdat, breaks=br, plot=FALSE )
+          yrange = range( 0, postdat$density, na.rm=T ) * 1.02
+          hist( pdat, freq=FALSE, breaks=br, xlim=xrange, ylim=yrange, main="", xlab="", ylab="Density", col="lightgray", border="gray")  
+          YR = rownames(sb$IOA) [yr]
+          legend( "topright", bty="n", legend=paste( labs[i], YR, "r", " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ), cex=0.9 )   
+        }}
+        
+      savePlot( filename=fn, type="png" )
+      return( fn)
+
+    }
+
 
     x11()
     layout( matrix(c(1,2,3), 3, 1 ))
@@ -45,26 +74,10 @@
         qs = signif( qs, 3 )
         for (i in 1:3) {
           pdat = as.vector(y$r[i,,])
-          # prr=NULL
-          # prr$class="normal"
-          # prr$mean=sb$r0x[i]
-          # prr$sd=sb$r0x[i]*sb$cv
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ) )   
       }}
 
-      if ( vname=="r.ts" ) {
-        qs = apply( y$r[,,,], 2, quantile, probs=c(0.025, 0.5, 0.975) )
-        qs = signif( qs, 3 )
-        for (i in 1:3) {
-          pdat = as.vector(y$r[,i,,])
-          # prr=NULL
-          # prr$class="normal"
-          # prr$mean=sb$r0x[i]
-          # prr$sd=sb$r0x[i]*sb$cv
-          plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
-          legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ) )   
-      }}
 
 
       if ( vname=="q" ) {
@@ -72,13 +85,24 @@
         qs = signif( qs, 3 )
         for (i in 1:3) {
           pdat = as.vector(y$q[i,,])
+       
+          plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
+          legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" )   
+      )}}
+
+      if ( vname=="qs" ) {
+        QQ = apply( y$q[,,], 1, quantile, probs=c(0.025, 0.5, 0.975) )
+        QQ = signif( QQ, 3 )
+        for (i in 1:3) {
+          pdat = as.vector(y$qs[i,,])
           # prr=NULL
           # prr$class="normal"
           # prr$mean=sb$q0x[i]
           # prr$sd=sb$q0x[i]*sb$cv
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
-          legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" )   
+          legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", QQ[2,i], " {", QQ[1,i], ", ",  QQ[3,i], "}  ", sep="" )   
       )}}
+
 
       if ( vname=="BMSY" ) {
         qs = apply( y$BMSY[,,], 1, quantile, probs=c(0.025, 0.5, 0.975) )
@@ -314,7 +338,7 @@
      
           B =  apply( y$B, c(1,2), mean, na.rm=T  )
           F =  apply( y$F, c(1,2), mean, na.rm=T  )
-          C =  apply( y$rem, c(1,2), mean, na.rm=T  )
+          C =  apply( y$C, c(1,2), mean, na.rm=T  )
           K =  apply( y$K, c(1), mean, na.rm=T  )
           for (i in 1:3) C[,i] = C[,i]  * K[i]
           FMSY = apply( y$FMSY, c(1), mean, na.rm=T  )
@@ -409,8 +433,8 @@
       par(mar = c(5, 4, 0, 2))
       require(car)
       
-      eP = y$sd.p
-      eO = y$sd.o
+      eP = y$bp.sd
+      eO = y$bo.sd
       for (i in 1:3 ) {
           plot( eP[,i,,], eO[,i,,],  type="p", pch=22 ) 
           if (i==2) title( ylab="Process error (SD)" ) 
@@ -430,7 +454,7 @@
       MSY = apply( y$MSY, c(1), mean, na.rm=T  )
       FMSY = apply( y$FMSY, c(1), mean, na.rm=T  )
       BMSY = apply( y$BMSY, c(1), mean, na.rm=T  )
-      C =  apply( y$REM, c(1,2), mean, na.rm=T  )
+      C =  apply( y$C, c(1,2), mean, na.rm=T  )
       K =  apply( y$K, c(1), mean, na.rm=T  )
          
       # production vs biomass

@@ -25,26 +25,26 @@
   res = biomass.summary.db(p=p)
      
   sb = list( 
-    b.min = 0.01, # scaled to 1 but allow overshooting
-    b.max = 1.4, # scaled to 1 but allow overshooting
+    b.min = 0.001, # scaled to 1 but allow overshooting
+    b.max = 1.1, # scaled to 1 but allow overshooting
     q.min = 0.1,  # max value of q , anything larger is not believable
-    q.max = 1.9,  # max value of q , anything larger is not believable
-    r.min = 0.01,
-    r.max = 3.00,  
+    q.max = 2.0,  # max value of q , anything larger is not believable
+    r.min = 0.1,
+    r.max = 2.0,  
     rec.max= c( 10^3, 10^4, 10^2 ), 
     K.min = c(1, 10, 0.1 ),  # max carrying capacity estimate: 
     K.max = c(10, 100, 5 ),  # max carrying capacity estimate: 
     b0.min = c(0.5, 0.5, 0.2),  # prior: mean value possible in  N,S,4X 
     b0.max = c(0.8, 0.8, 0.6),  # prior: mean value possible in  N,S,4X 
-    cv.normal.min = 0.01, # upper limit of CV for normally distributed variables ~ 0.5 covers a reasonably large range, try:   curve( dnorm(x, mean=1, sd=0.5), from=0.1, to=4  )
+    cv.normal.min = 0.05, # upper limit of CV for normally distributed variables ~ 0.5 covers a reasonably large range, try:   curve( dnorm(x, mean=1, sd=0.5), from=0.1, to=4  )
     cv.normal.max = 0.4, # upper limit of CV for normally distributed variables ~ 0.5 covers a reasonably large range, try:   curve( dnorm(x, mean=1, sd=0.5), from=0.1, to=4  )
-    cv.lognormal.min = 0.01, #  curve( dlnorm(x, meanlog=log(1), sdlog=0.25), from=0.01, to=2 )
+    cv.lognormal.min = 0.05, #  curve( dlnorm(x, meanlog=log(1), sdlog=0.25), from=0.01, to=2 )
     cv.lognormal.max = 0.4, #  curve( dlnorm(x, meanlog=log(1), sdlog=0.25), from=0.01, to=2 )
   # for lognormal: cv = sqrt(exp(sigma^2) - 1); or sigma = sqrt(log(cv^2+ 1) ) ==> sigma = sqrt( log(0.25^2 + 1)) = 0.246 ~ cv -- i.e. cv ~ sd
     IOA = as.matrix(res$B), # observed index of abundance
-    IOAcv = as.matrix(res$B.sd ), # observed index of log abundance SD estimates
+    IOAcv = as.matrix(res$B.sd ), # observed index of log abundance SD estimates ~ CV
     IREC = as.matrix(res$R), # observed index of abundance
-    IRECcv = as.matrix(res$R.sd ), # observed index of log abundance SD estimates
+    IRECcv = as.matrix(res$R.sd ), # observed index of log abundance SD estimates ~CV
     CAT = as.matrix(res$L) , # catches  , assume 20% handling mortality and illegal landings
     CAT.min = apply( res$L, 2, min, na.rm=T), 
     CAT.max = apply( res$L, 2, max, na.rm=T), 
@@ -80,12 +80,13 @@
   sb$IREC[ cfa.nodata , sb$cfa4x ] = min( sb$IREC[,sb$cfa4x] ,na.rm=T )
   sb$IRECcv[ cfa.nodata , sb$cfa4x ] = mean( sb$IRECcv[,sb$cfa4x] ,na.rm=T )
 
-  sb$IREC = ( sb$IREC/ max( sb$IREC, na.rm=T) )
+  sb$IREC = log( sb$IREC )
+  
  
 
   # MCMC/Gibbs parameters
-  n.adapt = 5000 # burn-in  .. 4000 is enough for the full model but in case ...
-  n.iter = 5000 
+  n.adapt = 4000 # burn-in  .. 4000 is enough for the full model but in case ...
+  n.iter = 3000 
   n.chains = 3
   n.thin = 100 # use of uniform distributions causes high autocorrelations ? 
   n.iter.final = n.iter * n.thin
@@ -117,8 +118,9 @@
     "r.mu", "r.sd",
     "K.mu", "K.sd",
     "q.mu", "q.sd", 
-#    "qs.mu", "qs.sd", 
-    "bp.sd", "bo,sd", 
+#    "qs.mu", "qs.sd",
+    "b", 
+    "bp.sd", "bo.sd", 
     "b0", "b0.sd",
 #    "bm", 
     "rem", "rem.sd", "rem.mu", 
@@ -150,15 +152,15 @@
            
   # ----------------
   # convergence testing -- by 1000 to 1500 convergence observed by Gelman shrink factor diagnostic
-    y = jags.samples(m, variable.names=tomonitor, n.iter=10000, thin=1 )
+    y = jags.samples(m, variable.names=tomonitor, n.iter=6000, thin=1 )
     
     gelman.plot(y[["r"]])
     gelman.plot(y[["K"]])
     gelman.plot(y[["q"]])  # about 6-8000 runs required to converge
-    gelman.plot(y[["sd.r"]])
-    gelman.plot(y[["sd.K"]]) 
-    gelman.plot(y[["sd.o"]])
-    gelman.plot(y[["sd.p"]])
+    gelman.plot(y[["r.sd"]])
+    gelman.plot(y[["K.sd"]]) 
+    gelman.plot(y[["bo.sd"]])
+    gelman.plot(y[["bp.p"]])
     geweke.plot(y[["r"]])
 
 
@@ -194,8 +196,10 @@
 
     # frequency density of key parameters
     figure.bugs( "K", y=y, sb=sb, fn=file.path(dir.output, "K.density.png" ) ) 
-    figure.bugs( "r", y=y, sb=sb, fn=file.path(dir.output, "r.density.png" ) ) 
+    # figure.bugs( "r", y=y, sb=sb, fn=file.path(dir.output, "r.density.png" ) ) 
+    figure.bugs( "r.ts", y=y, sb=sb, fn=file.path(dir.output, "r.ts.density.png" ) ) 
     figure.bugs( "q", y=y, sb=sb, fn=file.path(dir.output, "q.density.png" ) ) 
+    figure.bugs( "qs", y=y, sb=sb, fn=file.path(dir.output, "qs.density.png" ) ) 
     figure.bugs( "FMSY", y=y, sb=sb, fn=file.path(dir.output, "FMSY.density.png" ) ) 
   
     # timeseries
@@ -249,16 +253,10 @@
       par(mar = c(5, 4, 0, 2))
 
       for( i in 1:3) hist(y$r[i,,], "fd")
-      for( i in 1:3) hist(y$sd.q[i,,], "fd")
-      for( i in 1:3) hist(y$sd.K[i,,], "fd")
-      for( i in 1:3) hist(y$sd.b0[i,,], "fd")
-      for( i in 1:3) hist(y$sd.pq[i,,], "fd")
-      
-      for( i in 1:3) hist(y$sd.r[i,,,], "fd")
-      for( i in 1:3) hist(y$sd.p[i,,,], "fd")
-      for( i in 1:3) hist(y$sd.o[i,,,], "fd")
-      for( i in 1:3) hist(y$sd.rem[i,,,], "fd")
-       
+      for( i in 1:3) hist(y$q.sd[i,,], "fd")
+      for( i in 1:3) hist(y$K.sd[i,,], "fd")
+      for( i in 1:3) hist(y$b0.sd[i,,], "fd")
+      for( i in 1:3) hist(y$r.sd[i,,], "fd")
       for( i in 1:3) hist(y$b0[i,,], "fd")
    
     }
