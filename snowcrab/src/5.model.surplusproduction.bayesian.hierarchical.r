@@ -25,25 +25,38 @@
   res = biomass.summary.db(p=p)
      
   sb = list( 
-    b0x = c(4/5, 4/5, 2/5),  # prior: mean value possible in  N,S,4X 
-    q0x = c(1, 1, 1),  # prior 
-    r0x = c(1, 1, 1),  # hyper prior 
-    K0x = c(5, 50, 1 ),  # max carrying capacity estimate 
+    b.min = 0.01, # scaled to 1 but allow overshooting
+    b.max = 1.4, # scaled to 1 but allow overshooting
+    q.min = 0.1,  # max value of q , anything larger is not believable
+    q.max = 1.9,  # max value of q , anything larger is not believable
+    r.min = 0.01,
+    r.max = 3.00,  
+    rec.max= c( 10^3, 10^4, 10^2 ), 
+    K.min = c(1, 10, 0.1 ),  # max carrying capacity estimate: 
+    K.max = c(10, 100, 5 ),  # max carrying capacity estimate: 
+    b0.min = c(0.5, 0.5, 0.2),  # prior: mean value possible in  N,S,4X 
+    b0.max = c(0.8, 0.8, 0.6),  # prior: mean value possible in  N,S,4X 
+    cv.normal.min = 0.01, # upper limit of CV for normally distributed variables ~ 0.5 covers a reasonably large range, try:   curve( dnorm(x, mean=1, sd=0.5), from=0.1, to=4  )
+    cv.normal.max = 0.4, # upper limit of CV for normally distributed variables ~ 0.5 covers a reasonably large range, try:   curve( dnorm(x, mean=1, sd=0.5), from=0.1, to=4  )
+    cv.lognormal.min = 0.01, #  curve( dlnorm(x, meanlog=log(1), sdlog=0.25), from=0.01, to=2 )
+    cv.lognormal.max = 0.4, #  curve( dlnorm(x, meanlog=log(1), sdlog=0.25), from=0.01, to=2 )
+  # for lognormal: cv = sqrt(exp(sigma^2) - 1); or sigma = sqrt(log(cv^2+ 1) ) ==> sigma = sqrt( log(0.25^2 + 1)) = 0.246 ~ cv -- i.e. cv ~ sd
     IOA = as.matrix(res$B), # observed index of abundance
     IOAcv = as.matrix(res$B.sd ), # observed index of log abundance SD estimates
     IREC = as.matrix(res$R), # observed index of abundance
     IRECcv = as.matrix(res$R.sd ), # observed index of log abundance SD estimates
     CAT = as.matrix(res$L) , # catches  , assume 20% handling mortality and illegal landings
-    p.g = 2,  # dgamma parameter = 2 is an exponential family with mean = p.g * p.h; p.h=mean/p.g
-    cv = 0.4, #default 1/cv  -- muliplier for dgamma on inverse scale
-    logsdmax = 1,  # upper bound of sd of lognormal distributions 1== assume < 1 order of magnitude variation and modal 
+    CAT.min = apply( res$L, 2, min, na.rm=T), 
+    CAT.max = apply( res$L, 2, max, na.rm=T), 
+    # p.g = 2,  # dgamma parameter = 2 is an exponential family with mean = p.g * p.h; p.h=mean/p.g
+    # cv = 0.4, #default 1/cv  -- muliplier for dgamma on inverse scale
+    # logsdmax = 1,  # upper bound of sd of lognormal distributions 1== assume < 1 order of magnitude variation and modal 
     er = 0.2,  # target exploitation rate
     U = ncol( res$B),  # number of regions
     N = nrow( res$B) , # no years with data  
     M = 3, # no years for projections  
     ty = 7,  # index of the transition year (2004) between spring and fall surveys 
     cfa4x = 3, # index of cfa4x
-    epsIOA = 1e-2,  # eps for IOA 
     eps = 1e-4  # small non-zero number
   )
  
@@ -67,15 +80,14 @@
   sb$IREC[ cfa.nodata , sb$cfa4x ] = min( sb$IREC[,sb$cfa4x] ,na.rm=T )
   sb$IRECcv[ cfa.nodata , sb$cfa4x ] = mean( sb$IRECcv[,sb$cfa4x] ,na.rm=T )
 
-  sb$IREC = trunc( scale( sb$IREC, center=T, scale=T ) / 3 * 10000 ) / 10000
+  sb$IREC = ( sb$IREC/ max( sb$IREC, na.rm=T) )
  
 
-
   # MCMC/Gibbs parameters
-  n.adapt = 10000 # burn-in
-  n.iter = 6000 
+  n.adapt = 5000 # burn-in  .. 4000 is enough for the full model but in case ...
+  n.iter = 5000 
   n.chains = 3
-  n.thin = 500
+  n.thin = 100 # use of uniform distributions causes high autocorrelations ? 
   n.iter.final = n.iter * n.thin
   fnres = file.path( project.directory("snowcrab"), "R", paste( "surplus.prod.mcmc", p$current.assessment.year,"rdata", sep=".") )
  
@@ -83,9 +95,9 @@
   debug =F
   if (debug) {
     n.adapt = 1000 # burn-in
-    n.iter = 3000 
+    n.iter = 4000 
     n.chains = 3
-    n.thin = 5
+    n.thin = 10
     n.iter.final = n.iter 
     fnres = file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.debug.rdata" )
   }
@@ -93,54 +105,56 @@
 
   # -------------------
   ##  simple surplus production with observation and process error
-  # m = jags.model( file=file.path( project.directory("snowcrab"), "src", "bugs", "biomassdynamic_2010.bugs" ),
-  #   data=sb, n.chains=n.chains, n.adapt=n.adapt )
-  m = jags.model( file=fishery.model.jags ( DS="biomass.dynamic.candidate", yr=2013 ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  
- 
-  m = jags.model( file=fishery.model.jags ( DS="biomass.dynamic" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  
-  
-  tomonitor =  c("B", "MSY", "BMSY", "FMSY", "Fcrash", "F", "P",    
-                
-                 "qs", "sd.qs", 
-                 "r", "r.sd", "r.mu", "cvr", "sd.r", "rb1", "rb2", "r.q.sd", "r.q.mu", 
-                 "r.sd.hyp", "r.mu.hyp","r.q.mu.hyp", "r.sd.hyp", "cv.r", 
-                 "q", "q.sd", "q.mu", "cvq", "sd.q", "qb1", "qb2", "q.mu.hyp","cv.q", 
-                 "pdbeta", "cvp", 
-                 "uabeta", "ua",
+  # m = jags.model( file=file.path( project.directory("snowcrab"), "src", "bugs", "biomassdynamic_2010.bugs" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )
+  # m = jags.model( file=fishery.model.jags ( DS="biomassdynamic_basic_2013.bugs" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  
+  # m = jags.model( file=fishery.model.jags ( DS="biomassdynamic_recruitment_2013.bugs" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  # "recruitment" + spring/summer q's
 
-                 "b0", "cvb0", "sd.b0", "sd.p", "b0.mu", "b0.sd",
-                 "biomass", "cvb", "sd.pq", "cv.p", 
-                 "K", "cvk", "sd.K", "K.mu", "K.sd", "K.mu.hyp","cv.K", 
-                 "cvc", "rem", "REM", "rem.sd",
-                 "ua", "uab1", "uab2", 
-                 "cvo", "sd.o", "cbb1", "cbb2",   "sd.o.mu", "sd.o.sd","cv.o", 
-                 
-                 "TAC",  "C", "catch", "sd.C" )
+  m = jags.model( file=fishery.model.jags ( DS="biomassdynamic_full_2013.bugs" ), data=sb, n.chains=n.chains, n.adapt=n.adapt ) # recruitment + spring/summer q's + all observed CVs
+ 
+ 
+  tomonitor =  c( 
+    "r", "K", "q", "qs",
+    "r.mu", "r.sd",
+    "K.mu", "K.sd",
+    "q.mu", "q.sd", 
+#    "qs.mu", "qs.sd", 
+    "bp.sd", "bo,sd", 
+    "b0", "b0.sd",
+#    "bm", 
+    "rem", "rem.sd", "rem.mu", 
+#    "ill",
+    "REM", 
+    "MSY", "BMSY", "FMSY", "Fcrash", "Bdrop", "BX2MSY",
+    "F", "TAC",  "C", "P", "B" )
+  
   tomonitor = intersect( variable.names (m), tomonitor )
   coef(m)
   
+
+  # ----------------
+
   dic.samples(m, n.iter=n.iter ) # pDIC
+
   
+  # ----------------
+
   y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter.final, thin=n.thin) # sample from posterior
+  
   figure.bugs( type="timeseries", vname="biomass", y=y, sb=sb, fn=file.path(dir.output, "biomass.timeseries.png" ) ) 
+  
   figure.bugs( type="timeseries", vname="fishingmortality", y=y, sb=sb, fn=file.path(dir.output, "fishingmortality.timeseries.png" ) ) 
    
   graphics.off() ; x11()
   layout( matrix(c(1,2,3), 3, 1 )); par(mar = c(5, 4, 0, 2))
   for( i in 1:3) hist(y$cv.r[i,,], "fd")
            
-
-
- 
-Mean deviance:  29.2 
-penalty 5386 
-Penalized deviance: 5415 
-
-# convergence testing -- by 1000 to 1500 convergence observed by Gelman shrink factor diagnostic
-    y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter, thin=n.thin )
+  # ----------------
+  # convergence testing -- by 1000 to 1500 convergence observed by Gelman shrink factor diagnostic
+    y = jags.samples(m, variable.names=tomonitor, n.iter=10000, thin=1 )
+    
     gelman.plot(y[["r"]])
     gelman.plot(y[["K"]])
-    gelman.plot(y[["q"]])
+    gelman.plot(y[["q"]])  # about 6-8000 runs required to converge
     gelman.plot(y[["sd.r"]])
     gelman.plot(y[["sd.K"]]) 
     gelman.plot(y[["sd.o"]])
@@ -152,17 +166,21 @@ Penalized deviance: 5415
   #  update(m, n.iter=n.iter ) # above seems enough for convergence but a few more to be sure
 
 
-  # autocorrelation thinning
-    y = coda.samples(m, variable.names=c("K", "r", "q"), n.iter=n.iter, thin=n.thin) # sample from posterior
-    autocorr.plot(y)
+  # ------------------
+  # determine autocorrelation thinning
+    y = coda.samples(m, variable.names=c("K", "r", "q"), n.iter=20000, thin=10) # sample from posterior
+    autocorr.plot(y)   # about 10 to 20 required
     # plot(y, ask=T)
     # autocorr(y, lags = c(0, 1, 5, 10, 50), relative=TRUE)
 
 
   # final sampling from the posteriors
-  #  y = jags.samples(m, variable.names=tomonitor, n.iter=200000, thin=100) # sample from posterior
+  #  y = jags.samples(m, variable.names=tomonitor, n.iter=10000, thin=20) # sample from posterior
     y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter.final, thin=n.thin) # sample from posterior
-		fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2012_final.rdata" )
+		
+    
+    fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2013_final.rdata" )
+		# fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2012_final.rdata" )
     # fnres =  file.path( project.directory("snowcrab"), "R", "surplus.prod.mcmc.2012a.rdata" )
     save(y, file=fnres, compress=T)
     # load( fnres )

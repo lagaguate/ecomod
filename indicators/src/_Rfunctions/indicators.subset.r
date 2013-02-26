@@ -4,6 +4,7 @@
   indicators.subset = function( X, type  ) {
     
     varlist = X[[ type ]]
+    varlist = intersect( names(X$data), varlist)
     dat = X$data[, varlist ]
     
     for (i in 1:length( X$to.log)) dat[,i] = log10(dat[,i] + 1)

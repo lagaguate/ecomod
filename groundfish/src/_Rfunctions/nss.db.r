@@ -176,11 +176,11 @@
       for (va in variables) {  # size classes
 
       for (ti in plottimes) {
-        td = recode.time( wm$yr, ti, vector=T )
-        yrs = sort( unique( td ) )
+        td = recode.time( wm, ti, vector=T )
+        yrs = sort( unique( td$yr ) )
 
       for (y in yrs) {
-        i.y = which( td==y )
+        i.y = which( td$yr==y )
 
         for (re in regions) {
           i.re = filter.region.polygon(wm, re)

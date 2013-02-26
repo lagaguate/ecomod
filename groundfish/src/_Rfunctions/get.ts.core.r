@@ -18,12 +18,15 @@ get.ts.core = function(id=NULL, sm, do.parallel=T, regions, plottimes, variables
          )
     out = NULL
     for (ti in plottimes) {
-      td = recode.time( uu$yr, ti, vector=T )
+      td = recode.time( uu, ti )
       tmp = NULL
-      for (iy in sort(unique( td ))) {
-        vv = uu[ which(td==iy) ,]
+      for (iy in sort(unique( td$yr ))) {
+        vv = uu[ which(td$yr==iy) ,]
         for (va in variables) {
-          if (! (va %in% colnames(vv)) ) next
+          
+          if (! (va %in% colnames(vv)) ) next()
+          
+          print( paste(va, iy))
           vars.to.extract = c("yr", "strat", "area", va)
           ww = vv[, vars.to.extract]
           ww = ww[ is.finite(ww$yr) ,]

@@ -230,7 +230,7 @@
 
     if (DS %in% c( "sizespectrum.collapse.yr", "sizespectrum.collapse.yr.redo") ) {
 
-      ### used ??
+      ### not used ?? -- a relic of when this function existed within the groundfish.db ? 
 
       loadfunctions( "groundfish")  
       

@@ -170,7 +170,7 @@
 
       plot( set$predicted.R0.mass , set$R0.mass )
       
-      cor( set$predicted.R0.mass , set$R0.mass )^2  # 50%
+      cor( set$predicted.R0.mass , set$R0.mass )^2  # 0.7870114 !!
       
       save ( set, file="/home/jae/tmp/set.test.rdata")
       

@@ -21,7 +21,7 @@
         # this ever comes to pass
         # ****************************************
 
-        v = habitat.template.lookup( v )   # <------
+        # v = habitat.template.lookup( v )   # <------
 
         # ****************************************
         

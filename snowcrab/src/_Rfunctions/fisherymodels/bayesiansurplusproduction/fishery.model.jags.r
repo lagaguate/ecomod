@@ -17,7 +17,8 @@
     if (DS=="biomass.dynamic.candidate" ) {
       out = file.path( project.directory("snowcrab"), "src", "bugs", paste("biomassdynamic_",yr,"_candidate.bugs",sep="") )    
     }
-
+    
+    if (is.null(out)) out = file.path( project.directory("snowcrab"), "src", "bugs", DS )
     return(out)
   }
 

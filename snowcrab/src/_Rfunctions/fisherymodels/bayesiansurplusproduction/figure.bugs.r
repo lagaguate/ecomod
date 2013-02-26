@@ -11,7 +11,11 @@
     x11()
     layout( matrix(c(1,2,3), 3, 1 ))
     par(mar = c(4.4, 4.4, 0.65, 0.75))
-  
+   
+    prr = NULL
+    prr$class ="none"  # no priors by default
+
+
     if ( type=="density" ) {  # default
     
       if ( vname=="K" ) {
@@ -19,8 +23,8 @@
         qs = signif( qs, 3 )
         for (i in 1:3) {
           pdat = as.vector(y$K[i,,])
-          prr=NULL
-          prr$class="normal"
+          # prr=NULL
+          # prr$class="normal"
 
           # E(X) = exp(mu + 1/2 sigma^2)
           # med(X) = exp(mu)
@@ -29,8 +33,8 @@
           # SD(X) = sqrt( exp(2*mu + sigma^2)*(exp(sigma^2) - 1) )
           #  or   = CV * E(X) 
 
-          prr$mean= sb$K0x[i]
-          prr$sd = sb$K0x[i] * sb$cv
+          # prr$mean= sb$K.guess[i]
+          # prr$sd = sb$K.guess[i] * sb$cv.normal.max
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ))
@@ -41,23 +45,37 @@
         qs = signif( qs, 3 )
         for (i in 1:3) {
           pdat = as.vector(y$r[i,,])
-          prr=NULL
-          prr$class="normal"
-          prr$mean=sb$r0x[i]
-          prr$sd=sb$r0x[i]*sb$cv
+          # prr=NULL
+          # prr$class="normal"
+          # prr$mean=sb$r0x[i]
+          # prr$sd=sb$r0x[i]*sb$cv
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ) )   
       }}
+
+      if ( vname=="r.ts" ) {
+        qs = apply( y$r[,,,], 2, quantile, probs=c(0.025, 0.5, 0.975) )
+        qs = signif( qs, 3 )
+        for (i in 1:3) {
+          pdat = as.vector(y$r[,i,,])
+          # prr=NULL
+          # prr$class="normal"
+          # prr$mean=sb$r0x[i]
+          # prr$sd=sb$r0x[i]*sb$cv
+          plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
+          legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ) )   
+      }}
+
 
       if ( vname=="q" ) {
         qs = apply( y$q[,,], 1, quantile, probs=c(0.025, 0.5, 0.975) )
         qs = signif( qs, 3 )
         for (i in 1:3) {
           pdat = as.vector(y$q[i,,])
-          prr=NULL
-          prr$class="normal"
-          prr$mean=sb$q0x[i]
-          prr$sd=sb$q0x[i]*sb$cv
+          # prr=NULL
+          # prr$class="normal"
+          # prr$mean=sb$q0x[i]
+          # prr$sd=sb$q0x[i]*sb$cv
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" )   
       )}}
@@ -296,8 +314,9 @@
      
           B =  apply( y$B, c(1,2), mean, na.rm=T  )
           F =  apply( y$F, c(1,2), mean, na.rm=T  )
-          C =  apply( y$REM, c(1,2), mean, na.rm=T  )
+          C =  apply( y$rem, c(1,2), mean, na.rm=T  )
           K =  apply( y$K, c(1), mean, na.rm=T  )
+          for (i in 1:3) C[,i] = C[,i]  * K[i]
           FMSY = apply( y$FMSY, c(1), mean, na.rm=T  )
           BMSY = apply( y$BMSY, c(1), mean, na.rm=T  )
         

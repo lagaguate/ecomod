@@ -1268,6 +1268,36 @@
     }
 
     # ----------------------
+    
+
+
+    if (DS %in% c("sm.partial") ) {
+      
+      # this is everything in groundfish just prior to the merging in of habitat data
+      # useful for indicators db as the habitat data are brough in separately (and the rest of 
+      # sm.complete has not been refactored to incorporate the habitat data
+
+      sm = groundfish.db( "sm.base" )
+
+      # 1 merge catch
+      sm = merge (sm, groundfish.db( "catchbyspecies" ), by = "id", sort=F, all.x=T, all.y=F )
+
+      # 2 merge condition and other determined characteristics
+      sm = merge (sm, groundfish.db( "sm.det" ), by = "id", sort=F, all.x=T, all.y=F )
+  
+      # strata information
+      gst = groundfish.db( DS="gsstratum" )
+      w = c( "strat", setdiff( names(gst), names(sm)) )
+      if ( length(w) > 1 ) sm = merge (sm, gst[,w], by="strat", all.x=T, all.y=F, sort=F)
+      sm$area = as.numeric(sm$area)
+      
+      return( sm)
+    
+    }
+
+    # ----------------------
+    
+
 
     if (DS %in% c("sm.complete", "sm.complete.redo") ) {
       fn = file.path( project.directory("groundfish"), "data", "sm.rdata")
@@ -1276,17 +1306,9 @@
         return ( sm )
       }
         
-      sm = groundfish.db( "sm.base" )
+      sm = groundfish.db( "sm.partial" )
       sm = lonlat2planar(sm, proj.type=p$internal.projection ) # get planar projections of lon/lat in km
       
-
-      # 1 merge catch
-      sm = merge (sm, groundfish.db( "catchbyspecies" ), by = "id", sort=F, all.x=T, all.y=F )
-
-      # 2 merge condition and other determined characteristics
-      sm = merge (sm, groundfish.db( "sm.det" ), by = "id", sort=F, all.x=T, all.y=F )
-
-
 	    # bring in time invariant features:: depth
 			print ("Bring in depth")
       sm$sdepth = habitat.lookup.simple( sm,  p=p, vnames="sdepth", lookuptype="depth" )
@@ -1356,13 +1378,7 @@
       w = c( "id", setdiff( names(si), names(sm)) )
       if ( length(w) > 1 ) sm = merge( sm, si[,w], by="id", sort=F )
       
-      
-      # strata information
-      gst = groundfish.db( DS="gsstratum" )
-      w = c( "strat", setdiff( names(gst), names(sm)) )
-      if ( length(w) > 1 ) sm = merge (sm, gst[,w], by="strat", all.x=T, all.y=F, sort=F)
-      sm$area = as.numeric(sm$area)
-      
+    
       save ( sm, file=fn, compress=F )
       return( fn )
     }

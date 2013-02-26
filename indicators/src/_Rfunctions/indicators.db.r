@@ -342,10 +342,9 @@
       loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
         
       # data from groundfish data series
-      sm = groundfish.db( "sm.complete" )
+      sm = groundfish.db( "sm.partial" )
       variables = c( variable.list.expand("all"), "area")
-      byyear = ts.getdata(sm=sm, fname="byear.4vw", from.file=F, variables=variables, plottimes="annual", 
-        regions="nafo.4vw", custom="normal") 
+      byyear = ts.getdata(sm=sm, fname="byear.4vw", from.file=F, variables=variables, plottimes="annual", regions="nafo.4vw", custom="normal") 
       yrs = sort( unique( byyear$yr ) )
       vars = sort( unique( byyear$variable ) )
       nyrs = length(yrs)
@@ -498,15 +497,7 @@
       } 
 
       loadfunctions( "snowcrab", functionname="initialise.local.environment.r" )
-      
-      # fishery data
-      res = get.fishery.stats.by.region()
-      res$landings = res$landings / 1000 
-      res$effort = res$effort / 1000 
-      rownames(res) = uyrs
-      colnames(res) = paste("snowcrab.fishery", colnames(res), sep="." )
-      res = rename.df(res, "snowcrab.fishery.yr", "yr")
-
+   
       # trawl data
       tsdata =  get.time.series ( from.file=T )  # this returns 1.96SE as "se"
       tsdata = tsdata[ tsdata$region=="cfaall", ]
@@ -553,6 +544,16 @@
       
       colnames(Z) = paste("snowcrab.kriged", vars, sep="." )
       Z$yr = yrs
+   
+      # fishery data
+      res = get.fishery.stats.by.region()
+      res$landings = res$landings / 1000 
+      res$effort = res$effort / 1000 
+      # rownames(res) = yrs
+      colnames(res) = paste("snowcrab.fishery", colnames(res), sep="." )
+      res = rename.df(res, "snowcrab.fishery.yr", "yr")
+
+
       res = merge(res, x, by="yr", all=T, sort=T)
       res = merge(res, Z, by="yr", all=T, sort=T)
       res = res[ which(res$yr <= max(Z$yr)) , ]

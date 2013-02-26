@@ -25,10 +25,10 @@ archive.ts.getdata = function (sm=NULL, from.file=T, variables=NULL, plottimes=N
              )
 
         for (ti in plottimes) {
-          td = recode.time( uu$yr, ti, vector=T )
+          td = recode.time( uu, ti, vector=T )
           tmp = NULL
-          for (iy in sort(unique( td ))) {
-            vv = uu[ which(td==iy) ,]
+          for (iy in sort(unique( td$yr ))) {
+            vv = uu[ which(td$yr==iy) ,]
             for (va in variables) {
               if (! (va %in% colnames(vv)) ) next
               vars.to.extract = c("yr", "strat", "area", va)

@@ -4,8 +4,6 @@
 	
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
-   
-
    p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
 
 
@@ -33,6 +31,14 @@
   # ------------------------------------------
   # Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
     histograms.size.maturity( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
+ 
+    
+  # ------------------------------------------
+  # Timeseries of all survey variables
+    figure.timeseries.males( outdir=file.path(p$annual.results, "timeseries", "survey") )
+    figure.timeseries.females( outdir=file.path(p$annual.results, "timeseries", "survey") )
+
+
 
   # ------------------------------------------
   # Timeseries of all survey variables
