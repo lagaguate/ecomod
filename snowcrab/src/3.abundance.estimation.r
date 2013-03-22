@@ -54,13 +54,17 @@
   # -----------------
   # 2. Abundance estimation via GAM   
 
+    # create some intermediary files to speed up analysis
+    habitat.model.db( DS="large.male.auxillary.data.redo", p=p )
+
+
     if (abundance.estimation.via.GAM) {
       
       # Define controlling parameters 
         
       p$model.type = "gam.full" # choose method for habitat model :
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-      p$optimizers = c( "nlm", "perf", "bam", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
+      p$optimizers = c( "nls", "perf", "bam", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
 			p$prediction.weekno = 39 # predict for ~ Sept 1 
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
@@ -158,7 +162,10 @@
       
       H = habitat.model.db( DS="habitat", p=p, predictionYears=p$years.to.model, v="R0.mass" )
       set$predicted.pa = predict( H, set, type="response" )
-      
+     
+
+
+
       A = habitat.model.db( DS="abundance", p=p, predictionYears=p$years.to.model, v="R0.mass" )
       set$predicted.abund = predict( A, set, type="response" )
       
@@ -176,5 +183,54 @@
       
     }
 
+
+
+    ---
+
+
+    y = 2012
+    v = "R0.mass"
+
+        PS = habitat.db ( DS="complete", year=y, p=p )
+				PS$weekno = p$prediction.weekno  # must be same as above
+				PS$t = NA
+      
+        PST = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
+				if (is.null(PST)) next ()
+				
+        PS$t = PST[, p$prediction.weekno ]
+        PS$t[ which(PS$t < -2) ] = -2
+			  PS$t[ which(PS$t > 30) ] = 30 
+
+        iitna = which( ! is.finite( PS$t ) ) 
+        if (length(iitna)>0) PS$t[iitna] = PS$tmean[iitna]
+
+        PS$z = log(PS$z)
+        PS$dt.seasonal = PS$tmean - PS$t 
+        PS$dt.annual = PS$tmean - PS$tmean.cl
+        PS$sa = 1
+
+				# posterior simulations
+				Hmodel = habitat.model.db( DS="habitat", v= v )
+      
+        PS$predicted.pa = predict( Hmodel, PS, type="response" )
+      	
+        levelplot( predicted.pa ~ plon + plat, data=PS, aspect="iso", title=paste("Habitat", y) )
+       
+
+        Amodel = habitat.model.db( DS="abundance", v= v )
+      
+        PS$abundance = predict( Amodel, PS, type="response" )
+      	
+        levelplot( log10(abundance) ~ plon + plat, data=PS, aspect="iso", title=paste("Abundance", y)  )
+       
+
+        present = which(PS$predicted.pa > p$habitat.threshold.quantile )
+        PS$pa = 0
+        PS$pa[present] = 1
+        
+        PS$combined = PS$abundance * PS$pa
+        levelplot( log10(combined) ~ plon + plat, data=PS, aspect="iso", title=paste("Abundance", y)  )
+  
 
 

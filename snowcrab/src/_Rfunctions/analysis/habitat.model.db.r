@@ -7,9 +7,109 @@
     # currently fast GAM == "bam" is used
     if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
 
+
+    if (DS %in% c("large.male.auxillary.data", "large.male.auxillary.data.redo") ) {
+      
+      outdir = project.directory("snowcrab", "R"  )
+      dir.create(path=outdir, recursive=T, showWarnings=F)
+      fn = file.path( outdir, paste("habitat.model", "large_male_auxillary_data", "basedata", "rdata", sep=".") ) 
+      
+      set = NULL
+      if ( DS %in% c("large.male.auxillary.data" )) {
+        if (file.exists(fn)) load(fn)
+        return( set)
+      }
+
+      # add groundfish data
+      gf = snowcrab.external.db (p=p, DS="set.snowcrab.in.groundfish.survey", vname=v )
+      # absense prior to 1999 is meaningless due to inconsistent recording
+      ii = which( gf$n==0 & gf$yr<=1998)
+      if (length(ii)>0) gf = gf[-ii,]
+
+      ii = which( gf$z < log(50) ) # drop strange data
+      if (length(ii)>0) gf = gf[-ii,]
+
+      ii = which( gf$z > log(650) ) # drop strange data
+      if (length(ii)>0) gf = gf[-ii,]
+
+      gf = presence.absence( gf, "n", p$habitat.threshold.quantile )  # determine presence absence and weighting  
+
+      # add commerical fishery data
+      lgbk = logbook.db( DS="fisheries.complete", p=p )
+      lgbk = lgbk[ which( is.finite( lgbk$landings)), ]
+
+      lgbk = presence.absence( lgbk, "landings", p$habitat.threshold.quantile )  # determine presence absence and weighting  
+     
+      baddata = which( lgbk$z < log(50) | lgbk$z > log(600) )
+      if ( length(baddata) > 0 ) lgbk = lgbk[ -baddata,]
+
+      lgbk$julian = convert.datecodes( lgbk$date.landed, "julian" )
+      
+      nms = intersect( names(gf) , names( lgbk) )
+      set = rbind( gf[, nms], lgbk[,nms] )
+   
+      Z = bathymetry.db( DS="baseline", p=p ) 
+      Z$plon = floor(Z$plon / 10)*10 
+      Z$plat = floor(Z$plat / 10)*10 
+      Z = Z[, c("plon", "plat") ]
+      ii = which(duplicated(Z))
+      if (length(ii)>0) Z = Z[-ii,] # thinned list of locations
+      
+      dd = rdist( set[,c("plon", "plat")] , Z )
+      ee = apply( dd, 1, min, na.rm=T ) 
+      ff = which( ee < p$threshold.distance ) # all within XX km of a good data point
+      set = set[ ff, ]
+
+      save ( set, file=fn, compress=TRUE )
+      
+      return (fn)
+    }
+
+
+
+    if ( DS %in% c("basedata" ) ) {
+
+      set = snowcrab.db( DS="set.logbook" )
+      set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
+        
+      set = presence.absence( set, v, p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
+
+      tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "t", "tmean", "tmean.cl", 
+            "tamp", "wmin", "z", "substrate.mean", "dZ", "ddZ", "wt",
+            "pca1", "pca2", "ca1", "ca2", "mr", "smr", "C", "Z", "sar.rsq", "Npred" ) 
+      set = set[ , tokeep ]
+      n0 = nrow(set)
+
+      depthrange = range( set$z, na.rm= T) 
+
+      if ( grepl("R0.mass", v) ) {   
+   #     aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
+   #     set = rbind( set, aset[, names(set)] )
+      }
+
+      set$weekno = floor(set$julian / 365 * 52) + 1
+
+      set$plon = jitter(set$plon)
+      set$plat = jitter(set$plat)  
+      
+      set = set[ which(set$yr %in% p$years.to.model ) , ]
+      set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]
+      
+      set$dt.seasonal = set$tmean -  set$t 
+      set$dt.annual = set$tmean - set$tmean.cl
+
+      # remove extremes where variance is high due to small n
+      set = filter.independent.variables( x=set )
+
+      return(set)
+
+    }
+
+
+    
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
       
-      outdir = file.path( project.directory("snowcrab"), "R", "gam", "models", "habitat" )
+      outdir =  project.directory("snowcrab", "R", "gam", "models", "habitat" )
       dir.create(path=outdir, recursive=T, showWarnings=F)
 
       if( DS=="habitat") {
@@ -41,77 +141,9 @@
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
 
         fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") )
-        set = snowcrab.db( DS="set.logbook" )
-        set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-        
-        set = presence.absence( set, v, p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
+    
+        set = habitat.model.db( DS="basedata", p=p, v=v )
 
-        tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "t", "tmean", "tmean.cl", 
-            "tamp", "wmin", "z", "substrate.mean", "dZ", "ddZ", "wt",
-            "pca1", "pca2", "ca1", "ca2", "mr", "smr", "C", "Z", "sar.rsq", "Npred" ) 
-        set = set[ , tokeep ]
-        n0 = nrow(set)
-
-        depthrange = range( set$z, na.rm= T) 
-
-        if ( grepl("R0.mass", v) ) {   
-          # add groundfish data
-          gf = snowcrab.external.db (p=p, DS="set.snowcrab.in.groundfish.survey", vname=v )
-          # absense prior to 1999 is meaningless due to inconsistent recording
-          ii = which( gf$n==0 & gf$yr<=1998)
-          if (length(ii)>0) gf = gf[-ii,]
-
-          ii = which( gf$z < log(50) ) # drop strange data
-          if (length(ii)>0) gf = gf[-ii,]
-
-          ii = which( gf$z > log(650) ) # drop strange data
-          if (length(ii)>0) gf = gf[-ii,]
-
-          gf = presence.absence( gf, "n", p$habitat.threshold.quantile )  # determine presence absence and weighting  
-
-          set = rbind( set, gf[, names(set)] )
-         
-          # add commerical fishery data
-          lgbk = logbook.db( DS="fisheries.complete", p=p )
-          lgbk = lgbk[ which( is.finite( lgbk$landings)), ]
-
-          lgbk = presence.absence( lgbk, "landings", p$habitat.threshold.quantile )  # determine presence absence and weighting  
-         
-          baddata = which( lgbk$z < log(50) | lgbk$z > log(600) )
-          if ( length(baddata) > 0 ) lgbk = lgbk[ -baddata,]
-   
-          lgbk$julian = convert.datecodes( lgbk$date.landed, "julian" )
-          # lgbk$total.landings.scaled = scale( lgbk$landings, center=T, scale=T )
-          lgbk = lgbk[, names(set)]
-          set = rbind( set, lgbk )
-        
-          Z = bathymetry.db( DS="baseline", p=p ) 
-          Z$plon = floor(Z$plon / 10)*10 
-          Z$plat = floor(Z$plat / 10)*10 
-          Z = Z[, c("plon", "plat") ]
-          ii = which(duplicated(Z))
-          if (length(ii)>0) Z = Z[-ii,] # thinned list of locations
-          
-          dd = rdist( set[,c("plon", "plat")] , Z )
-          ee = apply( dd, 1, min, na.rm=T ) 
-          ff = which( ee < p$threshold.distance ) # all within XX km of a  good data point
-          set = set[ ff, ]
-        }
-
-        set$weekno = floor(set$julian / 365 * 52) + 1
-
-        set$plon = jitter(set$plon)
-        set$plat = jitter(set$plat)  
-        
-        set = set[ which(set$yr %in% p$years.to.model ) , ]
-        set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]
-        
-        set$dt.seasonal = set$tmean -  set$t 
-        set$dt.annual = set$tmean - set$tmean.cl
-
-        # remove extremes where variance is high due to small n
-        set = filter.independent.variables( x=set )
- 
         Q = NULL
 
         for ( o in p$optimizers ) {

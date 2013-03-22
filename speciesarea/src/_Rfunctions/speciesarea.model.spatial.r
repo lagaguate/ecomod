@@ -40,9 +40,8 @@
 
       models = sar.model(ww, SC, fmly)
       save( models, file=fn.models, compress=T)
-
-      return( fn.models )
     }
+    return( "Done" )
   }
 
 

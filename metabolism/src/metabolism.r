@@ -47,7 +47,7 @@
   metabolism.db( DS="metabolism.merged.redo", p=p )
    
   
-  # model the data ~ 2hrs
+  # model the data ~ 14GB/ variable
   p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 
   parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
 
