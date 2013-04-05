@@ -658,3 +658,30 @@ Y$sa = NULL
 write.csv( Y, file="~/tmp/jim.csv" )
 
 
+
+---- 
+# skate purse extraction for Jim Simon
+loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+
+yrs = c(2005:2012)
+Z = snowcrab.db( DS="set.complete" )
+Z = Z[which(Z$yr %in% yrs ) , ]
+Z = Z[, c("trip", "set", "yr", "lon", "lat")]
+
+Y = snowcrab.db( DS="cat.georeferenced" )
+spec = c(1224)
+
+Y = Y[ which( Y$spec %in% spec ) , ]
+
+Y = Y[ which( Y$spec %in% spec & Y$yr %in% yrs ) , ]
+Y = Y[, c("trip", "set", "totno")]
+
+Y = merge( Z, Y, by=c("trip", "set"), all.x=T, all.Y=F )
+Y$trip = NULL
+Y$set = NULL
+Y$totno[ which(!is.finite( Y$totno))] = 0
+
+
+write.csv( Y, file="~/tmp/jim.csv" )
+
+
