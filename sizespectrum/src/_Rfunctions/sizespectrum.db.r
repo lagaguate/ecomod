@@ -1,6 +1,6 @@
 
   sizespectrum.db = function( DS="", p=NULL ) {
-   
+    ### dependency is only groundfish db for now. ... 
     
     if (DS %in% c("sizespectrum.by.set", "sizespectrum.by.set.redo") ) {
       
@@ -76,24 +76,15 @@
         if (file.exists( fn) ) load( fn ) 
         return ( nss )
       }
-       
-      gsstratum = groundfish.db( "gsstratum" )
-      gsstratum = gsstratum[, c("strat","area")]
-      gsstratum$area = as.numeric( gsstratum$area )
 
-      sm = groundfish.db( "sm.base" )
-      sm = sm[, c("id", "lon", "lat", "chron", "sdepth", "temp", "sal", "strat")]
-      sm = merge(sm, gsstratum, by="strat", all.x=T, all.y=F, sort=F)
-        dbug= FALSE
-        if (dbug) {
-          oo = which( years( sm$chron)==2012)
-          sm= sm[oo,]
-        }
-
+      
+      sm = bio.db( "set" )
+      sm = sm[ which( sm$data.source=="groundfish") ,]
+      sm$area = sm$sa
+      sm$sa = NULL
+      gc()
 
       nss = NULL
-      # p$newvars = c( "id",  "time", "distance", "nss.rsquared", "nss.df", "nss.b0",
-      #  "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax" ) 
       p$newvars = c( "id",  "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax" ) 
 
       p$nsets = nrow( sm )
@@ -225,96 +216,6 @@
       save(SC, file=fn, compress=T ) 
       return ( "Done" )
     }
-
-   # --------------------
-
-    if (DS %in% c( "sizespectrum.collapse.yr", "sizespectrum.collapse.yr.redo") ) {
-
-      ### not used ?? -- a relic of when this function existed within the groundfish.db ? 
-
-      loadfunctions( "groundfish")  
-      
-      fn = file.path(  project.directory("sizespectrum"), "data", "nss.yr.rdata" )
-      if ( DS=="sizespectrum.collapse.yr" ) {
-        load( fn )
-        return (final)
-      }
- 
-      sm.vars = c("id", "strat","yr", "temp", "sal", "sdepth", "lon", "lat", "area" )
-      sm = groundfish.db( "sm.complete" ) [,sm.vars]
-
-      ss = sizespectrum.db( DS="sizespectrum.by.set", p=p )
-      variables =  colnames(ss)
-      rm (ss); gc()
-
-      final = NULL
-
-      for (tx in p$nss.taxa) {
-        ss = sizespectrum.db( DS="sizespectrum.by.set", p=p ) 
-       
-        ss0 = as.matrix(ss)
-        offset = min(ss0[which(ss0>0)], na.rm=T) / 100
-        rm (ss0); gc()
-        ss = log( ss+offset, base=10 ) ## convert to base 10 for stats and plotting
-        ss$id = rownames(ss)
-        wm = merge ( ss, sm, by="id", sort=F, all.x=T, ally=F)
-        rm (ss); gc()
-      for (va in variables) {  # size classes
-
-      for (ti in plottimes) {
-        td = recode.time( wm$yr, ti, vector=T )
-        yrs = sort( unique( td ) )
-
-      for (y in yrs) {
-        i.y = which( td==y )
-
-        for (re in regions) {
-          i.re = filter.region.polygon(wm, re)
-          ww = wm[ intersect(i.y, i.re) ,]
-          strat = sort(unique(as.character(ww$strat)) )
-          nstrat = length(strat)
-          if (length(nstrat) == 0 ) next
-          out = NULL
-          for ( j in 1:nstrat ) {
-            q = which(ww$strat == strat[j])
-            if (!is.null(q)) {
-              c = as.data.frame( cbind(
-                    strat[j],
-                    wtd.mean(ww[q,va], ww$area[q], normwt=T, na.rm=T),
-                    wtd.var( ww[q,va], ww$area[q], normwt=T, na.rm=T),
-                    sum(ww$area[q], na.rm=T)
-                  ) )
-              out = rbind (out, c)
-            }
-          }
-          if (is.null(out)) next
-          colnames(out) <- c( "strat", "mean", "var", "sumwgt" )
-          for (i in 2:(dim(out)[2]))  out[,i] = as.numeric(as.character(out[,i]))
-
-          res = data.frame( cbind(
-                  yr = y, region=re, variable=va, taxa=tx, period=ti,
-                  mean = wtd.mean(out$mean, out$sumwgt, normwt=T, na.rm=T),
-                  variance = wtd.var(out$mean, out$sumwgt, normwt=T, na.rm=T),
-                  nsets = length(is.finite(ww[,va])),
-                  totalarea = sum(out$sumwgt, na.rm=T)
-                ))
-
-          final = rbind( final, res )
-
-        } # end region
-      } # end yr
-      } # end plottime
-      } # end variable
-      } # taxa
-
-      numbers = c("yr", "mean", "variance", "nsets", "totalarea")
-      for (i in numbers) final[,i] = as.numeric(as.character(final[,i]))
-
-      save( final, file=fn, compress=T)
-
-      return ( "Done" )
-    }
-
 
   }
 

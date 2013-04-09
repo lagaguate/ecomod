@@ -38,9 +38,27 @@
         rm (y); gc()
       }
       set = set[ which(is.finite(set$lon + set$lat + set$yr ) ) , ]  #  fields are required
+
+      oo =  which( !duplicated(set$id) )
+      if (length(oo) > 0 ) set = set[ oo, ] 
+   
+      set = lonlat2planar( set, proj.type=p$internal.projection )  # plon+plat required for lookups
+     
+      print( "Interpolating depth and temperature")
+
+      p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) # pseudo-log-scale
+
+      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
+      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+      
+      set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
+
       save( set, file=fn, compress=T )
       return (fn) 
     }
+
+
+    # --------------------
 
 
     if (DS %in% c("cat","cat.redo") ) {
@@ -76,7 +94,6 @@
 				cat = rbind( cat, x  )
         rm (x); gc()
       }
-      
       
      	surveys = sort( unique( cat$data.source ) ) 
       species = sort( unique( cat$spec ) )

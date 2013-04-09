@@ -52,13 +52,11 @@
 
   # interpolate onto a grid via predictioni ::: ~ 4hr / 1 year
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
-  p$clusters = rep("localhost", min( 24, p$nruns) )
   parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
 
  
   # map everything
   p = make.list( list(yrs=p$yearstomodel, vars=p$varstomodel, modtype=p$mods), Y=p ) 
-  p$clusters = rep("localhost", min( 24, p$nruns) )
   parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  )  
 
 

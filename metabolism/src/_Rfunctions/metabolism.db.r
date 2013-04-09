@@ -1,7 +1,104 @@
 
   metabolism.db = function( ip=NULL, DS="", p=NULL, yr=NULL ) {
   
+
+    if (DS %in% c( "metabolism", "metabolism.redo" ) ) {
  
+      ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season )
+      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
+      
+      fn = file.path( ddir, "set.metabolism.rdata" )
+        
+      if (DS=="metabolism") {
+        MR = NULL
+        if (file.exists( fn) ) load( fn ) 
+        return ( MR )
+      }
+
+
+      det = bio.db( DS="det" ) # size information, no, cm, kg
+      set = bio.db( DS="set" ) # kg/km^2, no/km^2
+      cat = bio.db( DS="cat" )
+
+      # filter area
+      igood = which( set$lon >= p$corners$lon[1] & set$lon <= p$corners$lon[2] 
+            &  set$lat >= p$corners$lat[1] & set$lat <= p$corners$lat[2] )
+      if (length(igood)>0) set = set[igood, ]
+
+      # filter taxa
+      # det$spec = taxa.specid.correct( det$spec )
+      det = filter.taxa( det, method=p$taxa )
+      cat = filter.taxa( cat, method=p$taxa )
+      set = set[ which( set$id %in% unique( c(unique( det$id), unique(cat$id))) ),]
+      
+      if ( p$season != "allseasons" ) {
+        set = set[ filter.season( set$julian, period=p$season, index=T ) , ]
+     }
+
+      # last filter on set:: filter years
+      set = set[ which(set$yr %in% p$yearstomodel) , ]
+     
+      # match sets and other data sources
+      det = det[ which( det$id %in% unique( set$id) ), ]
+      cat = cat[ which( cat$id %in% unique( set$id) ), ]
+ 
+      sm = set [, c("id", "chron", "yr", "julian",  
+                 "sa", "lon", "lat", "z", "t", "sal", "oxyml", "oxysat", "settype", "cf")]
+    
+      rm(set); gc()
+      
+      
+      # compute a few stats (from cat)
+      # cat$totno and cat$totmass have already been cf corrected ---> already in per km2
+      qtotno  = sumById( ee=cat$totno , id=cat$id,  idnames=c("id","totno" ) ) # no/km^2
+      qtotwgt = sumById( ee=cat$totmass, id=cat$id,  idnames=c("id","totwgt" ) ) # kg/km^2
+      
+      # stats derived from det  -- det$cf is a copy of set$cf ..identical 
+      qtotwgt_d = sumById( ee=det$mass*det$cf, id=det$id,  idnames=c("id","totwgt_d" ) )
+      qtotlen_d = sumById( ee=det$len*det$cf, id=det$id,  idnames=c("id","totlen_d" ) )
+      qtotno_d  = sumById( ee=det$cf, id=det$id,  idnames=c("id","totno_d" ) )
+
+      sm = merge(sm, qtotno, by=c("id"), sort=F, all.x=T, all.y=F)
+      sm = merge(sm, qtotwgt, by=c("id"), sort=F,  all.x=T, all.y=F)
+      sm = merge(sm, qtotwgt_d, by=c("id"), sort=F,  all.x=T, all.y=F)
+      sm = merge(sm, qtotlen_d, by=c("id"), sort=F,  all.x=T, all.y=F)
+      sm = merge(sm, qtotno_d, by=c("id"), sort=F,  all.x=T, all.y=F)
+
+  
+      det = merge( det, sm[,c("t","id")], by="id", all.x=T, all.y=F, sort=F )
+      detmr = metabolic.rates ( det$mass, det$t, tK=10 )
+      det = cbind( det, detmr )
+
+      mr0 = sumById( ee=det$mr*det$cf, id=det$id,  idnames=c("id","mr" ) )
+      mrA = sumById( ee=det$mrA*det$cf, id=det$id,  idnames=c("id","mrA" ) )
+  
+      # merge data together
+      MR = merge(x=sm, y=mr0, by="id", all.x=T, all.y=F)
+      MR = merge(x=MR, y=mrA, by="id", all.x=T, all.y=F)
+   
+      # calculate mass-specific rates in the whole sm
+      MR$smr = MR$mr / MR$totwgt_d
+      MR$smrA = MR$mrA / MR$totwgt_d
+
+      MR$smr[ which(!is.finite(MR$smr)) ] = 0
+      MR$smrA[ which(!is.finite(MR$smr)) ] = 0
+
+      # MR = MR[ which(MR$mr >= 0) ,]
+      # MR = MR[ which(MR$mrA >= 0) ,]
+      # MR = MR[ which(MR$mrA >=0), ]
+      
+      MR$meanwgt = MR$totwgt / MR$totno
+      MR$meanlen = MR$totlen / MR$totno
+      
+      save( MR, file=fn, compress=T )
+      
+      return (fn) 
+    }
+
+    # -----------
+
+
+
     if (DS %in% c( "metabolism.filtered", "metabolism.filtered.redo" ) ) {
  
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season )
@@ -62,6 +159,8 @@
     }
     
     
+    # -----------
+    
     if (DS %in% c( "metabolism.merged", "metabolism.merged.redo" ) ) {
  		
       require( chron) 
@@ -96,112 +195,7 @@
 			return (fn)
     }
     
-   
-    # -----------
-
-    if (DS %in% c( "metabolism", "metabolism.redo" ) ) {
  
-      ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      
-      fn = file.path( ddir, "set.metabolism.rdata" )
-        
-      if (DS=="metabolism") {
-        MR = NULL
-        if (file.exists( fn) ) load( fn ) 
-        return ( MR )
-      }
-
-
-      det = bio.db( DS="det" ) # size information, no, cm, kg
-      set = bio.db( DS="set" ) # kg/km^2, no/km^2
-      cat = bio.db( DS="cat" )
-
-      # filter area
-      igood = which( set$lon >= p$corners$lon[1] & set$lon <= p$corners$lon[2] 
-            &  set$lat >= p$corners$lat[1] & set$lat <= p$corners$lat[2] )
-      if (length(igood)>0) set = set[igood, ]
-
-      # filter taxa
-      # det$spec = taxa.specid.correct( det$spec )
-      det = filter.taxa( det, method=p$taxa )
-      cat = filter.taxa( cat, method=p$taxa )
-      set = set[ which( set$id %in% unique( c(unique( det$id), unique(cat$id))) ),]
-      
-      if ( p$season != "allseasons" ) {
-        set = set[ filter.season( set$julian, period=p$season, index=T ) , ]
-     }
-
-      # last filter on set:: filter years
-      set = set[ which(set$yr %in% p$yearstomodel) , ]
-     
-      # match sets and other data sources
-      det = det[ which( det$id %in% unique( set$id) ), ]
-      cat = cat[ which( cat$id %in% unique( set$id) ), ]
- 
-      sm = set [, c("id", "chron", "yr", "julian",  
-                 "sa", "lon", "lat", "z", "t", "sal", "oxyml", "settype", "cf")]
-      oo =  which( !duplicated(sm$id) )
-      if (length(oo) > 0 ) sm = sm[ oo, ] 
-   
-      print( "Lookup of temperature and habitat data, prior to modelling") # used for Arrhenius correction
-      
-      sm = lonlat2planar( sm, proj.type=p$internal.projection )  # plon+plat required for lookups
-      sm$z = habitat.lookup.simple( sm,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
-      sm$t = habitat.lookup.simple( sm,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
-  
-    
-      # summary stats for each trip.set
-      sm$oxysat = compute.oxygen.saturation( t.C=sm$t, sal.ppt=sm$sal, oxy.ml.l=sm$oxyml)
- 
-      # compute a few stats (from cat)
-      # cat$totno and cat$totmass have already been cf corrected ---> already in per km2
-      qtotno  = sumById( ee=cat$totno , id=cat$id,  idnames=c("id","totno" ) ) # no/km^2
-      qtotwgt = sumById( ee=cat$totmass, id=cat$id,  idnames=c("id","totwgt" ) ) # kg/km^2
-      
-      # stats derived from det  -- det$cf is a copy of set$cf ..identical 
-      qtotwgt_d = sumById( ee=det$mass*det$cf, id=det$id,  idnames=c("id","totwgt_d" ) )
-      qtotlen_d = sumById( ee=det$len*det$cf, id=det$id,  idnames=c("id","totlen_d" ) )
-      qtotno_d  = sumById( ee=det$cf, id=det$id,  idnames=c("id","totno_d" ) )
-
-      sm = merge(sm, qtotno, by=c("id"), sort=F, all.x=T, all.y=F)
-      sm = merge(sm, qtotwgt, by=c("id"), sort=F,  all.x=T, all.y=F)
-      sm = merge(sm, qtotwgt_d, by=c("id"), sort=F,  all.x=T, all.y=F)
-      sm = merge(sm, qtotlen_d, by=c("id"), sort=F,  all.x=T, all.y=F)
-      sm = merge(sm, qtotno_d, by=c("id"), sort=F,  all.x=T, all.y=F)
-
-      rm(set); gc()
-  
-      det = merge( det, sm[,c("t","id")], by="id", all.x=T, all.y=F, sort=F )
-      detmr = metabolic.rates ( det$mass, det$t, tK=10 )
-      det = cbind( det, detmr )
-
-      mr0 = sumById( ee=det$mr*det$cf, id=det$id,  idnames=c("id","mr" ) )
-      mrA = sumById( ee=det$mrA*det$cf, id=det$id,  idnames=c("id","mrA" ) )
-  
-      # merge data together
-      MR = merge(x=sm, y=mr0, by="id", all.x=T, all.y=F)
-      MR = merge(x=MR, y=mrA, by="id", all.x=T, all.y=F)
-   
-      # calculate mass-specific rates in the whole sm
-      MR$smr = MR$mr / MR$totwgt_d
-      MR$smrA = MR$mrA / MR$totwgt_d
-
-      MR$smr[ which(!is.finite(MR$smr)) ] = 0
-      MR$smrA[ which(!is.finite(MR$smr)) ] = 0
-
-      # MR = MR[ which(MR$mr >= 0) ,]
-      # MR = MR[ which(MR$mrA >= 0) ,]
-      # MR = MR[ which(MR$mrA >=0), ]
-      
-      MR$meanwgt = MR$totwgt / MR$totno
-      MR$meanlen = MR$totlen / MR$totno
-      
-      save( MR, file=fn, compress=T )
-      
-      return (fn) 
-    }
-
   }
 
 

@@ -45,10 +45,10 @@
         if (length(ss.i)==0) next
         ss = merge( ss[ss.i,], smd, by="id", all.x=T, all.y=F, sort=F )
 
-        # take geometric weighted ( by strata ) means
+        # take geometric weighted means  (area is the SA of a tow)
         v = NULL
         v = data.frame(
-          logbaseN = colMeans( ss[,variables] * ss$area, na.rm=T ) / sum(ss$area, na.rm=T),
+          logbaseN = colMeans( ss[,variables] * ss$area, na.rm=T ) / sum(ss$area, na.rm=T),  
           sc = as.numeric(as.character(variables))
         )
         

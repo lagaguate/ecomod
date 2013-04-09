@@ -14,7 +14,7 @@
   bio.db( DS="cat.redo", p=p )
   bio.db( DS="det.redo", p=p )
  
-	bio.db( DS="cat.fixed.redo", p=p ) # a catch db where quantiles are computed
+	bio.db( DS="cat.fixed.redo", p=p ) # a catch db where quantiles are computed  TODO
 
 
 
