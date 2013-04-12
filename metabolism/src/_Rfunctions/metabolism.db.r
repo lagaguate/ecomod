@@ -189,7 +189,11 @@
 			MR$z = habitat.lookup.simple( MR,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances ) 
 			
       if (!exists( "t", MR)) MR$t = NA
-      MR$t = habitat.lookup.simple( MR,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+      MR$t = habitat.lookup.simple( MR,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances )
+
+# should move the rescaling elsewhere ... TODO ... and add mass estimated from allomtry with length ...ie after condition and length-weight modelling/analysis  
+      MR$totno = MR$totno / 10^3
+      MR$totwgt = MR$totwgt / 10^3
 		
 			save( MR, file=fn, compress=T )
 			return (fn)

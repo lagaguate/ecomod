@@ -1,14 +1,24 @@
-
-  x = bio.db( "set" ) 
-  y = bio.db( "det" ) 
-
-  y = merge (y, x)
   
 
-  condition.estimation.model = function( DS="saved", X=y ) {
+  condition.estimation.model = function( DS="saved" ) {
+      
+    fn_model = ""
     
-    lwmodel = glm( log(mass) ~ log(len) + sex + spec,  
+    if (DS=="saved") {
+
+      return( x )
+    }
+
+    SS = bio.db( "set" ) 
+    DD = bio.db( "det" ) 
+
+    x = merge (DD, SS)
+
+    # lwmodel = glm( log(mass) ~ log(len) + sex + spec + temp + space + depth .... full model ,  
            
+    # then compute deviations from predicted mass and 
+    # then interpolate 
+
     return(x)
   }
       

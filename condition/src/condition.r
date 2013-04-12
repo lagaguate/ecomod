@@ -40,7 +40,6 @@
 
   # prepare data
   condition.db( DS="condition.redo", p=p )
-  condition.db( DS="condition.filtered.redo", p=p )
   condition.db( DS="condition.merged.redo", p=p )
    
   

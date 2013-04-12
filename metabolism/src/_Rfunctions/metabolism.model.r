@@ -27,9 +27,9 @@
       fn.models =  file.path( ddir, paste("metabolism.models", ww, "rdata", sep=".") )
     
       SC = metabolism.db( DS="metabolism.merged", p=p )
-      SC = habitat.lookup.modeltype( p=p, sc=SC, modtype=modeltype )
+      SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
 
-      formu =  habitat.model.selection( ww, modeltype )
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="metabolism" )
     
       fmly = gaussian("log")  # default
       if ( ww %in% c("smr", "smrA" ) )  fmly = gaussian()

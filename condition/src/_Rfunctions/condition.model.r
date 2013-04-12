@@ -1,9 +1,10 @@
-
   condition.model = function( ip=NULL, p=NULL, DS="saved", modeltype=NULL, var=NULL ) {
-  
+    
+    # compute the spatial interpolation model
+    
     if (DS=="saved") {
       models = NULL
-      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modeltype )
+      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$taxa, p$season, modeltype )
       fn.models =  file.path( ddir, paste("condition.models", var, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
@@ -22,23 +23,20 @@
       ww = p$runs[iip,"vars"]
       modeltype = p$runs[iip,"modtype"]
 
-      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modeltype )
+      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$taxa, p$season, modeltype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       fn.models =  file.path( ddir, paste("condition.models", ww, "rdata", sep=".") )
     
       SC = condition.db( DS="condition.merged", p=p )
-      SC = habitat.lookup.modeltype( p=p, sc=SC, modtype=modeltype )
+      SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
 
-      formu =  habitat.model.selection( ww, modeltype )
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="condition" )
     
-      fmly = gaussian("log")  # default
-      if ( ww %in% c("smr", "smrA" ) )  fmly = gaussian()
+      fmly = gaussian()  # default
 
-      condition.interpolation.model = function(ww, SC, fmly) { 
-        gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )
-      }
+      cond.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
       
-      models = condition.interpolation.model(ww, SC, fmly)
+      models = cond.model(ww, SC, fmly)
       save( models, file=fn.models, compress=T)
 
     }

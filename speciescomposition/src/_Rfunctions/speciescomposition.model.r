@@ -28,9 +28,9 @@
       fn.models =  file.path( ddir, paste("speciescomposition.models", ww, "rdata", sep=".") )
 			
 			SC = speciescomposition.db( DS="speciescomposition.merged", p=p )
-			SC = habitat.lookup.modeltype( p=p, sc=SC, modtype=modeltype )
-
-      formu =  habitat.model.selection( ww, modeltype )
+			SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
+ 
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciescomposition" )
       fmly = gaussian()
 
       spcomp.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family= )}

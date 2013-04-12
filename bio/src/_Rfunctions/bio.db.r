@@ -206,9 +206,18 @@
         x$detid = x$fshno
       
         # convert sex codes to snow crab standard
+        # --------- codes ----------------
+        # sex: 0=undetermined, 1=male, 2=female,  3=hermaphrodite, 9= not examined
+        # mat: 0=observed but undetermined, 1=imm, 2=ripening(1), 3=ripening(2), 4=ripe(mature), 
+        #      5=spawning(running), 6=spent, 7=recovering, 8=resting
+        # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
+        #      4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
+        #      6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
+        # --------- codes ----------------
+
         sx = x$sex
         x$sex = NA
-        oo = which( sx %in% c(0, 3) ); if (length(oo)>0) x$sex[oo] = 2 # unknown
+        oo = which( sx %in% c(0, 3, 9) ); if (length(oo)>0) x$sex[oo] = 2 # unknown
         oo = which( sx %in% c(1) ); if (length(oo)>0) x$sex[oo] = 0 # male
         oo = which( sx %in% c(2) ); if (length(oo)>0) x$sex[oo] = 1 # female
         
@@ -222,15 +231,7 @@
         # x$cf is the multiplier used to scale for subsampling, trawl sa, species, etc.
          
         det = rbind( det, x[, det.names] )
-          # --------- codes ----------------
-          # sex: 0=?, 1=male, 2=female,  3=?
-          # mat: 0=observed but undetermined, 1=imm, 2=ripening(1), 3=ripening(2), 4=ripe(mature), 
-          #      5=spawning(running), 6=spent, 7=recovering, 8=resting
-          # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
-          #      4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
-          #      6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
-          # --------- codes ----------------
-         rm (x); gc()
+        rm (x); gc()
       }
       if ( "snowcrab" %in% p$data.sources ) {
                

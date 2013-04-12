@@ -29,10 +29,10 @@
       fn.models =  file.path( ddir, paste("speciesarea.models", ww, "rdata", sep=".") )
             
       SC = speciesarea.db( DS="speciesarea.stats.merged", p=p )
-      SC = habitat.lookup.modeltype( p=p, sc=SC, modtype=modeltype )
+      SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
 
-      formu =  habitat.model.selection( ww, modeltype )
-
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciesarea" )
+ 
       fmly = gaussian()  # default
       if ( ww %in% c("Npred", "Npred.se" ) )  fmly = gaussian("log")
        

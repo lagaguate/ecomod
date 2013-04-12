@@ -15,6 +15,6 @@
   bio.db( DS="det.redo", p=p )
  
 	bio.db( DS="cat.fixed.redo", p=p ) # a catch db where quantiles are computed  TODO
-
+ --- look in metabolism functions and complexity/condition
 
 

@@ -26,10 +26,10 @@
       fn.models =  file.path( ddir, paste("sizespectrum.models", ww, "rdata", sep=".") )
  
       SC = sizespectrum.db( DS="sizespectrum.stats.merged", p=p )
-      SC = habitat.lookup.modeltype( p=p, sc=SC, modtype=modeltype )
+      SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
 
-      formu =  habitat.model.selection( ww, modeltype )
-
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="sizespectrum" )
+  
       fmly = gaussian("log")  # default
       if ( ww %in% c( "nss.b0", "nss.b1", "nss.evenness", "nss.Hmax" ) )  fmly = gaussian()
     
