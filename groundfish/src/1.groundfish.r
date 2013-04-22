@@ -130,8 +130,8 @@
 
 # ---------
 # 9 final save --- much of the above has moved to separate projects ... TODO: need to re-integrate ...
-  groundfish.db( "sm.complete.redo", p=p )
-  sm = groundfish.db( "sm.complete", p=p )
+#  groundfish.db( "sm.complete.redo", p=p )
+#  sm = groundfish.db( "sm.complete", p=p )
 
 
 # 10 -------

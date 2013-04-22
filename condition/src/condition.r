@@ -41,7 +41,6 @@
   # prepare data
   condition.db( DS="condition.redo", p=p )
   condition.db( DS="condition.merged.redo", p=p )
-   
   
   # model the data ~ 14GB/ variable
   p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 

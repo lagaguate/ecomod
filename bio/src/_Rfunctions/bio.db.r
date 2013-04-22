@@ -3,23 +3,26 @@
   
     dir.create( file.path( project.directory("bio"), "data" ), showWarnings=FALSE, recursive=TRUE )
 
-    if (DS %in% c("set","set.redo") ) {
+    if (DS %in% c("set.init","set.init.redo") ) {
       # survet sets
       set = NULL # trip/set loc information
-      fn = file.path( project.directory("bio"), "data", "set.rdata"  )
-      if (DS=="set") {
+      fn = file.path( project.directory("bio"), "data", "set.init.rdata"  )
+      if (DS=="set.init") {
         if (file.exists( fn) ) load( fn)
         return ( set )
       }
       
-			set.names =  c("data.source", "id", "chron", "yr", "julian", "lon", "lat", "z", "t", "sal", "oxyml", "settype", "sa", "cf") 
+			set.names =  c("data.source", "id", "chron", "yr", "julian", "lon", "lat", "z", "t", "sal", "oxyml", "settype", "sa", "cfset") 
       if ( "groundfish" %in% p$data.sources ) {
         # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
         #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
         #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
         y = groundfish.db( "sm.base" )
         y$data.source = "groundfish"
-        set = rbind( set, y[ ,c("data.source", "id", "chron", "yr", "julian",  "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype", "sakm2", "cf") ] )
+        y$sa = y$sakm2
+        y$cfset = 1 / y$sa
+
+        set = rbind( set, y[ ,c("data.source", "id", "chron", "yr", "julian",  "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype", "sa", "cfset") ] )
         names(set) = set.names
         set = set[ set$settype %in% c(1,2,5) ,] # remove bad sets
         rm (y); gc()
@@ -28,7 +31,7 @@
         y =  snowcrab.db( DS ="set.clean" )  
         y$data.source = "snowcrab"
         y$id = paste( y$trip, y$set, sep="." )
-        y$cf = 1 # assume 100% q
+        y$cfset = 1 # assume 100% q
         y$settype = y$towquality # 1=good
         iii = which( y$settype != 1 ) 
         if (length(iii)>0 ) y$settype[iii ] = NA  # should not happen as only good tows have already been selected .. here in case something changes in snow crab data stream
@@ -37,52 +40,47 @@
         set = rbind( set, y[ , set.names ] )
         rm (y); gc()
       }
-      set = set[ which(is.finite(set$lon + set$lat + set$yr ) ) , ]  #  fields are required
-
-      oo =  which( !duplicated(set$id) )
-      if (length(oo) > 0 ) set = set[ oo, ] 
-   
-      set = lonlat2planar( set, proj.type=p$internal.projection )  # plon+plat required for lookups
-     
-      print( "Interpolating depth and temperature")
-
-      p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) # pseudo-log-scale
-
-      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
-      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
       
-      set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
-
       save( set, file=fn, compress=T )
       return (fn) 
     }
 
 
+
     # --------------------
 
 
-    if (DS %in% c("cat","cat.redo") ) {
+    if (DS %in% c("cat.init","cat.init.redo") ) {
       # all species caught
       cat = NULL # trip/cat loc information
-      fn = file.path( project.directory("bio"), "data", "cat.rdata"  )
-      if (DS=="cat") {
+      fn = file.path( project.directory("bio"), "data", "cat.init.rdata"  )
+      if (DS=="cat.init") {
         if (file.exists( fn) ) load( fn)
         return ( cat )
       }
-      cat.names =  c("data.source", "id", "spec", "totno", "totmass", "cf") 
+
+
+###  NOTE:: cf == correction factor is a reweighting required to make each totno and totmass comparable for each set and species subsampling
+
+      cat.names =  c("data.source", "id", "spec", "totno", "totmass", "cfcat") 
       if ( "groundfish" %in% p$data.sources ) {
-        x = groundfish.db( "set" )  # sa corrected
+       
+        x = groundfish.db( "set" )   ## not really set but "cat" 
+          # totno and totmass are sa, vessel and sub-sampling corrected ::  cf = cfvessel * cfsampling / sakm2 
+
         x$data.source = "groundfish"
         x$totmass = x$totwgt
+        x$cfcat = x$cf
 				x = x[, cat.names]
         cat = rbind( cat, x )
         rm (x); gc()
       }
+
       if ( "snowcrab" %in% p$data.sources ) {
         x =  snowcrab.db( DS ="cat.georeferenced" ) # sa corrected  
         x$data.source = "snowcrab"
         x$id = paste( x$trip, x$set, sep="." )
-        x$cf = 1/x$sa  # no other correction factors
+        x$cfcat = 1/x$sa  # no other correction factors as there is no species-based subsampling
         x = x[, cat.names]
 
         oo = which( !is.finite(x$totno) & x$spec== taxa.specid.correct(2526) )  # snow crab are assumed to be real zeros
@@ -95,7 +93,235 @@
         rm (x); gc()
       }
       
-     	surveys = sort( unique( cat$data.source ) ) 
+      cat$id2 = paste( cat$id, cat$spec, sep="." )
+
+      save( cat, file=fn, compress=T )
+      return (fn) 
+    }
+
+
+
+    # --------------------
+
+
+    if (DS %in% c("det.init","det.init.redo") ) {
+      # all species caught
+      det = NULL # biologicals 
+      fn = file.path( project.directory("bio"), "data", "det.init.rdata"  )
+      if (DS=="det.init") {
+        if (file.exists( fn) ) load( fn)
+        return ( det )
+      }
+      
+                   
+        # sex codes
+        #  male = 0 
+        #  female = 1
+        #  sex.unknown = 2
+
+        # maturity codes
+        #  immature = 0
+        #  mature = 1 
+        #  mat.unknown = 2
+
+      
+      det.names =  c("data.source", "id", "spec", "detid", "sex", "mass", "len", "mat", "cfdet" ) 
+      if ( "groundfish" %in% p$data.sources ) {
+        x = groundfish.db( "det" )  
+        x$data.source = "groundfish"
+        x$detid = x$fshno
+      
+        # convert sex codes to snow crab standard
+        # --------- codes ----------------
+        # sex: 0=undetermined, 1=male, 2=female,  3=hermaphrodite, 9= not examined
+        # mat: 0=observed but undetermined, 1=imm, 2=ripening(1), 3=ripening(2), 4=ripe(mature), 
+        #      5=spawning(running), 6=spent, 7=recovering, 8=resting
+        # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
+        #      4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
+        #      6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
+        # --------- codes ----------------
+
+        sx = x$sex
+        x$sex = NA
+        oo = which( sx %in% c(0, 3, 9) ); if (length(oo)>0) x$sex[oo] = 2 # unknown
+        oo = which( sx %in% c(1) ); if (length(oo)>0) x$sex[oo] = 0 # male
+        oo = which( sx %in% c(2) ); if (length(oo)>0) x$sex[oo] = 1 # female
+        
+        # convert maturity to snow crab standard
+        mt = x$mat
+        x$mat = NA
+        oo = which( mt %in% c(0) ); if (length(oo)>0) x$mat[oo] = 2 # unknown
+        oo = which( mt %in% c(1) ); if (length(oo)>0) x$mat[oo] = 0  # immature
+        oo = which( mt %in% c(2,3,4,5,6,7,8) ); if (length(oo)>0) x$mat[oo] = 1 # mature  -- investment into gonads has begun
+         
+        det = rbind( det, x[, det.names] )
+        rm (x); gc()
+
+      }
+
+      if ( "snowcrab" %in% p$data.sources ) {
+          
+        x =  snowcrab.db( DS ="det.georeferenced" )  
+        x$data.source = "snowcrab"
+        x$id = paste( x$trip, x$set, sep="." )
+        x$spec = taxa.specid.correct(2526)  # in case there has been an interal alteration in species code for snowcrab
+        x$detid = x$crabno
+        x$len = x$cw
+        x$cfdet = 1/x$sa  ########## <<<<<< ------ NOTE THIS accounts only for SA as there is no subsampling (so far)
+        x$sex = as.numeric( as.character( x$sex) )
+        x$mat = as.numeric( as.character( x$mat) )
+        x$mass = x$mass /1000  # g to kg
+        
+        det = rbind( det, x[, det.names] )
+        rm (x); gc()
+      }
+       
+      # det = na.omit( det )
+      save( det, file=fn, compress=T )
+      return (fn) 
+    }
+
+
+    # --------------------
+
+
+    if (DS %in% c("det","det.redo") ) {
+     
+      # error checking, imputation, etc
+      
+      det = NULL 
+      fn = file.path( project.directory("bio"), "data", "det.rdata"  )
+      if (DS=="det") {
+        if (file.exists( fn) ) load( fn)
+        return ( det )
+      }
+
+        # sex codes
+        #  male = 0 
+        #  female = 1
+        #  sex.unknown = 2
+
+        # maturity codes
+        #  immature = 0
+        #  mature = 1 
+        #  mat.unknown = 2
+        
+      det = bio.db( DS="det.init", p=p )
+      det = det[ which( is.finite( det$spec)), ]   
+      det$sex[ which( !is.finite(det$sex)) ] = 2 # set all uncertain sexes to one code sex code 
+      det$mat[ which( !is.finite(det$mat)) ] = 2 # set all uncertain sexes to one code sex code 
+     
+      # length-weight modelling and estimate parameters as well as residuals
+      det = length.weight.regression( x=det )
+
+      # fix mass, length estimates where possible using model parameters
+      # try finest match first: by spec:mat, spec:sex, spec
+      lwp = length.weight.regression( DS="parameters" )
+      
+      ims = which( !is.finite( det$mass) )
+      sps = sort( unique( det$spec[ ims ] ) )
+      mats = sort( unique( det$mat))
+      sexes = sort( unique( det$sex))
+
+      for (sp in sps) {
+        isp = which( det$spec == sp )
+        
+        # first try exact matches based upon {spec, mat, sex}  
+        for ( mat in mats ) {
+        for ( sex in sexes ) {
+          u = which( det$mat==mat & det$sex==sex & !is.finite(det$mass ) ) 
+          w = intersect( isp, u )
+          if (length(w) > 0) {
+            v = which( lwp$spec==sp & lwp$mat==mat & lwp$sex==sex & lwp$rsq>0.75)
+            if (length(v)==1) det$mass[w] = 10^( lwp$b0[v] + lwp$b1[v] * log10(det$len[w]) )
+          }
+        }}
+        
+        # next try exact matches based upon {spec, mat}  
+        for ( mat in mats ) {
+          u = which( det$mat==mat & !is.finite(det$mass )  )
+          w = intersect( isp, u )
+          if (length(w) > 0) {
+            v = which( lwp$spec==sp & lwp$mat==mat & is.na(lwp$sex  & lwp$rsq>0.75 ) )
+            if (length(v)==1) det$mass[w] = 10^( lwp$b0[v] + lwp$b1[v] * log10(det$len[w]) )
+          }
+        }
+
+       # next try exact matches based upon {spec, sex}  
+        for ( sex in sexes ) {
+          u = which( det$sex==sex & !is.finite(det$mass )  ) 
+          w = intersect( isp, u )
+          if (length(w) > 0) {
+            v = which( lwp$spec==sp & lwp$sex==sex & is.na(lwp$mat  & lwp$rsq>0.75 ) )
+            if (length(v)==1) det$mass[w] = 10^( lwp$b0[v] + lwp$b1[v] * log10(det$len[w]) )
+          }
+        }
+
+       # next try exact matches based upon {spec} only  
+          u = which( is.na(det$mass ))
+          w = intersect( isp , u )
+          if (length(w) > 0) {
+            v = which( lwp$spec==sp & is.na(lwp$sex) & is.na(lwp$mat  & lwp$rsq>0.75 ) )
+            if (length(v)==1) det$mass[w] = 10^( lwp$b0[v] + lwp$b1[v] * log10(det$len[w]) )
+          }
+      }
+
+      # last go -- try exact matches based upon {spec} only but less contrained by rquared
+      for (sp in sps) {
+        isp = which( det$spec == sp )
+          u = which( is.na(det$mass ))
+          w = intersect( isp , u )
+          if (length(w) > 0) {
+            v = which( lwp$spec==sp & is.na(lwp$sex) & is.na(lwp$mat ) )
+            if (length(v)==1) det$mass[w] = 10^( lwp$b0[v] + lwp$b1[v] * log10(det$len[w]) )
+          }
+      }
+
+      # estimate metabolic rates estimates (requires temperature estimate ) 
+      set = bio.db( DS="set.intermediate" ) # kg/km^2, no/km^2
+      set = set[ , c("id", "t")]  # temperature is required to estimate MR .. 
+
+      det = merge( det, set, by="id", all.x=T, all.y=F, sort=F )
+      detmr = metabolic.rates ( det$mass * 1000, det$t )
+      det = cbind( det, detmr )
+
+
+      save (det, file=fn, compress=TRUE )
+      return (fn)
+    } 
+
+
+    # --------------------
+
+
+    if (DS %in% c("cat", "cat.redo") ) {
+      # all species caught
+      cat = NULL # biologicals 
+      fn = file.path( project.directory("bio"), "data", "cat.rdata"  )
+      if (DS=="cat") {
+        if (file.exists( fn) ) load( fn)
+        return ( cat )
+      }
+   
+      set = bio.db( DS="set.init" ) # kg/km^2, no/km^2
+      
+      cat = bio.db( DS="cat.init", p=p )
+      cat = cat[ which( cat$id %in% unique( set$id) ), ]
+
+      det = bio.db( DS="det" ) # size information, no, cm, kg
+      det = det[ which( det$id %in% unique( set$id) ), ]
+
+      cat = cat [, c("id", "chron", "yr", "julian",  
+                 "sa", "lon", "lat", "z", "t", "sal", "oxyml", "oxysat", "settype", "cfset")]
+    
+      smc = summarize.data.bio( DS="cat", x=cat, id="id2" )
+      cat = merge( cat, smc, all.x=TRUE, all.y=FALSE, sort=FALSE )
+      
+      smd = summarize.data.bio( DS="det", x=det, id="id2" )
+      cat = merge( cat, smd, all.x=TRUE, all.y=FALSE, sort=FALSE )
+
+
+    	surveys = sort( unique( cat$data.source ) ) 
       species = sort( unique( cat$spec ) )
 
 			
@@ -185,85 +411,72 @@
       cat$zms = quantile.to.normal( cat$qms )
       cat$zns = quantile.to.normal( cat$qns )
 
-     
-      save( cat, file=fn, compress=T )
-      return (fn) 
-    }
+      save (cat, file=fn, compress=TRUE )
+      return (fn)
+    
+    } 
 
 
-    if (DS %in% c("det","det.redo") ) {
-      # all species caught
-      det = NULL # biologicals 
-      fn = file.path( project.directory("bio"), "data", "det.rdata"  )
-      if (DS=="det") {
+    # -------------
+
+
+    if (DS %in% c("set.intermediate","set.intermediate.redo") ) {
+      # survet sets
+      set = NULL # trip/set loc information
+      fn = file.path( project.directory("bio"), "data", "set.intermediate.rdata"  )
+      if (DS=="set.intermediate") {
         if (file.exists( fn) ) load( fn)
-        return ( det )
+        return ( set )
       }
-      det.names =  c("data.source", "id", "spec", "detid", "sex", "mass", "len", "mat", "cf" ) 
-      if ( "groundfish" %in% p$data.sources ) {
-        x = groundfish.db( "det" )  
-        x$data.source = "groundfish"
-        x$detid = x$fshno
+ 
+      set = bio.db( DS="set.init", p=p )
       
-        # convert sex codes to snow crab standard
-        # --------- codes ----------------
-        # sex: 0=undetermined, 1=male, 2=female,  3=hermaphrodite, 9= not examined
-        # mat: 0=observed but undetermined, 1=imm, 2=ripening(1), 3=ripening(2), 4=ripe(mature), 
-        #      5=spawning(running), 6=spent, 7=recovering, 8=resting
-        # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
-        #      4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
-        #      6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
-        # --------- codes ----------------
+      set = set[ which(is.finite(set$lon + set$lat + set$yr ) ) , ]  #  fields are required
 
-        sx = x$sex
-        x$sex = NA
-        oo = which( sx %in% c(0, 3, 9) ); if (length(oo)>0) x$sex[oo] = 2 # unknown
-        oo = which( sx %in% c(1) ); if (length(oo)>0) x$sex[oo] = 0 # male
-        oo = which( sx %in% c(2) ); if (length(oo)>0) x$sex[oo] = 1 # female
-        
-        # convert maturity to snow crab standard
-        mt = x$mat
-        x$mat = NA
-        oo = which( mt %in% c(0) ); if (length(oo)>0) x$sex[oo] = 2 # unknown
-        oo = which( mt %in% c(1) ); if (length(oo)>0) x$sex[oo] = 0  # immature
-        oo = which( mt %in% c(2,3,4,5,6,7,8) ); if (length(oo)>0) x$sex[oo] = 1 # mature  -- investment into gonads has begun
-        
-        # x$cf is the multiplier used to scale for subsampling, trawl sa, species, etc.
-         
-        det = rbind( det, x[, det.names] )
-        rm (x); gc()
-      }
-      if ( "snowcrab" %in% p$data.sources ) {
-               
-        # sex codes
-        #  male = 0 
-        #  female = 1
-        #  sex.unknown = 2
+      oo =  which( !duplicated(set$id) )
+      if (length(oo) > 0 ) set = set[ oo, ] 
+   
+      set = lonlat2planar( set, proj.type=p$internal.projection )  # plon+plat required for lookups
+     
+      print( "Interpolating depth and temperature")
 
-        # maturity codes
-        #  immature = 0
-        #  mature = 1 
-        #  mat.unknown = 2
-        
-        x =  snowcrab.db( DS ="det.georeferenced" )  
-        x$data.source = "snowcrab"
-        x$id = paste( x$trip, x$set, sep="." )
-        x$spec = taxa.specid.correct(2526)  # in case there has been an interal alteration in species code for snowcrab
-        x$detid = x$crabno
-        x$len = x$cw
-        x$cf = 1/x$sa  ########## <<<<<< ------ NOTE THIS accounts only for SA as there is no subsampling
-        x$sex = as.numeric( as.character( x$sex) )
-        x$mat = as.numeric( as.character( x$mat) )
-        x$mass = x$mass /1000  # g to kg
-        
-        det = rbind( det, x[, det.names] )
-        rm (x); gc()
-      }
-      # det = na.omit( det )
-      save( det, file=fn, compress=T )
+      p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
+
+      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
+      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+      
+      set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
+
+      save( set, file=fn, compress=T )
       return (fn) 
     }
 
+
+
+    # -------------
+
+
+
+    if (DS %in% c("set","set.redo") ) {
+      # survet sets
+      set = NULL # trip/set loc information
+      fn = file.path( project.directory("bio"), "data", "set.rdata"  )
+      if (DS=="set") {
+        if (file.exists( fn) ) load( fn)
+        return ( set )
+      }
+ 
+      set = bio.db( DS="set.intermediate", p=p )
+       
+      det = bio.db( DS="det" ) # size information, no, cm, kg
+      det = det[ which( det$id %in% unique( set$id) ), ]
+
+      smd = summarize.data.bio( DS="det", x=det, id="id" )
+      set = merge( set, smd, all.x=TRUE, all.y=FALSE, sort=FALSE )
+
+      save( set, file=fn, compress=T )
+      return (fn) 
+    }
 
 
   }

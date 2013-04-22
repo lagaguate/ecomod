@@ -41,14 +41,7 @@
       # match sets and other data sources
       det = det[ which( det$id %in% unique( set$id) ), ]
 		  det = det[ -which( !is.finite( det$mass + det$len + det$spec + det$cf ) ), ]
-      det$sex[ which( !is.finite(det$sex)) ] = 2 # unknown sexes 
-              
-        # sex codes (snowcrab standard)
-        #  male = 0 
-        #  female = 1
-        #  sex.unknown = 2
-
-     
+ 
       sm = merge( det, set, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
      
       sm = sm[, c( "id", "platplon", "yr", "julian", "chron", "z", "t", "sal", "oxysat", "cf",
@@ -76,12 +69,14 @@
         if (file.exists( fn) ) load( fn ) 
         return ( CO )
       }
+     
+      sm =  condition.db( DS="condition", p=p )
       
+
+ 
       P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
 			P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )
 
-      sm =  condition.db( DS="condition", p=p )
-      
 
       CO = merge( sm, P0, by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("",".P0") )
       CO$z.P0 = NULL

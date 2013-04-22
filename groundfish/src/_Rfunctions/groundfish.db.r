@@ -215,13 +215,9 @@
         }
       }
 
-      # many cases have measurements but no subsampling info
-      gscat$cfsampling = gscat$totwgt / gscat$sampwgt
-      gscat$cfsampling[ which( !is.finite(gscat$cfsampling)) ] = 1 # can only assume everything was measured (conservative estimate)
-
-      gscat = gscat[, c("id", "id2", "spec", "totwgt", "totno", "sampwgt", "cfsampling")] # kg, no/set
-
  
+      gscat = gscat[, c("id", "id2", "spec", "totwgt", "totno", "sampwgt" )] # kg, no/set
+
       save(gscat, file=fn, compress=T)
       return( fn )
     }
@@ -673,38 +669,39 @@
       
       det = det[, c("id", "id2", "spec", "fshno", "sex", "mat", "len", "mass", "age") ]
       det$mass = det$mass / 1000 # convert from g to kg 
-      
-      det$mass = log10(det$mass) # log10(kg)
-      det$len = log10(det$len)  # log10(cm)
-
+      #       
+      #       det$mass = log10(det$mass) # log10(kg)
+      #       det$len = log10(det$len)  # log10(cm)
+      # 
       #qmass = quantile( det$mass, probs=c(0.005, 0.995), na.rm=T )
       # det$mass[ which( det$mass< qmass[1] | det$mass>qmass[2]) ] = NA
 
       #qlen = quantile( det$len, probs=c(0.005, 0.995), na.rm=T )
       # det$len[ which( det$len < qlen[1] | det$len>qlen[2]) ] = NA
 
-      k = which( is.finite(det$len) & is.finite(det$mass)  )
-      R = lm.resid( det[k ,c("mass", "len", "sex", "spec")], threshold=r2crit )
-      det$residual = NA
-      det$residual[k] = R$residual
+#      k = which( is.finite(det$len) & is.finite(det$mass)  )
       
-      det$predicted.mass = NA
-      det$predicted.mass[k] = R$predicted.mass
-
-      i = which( !is.finite( det$predicted.mass)  )
-      det$predicted.mass[i] = lm.mass.predict ( x=det[i,c("spec","sex","len")], lm=R$lm.summ, threshold=r2crit )
-   
-      i = which( is.finite(det$residual)  )
-      det$pvalue = NA
-      det$pvalue[i] = lm.pvalue ( x=det[i,c("spec","sex", "residual")], lm=R$lm.summ, threshold=r2crit )
-      
-      det$mass = 10^(det$mass)  # re-convert to (kg) (from log10(kg))
-      det$len = 10^(det$len)  # re-convert to (kg) (from log10(kg))
-      det$predicted.mass = 10^(det$predicted.mass)
-      
-      oo = which( !is.finite(det$mass) & is.finite(det$predicted.mass) )
-      det$mass[oo] = det$predicted.mass[oo]
-
+      #       R = lm.resid( det[k ,c("mass", "len", "sex", "spec")], threshold=r2crit )
+      #       det$residual = NA
+      #       det$residual[k] = R$residual
+      #       
+      #       det$predicted.mass = NA
+      #       det$predicted.mass[k] = R$predicted.mass
+      # 
+      #       i = which( !is.finite( det$predicted.mass)  )
+      #       det$predicted.mass[i] = lm.mass.predict ( x=det[i,c("spec","sex","len")], lm=R$lm.summ, threshold=r2crit )
+      #    
+      #       i = which( is.finite(det$residual)  )
+      #       det$pvalue = NA
+      #       det$pvalue[i] = lm.pvalue ( x=det[i,c("spec","sex", "residual")], lm=R$lm.summ, threshold=r2crit )
+      #       
+      #       det$mass = 10^(det$mass)  # re-convert to (kg) (from log10(kg))
+      #       det$len = 10^(det$len)  # re-convert to (kg) (from log10(kg))
+      #       det$predicted.mass = 10^(det$predicted.mass)
+      #       
+      #       oo = which( !is.finite(det$mass) & is.finite(det$predicted.mass) )
+      #       det$mass[oo] = det$predicted.mass[oo]
+      # 
       save( det, file=fn, compress=T )
       return( fn )
     }
@@ -719,54 +716,20 @@
         return (set)
       }
      
-
-
-
       set = groundfish.db( DS="set.base" )  # kg/set, no/set
      
       # combine correction factors or ignore trapability corrections .. 
       # plaice correction ignored as they are size-dependent
       set = correct.vessel(set)
      
-      
-      # correction factors for sampling etc after determination of mass and len 
-      # for missing data due to subsampling methodology
-      # totals in the subsample that was taken should == sampwgt (in theory) but do not 
-      # ... this is a rescaling of the sum to make it a proper subsample
-      gsdet = groundfish.db( "det.base" )
-      massTotSet = sumById( ee=gsdet$mass, id=gsdet$id2, idnames=c("id2","massTotdet" ) )  
-      noTotSet = sumById( ee=rep(1,nrow(gsdet)), id=gsdet$id2, idnames=c("id2","noTotdet" ) )
-
-#dim(set)
-#185990
-
-      set = merge( set, massTotSet, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
-      set = merge( set, noTotSet, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
- 
-#dim(set)
+      #dim(set)
 #[1] 184372     32
 
-      set$cfsubsample =  set$totwgt/ set$massTotdet 
-      oo = which ( !is.finite( set$cfsubsample ) )
-      if (length(oo)>0) set$cfsubsample [oo] = 1  # assume no subsampling -- all weights determined from the subsample
-      
-      pp = which ( set$cfsubsample==0)
-      if (length(pp) > 0) set$cfsubsample [pp ] = 1  # assume no subsampling -- all weights determined from the subsample
 
-      # at the set level, some species are not sampled even though sampwgt's are recorded
-      # this makes the total biomass > than that estimated from "DET" 
-      # a final correction factor is required to bring it back to the total biomass caught,
-      # this must be aggregated across all species within each set :  
-      # NOt used right now
-      massX = sumById( ee=set$massTotdet*set$cfsubsample, id=set$id, idnames=c("id","massDET" ) )  
-      massS = sumById( ee=set$totwgt, id=set$id, idnames=c("id","massSAMP" ) )  
+      # many cases have measurements but no subsampling info  ---- NOTE ::: sampwgt seems to be unreliable  -- recompute where necessary in "det"
       
-      mm = merge( massX, massS, by="id", sort=F)
-      mm$cfDet2Set = mm$massSAMP / mm$massDET  # multiplier used for det expansion
-     
-      set = merge( set, mm[, c("id", "cfDet2Set")], by="id", all.x=T, all.y=F, sort=F)
-
-      set$cf = set$cfvessel * set$cfsampling / set$sakm2 
+        # weighting for totals 
+      set$cf = set$cfvessel / set$sakm2 
 
       # the following conversion are done here as sakm2 s not available in "gscat"
       # .. needs to be merged before use from gsinf
@@ -775,7 +738,16 @@
       
       set$totwgt  = set$totwgt  * set$cf # convert kg/set to kg/km^2
       set$totno   = set$totno   * set$cf # convert number/set to number/km^2
+ 
+      # set$sampwgt is unreliable for most data points nned to determine directly from "det"
+      set$sampwgt = NULL
+      
+      # set$cfsampling = set$totwgt / set$sampwgt
+      # set$cfsampling[ which( !is.finite(set$cfsampling)) ] = 1 # can only assume everything was measured (conservative estimate)
 
+     
+      # set$sampwgt =  set$sampwgt * set$cf   # keep same scale as totwgt to permit computations later on 
+      
       save(set, file=fn, compress=T )
 
       return (fn)
@@ -793,12 +765,39 @@
         load( fn )
         return (det)
       }
-      set = groundfish.db( "set" ) # kg/set, no/set 
-      set = set[, c("id2", "cf", "spec", "settype" )]
-      set = set[ which(is.finite( set$spec+set$settype)) , ]
-      gsdet = groundfish.db( "det.base" )  # kg, cm
-      gsdet = gsdet[, c("id", "id2", "fshno", "sex", "mat", "len", "mass", "age", "residual", "pvalue") ]
-      det = merge(x=gsdet, y=set, by=c("id2"), all.x=T, all.y=F, sort=F)
+ 
+      # determine weighting factor for individual-level measurements (len, weight, condition, etc)
+      # x$cf is the multiplier used to scale for trawl sa, species, but not subsampling of individual metrics 
+      
+      # at the set level, some species are not sampled even though sampwgt's are recorded
+      # this makes the total biomass > than that estimated from "DET" 
+      # a final correction factor is required to bring it back to the total biomass caught,
+      # this must be aggregated across all species within each set :  
+
+      # correction factors for sampling etc after determination of mass and len 
+      # for missing data due to subsampling methodology
+      # totals in the subsample that was taken should == sampwgt (in theory) but do not 
+      # ... this is a rescaling of the sum to make it a 'proper' subsample
+      
+      det = groundfish.db( "det.base" )  # kg, cm
+      massTotSet = sumById( ee=det$mass, id=det$id2, idnames=c("id2","massTotdet" ) )  
+      noTotSet = sumById( ee=rep(1,nrow(det)), id=det$id2, idnames=c("id2","noTotdet" ) )
+
+      set = groundfish.db( "set" ) # kg/km^2 and  no/km^2 
+      set = set[, c("id2", "totno", "totwgt", "cf", "cfvessel", "cftow", "sakm2" )]
+      set = merge( set, massTotSet, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
+      set = merge( set, noTotSet, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
+ 
+      set$cfdetset =  set$totwgt/ set$massTotdet 
+      oo = which ( !is.finite( set$cfdetset ) )
+      if (length(oo)>0) set$cfdetset[oo] = 1  # assume no subsampling -- all weights determined from the subsample
+      
+      pp = which ( set$cfdetset==0)
+      if (length(pp) > 0) set$cfdetset[pp ] = 1  # assume no subsampling -- all weights determined from the subsample
+
+      set$cfdet = set$cf * set$cfdetset  ## This brings together all weighting factors to make each individual reading equivalent to other individual readings
+
+      det = merge( det, set[, c("id2", "cfdet")], by="id2", all.x=T, all.y=F, sort=F)
 
       save( det, file=fn, compress=T )
       return( fn  )
@@ -893,14 +892,15 @@
       
       det = groundfish.db( "det" )       
      
-      det = det[ which(det$settype %in% c(1, 2, 4, 5, 8) ) , ]
+      #det = det[ which(det$settype %in% c(1, 2, 4, 5, 8) ) , ]
     # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
     #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
     #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
       det$mass = log10( det$mass )
       det$len  = log10( det$len )
 
-      det0 = det[, c("id", "spec", "mass", "len", "age", "residual", "pvalue", "cf")]
+#       det0 = det[, c("id", "spec", "mass", "len", "age", "residual", "pvalue", "cf")]
+       det0 = det[, c("id", "spec", "mass", "len", "age", "cfdet")]
       rm (det); gc()
 
       for (tx in taxa) {
@@ -912,57 +912,58 @@
         
         # using by or aggregate is too slow: raw computation is fastest using the fast formula: sd = sqrt( sum(x^2)-sum(x)^2/(n-1) ) ... as mass, len and resid are log10 transf. .. they are geometric means
 
-        mass1 = tapply(X=det$mass*det$cf, INDEX=index, FUN=sum, na.rm=T)
+        mass1 = tapply(X=det$mass*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
         mass1 = data.frame(mass1=as.vector(mass1), id=I(names(mass1)))
         
-        mass2 = tapply(X=det$mass*det$mass*det$cf, INDEX=index, FUN=sum, na.rm=T)
+        mass2 = tapply(X=det$mass*det$mass*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
         mass2 = data.frame(mass2=as.vector(mass2), id=I(names(mass2)))
 
-        len1 = tapply(X=det$len*det$cf, INDEX=index, FUN=sum, na.rm=T)
+        len1 = tapply(X=det$len*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
         len1 = data.frame(len1=as.vector(len1), id=I(names(len1)))
         
-        len2 = tapply(X=det$len*det$len*det$cf, INDEX=index, FUN=sum, na.rm=T)
+        len2 = tapply(X=det$len*det$len*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
         len2 = data.frame(len2=as.vector(len2), id=I(names(len2)))
-
-        res1 = tapply(X=det$residual*det$cf, INDEX=index, FUN=sum, na.rm=T)
-        res1 = data.frame(res1=as.vector(res1), id=I(names(res1)))
-        
-        res2 = tapply(X=det$residual*det$residual*det$cf, INDEX=index, FUN=sum, na.rm=T)
-        res2 = data.frame(res2=as.vector(res2), id=I(names(res2)))
-
-        pv1 = tapply(X=det$pvalue*det$cf, INDEX=index, FUN=sum, na.rm=T)
-        pv1 = data.frame(pv1=as.vector(pv1), id=I(names(pv1)))
-        
-        pv2 = tapply(X=det$pvalue*det$pvalue*det$cf, INDEX=index, FUN=sum, na.rm=T)
-        pv2 = data.frame(pv2=as.vector(pv2), id=I(names(pv2)))
-
-        ntot = tapply(X=det$cf, INDEX=index, FUN=sum, na.rm=T)
+#
+#        res1 = tapply(X=det$residual*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
+#        res1 = data.frame(res1=as.vector(res1), id=I(names(res1)))
+#        
+#        res2 = tapply(X=det$residual*det$residual*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
+#        res2 = data.frame(res2=as.vector(res2), id=I(names(res2)))
+#
+#        pv1 = tapply(X=det$pvalue*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
+#        pv1 = data.frame(pv1=as.vector(pv1), id=I(names(pv1)))
+#        
+#        pv2 = tapply(X=det$pvalue*det$pvalue*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
+#        pv2 = data.frame(pv2=as.vector(pv2), id=I(names(pv2)))
+#
+        ntot = tapply(X=det$cfdet, INDEX=index, FUN=sum, na.rm=T)
         ntot = data.frame(ntot=as.vector(ntot), id=I(names(ntot)))
 
         qs = NULL
         qs = merge(mass1, mass2, by=c("id"), sort=F, all=T)
         qs = merge(qs, len1, by=c("id"), sort=F, all=T)
         qs = merge(qs, len2, by=c("id"), sort=F, all=T)
-        qs = merge(qs, res1, by=c("id"), sort=F, all=T)
-        qs = merge(qs, res2, by=c("id"), sort=F, all=T)
-        qs = merge(qs, pv1, by=c("id"), sort=F, all=T)
-        qs = merge(qs, pv2, by=c("id"), sort=F, all=T)
+#        qs = merge(qs, res1, by=c("id"), sort=F, all=T)
+#        qs = merge(qs, res2, by=c("id"), sort=F, all=T)
+#        qs = merge(qs, pv1, by=c("id"), sort=F, all=T)
+#        qs = merge(qs, pv2, by=c("id"), sort=F, all=T)
         qs = merge(qs, ntot, by=c("id"), sort=F, all=T)
 
-        qs$rmean = qs$res1/qs$ntot
-        qs$pmean = qs$pv1/qs$ntot
+#        qs$rmean = qs$res1/qs$ntot
+#        qs$pmean = qs$pv1/qs$ntot
         qs$mmean = qs$mass1/qs$ntot
         qs$lmean = qs$len1/qs$ntot
         
         # these are not strictly standard deviations as the denominator is not n-1 
         # but the sums being fractional and large .. is a close approximation
         # the "try" is to keep the warnings quiet as NANs are produced.
-        qs$rsd = try( sqrt( qs$res2 - (qs$res1*qs$res1/qs$ntot) ), silent=T )
-        qs$psd = try( sqrt( qs$pv2 - (qs$pv1*qs$pv1/qs$ntot) ), silent=T  )
+#        qs$rsd = try( sqrt( qs$res2 - (qs$res1*qs$res1/qs$ntot) ), silent=T )
+#        qs$psd = try( sqrt( qs$pv2 - (qs$pv1*qs$pv1/qs$ntot) ), silent=T  )
         qs$msd = try( sqrt( qs$mass2 - (qs$mass1*qs$mass1/qs$ntot) ), silent=T  )
         qs$lsd = try( sqrt( qs$len2 - (qs$len1*qs$len1/qs$ntot)  ), silent=T  )
         
-        qs = qs[, c("id","rmean", "pmean","mmean", "lmean", "rsd", "psd", "msd", "lsd")]
+#        qs = qs[, c("id","rmean", "pmean","mmean", "lmean", "rsd", "psd", "msd", "lsd")]
+        qs = qs[, c("id","mmean", "lmean",  "msd", "lsd")]
         sm = merge(sm, qs, by=c("id"), sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",tx,sep="")) )
       }
       for (i in newvars) sm[,i]=NULL # these are temporary vars used to make merges retain correct suffixes

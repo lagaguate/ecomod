@@ -1,7 +1,7 @@
 
   tagging.example.usage = function() {
       
-    source( "functions.tagging.r" )
+    loadfunctions( "snowcrab" )
 
     marked.file = "tags.1996_2001.csv"
     recaps.file = "recaptures.csv"
@@ -11,7 +11,8 @@
     marked2 =  read.table( file.path(project.directory("snowcrab"), "data", "tagging", "tags_summary1993_2005.csv"), sep=";", header=T, as.is=T)
 
     move = get.move () #  alternate:(DS="redo")
-       
+      
+
     tmp0 = move[, c("lon0", "lat0")]
     names(tmp0) = c("lon", "lat")
     ss0 = filter.region.polygon(tmp0, region=region)
