@@ -23,19 +23,19 @@
       gsstratum = gsstratum[, c("strat","area")]
       gsstratum$area = as.numeric( gsstratum$area )
 
-      sm =  groundfish.db( "sm.base" )
-      sm = sm[, c("id", "lon", "lat", "chron", "sdepth", "temp", "sal", "strat")]
-      sm = merge(sm, gsstratum, by="strat", all.x=T, all.y=F, sort=F)
-#    sm = sm[1:10,] # debug
+      set =  groundfish.db( "set.base" )
+      set = set[, c("id", "lon", "lat", "chron", "sdepth", "temp", "sal", "strat")]
+      set = merge(set, gsstratum, by="strat", all.x=T, all.y=F, sort=F)
+#    set = set[1:10,] # debug
 
-      nid = nrow(sm)
+      nid = nrow(set)
       nss = NULL
       
       if (!do.parallel) {
-        nss = nss.core( sm=sm, nss.base=nss.base, nss.distances=nss.distances, nss.stimes=nss.stimes, nss.taxa=nss.taxa, nss.type=nss.type, nss.bins=nss.bins, do.parallel=F,  init.files=init.files )
+        nss = nss.core( set=set, nss.base=nss.base, nss.distances=nss.distances, nss.stimes=nss.stimes, nss.taxa=nss.taxa, nss.type=nss.type, nss.bins=nss.bins, do.parallel=F,  init.files=init.files )
       } else if (do.parallel) {
         pp = prep.parallel.run( clusters, nid )
-          nss.pp = clusterApplyLB( pp$cl, pp$ssplt, fun=nss.core, sm=sm, nss.base=nss.base,
+          nss.pp = clusterApplyLB( pp$cl, pp$ssplt, fun=nss.core, set=set, nss.base=nss.base,
             nss.distances=nss.distances, nss.stimes=nss.stimes, nss.taxa=nss.taxa, nss.type=nss.type, nss.bins=nss.bins, do.parallel=T, init.files=init.files )
         stopCluster(pp$cl)
         for (m in 1:length(nss.pp)) nss = rbind(nss , nss.pp[[m]])
@@ -58,15 +58,15 @@
 
     if (DS %in% c("nss", "nss.redo") ) {
       # make the base normalised size spectral statistics summaries
-      fn = file.path( project.directory("groundfish"), "R", "sm_nss.rdata") 
+      fn = file.path( project.directory("groundfish"), "R", "set_nss.rdata") 
       if ( DS=="nss" ) {
         load( fn )
-        return ( sm )
+        return ( set )
       }
        
-      sm = groundfish.db( "sm.base" )[, c("id", "yr")] 
+      set = groundfish.db( "set.base" )[, c("id", "yr")] 
       
-      # update "sm"
+      # update "set"
       for ( distance in c(2,50)) {
       for ( stime in c(10,50)) {
         suffix = paste("all.", distance, "km.", stime, "day", sep="")
@@ -76,20 +76,20 @@
         nss = nss[ which(nss$vname==nss.type & nss$taxa==nss.taxa & nss$time==stime & nss$distance==distance) ,]
         nss = nss[, c( "id", "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon","nss.evenness", "nss.Hmax")]
 
-        sm$rsquared = NA
-        sm$df = NA
-        sm$b0 = NA
-        sm$b1 = NA
+        set$rsquared = NA
+        set$df = NA
+        set$b0 = NA
+        set$b1 = NA
 
-        sm = merge(sm, nss, by="id", sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",suffix,sep="")))
-        sm$rsquared = NULL
-        sm$df = NULL
-        sm$b0 = NULL
-        sm$b1 = NULL
+        set = merge(set, nss, by="id", sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",suffix,sep="")))
+        set$rsquared = NULL
+        set$df = NULL
+        set$b0 = NULL
+        set$b1 = NULL
 
       }}
-      sm$yr = NULL
-      save(sm , file=fn, compress=T ) 
+      set$yr = NULL
+      save(set , file=fn, compress=T ) 
       return ( "Done" )
     }
 
@@ -154,8 +154,8 @@
         return (final)
       }
 
-      sm.vars = c("id", "strat","yr", "temp", "sal", "sdepth", "lon", "lat", "area" )
-      sm = groundfish.db( "sm.complete" ) [,sm.vars]
+      set.vars = c("id", "strat","yr", "temp", "sal", "sdepth", "lon", "lat", "area" )
+      set = groundfish.db( "set.complete" ) [,set.vars]
 
       ss = nss.db( "nss.by.set", nss.taxa=nss.taxa[1], nss.type=nss.type, nss.base=nss.base )
       variables =  colnames(ss)
@@ -171,7 +171,7 @@
         rm (ss0); gc()
         ss = log( ss+offset, base=10 ) ## convert to base 10 for stats and plotting
         ss$id = rownames(ss)
-        wm = merge ( ss, sm, by="id", sort=F, all.x=T, ally=F)
+        wm = merge ( ss, set, by="id", sort=F, all.x=T, ally=F)
         rm (ss); gc()
       for (va in variables) {  # size classes
 

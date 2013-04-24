@@ -1,5 +1,5 @@
 
-get.ts.core = function(id=NULL, sm, do.parallel=T, regions, plottimes, variables, custom, init.files=NULL ) {
+get.ts.core = function(id=NULL, set, do.parallel=T, regions, plottimes, variables, custom, init.files=NULL ) {
 
   source( "/home/jae/.Rprofile" )
 	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
@@ -13,8 +13,8 @@ get.ts.core = function(id=NULL, sm, do.parallel=T, regions, plottimes, variables
   for (regs in id) {
     re = regions[regs]
     uu = switch( custom,
-           normal = sm[ filter.region.polygon(sm[,c("lon", "lat")], re) , ] ,
-           ca = sm[ which(sm$ca.quant==re) , ]
+           normal = set[ filter.region.polygon(set[,c("lon", "lat")], re) , ] ,
+           ca = set[ which(set$ca.quant==re) , ]
          )
     out = NULL
     for (ti in plottimes) {

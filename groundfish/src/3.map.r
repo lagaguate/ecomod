@@ -72,12 +72,12 @@ if (get.isobath) {  # tighter isobath-related outline of shelf at 1000m
 # the variables being numerous are defined in a separate file which is called by
 # "variable.list.expand" in "variablelist.r"
 
-if (map="sm") {
+if (map="set") {
   dirbase = "maps"
-  sm = groundfish.db( "sm.complete" )
-  sm$sa = 1  # dummy required for mapping
+  set = groundfish.db( "set.complete" )
+  set$sa = 1  # dummy required for mapping
   season = "summer"
-  sm = sm[ filter.season( sm$julian, period=season, index=T ) , ]
+  set = set[ filter.season( set$julian, period=season, index=T ) , ]
 
   params$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
   params$maskres = "-S16k"
@@ -86,7 +86,7 @@ if (map="sm") {
 
   variables =  variable.list.expand("all")
   outdir = paste(dirbase, params$mapres, params$spatial.domain, season, sep=".")
-  make.maps( sm, params, variables, plottimes, outdir, conversions, init.files=init.files, db="groundfish" )
+  make.maps( set, params, variables, plottimes, outdir, conversions, init.files=init.files, db="groundfish" )
 
 }
 

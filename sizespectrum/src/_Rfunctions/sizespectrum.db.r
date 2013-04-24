@@ -150,7 +150,7 @@
       }
 
       ks = sizespectrum.db( DS="sizespectrum.stats", p=p )
-      sm = groundfish.db( "sm.base" )
+      sm = groundfish.db( "set.base" )
       ks = merge (ks, sm, by="id", all.x=T, all.y=F, sort= F) 
 
       ks = lonlat2planar( ks, proj.type=p$internal.projection, ndigits=2 )

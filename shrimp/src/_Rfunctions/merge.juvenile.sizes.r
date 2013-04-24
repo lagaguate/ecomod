@@ -5,11 +5,10 @@
     # read in sizes of individuals
   sizes =shrimp.sizes( size.dir)  # R:\Shared\shrimp\data\2008\sizes make sure the last row of totals is removed 
   
-  sizes$dummy = 1
   bins = seq( 10, 350, 1 )   # size ranges
   sizes$size = factor( sizes$size, levels=bins )
    
-  xcount = as.data.frame.table( xtabs( dummy ~ set + size, data=sizes ) )
+  xcount = as.data.frame.table( xtabs(  ~ set + size, data=sizes ) )
   names( xcount)= c( "set", "size", "xcount")
   xcount = factor2character( xcount, c("set", "size") )
   xcount = xcount [ which( xcount$xcount > 0 ) ,] 
@@ -18,7 +17,7 @@
   xcount$group [ which( as.numeric(xcount$size) < 100 ) ] = "O-group" 
 
   
-  ogroups = as.data.frame.table( xtabs( dummy ~ set , data=sizes[which (sizes$group=="O-group") , ] ) )
+  ogroups = as.data.frame.table( xtabs( ~ set , data=sizes[which (sizes$group=="O-group") , ] ) )
   names( ogroups)= c( "set", "n.ogroup.sampled")
   ogroups = factor2character( ogroups, c("set") )
   

@@ -12,17 +12,19 @@
         return ( set )
       }
       
-			set.names =  c("data.source", "id", "chron", "yr", "julian", "lon", "lat", "z", "t", "sal", "oxyml", "settype", "sa", "cfset") 
+			set.names =  c("data.source", "id", "chron", "yr", "julian", "lon", "lat", 
+                     "z", "t", "sal", "oxyml", "settype", "sa", "cfset") 
       if ( "groundfish" %in% p$data.sources ) {
         # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
         #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
         #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
-        y = groundfish.db( "sm.base" )
+        y = groundfish.db( "set.base" )
         y$data.source = "groundfish"
         y$sa = y$sakm2
         y$cfset = 1 / y$sa
 
-        set = rbind( set, y[ ,c("data.source", "id", "chron", "yr", "julian",  "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype", "sa", "cfset") ] )
+        set = rbind( set, y[ ,c("data.source", "id", "chron", "yr", "julian",  "lon", "lat", 
+                                "sdepth", "temp", "sal", "oxyml", "settype", "sa", "cfset") ] )
         names(set) = set.names
         set = set[ set$settype %in% c(1,2,5) ,] # remove bad sets
         rm (y); gc()
@@ -65,9 +67,9 @@
       cat.names =  c("data.source", "id", "spec", "totno", "totmass", "cfcat") 
       if ( "groundfish" %in% p$data.sources ) {
        
-        x = groundfish.db( "set" )   ## not really set but "cat" 
-          # totno and totmass are sa, vessel and sub-sampling corrected ::  cf = cfvessel * cfsampling / sakm2 
-
+        x = groundfish.db( "cat" )   ## not really set but "cat" 
+        # totno and totmass are sa, vessel and sub-sampling corrected ::  cf = cfvessel / sakm2 
+        # no./km2 ; and  kg/km2
         x$data.source = "groundfish"
         x$totmass = x$totwgt
         x$cfcat = x$cf
@@ -77,7 +79,7 @@
       }
 
       if ( "snowcrab" %in% p$data.sources ) {
-        x =  snowcrab.db( DS ="cat.georeferenced" ) # sa corrected  
+        x =  snowcrab.db( DS ="cat.georeferenced" ) # sa corrected ; kg/km2; no./km2 
         x$data.source = "snowcrab"
         x$id = paste( x$trip, x$set, sep="." )
         x$cfcat = 1/x$sa  # no other correction factors as there is no species-based subsampling
@@ -130,7 +132,9 @@
         x = groundfish.db( "det" )  
         x$data.source = "groundfish"
         x$detid = x$fshno
-      
+        
+        # mass in kg, len in cm
+
         # convert sex codes to snow crab standard
         # --------- codes ----------------
         # sex: 0=undetermined, 1=male, 2=female,  3=hermaphrodite, 9= not examined
@@ -166,7 +170,7 @@
         x$id = paste( x$trip, x$set, sep="." )
         x$spec = taxa.specid.correct(2526)  # in case there has been an interal alteration in species code for snowcrab
         x$detid = x$crabno
-        x$len = x$cw
+        x$len = x$cw / 10  # convert mm to cm
         x$cfdet = 1/x$sa  ########## <<<<<< ------ NOTE THIS accounts only for SA as there is no subsampling (so far)
         x$sex = as.numeric( as.character( x$sex) )
         x$mat = as.numeric( as.character( x$mat) )
@@ -176,8 +180,44 @@
         rm (x); gc()
       }
        
-      # det = na.omit( det )
+      det$id2 = paste( det$id, det$spec, sep=".") 
+
       save( det, file=fn, compress=T )
+      return (fn) 
+    }
+
+
+    # -------------
+
+
+    if (DS %in% c("set.intermediate","set.intermediate.redo") ) {
+      # survet sets
+      set = NULL # trip/set loc information
+      fn = file.path( project.directory("bio"), "data", "set.intermediate.rdata"  )
+      if (DS=="set.intermediate") {
+        if (file.exists( fn) ) load( fn)
+        return ( set )
+      }
+ 
+      set = bio.db( DS="set.init", p=p )
+      
+      set = set[ which(is.finite(set$lon + set$lat + set$yr ) ) , ]  #  fields are required
+
+      oo =  which( !duplicated(set$id) )
+      if (length(oo) > 0 ) set = set[ oo, ] 
+   
+      set = lonlat2planar( set, proj.type=p$internal.projection )  # plon+plat required for lookups
+     
+      print( "Interpolating depth and temperature")
+
+      p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
+
+      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
+      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+      
+      set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
+
+      save( set, file=fn, compress=T )
       return (fn) 
     }
 
@@ -311,15 +351,21 @@
       det = bio.db( DS="det" ) # size information, no, cm, kg
       det = det[ which( det$id %in% unique( set$id) ), ]
 
-      cat = cat [, c("id", "chron", "yr", "julian",  
-                 "sa", "lon", "lat", "z", "t", "sal", "oxyml", "oxysat", "settype", "cfset")]
-    
-      smc = summarize.data.bio( DS="cat", x=cat, id="id2" )
-      cat = merge( cat, smc, all.x=TRUE, all.y=FALSE, sort=FALSE )
+  
+      # NOTE: cat$totno and cat$totmass have already been cf corrected ---> already in per km2
+      sm = data.frame( id2=as.character( sort( unique( cat$id2 ) )), stringsAsFactors=FALSE )
+ 
+      # sm = merge( sm, applySum( det[ , c("id2", "mass", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      # test to make sure weights are proper:
+      # plot( sm$totwgt, sm$mass )
       
-      smd = summarize.data.bio( DS="det", x=det, id="id2" )
-      cat = merge( cat, smd, all.x=TRUE, all.y=FALSE, sort=FALSE )
+      sm = merge( sm, applySum( det[ , c("id2", "mr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+       
+      sm = merge( sm, applyMean( det[ , c("id2", "smr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      sm = merge( sm, applyMean( det[ , c("id2", "mass", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      sm = merge( sm, applyMean( det[ , c("id2", "len", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
 
+  
 
     	surveys = sort( unique( cat$data.source ) ) 
       species = sort( unique( cat$spec ) )
@@ -417,41 +463,6 @@
     } 
 
 
-    # -------------
-
-
-    if (DS %in% c("set.intermediate","set.intermediate.redo") ) {
-      # survet sets
-      set = NULL # trip/set loc information
-      fn = file.path( project.directory("bio"), "data", "set.intermediate.rdata"  )
-      if (DS=="set.intermediate") {
-        if (file.exists( fn) ) load( fn)
-        return ( set )
-      }
- 
-      set = bio.db( DS="set.init", p=p )
-      
-      set = set[ which(is.finite(set$lon + set$lat + set$yr ) ) , ]  #  fields are required
-
-      oo =  which( !duplicated(set$id) )
-      if (length(oo) > 0 ) set = set[ oo, ] 
-   
-      set = lonlat2planar( set, proj.type=p$internal.projection )  # plon+plat required for lookups
-     
-      print( "Interpolating depth and temperature")
-
-      p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
-
-      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
-      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
-      
-      set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
-
-      save( set, file=fn, compress=T )
-      return (fn) 
-    }
-
-
 
     # -------------
 
@@ -470,10 +481,19 @@
        
       det = bio.db( DS="det" ) # size information, no, cm, kg
       det = det[ which( det$id %in% unique( set$id) ), ]
+ 
+      # NOTE: cat$totno and cat$totmass have already been cf corrected ---> already in per km2
+      sm = data.frame( id=as.character( sort( unique( cat$id ) )), stringsAsFactors=FALSE )
+   
+      sm = merge( sm, applySum( cat[ , c("id", "totno") ] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      sm = merge( sm, applySum( cat[ , c("id", "totwgt") ] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
 
-      smd = summarize.data.bio( DS="det", x=det, id="id" )
-      set = merge( set, smd, all.x=TRUE, all.y=FALSE, sort=FALSE )
-
+      sm = merge( sm, applySum( det[ , c("id", "mr", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      
+      sm = merge( sm, applyMean( det[ , c("id", "smr", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      sm = merge( sm, applyMean( det[ , c("id", "mass", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      sm = merge( sm, applyMean( det[ , c("id", "len", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+  
       save( set, file=fn, compress=T )
       return (fn) 
     }

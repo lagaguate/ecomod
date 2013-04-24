@@ -1,5 +1,5 @@
 
-archive.ts.getdata = function (sm=NULL, from.file=T, variables=NULL, plottimes=NULL, regions=NULL, do.parallel=F, fname="all", custom="normal" ) {
+archive.ts.getdata = function (set=NULL, from.file=T, variables=NULL, plottimes=NULL, regions=NULL, do.parallel=F, fname="all", custom="normal" ) {
 
   outfile1 = paste( "byyear", fname, "rdata", sep=".")
   outfile2 = paste( "bystrata", fname, "rdata", sep=".")
@@ -20,8 +20,8 @@ archive.ts.getdata = function (sm=NULL, from.file=T, variables=NULL, plottimes=N
       for (re in regions) {
 
         uu = switch( custom,
-               normal = sm[ filter.region.polygon(sm, re) , ] ,
-               ca = sm[ which(sm$ca.quant==re) , ]
+               normal = set[ filter.region.polygon(set, re) , ] ,
+               ca = set[ which(set$ca.quant==re) , ]
              )
 
         for (ti in plottimes) {

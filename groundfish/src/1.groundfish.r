@@ -63,7 +63,7 @@
 
 # ---------
 # merged data sets
-  groundfish.db( "set.base.redo" )
+  groundfish.db( "cat.base.redo" )
 
 
 ******************
@@ -72,24 +72,24 @@
 
 
   groundfish.db( "det.base.redo", r2crit=0.75 ) # ~ 10 min on io
-  groundfish.db( "set.redo" )  # add correction factors, and express per unit area
+  groundfish.db( "cat.redo" )  # add correction factors, and express per unit area
   groundfish.db( "det.redo" ) # ~ 10 min on io
 
 
 # ---------
-# form main data summaries ("sm") ... sequence is imporant as intermediate file are created by each step (in case)
-# 1. sm0.rdata, set only basefile: 13027
-  groundfish.db( "sm.base.redo" )
+# form main data summaries ("set") ... sequence is imporant as intermediate file are created by each step (in case)
+# 1. set0.rdata, set only basefile: 13027
+  groundfish.db( "set.base.redo" )
 
 
 # ---------
-# 2. sm_catch.rdata, catches
+# 2. set_catch.rdata, catches
   groundfish.db( "catchbyspecies.redo", taxa=taxa )
 
 
 # ---------
-# 3. sm_det.rdata .. summarize condition 
-  groundfish.db( "sm.det.redo", taxa=taxa )
+# 3. set_det.rdata .. summarize condition 
+  groundfish.db( "set.det.redo", taxa=taxa )
 
 
 # -------------------------------------------------------------------------------------
@@ -117,7 +117,7 @@
 
   
 # ---------
-# 8 sm_shannon_information.rdata  -- TODO -- make into an autonomous project
+# 8 set_shannon_information.rdata  -- TODO -- make into an autonomous project
 #   groundfish.db( "shannon.information.redo", season=season, taxa=c("species", "genus") )
 
 
@@ -130,8 +130,8 @@
 
 # ---------
 # 9 final save --- much of the above has moved to separate projects ... TODO: need to re-integrate ...
-#  groundfish.db( "sm.complete.redo", p=p )
-#  sm = groundfish.db( "sm.complete", p=p )
+#  groundfish.db( "set.complete.redo", p=p )
+#  set = groundfish.db( "set.complete", p=p )
 
 
 # 10 -------

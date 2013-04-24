@@ -377,7 +377,7 @@
           if (length(oo)>0) x = x[-oo,]
 
       # compute snow crab abundance from det tables
-      numbers = as.data.frame( xtabs( rep(1,nrow(det)) ~ as.factor(trip) + as.factor(set), data=det ) )
+      numbers = as.data.frame( xtabs( ~ as.factor(trip) + as.factor(set), data=det ) )
       names(numbers) = c("trip", "set", "totno")
 			numbers$trip = as.character( numbers$trip )
 			numbers$set = as.numeric( as.character(numbers$set ))
@@ -429,7 +429,7 @@
 		
 			# add groundfish data if it does not exist already
 			loadfunctions( "groundfish" )
-			gs = groundfish.db( "set" )  
+			gs = groundfish.db( "cat" )  
 			meanwgt = gs$totwgt / gs$totno
 			good = which( is.finite( meanwgt) & is.finite( 1/meanwgt ) )
 			mw2 = as.data.frame( unlist( (tapply( log( meanwgt[good]), gs$spec[good], mean )) ))

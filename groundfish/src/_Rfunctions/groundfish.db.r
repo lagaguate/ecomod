@@ -611,22 +611,22 @@
 
  # ----------------------
 
-    if (DS %in% c("set.base", "set.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "set.base.rdata")
-      if ( DS=="set.base" ) {
+    if (DS %in% c("cat.base", "cat.base.redo") ) {
+      fn = file.path( project.directory("groundfish"), "data", "cat.base.rdata")
+      if ( DS=="cat.base" ) {
         load( fn )
-        return (set)
+        return (cat)
       }
       
       require(chron)
 
       gscat = groundfish.db( "gscat" ) #kg/set, no/set 
       gsinf = groundfish.db( "gsinf" ) 
-      set = merge(x=gscat, y=gsinf, by=c("id"), all.x=T, all.y=F, sort=F) 
+      cat = merge(x=gscat, y=gsinf, by=c("id"), all.x=T, all.y=F, sort=F) 
       rm (gscat, gsinf)     
    
       gshyd = groundfish.db( "gshyd" ) 
-      set = merge(x=set, y=gshyd, by=c("id"), all.x=T, all.y=F, sort=F) 
+      cat = merge(x=cat, y=gshyd, by=c("id"), all.x=T, all.y=F, sort=F) 
       rm (gshyd)
 
       gstaxa = taxa.db( "life.history" ) 
@@ -637,21 +637,21 @@
         print( "NOTE -- Duplicated species codes in taxa.db(life.history) ... need to fix taxa.db, dropping for now " )
       }
 
-      set = merge(x=set, y=gstaxa, by=c("spec"), all.x=T, all.y=F, sort=F) 
+      cat = merge(x=cat, y=gstaxa, by=c("spec"), all.x=T, all.y=F, sort=F) 
       rm (gstaxa)
 
 
       # initial merge without any real filtering
-      # save(set, file=file.path( project.directory("groundfish"), "data", "set0.rdata"), compress=T)  
+      # save(cat, file=file.path( project.directory("groundfish"), "data", "cat0.rdata"), compress=T)  
 
-			oo = which( !is.finite( set$sdate)) # NED1999842 has no accompanying gsinf data ... drop it
-      if (length(oo)>0) set = set[ -oo  ,]  
-      set$chron = as.chron(set$sdate)
-      set$sdate = NULL
-      set$yr = convert.datecodes(set$chron, "year" )
-      set$julian = convert.datecodes(set$chron, "julian")
+			oo = which( !is.finite( cat$sdate)) # NED1999842 has no accompanying gsinf data ... drop it
+      if (length(oo)>0) cat = cat[ -oo  ,]  
+      cat$chron = as.chron(cat$sdate)
+      cat$sdate = NULL
+      cat$yr = convert.datecodes(cat$chron, "year" )
+      cat$julian = convert.datecodes(cat$chron, "julian")
 
-      save(set, file=fn, compress=T )
+      save(cat, file=fn, compress=T )
 
       return ( fn )
     }
@@ -709,46 +709,46 @@
 
  # ----------------------
 
-    if (DS %in% c("set", "set.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "set.rdata")
-      if ( DS=="set" ) {
+    if (DS %in% c("cat", "cat.redo") ) {
+      fn = file.path( project.directory("groundfish"), "data", "cat.rdata")
+      if ( DS=="cat" ) {
         load( fn )
-        return (set)
+        return (cat)
       }
      
-      set = groundfish.db( DS="set.base" )  # kg/set, no/set
+      cat = groundfish.db( DS="cat.base" )  # kg/set, no/set
      
       # combine correction factors or ignore trapability corrections .. 
       # plaice correction ignored as they are size-dependent
-      set = correct.vessel(set)
+      cat = correct.vessel(cat)
      
-      #dim(set)
+      #dim(cat)
 #[1] 184372     32
 
 
       # many cases have measurements but no subsampling info  ---- NOTE ::: sampwgt seems to be unreliable  -- recompute where necessary in "det"
       
         # weighting for totals 
-      set$cf = set$cfvessel / set$sakm2 
+      cat$cf = cat$cfvessel / cat$sakm2 
 
       # the following conversion are done here as sakm2 s not available in "gscat"
       # .. needs to be merged before use from gsinf
       # surface area of 1 standard set: sa =  41 (ft) * N  (nmi); N==1.75 for a standard trawl
       # the following express per km2 and so there is no need to "correct"  to std tow.
       
-      set$totwgt  = set$totwgt  * set$cf # convert kg/set to kg/km^2
-      set$totno   = set$totno   * set$cf # convert number/set to number/km^2
+      cat$totwgt  = cat$totwgt  * cat$cf # convert kg/set to kg/km^2
+      cat$totno   = cat$totno   * cat$cf # convert number/set to number/km^2
  
-      # set$sampwgt is unreliable for most data points nned to determine directly from "det"
-      set$sampwgt = NULL
+      # cat$sampwgt is unreliable for most data points nned to determine directly from "det"
+      cat$sampwgt = NULL
       
-      # set$cfsampling = set$totwgt / set$sampwgt
-      # set$cfsampling[ which( !is.finite(set$cfsampling)) ] = 1 # can only assume everything was measured (conservative estimate)
+      # cat$cfsampling = cat$totwgt / cat$sampwgt
+      # cat$cfsampling[ which( !is.finite(cat$cfsampling)) ] = 1 # can only assume everything was measured (conservative estimate)
 
      
-      # set$sampwgt =  set$sampwgt * set$cf   # keep same scale as totwgt to permit computations later on 
+      # cat$sampwgt =  cat$sampwgt * cat$cf   # keep same scale as totwgt to permit computations later on 
       
-      save(set, file=fn, compress=T )
+      save(cat, file=fn, compress=T )
 
       return (fn)
     }
@@ -780,24 +780,25 @@
       # ... this is a rescaling of the sum to make it a 'proper' subsample
       
       det = groundfish.db( "det.base" )  # kg, cm
-      massTotSet = sumById( ee=det$mass, id=det$id2, idnames=c("id2","massTotdet" ) )  
-      noTotSet = sumById( ee=rep(1,nrow(det)), id=det$id2, idnames=c("id2","noTotdet" ) )
-
-      set = groundfish.db( "set" ) # kg/km^2 and  no/km^2 
-      set = set[, c("id2", "totno", "totwgt", "cf", "cfvessel", "cftow", "sakm2" )]
-      set = merge( set, massTotSet, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
-      set = merge( set, noTotSet, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
- 
-      set$cfdetset =  set$totwgt/ set$massTotdet 
-      oo = which ( !is.finite( set$cfdetset ) )
-      if (length(oo)>0) set$cfdetset[oo] = 1  # assume no subsampling -- all weights determined from the subsample
       
-      pp = which ( set$cfdetset==0)
-      if (length(pp) > 0) set$cfdetset[pp ] = 1  # assume no subsampling -- all weights determined from the subsample
+      massTotCat = applySum( det[ ,c("id2", "mass")], newnames=c("id2","massTotdet" ) )  
+      noTotCat = applySum( det$id2, newnames=c("id2","noTotdet" ) )  
 
-      set$cfdet = set$cf * set$cfdetset  ## This brings together all weighting factors to make each individual reading equivalent to other individual readings
+      cat = groundfish.db( "cat" ) # kg/km^2 and  no/km^2 
+      cat = cat[, c("id2", "totno", "totwgt", "cf", "cfvessel", "cftow" )]
+      cat = merge( cat, massTotCat, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
+      cat = merge( cat, noTotCat, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
+ 
+      cat$cfdetcat =  cat$totwgt/ cat$massTotdet 
+      oo = which ( !is.finite( cat$cfdetcat ) )
+      if (length(oo)>0) cat$cfdetcat[oo] = 1  # assume no subsampling -- all weights determined from the subsample
+      
+      pp = which ( cat$cfdetcat==0)
+      if (length(pp) > 0) cat$cfdetcat[pp ] = 1  # assume no subsampling -- all weights determined from the subsample
 
-      det = merge( det, set[, c("id2", "cfdet")], by="id2", all.x=T, all.y=F, sort=F)
+      cat$cfdet = cat$cfset * cat$cfdetcat  ## This brings together all weighting factors to make each individual reading equivalent to other individual readings
+
+      det = merge( det, cat[, c("id2", "cfdet")], by="id2", all.x=T, all.y=F, sort=F)
 
       save( det, file=fn, compress=T )
       return( fn  )
@@ -808,19 +809,19 @@
  # ----------------------
 
   
-    if (DS %in% c("sm.base", "sm.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "sm.base.rdata")
-      if ( DS=="sm.base" ) {
+    if (DS %in% c("set.base", "set.base.redo") ) {
+      fn = file.path( project.directory("groundfish"), "data", "set.base.rdata")
+      if ( DS=="set.base" ) {
         load( fn )
-        return ( sm )
+        return ( set )
       }
-      sm = groundfish.db( "set")  
-      sm = sm[, c("id", "chron", "yr", "julian", "strat", "dist", 
+ ~~~check     set = groundfish.db( "cat")  
+      set = set[, c("id", "chron", "yr", "julian", "strat", "dist", 
                  "sakm2", "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype", "cf")]
 
-      sm = sm[ !duplicated(sm$id) ,] 
-      sm$oxysat = compute.oxygen.saturation( t.C=sm$temp, sal.ppt=sm$sal, oxy.ml.l=sm$oxyml)
-      save ( sm, file=fn, compress=T)
+      set = set[ !duplicated(set$id) ,] 
+      set$oxysat = compute.oxygen.saturation( t.C=set$temp, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
+      save ( set, file=fn, compress=T)
       return( fn  )
     }
      
@@ -828,47 +829,47 @@
 
     
     if (DS %in% c("catchbyspecies", "catchbyspecies.redo") ) {
-     fn = file.path( project.directory("groundfish"), "data", "sm.catchbyspecies.rdata")
+     fn = file.path( project.directory("groundfish"), "data", "set.catchbyspecies.rdata")
      if ( DS=="catchbyspecies" ) {
        load( fn )
-       return ( sm )
+       return ( set )
      }
  
-      sm = groundfish.db( "sm.base" ) [, c("id", "yr")] # yr to maintain data structure
+      set = groundfish.db( "set.base" ) [, c("id", "yr")] # yr to maintain data structure
 
       # add dummy variables to force merge suffixes to register
-      sm$totno = NA
-      sm$totwgt = NA
-      sm$ntaxa = NA
-      set = groundfish.db( "set" ) 
-      set = set[ which(set$settype %in% c(1,2,5)) , ]  # required only here
+      set$totno = NA
+      set$totwgt = NA
+      set$ntaxa = NA
+      cat = groundfish.db( "cat" ) 
+      cat = cat[ which(cat$settype %in% c(1,2,5)) , ]  # required only here
   
     # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
     #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
     #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
 
-      set0 = set[, c("id", "spec", "totno", "totwgt")]
-      rm(set); gc()
+      cat0 = cat[, c("id", "spec", "totno", "totwgt")]
+      rm(cat); gc()
       for (tx in taxa) {
         print(tx)
-        i = filter.taxa( x=set0$spec, method=tx )
-        set = set0[i,]
-        index = list(id=set$id)
-        qtotno = tapply(X=set$totno, INDEX=index, FUN=sum, na.rm=T)
+        i = filter.taxa( x=cat0$spec, method=tx )
+        cat = cat0[i,]
+        index = list(id=cat$id)
+        qtotno = tapply(X=cat$totno, INDEX=index, FUN=sum, na.rm=T)
         qtotno = data.frame(totno=as.vector(qtotno), id=I(names(qtotno)))
-        qtotwgt = tapply(X=set$totwgt, INDEX=index, FUN=sum, na.rm=T)
+        qtotwgt = tapply(X=cat$totwgt, INDEX=index, FUN=sum, na.rm=T)
         qtotwgt = data.frame(totwgt=as.vector(qtotwgt), id=I(names(qtotwgt)))
-        qntaxa = tapply(X=rep(1, nrow(set)), INDEX=index, FUN=sum, na.rm=T)
+        qntaxa = tapply(X=rep(1, nrow(cat)), INDEX=index, FUN=sum, na.rm=T)
         qntaxa = data.frame(ntaxa=as.vector(qntaxa), id=I(names(qntaxa)))
         qs = merge(qtotno, qtotwgt, by=c("id"), sort=F, all=T)
         qs = merge(qs, qntaxa, by=c("id"), sort=F, all=T)
-        sm = merge(sm, qs, by=c("id"), sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",tx,sep="")) )
+        set = merge(set, qs, by=c("id"), sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",tx,sep="")) )
       }
-      sm$totno = NULL
-      sm$totwgt = NULL
-      sm$ntaxa = NULL
-      sm$yr = NULL
-      save ( sm, file=fn, compress=T)
+      set$totno = NULL
+      set$totwgt = NULL
+      set$ntaxa = NULL
+      set$yr = NULL
+      save ( set, file=fn, compress=T)
       return( fn  )
     }
 
@@ -876,19 +877,19 @@
     # ----------------------
 
 
-    if (DS %in% c("sm.det", "sm.det.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "sm_det.rdata")
-      if ( DS=="sm.det" ) {
+    if (DS %in% c("set.det", "set.det.redo") ) {
+      fn = file.path( project.directory("groundfish"), "data", "set_det.rdata")
+      if ( DS=="set.det" ) {
         load( fn )
-        return ( sm )
+        return ( set )
       }
       
       require (Hmisc)
-      sm = groundfish.db( "sm.base" ) [, c("id", "yr")] # yr to maintain data structure
+      set = groundfish.db( "set.base" ) [, c("id", "yr")] # yr to maintain data structure
       newvars = c("rmean", "pmean", "mmean", "lmean", "rsd", "psd", "msd", "lsd") 
-      dummy = as.data.frame( array(data=NA, dim=c(nrow(sm), length(newvars) )))
+      dummy = as.data.frame( array(data=NA, dim=c(nrow(set), length(newvars) )))
       names (dummy) = newvars
-      sm = cbind(sm, dummy)
+      set = cbind(set, dummy)
       
       det = groundfish.db( "det" )       
      
@@ -964,33 +965,33 @@
         
 #        qs = qs[, c("id","rmean", "pmean","mmean", "lmean", "rsd", "psd", "msd", "lsd")]
         qs = qs[, c("id","mmean", "lmean",  "msd", "lsd")]
-        sm = merge(sm, qs, by=c("id"), sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",tx,sep="")) )
+        set = merge(set, qs, by=c("id"), sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",tx,sep="")) )
       }
-      for (i in newvars) sm[,i]=NULL # these are temporary vars used to make merges retain correct suffixes
+      for (i in newvars) set[,i]=NULL # these are temporary vars used to make merges retain correct suffixes
 
-      sm$yr = NULL  # dummy var
+      set$yr = NULL  # dummy var
 
-      save ( sm, file=fn, compress=T)
+      save ( set, file=fn, compress=T)
       return( fn  )
     }
     
  # ----------------------
 
     if (DS %in% c("metabolic.rates","metabolic.rates.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "sm_mrate.rdata" )
+      fn = file.path( project.directory("groundfish"), "data", "set_mrate.rdata" )
       if (DS=="metabolic.rates") {
         load( fn)
-        return (sm)
+        return (set)
       }
       
-      sm = groundfish.db( "sm.base" )      
+      set = groundfish.db( "set.base" )      
       x = groundfish.db( "det" )
       x = x[ which(x$settype %in% c(1, 2, 4, 5, 8) ) , ]
     #  settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
     #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
     #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
 
-      x = merge(x, sm, by="id", all.x=T, all.y=F, suffixes=c("",".sm"), sort=F)
+      x = merge(x, set, by="id", all.x=T, all.y=F, suffixes=c("",".set"), sort=F)
 
           
       # from Robinson et al. (1983) 
@@ -1080,10 +1081,10 @@
       mr$mrPvalue =  pnorm(q=mr.lm$residuals, sd=mr.lm$sigma)
       mr$mrPvalueT = pnorm(q=mrT.lm$residuals, sd=mrT.lm$sigma)
 
-      sm = groundfish.db( "sm.base" ) [, c("id", "temp")]
-      sm = merge( sm, mr, by=c("id"), sort=F, all.x=T, all.y=F )
-      sm$temp = NULL
-      save (sm, file=fn, compress=T)
+      set = groundfish.db( "set.base" ) [, c("id", "temp")]
+      set = merge( set, mr, by=c("id"), sort=F, all.x=T, all.y=F )
+      set$temp = NULL
+      save (set, file=fn, compress=T)
       return( fn  )
  
     }
@@ -1098,7 +1099,7 @@
 
       if ( DS=="speciescomposition" ) {
         load( fn )
-        return (sm)
+        return (set)
       } 
    
       if ( DS=="ordination.speciescomposition" ) {
@@ -1119,7 +1120,7 @@
     # numbers and weights have already been converted to per km2 and with vessel corrections
       k = 1e4         # a large constant number to make xtabs work
   
-      x = groundfish.db( "set" )
+      x = groundfish.db( "cat" )
       
       x = filter.taxa( x, method=p$taxa )
       
@@ -1138,10 +1139,10 @@
       while( !(finished.j & finished.i) ) {
         nr = nrow(m)
         nc = ncol(m)
-        rowsm = rowSums(m)
-        colsm = colSums(m)
-        i = unique( c( which( rowsm/nr <= threshold ), which(rowsm==0 ) ))
-        j = unique( c( which( colsm/nc <= threshold ), which(colsm==0 ) ))
+        rowset = rowSums(m)
+        colset = colSums(m)
+        i = unique( c( which( rowset/nr <= threshold ), which(rowset==0 ) ))
+        j = unique( c( which( colset/nc <= threshold ), which(colset==0 ) ))
         if (length(i) > 0 ) {
           m = m[ -i , ]
         } else {
@@ -1171,11 +1172,11 @@
       save (scores, file=fn.scores, compress=T)
       save (ord, file=fn.ord, compress=T)
      
-      sm = groundfish.db( "sm.base" ) [, c("id", "yr")]
-      sm = merge(sm, scores, by="id", all.x=T, all.y=F, sort=F)
-      sm$yr = NULL
+      set = groundfish.db( "set.base" ) [, c("id", "yr")]
+      set = merge(set, scores, by="id", all.x=T, all.y=F, sort=F)
+      set$yr = NULL
       
-      save (sm, file=fn, compress=T)
+      save (set, file=fn, compress=T)
    
       print( ord$CA$eig[1:10]/sum(ord$CA$eig)*100 )
 
@@ -1224,13 +1225,13 @@
 
     if (DS %in% c("shannon.information", "shannon.information.redo" ) ) {
     
-      fn = file.path( project.directory("groundfish"), "data", "sm_shannon_information.rdata" )
+      fn = file.path( project.directory("groundfish"), "data", "set_shannon_information.rdata" )
 
       if (DS=="shannon.information") {
         load( fn )
-        return (sm)
+        return (set)
       } 
-      x = groundfish.db( "set" )
+      x = groundfish.db( "cat" )
        
       # filter taxa
       x = filter.taxa( x, method=p$taxa )
@@ -1260,11 +1261,11 @@
 
       si = shannon.diversity(m)
         
-      sm = groundfish.db( "sm.base" ) [, c("id", "yr")]
-      sm = merge( sm, si, by=c("id"), sort=F, all.x=T, all.y=F )
-      sm$yr = NULL
+      set = groundfish.db( "set.base" ) [, c("id", "yr")]
+      set = merge( set, si, by=c("id"), sort=F, all.x=T, all.y=F )
+      set$yr = NULL
 
-      save(sm, file=fn, compress=T)
+      save(set, file=fn, compress=T)
       return( fn )
     }
 
@@ -1272,27 +1273,27 @@
     
 
 
-    if (DS %in% c("sm.partial") ) {
+    if (DS %in% c("set.partial") ) {
       
       # this is everything in groundfish just prior to the merging in of habitat data
       # useful for indicators db as the habitat data are brough in separately (and the rest of 
-      # sm.complete has not been refactored to incorporate the habitat data
+      # set.complete has not been refactored to incorporate the habitat data
 
-      sm = groundfish.db( "sm.base" )
+      set = groundfish.db( "set.base" )
 
       # 1 merge catch
-      sm = merge (sm, groundfish.db( "catchbyspecies" ), by = "id", sort=F, all.x=T, all.y=F )
+      set = merge (set, groundfish.db( "catchbyspecies" ), by = "id", sort=F, all.x=T, all.y=F )
 
       # 2 merge condition and other determined characteristics
-      sm = merge (sm, groundfish.db( "sm.det" ), by = "id", sort=F, all.x=T, all.y=F )
+      set = merge (set, groundfish.db( "set.det" ), by = "id", sort=F, all.x=T, all.y=F )
   
       # strata information
       gst = groundfish.db( DS="gsstratum" )
-      w = c( "strat", setdiff( names(gst), names(sm)) )
-      if ( length(w) > 1 ) sm = merge (sm, gst[,w], by="strat", all.x=T, all.y=F, sort=F)
-      sm$area = as.numeric(sm$area)
+      w = c( "strat", setdiff( names(gst), names(set)) )
+      if ( length(w) > 1 ) set = merge (set, gst[,w], by="strat", all.x=T, all.y=F, sort=F)
+      set$area = as.numeric(set$area)
       
-      return( sm)
+      return( set)
     
     }
 
@@ -1300,41 +1301,41 @@
     
 
 
-    if (DS %in% c("sm.complete", "sm.complete.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "sm.rdata")
-      if ( DS=="sm.complete" ) {
+    if (DS %in% c("set.complete", "set.complete.redo") ) {
+      fn = file.path( project.directory("groundfish"), "data", "set.rdata")
+      if ( DS=="set.complete" ) {
         load( fn )
-        return ( sm )
+        return ( set )
       }
         
-      sm = groundfish.db( "sm.partial" )
-      sm = lonlat2planar(sm, proj.type=p$internal.projection ) # get planar projections of lon/lat in km
+      set = groundfish.db( "set.partial" )
+      set = lonlat2planar(set, proj.type=p$internal.projection ) # get planar projections of lon/lat in km
       
 	    # bring in time invariant features:: depth
 			print ("Bring in depth")
-      sm$sdepth = habitat.lookup.simple( sm,  p=p, vnames="sdepth", lookuptype="depth" )
-      sm$z = sm$sdepth  # dummy var for later merges
-      # sm$z = log( sm$z )
+      set$sdepth = habitat.lookup.simple( set,  p=p, vnames="sdepth", lookuptype="depth" )
+      set$z = set$sdepth  # dummy var for later merges
+      # set$z = log( set$z )
 			
 		  
       # bring in time varing features:: temperature
 			print ("Bring in temperature")
-      sm$temp = habitat.lookup.simple( sm,  p=p, vnames="temp", lookuptype="temperature.weekly" )
+      set$temp = habitat.lookup.simple( set,  p=p, vnames="temp", lookuptype="temperature.weekly" )
 
 			# bring in all other habitat variables, use "z" as a proxy of data availability
 			# and then rename a few vars to prevent name conflicts
 			print ("Bring in all other habitat variables")
       
-      sH = habitat.lookup.grouped( sm,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
+      sH = habitat.lookup.grouped( set,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
       sH$z = log(sH$z) 
       sH = rename.df( sH, "z", "z.H" )
 			sH$yr = NULL
 			vars = names (sH )
 
-      sm = cbind( sm, sH )
+      set = cbind( set, sH )
 		
       # return planar coords to correct resolution
-      sm = lonlat2planar( sm, proj.type=p$internal.projection )
+      set = lonlat2planar( set, proj.type=p$internal.projection )
 
       
       # 3 merge nss 
@@ -1343,8 +1344,8 @@
       nss = sizespectrum.db( DS="sizespectrum.stats.merged", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
       nss$strat = NULL
-      if ( length(w) > 1 ) w = c( "id", setdiff( names(nss), names( sm) ) )
-      sm = merge( sm, nss[,w], by="id", sort=FALSE )
+      if ( length(w) > 1 ) w = c( "id", setdiff( names(nss), names( set) ) )
+      set = merge( set, nss[,w], by="id", sort=FALSE )
       rm (nss)
 
       
@@ -1352,8 +1353,8 @@
       loadfunctions( "speciesarea")
       sar = speciesarea.db( DS="speciesarea.stats.merged", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
-      if ( length(w) > 1 ) w = c( "id", setdiff( names(sar), names(sm)) )
-      sm = merge( sm, sar[,w], by="id", sort=FALSE )
+      if ( length(w) > 1 ) w = c( "id", setdiff( names(sar), names(set)) )
+      set = merge( set, sar[,w], by="id", sort=FALSE )
       rm (sar)
 
 
@@ -1361,26 +1362,26 @@
       loadfunctions( "metabolism")
       meta = metabolism.db( DS="metabolism.merged", 
           p=list( spatial.domain="SSE", taxa="alltaxa", season="allseasons" ) )
-      if ( length(w) > 1 ) w = c( "id", setdiff( names(meta), names(sm)) )
-      sm = merge( sm, meta[,w], by="id", sort=FALSE )
+      if ( length(w) > 1 ) w = c( "id", setdiff( names(meta), names(set)) )
+      set = merge( set, meta[,w], by="id", sort=FALSE )
       rm (meta)
 
       # 6 merge species composition
       loadfunctions( "speciescomposition")
       sc = speciescomposition.db( DS="speciescomposition.stats.merged", 
           p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
-      w = c( "id", setdiff( names(sc), names(sm)) )
-      if ( length(w) > 1 ) sm = merge( sm, sc[,w], by="id", sort=FALSE )
+      w = c( "id", setdiff( names(sc), names(set)) )
+      if ( length(w) > 1 ) set = merge( set, sc[,w], by="id", sort=FALSE )
       rm (sc)
 
 
       # 7 merge species diversity 
       si = groundfish.db( "shannon.information" )
-      w = c( "id", setdiff( names(si), names(sm)) )
-      if ( length(w) > 1 ) sm = merge( sm, si[,w], by="id", sort=F )
+      w = c( "id", setdiff( names(si), names(set)) )
+      if ( length(w) > 1 ) set = merge( set, si[,w], by="id", sort=F )
       
     
-      save ( sm, file=fn, compress=F )
+      save ( set, file=fn, compress=F )
       return( fn )
     }
     

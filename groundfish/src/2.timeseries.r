@@ -3,7 +3,7 @@
 	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
   data.location = file.path( project.directory("groundfish"), "data", "2006")
-  sm =  groundfish.db( "sm.complete" )
+  set =  groundfish.db( "set.complete" )
 
   variables = variable.list.expand("all")
   plottimes = c("annual")
@@ -11,10 +11,10 @@
   season = "summer"
 
   if (redo.byyear) {
-    sm = sm[ filter.season( sm$julian, period=season, index=T ) , ]
+    set = set[ filter.season( set$julian, period=season, index=T ) , ]
 
     # clusters= c( "tethys", "tethys",  "tethys", "tethys" )
-    byyear = ts.getdata(sm, from.file=F, variables, plottimes, regions, do.parallel=T )
+    byyear = ts.getdata(set, from.file=F, variables, plottimes, regions, do.parallel=T )
   # this will take ~12 hr .. try to get a parallel version running
   }
   byyear = ts.getdata(season=season)

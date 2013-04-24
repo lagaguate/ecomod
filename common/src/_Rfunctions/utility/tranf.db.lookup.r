@@ -11,7 +11,7 @@
       log.transform = variable.list.expand("log.transform")
       scaled.centered = variable.list.expand("scaled.centered")
       sn = variable.list.expand("all")
-      set = groundfish.db("sm.partial" )    
+      set = groundfish.db("set.partial" )    
       repository = file.path( project.directory("groundfish"), "R", "transform.lookup.rdata" )
     } else {
       print(" Must define data sources for transformation to this function" )

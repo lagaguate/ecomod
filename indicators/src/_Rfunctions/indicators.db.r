@@ -342,9 +342,9 @@
       loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
         
       # data from groundfish data series
-      sm = groundfish.db( "sm.partial" )
+      set = groundfish.db( "set.partial" )
       variables = c( variable.list.expand("all"), "area")
-      byyear = ts.getdata(sm=sm, fname="byear.4vw", from.file=F, variables=variables, plottimes="annual", regions="nafo.4vw", custom="normal") 
+      byyear = ts.getdata(set=set, fname="byear.4vw", from.file=F, variables=variables, plottimes="annual", regions="nafo.4vw", custom="normal") 
       yrs = sort( unique( byyear$yr ) )
       vars = sort( unique( byyear$variable ) )
       nyrs = length(yrs)
