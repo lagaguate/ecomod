@@ -72,7 +72,7 @@
         # no./km2 ; and  kg/km2
         x$data.source = "groundfish"
         x$totmass = x$totwgt
-        x$cfcat = x$cf
+        x$cfcat = x$cfset * x$cfvessel
 				x = x[, cat.names]
         cat = rbind( cat, x )
         rm (x); gc()
@@ -325,6 +325,41 @@
       detmr = metabolic.rates ( det$mass * 1000, det$t )
       det = cbind( det, detmr )
 
+    
+      ## det$cfdet needs to be updated as it was formed without the above re-estimation of missing weights
+      
+      cat = bio.db( DS="cat.init", p=p )
+ 
+      massTotCat = applySum( det[ ,c("id2", "mass")], newnames=c("id2","massTotdet" ) )  
+      noTotCat = applySum( det$id2, newnames=c("id2","noTotdet" ) )  
+
+      cat = merge( cat, massTotCat, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
+      cat = merge( cat, noTotCat, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
+ 
+      cat$cfdet =  cat$totmass/ cat$massTotdet  # totwgt already corrected for vessel and tow .. cfdet is the multiplier required to make each det measurement scale properly
+   
+      # assume no subsampling -- all weights determined from the subsample
+      oo = which ( !is.finite( cat$cfdet ) |  cat$cfdet==0 )
+      if (length(oo)>0) cat$cfdet[oo] = cat$cfcat[oo]  
+      
+      
+      # assume remaining have an average subsampling effect
+      oo = which ( (!is.finite( cat$cfdet ) |  cat$cfdet==0 ) )
+      
+      for ( ds in unique( cat$data.source[oo] ) ) {
+        for ( sp in unique( cat$spec[oo]  )) {
+          
+          mm = which( cat$data.source==ds & cat$spec==sp & (!is.finite( cat$cfdet ) |  cat$cfdet==0 ) ) 
+          nn = which( cat$data.source==ds & cat$spec==sp )
+          if ( length(mm)>0  & length(nn)>0  ) {
+            cat$cfdet[ mm ] = median( cat$cfdet[nn] , na.rm=TRUE )  
+          }
+      }}
+
+      cat = cat[, c("id2", "cfdet")]
+      
+      det$cfdet = NULL
+      det = merge( det, cat, by="id2", all.x=T, all.y=F, sort=F)
 
       save (det, file=fn, compress=TRUE )
       return (fn)
@@ -345,31 +380,24 @@
    
       set = bio.db( DS="set.init" ) # kg/km^2, no/km^2
       
-      cat = bio.db( DS="cat.init", p=p )
-      cat = cat[ which( cat$id %in% unique( set$id) ), ]
-
       det = bio.db( DS="det" ) # size information, no, cm, kg
       det = det[ which( det$id %in% unique( set$id) ), ]
 
+      cat = bio.db( DS="cat.init", p=p )
+      cat = cat[ which( cat$id %in% unique( set$id) ), ]
+      cat$cfcat = NULL  # no longer needed 
   
-      # NOTE: cat$totno and cat$totmass have already been cf corrected ---> already in per km2
-      sm = data.frame( id2=as.character( sort( unique( cat$id2 ) )), stringsAsFactors=FALSE )
- 
-      # sm = merge( sm, applySum( det[ , c("id2", "mass", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      # test to make sure weights are proper:
-      # plot( sm$totwgt, sm$mass )
+      oo = which( duplicated( cat$id2) )
+      if (length( oo) > 0 ) cat = cat[ -oo, ]
       
-      sm = merge( sm, applySum( det[ , c("id2", "mr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
-       
-      sm = merge( sm, applyMean( det[ , c("id2", "smr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      sm = merge( sm, applyMean( det[ , c("id2", "mass", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      sm = merge( sm, applyMean( det[ , c("id2", "len", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      cat = merge( cat, applySum( det[ , c("id2", "mr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      cat = merge( cat, applyMean( det[ , c("id2", "smr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      cat = merge( cat, applyMean( det[ , c("id2", "mass", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      cat = merge( cat, applyMean( det[ , c("id2", "len", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
 
-  
 
     	surveys = sort( unique( cat$data.source ) ) 
       species = sort( unique( cat$spec ) )
-
 			
 			# in the following:	quantiles are computed, 
       cat$qn = NA  # default when no data
@@ -428,35 +456,6 @@
 
 			}
       
-      # qn, qm and zn, zm are quantiles and zscores for within each survey and species 
-      # create another one for overall relative abundance of each species within each survey (qs, zs) 
-      # zn * zs ==> zn(global across all surveys) 
-
-      xtn = as.data.frame( xtabs( totno ~ data.source + spec, cat ), stringsAsFactors =FALSE  )
-      xtn$qns = NA
-
-        for (sp in surveys ){
-          ii = which( xtn$data.source == sp )
-					xtn$qns[ii] = quantile.estimate( xtn$Freq[ii]  )  # convert to quantiles, by species and survey
-        }
-
-      xtm = as.data.frame( xtabs( totmass ~ data.source + spec, cat ), stringsAsFactors =FALSE  )
-      xtm$qms = NA
-        for (sp in surveys ){
-          ii = which( xtm$data.source == sp )
-					xtm$qms[ii] = quantile.estimate( xtm$Freq[ii]  )  # convert to quantiles, by species and survey
-        }
-
-
-      xtm$Freq = NULL
-      xtn$Freq = NULL
-      xt = merge (xtn, xtm, by=c("data.source", "spec") )
-      cat = merge( cat, xt, by=c("data.source", "spec"), all.x=TRUE, all.y=FALSE )
-
-
-      cat$zms = quantile.to.normal( cat$qms )
-      cat$zns = quantile.to.normal( cat$qns )
-
       save (cat, file=fn, compress=TRUE )
       return (fn)
     
@@ -481,12 +480,17 @@
        
       det = bio.db( DS="det" ) # size information, no, cm, kg
       det = det[ which( det$id %in% unique( set$id) ), ]
- 
+    
+      cat = bio.db( DS="cat.init", p=p )
+      cat = cat[ which( cat$id %in% unique( set$id) ), ]
+      cat$cfcat = NULL  # no longer needed 
+  
+
       # NOTE: cat$totno and cat$totmass have already been cf corrected ---> already in per km2
-      sm = data.frame( id=as.character( sort( unique( cat$id ) )), stringsAsFactors=FALSE )
+      sm = data.frame( id=as.character( sort( unique( set$id ) )), stringsAsFactors=FALSE )
    
       sm = merge( sm, applySum( cat[ , c("id", "totno") ] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      sm = merge( sm, applySum( cat[ , c("id", "totwgt") ] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      sm = merge( sm, applySum( cat[ , c("id", "totmass") ] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
 
       sm = merge( sm, applySum( det[ , c("id", "mr", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
       
@@ -494,6 +498,8 @@
       sm = merge( sm, applyMean( det[ , c("id", "mass", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
       sm = merge( sm, applyMean( det[ , c("id", "len", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
   
+      set = merge( set, sm, by ="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+
       save( set, file=fn, compress=T )
       return (fn) 
     }

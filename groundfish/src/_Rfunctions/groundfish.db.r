@@ -374,7 +374,7 @@
       gsinf$lon = gsinf$slong/100
       if (mean(gsinf$lon,na.rm=T) >0 ) gsinf$lon = - gsinf$lon  # make sure form is correct
       gsinf = convert.degmin2degdec(gsinf)
-      gsinf$cftow = 1.75/gsinf$dist
+      gsinf$cftow = 1.75/gsinf$dist  # not used
       ft2m = 0.3048
       m2km = 1/1000
       nmi2mi = 1.1507794
@@ -621,14 +621,10 @@
       require(chron)
 
       gscat = groundfish.db( "gscat" ) #kg/set, no/set 
-      gsinf = groundfish.db( "gsinf" ) 
-      cat = merge(x=gscat, y=gsinf, by=c("id"), all.x=T, all.y=F, sort=F) 
-      rm (gscat, gsinf)     
+      set = groundfish.db( "set.base" ) 
+      cat = merge(x=gscat, y=set, by=c("id"), all.x=T, all.y=F, sort=F) 
+      rm (gscat, set)     
    
-      gshyd = groundfish.db( "gshyd" ) 
-      cat = merge(x=cat, y=gshyd, by=c("id"), all.x=T, all.y=F, sort=F) 
-      rm (gshyd)
-
       gstaxa = taxa.db( "life.history" ) 
       gstaxa = gstaxa[,c("spec", "name.common", "name.scientific", "itis.tsn" )]
       oo = which( duplicated( gstaxa$spec ) )
@@ -638,21 +634,7 @@
       }
 
       cat = merge(x=cat, y=gstaxa, by=c("spec"), all.x=T, all.y=F, sort=F) 
-      rm (gstaxa)
-
-
-      # initial merge without any real filtering
-      # save(cat, file=file.path( project.directory("groundfish"), "data", "cat0.rdata"), compress=T)  
-
-			oo = which( !is.finite( cat$sdate)) # NED1999842 has no accompanying gsinf data ... drop it
-      if (length(oo)>0) cat = cat[ -oo  ,]  
-      cat$chron = as.chron(cat$sdate)
-      cat$sdate = NULL
-      cat$yr = convert.datecodes(cat$chron, "year" )
-      cat$julian = convert.datecodes(cat$chron, "julian")
-
       save(cat, file=fn, compress=T )
-
       return ( fn )
     }
     
@@ -669,39 +651,7 @@
       
       det = det[, c("id", "id2", "spec", "fshno", "sex", "mat", "len", "mass", "age") ]
       det$mass = det$mass / 1000 # convert from g to kg 
-      #       
-      #       det$mass = log10(det$mass) # log10(kg)
-      #       det$len = log10(det$len)  # log10(cm)
-      # 
-      #qmass = quantile( det$mass, probs=c(0.005, 0.995), na.rm=T )
-      # det$mass[ which( det$mass< qmass[1] | det$mass>qmass[2]) ] = NA
 
-      #qlen = quantile( det$len, probs=c(0.005, 0.995), na.rm=T )
-      # det$len[ which( det$len < qlen[1] | det$len>qlen[2]) ] = NA
-
-#      k = which( is.finite(det$len) & is.finite(det$mass)  )
-      
-      #       R = lm.resid( det[k ,c("mass", "len", "sex", "spec")], threshold=r2crit )
-      #       det$residual = NA
-      #       det$residual[k] = R$residual
-      #       
-      #       det$predicted.mass = NA
-      #       det$predicted.mass[k] = R$predicted.mass
-      # 
-      #       i = which( !is.finite( det$predicted.mass)  )
-      #       det$predicted.mass[i] = lm.mass.predict ( x=det[i,c("spec","sex","len")], lm=R$lm.summ, threshold=r2crit )
-      #    
-      #       i = which( is.finite(det$residual)  )
-      #       det$pvalue = NA
-      #       det$pvalue[i] = lm.pvalue ( x=det[i,c("spec","sex", "residual")], lm=R$lm.summ, threshold=r2crit )
-      #       
-      #       det$mass = 10^(det$mass)  # re-convert to (kg) (from log10(kg))
-      #       det$len = 10^(det$len)  # re-convert to (kg) (from log10(kg))
-      #       det$predicted.mass = 10^(det$predicted.mass)
-      #       
-      #       oo = which( !is.finite(det$mass) & is.finite(det$predicted.mass) )
-      #       det$mass[oo] = det$predicted.mass[oo]
-      # 
       save( det, file=fn, compress=T )
       return( fn )
     }
@@ -720,24 +670,18 @@
      
       # combine correction factors or ignore trapability corrections .. 
       # plaice correction ignored as they are size-dependent
-      cat = correct.vessel(cat)
+      cat = correct.vessel(cat)  # returns cfvessel
      
-      #dim(cat)
-#[1] 184372     32
-
-
-      # many cases have measurements but no subsampling info  ---- NOTE ::: sampwgt seems to be unreliable  -- recompute where necessary in "det"
+      # many cases have measurements but no subsampling info  
+      # ---- NOTE ::: sampwgt seems to be unreliable  -- recompute where necessary in "det"
       
-        # weighting for totals 
-      cat$cf = cat$cfvessel / cat$sakm2 
-
       # the following conversion are done here as sakm2 s not available in "gscat"
       # .. needs to be merged before use from gsinf
       # surface area of 1 standard set: sa =  41 (ft) * N  (nmi); N==1.75 for a standard trawl
       # the following express per km2 and so there is no need to "correct"  to std tow.
       
-      cat$totwgt  = cat$totwgt  * cat$cf # convert kg/set to kg/km^2
-      cat$totno   = cat$totno   * cat$cf # convert number/set to number/km^2
+      cat$totwgt  = cat$totwgt  * cat$cfset * cat$cfvessel # convert kg/set to kg/km^2
+      cat$totno   = cat$totno   * cat$cfset * cat$cfvessel # convert number/set to number/km^2
  
       # cat$sampwgt is unreliable for most data points nned to determine directly from "det"
       cat$sampwgt = NULL
@@ -767,11 +711,10 @@
       }
  
       # determine weighting factor for individual-level measurements (len, weight, condition, etc)
-      # x$cf is the multiplier used to scale for trawl sa, species, but not subsampling of individual metrics 
       
       # at the set level, some species are not sampled even though sampwgt's are recorded
       # this makes the total biomass > than that estimated from "DET" 
-      # a final correction factor is required to bring it back to the total biomass caught,
+      # an additional correction factor is required to bring it back to the total biomass caught,
       # this must be aggregated across all species within each set :  
 
       # correction factors for sampling etc after determination of mass and len 
@@ -785,20 +728,22 @@
       noTotCat = applySum( det$id2, newnames=c("id2","noTotdet" ) )  
 
       cat = groundfish.db( "cat" ) # kg/km^2 and  no/km^2 
-      cat = cat[, c("id2", "totno", "totwgt", "cf", "cfvessel", "cftow" )]
+      cat = cat[, c("id2", "totno", "totwgt", "cfset", "cfvessel" )]
       cat = merge( cat, massTotCat, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
       cat = merge( cat, noTotCat, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
  
-      cat$cfdetcat =  cat$totwgt/ cat$massTotdet 
-      oo = which ( !is.finite( cat$cfdetcat ) )
-      if (length(oo)>0) cat$cfdetcat[oo] = 1  # assume no subsampling -- all weights determined from the subsample
+      cat$cfdet =  cat$totwgt/ cat$massTotdet  # totwgt already corrected for vessel and tow .. cfdet is the multiplier required to make each det measurement scale properly
+
+      # assume no subsampling -- all weights determined from the subsample
+      oo = which ( !is.finite( cat$cfdet ) |  cat$cfdet==0 )
+      if (length(oo)>0) cat$cfdet[oo] = cat$cfset[oo] * cat$cfvessel[oo]  
       
-      pp = which ( cat$cfdetcat==0)
-      if (length(pp) > 0) cat$cfdetcat[pp ] = 1  # assume no subsampling -- all weights determined from the subsample
+      # assume remaining have an average subsampling effect
+      oo = which ( !is.finite( cat$cfdet ) |  cat$cfdet==0 )
+      if (length(oo)>0) cat$cfdet[oo] = median( cat$cfdet, na.rm=TRUE )  
 
-      cat$cfdet = cat$cfset * cat$cfdetcat  ## This brings together all weighting factors to make each individual reading equivalent to other individual readings
-
-      det = merge( det, cat[, c("id2", "cfdet")], by="id2", all.x=T, all.y=F, sort=F)
+      cat = cat[, c("id2", "cfdet")]
+      det = merge( det, cat, by="id2", all.x=T, all.y=F, sort=F)
 
       save( det, file=fn, compress=T )
       return( fn  )
@@ -815,17 +760,33 @@
         load( fn )
         return ( set )
       }
- ~~~check     set = groundfish.db( "cat")  
+      
+      gsinf = groundfish.db( "gsinf" ) 
+      gshyd = groundfish.db( "gshyd" ) # already contains temp data from gsinf 
+      
+      set = merge(x=gsinf, y=gshyd, by=c("id"), all.x=T, all.y=F, sort=F) 
+      rm (gshyd, gsinf)
+    	
+      oo = which( !is.finite( set$sdate)) # NED1999842 has no accompanying gsinf data ... drop it
+      if (length(oo)>0) set = set[ -oo  ,]  
+
+      set$chron = as.chron(set$sdate)
+      set$sdate = NULL
+      set$yr = convert.datecodes(set$chron, "year" )
+      set$julian = convert.datecodes(set$chron, "julian")
+
       set = set[, c("id", "chron", "yr", "julian", "strat", "dist", 
-                 "sakm2", "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype", "cf")]
+                 "sakm2", "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype")]
 
       set = set[ !duplicated(set$id) ,] 
       set$oxysat = compute.oxygen.saturation( t.C=set$temp, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
+      set$cfset = 1 / set$sakm2
+
       save ( set, file=fn, compress=T)
       return( fn  )
     }
      
-     # ----------------------
+    # ----------------------
 
     
     if (DS %in% c("catchbyspecies", "catchbyspecies.redo") ) {
@@ -924,19 +885,7 @@
         
         len2 = tapply(X=det$len*det$len*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
         len2 = data.frame(len2=as.vector(len2), id=I(names(len2)))
-#
-#        res1 = tapply(X=det$residual*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
-#        res1 = data.frame(res1=as.vector(res1), id=I(names(res1)))
-#        
-#        res2 = tapply(X=det$residual*det$residual*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
-#        res2 = data.frame(res2=as.vector(res2), id=I(names(res2)))
-#
-#        pv1 = tapply(X=det$pvalue*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
-#        pv1 = data.frame(pv1=as.vector(pv1), id=I(names(pv1)))
-#        
-#        pv2 = tapply(X=det$pvalue*det$pvalue*det$cfdet, INDEX=index, FUN=sum, na.rm=T)
-#        pv2 = data.frame(pv2=as.vector(pv2), id=I(names(pv2)))
-#
+
         ntot = tapply(X=det$cfdet, INDEX=index, FUN=sum, na.rm=T)
         ntot = data.frame(ntot=as.vector(ntot), id=I(names(ntot)))
 
@@ -944,26 +893,18 @@
         qs = merge(mass1, mass2, by=c("id"), sort=F, all=T)
         qs = merge(qs, len1, by=c("id"), sort=F, all=T)
         qs = merge(qs, len2, by=c("id"), sort=F, all=T)
-#        qs = merge(qs, res1, by=c("id"), sort=F, all=T)
-#        qs = merge(qs, res2, by=c("id"), sort=F, all=T)
-#        qs = merge(qs, pv1, by=c("id"), sort=F, all=T)
-#        qs = merge(qs, pv2, by=c("id"), sort=F, all=T)
+
         qs = merge(qs, ntot, by=c("id"), sort=F, all=T)
 
-#        qs$rmean = qs$res1/qs$ntot
-#        qs$pmean = qs$pv1/qs$ntot
         qs$mmean = qs$mass1/qs$ntot
         qs$lmean = qs$len1/qs$ntot
         
         # these are not strictly standard deviations as the denominator is not n-1 
         # but the sums being fractional and large .. is a close approximation
         # the "try" is to keep the warnings quiet as NANs are produced.
-#        qs$rsd = try( sqrt( qs$res2 - (qs$res1*qs$res1/qs$ntot) ), silent=T )
-#        qs$psd = try( sqrt( qs$pv2 - (qs$pv1*qs$pv1/qs$ntot) ), silent=T  )
         qs$msd = try( sqrt( qs$mass2 - (qs$mass1*qs$mass1/qs$ntot) ), silent=T  )
         qs$lsd = try( sqrt( qs$len2 - (qs$len1*qs$len1/qs$ntot)  ), silent=T  )
         
-#        qs = qs[, c("id","rmean", "pmean","mmean", "lmean", "rsd", "psd", "msd", "lsd")]
         qs = qs[, c("id","mmean", "lmean",  "msd", "lsd")]
         set = merge(set, qs, by=c("id"), sort=F, all.x=T, all.y=F, suffixes=c("", paste(".",tx,sep="")) )
       }
@@ -975,300 +916,6 @@
       return( fn  )
     }
     
- # ----------------------
-
-    if (DS %in% c("metabolic.rates","metabolic.rates.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "set_mrate.rdata" )
-      if (DS=="metabolic.rates") {
-        load( fn)
-        return (set)
-      }
-      
-      set = groundfish.db( "set.base" )      
-      x = groundfish.db( "det" )
-      x = x[ which(x$settype %in% c(1, 2, 4, 5, 8) ) , ]
-    #  settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
-    #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
-    #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
-
-      x = merge(x, set, by="id", all.x=T, all.y=F, suffixes=c("",".set"), sort=F)
-
-          
-      # from Robinson et al. (1983) 
-      # specific standard MR = 0.067 M^(-0.24) * exp(0.051 * Temp) 
-      # (Temp in deg Celcius; M in grams, MR in ml O2/g/hr)
-      b0 = 0.067
-      b1 = -0.24
-      b2 = 0.051
-      
-      # 1 ml O2 = 4.8 cal (from paper)
-      # 1 W = 7537.2 kcal/yr
-      
-      # 1 ml O2 / g / hr = 4.8 * 24 * 365 kcal / yr / kg
-      #                  = 4.8 * 24 * 365 / (7537.2 W) / kg
-      #                  = 5.57873 W / kg
-      
-      from.ml.O2.per.g.per.hr.to.W.per.kg = 1 / 5.57873
-      
-
-    ###################### <<<<<<<<<<<<<<<<< Should bring in habitat variables here to assist with temperature .. lots of missing values!
-
-      x$smr  = b0 * (x$mass*1000)^b1 * exp( b2 * 20.0) * from.ml.O2.per.g.per.hr.to.W.per.kg
-      x$smrT = b0 * (x$mass*1000)^b1 * exp( b2 * x$temp) * from.ml.O2.per.g.per.hr.to.W.per.kg
-
-      x$mr  = x$smr  * x$mass
-      x$mrT = x$smrT * x$mass
-
-      # Arrhenius correction
-      # k = 10^8 # the constant
-      # Ea = 10 # energy of activation (kcal/mol) 10 ~ q10 of 2; 25 ~ q10 of 4
-      # R = 1.9858775 # gas constant cal/(mole.K)
-      # x$mrT = x$mr * k * exp( - Ea * 1000 / (R * (x$temp + 273.150) ))
-
-      prec = 10^5 # just a constant to get xtabs to work with a non-integer
-      
-      e = x$mr * x$cf  # correction factors required to make areal estimates 
-      d = which( is.finite(e) & e> 0 )
-        id = as.factor(x$id[d])
-        l0 = prec / min(e[d] , na.rm=T)
-        data = as.numeric(as.integer(e[d] * l0))
-        mr = as.data.frame(xtabs(data ~ id) / l0)
-      
-      e = x$mrT * x$cf 
-      d = which( is.finite(e) & e> 0 )
-        id = as.factor(x$id[d])
-        l0 = prec / min(e[d], na.rm=T)
-        data = as.numeric(as.integer(e[d] * l0))
-        mrT = as.data.frame(xtabs(data ~ id) / l0)
-       
-      e = x$mass * x$cf
-      d = which( is.finite(e) & e> 0 )
-        id = as.factor(x$id[d])
-        l0 = prec / min(e[d], na.rm=T)
-        data = as.numeric(as.integer(e[d] * l0))
-        massTot = as.data.frame(xtabs(data ~ id) / l0)
-
-      names(mr) = c("id","mr")
-      names(mrT) = c("id","mrT")
-      names(massTot) = c("id","massTot")
-
-      mr$id = as.character(mr$id)
-      mrT$id = as.character(mrT$id)
-      massTot$id = as.character(massTot$id)
-      mr$mr = as.numeric(mr$mr)
-      mrT$mrT = as.numeric(mrT$mrT)
-      massTot$massTot = as.numeric(massTot$massTot)
-      
-      # merge data together
-      mr = merge(x=mr, y=mrT, by="id", all.x=T, all.y=F)
-      mr = merge(x=mr, y=massTot, by="id", all.x=T, all.y=F)
-
-      # calculate mass-specific rates in the whole set
-      mr$smr = mr$mr / mr$massTot
-      mr$smrT = mr$mrT / mr$massTot
-
-      mr$smr[ which(mr$massTot==0) ] = NA
-      mr$smrT[ which(mr$massTot==0) ] = NA
-
-      mr = mr[mr$mr > 0 ,]
-      mr = mr[mr$mrT > 0 ,]
-      mr = mr[mr$massTot > 0 ,]
-      mr = mr[is.finite(mr$mrT), ]
-
-      mr.lm = summary(lm(log(mr$mr) ~ log(mr$massTot)))
-      mrT.lm = summary(lm(log(mr$mrT) ~ log(mr$massTot)))
-
-      mr$mrPvalue =  pnorm(q=mr.lm$residuals, sd=mr.lm$sigma)
-      mr$mrPvalueT = pnorm(q=mrT.lm$residuals, sd=mrT.lm$sigma)
-
-      set = groundfish.db( "set.base" ) [, c("id", "temp")]
-      set = merge( set, mr, by=c("id"), sort=F, all.x=T, all.y=F )
-      set$temp = NULL
-      save (set, file=fn, compress=T)
-      return( fn  )
- 
-    }
-
- # ----------------------
-
-    if (DS %in% c("speciescomposition", "ordination.speciescomposition", "scores.speciescomposition", "speciescomposition.redo") ) {
-    
-      fn = file.path( project.directory("groundfish"), "data", "ordination.rdata" )
-      fn.ord = file.path( project.directory("groundfish"), "data", "ordination.all.rdata" )
-      fn.scores = file.path( project.directory("groundfish"), "data", "ordination.scores.rdata" )
-
-      if ( DS=="speciescomposition" ) {
-        load( fn )
-        return (set)
-      } 
-   
-      if ( DS=="ordination.speciescomposition" ) {
-        load( fn.ord )
-        return (ord)
-      } 
-   
-      if ( DS=="scores.speciescomposition" ) {
-        load( fn.scores )
-        return (scores)
-      } 
-   
-
-    # rescale variables .. log transforms and express per km2 before ordinations
-    # ...  large magnitude numbers are needed for ordinations
-
-    # form datasets
-    # numbers and weights have already been converted to per km2 and with vessel corrections
-      k = 1e4         # a large constant number to make xtabs work
-  
-      x = groundfish.db( "cat" )
-      
-      x = filter.taxa( x, method=p$taxa )
-      
-      x = x[ filter.season( x$julian, period=season, index=T ) , ]
-
-      if (type == "number") {
-        o = which(is.finite(x$totno))
-        m = xtabs( as.numeric(as.integer(totno*k)) ~ as.factor(id) + as.factor(spec), data=x[o,] ) / k
-      }
-      if (type == "biomass") {
-        o = which(is.finite(x$totwgt))
-        m = xtabs(as.numeric( as.integer(totwgt*k)) ~ as.factor(id) + as.factor(spec), data=x[o,] ) / k
-      }
-
-      finished.j = finished.i = F
-      while( !(finished.j & finished.i) ) {
-        nr = nrow(m)
-        nc = ncol(m)
-        rowset = rowSums(m)
-        colset = colSums(m)
-        i = unique( c( which( rowset/nr <= threshold ), which(rowset==0 ) ))
-        j = unique( c( which( colset/nc <= threshold ), which(colset==0 ) ))
-        if (length(i) > 0 ) {
-          m = m[ -i , ]
-        } else {
-          finished.i = T 
-        }
-        if (length(j) > 0 ) {
-          m = m[ , -j ]
-        } else {
-          finished.j = T
-        }
-      }
-      
-      minval = min(m[m>threshold], na.rm=T)
-      m = log( m + minval )
-  
-      ord = cca( m )
-      sp.sc = scores(ord)$species
-      si.sc = scores(ord)$sites
-
-      scores = data.frame( 
-        id=rownames(si.sc), 
-        ca1=as.numeric(si.sc[,1]), 
-        ca2=as.numeric(si.sc[,2]) 
-      )
-      scores$id = as.character(scores$id)
-
-      save (scores, file=fn.scores, compress=T)
-      save (ord, file=fn.ord, compress=T)
-     
-      set = groundfish.db( "set.base" ) [, c("id", "yr")]
-      set = merge(set, scores, by="id", all.x=T, all.y=F, sort=F)
-      set$yr = NULL
-      
-      save (set, file=fn, compress=T)
-   
-      print( ord$CA$eig[1:10]/sum(ord$CA$eig)*100 )
-
-      cluster.analysis = F
-      if (cluster.analysis) {
-        X = t(m)
-        gstaxa = taxa.db( "life.history" ) 
-        names = NULL
-        names$spec = as.numeric(dimnames(X)[[1]])
-        names = merge(y=names, x=gstaxa, by="spec", all.y=T, all.x=F, sort=F)
-
-        if (chisquared) {
-          X = X/sum(X)
-          rsums = rowSums(X)
-          csums = colSums(X)
-          rc = outer(rsums, csums)
-          out = (X-rc)/sqrt(rc)
-          d = out[lower.tri(out)]
-
-          # mimic a "dist" class
-          attr(d, "Size") <- nrow(X <- as.matrix(X))
-          attr(d, "Labels") <- names$common
-          attr(d, "Diag") <- F
-          attr(d, "Upper") <- F
-          attr(d, "method") <- "chisquare"
-          attr(d, "call") <- "NA"
-          class(d) <- "dist"
-        }
-
-        if (braycurtis) {
-          attr(X, "dimnames")[[1]] = names$common
-          d = vegdist(X, method="bray")
-        }
-
-        plot(hclust(d, "average"), cex=1); printfigure()
-        plot(hclust(d, "ward"), cex=0.5); printfigure()
-        plot(hclust(d, "complete"), cex=0.5); printfigure()
-        plot(hclust(d, "single"), cex=0.5); printfigure()
-        plot(hclust(d, "centroid"), cex=0.5); printfigure()
-      
-      }
-      return ( c(fn, fn.ord, fn.scores)  )
-    }
-
-    # ----------------------
-
-    if (DS %in% c("shannon.information", "shannon.information.redo" ) ) {
-    
-      fn = file.path( project.directory("groundfish"), "data", "set_shannon_information.rdata" )
-
-      if (DS=="shannon.information") {
-        load( fn )
-        return (set)
-      } 
-      x = groundfish.db( "cat" )
-       
-      # filter taxa
-      x = filter.taxa( x, method=p$taxa )
-      x = x[ filter.season( x$julian, period=season, index=T ) , ]
-
-      qn = quantile( x$totno, probs=0.95, na.rm = T ) 
-      x$totno [ which( x$totno > qn ) ] = qn
-
-                    # numbers and weights have already been converted to per km2 and with vessel corrections
-      k = 1e3         # a large constant number to make xtabs work
-      o = which(is.finite(x$totno))
-      x = x[o,]
-      m = xtabs( as.numeric(as.integer(totno*k)) ~ as.factor(id) + as.factor(spec), data=x ) / k
-      
-      
-      # remove low counts (absence) in the timeseries  .. species (cols) only
-      cthreshold = 0.05 * k  # quantiles to be removed 
-
-      finished = F
-      while( !(finished) ) {
-        i = unique( which(rowSums(m) == 0 ) )
-        j = unique( which(colSums(m) <= cthreshold ) )
-        if ( ( length(i) == 0 ) & (length(j) == 0 ) ) finished=T
-        if (length(i) > 0 ) m = m[ -i , ]
-        if (length(j) > 0 ) m = m[ , -j ]
-      }
-
-      si = shannon.diversity(m)
-        
-      set = groundfish.db( "set.base" ) [, c("id", "yr")]
-      set = merge( set, si, by=c("id"), sort=F, all.x=T, all.y=F )
-      set$yr = NULL
-
-      save(set, file=fn, compress=T)
-      return( fn )
-    }
-
     # ----------------------
     
 
@@ -1336,51 +983,7 @@
 		
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )
-
-      
-      # 3 merge nss 
-      loadfunctions( "sizespectrum")
-      
-      nss = sizespectrum.db( DS="sizespectrum.stats.merged", 
-          p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
-      nss$strat = NULL
-      if ( length(w) > 1 ) w = c( "id", setdiff( names(nss), names( set) ) )
-      set = merge( set, nss[,w], by="id", sort=FALSE )
-      rm (nss)
-
-      
-      # 4 merge sar
-      loadfunctions( "speciesarea")
-      sar = speciesarea.db( DS="speciesarea.stats.merged", 
-          p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
-      if ( length(w) > 1 ) w = c( "id", setdiff( names(sar), names(set)) )
-      set = merge( set, sar[,w], by="id", sort=FALSE )
-      rm (sar)
-
-
-      # 5 merge metabolic rates
-      loadfunctions( "metabolism")
-      meta = metabolism.db( DS="metabolism.merged", 
-          p=list( spatial.domain="SSE", taxa="alltaxa", season="allseasons" ) )
-      if ( length(w) > 1 ) w = c( "id", setdiff( names(meta), names(set)) )
-      set = merge( set, meta[,w], by="id", sort=FALSE )
-      rm (meta)
-
-      # 6 merge species composition
-      loadfunctions( "speciescomposition")
-      sc = speciescomposition.db( DS="speciescomposition.stats.merged", 
-          p=list( spatial.domain="SSE", taxa="maxresolved", season="allseasons" ) )
-      w = c( "id", setdiff( names(sc), names(set)) )
-      if ( length(w) > 1 ) set = merge( set, sc[,w], by="id", sort=FALSE )
-      rm (sc)
-
-
-      # 7 merge species diversity 
-      si = groundfish.db( "shannon.information" )
-      w = c( "id", setdiff( names(si), names(set)) )
-      if ( length(w) > 1 ) set = merge( set, si[,w], by="id", sort=F )
-      
-    
+         
       save ( set, file=fn, compress=F )
       return( fn )
     }

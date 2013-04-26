@@ -63,7 +63,8 @@
 
 # ---------
 # merged data sets
-  groundfish.db( "cat.base.redo" )
+  groundfish.db( DS="set.base.redo" )
+  groundfish.db( DS="cat.base.redo" )
 
 
 ******************
@@ -75,66 +76,23 @@
   groundfish.db( "cat.redo" )  # add correction factors, and express per unit area
   groundfish.db( "det.redo" ) # ~ 10 min on io
 
-
-# ---------
-# form main data summaries ("set") ... sequence is imporant as intermediate file are created by each step (in case)
-# 1. set0.rdata, set only basefile: 13027
-  groundfish.db( "set.base.redo" )
-
-
-# ---------
-# 2. set_catch.rdata, catches
   groundfish.db( "catchbyspecies.redo", taxa=taxa )
 
 
 # ---------
-# 3. set_det.rdata .. summarize condition 
+# 3. sm_det.rdata .. summarize condition 
   groundfish.db( "set.det.redo", taxa=taxa )
 
+  groundfish.db( "set.complete.redo", p=p )
 
-# -------------------------------------------------------------------------------------
+
+  # -------------------------------------------------------------------------------------
 # Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
 # -------------------------------------------------------------------------------------
   # source( file.path( project.directory("bio"), "src", "bio.r") )
   loadfunctions ( "bio", functionname="bio.r" ) 
 
 
-# -------------------------------------------------------------------------------------
-# Temperature data
-# must manually obtain data from the Biochem web site and run the sequence in ~/ecomod/temperature/src/temperature.r
-
-# -------------------------------------------------------------------------------------
-# Species area data
-# must manually update the species area database in ~/ecomod/speciesarea/src/speciesarea.r
-  
-# -------------------------------------------------------------------------------------
-# Species composition data
-# must manually update the species area database in ~/ecomod/speciescomposition/src/speciescomposition.r
- 
-# -------------------------------------------------------------------------------------
-# Metabolism data
-# must manually update the species area database in ~/ecomod/metabolism/src/metabolism.r
-
-  
-# ---------
-# 8 set_shannon_information.rdata  -- TODO -- make into an autonomous project
-#   groundfish.db( "shannon.information.redo", season=season, taxa=c("species", "genus") )
-
-
-# -------------------------------------------------------------------------------------
-# Habitat data 
-# Glue all the above together in planar coord system to allow fast lookup of data for matching with set, logbook data
-# run sequence in /home/jae/ecomod/habitat/src/habitat.r
-
-
-
-# ---------
-# 9 final save --- much of the above has moved to separate projects ... TODO: need to re-integrate ...
-#  groundfish.db( "set.complete.redo", p=p )
-#  set = groundfish.db( "set.complete", p=p )
-
-
-# 10 -------
 # create a lookuptable for data transformations
   REPOS = recode.variable.initiate.db ( db="groundfish" )
 
