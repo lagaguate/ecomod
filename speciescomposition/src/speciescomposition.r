@@ -43,22 +43,29 @@
 
   # model the data ~ 2hrs
   p = make.list( list(vars=p$varstomodel, modtype=p$mods), Y=p ) 
-  p$clusters = rep("localhost", p$nruns)
-  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.model, p=p, DS="redo" ) 
+    
+  
+  parallel = FALSE
+  if (parallel) {
+    p$clusters = rep("localhost", p$nruns)
+    parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.model, p=p, DS="redo" ) 
+  } else {
+    speciescomposition.model( p=p, DS="redo" ) 
+  }
 
   # summary( speciescomposition.model ( p=p, modeltype="simple", var="ca1" ) )
   # summary( speciescomposition.model ( p=p, modeltype="simple.highdef", var="ca2" ) )
 
 
   # interpolate onto a grid via predictioni ::: ~ 4hr / 1 year
+  np = 1:12
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
+  parallel.run( clusters=p$clusters[np], n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
 
  
   # map everything
   p = make.list( list(yrs=p$yearstomodel, vars=p$varstomodel, modtype=p$mods), Y=p ) 
   parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  )  
-
 
 
   testing = FALSE

@@ -134,7 +134,7 @@
           fn = paste( basefilename, tx, vname, nss.base, sep="." )
 
           ss = NULL
-          ss = xtab.2way( xval=XX$cf*XX[,vname], factors=XX[,c("id", "sizeclass")], k=10^6  )
+          ss = xtab.2way( xval=XX$cf*XX[,vname], factors=XX[,c("id", "sizeclass")] )
           
           ### ss contains number per km2 broken down by age class and weighted for sa, etc
           save( ss, file=fn, compress=T)

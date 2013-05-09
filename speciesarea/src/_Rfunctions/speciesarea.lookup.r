@@ -28,7 +28,7 @@ speciesarea.lookup = function( x, p, discretization.scale=0, dist.scale=5 ) {
     ii = which( x$yr == Y )
     H = x[ii,]  
 
-    SAG = speciesarea.interpolate( p=p, yr=y, modtype=p$speciesarea.modeltype )
+    SAG = speciesarea.interpolate( p=p, yr=y, modtype=p$speciesarea.modeltype, vname=v )
     if (is.null(SAG)) next ()
     
     SAG$yr = NULL

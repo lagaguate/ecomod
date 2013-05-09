@@ -17,7 +17,12 @@
         ddir = file.path( project.directory("speciescomposition"), "maps", p$spatial.domain, modtype, p$taxa, p$season, type  )
         dir.create(path=ddir, recursive=T, showWarnings=F)
 
-        sc = speciescomposition.interpolate ( p=p, yr=y, modtype=modtype ) 
+        sc = habitat.db( DS="baseline", p=p )  
+        sv = speciescomposition.interpolate ( p=p, yr=y, modtype=modtype, vname=v )
+
+        if (is.null(sv)) next()
+        sc[,v] = sv
+
         sc = sc[ filter.region.polygon( sc, region=c("4vwx", "5yz" ), planar=T, proj.type=p$internal.projection ) , ]
         outfn = paste( v, y, sep=".")
         annot = paste("Species composition: ", toupper(v), " (", y, ")", sep="")

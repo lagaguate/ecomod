@@ -15,9 +15,13 @@
         y = p$runs[iip,"yrs"]
         v = p$runs[iip,"vars"]
         modtype = p$runs[iip,"modtype"]
+  
+        sag = habitat.db( DS="baseline", p=p )  
+        
+        sv =  speciesarea.interpolate( p=p, yr=y, modtype=modtype, vname=v )
 
-        sag = speciesarea.interpolate( p=p, yr=y, modtype=modtype ) 
-        if (is.null(sag)) next()
+        if (is.null(sv)) next()
+        sag[,v] = sv
         sag = sag[ filter.region.polygon( sag, region=c("4vwx", "5yz" ), planar=T, proj.type=p$internal.projection ) , ]
   
         outdir = file.path( project.directory("speciesarea"), "maps", p$spatial.domain, p$taxa, p$season, p$speciesarea.method, modtype, type ) 

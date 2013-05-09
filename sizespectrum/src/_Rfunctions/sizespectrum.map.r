@@ -18,9 +18,14 @@
 	  
         outdir = file.path( project.directory("sizespectrum"), "maps", p$spatial.domain,  p$taxa, p$season, modtype, type ) 
         dir.create(path=outdir, recursive=T, showWarnings=F)
+     
+        sag = habitat.db( DS="baseline", p=p )  
+      
+        sv = sizespectrum.interpolate( p=p, yr=y, modtype=modtype, vname=v )
+        
+        if (is.null(sv)) next()
+        sag[,v] = sv
 
-        sag =  sizespectrum.interpolate( p=p, yr=y, modtype=modtype ) 
-        if (is.null(sag)) next()
         sag = sag[ filter.region.polygon( sag, region=c("4vwx", "5yz" ), planar=T, proj.type=p$internal.projection ) , ]
 
         outfn = paste( v, y, sep=".")

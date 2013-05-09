@@ -22,6 +22,8 @@ startupfiles = list.files( path=startupdirectory, full.names=T, recursive=T,  ig
 for ( sf in startupfiles ) source( sf )
 
 
+# options(stringsAsFactors = FALSE)  # in data.frames, make sure all variables are explicitly character 
+
 # base environment .. used to manipulate namespace
 lib.init = search()
 obj.init = ls()

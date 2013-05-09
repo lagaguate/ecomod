@@ -101,23 +101,24 @@
         pm$taxa = p$speciesarea.taxa
         pm$season = p$speciesarea.season
         pm$data.sources = p$speciesarea.data.sources
-        SAG =  speciesarea.interpolate( p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype )
+        pm$speciesarea.variables = c( "C", "Z", "T", "sar.rsq", "Npred" )
+        
+        SAG =  speciesarea.interpolate( p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype  )
 
         # remove duplicates derived from repeated tows
-        SAGvars = c("C", "Z", "sar.rsq", "Npred")
         oo = which( duplicated (SAG$platplon ) )
         if (length( oo)> 0 ) {
           todrop= NULL
           for (o in oo ) {
             i = which( SAG$platplon == SAG$platplon[o] )
-            for (w in SAGvars) {
+            for (w in pm$speciesarea.variables ) {
               SAG[i[1],w] = mean(SAG[i,w], na.rm=TRUE)
               todrop = c(todrop, i[-1])
             }
           }
           SAG = SAG[ -todrop, ]
         }
-        SAG = SAG[ , c("plon", "plat", SAGvars ) ]
+        SAG = SAG[ , c("plon", "plat", pm$speciesarea.variables ) ]
         PS = merge( PS, SAG, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sag" ) ) 
         rm (SAG)
 
@@ -128,23 +129,24 @@
         pm = p
         pm$taxa = p$speciescomposition.taxa  
         pm$season = p$speciescomposition.season
+        pm$speciescomposition.variables = c( "ca1", "ca2", "pca1", "pca2" )
+        
         SC = speciescomposition.interpolate( p=pm, yr=max(1970,yr), modtype=pm$speciescomposition.modeltype ) 
 
         # remove duplicates derived from repeated tows --- slow ... 
-        SCvars = c("ca1", "ca2", "pca1", "pca2")
         oo = which( duplicated (SC$platplon ) )
         if (length( oo)> 0 ) {
           todrop= NULL
           for (o in oo ) {
             i = which( SC$platplon == SC$platplon[o] )
-            for (w in SCvars) {
+            for (w in pm$speciescomposition.variables ) {
               SC[i[1],w] = mean(SC[i,w], na.rm=TRUE)
               todrop = c(todrop, i[-1])
             }
           }
           SC = SC[ -todrop, ]
         }
-        SC = SC[ , c("plon", "plat", SCvars ) ]
+        SC = SC[ , c("plon", "plat", pm$speciescomposition.variables ) ]
         PS = merge( PS, SC, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sc" ) ) 
         rm (SC)
 
@@ -154,23 +156,24 @@
         pm = p
         pm$taxa = p$sizespectrum.taxa
         pm$season = p$sizespectrum.season
+        pm$sizespectrum.variables = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
+
         SS = sizespectrum.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$sizespectrum.modeltype ) 
         
         # remove duplicates derived from repeated tows --- slow ... 
-        SSvars = c("nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
         oo = which( duplicated (SS$platplon ) )
         if (length( oo)> 0 ) {
           todrop= NULL
           for (o in oo ) {
             i = which( SS$platplon == SS$platplon[o] )
-            for (w in SSvars) {
+            for (w in pm$sizespectrum.variables) {
               SS[i[1],w] = mean(SS[i,w], na.rm=TRUE)
               todrop = c(todrop, i[-1])
             }
           }
           SS = SS[ -todrop, ]
         }
-        SS = SS[ , c("plon", "plat", SSvars ) ]
+        SS = SS[ , c("plon", "plat", pm$sizespectrum.variables ) ]
         PS = merge( PS, SS, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".ss" ) ) 
         rm(SS)
 
@@ -181,23 +184,25 @@
         pm = p
         pm$taxa = p$metabolism.taxa 
         pm$season = p$metabolism.season 
+        pm$varstomodel = p$metabolism.variables 
+
         MR = metabolism.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$metabolism.modeltype ) 
+    
                 
         # remove duplicates derived from repeated tows --- slow ... 
-        MRvars = c("meanlen", "meanwgt", "smr", "mr", "totno", "totwgt")
         oo = which( duplicated (MR$platplon ) )
         if (length( oo)> 0 ) {
           todrop= NULL
           for (o in oo ) {
             i = which( MR$platplon == MR$platplon[o] )
-            for (w in MRvars) {
+            for (w in pm$metabolism.variables) {
               MR[i[1],w] = mean(MR[i,w], na.rm=TRUE)
               todrop = c(todrop, i[-1])
             }
           }
           MR = MR[ -todrop, ]
         }
-        MR = MR[ , c("plon", "plat", MRvars ) ]
+        MR = MR[ , c("plon", "plat", pm$metabolism.variables ) ]
         PS = merge( PS, MR, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".mr" ) ) 
         rm(MR)
 

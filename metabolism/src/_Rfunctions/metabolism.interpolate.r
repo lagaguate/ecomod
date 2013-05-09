@@ -1,12 +1,27 @@
 
-  metabolism.interpolate = function( ip=NULL,  p=NULL, DS="saved", modtype=NULL, yr=NULL ) {
+  metabolism.interpolate = function( ip=NULL, p=NULL, DS="saved", modtype=NULL, vname=NULL, yr=NULL ) {
  
-    if (DS=="saved") {
-      sc = NULL
+    if (DS=="all") {
+      # glue all variables for 1 year
+      sc = habitat.db( DS="baseline", p=p )  
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
-      fn = file.path( ddir, paste("metabolism.annual.gridded", yr, "rdata", sep=".") )
-      if( file.exists(fn)) load( fn)
+      for ( vn in  p$varstomodel ) {
+        fn = file.path( ddir, paste("metabolism.annual.gridded", vn, yr, "rdata", sep=".") )
+        if( file.exists(fn)) {
+          load( fn)
+          sc[, vname] = SC
+        }
+      }
       return ( sc )
+    }
+
+
+    if (DS=="saved") {
+      SC = NULL
+      ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
+      fn = file.path( ddir, paste("metabolism.annual.gridded", vname, yr, "rdata", sep=".") )
+      if( file.exists(fn)) load( fn)
+      return ( SC )
     }
     
     require(chron)
@@ -20,9 +35,10 @@
     P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
     P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
 
-    ks = metabolism.db( DS="metabolism.merged", p=p )
+    ks = metabolism.db( DS="metabolism", p=p )
     ks = ks[ , c("yr", "platplon", "t", p$varstomodel ) ]
     gc()
+
 
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
@@ -30,7 +46,6 @@
 
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      fn = file.path( ddir, paste("metabolism.annual.gridded", yr, "rdata", sep=".") )
        
       td = temperature.db( year=yr, p=p, DS="complete")
 			td$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
@@ -47,6 +62,7 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
  
       for ( ww in p$varstomodel ) {
+
         idata = which( is.finite( sc[,ww] ) )
         scrange = range( sc[idata,ww], na.rm=T )
         inodata = which( !is.finite( sc[,ww] ) )
@@ -64,10 +80,19 @@
         if (length(ooo) > 0 ) sc[ooo,ww] = scrange[1]
         ppp = which( sc[,ww] > scrange[2])  
         if (length(ppp) > 0 ) sc[ppp,ww] = scrange[2]
+        
+        SC = sc[,ww]
+        fn = file.path( ddir, paste("metabolism.annual.gridded", ww, yr, "rdata", sep=".") )
+        save ( SC, file=fn, compress=T )
+        
+        print(fn)
+
+
       }
-      save ( sc, file=fn, compress=T )
     } 
+    
     return( "Completed" )
+
   }
 
 

@@ -250,7 +250,8 @@
       det = det[ which( is.finite( det$spec)), ]   
       det$sex[ which( !is.finite(det$sex)) ] = 2 # set all uncertain sexes to one code sex code 
       det$mat[ which( !is.finite(det$mat)) ] = 2 # set all uncertain sexes to one code sex code 
-     
+    
+      # do this here rather than in the condition subsystem as the models are useful in predicting missing data ...
       # length-weight modelling and estimate parameters as well as residuals
       det = length.weight.regression( x=det )
 
@@ -331,20 +332,43 @@
       cat = bio.db( DS="cat.init", p=p )
  
       massTotCat = applySum( det[ ,c("id2", "mass")], newnames=c("id2","massTotdet" ) )  
+      
       noTotCat = applySum( det$id2, newnames=c("id2","noTotdet" ) )  
 
       cat = merge( cat, massTotCat, by="id2", all.x=T, all.y=F, sort=F )  # set-->kg/km^2, det-->km
+      cat$massTotdet[ which( !is.finite (cat$massTotdet ))] = 0  ### whenn missing it means no determinations were made
       cat = merge( cat, noTotCat, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
- 
-      cat$cfdet =  cat$totmass/ cat$massTotdet  # totwgt already corrected for vessel and tow .. cfdet is the multiplier required to make each det measurement scale properly
+      cat$noTotdet[ which( !is.finite (cat$noTotdet ))] = 0  ### whenn missing it means no determinations were made
+
+      
+
+      cf = data.frame( cbind( cfdetm =  cat$totmass/ cat$massTotdet, cfdetn =  cat$totno/ cat$noTotdet ) )
+      cf$rsids = NA
+      cf$cfdetm [ which(cf$cfdetm==0) ] = NA
+      cf$cfdetn [ which(cf$cfdetn==0) ] = NA
+      cfi = which( is.finite( cf$cfdetm + cf$cfdetn ))     
+
+      cfmod = lm( cfdetm ~ cfdetn, data=cf[cfi,] )
+      cf$rsids[cfi] = rstandard( cfmod) 
+    
+      # remove extremes and redo
+      cfi = which( is.finite( cf$cfdetm + cf$cfdetn ) & abs(cf$rsids) < 4 )
+      cfmod = lm( cfdetm ~ cfdetn, data=cf[cfi,] )
+      cf$rsids = NA
+      cf$rsids[cfi] = rstandard( cfmod) 
+      
+      cfi = which( is.finite( cf$cfdetm + cf$cfdetn ) & abs(cf$rsids) < 3 )  #make even more selective
+      
+      cat$cfdet = NA
+      cat$cfdet[cfi] = cat$totmass[cfi] / cat$massTotdet[cfi]   # totwgt already corrected for vessel and tow .. cfdet is the multiplier required to make each det measurement scale properly
    
-      # assume no subsampling -- all weights determined from the subsample
-      oo = which ( !is.finite( cat$cfdet ) |  cat$cfdet==0 )
-      if (length(oo)>0) cat$cfdet[oo] = cat$cfcat[oo]  
+      oo = which ( !is.finite( cf$cfdetm ) & is.finite(cf$cfdetn) )
+      if (length(oo)>0) cat$cfdet[oo] = cf$cfdetn[oo]  
       
+      oo = which ( is.finite( cf$cfdetm ) & !is.finite(cf$cfdetn) )
+      if (length(oo)>0) cat$cfdet[oo] = cf$cfdetm[oo]  
       
-      # assume remaining have an average subsampling effect
-      oo = which ( (!is.finite( cat$cfdet ) |  cat$cfdet==0 ) )
+      oo = which ( !is.finite( cat$cfdet ) ) 
       
       for ( ds in unique( cat$data.source[oo] ) ) {
         for ( sp in unique( cat$spec[oo]  )) {
@@ -356,10 +380,12 @@
           }
       }}
 
-      cat = cat[, c("id2", "cfdet")]
+      cat = cat[, c("id2", "cfdet")]  # a lot of missing values but this is normal as they will not be represented in "det"
       
       det$cfdet = NULL
-      det = merge( det, cat, by="id2", all.x=T, all.y=F, sort=F)
+      det = merge( det, cat, by="id2", all.x=T, all.y=F, sort=F) 
+      
+      ## remaining NA's with cfdet are mostly due to bad hauls, broken nets etc. 
 
       save (det, file=fn, compress=TRUE )
       return (fn)
@@ -385,15 +411,29 @@
 
       cat = bio.db( DS="cat.init", p=p )
       cat = cat[ which( cat$id %in% unique( set$id) ), ]
-      cat$cfcat = NULL  # no longer needed 
+      cat$cfcat = NULL  # no longer needed as each data point is ~ equivalent
   
       oo = which( duplicated( cat$id2) )
       if (length( oo) > 0 ) cat = cat[ -oo, ]
+     
+
+      cm = data.frame( id2=as.character( sort( unique( cat$id2 ) )), stringsAsFactors=FALSE )
+      cm = merge( cm, applySum( det[ , c("id2", "mr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+     
+      # averages of these variables
+      newvars = c( "residual", "mass", "len", "Ea", "A", "Pr.Reaction", "smr"  ) 
+      for ( nv in newvars ) {
+        cm = merge( cm, 
+          applyMean( det[ , c("id2", nv, "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      }
       
-      cat = merge( cat, applySum( det[ , c("id2", "mr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      cat = merge( cat, applyMean( det[ , c("id2", "smr", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      cat = merge( cat, applyMean( det[ , c("id2", "mass", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      cat = merge( cat, applyMean( det[ , c("id2", "len", "cfdet")] ), by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      cat = merge( cat, cm, by="id2", all.x=TRUE, all.y=FALSE, sort=FALSE )
+
+      # where det measurements not available, estimate mean mass from total weights and numbers  
+      oo = which( !is.finite( cat$mass )) 
+      if (length(oo) > 0 ) {
+        cat$mass[oo] = cat$totmass[oo] / cat$totno[oo]
+      }
 
 
     	surveys = sort( unique( cat$data.source ) ) 
@@ -481,24 +521,86 @@
       det = bio.db( DS="det" ) # size information, no, cm, kg
       det = det[ which( det$id %in% unique( set$id) ), ]
     
-      cat = bio.db( DS="cat.init", p=p )
+      cat = bio.db( DS="cat", p=p )
       cat = cat[ which( cat$id %in% unique( set$id) ), ]
-      cat$cfcat = NULL  # no longer needed 
-  
 
       # NOTE: cat$totno and cat$totmass have already been cf corrected ---> already in per km2
       sm = data.frame( id=as.character( sort( unique( set$id ) )), stringsAsFactors=FALSE )
-   
+  
+      # summaries from cat
       sm = merge( sm, applySum( cat[ , c("id", "totno") ] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
       sm = merge( sm, applySum( cat[ , c("id", "totmass") ] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
 
+   
+
+      # summaries from det   
+      # --- NOTE det was not always determined and so totals from det mass != totals from cat nor set for all years 
+
       sm = merge( sm, applySum( det[ , c("id", "mr", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      
-      sm = merge( sm, applyMean( det[ , c("id", "smr", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      sm = merge( sm, applyMean( det[ , c("id", "mass", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      sm = merge( sm, applyMean( det[ , c("id", "len", "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-  
+     
+      # averages of these variables from det
+      newvars = c( "residual", "mass", "len", "Ea", "A", "Pr.Reaction", "smr"  ) 
+      for ( nv in newvars ) {
+        sm = merge( sm, 
+          applyMean( det[ , c("id", nv, "cfdet")] ), by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      }
+
+
       set = merge( set, sm, by ="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+
+    	surveys = sort( unique( set$data.source ) ) 
+			
+			# in the following:	quantiles are computed, 
+      set$qn = NA  # default when no data
+      oo = which( set$totno == 0 )  # retain as zero values 
+      if (length(oo)>0 ) set$qn[oo] = 0
+
+      for ( s in surveys ) {
+        ii = which( set$data.source==s & set$totno > 0 )
+        if (length( ii) > 0 ) {
+  				set$qn[ii] = quantile.estimate( set$totno[ii]  )  # convert to quantiles, by survey
+				} 
+      }
+	
+			set$qm = NA   # default when no data
+      oo = which( set$totmass == 0 )  # retain as zero values 
+      if (length(oo)>0 ) set$qm[oo] = 0
+      
+      for ( s in surveys ) {
+        ii = which( set$data.source==s & set$totmass > 0 )
+          if (length( ii) > 0 ) {
+						set$qm[ii] = quantile.estimate( set$totmass[ii]  )  # convert to quantiles, by survey	
+					}
+      }
+		
+     # convert from quantile to z-score 
+        
+      set$zm = quantile.to.normal( set$qm )
+      set$zn = quantile.to.normal( set$qn )
+
+
+			over.write.missing.data = TRUE 
+			if (over.write.missing.data) {
+				
+				# over-write na's for n or mass from each other, where possible:
+				kxm = which( !is.finite( set$qm) )
+				kxn = which( !is.finite( set$qn) )
+				
+				kmn = setdiff( kxm, kxn )
+				knm = setdiff( kxn, kxm )
+				
+				if ( length( knm) > 0 ) set$qn[knm] =  set$qm[knm]
+				if ( length( kmn) > 0 ) set$qm[kmn] =  set$qn[kmn]
+
+				# remaining missing values take the median value == 0.5
+				kxm = which( !is.finite( set$qm ) )
+				if ( length( kxm) > 0 ) set$qm[kxm] = 0.5
+				
+				kxn = which( !is.finite( set$qn ) )
+				if ( length( kxn) > 0 ) set$qn[kxn] = 0.5
+
+			}
+      
 
       save( set, file=fn, compress=T )
       return (fn) 

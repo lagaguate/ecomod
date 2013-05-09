@@ -1,5 +1,6 @@
 
-  xtab.2way = function( xval, factors, k=10^6 ) {
+  xtab.2way = function( xval, factors ) {
+    k = median( xval, na.rm=TRUE ) # rescale for floating point math
     v =  as.matrix( xtabs( as.integer( xval * k ) ~ factors[,1] + factors[,2] ) /k )
     rn = rownames(v)
     cn = colnames(v)

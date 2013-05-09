@@ -69,12 +69,15 @@
 
   # create a spatial interpolation model for each variable of interest 
   p = make.list( list(vars= p$varstomodel, mods=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
+  sizespectrum.model.spatial ( DS="redo", p=p ) 
+  # each process requires 30-40 GB ! no parallel right now
+  # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
  
 
   # predictive interpolation to full domain (iteratively expanding spatial extent)
+  np = 1:12  # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
   p = make.list( list( yr=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.interpolate, p=p, DS="redo" ) 
+  parallel.run( clusters=p$clusters[np], n=p$nruns, sizespectrum.interpolate, p=p, DS="redo" ) 
 
 
   # map everything

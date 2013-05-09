@@ -18,7 +18,7 @@
   p = list()
   p$env.init = loadfunctions( c(
 	  "common", "habitat", "substrate", "bathymetry", "speciesarea", "metabolism", 
-		"sizespectrum", "speciescomposition", "temperature" 
+		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
 	) )
 
 
@@ -64,6 +64,7 @@
   p$metabolism.modeltype = "complex" 
   p$metabolism.taxa = "alltaxa"
   p$metabolism.season = "allseasons"
+  p$metabolism.variables = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
 
 	
   for ( j in c( "SSE") ) {  # sse is the only relevent area for which all data exists ~ 5 min / yr 

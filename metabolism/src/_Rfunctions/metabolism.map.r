@@ -16,25 +16,31 @@
 
         outdir = file.path( project.directory("metabolism"), "maps", p$spatial.domain, modtype, p$taxa, p$season, type )
         dir.create(path=outdir, recursive=T, showWarnings=F)
+        
+        sc = habitat.db( DS="baseline", p=p )  
+               
+        sv = metabolism.interpolate( p=p, yr=y, modtype=modtype, vname=v )
+        if (is.null(sv)) next()
 
-        sc = metabolism.interpolate( p=p, yr=y, modtype=modtype ) 
+        sc[,v] =  sv
+
         sc = sc[ filter.region.polygon( sc, region=c("4vwx", "5yz" ), planar=T, proj.type=p$internal.projection ) , ]
         outfn = paste( v, y, sep=".")
         annot = paste("Metabolism: ", toupper(v), " (", y, ")", sep="")
         dr = NULL
         
-        if (v=="mr") dr=c(3, 90)
-        if (v=="mrA") dr=c(3, 100)
-        if (v=="smr") dr=c(0.003, 0.0065)
-        if (v=="smrA")   dr=c(0.0025, 0.0065)
-        if (v=="totwgt") dr=c( 100, 10^5)
-        if (v=="totno")    dr=c( 750, 10^6)
-        if (v=="meanwgt")    dr=c( 0.01, 2.5)
-        if (v=="meanlen")    dr=c( 1.0, 50)
+     #   if (v=="mr") dr=c(3, 90)
+     #   if (v=="mrA") dr=c(3, 100)
+     #   if (v=="smr") dr=c(0.003, 0.0065)
+     #   if (v=="smrA")   dr=c(0.0025, 0.0065)
+     #   if (v=="totwgt") dr=c( 100, 10^5)
+     #   if (v=="totno")    dr=c( 750, 10^6)
+     #   if (v=="meanwgt")    dr=c( 0.01, 2.5)
+     #   if (v=="meanlen")    dr=c( 1.0, 50)
         
         debug = F; if (debug) dr = quantile(sc[,v], probs=c(0.05, 0.95), na.rm=T)
 
-        if ( !( v %in% c("smr", "smrA") )) {
+        if ( v %in% c("mr", "smr") ) {
           sc[,v] = log10( sc[,v] )
           dr = log10(dr)
           annot = paste("Metabolism; log10: ", toupper(v), " (", y, ")", sep="")

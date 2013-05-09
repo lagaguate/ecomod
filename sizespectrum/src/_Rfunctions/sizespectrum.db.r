@@ -27,7 +27,7 @@
       for (tx in p$nss.taxa) {
 
         i.tx = filter.taxa( x=x$spec, method=tx)
-        if ( is.null(i.tx) || length(i.tx) < 30) next
+        if ( is.null(i.tx) || length(i.tx) < 30) next()
         XX = x[ i.tx, ]
         rm( i.tx ); gc()
 
@@ -49,7 +49,7 @@
 
           ss = NULL
           tt = XX$cf*XX[,vname]
-          ss = xtab.2way( xval=tt, factors=XX[,c("id", "sizeclass")], k=10^4  )
+          ss = xtab.2way( xval=tt, factors=XX[,c("id", "sizeclass")] )
           
           ### ss contains number per km2 broken down by age class and weighted for sa, etc
           save( ss, file=fn, compress=T)

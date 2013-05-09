@@ -33,28 +33,33 @@
   # p$clusters = c( rep( "kaos.beowulf", 6), rep("nyx.beowulf", 24))
   # p$clusters = c( rep("tartarus.beowulf", 24), rep("kaos", 17 ) )
 
-  p$varstomodel = c( "mr", "smr", "totno", "totwgt", "meanwgt", "meanlen"  )
+  p$varstomodel = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
+    # p$varstomodel = c( "mr", "smr", "Pr.Reaction" , "Ea", "A" )
+    # p$varstomodel = c( "zn", "zm", "qn", "qm", "mass", "len"  )
+  
   p$yearstomodel = 1970:2012
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
   # p$mods = c("simple","simple.highdef" )  # model types to attempt
-   p$mods = "complex"
+  p$mods = "complex"
+
 
   # prepare data
   metabolism.db( DS="metabolism.redo", p=p )
-  metabolism.db( DS="metabolism.filtered.redo", p=p )
-  metabolism.db( DS="metabolism.merged.redo", p=p )
    
   
   # model the data ~ 14GB/ variable
   p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
+  metabolism.model( p=p, DS="redo" ) 
+  # RAM requirements are large ... single processing only 
+  # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
 
 
   # predict data: gridded extrapolations to full domain  
+  np = 1:12  # ~ 5 GB / process
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
+  parallel.run( clusters=p$clusters[np], n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
   
 
   # map everything

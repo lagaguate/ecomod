@@ -1,10 +1,25 @@
 
-  condition.interpolate = function( ip=NULL,  p=NULL, DS="saved", modtype=NULL, yr=NULL ) {
+  condition.interpolate = function( ip=NULL,  p=NULL, DS="saved", modtype=NULL, vname=NULL, yr=NULL ) {
+            
+    if (DS=="all") {
+      # glue all variables for 1 year
+      sc = habitat.db( DS="baseline", p=p )  
+      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$taxa, p$season, modtype )
+      for ( vn in  p$varstomodel ) {
+        fn = file.path( ddir, paste("condition.annual.gridded", vn, yr, "rdata", sep=".") )
+        if( file.exists(fn)) {
+          load( fn)
+          sc[, vname] = SC
+        }
+      }
+      return ( sc )
+    }
+
  
     if (DS=="saved") {
       sc = NULL
       ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$taxa, p$season, modtype )
-      fn = file.path( ddir, paste("condition.annual.gridded", yr, "rdata", sep=".") )
+      fn = file.path( ddir, paste("condition.annual.gridded", vname, yr, "rdata", sep=".") )
       if( file.exists(fn)) load( fn)
       return ( sc )
     }
@@ -30,7 +45,6 @@
 
       ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      fn = file.path( ddir, paste("condition.annual.gridded", yr, "rdata", sep=".") )
        
       td = temperature.db( year=yr, p=p, DS="complete")
 			td$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
@@ -66,8 +80,15 @@
         if (length(ooo) > 0 ) sc[ooo,ww] = scrange[1]
         ppp = which( sc[,ww] > scrange[2])  
         if (length(ppp) > 0 ) sc[ppp,ww] = scrange[2]
+        
+
+        SC = sc[,ww]
+        fn = file.path( ddir, paste("condition.annual.gridded", ww, yr, "rdata", sep=".") )
+        save ( SC, file=fn, compress=T )
+   
+        print(fn)
+
       }
-      save ( sc, file=fn, compress=T )
     } 
     return( "Completed" )
   }

@@ -1,6 +1,10 @@
 
-	package.list = function( X, default.repository="http://mirror.its.dal.ca/cran" ) {
-		
+	package.list = function( X="basic", default.repository="http://mirror.its.dal.ca/cran" ) {
+	
+    out = "Choose: basic, parallel, spatial, etc." 
+    o0 = options("stringsAsFactors")
+    options(stringsAsFactors = FALSE)  # in data.frames, make sure all variables are explicitly character 
+
 		if (X=="basic") {
 			pkgs = c( "abind", "acepack", "ade4",  "aplpack",
 					"bigmemory", "boot", "car", "chron", "Cairo", "class" , "cluster", "setwidth",
@@ -88,6 +92,8 @@
 					"flr", "epidemiology", "spatial", "parallel", "omegahat", "eclipse" )
 			for ( i in c(subsets) ) out = rbind( out, package.list( i ) )
 		}
+
+    options(stringsAsFactors = o0 )  # reset to initial state
 
 		return (out)
 
