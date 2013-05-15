@@ -31,11 +31,11 @@
         annot = paste("Species-area: ", v, " (", y, ")", sep="")
         
         dr = NULL
-        if (v=="C") dr=c(-1, 3)
-        if (v=="Npred") dr=c(10, 100)
-        if (v=="sar.rsq") dr=c(0.9, 1.0)
-        if (v=="Z") dr=c(0.1, 0.5)
-        if (v=="T") dr=c(0.1, 0.5)
+        if (v=="C") dr=c(-3, 4)
+        if (v=="Npred") dr=c(20, 110)
+        if (v=="sar.rsq") dr=c(0.9, 1.1)
+        if (v=="Z") dr=c(-0.2, 0.9)
+        if (v=="T") dr=c(-0.2, 0.9)
         if (is.null(dr)) dr = range(sag[,v], na.rm=T)
         
         datarange = seq( dr[1], dr[2], length.out=100 )

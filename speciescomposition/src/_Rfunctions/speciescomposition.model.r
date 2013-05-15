@@ -28,16 +28,21 @@
       fn.models =  file.path( ddir, paste("speciescomposition.models", ww, "rdata", sep=".") )
 			
 			SC = speciescomposition.db( DS="speciescomposition.merged", p=p )
-			SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
  
       formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciescomposition" )
+  
+      vlist = setdiff( all.vars( formu ), "spatial.knots" )
+      SC = SC[, vlist]
+      SC = na.omit( SC )
+   
       fmly = gaussian()
 
       spcomp.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family= )}
       models = spcomp.model (ww, SC, fmly)
       
       save( models, file=fn.models, compress=T)
-
+      print( fn.models )
+      rm(models, SC); gc()
     }
 
     return( "Done" )

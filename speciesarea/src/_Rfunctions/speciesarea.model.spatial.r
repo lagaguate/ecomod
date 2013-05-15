@@ -16,30 +16,34 @@
     require(mgcv)
     require(snow)
     require(chron)
-    require(multicore)
-
  
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
       modeltype = p$runs[iip,"modtype"]
-     
 
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".") , p$speciesarea.method, modeltype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       fn.models =  file.path( ddir, paste("speciesarea.models", ww, "rdata", sep=".") )
             
       SC = speciesarea.db( DS="speciesarea.stats.merged", p=p )
-      SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
-
-      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciesarea" )
- 
-      fmly = gaussian()  # default
-      if ( ww %in% c("Npred", "Npred.se" ) )  fmly = gaussian("log")
        
-      sar.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciesarea" )
+      vlist = setdiff( all.vars( formu ), "spatial.knots" )
+      SC = SC[, vlist]
+      SC = na.omit( SC )
 
+
+      if ( ww %in% c("Npred" ) ) {
+        fmly = gaussian("log")
+      } else {
+        fmly = gaussian()  # default
+      }
+
+      sar.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
       models = sar.model(ww, SC, fmly)
       save( models, file=fn.models, compress=T)
+      print( fn.models )
+      rm(models, SC); gc()
     }
     return( "Done" )
   }

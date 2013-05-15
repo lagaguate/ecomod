@@ -32,13 +32,13 @@
         annot = paste("Size spectrum: ", v, " (", y, ")", sep="")
         
         dr = NULL
-        if (v=="nss.rsquared") dr=c(0, 1)
-        if (v=="nss.df") dr=c(5, 95)
-        if (v=="nss.b0") dr=c(-5, 2 )
-        if (v=="nss.b1") dr=c(-5, 2 )
-        if (v=="nss.shannon") dr=c(2, 6)
-        if (v=="nss.evenness") dr=c(-2, 0 )
-        if (v=="nss.Hmax") dr=c( -1, -8 )
+        if (v=="nss.rsquared") dr=c(0.2, 0.95)
+        if (v=="nss.df") dr=c(10, 20)
+        if (v=="nss.b0") dr=c(-7, 3 )
+        if (v=="nss.b1") dr=c(-7, 3 )
+        if (v=="nss.shannon") dr=c(2.5, 6)
+        if (v=="nss.evenness") dr=c(-1.5, -0.5 )
+        if (v=="nss.Hmax") dr=c( -3.5, -8.5 )
         if (is.null(dr)) dr = range(sag[,v], na.rm=T)
         
         datarange = seq( dr[1], dr[2], length.out=50 )

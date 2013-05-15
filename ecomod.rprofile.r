@@ -8,8 +8,11 @@ if (is.null( ecomod.directory )) {
 if (is.null( ecomod.workdirectory )) {
 	ecomod.workdirectory = getwd()
 } else {
-	setwd( ecomod.workdirectory )
+	dir.create( ecomod.workdirectory, showWarnings = FALSE, recursive = TRUE )
+  setwd( ecomod.workdirectory )
 }
+
+print( paste( "Currently using", ecomod.workdirectory, "as the working directory" ) ) 
 
 
 # name of the start-up file (this file) .. used for initializing parallel processing

@@ -77,6 +77,8 @@
 # should move the rescaling elsewhere ... TODO ... and add mass estimated from allomtry with length ...ie after condition and length-weight modelling/analysis  
       # set$totno = set$totno / 10^3
       # set$totwgt = set$totwgt / 10^3
+   
+      set = habitat.lookup.data( p=p, sc=set, modtype="full" )
 
       save( set, file=fn, compress=T )
       

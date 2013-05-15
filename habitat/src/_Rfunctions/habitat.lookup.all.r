@@ -9,7 +9,9 @@ habitat.lookup.all = function(x, p, discretization.scale, dist.scale) {
   if ( !any(grepl( "plon", names(x) ) )) {
     x = lonlat2planar (x, proj.type=p$internal.projection ) 
   }
+
   if ( p$spatial.domain == "snowcrab" ) p$spatial.domain = "SSE"
+
   x$plon = round( x$plon, discretization.scale )
   x$plat = round( x$plat, discretization.scale )
   x = x[ which(is.finite( x$plon+x$plat ) ) ,]  # don't worry these will be merged back into "x0" (above)
@@ -48,8 +50,6 @@ habitat.lookup.all = function(x, p, discretization.scale, dist.scale) {
     
     oo =  grep("redundant", names( tmp)) 
     if (length(oo) > 0 ) {
-      print( "Redundant vars found: Error in merge? Dropping the following..." )
-      print( names(tmp)[oo] )
       tmp = tmp[, -oo ] 
     }
 

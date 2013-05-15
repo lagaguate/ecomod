@@ -7,7 +7,6 @@
     require( lattice )
     require (grid)
     
-     
     if ( type=="annual" ) {
       for ( iip in ip ) {
         y = p$runs[iip,"yrs"]
@@ -27,10 +26,10 @@
         outfn = paste( v, y, sep=".")
         annot = paste("Species composition: ", toupper(v), " (", y, ")", sep="")
         
-        if (v=="ca1") dr=c(-2,2)
-        if (v=="ca2") dr=c(-4,2)
-        if (v=="pca1") dr=c(-0.5, 0.5)
-        if (v=="pca2") dr=c(-0.5, 0.5)
+        if (v=="ca1") dr=c(-2.5,2.5)
+        if (v=="ca2") dr=c(-2.5,2.5)
+        if (v=="pca1") dr=c(-0.45, 0.45)
+        if (v=="pca2") dr=c(-0.45, 0.45)
         
         if (is.null(dr)) dr = range(sc[,v], na.rm=T)
         

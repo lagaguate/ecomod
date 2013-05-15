@@ -56,11 +56,15 @@
   # summary( speciescomposition.model ( p=p, modeltype="simple", var="ca1" ) )
   # summary( speciescomposition.model ( p=p, modeltype="simple.highdef", var="ca2" ) )
 
+ 
 
-  # interpolate onto a grid via predictioni ::: ~ 4hr / 1 year
-  np = 1:12
+  # interpolate onto a grid via prediction ::: ~ 3 GB / process 
+  np = 1:24 # beowulf
+  np = 1:10 # shiva
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
   parallel.run( clusters=p$clusters[np], n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
+  speciescomposition.interpolate (p=p, DS="redo" ) 
+
 
  
   # map everything

@@ -1,4 +1,5 @@
-blasius = function(ti, S, P) {
+  
+  blasius = function(ti, S, P) {
     # Blasius, B., Huppert, A., and Stone, L. (1999). Complex dynamics and phase 
     # synchronization in spatially extended ecological systems. Nature, 399:354-359. 
     # Blasius, B. and Stone, L. (2000). Chaos and phase synchronization in 
@@ -20,11 +21,8 @@ blasius = function(ti, S, P) {
 
     u = S[1]; v = S[2]; w = S[3]
     
-    # holling functional response
-    f = holling.type.2 = function(X, Y, K) {
-      X*Y / (1+K*X)  
-    }  
-    
+    f = holling.functional.response( type=2 ) 
+
     out = with( P, {
       du = a * u - alpha1 * f(u, v, k1)
       dv = -b * v + alpha1 * f(u, v, k1) - alpha2 * f(v, w, k2)

@@ -53,10 +53,11 @@
   # --------------
   # Lotka-Volterra 3-species (Blasius)
   S = c(u=10, v=5, w=0.1)  # this order structures the data output
-  t0 = 0; t1 = 200; dt = 0.1
-  ti = seq( t0, t1, dt)
+  ti = seq( 0, 200, 0.1)
   P = list( a=1, b=1, c=10, alpha1=0.2, alpha2=1, k1=0.05, k2=0, wstar=0.006)
+  
   out = ode( S, ti, blasius, P, method="lsoda" ) 
+  
   plot(out, type="l")
 
   # plot the simulation results as time series or state trajectory
@@ -102,7 +103,7 @@
 	P = list(
     r = c(r1 = 0.1, r2 = 0.1, r3 = -0.1, r4 = -0.1),
     A = matrix(c(0.0,  0.0, -0.2,   0.01,      # prey 1
-                 0.0,  0.0,  0.02, -0.1,      # prey 2
+                 0.0,  0.0,  0.02, -0.1,       # prey 2
                  0.2,  0.02, 0.0,   0.0,       # predator 1; prefers prey 1
                  0.01, 0.1,  0.0,   0.0),      # predator 2; prefers prey 2
                  nrow = 4, ncol = 4, byrow=TRUE)

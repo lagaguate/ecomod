@@ -21,8 +21,9 @@ habitat.lookup.default = function(x,  p, discretization.scale, dist.scale ) {
     require(chron)
     x$yr = as.numeric( as.character( years( x$chron )))
     yrs = sort( unique( x$yr ))
-    if (is.null ( yrs) ) stop()
-  }  
+  } 
+
+  if (is.null ( yrs) ) stop()
 
   if (! exists("weekno", x) ) {
     x$dayno = convert.datecodes(x$chron, "julian")  # from  source ("/home/jae/ecomod/common/functions.date.r")

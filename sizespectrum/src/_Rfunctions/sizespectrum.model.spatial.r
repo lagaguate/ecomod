@@ -26,19 +26,22 @@
       fn.models =  file.path( ddir, paste("sizespectrum.models", ww, "rdata", sep=".") )
  
       SC = sizespectrum.db( DS="sizespectrum.stats.merged", p=p )
-      SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
 
       formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="sizespectrum" )
-  
-      fmly = gaussian("log")  # default
-      if ( ww %in% c( "nss.b0", "nss.b1", "nss.evenness", "nss.Hmax" ) )  fmly = gaussian()
-    
-      nss.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
+      
+      vlist = setdiff( all.vars( formu ), "spatial.knots" )
+      SC = SC[, vlist]
+      SC = na.omit( SC )
 
+
+      fmly = gaussian()
+      
+      nss.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
       models = nss.model(ww, SC, fmly)
 
       save( models, file=fn.models, compress=T)
-
+      print( fn.models )
+      rm(models, SC); gc()
     }
   }
 

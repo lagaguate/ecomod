@@ -6,18 +6,19 @@ worms.data.access.example = function() {
 #-------------------------------------------
 
 # install.packages("SSOAP", repos = "http://www.omegahat.org/R")
+install.packages("SSOAP", repos = "http://www.omegahat.org/R", dependencies = TRUE, type = "source")
 library(SSOAP)
 w = processWSDL("http://www.marinespecies.org/aphia.php?p=soap&wsdl=1")
-iface = genSOAPClientInterface(, w)
-
+iface = genSOAPClientInterface(, w) 
+AphiaID = iface@functions$getAphiaID("Solea solea",1,('http://www.marinespecies.org/aphia.php?p=soap'))
+print(AphiaID)
+#should output '[0] 127160'
+  
 # --- not working in linux environment
 
 #-------------------------------------------
 # Look up AphiaID
 #-------------------------------------------
-
-AphiaID = iface@functions$getAphiaID("Solea solea",1,('http://www.marinespecies.org/aphia.php?p=soap'))
-print(AphiaID) #should output '[0] 127160'
 
 #-------------------------------------------
 # Create your specieslist

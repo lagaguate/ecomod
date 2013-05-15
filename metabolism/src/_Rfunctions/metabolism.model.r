@@ -21,26 +21,29 @@
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
       modeltype = p$runs[iip,"modtype"]
-
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modeltype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       fn.models =  file.path( ddir, paste("metabolism.models", ww, "rdata", sep=".") )
-    
       SC = metabolism.db( DS="metabolism", p=p )
-      SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
-
-      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="metabolism" )
-    
-      fmly = gaussian("log")  # default
-      if ( ww %in% c("smr", "zn", "zm", "qn", "qm" ) )  fmly = gaussian()
-
-      metab.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
       
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="metabolism" )
+          
+      vlist = setdiff( all.vars( formu ), "spatial.knots" )
+      SC = SC[, vlist]
+
+      if ( ww %in% c("smr", "zn", "zm", "qn", "qm", "Pr.reaction", "Ea", "A" ) ) {
+        fmly = gaussian()
+      } else {
+        fmly = gaussian("log")  # default
+      }
+      
+      metab.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
+
+
       models = metab.model(ww, SC, fmly)
       save( models, file=fn.models, compress=T)
-      
       print(fn.models)
-
+      rm (models, SC); gc() 
     }
       return( "Done" )
 

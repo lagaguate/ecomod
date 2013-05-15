@@ -83,7 +83,23 @@
         small.pelagic     = intersect( tx$spec[ which( tx$size.max.len.cm <= 30) ], species.codes( "pelagic", tx) ) , 
         large.pelagic     = intersect( tx$spec[ which( tx$size.max.len.cm >= 100) ], species.codes( "pelagic", tx) ) , 
         
-        
+        coAll     = species.codes( "all", tx ),
+        coFish    = species.codes( "allfish", tx ),
+        # coInvert  = species.codes( "invertebrates", tx),
+        coElasmo  = species.codes( "elasmobranchs", tx),
+
+        coGadoid        = species.codes( "gadoid", tx),
+        coDemersal      = species.codes( "demersal", tx),
+        coPelagic       = species.codes( "pelagic", tx),
+        coSmall         = tx$spec[ which( tx$size.max.len.cm <= 30) ] ,
+        coLarge         = tx$spec[ which( tx$size.max.len.cm >= 100) ] ,
+
+        coSmallPelagic  = species.codes( "small.pelagic", tx),
+        coLargePelagic  = species.codes( "large.pelagic", tx),
+        coSmallDemersal = species.codes( "small.demersal", tx),
+        coLargeDemersal = species.codes( "small.demersal", tx),
+        coFlatfish      = species.codes( "flatfish", tx),
+
         flatfish          = tx$spec[ which( tx$order == "Pleuronectiformes" | tx$specific.taxonomic.group == "Flatfish" ) ],
         fish.pleuronectiformes = c(324, 382, 333, 45, 385, 196, 325, 8, 277, 805, 816, 693, 198,
           345, 44, 282, 387, 379, 388, 141, 142, 42, 386, 140, 40, 344, 43, 30, 41, 49, 31, 568, 143, 346 ), # flounders

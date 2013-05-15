@@ -9,7 +9,7 @@
       out = data.frame(spec=x) 
     }
 		
-    if ( is.null(method) || method == "alltaxa" ) {
+    if ( is.null(method) || method == "alltaxa" || method=="coAll" ) {
       method = "all" # override
 		} 
 	

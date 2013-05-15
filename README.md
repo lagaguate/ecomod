@@ -22,10 +22,12 @@ To fully use this respository, you will need to add the following to the end of 
 	
     source( file.path( ecomod.directory, "ecomod.rprofile.r" ) ) ### initializes the ecomod environment
 
-In MSWindows, the home directory seems to be the "My Documents" directory. But to be sure, run R and then type getwd(). In Linux and other UNIX variants, including MacOSX it is your home directory. 
+In MSWindows, the home directory seems to be the "My Documents" directory. But to be sure, run R and then type getwd(). In Linux and other UNIX variants, including MacOSX it is your usual home directory. 
 
 
-Example usage: To load in all functions under the common/src/_Rfunctions/ and snowcrab/src/_Rfunctions/ you need to run the following:
+Example usage 
+
+To load in all functions under the common/src/_Rfunctions/ and snowcrab/src/_Rfunctions/ you need to run the following:
 
     loadfunctions( c("common", "snowcrab") )  
 
