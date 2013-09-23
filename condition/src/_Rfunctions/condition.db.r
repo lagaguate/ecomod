@@ -51,6 +51,7 @@
       set = merge( set, sm, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
 
       set = habitat.lookup.data( p=p, sc=set, modtype="full" )
+      set = set[ which( is.finite(set$residual + set$Y ) ), ]
 
       save( set, file=fn, compress=T )
       return (fn) 

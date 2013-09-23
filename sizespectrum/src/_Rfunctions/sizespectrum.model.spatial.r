@@ -27,7 +27,7 @@
  
       SC = sizespectrum.db( DS="sizespectrum.stats.merged", p=p )
 
-      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="sizespectrum" )
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="sizespectrum", spatial.knots=p$spatial.knots  )
       
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]

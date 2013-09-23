@@ -39,6 +39,8 @@
       ddir = file.path( project.directory("sizespectrum"), "data", p$spatial.domain,  p$taxa, p$season, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
 
+      my = sizespectrum.db( DS="sizespectrum.stats.merged", p=p )
+
       P0 = habitat.db( DS="baseline", p=p )  
       P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
       P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
@@ -59,12 +61,23 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
   
       for( ww in p$varstomodel ) {
+            
+        if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
+        
         mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww )
         require(mgcv)
         sc[,ww] = predict( mod.nss, newdata=sc, type="response", na.action="na.pass" ) 
         # require (lattice)
         # levelplot( mr ~ plon+plat, sc, aspect="iso")
         SC = sc[,ww]
+        
+        myr = range( my[,ww], na.rm=T )
+        iu = which(SC > myr[2])
+        if (length( iu)>0) SC[iu] = myr[2]
+
+        id = which(SC < myr[1])
+        if (length( id)>0) SC[id] = myr[1]
+
         fn = file.path(  ddir, paste("sizespectrum.annual.gridded", ww, yr, "rdata", sep=".") )
         save ( SC, file=fn, compress=T )
         print(fn)

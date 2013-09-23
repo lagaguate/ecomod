@@ -8,6 +8,9 @@
     require (grid)
     
     if ( type=="annual" ) {
+       
+      my = speciescomposition.db( DS="speciescomposition.merged", p=p )
+      
       for ( iip in ip ) {
         y = p$runs[iip,"yrs"]
         v = p$runs[iip,"vars"]
@@ -26,18 +29,25 @@
         outfn = paste( v, y, sep=".")
         annot = paste("Species composition: ", toupper(v), " (", y, ")", sep="")
         
-        if (v=="ca1") dr=c(-2.5,2.5)
-        if (v=="ca2") dr=c(-2.5,2.5)
-        if (v=="pca1") dr=c(-0.45, 0.45)
-        if (v=="pca2") dr=c(-0.45, 0.45)
-        
-        if (is.null(dr)) dr = range(sc[,v], na.rm=T)
-        
+        # if (v=="ca1") dr=c(-2.5,2.5)
+        # if (v=="ca2") dr=c(-2.5,2.5)
+        # if (v=="pca1") dr=c(-0.45, 0.45)
+        # if (v=="pca2") dr=c(-0.45, 0.45)
+
+        dr = quantile( my[,v], probs=c(0.05, 0.95), na.rm=T )
+    
         datarange = seq( dr[1], dr[2], length.out=100 )
       
         # levelplot( ca1 ~ plon+plat, sc, aspect="iso")
-        xyz = sc[, c("plon","plat",v)]
-        map( xyz=xyz, cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, fn=outfn, loc=ddir, at=datarange , 
+        sc = sc[, c("plon","plat",v)]
+             
+        il = which( sc[,v] < dr[1] )
+        if ( length(il) > 0 ) sc[il,v] = dr[1]
+
+        iu = which( sc[,v] > dr[2] )
+        if ( length(iu) > 0 ) sc[iu,v] = dr[2]
+        
+        map( xyz=sc, cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, fn=outfn, loc=ddir, at=datarange , 
           col.regions=color.code( "blue.black", datarange ), corners=p$corners )
       }
     }

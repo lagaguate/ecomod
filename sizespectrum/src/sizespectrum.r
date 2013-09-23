@@ -39,6 +39,9 @@
   p$mods =  "complex" 
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
+  p$spatial.knots = 100
+
+
 
   p$timescale = c( 0,1,2,5,10 ) # yr  
   p$interpolation.distances =  25 # for interpolation of habitat vars

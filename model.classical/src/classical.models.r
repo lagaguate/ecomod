@@ -3,33 +3,37 @@
   library(deSolve)
 	loadfunctions ("model.classical")
 
+  # time in years
+  t0 = 0; 
+  t1 = 10; 
+  tinc = 1/365  # ie.one day
+  ti = seq( t0, t1, tinc) # times at solutions
+
+
 
   # --------------
   # Logistic equation
-	S = c( X=0.01 )  # initial conditions of state variables
-  P = list( r=3, K=1 ) # parameters
-  t0 = 0; t1 = 10; dt = 0.001
-  ti = seq( t0, t1, dt) # times at solutions
+
+  S = c( X=0.01 )  # initial conditions of state variables
+  P = list( r=1, K=1 ) # parameters; r is time^-1 :: per year 
   out = ode( S, ti, logistic, P, method="lsoda" ) 
   plot(out, type="l")
  
 
   # --------------
-  # Logistc equation discrete map:: by using euler and dt=1
+  # Logistc equation discrete map:: by using euler and tinc=1
+  
+  tiDiscrete = ti / tinc # times at solutions
 	S = c( X=0.1 )
-  P = list( r=2, K=10 )
-  t0 = 0; t1 = 100; dt = 1
-  ti = seq( t0, t1, dt) # times at solutions
-  out = ode( S, ti, discrete.logistic, P, method="euler" ) 
-  plot(out, type="l")
+  P = list( r=2.8, K=10 )
+  out = ode( S, tiDiscrete, discrete.logistic, P, method="euler" ) 
+  plot(out, type="l", xlab="days" )
 
 
   # --------------
   # Logistic  with time-varying K and r
 	S = c( X=0.1 )  # initial conditions of state variables
   P = list( r=2, K=1, rk=2*pi/1, Kk=2*pi/4 ) # parameters
-  t0 = 0; t1 = 50; dt = 0.01
-  ti = seq( t0, t1, dt) # times at solutions
   out = ode( S, ti, logistic.timevarying.Kr, P, method="lsoda" ) 
   plot(out, type="l")
  
@@ -43,8 +47,6 @@
     # predator mortality = 0.2/day, mortality rate of predator
     # assimilation efficiency = 0.5,    # -, assimilation efficiency
     # carrying capacity = 10     # mmol/m3, carrying capacity
-  t0 = 0; t1 = 100; dt = 0.1
-  ti = seq( t0, t1, dt)
   out = ode( S, ti, lotka.volterra.2, P, method="lsoda" ) 
   plot(out, type="l")
 
@@ -53,9 +55,7 @@
   # --------------
   # Lotka-Volterra 3-species (Blasius)
   S = c(u=10, v=5, w=0.1)  # this order structures the data output
-  ti = seq( 0, 200, 0.1)
   P = list( a=1, b=1, c=10, alpha1=0.2, alpha2=1, k1=0.05, k2=0, wstar=0.006)
-  
   out = ode( S, ti, blasius, P, method="lsoda" ) 
   
   plot(out, type="l")
@@ -81,7 +81,6 @@
   }
 
   S = c(u=10, v=5, w=0.1)  # this order structures the data output
-  ti = seq(0, 200, 0.1)
   P = list( a=1, b=1, c=10, alpha1=0.2, alpha2=1, k1=0.05, k2=0, wstar=0.006)
   l = length(ti)
   res = NULL
@@ -108,8 +107,6 @@
                  0.01, 0.1,  0.0,   0.0),      # predator 2; prefers prey 2
                  nrow = 4, ncol = 4, byrow=TRUE)
   )
-  t0 = 0; t1 = 500; dt = 0.1
-  ti = seq( t0, t1, dt)
   S = c( prey1 = 1, prey2 = 1, pred1 = 2, pred2 = 2)
   out = ode( S, ti, lotka.volterra.matrix, P, method="lsoda" ) 
   plot(out, type = "l")
@@ -125,8 +122,6 @@
                  0.01, 0.1,  0.0,   0.0),      # predator 2; prefers prey 2
                  nrow = 4, ncol = 4, byrow=TRUE)
   )
-  t0 = 0; t1 = 1000; dt = 0.1
-  ti = seq( t0, t1, dt)
   S = c( prey1 = 0.1, prey2 = 0.1, pred1 = 0.2, pred2 = 0.2)
   out = ode( S, ti, lotka.volterra.matrix.logistic.growth, P, method="lsoda" ) 
   plot(out, type = "l")

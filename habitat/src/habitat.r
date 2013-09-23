@@ -34,6 +34,9 @@
       p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
       p$interpolation.nmax = 100 
       habitat.db( DS="baseline.redo", p=p ) ## Time-invariant data (depth, substate, etc) 
+      
+      habitat.xyz.to.grid ( p, redo=TRUE ) # redo lookup table to convert xyz data to matrix/grid format
+     
     }
 
   }

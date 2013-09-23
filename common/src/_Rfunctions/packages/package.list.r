@@ -69,7 +69,7 @@
     }
 
 		if (X=="simulation") {
-			pkgs = c( "deSolve", "simecol",  "odesolve", "rootSolve", "ecolMod", "shapes", "diagram" )
+			pkgs = c( "deSolve", "simecol",  "odesolve", "rootSolve", "ecolMod", "shapes", "diagram", "GillespieSAA", "sde", "pomp" )
 			out = data.frame( cbind( pkgs=pkgs, repos=default.repository ) )
 		}
 

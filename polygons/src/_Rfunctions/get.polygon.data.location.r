@@ -1,6 +1,6 @@
   get.polygon.data.location = function(object) {
     
-		root.polygons = project.directory("polygons")
+		root.polygons = project.directory("polygons","data")
 		out=NULL
 
     if ("haddockbox" %in% object) out = "haddockbox.dat"  # (lon, lat)

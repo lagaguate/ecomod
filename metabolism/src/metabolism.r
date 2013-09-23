@@ -39,6 +39,9 @@
   
   p$yearstomodel = 1970:2012
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
+ 
+  p$spatial.knots = 100
+
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
   # p$mods = c("simple","simple.highdef" )  # model types to attempt
@@ -58,9 +61,14 @@
 
   # predict data: gridded extrapolations to full domain  
   np = 1:12  # ~ 5 GB / process
+  p$clusters = c( rep( "nyx.beowulf", 12), rep("tartarus.beowulf", 12), rep("kaos", 12 ) )
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
   parallel.run( clusters=p$clusters[np], n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
   
+  p$clusters = c( rep( "nyx.beowulf", 12), rep("tartarus.beowulf", 12), rep("kaos", 12 ) )
+  p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
+  parallel.run( clusters=p$clusters, n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
+ 
 
   # map everything
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods), Y=p )

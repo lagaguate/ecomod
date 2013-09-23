@@ -9,7 +9,9 @@
     require (grid)
    
     if ( type=="annual" ) {
-          
+           
+      my = speciesarea.db( DS="speciesarea.stats.merged", p=p )
+
       for ( iip in ip ) {
 
         y = p$runs[iip,"yrs"]
@@ -29,20 +31,27 @@
 
         outfn = paste( v, y, sep=".")
         annot = paste("Species-area: ", v, " (", y, ")", sep="")
-        
-        dr = NULL
-        if (v=="C") dr=c(-3, 4)
-        if (v=="Npred") dr=c(20, 110)
-        if (v=="sar.rsq") dr=c(0.9, 1.1)
-        if (v=="Z") dr=c(-0.2, 0.9)
-        if (v=="T") dr=c(-0.2, 0.9)
-        if (is.null(dr)) dr = range(sag[,v], na.rm=T)
+                
+        dr = quantile( my[,v], probs=c(0.05, 0.95), na.rm=T )
+
+        # if (v=="C") dr=c(-3, 4)
+        # if (v=="Npred") dr=c(20, 110)
+        # if (v=="sar.rsq") dr=c(0.9, 1.1)
+        # if (v=="Z") dr=c(-0.2, 0.9)
+        # if (v=="T") dr=c(-0.2, 0.9)
+        # if (is.null(dr)) dr = range(sag[,v], na.rm=T)
         
         datarange = seq( dr[1], dr[2], length.out=100 )
         cols = color.code( "blue.black", datarange )
-        xyz = sag[, c("plon","plat",v)]
-        
-        map( xyz=xyz, cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, fn=outfn, loc=outdir, 
+        sc = sag[, c("plon","plat",v)]
+             
+        il = which( sc[,v] < dr[1] )
+        if ( length(il) > 0 ) sc[il,v] = dr[1]
+
+        iu = which( sc[,v] > dr[2] )
+        if ( length(iu) > 0 ) sc[iu,v] = dr[2]
+
+        map( xyz=sc, cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, fn=outfn, loc=outdir, 
             at=datarange, col.regions=cols, corners=p$corners )
 
       }

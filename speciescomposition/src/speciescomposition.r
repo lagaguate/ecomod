@@ -33,6 +33,8 @@
   # p$mods = c("simple.highdef" )   # GAM interpolation model types 
   p$mods = "complex"
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
+  
+  p$spatial.knots = 100
 
 
   # ordination
@@ -53,10 +55,7 @@
     speciescomposition.model( p=p, DS="redo" ) 
   }
 
-  # summary( speciescomposition.model ( p=p, modeltype="simple", var="ca1" ) )
-  # summary( speciescomposition.model ( p=p, modeltype="simple.highdef", var="ca2" ) )
-
- 
+  
 
   # interpolate onto a grid via prediction ::: ~ 3 GB / process 
   np = 1:24 # beowulf

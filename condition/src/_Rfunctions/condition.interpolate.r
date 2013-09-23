@@ -4,7 +4,7 @@
     if (DS=="all") {
       # glue all variables for 1 year
       sc = habitat.db( DS="baseline", p=p )  
-      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$taxa, p$season, modtype )
+      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modtype )
       for ( vn in  p$varstomodel ) {
         fn = file.path( ddir, paste("condition.annual.gridded", vn, yr, "rdata", sep=".") )
         if( file.exists(fn)) {
@@ -18,10 +18,11 @@
  
     if (DS=="saved") {
       sc = NULL
-      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$taxa, p$season, modtype )
+      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modtype )
       fn = file.path( ddir, paste("condition.annual.gridded", vname, yr, "rdata", sep=".") )
       if( file.exists(fn)) load( fn)
-      return ( sc )
+  
+      return ( SC )
     }
     
     require(chron)
@@ -38,7 +39,9 @@
 
       ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
- 
+    
+      my = condition.db( DS="condition", p=p )
+
       P0 = habitat.db( DS="baseline", p=p )  
       P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
       P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
@@ -58,11 +61,22 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
  
       for ( ww in p$varstomodel ) {
+      
+        if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
+        
         condition.interpolation.model = condition.model( p=p, modeltype=modtype, var=ww )
         sc[,ww] = predict( condition.interpolation.model, newdata=sc, type="response", na.action="na.pass" ) 
         # require (lattice)
         # levelplot( mr ~ plon+plat, sc, aspect="iso")
         SC = sc[,ww]
+     
+        myr = range( my[,ww], na.rm=T )   
+        iu = which(SC > myr[2])
+        if (length( iu)>0) SC[iu] = myr[2]
+   
+        id = which(SC < myr[1])
+        if (length( id)>0) SC[id] = myr[1]
+
         fn = file.path( ddir, paste("condition.annual.gridded", ww, yr, "rdata", sep=".") )
         save ( SC, file=fn, compress=T )
         print(fn)

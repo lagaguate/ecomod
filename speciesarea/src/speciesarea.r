@@ -45,6 +45,9 @@
   p$mods = "complex" 
   
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
+ 
+  p$spatial.knots = 100
+
 
 
 # -------------------------------------------------------------------------------------

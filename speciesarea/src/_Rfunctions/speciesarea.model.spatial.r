@@ -27,7 +27,7 @@
             
       SC = speciesarea.db( DS="speciesarea.stats.merged", p=p )
        
-      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciesarea" )
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciesarea", spatial.knots=p$spatial.knots )
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]
       SC = na.omit( SC )

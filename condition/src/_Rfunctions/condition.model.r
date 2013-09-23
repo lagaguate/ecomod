@@ -4,11 +4,10 @@
     
     if (DS=="saved") {
       models = NULL
-      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$taxa, p$season, modeltype )
+      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modeltype )
       fn.models =  file.path( ddir, paste("condition.models", var, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
-
     }
 
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
@@ -29,7 +28,7 @@
       SC = condition.db( DS="condition", p=p )
       # SC = habitat.lookup.data( p=p, sc=SC, modtype=modeltype )
 
-      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="condition" )
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="condition", spatial.knots=p$spatial.knots )
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]
       SC = na.omit( SC )

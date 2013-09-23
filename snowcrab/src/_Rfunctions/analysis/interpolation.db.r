@@ -22,6 +22,16 @@
         return( K ) 
       }
 
+      if (DS=="interpolation.simulation.PS" ) {
+        out = NULL
+          v = p$v
+          y = p$y
+          fn.PS = file.path( loc.sol, paste( "PS.simulation.means", v, y, "rdata", sep="." ) )
+          if ( ! (file.exists( fn.PS)) ) return(NULL)
+          load(fn.PS)
+        return (PS)
+      }
+
       if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
       if (is.null(ip)) ip = 1:p$nruns
     
@@ -61,16 +71,6 @@
         K = out
         save( K, file=p$ofname, compress=T )  # glue all the data results together into one file
         return ( K )
-      }
-
-      if (DS=="interpolation.simulation.PS" ) {
-        out = NULL
-          v = p$v
-          y = p$y
-          fn.PS = file.path( loc.sol, paste( "PS.simulation.means", v, y, "rdata", sep="." ) )
-          if ( ! (file.exists( fn.PS)) ) return(NULL)
-          load(fn.PS)
-        return (PS)
       }
       
       K = NULL

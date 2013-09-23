@@ -4,10 +4,88 @@
   biochem.db = function(DS="", ss=NULL) {
       
     biochem.dir = project.directory("biochem") 
+    biochem.data.dir = file.path( biochem.dir, "data" ) 
+    biochem.datadump.dir = file.path( biochem.dir, "data", "datadump" ) 
+
+    bctables = c("bcmissions", "bcevents", "bcactivities", "bcdiscretehedrs", "bcdiscretedtails", "bcgears", "bcdatatypes", "bcunits" )
+ 
+
+    if ( DS=="odbc.datadump" ){
+
+      require(RODBC)
+      dir.create( biochem.datadump.dir, recursive=TRUE, showWarnings=FALSE )
+      con = odbcConnect( "bank", uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+
+      for ( o in 1:length(bctables) ) {
+        tblname =  bctables[o]
+        tblname2 =  paste( "biochem", tblname, sep="." )
+        fn = file.path( biochem.datadump.dir, paste( tblname2, "rdata", sep="."))
+        
+        query = paste( "select * from ", tblname2, " ;" )
+        res = NULL
+        res = sqlQuery(con, query )
+        names( res) = tolower( names( res) ) 
+
+        assign( tblname, res)  
+        save( get(tblname) , file=fn, compress=TRUE )
+      }
+    }
+
+ 
     
+    if ( DS="flatten" ) {
+      
+      # load all data and flatten in memory
+      for (o in bctables) {
+        load( file.path( biochem.datadump.dir, paste( "biochem", o, "rdata", sep=".") ) )
+      } 
+    
+
+      names( bcmissions) = tolower( names( bcmissions))
+      names( bcevents) = tolower( names( bcevents ))
+      names( bcactivities ) = tolower( names( bcactivities ))
+      
+      names( bcdiscretehedrs) = tolower( names(bcdiscretehedrs ))
+      names( bcdiscretedtails) = tolower( names(bcdiscretedtails ))
+      names( bcdatatypes ) = tolower( names( bcdatatypes ))
+      names( bcunits ) = tolower( names( bcunits ))
+     
+
+      dups = intersect( names( bcdiscretedtails ), names(bcdiscretehedrs) )
+      if (length( dups) > 0 ) bcdiscretehedrs = bcdiscretehedrs[,-dups]
+      bc = merge( bcdiscretedtails, bcdiscretehedrs, by="discrete_seq" )
+     
+      
+      dups = intersect( names( bcdiscretehedrs ), names(bcevents) )
+      if (length( dups) > 0 ) bcevents = bcevents[,-dups]
+      bc = merge( bcdiscretehedrs, bcevents, by="event_seq" )
+      
+      
+      dups = intersect( names( bcmissions ), names(bcevents) )
+      if (length( dups) > 0 ) bcmissions = bcmissions[,-dups]
+      bc = merge( bcevents, bcmissions, by="mission_seq")
+
+   
+      dups = intersect( names( bcdiscretedtails ), names(bcdatatypes) )
+      if (length( dups) > 0 ) bcdatatypes = bcdatatypes[,-dups]
+      bc = merge( bcdiscretedtails, bcdatatypes, by="data_type_seq" )
+
+
+      dups = intersect( names( bcunits ), names(bcdatatypes) )
+      if (length( dups) > 0 ) bcunits = bcunits[,-dups]
+      bc = merge( bcdatatypes, bcunits, by"unit_seq" )
+      
+     
+      # bcret_units = merge( bcdataretrievals, bcunits, by"unit_seq" )
+      # bc = merge( bcdatatypes, bcret_units, by"data_retrieval_seq" )
+
+
+    }
+
+
     if (DS %in% c("scotian.shelf.redo", "scotian.shelf") ){
 
-      fn = file.path( biochem.dir, "ss.rdata" )
+      fn = file.path( biochem.data.dir, "ss.rdata" )
 
       if (DS=="scotian.shelf") {
         load( fn)
@@ -19,9 +97,9 @@
         print( "  http://www.meds-sdmm.dfo-mpo.gc.ca/biochemQuery/authenticate.do?errors=yes ")
         print( "TODO: make this automatic ..." )
 
-        ess = read.table(file= file.path(biochem.dir, "ess.dat"), sep=",",header=T)
+        ess = read.table(file= file.path(biochem.data.dir, "ess.dat"), sep=",",header=T)
         ess$region = "4VW"
-        wss = read.table(file= file.path(biochem.dir, "wss.dat"), sep=",",header=T)
+        wss = read.table(file= file.path(biochem.data.dir, "wss.dat"), sep=",",header=T)
         wss$region = "4X"
 
         ss = rbind(ess, wss)

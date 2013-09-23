@@ -29,10 +29,18 @@
   # p$clusters = c( rep( "kaos.beowulf", 6), rep("nyx.beowulf", 24))
   # p$clusters = c( rep("tartarus.beowulf", 24), rep("kaos", 17 ) )
 
-  p$varstomodel = c( "coAll", "coFish", "coElasmo", "coGadoid", "coDemersal", "coPelagic", "coSmallPelagic", "coLargePelagic", "coSmallDemersal", "coLargeDemersal" )
+  p$varstomodel = c( 
+    "coAll", "coFish", "coElasmo", 
+    "coGadoid", "coDemersal", "coPelagic", 
+    "coSmallPelagic", "coLargePelagic", "coSmallDemersal", 
+    "coLargeDemersal" )
   
   p$yearstomodel = 1970:2012
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
+ 
+  p$spatial.knots = 100
+
+
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
   # p$mods = c("simple","simple.highdef" )  # model types to attempt

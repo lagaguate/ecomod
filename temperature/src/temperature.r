@@ -227,4 +227,45 @@ Nafo5Zw
     plot(e, all.terms=T, pers=T,theta=60)
 
 
+
+    # ---------------------
+    # data extraction for Katja Fennel
+
+
+
+    # start data uptake and processing
+
+    p = list()
+    p$env.init = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+    p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+
+    p = spatial.parameters( p=p, type= "SSE" )
+    
+    out = NULL
+    out = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=p$tyears[1] )
+    out = planar2lonlat( out, proj.type=p$internal.projection )
+    out = out[ , c("lon", "lat", "tmean" ) ]
+    names(out) = c( "lon", "lat", paste("tmean", p$tyears[1],sep="_") ) 
+    
+    for ( y in p$tyears[-1] ) {
+      r = NULL 
+      r = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
+      names(r) = paste( names(r), y, sep="_") 
+      iname = grep( "tmean", names(r) )
+      out = cbind( out, r[,iname] )
+    }
+
+    names(out) = c( "lon", "lat", paste( "tmean", p$tyears, sep="_") ) 
+
+    library(R.matlab)
+
+    writeMat("tdata.mat", tdata=out )
+    
+
+    # ----------------
+ 
+
+     
+
+
    

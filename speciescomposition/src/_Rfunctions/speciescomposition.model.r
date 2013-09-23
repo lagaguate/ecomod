@@ -29,7 +29,7 @@
 			
 			SC = speciescomposition.db( DS="speciescomposition.merged", p=p )
  
-      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciescomposition" )
+      formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciescomposition", spatial.knots=p$spatial.knots )
   
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]

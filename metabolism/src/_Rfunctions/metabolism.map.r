@@ -38,7 +38,7 @@
      #   if (v=="meanwgt")    dr=c( 0.01, 2.5)
      #   if (v=="meanlen")    dr=c( 1.0, 50)
         
-        debug = F; if (debug) dr = quantile(sc[,v], probs=c(0.05, 0.95), na.rm=T)
+        debug = T; if (debug) dr = quantile(sc[,v], probs=c(0.05, 0.95), na.rm=T)
 
         if ( v %in% c("mr", "smr") ) {
           sc[,v] = log10( sc[,v] )
@@ -47,7 +47,14 @@
         } 
 
         datarange = seq( dr[1], dr[2], length.out=100 )
-       
+        
+        il = which( sc[,v] < dr[1] )
+        if ( length(il) > 0 ) sc[il,v] = dr[1]
+
+        iu = which( sc[,v] > dr[2] )
+        if ( length(iu) > 0 ) sc[iu,v] = dr[2]
+
+
           map( xyz= sc[, c("plon","plat",v)], cfa.regions=F, depthcontours=T, 
             pts=NULL, annot=annot, fn=outfn, loc=outdir, at=datarange , 
             col.regions= color.code( "blue.black", datarange ), corners=p$corners )
