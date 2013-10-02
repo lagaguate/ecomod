@@ -48,7 +48,6 @@
   p$outfile = paste( tempfile( "ssa", tmpdir=p$dir.out ), ".res.rdata", sep="" )
 
 
-
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
   
   p$np = 6  # no. of processes

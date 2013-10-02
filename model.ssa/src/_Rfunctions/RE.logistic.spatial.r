@@ -1,8 +1,7 @@
 
 
-  RE.logistic.spatial = function( proc ) {
+  RE.logistic.spatial = list (
     # Reaction processes ...
-    switch( proc, 
       "b*X[jr,jc]" ,  # birth
       "(d+(b-d)*X[jr,jc]/K)*X[jr,jc]" ,   #  death
       "dr*X[jr,jc]" ,   # in balance equation: X[i] <-> X[i+1] :: therefore, this is X[i] -> X[i+1] {dr0}
@@ -10,7 +9,5 @@
       "dc*X[jr,jc]" ,   #diffusion
       "dc*X[jr,jc]"  
     )
-
-  }
 
 

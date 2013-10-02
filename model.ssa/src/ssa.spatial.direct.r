@@ -89,10 +89,6 @@
 
 
 
-
-
-
-
   ####################   SSA 
   # Spatial prototype for Gillespie Alogrithm:  direct computation of everything
 
@@ -104,7 +100,7 @@
   nP = length(P)
   jr = 1:nr
   jc = 1:nc
-  for ( ip in 1:np ) P[,,ip] = eval( parse( text=RE.logistic.spatial( ip ) ) ) 
+  for ( ip in 1:np ) P[,,ip] = eval( parse( text=RE.logistic.spatial[[ ip ]] ) ) 
   P.total = sum(P)
  
   
@@ -124,20 +120,23 @@
     cr = jj - (cc-1) * nr 
 
     # determine the appropriate operations for the reaction
-    o = NU.logistic.spatial(jn) 
+    o = NU.logistic.spatial[[jn]] 
 
+    no = dim(o)[1]
+    ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
+    co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
+
+    # update state (X) 
+    coord = cbind(ro,co)
+    X[coord] = .Internal( pmax( na.rm=FALSE, 0, X[coord] + o[,3] ) )
+
+    # update propensity in focal and neigbouring cells 
     for( u in 1:dim(o)[1] ) {
-      # update state vector (X) 
-      ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, 1, cr + o[u,1] ) ) ) )
-      co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, 1, cc + o[u,2] ) ) ) )
-      X[ro,co] = .Internal( pmax( na.rm=FALSE, 0, X[ro,co] + o[u,3] ) )
-
-      # update propensity in focal and neigbouring cells 
-      jr = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, 1, ro + c(-1,0,1) ) ) ) )
-      jc = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, 1, co + c(-1,0,1) ) ) ) )
+      jr = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, 1, ro[u] + c(-1,0,1) ) ) ) )
+      jc = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, 1, co[u] + c(-1,0,1) ) ) ) )
 
       for ( iip in 1:np) {
-        dP = eval( parse(text=RE.logistic.spatial( iip ))) 
+        dP = eval( parse(text=RE.logistic.spatial[[ iip ]] )) 
         P.total = P.total + sum( P[jr,jc,iip] - dP )
         P[jr,jc,iip] = dP
       }
