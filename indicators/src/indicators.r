@@ -67,6 +67,8 @@ data <- readWorksheet(wb)
   # ordination of selected key factors
   
   d = indicators.subset ( indic, type="keyfactors" )
+  save( d, file="/home/jae/projects/indicators/data/ordin.rdata", compress=TRUE )
+  
   Y = pca.analyse.data(d, t0, t1, fname=file.path(project.directory("indicators"), "keyfactors" ) )
   
 

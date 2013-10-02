@@ -9,14 +9,48 @@
 # dX/dt = rX(1-X/K)
 # Solution via SSA -- Gillespie Alogrithm:  direct computation of everything
 
- 
+
+# NOTE:: using .Internal or .Primitive is not good syntax but 
+#        this gives a major perfance boost upto 40%
+
 
   # set.seed(1)
 
+  # require(ff)  # try using disk to share data across systems
+  
+
+  # Reaction processes ...
+  RE = list(
+    "b[jr,jc]*X[jr,jc]" ,  # birth
+    "(d[jr,jc]+(b[jr,jc]-d[jr,jc])*X[jr,jc]/K[jr,jc])*X[jr,jc]" ,   #  death
+    "dr[jr,jc]*X[jr,jc]" ,   # in balance equation: X[i] <-> X[i+1] :: therefore, this is X[i] -> X[i+1] {dr0}
+    "dr[jr,jc]*X[jr,jc]" ,   # and this is the coupled:  X[i+1] -> X[i] {dr1}
+    "dc[jr,jc]*X[jr,jc]" ,   #diffusion
+    "dc[jr,jc]*X[jr,jc]"  
+  )
+  
+  NU = list( 
+    rbind( c(0,0,1) ),  # for the focal cell (0,0), the birth process: "bX"
+    rbind( c(0,0,-1) ) , # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+    rbind( c(0,0,-1), c(-1,0,1) ), # "jump to adjacent row from the focal cell:: X[i] -> X[i+/-1] {dr0}
+    rbind( c(0,0,-1), c(+1,0,1) ),
+    rbind( c(0,0,-1), c(0,-1,1) ),  # same as above but now for column-wise jumps
+    rbind( c(0,0,-1), c(0,+1,1) )
+  )
+
+
+
 
   p = list()
+
+  p$dir.out = project.directory( "model.ssa", "data" )
+  p$fnroot = tempfile( "ssa", tmpdir=p$dir.out )
+  p$outfile = paste( tempfile( "ssa", tmpdir=p$dir.out ), ".res.rdata", sep="" )
+
+
+
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
- 
+  
   p$np = 6  # no. of processes
   
   
@@ -31,6 +65,16 @@
   p$spatial.domain = "snowcrab"  # spatial extent and data structure 
   p = model.pde.define.spatial.domain(p)
   
+
+
+  # ideally only one process should be picked at a time ... 
+  # but as the sampling from the propensities is the most time-expensive part of this method
+  # a slightly larger number of picks are made in advance and then upadted ..
+  p$nsimultaneous.picks =  round( p$nrc * 0.001 ) # 0.1% update simultaneously should be safe
+
+  p$nX = 10^6 # multiplier to convert to unit individuals
+
+
   # rows are easting (x);  columns are northing (y) --- in R 
   # ... each cell has dimensions of 1 X 1 km ^2
 
@@ -60,7 +104,8 @@
 
   # p$K = matrix( nrow=p$nr, ncol=p$nc, data=rnorm( p$nrc, mean=p$K, sd=p$K/10) )
   p$K = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" ) 
-  p$K[ p$inothabitat ] = p$eps
+  p$K = p$K * p$nX 
+  # p$K[ p$inothabitat ] = p$eps
 
 
   iifin = which (!is.finite( p$K) ) 
@@ -68,8 +113,12 @@
 
 
   # abundance::
+  # X = ff( initdata = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" ),
+  #  dim=c( p$nr, p$nc), filename = paste( p$fnroot, ".X.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
+
   X = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" ) 
-  X[] = X[] * runif( 1:length(X) ) + p$eps 
+  X[] = X[] * p$nX
+  X[] = round( X[] * runif( 1:length(X) ) )  
 
   # in the stochastic form:: using a birth-death Master Equation approach 
   # birth = b
@@ -95,100 +144,120 @@
  
 
   out = array( 0, dim=c( p$nr, p$nc, p$n.times ) )
+  # out = ff( initdata=0, dim=c( p$nr, p$nc, p$n.times ), filename = paste( p$fnroot, ".out.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
+
   
-
-
-
   nevaluations = 0
   simtime = 0
   itime = 0
   next.output.time = 0
-  next.day = 0
+  next.daily.process = 0
  
+
+
   attach(p) 
   
     # initiate P the propensities 
-    
+    # P = ff( initdata=0, dim=c( p$nr, p$nc, p$np ), filename = paste( p$fnroot, ".P.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
     P = array( 0, dim=c( nr, nc, np ) )
     nP = length(P)
     jr = 1:nr
     jc = 1:nc
-    for ( ip in 1:np ) P[,,ip] = eval( parse( text=RE.logistic.spatial.full( ip ) ) ) 
-    P.total = sum(P)
+    for ( ip in 1:np ) {
+      dyn = RE [[ ip ]]
+      P[,,ip] = eval( .Internal( parse(file=stdin(), n=NULL, text=dyn, promt="?", srcfile="NULL", encoding="unknown" )) )
+    }
  
 
-    # Rprof()
+#   Rprof()
+ 
 
     repeat {
- 
-      prop = .Internal(pmax(na.rm=FALSE, 0, P/P.total  ))   # using .Internal is not good syntax but this gives a major perfance boost > 40%
-      j = .Internal(sample( nP, size=1, replace=FALSE, prob=prop ) )
+ #     if ( nevaluations > 10*nsimultaneous.picks) break()   # for profiling/debugging
 
-      # remap random element to correct location and process
-      jn  = floor( (j-1)/nrc ) + 1  # which reaction process
-      jj = j - (jn-1)*nrc  # which cell 
+      # pre-caluclate these factor outside of the loop as they change slowly
+      P.total = sum(P[])
+      prop = P[]/P.total
+      J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=.Internal(pmax(na.rm=FALSE, 0, prop  )) ) )
+      time.increment = -(1/P.total)*log(runif( nsimultaneous.picks ) ) 
+      
+      print( P.total )
 
-      # focal cell coords
-      cc = floor( (jj-1)/nr ) + 1
-      cr = jj - (cc-1) * nr 
+      for ( w in 1:nsimultaneous.picks ) {
+        
+        j = J[w]
+        # can try to parallelize this one ... but not working yet
 
-      # determine the appropriate operations for the reaction
-      o = NU.logistic.spatial(jn) 
+        # remap random element to correct location and process
+        jn  = floor( (j-1)/nrc ) + 1  # which reaction process
+        jj = j - (jn-1)*nrc  # which cell 
 
-      no = dim(o)[1]
-      ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
-      co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
-  
-      # update state (X) 
-      coord = cbind(ro,co)
-      X[coord] = .Internal( pmax( na.rm=FALSE, 0, X[coord] + o[,3] ) )
-     
-      # update propensity (P) in focal and neigbouring cells 
-      for( u in 1:no ) {
-        jr = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, 1, ro[u] + c(-1,0,1) ) ) ) )
-        jc = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, 1, co[u] + c(-1,0,1) ) ) ) )
-        for ( iip in 1:np) {
-          dP = eval( parse(text=RE.logistic.spatial.full( iip ))) 
-          P.total = P.total + sum( P[jr,jc,iip] - dP )
-          P[jr,jc,iip] = dP
+        # focal cell coords
+        cc = floor( (jj-1)/nr ) + 1
+        cr = jj - (cc-1) * nr 
+
+        # determine the appropriate operations for the reaction
+        o = NU[[ jn ]]  
+
+        no = dim(o)[1]
+        ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
+        co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
+    
+        # update state (X) 
+        coord = cbind(ro,co)
+        X[coord] = .Internal( pmax( na.rm=FALSE, 0, X[coord] + o[,3] ) )
+       
+        # update propensity (P) in focal and neigbouring cells 
+        for( u in 1:no ) {
+          jr = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, 1, ro[u] + c(-1,0,1) ) ) ) )
+          jc = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, 1, co[u] + c(-1,0,1) ) ) ) )
+
+          for ( iip in 1:np) {
+            dyn = RE[[ iip ]]
+            P[jr,jc,iip]  = .Internal( eval( 
+              .Internal( parse( 
+                file=stdin(), n=NULL, text=dyn, promt="?", srcfile="NULL", encoding="unknown" )), 
+              parent.frame(), enclos=baseenv() ))
+          }
         }
-      }
 
-      # nevaluations = nevaluations + 1
+        nevaluations = nevaluations + 1
+         
+        simtime = simtime + time.increment[w]  # ... again to optimize for speed
+        
+        if (simtime > next.daily.process) {
+          next.daily.process = next.daily.process + 1
+          # do.fishing.activity( simetime )
+        }
+
+        if (simtime > next.output.time ) {
+          next.output.time = next.output.time + t.censusinterval 
+          itime = itime + 1  # time as index
+          out[,,itime] = X[]
+          # cat( paste( itime, round(P.total), round(sum(X)), Sys.time(), sep="\t\t" ), "\n" )
+          cat( paste( itime, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
+          # nevaluations = 0 # reset
+          image( X[], col=heat.colors(100)  )
+        }
       
-      time.increment = -(1/P.total)*log(runif( 1))
-      simtime = simtime + time.increment  # ... again to optimize for speed
+        if (simtime > t.end ) break()
       
-      if (simtime > next.daily.process) {
-        next.daily.process = next.daily.process + 1
-        do.fishing.activity( simetime )
-      }
+      } #end for
 
+    } # end repeat
 
-      if (simtime > next.output.time ) {
-        next.output.time = next.output.time + t.censusinterval 
-        itime = itime + 1  # time as index
-        out[,,itime] = X[]
-        P.total = sum(P) # reset P.total to prevent divergence due to floating point errors
-        cat( paste( itime, round(P.total), round(sum(X)), Sys.time(), sep="\t\t" ), "\n" )
-        # cat( paste( itime, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
-        # nevaluations = 0 # reset
-        image( out[,,itime], col=heat.colors(100)  )
-      }
-    
-      if (simtime > t.end ) break()
-    
-    }
+  
+  #    Rprof(NULL)
+  #  summaryRprof()
 
 
   detach(p) 
 
-#  Rprof(NULL)
 
+  res = out[]
+  save( res, file=p$outfile, compress=TRUE )
 
-
-
-  plot( seq(0, t.end, length.out=n.times), out[1,1,], pch=".", col="blue", type="b" ) 
+  plot( seq(0, t.end, length.out=n.times), res[1,1,], pch=".", col="blue", type="b" ) 
   
 
 
@@ -222,24 +291,24 @@
   p$parmeterizations = c( "reaction", "diffusion.second.order.central") 
 
   
-  out <- ode.2D(  times=p$modeltimeoutput, y=as.vector(A), parms=p, dimens=c(p$nr, p$nc),
+  res <- ode.2D(  times=p$modeltimeoutput, y=as.vector(A), parms=p, dimens=c(p$nr, p$nc),
     func=single.species.2D.logistic, 
     method="lsodes", lrw=1e8,  
     atol=p$atol 
   )
  
 
-  image.default( matrix(out[365,2:10001], nrow=100), col=heat.colors(100) )
+  image.default( matrix(res[365,2:10001], nrow=100), col=heat.colors(100) )
 
-  diagnostics(out)
+  diagnostics(res)
   
-  plot(p$modeltimeoutput, apply(out, 1, sum))
+  plot(p$modeltimeoutput, apply(res, 1, sum))
   
-  image(out)
-  hist( out[1,] )
+  image(res)
+  hist( res[1,] )
 
   select <- c(1, 4, 10, 20, 50, 100, 200, 500 )
-  image(out, xlab = "x", ylab = "y", mtext = "Test", subset = select, mfrow = c(2,4), legend =  TRUE)
+  image(res, xlab = "x", ylab = "y", mtext = "Test", subset = select, mfrow = c(2,4), legend =  TRUE)
  
 
 
@@ -253,7 +322,7 @@
   p$perturbation = "fishing.random"
   p$fishing.event = c( 21  )
 
-  out <- ode.2D( times=p$modeltimeoutput, y=as.vector(A), parms=p, 
+  res <- ode.2D( times=p$modeltimeoutput, y=as.vector(A), parms=p, 
       dimens=c(p$nr, p$nc), method=rkMethod("rk45ck"), 
       func=single.species.2D.logistic,    
       events = list(func=perturbation.event, time=p$fishing.event ), 
