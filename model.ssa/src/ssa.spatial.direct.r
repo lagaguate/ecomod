@@ -1,6 +1,9 @@
 
 
 
+# Solution via the simplest and most direct SSA -- Gillespie Alogrithm:  
+# direct computation of everything -- no approximations
+
 
 
 ############## Model Parameters 
@@ -16,6 +19,51 @@
   p = list()
   p$init = loadfunctions( c( "model.ssa", "model.pde" )  )
   
+  
+  p$RE = function( X, b, d, K, dr, dc, np) {
+    # propensity calculations .. returns as a vector of reaction process rates ...
+    c(
+      b[]*X[] ,
+      (d[]+(b[]-d[])*X[]/K)[]*X[] ,
+      dr[]*X[] ,
+      dr[]*X[] ,
+      dc[]*X[] ,
+      dc[]*X[] 
+    )
+  }
+  
+  
+  p$NU = list (
+    # Changes associated with Reaction processes 
+    # Lagrangian operator structure: (row, column, operation) where 0,0 is the focal cell and the last element is the operation
+    rbind( c(0,0,1) ),  # for the focal cell (0,0), the birth process: "bX"
+    rbind( c(0,0,-1) ), # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+    rbind( c(0,0,-1), c(-1,0,1) ), # "jump to adjacent row from the focal cell:: X[i] -> X[i+/-1] {dr0}
+    rbind( c(0,0,-1), c(+1,0,1) ),
+    rbind( c(0,0,-1), c(0,-1,1) ),  # same as above but now for column-wise jumps
+    rbind( c(0,0,-1), c(0,+1,1) )
+  )
+
+
+  p$np = length(p$NU)  # no. of processes
+     
+  # pre-sorted data indices ... at most there will be 2 sets as all interactions are binary
+  p$po = list(
+    rep(1:6), # for 1 set
+    c(t(matrix( rep(1:6,2), ncol=2)))  # for 2 sets 
+  )
+  
+
+  p$nr = 100  
+  p$nc = 100 
+  p$nrc = p$nr*p$nc
+
+  
+  # pde related params
+  p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
+  p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
+  p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
+  
 
   # in the stochastic form:: using a birth-death Master Equation approach 
   # birth = b
@@ -27,7 +75,7 @@
   # model parameters
   p$b = 3 / 365 # birth rate
   p$d = 2 / 365 # death rate
-  p$K = 100
+  p$K = 1e6
 
   p$r = p$b - p$d  ## used by pde model
   
@@ -50,27 +98,6 @@
   
   # rows are easting (x);  columns are northing (y) --- in R 
   # ... each cell has dimensions of 1 X 1 km ^2
-  
-  p$nr = 100  
-  p$nc = 100 
-  p$nn = p$nr*p$nc
-
-  p$np = 6  # no. of processes
-  
-  
-  # pde related params
-  p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
-  p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
-  p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
-  
-
-  expand.parameters.in.space = FALSE
-  if (expand.parameters.in.space) {
-    p$r = matrix( nrow=p$nr, ncol=p$nc, data=rnorm( p$nn, mean=p$r, sd=p$r/10) )
-    p$K = matrix( nrow=p$nr, ncol=p$nc, data=rnorm( p$nn, mean=p$K, sd=p$K/10) )
-    p$Da = matrix( ncol=p$nc, nrow=p$nr, data=rnorm( p$nn, mean=p$Da, sd=p$Da/10 ) ) 
-  }
-
 
 
   attach(p) 
@@ -83,82 +110,71 @@
       cwind = floor(nc/10*4.5):floor(nc/10*5.5)
       X = array( 0, dim=c(nr, nc ) ) 
       X[ rwind, cwind ] = round( K * 0.8 )
-      # X[,] = round( runif(nn) * K )
     }
+   
+    # initiate P the propensities 
+    P = array( 0, dim=c( nr, nc, np ) )
+    p$nP = length(P)
+    for ( ip in 1:np ) P[] = RE( X[], b, d, K, dr, dc, np )  
+    P.total = sum(P[])
   detach(p)
-
-
-
-  ####################   SSA 
-  # Spatial prototype for Gillespie Alogrithm:  direct computation of everything
-
-
-  simtime = itime = next.output.time = nevaluations = 0
- 
-  # initiate P the propensities 
-  P = array( 0, dim=c( nr, nc, np ) )
-  nP = length(P)
-  jr = 1:nr
-  jc = 1:nc
-  for ( ip in 1:np ) P[,,ip] = eval( parse( text=RE.logistic.spatial[[ ip ]] ) ) 
-  P.total = sum(P)
- 
   
-# Rprof()
-
-  repeat {
     
-    prop = .Internal(pmax(na.rm=FALSE, 0, P/P.total  ))   # using .Internal is not good syntax but this gives a major perfance boost > 40%
-    j = .Internal(sample( nP, size=1, replace=FALSE, prob=prop ) )
+  
+  
+  ####################################################
+  ################# simulation engine ################
+  ####################################################
 
-    # remap random element to correct location and process
-    jn  = floor( (j-1)/nn ) + 1  # which reaction process
-    jj = j - (jn-1)*nn  # which cell 
 
-    # focal cell coords
-    cc = floor( (jj-1)/nr ) + 1
-    cr = jj - (cc-1) * nr 
 
-    # determine the appropriate operations for the reaction
-    o = NU.logistic.spatial[[jn]] 
+  simtime = tio = tout = nevaluations = 0
 
-    no = dim(o)[1]
-    ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
-    co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
+  attach(p)
+    repeat {
+      
+      prop = .Internal(pmax(na.rm=FALSE, 0, P[]/P.total  ))   # using .Internal is not good syntax but this gives a major perfance boost > 40%
+      j = .Internal(sample( nP, size=1, replace=FALSE, prob=prop ) )
 
-    # update state (X) 
-    coord = cbind(ro,co)
-    X[coord] = .Internal( pmax( na.rm=FALSE, 0, X[coord] + o[,3] ) )
+      # remap random element to correct location and process
+      jn  = floor( (j-1)/nrc ) + 1  # which reaction process
+      jj = j - (jn-1)*nrc  # which cell 
 
-    # update propensity in focal and neigbouring cells 
-    for( u in 1:dim(o)[1] ) {
-      jr = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, 1, ro[u] + c(-1,0,1) ) ) ) )
-      jc = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, 1, co[u] + c(-1,0,1) ) ) ) )
+      # focal cell coords
+      cc = floor( (jj-1)/nr ) + 1
+      cr = jj - (cc-1) * nr 
 
-      for ( iip in 1:np) {
-        dP = eval( parse(text=RE.logistic.spatial[[ iip ]] )) 
-        P.total = P.total + sum( P[jr,jc,iip] - dP )
-        P[jr,jc,iip] = dP
+      # determine the appropriate operations for the reaction
+      o = NU[[ jn ]]  
+      no = dim(o)[1]
+      
+      ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
+      co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
+
+      cox = cbind( ro, co)  ## in X
+      cop = cbind( ro, co, po[[no]] )   # in P
+
+      # update state (X) 
+      X[cox] = Xcx = .Internal( pmax( na.rm=FALSE, 0, X[cox] + o[,3] ) )  # Xcx is a temp copy to skip another lookup below
+
+      # update propensity in focal and neigbouring cells 
+      dP = RE( Xcx, b, d, K, dr, dc, np )
+      P.total = P.total + sum( P[cop] - dP )
+      P[cop] = dP
+
+      nevaluations = nevaluations + 1
+      simtime = simtime - (1/P.total) * log( runif( 1))   # ... again to optimize for speed
+      if (simtime > t.end ) break()
+      if (simtime > tout) {
+        tout = tout + t.censusinterval 
+        tio = tio + 1  # time as index
+        out[,,tio] = X[]
+        P.total = sum(P[]) # reset P.total to prevent divergence due to floating point errors
+        cat( paste( tio, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
+        image( X[], col=heat.colors(100)  )
       }
-    }
-
-    nevaluations = nevaluations + 1
-    simtime = simtime - (1/P.total) * log( runif( 1))   # ... again to optimize for speed
-    if (simtime > t.end ) break()
-    if (simtime > next.output.time ) {
-      next.output.time = next.output.time + t.censusinterval 
-      itime = itime + 1  # time as index
-      out[,,itime] = X[1:nr, 1:nc]
-      P.total = sum(P) # reset P.total to prevent divergence due to floating point errors
-      cat( paste( itime, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
-      nevaluations = 0 # reset
-      image( out[,,itime], col=heat.colors(100)  )
-    }
-  }
-
-
-#  Rprof(NULL)
-
+    } # end repeat
+  detach(p)
 
 
 
@@ -185,7 +201,7 @@
     cwind = floor(p$nc/10*4.5):floor(p$nc/10*5.5)
     A = array( 0, dim=c(p$nr, p$nc ) ) 
     A[ rwind, cwind ] = round( p$K * 0.8 )
-    # X[,] = round( runif(nn) * K )
+    # X[,] = round( runif(nrc) * K )
   }
  
   

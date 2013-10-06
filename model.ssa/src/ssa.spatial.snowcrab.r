@@ -19,57 +19,65 @@
   # require(ff)  # try using disk to share data across systems
   
 
-  # Reaction processes ...
-  RE = list(
-    "b[jr,jc]*X[jr,jc]" ,  # birth
-    "(d[jr,jc]+(b[jr,jc]-d[jr,jc])*X[jr,jc]/K[jr,jc])*X[jr,jc]" ,   #  death
-    "dr[jr,jc]*X[jr,jc]" ,   # in balance equation: X[i] <-> X[i+1] :: therefore, this is X[i] -> X[i+1] {dr0}
-    "dr[jr,jc]*X[jr,jc]" ,   # and this is the coupled:  X[i+1] -> X[i] {dr1}
-    "dc[jr,jc]*X[jr,jc]" ,   #diffusion
-    "dc[jr,jc]*X[jr,jc]"  
-  )
+  p = list()
+
+  p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
   
-  NU = list( 
+  p$RE = function( X, b, d, K, dr, dc, np) {
+    # propensity calculations .. returns as a vector of reaction process rates ...
+    c(
+      b[]*X[] ,
+      (d[]+(b[]-d[])*X[]/K)[]*X[] ,
+      dr[]*X[] ,
+      dr[]*X[] ,
+      dc[]*X[] ,
+      dc[]*X[] 
+    )
+  }
+  
+  
+  p$NU = list (
+    # Changes associated with Reaction processes 
+    # Lagrangian operator structure: (row, column, operation) where 0,0 is the focal cell and the last element is the operation
     rbind( c(0,0,1) ),  # for the focal cell (0,0), the birth process: "bX"
-    rbind( c(0,0,-1) ) , # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+    rbind( c(0,0,-1) ), # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
     rbind( c(0,0,-1), c(-1,0,1) ), # "jump to adjacent row from the focal cell:: X[i] -> X[i+/-1] {dr0}
     rbind( c(0,0,-1), c(+1,0,1) ),
     rbind( c(0,0,-1), c(0,-1,1) ),  # same as above but now for column-wise jumps
     rbind( c(0,0,-1), c(0,+1,1) )
   )
 
-
-
-
-  p = list()
-
-  p$dir.out = project.directory( "model.ssa", "data" )
-  p$fnroot = tempfile( "ssa", tmpdir=p$dir.out )
-  p$outfile = paste( tempfile( "ssa", tmpdir=p$dir.out ), ".res.rdata", sep="" )
-
-
-  p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
+  p$np = length(p$NU)  # no. of processes
+     
+  # pre-sorted data indices ... at most there will be 2 sets as all interactions are binary
+  p$po = list(
+    rep(1:6), # for 1 set
+    c(t(matrix( rep(1:6,2), ncol=2)))  # for 2 sets 
+  )
   
-  p$np = 6  # no. of processes
-  
-  
-  # pde related params
-  p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
-  p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
-  p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
-  
-
+ 
 
   ## read in PDE -related parameterizations
   p$spatial.domain = "snowcrab"  # spatial extent and data structure 
   p = model.pde.define.spatial.domain(p)
-  
+
+  # pde related params
+  p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
+  p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
+  p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
 
 
   # ideally only one process should be picked at a time ... 
   # but as the sampling from the propensities is the most time-expensive part of this method
   # a slightly larger number of picks are made in advance and then upadted ..
   p$nsimultaneous.picks =  round( p$nrc * 0.001 ) # 0.1% update simultaneously should be safe
+
+
+  p$dir.out = project.directory( "model.ssa", "data" )
+  p$fnroot = tempfile( "ssa", tmpdir=p$dir.out )
+  p$outfile = paste( tempfile( "ssa", tmpdir=p$dir.out ), ".res.rdata", sep="" )
+
+
 
   p$nX = 10^6 # multiplier to convert to unit individuals
 
@@ -117,7 +125,12 @@
 
   X = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" ) 
   X[] = X[] * p$nX
-  X[] = round( X[] * runif( 1:length(X) ) )  
+
+    debug = TRUE
+    if (debug) X[] = round( X[] * runif( 1:length(X) ) )  
+
+
+
 
   # in the stochastic form:: using a birth-death Master Equation approach 
   # birth = b
@@ -141,47 +154,41 @@
   p$t.censusinterval = p$t.end / p$n.times
   p$modeltimeoutput = seq( 0, p$t.end, length=p$n.times )  # times at which output is desired .. used by pde
  
-
-  out = array( 0, dim=c( p$nr, p$nc, p$n.times ) )
-  # out = ff( initdata=0, dim=c( p$nr, p$nc, p$n.times ), filename = paste( p$fnroot, ".out.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
-
-  
-  nevaluations = 0
-  simtime = 0
-  itime = 0
-  next.output.time = 0
-  next.daily.process = 0
  
-
-
   attach(p) 
-  
+   
+    out = array( 0, dim=c( nr, nc, n.times ) )
+    # out = ff( initdata=0, dim=c( nr, nc, n.times ), filename = paste( fnroot, ".out.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
+
+
     # initiate P the propensities 
-    # P = ff( initdata=0, dim=c( p$nr, p$nc, p$np ), filename = paste( p$fnroot, ".P.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
+    # P = ff( initdata=0, dim=c( nr, nc, np ), filename = paste( fnroot, ".P.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
     P = array( 0, dim=c( nr, nc, np ) )
-    nP = length(P)
-    jr = 1:nr
-    jc = 1:nc
-    for ( ip in 1:np ) {
-      dyn = RE [[ ip ]]
-      P[,,ip] = eval( .Internal( parse(file=stdin(), n=NULL, text=dyn, promt="?", srcfile="NULL", encoding="unknown" )) )
-    }
- 
+    p$nP = length(P)
+    for ( ip in 1:np ) P[] = RE( X[], b, d, K, dr, dc, np )  
+    P.total = sum(P[])
 
-#   Rprof()
- 
+  detach(p)
 
+
+
+
+  
+  ####################################################
+  ################# simulation engine ################
+  ####################################################
+
+
+  simtime = tio = tout = nevaluations = next.daily.process= 0
+
+  attach(p)
     repeat {
- #     if ( nevaluations > 10*nsimultaneous.picks) break()   # for profiling/debugging
 
       # pre-caluclate these factor outside of the loop as they change slowly
-      P.total = sum(P[])
-      prop = P[]/P.total
-      J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=.Internal(pmax(na.rm=FALSE, 0, prop  )) ) )
+      prop = .Internal(pmax(na.rm=FALSE, 0, P[]/P.total ) )
+      J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) ) 
       time.increment = -(1/P.total)*log(runif( nsimultaneous.picks ) ) 
-      
-      print( P.total )
-
+    
       for ( w in 1:nsimultaneous.picks ) {
         
         j = J[w]
@@ -197,59 +204,39 @@
 
         # determine the appropriate operations for the reaction
         o = NU[[ jn ]]  
-
         no = dim(o)[1]
+        
         ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
         co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
-    
-        # update state (X) 
-        coord = cbind(ro,co)
-        X[coord] = .Internal( pmax( na.rm=FALSE, 0, X[coord] + o[,3] ) )
-       
-        # update propensity (P) in focal and neigbouring cells 
-        for( u in 1:no ) {
-          jr = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, 1, ro[u] + c(-1,0,1) ) ) ) )
-          jc = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, 1, co[u] + c(-1,0,1) ) ) ) )
 
-          for ( iip in 1:np) {
-            dyn = RE[[ iip ]]
-            P[jr,jc,iip]  = .Internal( eval( 
-              .Internal( parse( 
-                file=stdin(), n=NULL, text=dyn, promt="?", srcfile="NULL", encoding="unknown" )), 
-              parent.frame(), enclos=baseenv() ))
-          }
-        }
+        cox = cbind( ro, co)  ## in X
+        cop = cbind( ro, co, po[[no]] )   # in P
+
+        # update state (X) 
+        X[cox] = .Internal( pmax( na.rm=FALSE, 0, X[cox] + o[,3] ) )  # Xcx is a temp copy to skip another lookup below
+
+        # update propensity in focal and neigbouring cells 
+        dP = RE( X[cox], b[cox], d[cox], K[cox], dr[cox], dc[cox], np )
+        P.total = P.total + sum( P[cop] - dP )
+        P[cop] = dP
 
         nevaluations = nevaluations + 1
-         
         simtime = simtime + time.increment[w]  # ... again to optimize for speed
-        
         if (simtime > next.daily.process) {
           next.daily.process = next.daily.process + 1
           # do.fishing.activity( simetime )
         }
-
-        if (simtime > next.output.time ) {
-          next.output.time = next.output.time + t.censusinterval 
-          itime = itime + 1  # time as index
-          out[,,itime] = X[]
-          # cat( paste( itime, round(P.total), round(sum(X)), Sys.time(), sep="\t\t" ), "\n" )
-          cat( paste( itime, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
-          # nevaluations = 0 # reset
+        if (simtime > tout ) {
+          tout = tout + t.censusinterval 
+          tio = tio + 1  # time as index
+          out[,,tio] = X[]
+          P.total = sum(P) # reset P.total to prevent divergence due to floating point errors
+          cat( paste( tio, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
           image( X[], col=heat.colors(100)  )
         }
-      
         if (simtime > t.end ) break()
-      
       } #end for
-
     } # end repeat
-
-  
-  #    Rprof(NULL)
-  #  summaryRprof()
-
-
   detach(p) 
 
 
