@@ -3,8 +3,10 @@
  
 
 
-  ####################   SSA 
-  # Spatial prototype for Gillespie Alogrithm: approximation/optimizations
+####################   SSA 
+# Spatial prototype for Gillespie Alogrithm: 
+# with approximations/optimizations that do simultaneous updates and 
+# so deviating from one reaction at a time approach
 
 
 
@@ -37,8 +39,10 @@
   
   
   p$NU = list (
-    # Changes associated with Reaction processes 
-    # Lagrangian operator structure: (row, column, operation) where 0,0 is the focal cell and the last element is the operation
+   # Changes associated with Reaction processes 
+    # Lagrangian operator structure: 
+    #   (row, column, operation) 
+    # where row, column are relative to the focal cell 
     rbind( c(0,0,1) ),  # for the focal cell (0,0), the birth process: "bX"
     rbind( c(0,0,-1) ), # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
     rbind( c(0,0,-1), c(-1,0,1) ), # "jump to adjacent row from the focal cell:: X[i] -> X[i+/-1] {dr0}
@@ -65,7 +69,7 @@
   # ideally only one process should be picked at a time ... 
   # but as the sampling from the propensities is the most time-expensive part of this method
   # a slightly larger number of picks are made in advance and then upadted ..
-  p$nsimultaneous.picks =  round( p$nrc * 0.001 ) # 0.1% update simultaneously should be safe
+  p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
 
 
   
@@ -84,8 +88,8 @@
  
    
   # model parameters
-  p$b = 3 / 365 # birth rate
-  p$d = 2 / 365 # death rate
+  p$b = 2 / 365 # birth rate
+  p$d = 1 / 365 # death rate
   p$K = 100
 
   p$r = p$b - p$d  ## used by pde model
@@ -109,6 +113,10 @@
   
   # rows are easting (x);  columns are northing (y) --- in R 
   # ... each cell has dimensions of 1 X 1 km ^2
+  
+  # calc here to avoid repeating calculations
+  p$nr_1 = p$nr-1
+  p$nc_1 = p$nc-1
 
 
   attach(p)
@@ -126,8 +134,7 @@
 
     # initiate P the propensities 
     # P = ff( initdata=0, dim=c( p$nr, p$nc, p$np ), filename = paste( p$fnroot, ".P.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
-    P = array( 0, dim=c( nr, nc, np ) )
-    for ( ip in 1:np ) P[] = RE( X[], b, d, K, dr, dc, np )  
+    P = array( RE( X[], b, d, K, dr, dc, np ), dim=c( nr, nc, np ) )
     P.total = sum(P[])
     p$nP = length(P)
    
@@ -143,10 +150,9 @@
 
 
   simtime = tio = tout = nevaluations = 0
-  
-
 
   attach(p)
+  
     repeat {
        
       # pre-caluclate these factor outside of the loop as they change slowly
@@ -169,40 +175,51 @@
         # determine the appropriate operations for the reaction
         o = NU[[jn]] 
         no = dim(o)[1]
+         
+        ro = cr + o[,1] 
+        co = cc + o[,2]
         
-        ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
-        co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
-
+        # ensure boundary conditions are sane
+        ro[ro < 1] = 2
+        ro[ro > nr] = nr_1
+        
+        co[co < 1] = 2
+        co[co > nc] = nc_1 
+  
         cox = cbind( ro, co)  ## in X
         cop = cbind( ro, co, po[[no]] )   # in P
 
         # update state (X) 
-        X[cox] = Xcx = .Internal( pmax( na.rm=FALSE, 0, X[cox] + o[,3] ) )  # Xcx is a temp copy to skip another lookup below
-
+        Xcx = X[cox] + o[,3]   # Xcx is a temp copy to skip another lookup below
+        Xcx[Xcx<0] = 0
+        X[cox] = Xcx
+        
         # update propensity in focal and neigbouring cells 
         dP = RE( Xcx, b, d, K, dr, dc, np )
-        P.total = P.total + sum( P[cop] - dP )
+        P.total = P.total + sum( dP - P[cop] )
         P[cop] = dP
 
         nevaluations = nevaluations + 1
-        simtime = simtime - (1/P.total) * log( runif( 1))   # ... again to optimize for speed
+        simtime = simtime  + time.increment[w]   # ... again to optimize for speed
+        if (simtime > t.end ) break()
         if (simtime > tout ) {
           tout = tout + t.censusinterval 
           tio = tio + 1  # time as index
           out[,,tio] = X[]
-          P.total = sum(P) # reset P.total to prevent divergence due to floating point errors
+          # print( P.total - sum(P[]) )
+          P.total = sum(P[]) # reset P.total to prevent divergence due to floating point errors
           cat( paste( tio, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
           image( X[], col=heat.colors(100)  )
         }
-        if (simtime > t.end ) break()
       }  # end for
     }  # end repeat
+  
   detach(p)
 
 
 
-  plot( seq(0, t.end, length.out=n.times), out[1,1,], pch=".", col="blue", type="b" ) 
-  
+  plot( seq(0, t.end, length.out=n.times), apply(out[], 3, mean), pch=".", col="blue", type="b" ) 
+
 
 
   ### ---------------------------------------

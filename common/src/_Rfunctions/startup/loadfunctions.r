@@ -10,7 +10,7 @@
 
     filestosource = NULL
 
-    for (pn in projectname) {
+    for (pn in projectname ) {
 
       projectdirectory = project.directory( name=pn )
 

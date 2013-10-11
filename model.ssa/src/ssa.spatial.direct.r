@@ -17,8 +17,7 @@
 
 
   p = list()
-  p$init = loadfunctions( c( "model.ssa", "model.pde" )  )
-  
+ 
   
   p$RE = function( X, b, d, K, dr, dc, np) {
     # propensity calculations .. returns as a vector of reaction process rates ...
@@ -35,7 +34,9 @@
   
   p$NU = list (
     # Changes associated with Reaction processes 
-    # Lagrangian operator structure: (row, column, operation) where 0,0 is the focal cell and the last element is the operation
+    # Lagrangian operator structure: 
+    #   (row, column, operation) 
+    # where row, column are relative to the focal cell 
     rbind( c(0,0,1) ),  # for the focal cell (0,0), the birth process: "bX"
     rbind( c(0,0,-1) ), # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
     rbind( c(0,0,-1), c(-1,0,1) ), # "jump to adjacent row from the focal cell:: X[i] -> X[i+/-1] {dr0}
@@ -95,7 +96,10 @@
   p$t.censusinterval = p$t.end / p$n.times
   p$modeltimeoutput = seq( 0, p$t.end, length=p$n.times )  # times at which output is desired .. used by pde
  
-  
+  # calc here to avoid repeating calculations
+  p$nr_1 = p$nr-1
+  p$nc_1 = p$nc-1
+
   # rows are easting (x);  columns are northing (y) --- in R 
   # ... each cell has dimensions of 1 X 1 km ^2
 
@@ -113,9 +117,8 @@
     }
    
     # initiate P the propensities 
-    P = array( 0, dim=c( nr, nc, np ) )
+    P = array(  RE( X[], b, d, K, dr, dc, np ) , dim=c( nr, nc, np ) )
     p$nP = length(P)
-    for ( ip in 1:np ) P[] = RE( X[], b, d, K, dr, dc, np )  
     P.total = sum(P[])
   detach(p)
   
@@ -129,8 +132,10 @@
 
 
   simtime = tio = tout = nevaluations = 0
+ 
 
   attach(p)
+
     repeat {
       
       prop = .Internal(pmax(na.rm=FALSE, 0, P[]/P.total  ))   # using .Internal is not good syntax but this gives a major perfance boost > 40%
@@ -144,22 +149,32 @@
       cc = floor( (jj-1)/nr ) + 1
       cr = jj - (cc-1) * nr 
 
-      # determine the appropriate operations for the reaction
+      # determine the appropriate operations for the reaction and their 'real' locations
       o = NU[[ jn ]]  
       no = dim(o)[1]
       
-      ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
-      co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
-
+      ro = cr + o[,1] 
+      co = cc + o[,2]
+      
+      # ensure boundary conditions are sane
+      ro[ro < 1] = 2
+      ro[ro > nr] = nr_1
+      
+      co[co < 1] = 2
+      co[co > nc] = nc_1 
+      
+      # build correctly structured indices
       cox = cbind( ro, co)  ## in X
       cop = cbind( ro, co, po[[no]] )   # in P
 
       # update state (X) 
-      X[cox] = Xcx = .Internal( pmax( na.rm=FALSE, 0, X[cox] + o[,3] ) )  # Xcx is a temp copy to skip another lookup below
-
-      # update propensity in focal and neigbouring cells 
+      Xcx = X[cox] + o[,3]   # Xcx is a temp copy to skip another lookup below
+      Xcx[Xcx<0] = 0
+      X[cox] = Xcx
+  
+      # update propensity in focal cells 
       dP = RE( Xcx, b, d, K, dr, dc, np )
-      P.total = P.total + sum( P[cop] - dP )
+      P.total = P.total + sum( dP - P[cop] )
       P[cop] = dP
 
       nevaluations = nevaluations + 1
@@ -174,6 +189,7 @@
         image( X[], col=heat.colors(100)  )
       }
     } # end repeat
+  
   detach(p)
 
 
@@ -190,9 +206,9 @@
   ### ---------------------------------------
   ### Compare with a PDE version of the model 
 
+  p$init = loadfunctions( c( "model.pde" )  )
+  p$libs = loadlibraries ( c( "deSolve", "lattice") )
 
-  require (deSolve)
-  require (lattice)
 
   A = array( 0, dim=c(p$nr, p$nc ) ) 
   debug = TRUE

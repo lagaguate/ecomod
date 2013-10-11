@@ -21,7 +21,7 @@
 
   p = list()
 
-  p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
+  p$init = loadfunctions( c( "model.pde", "common", "snowcrab" )  )
   
   p$RE = function( X, b, d, K, dr, dc, np) {
     # propensity calculations .. returns as a vector of reaction process rates ...
@@ -70,7 +70,7 @@
   # ideally only one process should be picked at a time ... 
   # but as the sampling from the propensities is the most time-expensive part of this method
   # a slightly larger number of picks are made in advance and then upadted ..
-  p$nsimultaneous.picks =  round( p$nrc * 0.001 ) # 0.1% update simultaneously should be safe
+  p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
 
 
   p$dir.out = project.directory( "model.ssa", "data" )
@@ -153,7 +153,12 @@
   p$t.end =   365   # in model time .. days
   p$t.censusinterval = p$t.end / p$n.times
   p$modeltimeoutput = seq( 0, p$t.end, length=p$n.times )  # times at which output is desired .. used by pde
- 
+  
+  # calc here to avoid repeating calculations
+  p$nr_1 = p$nr-1
+  p$nc_1 = p$nc-1
+
+
  
   attach(p) 
    
@@ -162,10 +167,9 @@
 
 
     # initiate P the propensities 
-    # P = ff( initdata=0, dim=c( nr, nc, np ), filename = paste( fnroot, ".P.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
-    P = array( 0, dim=c( nr, nc, np ) )
+    # P = ff( initdata=RE( X[], b, d, K, dr, dc, np ), dim=c( nr, nc, np ), filename = paste( fnroot, ".P.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
+    P = array( RE( X[], b, d, K, dr, dc, np ), dim=c( nr, nc, np ) )
     p$nP = length(P)
-    for ( ip in 1:np ) P[] = RE( X[], b, d, K, dr, dc, np )  
     P.total = sum(P[])
 
   detach(p)
@@ -180,8 +184,10 @@
 
 
   simtime = tio = tout = nevaluations = next.daily.process= 0
+ 
 
   attach(p)
+
     repeat {
 
       # pre-caluclate these factor outside of the loop as they change slowly
@@ -206,22 +212,32 @@
         o = NU[[ jn ]]  
         no = dim(o)[1]
         
-        ro = .Internal( pmin( na.rm=FALSE, nr, .Internal( pmax( na.rm=FALSE, no, cr + o[,1] ) ) ) )
-        co = .Internal( pmin( na.rm=FALSE, nc, .Internal( pmax( na.rm=FALSE, no, cc + o[,2] ) ) ) )
-
+        ro = cr + o[,1] 
+        co = cc + o[,2]
+        
+        # ensure boundary conditions are sane
+        ro[ro < 1] = 2
+        ro[ro > nr] = nr_1
+        
+        co[co < 1] = 2
+        co[co > nc] = nc_1 
+  
         cox = cbind( ro, co)  ## in X
         cop = cbind( ro, co, po[[no]] )   # in P
 
         # update state (X) 
-        X[cox] = .Internal( pmax( na.rm=FALSE, 0, X[cox] + o[,3] ) )  # Xcx is a temp copy to skip another lookup below
-
+        Xcx = X[cox] + o[,3]   # Xcx is a temp copy to skip another lookup below
+        Xcx[Xcx<0] = 0
+        X[cox] = Xcx
+  
         # update propensity in focal and neigbouring cells 
-        dP = RE( X[cox], b[cox], d[cox], K[cox], dr[cox], dc[cox], np )
-        P.total = P.total + sum( P[cop] - dP )
+        dP = RE( Xcx, b[cox], d[cox], K[cox], dr[cox], dc[cox], np )
+        P.total = P.total + sum( dP - P[cop] )
         P[cop] = dP
 
         nevaluations = nevaluations + 1
         simtime = simtime + time.increment[w]  # ... again to optimize for speed
+        if (simtime > t.end ) break()
         if (simtime > next.daily.process) {
           next.daily.process = next.daily.process + 1
           # do.fishing.activity( simetime )
@@ -234,17 +250,18 @@
           cat( paste( tio, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
           image( X[], col=heat.colors(100)  )
         }
-        if (simtime > t.end ) break()
       } #end for
     } # end repeat
+  
   detach(p) 
 
 
   res = out[]
   save( res, file=p$outfile, compress=TRUE )
 
-  plot( seq(0, t.end, length.out=n.times), res[1,1,], pch=".", col="blue", type="b" ) 
-  
+ 
+  plot( seq(0, t.end, length.out=n.times), apply(res[], 3, mean), pch=".", col="blue", type="b" ) 
+
 
 
 
