@@ -3,12 +3,26 @@
 # The Gillespie is essentially a Poisson process
 
 # more examples for classical ecological models:
-# mostly from 
-# Pineda-Krch M. 2008. GillespieSSA: Implementing the Gillespie Stochastic Simulation Algorithm in R. Journal of Statistical Software 25(12): 1-18. (PDF).
+# mostly from: 
+# Pineda-Krch M. 2008. GillespieSSA: Implementing the Gillespie 
+# Stochastic Simulation Algorithm in R. Journal of Statistical Software 25(12): 1-18. (PDF).
 
 
   require(GillespieSSA)
   require (deSolve)
+
+
+
+  propensity.logistic = function( cstate, parms, RE ) {
+    n.reactions = length(RE)
+    reactions = with ( as.list( c(cstate, parms) ), {
+      re = rep( 0, n.reactions)
+      for ( ir in 1:n.reactions) re[ir] = eval( RE[ir] )
+      re
+    })
+    return( reactions)
+  }
+
 
 
 # ---------------------------

@@ -66,7 +66,11 @@
 #     A -> A + A      { birth rate = r.birth }  
 
 
+
+
+# ================================================  
 # now same as above using the GillespieSSA library
+
   require(GillespieSSA)
 
   rate.birth = 0.3
