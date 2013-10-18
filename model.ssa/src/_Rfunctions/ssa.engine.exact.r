@@ -42,7 +42,7 @@ ssa.engine.exact = function( p ) {
       X[cox] = Xcx
   
       # update propensity in focal cells 
-      dP = RE( Xcx, b, d, K, dr, dc, np )
+      dP = RE( Xcx, b, d, K, dr, dc )
       P.total = P.total + sum( dP - P[cop] )
       P[cop] = dP
 
@@ -54,7 +54,7 @@ ssa.engine.exact = function( p ) {
         tio = tio + 1  # time as index
         out = X[]
         # print( P.total - sum(P[]) )
-        save (out, file=paste(outfnprefix, tio,"rdata",sep="." ), compress=TRUE ) 
+        ssa.db( ptype="save", out=X[], fnprefix=outfnprefix, tio=tio )  
         P.total = sum(P[]) # reset P.total in case of divergence due to floating point errors
         cat( paste( tio, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
         image( X[], col=heat.colors(100)  )

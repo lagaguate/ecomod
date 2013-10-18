@@ -59,7 +59,7 @@ ssa.engine.approximation = function( p ) {
           tio = tio + 1  # time as index
           out = X[]
           # print( P.total - sum(P[]) )
-          save (out, file=paste(outfnprefix, tio,"rdata",sep="." ), compress=TRUE ) 
+          ssa.db( ptype="save", out=X[], fnprefix=outfnprefix, tio=tio )  
           P.total = sum(P[]) # reset P.total in case of divergence due to floating point errors
           cat( paste( tio, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
           image( X[], col=heat.colors(100)  )
