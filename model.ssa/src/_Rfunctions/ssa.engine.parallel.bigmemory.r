@@ -5,7 +5,7 @@
                
     simtime = tio = tout = nevaluations = 0
                   
-    cl = makeCluster( spec=clusters, type=pconnectmethod )
+    cl = makeCluster( spec=cluster, type=cluster.message.system )
     ssplt = lapply( clusterSplit( cl, 1:nsimultaneous.picks ), function(i){i} )
 
     repeat {
@@ -89,11 +89,11 @@
 
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
-        ssa.db( ptype="save", out=as.matrix(X[]), fnprefix=outfnprefix, tio=tio )  
+        ssa.db( ptype="save", out=as.matrix(X[]), fnprefix=outfileprefix, tio=tio )  
         # print( P.total - sum(P[]) )
         P.total = sum(P[]) # reset P.total to prevent divergence due to floating point errors
         cat( paste( tio, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
-        image( X[], col=heat.colors(100)  )
+        # image( X[], col=heat.colors(100)  )
       }
 
     } # end repeat

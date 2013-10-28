@@ -60,8 +60,8 @@
     if ( ptype=="simtimes.debug" ) {
    
       p <- within( p, { 
-        n.times = 365  # number of censuses  
-        t.end =   365   # in model time .. days
+        n.times = 10 # 365  # number of censuses  
+        t.end =   10 # 365   # in model time .. days
         t.censusinterval = t.end / n.times
         modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
       })

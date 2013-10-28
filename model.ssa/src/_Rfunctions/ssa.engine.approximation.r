@@ -57,12 +57,11 @@ ssa.engine.approximation = function( p ) {
         if (simtime > tout ) {
           tout = tout + t.censusinterval 
           tio = tio + 1  # time as index
-          out = X[]
-          # print( P.total - sum(P[]) )
-          ssa.db( ptype="save", out=X[], fnprefix=outfnprefix, tio=tio )  
+          # print( P.total - sum(P[]) ) # debug
+          ssa.db( ptype="save", out=X[], fnprefix=outfileprefix, tio=tio )  
           P.total = sum(P[]) # reset P.total in case of divergence due to floating point errors
           cat( paste( tio, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
-          image( X[], col=heat.colors(100)  )
+          # image( X[], col=heat.colors(100)  )
         }
       }  # end for
   }} )  # end repeat and within

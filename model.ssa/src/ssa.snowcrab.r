@@ -21,46 +21,33 @@
 
   p = list()
 
-  p$init = loadfunctions( c( "model.pde", "common", "snowcrab" )  )
-  
-  p$RE = function( X, b, d, K, dr, dc, np) {
-    # propensity calculations .. returns as a vector of reaction process rates ...
-    c(
-      b[]*X[] ,
-      (d[]+(b[]-d[])*X[]/K)[]*X[] ,
-      dr[]*X[] ,
-      dr[]*X[] ,
-      dc[]*X[] ,
-      dc[]*X[] 
-    )
-  }
+  p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
+  p$lib = loadlibraries( c("parallel" ))
   
   
-  p$NU = list (
-    # Changes associated with Reaction processes 
-    # Lagrangian operator structure: (row, column, operation) where 0,0 is the focal cell and the last element is the operation
-    rbind( c(0,0,1) ),  # for the focal cell (0,0), the birth process: "bX"
-    rbind( c(0,0,-1) ), # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
-    rbind( c(0,0,-1), c(-1,0,1) ), # "jump to adjacent row from the focal cell:: X[i] -> X[i+/-1] {dr0}
-    rbind( c(0,0,-1), c(+1,0,1) ),
-    rbind( c(0,0,-1), c(0,-1,1) ),  # same as above but now for column-wise jumps
-    rbind( c(0,0,-1), c(0,+1,1) )
-  )
+  # details of output storage locations
+  p$outdir = project.directory( "model.ssa", "data" )
+  p$runname = "test1"
+  dir.create( file.path( p$outdir, p$runname), recursive=TRUE ) 
+  p$outfileprefix =  file.path( p$outdir, p$runname, "out")  
 
-  p$np = length(p$NU)  # no. of processes
-     
-  # pre-sorted data indices ... at most there will be 2 sets as all interactions are binary
-  p$po = list(
-    rep(1:6), # for 1 set
-    c(t(matrix( rep(1:6,2), ncol=2)))  # for 2 sets 
-  )
+  p$fnroot = tempfile( "ssa", tmpdir=p$outdir )
+  p$outfile = paste( tempfile( "ssa", tmpdir=p$outdir ), ".res.rdata", sep="" )
+
+
   
- 
+  p = ssa.model.definition( p, ptype = "default.logistic" ) 
+
 
   ## read in PDE -related parameterizations
   p$spatial.domain = "snowcrab"  # spatial extent and data structure 
   p = model.pde.define.spatial.domain(p)
+  
+  # calc here to avoid repeating calculations in the simulation loop
+  p$nr_1 = p$nr-1
+  p$nc_1 = p$nc-1
 
+  
   # pde related params
   p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
   p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
@@ -71,11 +58,6 @@
   # but as the sampling from the propensities is the most time-expensive part of this method
   # a slightly larger number of picks are made in advance and then upadted ..
   p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
-
-
-  p$dir.out = project.directory( "model.ssa", "data" )
-  p$fnroot = tempfile( "ssa", tmpdir=p$dir.out )
-  p$outfile = paste( tempfile( "ssa", tmpdir=p$dir.out ), ".res.rdata", sep="" )
 
 
 
@@ -111,7 +93,6 @@
 
   # p$K = matrix( nrow=p$nr, ncol=p$nc, data=rnorm( p$nrc, mean=p$K, sd=p$K/10) )
   p$K = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" ) 
-  p$K = p$K * p$nX 
   # p$K[ p$inothabitat ] = p$eps
 
 
@@ -124,12 +105,6 @@
   #  dim=c( p$nr, p$nc), filename = paste( p$fnroot, ".X.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
 
   X = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" ) 
-  X[] = X[] * p$nX
-
-    debug = TRUE
-    if (debug) X[] = round( X[] * runif( 1:length(X) ) )  
-
-
 
 
   # in the stochastic form:: using a birth-death Master Equation approach 
@@ -153,121 +128,42 @@
   p$t.end =   365   # in model time .. days
   p$t.censusinterval = p$t.end / p$n.times
   p$modeltimeoutput = seq( 0, p$t.end, length=p$n.times )  # times at which output is desired .. used by pde
+
   
-  # calc here to avoid repeating calculations
-  p$nr_1 = p$nr-1
-  p$nc_1 = p$nc-1
+  # state variable
+  p <- within( p, {
+    # initiate state space with some random noise and a core area in the center of the system
+    X = array( 0, dim=c( nr, nc ) ) 
+    rwind = floor(nr/10*4.5):floor(nr/10*5.5)
+    cwind = floor(nc/10*4.5):floor(nc/10*5.5)
+    X[ rwind, cwind ] = round( K[] * 0.8 )
+  }) 
 
 
- 
-  attach(p) 
-   
-    out = array( 0, dim=c( nr, nc, n.times ) )
-    # out = ff( initdata=0, dim=c( nr, nc, n.times ), filename = paste( fnroot, ".out.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
-
-
+  # propensities
+  p <- within( p, {
     # initiate P the propensities 
-    # P = ff( initdata=RE( X[], b, d, K, dr, dc, np ), dim=c( nr, nc, np ), filename = paste( fnroot, ".P.ff.tmp", sep="" ) , overwrite=TRUE, finalizer="delete" )
-    P = array( RE( X[], b, d, K, dr, dc, np ), dim=c( nr, nc, np ) )
-    p$nP = length(P)
-    P.total = sum(P[])
-
-  detach(p)
+    P = array( RE( X[], b, d, K, dr, dc ), dim=c( nr, nc, np ) )
+    P.total = sum( P[] )
+    nP = length( P[] )
+  }) 
 
 
-
-
+  # single run
+  p = ssa.engine.approximation.snowcrab( p )  # same as  ssa.engine.approximation right now ... but if additional changes such as fishing etc ... then it should be done in the snowcrab version
   
-  ####################################################
-  ################# simulation engine ################
-  ####################################################
+  p$runtype = "snowcrab" --- use this in ssa.parallel to choose alternate engines 
+  # multiple runs in parallel
+  ssa.parallel.run ( DS="run", p=p  ) # run the simulation in parallel
+  ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
 
-
-  simtime = tio = tout = nevaluations = next.daily.process= 0
+  # load some of the run results
+  X = ssa.parallel.run ( DS="load", p=p, run=1 )  # to load run 1 
+  X = ssa.parallel.run ( DS="load", p=p, run="median" ) # etc. .. "mean", "var", "min", "max" ... add as needed.
+  
+  # delete raw simulation files 
+  ssa.parallel.run ( DS="delete.individual.runs", p=p  ) 
  
-
-  attach(p)
-
-    repeat {
-
-      # pre-caluclate these factor outside of the loop as they change slowly
-      prop = .Internal(pmax(na.rm=FALSE, 0, P[]/P.total ) )
-      J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) ) 
-      time.increment = -(1/P.total)*log(runif( nsimultaneous.picks ) ) 
-    
-      for ( w in 1:nsimultaneous.picks ) {
-        
-        j = J[w]
-        # can try to parallelize this one ... but not working yet
-
-        # remap random element to correct location and process
-        jn  = floor( (j-1)/nrc ) + 1  # which reaction process
-        jj = j - (jn-1)*nrc  # which cell 
-
-        # focal cell coords
-        cc = floor( (jj-1)/nr ) + 1
-        cr = jj - (cc-1) * nr 
-
-        # determine the appropriate operations for the reaction
-        o = NU[[ jn ]]  
-        no = dim(o)[1]
-        
-        ro = cr + o[,1] 
-        co = cc + o[,2]
-        
-        # ensure boundary conditions are sane
-        ro[ro < 1] = 2
-        ro[ro > nr] = nr_1
-        
-        co[co < 1] = 2
-        co[co > nc] = nc_1 
-  
-        cox = cbind( ro, co)  ## in X
-        cop = cbind( ro, co, po[[no]] )   # in P
-
-        # update state (X) 
-        Xcx = X[cox] + o[,3]   # Xcx is a temp copy to skip another lookup below
-        Xcx[Xcx<0] = 0
-        X[cox] = Xcx
-  
-        # update propensity in focal and neigbouring cells 
-        dP = RE( Xcx, b[cox], d[cox], K[cox], dr[cox], dc[cox], np )
-        P.total = P.total + sum( dP - P[cop] )
-        P[cop] = dP
-
-        nevaluations = nevaluations + 1
-        simtime = simtime + time.increment[w]  # ... again to optimize for speed
-        if (simtime > t.end ) break()
-        if (simtime > next.daily.process) {
-          next.daily.process = next.daily.process + 1
-          # do.fishing.activity( simetime )
-        }
-        if (simtime > tout ) {
-          tout = tout + t.censusinterval 
-          tio = tio + 1  # time as index
-          out[,,tio] = X[]
-          P.total = sum(P) # reset P.total to prevent divergence due to floating point errors
-          cat( paste( tio, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
-          image( X[], col=heat.colors(100)  )
-        }
-      } #end for
-    } # end repeat
-  
-  detach(p) 
-
-
-  res = out[]
-  save( res, file=p$outfile, compress=TRUE )
-
- 
-  plot( seq(0, t.end, length.out=n.times), apply(res[], 3, mean), pch=".", col="blue", type="b" ) 
-
-
-
-
-
-
-
 
 
 
@@ -313,10 +209,6 @@
   select <- c(1, 4, 10, 20, 50, 100, 200, 500 )
   image(res, xlab = "x", ylab = "y", mtext = "Test", subset = select, mfrow = c(2,4), legend =  TRUE)
  
-
-
-
-
 
 
 

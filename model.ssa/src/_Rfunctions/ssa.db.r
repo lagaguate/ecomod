@@ -24,7 +24,7 @@
     if ( ptype=="load.all" ) {
       out = array( NA, dim=c(p$nr, p$nc, p$n.times)  )  
       for ( i in 1:p$n.times ) {
-        X = ssa.db( ptype="load", fnprefix=p$outfnprefix, tio=i )
+        X = ssa.db( ptype="load", fnprefix=p$outfileprefix, tio=i )
         if ( !is.null(X) ) out[,,i] = X 
       }
       return(out)
@@ -35,7 +35,7 @@
     if ( ptype=="restart" ) {
       p <- within( p, {
         # initiate state space with some random noise and a core area in the center of the system
-        X = ssa.db( ptype="load", fnprefix=outfnprefix, tio=tio )
+        X = ssa.db( ptype="load", fnprefix=outfileprefix, tio=tio )
         # initiate P the propensities 
         P = array( RE( X[], b, d, K, dr, dc ), dim=c( nr, nc, np ) )
         P.total = sum( P[] )
