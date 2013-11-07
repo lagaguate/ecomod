@@ -6,7 +6,8 @@
       require(snow)
 
       cl = makeCluster( spec=clusters, type=clustertype )  # SOCK works well but does not load balance as MPI 
-
+      clusterSetupRNG(cl)
+ 
       idx = clusterSplit( cl, 1:n )
       ssplt = lapply( idx, function(i) i )
       if ( !is.null(export)) clusterExport( cl, export )

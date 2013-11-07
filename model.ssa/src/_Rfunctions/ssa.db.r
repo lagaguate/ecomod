@@ -1,12 +1,16 @@
 
 
-  ssa.db = function( p=NULL, ptype="debug", out=NULL, fnprefix=NULL, tio=NULL ) {
+  ssa.db = function( p=NULL, ptype="debug", out=NULL, tio=NULL, rn=NULL, outdir=NULL ) {
     
     if (is.null(p)) p = list()
  
+    outdir = file.path( outdir, "individual.runs", rn ) 
+    
+    fn = file.path( outdir, paste( "out", tio, "rdata", sep="." )) 
+    
     if ( ptype=="save" ) {
       if (!is.null(out)) {
-        fn = paste( fnprefix, tio, "rdata",sep="." ) 
+        dir.create( outdir, recursive=TRUE, showWarnings=FALSE  )
         save (out, file=fn, compress=TRUE )
         return (fn)
       }
@@ -14,17 +18,16 @@
 
 
     if ( ptype=="load" ) {
-      out = NULL
-      fn = paste( fnprefix, tio, "rdata",sep="." ) 
-      if (file.exists( fn) ) load (fn )
-      return(out)
+        out = NULL
+        if (file.exists( fn) ) load (fn )
+        return(out)
     }
       
 
     if ( ptype=="load.all" ) {
       out = array( NA, dim=c(p$nr, p$nc, p$n.times)  )  
       for ( i in 1:p$n.times ) {
-        X = ssa.db( ptype="load", fnprefix=p$outfileprefix, tio=i )
+        X = ssa.db( ptype="load", tio=i )
         if ( !is.null(X) ) out[,,i] = X 
       }
       return(out)
@@ -35,7 +38,7 @@
     if ( ptype=="restart" ) {
       p <- within( p, {
         # initiate state space with some random noise and a core area in the center of the system
-        X = ssa.db( ptype="load", fnprefix=outfileprefix, tio=tio )
+        X = ssa.db( ptype="load", tio=tio )
         # initiate P the propensities 
         P = array( RE( X[], b, d, K, dr, dc ), dim=c( nr, nc, np ) )
         P.total = sum( P[] )

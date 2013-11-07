@@ -3,42 +3,39 @@
 
   ssa.parallel.run = function( DS="load", p=NULL, run=NULL ) {
 
-    outdir = project.directory( "model.ssa", "data", p$runname )
-    dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
     if (DS=="load") {
       if (is.numeric(run)) {
         # load a specific run --- for debugging
         for ( it in 1:p$n.times ) {
           X = array( NA, dim=c(p$nr, p$nc, p$n.times)) 
-          fnprefix = file.path( outdir, "individual.runs", run, "out") 
-          X[,,it] = ssa.db( fnprefix=fnprefix, ptype="load", tio=it )  
+          X[,,it] = ssa.db( ptype="load", outdir=outdir, tio=it, rn=run ) 
         }
         return(X)
       }
 
       if (run=="median") {
-        load( file.path( outdir, "ssa.med.rdata" ) )
+        load( file.path( p$outdir, "ssa.med.rdata" ) )
         return( ssa.med )
       }
       
       if (run=="mean") {
-        load( file.path( outdir, "ssa.mean.rdata" ) )
+        load( file.path( p$outdir, "ssa.mean.rdata" ) )
         return( ssa.mean )
       }
       
       if (run=="var") {
-        load( file.path( outdir, "ssa.var.rdata" ) )
+        load( file.path( p$outdir, "ssa.var.rdata" ) )
         return( ssa.var )
       }
       
       if (run=="max") {
-        load( file.path( outdir, "ssa.max.rdata" ) )
+        load( file.path( p$outdir, "ssa.max.rdata" ) )
         return( ssa.max )
       }
       
       if (run=="min") {
-        load( file.path( outdir, "ssa.min.rdata" ) )
+        load( file.path( p$outdir, "ssa.min.rdata" ) )
         return( ssa.min )
       }
     }
@@ -46,22 +43,29 @@
 
     if (DS %in% c("run" ) ) {
       # simple wrapper to run a parallel ssa 
-      cl = makeCluster( spec=p$cluster, type=p$cluster.message.system ) 
-      ssplt = lapply( 1:p$nruns , function(i){i} )
-      clusterApply( cl, x=ssplt, p=p, outdir=outdir, 
-        fun=function(ip=NULL, p=NULL, outdir=NULL) { 
-          if (!is.null(p$init)) for( i in p$init ) source (i)
-          p$runname = ip 
-          dir.create( file.path( outdir, "individual.runs", p$runname), recursive=TRUE, showWarnings=FALSE  )
-          p$outfileprefix = file.path( outdir, "individual.runs", p$runname, "out") 
-          if ( is.null( p$runtype ) )  p = ssa.engine.approximation( p )  # default
-          if (  p$runtype=="snowcrab" )  p = ssa.engine.approximation.snowcrab( p )
-          return( i )  # return run name
-      })
-      stopCluster(cl)
-      return( outdir )
-    }
+      require(snow)
+      cl = makeCluster( spec=p$cluster, type=p$cluster.message.system )  # SOCK works well but does not load balance as MPI 
+      clusterSetupRNG(cl)
 
+      idx = clusterSplit( cl, 1:p$nruns )
+      ssplt = lapply( idx, function(i) i )
+
+      FUNC = function(ip, p) { 
+        if (!is.null(p$init)) for( i in p$init ) source (i)
+        if (is.null(ip)) ip = 1:p$nruns   
+        for ( rn in ip ) {
+          p$rn = rn
+          p = p$ssa.engine( p )  # default
+        }
+        return(ip)
+      }
+
+      oo = clusterApplyLB( cl, ssplt, FUNC, p=p )
+
+      stopCluster( cl )
+      return (oo)
+    }
+ 
 
     if (DS =="post.process" ) {
 
@@ -72,8 +76,7 @@
         for ( it in 1:n.times ) {
           X = array( NA, dim=c(nr, nc, nruns)) 
           for ( ir in 1:nruns ) {
-            fnprefix = file.path( outdir, "individual.runs",  ir, "out") 
-            u = ssa.db( fnprefix=fnprefix, ptype="load", tio=it )  
+            u = ssa.db( ptype="load", outdir=outdir, tio=it, rn=ir )  
             if (is.null(u)) next() 
             X[,,ir] = u
           }

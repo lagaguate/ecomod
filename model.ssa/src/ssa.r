@@ -9,17 +9,25 @@
   p$init = loadfunctions( c( "model.ssa", "model.pde" )  )
   
   # details of output storage locations
-  p$outdir = project.directory( "model.ssa", "data" )
-  p$runname = "test1"
-  dir.create( file.path( p$outdir, p$runname), recursive=TRUE ) 
-  p$outfileprefix =  file.path( p$outdir, p$runname, "out")  
+  p$runname = "test4"
 
+  p$rn = 0  # default run number .. no need to change
+  p$outdir = project.directory( "model.ssa", "data", p$runname )
+  
   
   p = ssa.model.definition( p, ptype = "default.logistic" ) 
   p = ssa.parameters( p, ptype = "systemsize.debug" ) 
   p = ssa.parameters( p, ptype = "logistic.debug" ) 
+  
+  
   p = ssa.parameters( p, ptype = "simtimes.debug" ) 
-
+  # overrides
+      p <- within( p, { 
+        n.times = 3 # 365  # number of censuses  
+        t.end =   5 # 365   # in model time .. days
+        t.censusinterval = t.end / n.times
+        modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
+      })
 
 
 
@@ -42,22 +50,35 @@
 
 
 
-  if (ssa.method == "parallel.approximation" ) {
-    # use parallel mode to run multiple simulations is the most efficient use of resources 
-    p$libs = loadlibraries(  "parallel" )
-    p$cluster = c( rep("localhost", 4) ) 
-    p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
-    p$cluster.message.system = "SOCK" 
-    p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
-    p$nruns = 5
+  if (ssa.method == "approximation.parallel" ) {
 
-    p = ssa.db( p , ptype="debug" ) # initialize state variables and propensity matrix
+    # use parallel mode to run multiple simulations is the most efficient use of resources 
+    # wrapper is "ssa.parallel" (below)
+    p$libs = loadlibraries(  "snow" , "rlecuyer" )
+  
+    p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
+    # p$cluster = 4  # if a single number then run only on localhost with n cores.
+    p$cluster = rep( "localhost", 5 )
     
+    p$cluster.message.system = "SOCK" 
+    #p$cluster.message.system = "PSOCK" 
+
+    # choose and make a copy of the core ssa engine 
+    # p$ssa.engine = ssa.engine.exact
+    # p$ssa.engine = ssa.engine.approximation
+    # p$ssa.engine = ssa.engine.approximation.snowcrab
+    p$ssa.engine = ssa.engine.approximation 
+
+    p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
+    p$nruns = 6
+ 
+    p = ssa.db( p , ptype="debug" ) # initialize state variables and propensity matrix
+   
     ssa.parallel.run ( DS="run", p=p  ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
 
     # load some of the run results
-    X = ssa.parallel.run ( DS="load", p=p, run=1 )  # to load run 1 
+    X = ssa.parallel.run ( DS="load", p=p, run=1 )  # to load run 1 (to debug) 
     X = ssa.parallel.run ( DS="load", p=p, run="median" ) # etc. .. "mean", "var", "min", "max" ... add as needed.
   
     # delete raw simulation files 
@@ -66,7 +87,7 @@
 
   
 
-  if ( pmethod=="rambacked" )  {
+  if ( pmethod=="rambacked.approximation.parallel" )  {
     # no real spead up vs exact method ... most time is spent swaping memory space / attaching/detaching
     p$libs = loadlibraries(  "parallel", "bigmemory" )
     p$cluster = c( rep("localhost", 4) ) 
@@ -79,14 +100,14 @@
 
 
 
-  if (ssa.method == "parallel.filebacked.approximation" ) {
+  if (ssa.method == "filebacked.approximation.parallel" ) {
     # no real spead up vs exact method ... most time is spent swaping memory space / attaching/detaching
     p$libs = loadlibraries(  "parallel", "bigmemory" )
     p$cluster = c( rep("localhost", 4) ) 
     p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
     p$cluster.message.system = "SOCK" 
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
-    p = ssa.db( p , ptype="debug.big.matrix.filebacked" )
+    p = ssa.db( p , ptype="debug.big.matr:ix.filebacked" )
     p = ssa.engine.parallel.bigmemory( p )
   }
 

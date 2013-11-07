@@ -3,9 +3,11 @@ ssa.engine.exact = function( p) {
 
   p <- within (p, { 
                
+    dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
+    
     simtime = tio = tout = nevaluations = 0
     
-    repeat {
+    while(simtime <= t.end ) {
       
       prop = .Internal(pmax(na.rm=FALSE, 0, P[]/P.total  ))   # using .Internal is not good syntax but this gives a major perfance boost > 40%
       j = .Internal(sample( nP, size=1, replace=FALSE, prob=prop ) )
@@ -48,19 +50,18 @@ ssa.engine.exact = function( p) {
 
       nevaluations = nevaluations + 1
       simtime = simtime - (1/P.total) * log( runif( 1))   # ... again to optimize for speed
-      if (simtime > t.end ) break()
+
       if (simtime > tout) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
         # print( P.total - sum(P[]) )  # debug
-        ssa.db( ptype="save", out=X[], fnprefix=outfileprefix, tio=tio )  
+        ssa.db( ptype="save", out=X[], tio=tio, outdir=outdir, rn=rn )  
         P.total = sum(P[]) # reset P.total in case of divergence due to floating point errors
         cat( paste( tio, round(P.total), round(sum(X)), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
         image( X[], col=heat.colors(100)  )
       }
     } # end repeat
   })
-
 
   return(p)
 

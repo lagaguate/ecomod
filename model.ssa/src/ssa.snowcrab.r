@@ -29,7 +29,7 @@
   p$outdir = project.directory( "model.ssa", "data" )
   p$runname = "test1"
   dir.create( file.path( p$outdir, p$runname), recursive=TRUE ) 
-  p$outfileprefix =  file.path( p$outdir, p$runname, "out")  
+
 
   p$fnroot = tempfile( "ssa", tmpdir=p$outdir )
   p$outfile = paste( tempfile( "ssa", tmpdir=p$outdir ), ".res.rdata", sep="" )

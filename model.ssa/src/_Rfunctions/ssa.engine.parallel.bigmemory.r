@@ -8,7 +8,7 @@
     cl = makeCluster( spec=cluster, type=cluster.message.system )
     ssplt = lapply( clusterSplit( cl, 1:nsimultaneous.picks ), function(i){i} )
 
-    repeat {
+    while( simtime <= t.end ) {
      
       prop = .Internal(pmax(na.rm=FALSE, 0, P[]/P.total ) )
       J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) ) 
@@ -81,7 +81,6 @@
       nevaluations = nevaluations + nsimultaneous.picks
       simtime = simtime + sum(time.increment)   
         
-      if (simtime > t.end ) break()
       if (simtime > tout ) {
             
         X <- attach.big.matrix( bm.X, path=outdir)   ### might need to remove the path=outdir if using RAM-backed bigmemory object
@@ -89,7 +88,7 @@
 
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
-        ssa.db( ptype="save", out=as.matrix(X[]), fnprefix=outfileprefix, tio=tio )  
+        ssa.db( ptype="save", out=as.matrix(X[]), tio=tio )  
         # print( P.total - sum(P[]) )
         P.total = sum(P[]) # reset P.total to prevent divergence due to floating point errors
         cat( paste( tio, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
