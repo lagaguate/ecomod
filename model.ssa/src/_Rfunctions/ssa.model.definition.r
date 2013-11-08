@@ -10,14 +10,14 @@
       p <- within( p, {
          
         # propensity calculating function .. returns as a vector of reaction process rates ...
-        RE = function( X, b, d, K, dr, dc) {
+        RE = function( X, b, d, K, DaR, DaC) {
           c(
             b[]*X[] ,
             (d[]+(b[]-d[])*X[]/K)[]*X[] ,
-            dr[]*X[] ,
-            dr[]*X[] ,
-            dc[]*X[] ,
-            dc[]*X[] 
+            DaR[]*X[] ,
+            DaR[]*X[] ,
+            DaC[]*X[] ,
+            DaC[]*X[] 
         )}
  
         # Changes associated with Reaction processes 

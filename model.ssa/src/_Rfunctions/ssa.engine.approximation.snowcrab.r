@@ -51,7 +51,7 @@ ssa.engine.approximation.snowcrab = function( p ) {
         X[cox] = Xcx
         
         # update propensity in focal and neigbouring cells 
-        dP = RE( Xcx, b, d, K, dr, dc)
+        dP = RE( Xcx, b, d, K, DaR, DaC)
         P.total = P.total + sum( dP - P[cop] )
         P[cop] = dP
 

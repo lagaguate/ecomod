@@ -44,7 +44,7 @@ ssa.engine.exact = function( p) {
       X[cox] = Xcx
   
       # update propensity in focal cells 
-      dP = RE( Xcx, b, d, K, dr, dc )
+      dP = RE( Xcx, b, d, K, DaR, DaC )
       P.total = P.total + sum( dP - P[cop] )
       P[cop] = dP
 

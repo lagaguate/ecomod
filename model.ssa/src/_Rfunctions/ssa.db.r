@@ -40,7 +40,7 @@
         # initiate state space with some random noise and a core area in the center of the system
         X = ssa.db( ptype="load", tio=tio )
         # initiate P the propensities 
-        P = array( RE( X[], b, d, K, dr, dc ), dim=c( nr, nc, np ) )
+        P = array( RE( X[], b, d, K, DaR, DaC ), dim=c( nr, nc, np ) )
         P.total = sum( P[] )
         nP = length( P[] )
       }) 
@@ -59,7 +59,7 @@
         X[ rwind, cwind ] = round( K[] * 0.8 )
 
         # initiate P the propensities 
-        P = array( RE( X[], b, d, K, dr, dc ), dim=c( nr, nc, np ) )
+        P = array( RE( X[], b, d, K, DaR, DaC ), dim=c( nr, nc, np ) )
         P.total = sum( P[] )
         nP = length( P[] )
       }) 
@@ -78,7 +78,7 @@
         cwind = floor(nc/10*4.5):floor(nc/10*5.5)
         X[ rwind, cwind ] = round( K[] * 0.8 )
         P = big.matrix( nrow=nr, ncol=nc*np, type='double', init=0 ) 
-        P[] = array( RE( X[], b, d, K, dr, dc ), dim=c( nr, nc, np ) )
+        P[] = array( RE( X[], b, d, K, DaR, DaC ), dim=c( nr, nc, np ) )
         P.total = sum( P[] )
         nP = length( P[] )
         bm.P = describe( P )
@@ -100,7 +100,7 @@
         X[ rwind, cwind ] = round( K[] * 0.8 )
         P = big.matrix( nrow=nr, ncol=nc*np, type='double', init=0,
           backingpath=p$outdir, backingfile="ssa.P.bm.tmp", descriptorfile="ssa.P.bm.desc" ) 
-        P[] = array( RE( X[], b, d, K, dr, dc ), dim=c( nr, nc, np ) )
+        P[] = array( RE( X[], b, d, K, DaR, DaC ), dim=c( nr, nc, np ) )
         P.total = sum( P[] )
         nP = length( P[] )
         bm.P = describe( P )

@@ -63,7 +63,7 @@
               
                 # update propensity in focal and neigbouring cells 
                 jcP = cc + c(0: (np-1))*nc  # increment col indices depending upon reaction process
-                dP = RE( Xcx, b, d, K, dr, dc  )
+                dP = RE( Xcx, b, d, K, DaR, DaC  )
                 Pchange = Pchange + sum( dP - P[ rr, jcP ] )
                 P[rr,jcP ] = dP
               }

@@ -50,8 +50,8 @@
         # diffusion parameters 
         # coef d=D/h^2 ; h = 1 km; per year (range from 1.8 to 43  ) ... using 10 here 
         # ... see bulk estimation in model.lattice/src/_Rfunctions/estimate.bulk.diffusion.coefficient.r
-        dr=10 
-        dc=10 
+        DaR = 10 
+        DaC = 10 
         Da = matrix( ncol=nc, nrow=nr, data=10 )
       })
     }
