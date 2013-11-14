@@ -24,12 +24,6 @@
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
   p$lib = loadlibraries( c("parallel" ))
   
-  
-  # ----------------------------
-  # Run name and storage location for outputs
-  p$outdir = project.directory( "model.ssa", "data" )
-  p$runname = "snowcrab1"
-
 
   # ----------------------------
   # Model definitions
@@ -55,6 +49,7 @@
   p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
   p$nr_1 = p$nr-1
   p$nc_1 = p$nc-1
+  p$rn = 0  # if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
 
 
 
@@ -63,8 +58,8 @@
   # ----------------------------
   # Time dimensions and constraints
   p <- within( p, { 
-    n.times = 3 # 365  # number of censuses  
-    t.end =   3 # 365   # in model time .. days
+    n.times = 20 # 365  # number of censuses  
+    t.end =   2 # 365   # in model time .. days
     t.censusinterval = t.end / n.times
     modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
     #modeltimeoutput = c( 0, 5, 10, 20, 21, 22, 23, 24, 25, 40, 50 )  # times at which output is desired
@@ -141,15 +136,17 @@
 
 
   if (ssa.method == "exact" ) {
-    p$rn = 0  # if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
+    p$runname = "snowcrab.exact"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
     p = ssa.engine.exact( p )  # same as  ssa.engine.approximation right now ... but if additional changes such as fishing etc ... then it should be done in the snowcrab version
     # takes about 500 MB per run
   }
 
 
   if (ssa.method == "approximation" ) {
-    p$rn = 0  # if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
-    p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
+    p$runname = "snowcrab.approximation"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
+    p$nsimultaneous.picks =  round( p$nrc * 0.05 ) # 0.1% update simultaneously should be safe
     p = ssa.engine.approximation.snowcrab( p )  # same as  ssa.engine.approximation right now ... but if additional changes such as fishing etc ... then it should be done in the snowcrab version
     # takes about 500 MB per run
   }
@@ -159,6 +156,9 @@
   if (ssa.method == "approximation.parallel" ) {
     # use parallel mode to run multiple simulations is the most efficient use of resources 
     # wrapper is "ssa.parallel" (below)
+    p$runname = "snowcrab.approximation.parallel"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
+    
     p$libs = loadlibraries(  "snow" , "rlecuyer" )
    
     p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
@@ -176,8 +176,6 @@
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p$nruns = 6
  
-    p = ssa.db( p , ptype="debug" ) # initialize state variables and propensity matrix
-   
     ssa.parallel.run ( DS="run", p=p  ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
 

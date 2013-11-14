@@ -26,20 +26,22 @@
         res = sqlQuery(con, query )
         names( res) = tolower( names( res) ) 
 
-        assign( tblname, res)  
-        save( get(tblname) , file=fn, compress=TRUE )
+        save( res, file=fn, compress=TRUE )
       }
     }
 
  
     
-    if ( DS="flatten" ) {
+    if ( DS=="flatten" ) {
       
       # load all data and flatten in memory
       for (o in bctables) {
-        load( file.path( biochem.datadump.dir, paste( "biochem", o, "rdata", sep=".") ) )
+        fn = file.path( biochem.datadump.dir, paste( "biochem", o, "rdata", sep=".") )
+        if (file.exists( fn) ) {
+          load(fn)
+          assign( o, res)  
+        }
       } 
-    
 
       names( bcmissions) = tolower( names( bcmissions))
       names( bcevents) = tolower( names( bcevents ))
@@ -47,33 +49,49 @@
       
       names( bcdiscretehedrs) = tolower( names(bcdiscretehedrs ))
       names( bcdiscretedtails) = tolower( names(bcdiscretedtails ))
-      names( bcdatatypes ) = tolower( names( bcdatatypes ))
+      #names( bcdatatypes ) = tolower( names( bcdatatypes ))
+      names( bcgears ) = tolower( names( bcgears ))
       names( bcunits ) = tolower( names( bcunits ))
      
 
       dups = intersect( names( bcdiscretedtails ), names(bcdiscretehedrs) )
-      if (length( dups) > 0 ) bcdiscretehedrs = bcdiscretehedrs[,-dups]
+      if (length( dups) > 0 ) {
+        kp = setdiff( names( bcdiscretehedrs), dups )  
+        bcdiscretehedrs = bcdiscretehedrs[,kp]
+      }
       bc = merge( bcdiscretedtails, bcdiscretehedrs, by="discrete_seq" )
      
       
       dups = intersect( names( bcdiscretehedrs ), names(bcevents) )
-      if (length( dups) > 0 ) bcevents = bcevents[,-dups]
+      if (length( dups) > 0 ) {
+        kp = setdiff( names( bcevents), dups )  
+        bcevents = bcevents[,kp]
+      }
       bc = merge( bcdiscretehedrs, bcevents, by="event_seq" )
       
       
       dups = intersect( names( bcmissions ), names(bcevents) )
-      if (length( dups) > 0 ) bcmissions = bcmissions[,-dups]
+      if (length( dups) > 0 ) {
+        kp = setdiff( names( bcmissions), dups )  
+        bcmissions = bcmissions[,kp]
+      }
       bc = merge( bcevents, bcmissions, by="mission_seq")
 
    
       dups = intersect( names( bcdiscretedtails ), names(bcdatatypes) )
-      if (length( dups) > 0 ) bcdatatypes = bcdatatypes[,-dups]
+      if (length( dups) > 0 ) {
+        kp = setdiff( names( bcdatatypes), dups )  
+        bcdatatypes = bcdatatypes[,kp]
+      }
       bc = merge( bcdiscretedtails, bcdatatypes, by="data_type_seq" )
 
 
       dups = intersect( names( bcunits ), names(bcdatatypes) )
-      if (length( dups) > 0 ) bcunits = bcunits[,-dups]
-      bc = merge( bcdatatypes, bcunits, by"unit_seq" )
+      if (length( dups) > 0 ) {
+        kp = setdiff( names( bcunits), dups )  
+        bcunits = bcunits[,kp]
+      }
+      bc = merge( bcdatatypes, bcunits, by="unit_seq" )
       
      
       # bcret_units = merge( bcdataretrievals, bcunits, by"unit_seq" )
@@ -138,6 +156,7 @@
       }
     } 
 
+
     if (DS %in% c("sse.bottom", "sse.bottom.redo" ) ) {
       
       fn = file.path(  biochem.dir, "ss.bottom.rdata" )
@@ -173,6 +192,7 @@
   
     }
 
+
     if ( DS=="visual.check.of spatial.spead.of data") {
       # visual check of the spatial spread of the data
       if (is.null(ss)) ss = biochem.db( DS="scotian.shelf" )
@@ -193,6 +213,8 @@
         good.4x  = c(1933, 1960, 1966, 1968, 1970, 1971, 1973, 1999:2005)
 
     }
+
+
 
     if (DS=="oxygen.annual.old") {
       if (is.null(ss)) ss = biochem.db( DS="scotian.shelf" )

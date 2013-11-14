@@ -15,6 +15,12 @@
 
 
 
+    biochem.db( DS="odbc.datadump" ) 
+    biochem.db( DS="flatten" ) 
+    biochem.db( DS="scotian.shelf.redo" )
+    
+
+
     # Biochem data analysis  .. focus on bottom oxygen
 
     # start data uptake and processing

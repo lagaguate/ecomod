@@ -8,11 +8,6 @@
   p = list()
   p$init = loadfunctions( c( "model.ssa", "model.pde" )  )
   
-  # details of output storage locations
-  p$runname = "test4"
-
-  p$rn = 0  # default run number .. no need to change
-  p$outdir = project.directory( "model.ssa", "data", p$runname )
   
   
   p = ssa.model.definition( p, ptype = "default.logistic" ) 
@@ -30,9 +25,17 @@
       })
 
 
+  p$rn = 0  # default run number when not in parallel mode .. no need to change
+ 
+
+  # initialize state variables and propensity matrix
+  p = ssa.db( p , ptype="debug" ) 
+
+
 
   if (ssa.method == "exact" ) {
-    p = ssa.db( p , ptype="debug" ) # initialize state variables and propensity matrix
+    p$runname = "debug.exact"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
     p = ssa.engine.exact( p )   # using the exact solution ... ~ 1 day -> every 25-30 minutes
   }
 
@@ -41,9 +44,10 @@
   if (ssa.method == "approximation" ) {
     # approximation simular to the tau-leaping method:: ideally only one process should be picked at a time ... 
     #   sampling from the propensities is time-expensive, so a number of picks are made in advance and then updated ..
+    p$runname = "debug.approximation"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$ssa.approx.proportion = 0.01
     p$nsimultaneous.picks =  round( p$nrc * p$ssa.approx.proportion ) # 1% update simultaneously should be /seems to be safe  ~ 1 day -> every 1-2 min or 2hrs->100days 
-    p = ssa.db( p , ptype="debug" ) # initialize state variables and propensity matrix
     p = ssa.engine.approximation( p )
   }
 
@@ -54,7 +58,11 @@
 
     # use parallel mode to run multiple simulations is the most efficient use of resources 
     # wrapper is "ssa.parallel" (below)
-    p$libs = loadlibraries(  "snow" , "rlecuyer" )
+ 
+    p$runname = "debug.approximation.parallel"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
+ 
+    p$libs = loadlibraries(  "parallel" , "rlecuyer" )
   
     p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
     # p$cluster = 4  # if a single number then run only on localhost with n cores.
@@ -71,8 +79,6 @@
 
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p$nruns = 6
- 
-    p = ssa.db( p , ptype="debug" ) # initialize state variables and propensity matrix
    
     ssa.parallel.run ( DS="run", p=p  ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
