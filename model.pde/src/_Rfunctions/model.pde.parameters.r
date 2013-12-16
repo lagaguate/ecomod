@@ -101,8 +101,8 @@
         }
 
         Da.l = 0.1
-        Da.m = 10
-        Da.u = 100
+        Da.m = 0.5
+        Da.u = 50
   
         Da = matrix( ncol=p$nc, nrow=p$nr, data=0 ) 
 

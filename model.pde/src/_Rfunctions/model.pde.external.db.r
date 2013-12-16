@@ -9,7 +9,8 @@ model.pde.external.db = function( p, method="habitat", variable=NULL, filterdata
   out = matrix( NA, nrow=p$nr, ncol=p$nc )
 
   if( method=="habitat" ) {
-    
+   
+    loadfunctions( "habitat")
     H = habitat.db( DS="complete", p=p, year=p$y ) 
     
     if ("avoid.poor.habitat" %in% p$parameterization ){
@@ -21,21 +22,25 @@ model.pde.external.db = function( p, method="habitat", variable=NULL, filterdata
   }
 
   if( method=="temperature" ) {
+    loadfunctions("temperature")
     H = temperature.db( DS="climatology", p=p) 
 #    i = habitat.xyz.to.grid (p)  # lookuptable to map xy to matrix
   }
 
   if( method=="depth" ) {
+    loadfunctions("bathymetry")
     H = bathymetry.db( DS="baseline", p=p ) 
 #    i = habitat.xyz.to.grid (p)  # lookuptable to map xy to matrix
   }
 
   if (method=="snowcrab.male.mature") { 
+    loadfunctions("snowcrab")
     p$v = "R0.mass"
     H = interpolation.db( DS="interpolation.simulation.PS", p=p  )
   }
 
   if (method=="snowcrab.male.R1") { 
+    loadfunctions("snowcrab")
     p$v = "R1.mass"
     H = interpolation.db( DS="interpolation.simulation.PS", p=p  ) 
   }

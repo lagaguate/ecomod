@@ -1,13 +1,19 @@
 
 # Biochem data analysis  .. focus on bottom oxygen for now
  
-  biochem.db = function(DS="", ss=NULL) {
+  biochem.db = function(DS="", ss=NULL, tbl=NULL ) {
       
     biochem.dir = project.directory("biochem") 
     biochem.data.dir = file.path( biochem.dir, "data" ) 
     biochem.datadump.dir = file.path( biochem.dir, "data", "datadump" ) 
 
-    bctables = c("bcmissions", "bcevents", "bcactivities", "bcdiscretehedrs", "bcdiscretedtails", "bcgears", "bcdatatypes", "bcunits" )
+    # to list table names
+    # sqlQuery(con, "select tablespace_name, table_name from all_tables;" )
+
+    bctables = c("bcmissions", "bcevents", "bcactivities", "bcdiscretehedrs", 
+                 "bcdiscretedtails", "bcdiscretereplicates", "bcgears", "bcdatatypes", "bcunits",
+                 "bccollectionmethods", "bcerrorcodes", "bcerrors" 
+                 )
  
 
     if ( DS=="odbc.datadump" ){
@@ -23,80 +29,67 @@
         
         query = paste( "select * from ", tblname2, " ;" )
         res = NULL
-        res = sqlQuery(con, query )
-        names( res) = tolower( names( res) ) 
 
+        res = sqlQuery(con, query )
+        if (is.null(res)) next()
+
+        names( res) = tolower( names( res) ) 
+        # assign( o, res)  
+        # save( list=o, file=fn, compress=TRUE )
         save( res, file=fn, compress=TRUE )
       }
+      
+      odbcClose(con)
     }
 
+    if ( DS=="odbc" ) {
+      res = NULL
+      fn = file.path( biochem.datadump.dir, paste( "biochem", tbl, "rdata", sep=".") )
+      if (file.exists( fn) ) {
+        load(fn)
+      }
+      return(res)
+    }
  
-    
-    if ( DS=="flatten" ) {
-      
-      # load all data and flatten in memory
-      for (o in bctables) {
-        fn = file.path( biochem.datadump.dir, paste( "biochem", o, "rdata", sep=".") )
-        if (file.exists( fn) ) {
-          load(fn)
-          assign( o, res)  
-        }
-      } 
-
-      names( bcmissions) = tolower( names( bcmissions))
-      names( bcevents) = tolower( names( bcevents ))
-      names( bcactivities ) = tolower( names( bcactivities ))
-      
-      names( bcdiscretehedrs) = tolower( names(bcdiscretehedrs ))
-      names( bcdiscretedtails) = tolower( names(bcdiscretedtails ))
-      #names( bcdatatypes ) = tolower( names( bcdatatypes ))
-      names( bcgears ) = tolower( names( bcgears ))
-      names( bcunits ) = tolower( names( bcunits ))
-     
-
-      dups = intersect( names( bcdiscretedtails ), names(bcdiscretehedrs) )
-      if (length( dups) > 0 ) {
-        kp = setdiff( names( bcdiscretehedrs), dups )  
-        bcdiscretehedrs = bcdiscretehedrs[,kp]
-      }
-      bc = merge( bcdiscretedtails, bcdiscretehedrs, by="discrete_seq" )
-     
-      
-      dups = intersect( names( bcdiscretehedrs ), names(bcevents) )
-      if (length( dups) > 0 ) {
-        kp = setdiff( names( bcevents), dups )  
-        bcevents = bcevents[,kp]
-      }
-      bc = merge( bcdiscretehedrs, bcevents, by="event_seq" )
-      
-      
-      dups = intersect( names( bcmissions ), names(bcevents) )
-      if (length( dups) > 0 ) {
-        kp = setdiff( names( bcmissions), dups )  
-        bcmissions = bcmissions[,kp]
-      }
-      bc = merge( bcevents, bcmissions, by="mission_seq")
-
+    if ( DS %in% c("discrete_simple", "discrete_simple.redo") {
+        
+      fn = file.path( biochem.datadump.dir, paste( "biochem","discrete_simple", "rdata", sep=".") )
    
-      dups = intersect( names( bcdiscretedtails ), names(bcdatatypes) )
-      if (length( dups) > 0 ) {
-        kp = setdiff( names( bcdatatypes), dups )  
-        bcdatatypes = bcdatatypes[,kp]
+      if (DS=="discrete_simple" ) {
+        x = NULL
+        if (file.exists( fn) ) {
+        load(fn)
+        return(x)
       }
-      bc = merge( bcdiscretedtails, bcdatatypes, by="data_type_seq" )
 
-
-      dups = intersect( names( bcunits ), names(bcdatatypes) )
-      if (length( dups) > 0 ) {
-        kp = setdiff( names( bcunits), dups )  
-        bcunits = bcunits[,kp]
-      }
-      bc = merge( bcdatatypes, bcunits, by="unit_seq" )
+      # load all data and flatten in memory
       
-     
-      # bcret_units = merge( bcdataretrievals, bcunits, by"unit_seq" )
-      # bc = merge( bcdatatypes, bcret_units, by"data_retrieval_seq" )
+      bcmissions  = biochem.db( DS="odbc", tbl="bcmissions" )
+      bcevents  = biochem.db( DS="odbc", tbl="bcevents" )
+      bcactivities = biochem.db( DS="odbc", tbl="bcactivities" )
+      bcdiscretehedrs  = biochem.db( DS="odbc", tbl="bcdiscretehedrs" )
+      bcgears  = biochem.db( DS="odbc", tbl="bcgears" )
+      bcdiscretedtails = biochem.db( DS="odbc", tbl="bcdiscretedtails" )
 
+      bccollectionmethods = biochem.db( DS="odbc", tbl="bccollectionmethods" )
+      bcqualcodes  = biochem.db( DS="odbc", tbl="bcqualcodes" )
+      
+      bcdatatypes = biochem.db( DS="odbc", tbl="bcdatatypes" )
+      bcunits = biochem.db( DS="odbc", tbl="bcunits" )
+
+
+      x = merge( bcevents, bcmissions, by="mission_seq", suffixes=c("", "_bcmissions") )
+      x = merge( bcactivities, x, by="event_seq", suffixes=c("_bcactivities", "") )
+      x = merge( bcdiscretehedrs, x, by="activity_seq", suffixes=c("_bcdiscretehdrs", "") )
+      x = merge( x, bcgears, by="gear_seq", suffixes=c("", "_bcgears") )
+      x = merge( bcdiscretedtails, x, by="discrete_seq", suffixes=c("_bcdiscretedetails", "") )
+      x = merge( x, bcqualcodes, by.x="data_qc_code", by.y="qc_code", suffixes=c("", "_bcqualcodes") )
+      x = merge( x, bcdatatypes, by="data_type_seq", suffixes=c("", "_bcdatatypes") )
+      x = merge( x, bcunits, by="unit_seq", suffixes=c("", "_bcunits") )
+         
+      save( x, file=fn, compress=TRUE)
+
+      return(x) 
 
     }
 
@@ -292,4 +285,3 @@
 }
 
         
-
