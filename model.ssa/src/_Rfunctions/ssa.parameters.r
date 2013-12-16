@@ -22,7 +22,7 @@
         nr = 100   # rows
         nc = 100   # cols
         nrc = nr*nc  # total number of cells
-
+        
         # calc these here to avoid repeating calculations in the innermost loop
         nr_1 = nr-1
         nc_1 = nc-1
@@ -42,18 +42,26 @@
         # in the stochastic form:: using a birth-death Master Equation approach 
 
         # reaction (population dynamic) componenet of the model 
-        b = 2 / 365 # birth rate
-        d = 1 / 365 # death rate
-        K = 100   # "carrying capacity"
-        r = b - d  ## used by pde model  # r = b-d >0 
-
-        # diffusion parameters 
-        # coef d=D/h^2 ; h = 1 km; per year (range from 1.8 to 43  ) ... using 10 here 
-        # ... see bulk estimation in model.lattice/src/_Rfunctions/estimate.bulk.diffusion.coefficient.r
-        DaR = 10 
-        DaC = 10 
-        Da = matrix( ncol=nc, nrow=nr, data=10 )
-      })
+        b = matrix( nrow=nr, ncol=nc, data=3/365 ) # birth rate
+        d = matrix( nrow=nr, ncol=nc, data=2/365 ) # death rate
+        r = b-d # not used in SSA but must match above for PDE
+        K = matrix( ncol=nc, nrow=nr, data=100 )
+        # K = matrix( nrow=p$nr, ncol=p$nc, data=rnorm( p$nrc, mean=p$K, sd=p$K/10) )
+        # K[ inothabitat ] = eps
+        Da = diffusioncoeff= 0.5  # km^2/day  .. see /home/jae/ecomod/model.pde/src/_Rfunctions/estimate.bulk.diffusion.coefficient.r
+        # directed movement .. using a Random uniform distrubution for testing
+        move_velocity =  exp(-2.729117)
+        rrr = rep(1, nc)  # row vector of 1's
+        ccc = rep(1, nr)  
+        H = matrix( nrow=nr, ncol=nc, data=runif( nr*nc  ) ) 
+        Hr = H[1:(nr-1),] /  H[2:nr,] 
+        Hr0 = rbind( rrr, Hr )  # hazzard ratio of up moving across rows in the negative direction
+        Hr1 = rbind( 1/Hr, rrr ) # down positive
+        Hc = H[,1:(p$nc-1)] /  H[,2:p$nc]
+        Hc0 = cbind( ccc, Hc) # hazzard ratio of Pr of moving in negative direction
+        Hc1 = cbind( 1/Hc, ccc ) #  positive direction
+        H = Hc = Hr = rrr = ccc = NULL
+       })
     }
 
    

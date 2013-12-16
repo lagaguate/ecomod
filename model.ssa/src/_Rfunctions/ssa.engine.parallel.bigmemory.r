@@ -1,4 +1,26 @@
 
+
+    ### ---- this is broken right now as 
+    ### RE has been altered to work more autonomously ... 
+    ### not fixed right now as bigmatrix does not seem to provide any speed benefits
+    ### if fixing, make a local copy of relevant state space and then send to RE
+    ### ... it used to be this:
+       
+        # propensity  (reaction rate) calculating function .. returns as a vector of reaction process rates ...
+#        RE = function( p, x, ix ) {
+#          with( p, { 
+#            XX = x[ix]
+#            bb = b[ix]
+#            dd = d[ix]
+#            KK = K[ix]
+#            c( bb*XX ,
+#              (dd+(bb-dd)*XX/KK)*XX 
+#            )
+#          })
+#        }
+
+
+
  ssa.engine.parallel.bigmemory = function( p ) { 
 
   p <- within (p, { 
@@ -63,7 +85,7 @@
               
                 # update propensity in focal and neigbouring cells 
                 jcP = cc + c(0: (np-1))*nc  # increment col indices depending upon reaction process
-                dP = RE( Xcx, b, d, K, DaR, DaC  )
+                dP = RE( p, X, cox )
                 Pchange = Pchange + sum( dP - P[ rr, jcP ] )
                 P[rr,jcP ] = dP
               }
@@ -91,8 +113,11 @@
         ssa.db( ptype="save", out=as.matrix(X[]), tio=tio )  
         # print( P.total - sum(P[]) )
         P.total = sum(P[]) # reset P.total to prevent divergence due to floating point errors
-        cat( paste( tio, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
-        # image( X[], col=heat.colors(100)  )
+        if (monitor) {
+          P = array( RE( p, X, 1:nrc), dim=c( nr, nc, np ) )
+          cat( paste( tio, round(P.total), round(sum(X[])), nevaluations, Sys.time(), sep="\t\t" ), "\n" )
+          image( X[], col=heat.colors(100)  )
+        }
       }
 
     } # end repeat

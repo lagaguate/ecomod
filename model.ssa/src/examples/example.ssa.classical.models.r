@@ -151,15 +151,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
   # McKane's mean field solution
   #    A -> 0           { death rate = r.death }
   #    A + A -> A       { death/decline rate due to competition = r.competition }      
