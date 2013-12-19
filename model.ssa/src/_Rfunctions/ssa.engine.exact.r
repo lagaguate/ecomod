@@ -2,6 +2,8 @@
 ssa.engine.exact = function( p, res ) {
 
   res <- with (p, { 
+    # on.exit( browser())  # to debug
+    on.exit( return(res) ) # in case we need to restart the sim with the last run
     dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
     tio = tout = 0
     while(res$simtime <= t.end ) {
@@ -14,7 +16,7 @@ ssa.engine.exact = function( p, res ) {
       # update state space and associated propensities in cells where state has changed, etc
       res = RE( p, res, jn, jj ) 
       # res$nevaluations = res$nevaluations + 1
-      res$simtime = res$simtime - (1/res$P.total) * log( runif( 1))
+      res$simtime = res$simtime - (1/res$P.total) * log( runif(1) )
       if (res$simtime > tout) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
@@ -27,7 +29,7 @@ ssa.engine.exact = function( p, res ) {
           cat( paste( tio, round(res$P.total), round(sum(res$X)), Sys.time(), sep="\t\t" ), "\n" )
           image( res$X[], col=heat.colors(100)  )
           # browser()
-          assign( "res", res, pos=1 ) # update the res output in the gloabl environment in case a restart is necessary
+          assign( "res", res, pos=1 ) # update the res output in the gloabl environment in case a restart is necessary -- might not be necessary as on.exit is doing the same thing
           debug=FALSE
           if (debug) {
             # print( res$nevaluations )

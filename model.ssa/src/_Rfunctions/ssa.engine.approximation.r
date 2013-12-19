@@ -2,12 +2,14 @@
 ssa.engine.approximation = function( p, res ) {
 
   res <- with (p, { 
+    on.exit( browser())   # to debug
+    # on.exit( return(res) )  # in case we need to restart the sim with the last run
     tio = tout = 0  # internal time counters to trigger data output (disk saves)
     while (res$simtime <= t.end )  {
       # pre-caluclate these factor outside of the loop as they change slowly
       prop = .Internal(pmax(na.rm=FALSE, 0, res$P[]/res$P.total ) )
       J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) ) 
-      time.increment = -(1/res$P.total)*log(runif( nsimultaneous.picks ) ) 
+      time.increment = -(1/res$P.total)*log( runif ( nsimultaneous.picks ) ) 
       for ( w in 1:nsimultaneous.picks ) {
         j = J[w]
         # remap random element to correct location and process
@@ -16,7 +18,7 @@ ssa.engine.approximation = function( p, res ) {
         # update state space and associated propensities in cells where state has changed, etc
         res = RE( p, res, jn, jj ) 
         res$simtime = res$simtime  + time.increment[w]   
-        # res$nevaluations = res$nevaluations + 1
+        res$nevaluations = res$nevaluations + 1
         if (res$simtime > tout ) {
           tout = tout + t.censusinterval 
           tio = tio + 1  # time as index

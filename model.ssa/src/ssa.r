@@ -8,13 +8,7 @@
   p = list()
   p$init = loadfunctions( c( "model.ssa", "model.pde" )  )
   
-  
-  
-  p = ssa.model.definition( p, ptype = "logistic" ) 
-  # p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
-  # p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
-  
-  
+   
   
   p = ssa.parameters( p, ptype = "systemsize.debug" ) 
   p = ssa.parameters( p, ptype = "logistic.debug" ) 
@@ -30,7 +24,13 @@
       })
 
 
- 
+  
+  
+  p = ssa.model.definition( p, ptype = "logistic" ) 
+  # p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
+  # p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
+  
+
 
   # initialize state variables and propensity matrix
   res = ssa.db( p , ptype="debug" ) 

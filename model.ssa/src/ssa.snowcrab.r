@@ -25,13 +25,6 @@
   p$lib = loadlibraries( c("parallel", "snow" ))
   
 
-  # ----------------------------
-  # Model definitions
-  # p = ssa.model.definition( p, ptype = "logistic" ) 
-  p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
-  p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
-
-
 
   # ----------------------------
   # System size definitions
@@ -41,8 +34,8 @@
   p$spatial.domain = "snowcrab"  # spatial extent and data structure 
   p = model.pde.define.spatial.domain(p)
   
-  
 
+  
   # ----------------------------
   # Additional parameters and some calculations here to avoid repeating within the simulation loop
   p$nX = 10^6 # multiplier to convert to unit individuals
@@ -69,6 +62,13 @@
 
 
   
+
+  # ----------------------------
+  # Model definitions
+  # p = ssa.model.definition( p, ptype = "logistic" ) 
+  p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
+  p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
+
 
 
   # ----------------------------
@@ -126,11 +126,25 @@
       ccc = rep(1, nr)  
       H = model.pde.external.db( p=p, method="snowcrab.male.mature" , variable="habitat.mean" )
       Hr = H[1:(nr-1),] /  H[2:nr,] 
+     
+      # a ratio of two probabilities should have ~ normal distribution (?? source ??)
+      # using a quantile-based truncation at p=0.025, and p=0.975 
+      Qr = quantile( Hr, probs=c(0.025, 0.975), na.rm=T )
+      Hr[ Hr < Qr[1] ] = Qr[1] 
+      Hr[ Hr > Qr[2] ] = Qr[2] 
+      
       Hr0 = rbind( rrr, Hr )  # hazzard ratio of up moving across rows in the negative direction
       Hr1 = rbind( 1/Hr, rrr ) # down positive
+      
       Hc = H[,1:(p$nc-1)] /  H[,2:p$nc]
+      Qc = quantile( Hc, probs=c(0.025, 0.975), na.rm=T )
+      Hc[ Hc < Qc[1] ] = Qc[1] 
+      Hc[ Hc > Qc[2] ] = Qc[2] 
+       
       Hc0 = cbind( ccc, Hc) # hazzard ratio of Pr of moving in negative direction
       Hc1 = cbind( 1/Hc, ccc ) #  positive direction
+
+
       H = Hc = Hr = rrr = ccc = NULL
     }
 

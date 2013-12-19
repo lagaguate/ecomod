@@ -109,7 +109,7 @@
           })
         }
 
-               
+         
         RE = function( p, res, jn, jj ) {
           with(p, { 
             # determine focal cell coords
@@ -236,7 +236,6 @@
             res$P.total = res$P.total + sum( res$P[ip] - PP )
             res$P[ip] = PP
 
-
             return( res )
           }) # end with
         }  # end RE
@@ -272,7 +271,6 @@
       })
     }
 
-    
     return(p)
   }
 
