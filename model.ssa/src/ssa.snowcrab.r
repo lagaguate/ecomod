@@ -38,14 +38,12 @@
   
   # ----------------------------
   # Additional parameters and some calculations here to avoid repeating within the simulation loop
-  p$nX = 10^6 # multiplier to convert to unit individuals
+  p$nX   = 5 /100  # 5 = approx max density t / km^2; /100 so ~ 1 percentage min dX value to use at the lowest level for rate processes 
   p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
   p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
   p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
-  p$odds_max = 10  # max value of the odd ratio before truncation
   p$nr_1 = p$nr-1
   p$nc_1 = p$nc-1
-
 
 
  
@@ -53,8 +51,8 @@
   # ----------------------------
   # Time dimensions and constraints
   p <- within( p, { 
-    n.times = 10 # 365  # number of censuses  
-    t.end =   1 # 365   # in model time .. days
+    n.times = 365  # number of censuses  
+    t.end =   365   # in model time .. days
     t.censusinterval = t.end / n.times
     modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
     #modeltimeoutput = c( 0, 5, 10, 20, 21, 22, 23, 24, 25, 40, 50 )  # times at which output is desired
@@ -65,9 +63,12 @@
 
   # ----------------------------
   # Model definitions
-  # p = ssa.model.definition( p, ptype = "logistic" ) 
-  p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
-  p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
+  
+  stop( "stop and choose a model" )
+
+  # p = ssa.model.definition( p, ptype = "logistic", increment=p$nX ) 
+  # p = ssa.model.definition( p, ptype = "logistic.randomwalk", increment=p$nX ) 
+  # p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk", increment=p$nX ) 
 
 
 
@@ -169,6 +170,8 @@
       cwind = floor(nc/10*4.5):floor(nc/10*5.5)
       X[ rwind, cwind ] = round( X[ rwind, cwind ] * runif( length(X[ rwind, cwind ]) ) )
     }  
+    X = X * ( 1 - runif( length(X) ) / 100 )
+    
     # initiate P the propensities 
     P = array( RE0(p, X ), dim=c( nr, nc, np ) )
     P.total = sum( P[] )
