@@ -39,7 +39,7 @@
       out = with(p, {
         # initiate state space with some random noise and a core area in the center of the system
         X = ssa.db( ptype="load", tio=tio )
-        P = array( RE0( p, X ), dim=c( nr, nc, np ) )
+        P = RE0( p, X ) 
         P.total = sum( P[] )
         list( X=X, P=P, P.total=P.total)
       })
@@ -54,7 +54,7 @@
         rwind = floor(nr/10*4.5):floor(nr/10*5.5)
         cwind = floor(nc/10*4.5):floor(nc/10*5.5)
         X[ rwind, cwind ] = round( K[rwind, cwind ] * 0.8 )
-        P = array( RE0( p, X ), dim=c( nr, nc, np ) )
+        P = RE0( p, X )
         P.total = sum( P[] )
         list( X=X, P=P, P.total=P.total)
       })
@@ -72,7 +72,7 @@
         cwind = floor(nc/10*4.5):floor(nc/10*5.5)
         X[ rwind, cwind ] = round( K[] * 0.8 )
         P = big.matrix( nrow=nr, ncol=nc*np, type='double', init=0 ) 
-        P[] = array( RE0( p, p$X ), dim=c( nr, nc, np ) )
+        P[] = RE0( p, p$X )
         P.total = sum( P[] )
         bm.P = describe( P )
         bm.X = describe( X )
@@ -95,7 +95,7 @@
         
         P = big.matrix( nrow=nr, ncol=nc*np, type='double', init=0,
           backingpath=outdir, backingfile="ssa.P.bm.tmp", descriptorfile="ssa.P.bm.desc" ) 
-        P[] = array( RE0( p, p$X ), dim=c( nr, nc, np ) )
+        P[] = RE0( p, p$X )
         P.total = sum( P[] )
         bm.P = describe( P )
         bm.X = describe( X )

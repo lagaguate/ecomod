@@ -173,7 +173,7 @@
     X = X * ( 1 - runif( length(X) ) / 100 )
     
     # initiate P the propensities 
-    P = array( RE0(p, X ), dim=c( nr, nc, np ) )
+    P = RE0(p, X )
     P.total = sum( P[] )
     simtime = 0       # time in units of the simulation (days)
     nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...

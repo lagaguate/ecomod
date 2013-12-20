@@ -12,60 +12,31 @@
 
         RE0 = function(p, X) { 
           with( p, { 
-            c( 
+            array( c(  
               b*X + d*X*X/K,  # birth process
               d*X + b*X*X/K   # death process
-            )
+            ), dim=c( nr, nc, np ) ) 
           })
         }
 
 
-        RE = function( p, res, jn, jj ) {
+        RE = function( p, res, oper, ix, ip ) {
           with( p, { 
-            # determine focal cell coords
-            cc = floor( (jj-1)/nr ) + 1   # col
-            cr = jj - (cc-1) * nr         # row
-
-            # determine the appropriate operations for the reaction and their 'real' locations
-            o = NU[[ jn ]]  
-            no = dim(o)[1]  # nrows = # operations (ie, unary, or binary)
-            
-            ro = cr + o[,1]  # row of the focal cell
-            co = cc + o[,2]  # column of the focal cell
-            
-            # ensure boundary conditions are sane
-            ro[ro < 1] = 2
-            ro[ro > nr] = nr_1
-            
-            co[co < 1] = 2
-            co[co > nc] = nc_1 
-            
-            # if (1 %in% co)  browser()
-
-            # build correctly structured indices 
-            ix = cbind( ro, co)  ## row, column in X
-            ip = cbind( ro, co, po[[no]] )   # rows and columns in P 
-
             # update state (X) 
-            XX = res$X[ix] + o[,3]  
+            XX = res$X[ix] + oper
             XX[ XX < 0 ] = 0
             res$X[ix] = XX
-
             # propensity  (reaction rate) calculating function .. returns as a vector of reaction process rates ...
             bb = b[ix]
             dd = d[ix]
             KK = K[ix]
-
             PP = c( 
               bb*XX + dd*XX*XX/KK,  # birth process
               dd*XX + bb*XX*XX/KK   # death process
             )
-            
             res$P.total = res$P.total + sum( res$P[ip] - PP )
             res$P[ip] = PP
-
             return( res )
-
           })
         }
     
@@ -102,35 +73,19 @@
         RE0 = function(p, X) { 
           with(p, {
             Dax = Da*X
-            c(  
+            array( c(  
               b*X + d*X*X/K,  # birth process
               d*X + b*X*X/K,  # death process
               Dax, Dax, Dax, Dax  # diffusion components
-            ) ## return only P
+            ), dim=c( nr, nc, np ) ) ## return only P
           })
         }
 
          
-        RE = function( p, res, jn, jj ) {
+        RE = function( p, res, oper, ix, ip ) {
           with(p, { 
-            # determine focal cell coords
-            cc = floor( (jj-1)/nr ) + 1   # col
-            cr = jj - (cc-1) * nr         # row
-            # determine the appropriate operations for the reaction and their 'real' locations
-            o = NU[[ jn ]]  
-            no = dim(o)[1]  # nrows = # operations (ie, unary, or binary)
-            ro = cr + o[,1]  # row of the focal cell
-            co = cc + o[,2]  # column of the focal cell
-            # ensure boundary conditions are sane
-            ro[ro < 1] = 2
-            ro[ro > nr] = nr_1
-            co[co < 1] = 2
-            co[co > nc] = nc_1 
-            # build correctly structured indices 
-            ix = cbind( ro, co)  ## row, column in X
-            ip = cbind( ro, co, po[[no]] )   # rows and columns in P 
-            # update state (XX) 
-            XX = res$X[ix] + o[,3]  
+           # update state (XX) 
+            XX = res$X[ix] + oper  
             XX[ XX < 0 ] = 0
             res$X[ix] = XX
             bb = b[ix]
@@ -143,10 +98,8 @@
               dd*XX + bb*XX*XX/KK,   # death process
               Dax, Dax, Dax, Dax       # diffusion components
             )
-            
             res$P.total = res$P.total + sum( res$P[ip] - PP )
             res$P[ip] = PP
-
             return( res )
           })
         }
@@ -188,37 +141,21 @@
           with(p, { 
             Dax = Da*X
             adv = move_velocity*X
-            c(  
+            array( c(  
               b*X + d*X*X/K,  # birth process
               d*X + b*X*X/K,   # death process
               adv*Hr0, adv*Hr1, adv*Hc0, adv*Hc1,  # directed motion
               Dax, Dax, Dax, Dax  # diffusion components
-            )
+            ), dim=c( nr, nc, np ) ) 
           })
         }  # end RE
                
 
         # propensity calculating function .. returns as a vector of reaction process rates ...
-        RE = function( p, res, jn, jj ) {
+        RE = function( p, res, oper, ix, ip ) {
           with(p, { 
-            # determine focal cell coords
-            cc = floor( (jj-1)/nr ) + 1   # col
-            cr = jj - (cc-1) * nr         # row
-            # determine the appropriate operations for the reaction and their 'real' locations
-            o = NU[[ jn ]]  
-            no = dim(o)[1]  # nrows = # operations (ie, unary, or binary)
-            ro = cr + o[,1]  # row of the focal cell
-            co = cc + o[,2]  # column of the focal cell
-            # ensure boundary conditions are sane
-            ro[ro < 1] = 2
-            ro[ro > nr] = nr_1
-            co[co < 1] = 2
-            co[co > nc] = nc_1 
-            # build correctly structured indices 
-            ix = cbind( ro, co)  ## row, column in X
-            ip = cbind( ro, co, po[[no]] )   # rows and columns in P 
-            # update state (XX) 
-            XX = res$X[ix] + o[,3]  
+             # update state (XX) 
+            XX = res$X[ix] + oper 
             XX[ XX < 0 ] = 0
             res$X[ix] = XX
             bb = b[ix]
@@ -233,12 +170,8 @@
               adv*Hr0[ix], adv*Hr1[ix], adv*Hc0[ix], adv*Hc1[ix] ,  # advection
               Dax, Dax, Dax, Dax  # diffusion
             )
-
-            # browser()
-
             res$P.total = res$P.total + sum( res$P[ip] - PP )
             res$P[ip] = PP
-
             return( res )
           }) # end with
         }  # end RE
@@ -284,58 +217,30 @@
 
         RE0 = function(p, X, X1) { 
           with( p, { 
-            c( 
+            array( c( 
               pr.moult*pr.growth*Xss, # birth process (i.e. moult Prob = 1 / 365; and pr of growth ) * (Xss = soft-shelled) 
               m*X,            # constant death process
-            )
+            ), dim=c( nr, nc, np ) ) 
           })
         }
 
 
-        RE = function( p, res, jn, jj ) {
+        RE = function( p, res, oper, ix, ip ) {
           with( p, { 
-            # determine focal cell coords
-            cc = floor( (jj-1)/nr ) + 1   # col
-            cr = jj - (cc-1) * nr         # row
-
-            # determine the appropriate operations for the reaction and their 'real' locations
-            o = NU[[ jn ]]  
-            no = dim(o)[1]  # nrows = # operations (ie, unary, or binary)
-            
-            ro = cr + o[,1]  # row of the focal cell
-            co = cc + o[,2]  # column of the focal cell
-            
-            # ensure boundary conditions are sane
-            ro[ro < 1] = 2
-            ro[ro > nr] = nr_1
-            
-            co[co < 1] = 2
-            co[co > nc] = nc_1 
-            
-            # if (1 %in% co)  browser()
-
-            # build correctly structured indices 
-            ix = cbind( ro, co)  ## row, column in X
-            ip = cbind( ro, co, po[[no]] )   # rows and columns in P 
-
             # update state (X) 
-            XX = res$X[ix] + o[,3]  
+            XX = res$X[ix] + oper
             XX[ XX < 0 ] = 0
             res$X[ix] = XX
-
             # propensity  (reaction rate) calculating function .. returns as a vector of reaction process rates ...
             bb = b[ix]
             dd = d[ix]
             KK = K[ix]
-
             PP = c( 
               bb*XX + dd*XX*XX/KK,  # birth process
               dd*XX + bb*XX*XX/KK   # death process
             )
-            
             res$P.total = res$P.total + sum( res$P[ip] - PP )
             res$P[ip] = PP
-
             return( res )
 
           })
