@@ -10,7 +10,8 @@ ssa.engine.approximation = function( p, res ) {
     tio = tout = 0  # internal time counters to trigger data output (disk saves)
     while (res$simtime <= t.end )  {
       # pre-caluclate these factor outside of the loop as they change slowly
-      prop = .Internal(pmax(na.rm=FALSE, 0, res$P[]/res$P.total ) )
+      # prop = .Internal(pmax(na.rm=FALSE, 0, res$P[]/res$P.total ) )
+      prop = res$P[]/res$P.total
       J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) ) 
       time.increment = -(1/res$P.total)*log( runif ( nsimultaneous.picks ) ) 
       # remap random element to correct location and process

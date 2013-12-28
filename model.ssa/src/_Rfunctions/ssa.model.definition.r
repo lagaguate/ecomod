@@ -76,7 +76,7 @@
             array( c(  
               b*X + d*X*X/K,  # birth process
               d*X + b*X*X/K,  # death process
-              Dax, Dax, Dax, Dax  # diffusion components
+              Da * c(X, X, X, X)  # diffusion components
             ), dim=c( nr, nc, np ) ) ## return only P
           })
         }
@@ -96,12 +96,12 @@
             PP = c( 
               bb*XX + dd*XX*XX/KK,  # birth process
               dd*XX + bb*XX*XX/KK,   # death process
-              Dax, Dax, Dax, Dax       # diffusion components
+              Da*c(XX, XX, XX, XX)       # diffusion components
             )
             res$P.total = res$P.total + sum( res$P[ip] - PP )
             res$P[ip] = PP
             return( res )
-          })
+          }) 
         }
         
         # Changes associated with Reaction processes 
@@ -139,13 +139,11 @@
            
         RE0 = function(p, X) { 
           with(p, { 
-            Dax = Da*X
-            adv = move_velocity*X
             array( c(  
               b*X + d*X*X/K,  # birth process
               d*X + b*X*X/K,   # death process
-              adv*Hr0, adv*Hr1, adv*Hc0, adv*Hc1,  # directed motion
-              Dax, Dax, Dax, Dax  # diffusion components
+              move_velocity * X * c(Hr0, Hr1, Hc0, Hc1),  # directed motion
+              Da  * c(X, X, X, X)  # diffusion components
             ), dim=c( nr, nc, np ) ) 
           })
         }  # end RE
@@ -162,13 +160,11 @@
             dd = d[ix]
             KK = K[ix]
             # indices of areas surrounding the focal point
-            Dax = Da*XX
-            adv = move_velocity*XX
             PP = c(
               bb*XX + dd*XX*XX/KK,  # birth process
               dd*XX + bb*XX*XX/KK,   # death process
-              adv*Hr0[ix], adv*Hr1[ix], adv*Hc0[ix], adv*Hc1[ix] ,  # advection
-              Dax, Dax, Dax, Dax  # diffusion
+              move_velocity * XX * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
+              Da *  c(XX, XX, XX, XX)  # diffusion
             )
             res$P.total = res$P.total + sum( res$P[ip] - PP )
             res$P[ip] = PP
