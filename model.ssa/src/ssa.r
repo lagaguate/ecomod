@@ -57,9 +57,20 @@
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$ssa.approx.proportion = 0.01
     p$nsimultaneous.picks =  round( p$nrc * p$ssa.approx.proportion ) # 1% update simultaneously should be /seems to be safe  ~ 1 day -> every 1-2 min or 2hrs->100days 
+    p$insp = 1:p$nsimultaneous.picks
     p$monitor = TRUE
     # res = ssa.engine.approximation( p, res )
     res = ssa.engine.approximation.cpp ( p, res )
+  
+    profiling =FALSE
+    if (profiling) {
+      require(profr)
+      o = profr( {ssa.engine.approximation.cpp ( p, res )} ) 
+      summary(o)
+      plot(o)
+
+    }
+  
   }
 
 

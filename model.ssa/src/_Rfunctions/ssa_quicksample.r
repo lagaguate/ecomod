@@ -18,6 +18,7 @@ IntegerVector ssa_sample_direct( NumericVector probs, NumericVector rn ) {
   IntegerVector J(num) ;
 	int j=0 ;
   int i=0 ;
+  std::sort(rn.begin(), rn.end());
   while( i < num ) {  // cycle over random numbers and classify reaction in sequence
     while ( j < np &&  i < num ) {
       if ( rn[i] < probs[j] ) { 

@@ -13,6 +13,7 @@ ssa.engine.approximation.cpp = function( p, res ) {
       rns =  matrix( runif ( 2*nsimultaneous.picks ), ncol=2)
       
       # choose reaction times
+      tn = insp  ## created as a vector in list p to speed it up a little
       nt = nsimultaneous.picks
       time.increment = -log( rns[,1] )/res$P.total 
       tnew = res$simtime + sum( time.increment )
@@ -22,7 +23,6 @@ ssa.engine.approximation.cpp = function( p, res ) {
         time.increment = time.increment[ tn ]
         tnew = res$simtime + sum( time.increment )
       }
-      tn = 1:nt
       # choose reactions
       prop = cumsum( res$P[]/res$P.total )
       J = ssa_sample_direct( prop, sort( rns[,2] ) )
