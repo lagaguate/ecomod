@@ -1,45 +1,30 @@
 
 
 
-  ssa.model.definition = function( p=NULL, ptype = "logistic", increment=1 ) {
+  ssa.model.definition = function( p=NULL, ptype = "logistic", increment=1L ) {
 
     if (is.null(p)) p = list()
         
     
-    if ( ptype=="logistic" ) {
+    if ( ptype %in% c("logistic", "logistic.no.movement") ) {
 
       p <- within( p, {
 
-        RE0 = function(p, X) { 
-          with( p, { 
-            array( c(  
-              b*X + d*X*X/K,  # birth process
-              d*X + b*X*X/K   # death process
-            ), dim=c( nr, nc, np ) ) 
-          })
-        }
-
-
-        RE = function( p, res, oper, ix, ip ) {
-          with( p, { 
-            # update state (X) 
-            XX = res$X[ix] + oper
-            XX[ XX < 0 ] = 0
-            res$X[ix] = XX
-            # propensity  (reaction rate) calculating function .. returns as a vector of reaction process rates ...
-            bb = b[ix]
-            dd = d[ix]
-            KK = K[ix]
-            PP = c( 
-              bb*XX + dd*XX*XX/KK,  # birth process
-              dd*XX + bb*XX*XX/KK   # death process
+        RE = function( p, X, ix=1:length(X) ) {
+          with(p, { 
+            # incremental updates of state (XX) & propensity
+            # intermediary calculations that get reused .. marginally speeds up a few of the following calculations
+            bx = b[ix]*X
+            dx = d[ix]*X
+            x_k = X/K[ix]
+            c( 
+              bx + dx*x_k,   # birth process
+              dx + bx*x_k   # death process
             )
-            res$P.total = res$P.total + sum( res$P[ip] - PP )
-            res$P[ip] = PP
-            return( res )
-          })
-        }
-    
+          }) # end with
+        }  # end RE
+
+   
         # Changes associated with Reaction processes 
         # Lagrangian operator structure: 
         #   (row, column, operation) 
@@ -63,47 +48,28 @@
     }
 
       
-    if ( ptype=="logistic.randomwalk" ) {
+    if ( ptype %in% c( "logistic.randomwalk", "logistic,diffusion") ) {
 
       p <- within( p, {
-         
         # propensity calculating function .. returns as a vector of reaction process rates ...
         # this diffusion parameterization is correct when: Da = DiffCoeff / h^2 ; h=1 in this case
-    
-        RE0 = function(p, X) { 
-          with(p, {
-            Dax = Da*X
-            array( c(  
-              b*X + d*X*X/K,  # birth process
-              d*X + b*X*X/K,  # death process
-              Da * c(X, X, X, X)  # diffusion components
-            ), dim=c( nr, nc, np ) ) ## return only P
-          })
-        }
 
-         
-        RE = function( p, res, oper, ix, ip ) {
+        RE = function( p, X, ix=1:length(X) ) {
           with(p, { 
-           # update state (XX) 
-            XX = res$X[ix] + oper  
-            XX[ XX < 0 ] = 0
-            res$X[ix] = XX
-            bb = b[ix]
-            dd = d[ix]
-            KK = K[ix]
-            # indices of areas surrounding the focal point
-            Dax = Da*XX
-            PP = c( 
-              bb*XX + dd*XX*XX/KK,  # birth process
-              dd*XX + bb*XX*XX/KK,   # death process
-              Da*c(XX, XX, XX, XX)       # diffusion components
+            # incremental updates of state (XX) & propensity
+            # intermediary calculations that get reused .. marginally speeds up a few of the following calculations
+            bx = b[ix]*X
+            dx = d[ix]*X
+            x_k = X/K[ix]
+            c( 
+              bx + dx*x_k,   # birth process
+              dx + bx*x_k,   # death process
+              Da * c(X, X, X, X) # diffusion
             )
-            res$P.total = res$P.total + sum( res$P[ip] - PP )
-            res$P[ip] = PP
-            return( res )
-          }) 
-        }
-        
+          }) # end with
+        }  # end RE
+
+
         # Changes associated with Reaction processes 
         # Lagrangian operat x or structure: 
         #   (row i, column j, operation) 
@@ -133,45 +99,28 @@
     }
 
 
-    if ( ptype=="logistic.correlated.randomwalk" ) {
+    if ( ptype %in% c("logistic.correlated.randomwalk", "logistic.advection.diffusion") ) {
 
       p <- within( p, {
-           
-        RE0 = function(p, X) { 
-          with(p, { 
-            array( c(  
-              b*X + d*X*X/K,  # birth process
-              d*X + b*X*X/K,   # death process
-              move_velocity * X * c(Hr0, Hr1, Hc0, Hc1),  # directed motion
-              Da  * c(X, X, X, X)  # diffusion components
-            ), dim=c( nr, nc, np ) ) 
-          })
-        }  # end RE
-               
-
         # propensity calculating function .. returns as a vector of reaction process rates ...
-        RE = function( p, res, oper, ix, ip ) {
+        # this diffusion parameterization is correct when: Da = DiffCoeff / h^2 ; h=1 in this case
+ 
+        RE = function( p, X, ix=1:length(X) ) {
           with(p, { 
-             # update state (XX) 
-            XX = res$X[ix] + oper 
-            XX[ XX < 0 ] = 0
-            res$X[ix] = XX
-            bb = b[ix]
-            dd = d[ix]
-            KK = K[ix]
-            # indices of areas surrounding the focal point
-            PP = c(
-              bb*XX + dd*XX*XX/KK,  # birth process
-              dd*XX + bb*XX*XX/KK,   # death process
-              move_velocity * XX * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
-              Da *  c(XX, XX, XX, XX)  # diffusion
+            # incremental updates of state (XX) & propensity
+            # intermediary calculations that get reused .. marginally speeds up a few of the following calculations
+            bx = b[ix]*X
+            dx = d[ix]*X
+            x_k = X/K[ix]
+            xxxx = c(X, X, X, X)  # flatten 4 directions into a vector to facilitate multiplications below
+            c( 
+              bx + dx*x_k,   # birth process
+              dx + bx*x_k,   # death process
+              move_velocity * xxxx * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
+              Da * xxxx   # diffusion
             )
-            res$P.total = res$P.total + sum( res$P[ip] - PP )
-            res$P[ip] = PP
-            return( res )
           }) # end with
         }  # end RE
-
 
         # Changes associated with Reaction processes 
         # Lagrangian operator structure: 
@@ -207,11 +156,11 @@
     # -------------------
     
 
-    if ( ptype=="stage.based.snow.crab" ) {  # similar to a delay-difference model with no recruitment
+    if ( ptype %in% c( "stage.based.snow.crab", "stage.based.advection.diffusion.snow.crab") ) {  # similar to a delay-difference model with no recruitment
 
       p <- within( p, {
 
-        RE0 = function(p, X, X1) { 
+        RE = function(p, X, X1) { 
           with( p, { 
             array( c( 
               pr.moult*pr.growth*Xss, # birth process (i.e. moult Prob = 1 / 365; and pr of growth ) * (Xss = soft-shelled) 
@@ -219,29 +168,29 @@
             ), dim=c( nr, nc, np ) ) 
           })
         }
-
-
-        RE = function( p, res, oper, ix, ip ) {
-          with( p, { 
-            # update state (X) 
-            XX = res$X[ix] + oper
-            XX[ XX < 0 ] = 0
-            res$X[ix] = XX
-            # propensity  (reaction rate) calculating function .. returns as a vector of reaction process rates ...
-            bb = b[ix]
-            dd = d[ix]
-            KK = K[ix]
-            PP = c( 
-              bb*XX + dd*XX*XX/KK,  # birth process
-              dd*XX + bb*XX*XX/KK   # death process
+       
+        RE = function( p, X, ix=1:length(X) ) {
+          with(p, { 
+            # incremental updates of state (XX) & propensity
+            # intermediary calculations that get reused .. marginally speeds up a few of the following calculations
+            bx = b[ix]*X
+            dx = d[ix]*X
+            x_k = X/K[ix]
+            xxxx = c(X, X, X, X)  # flatten 4 directions into a vector to facilitate multiplications below
+            rrrr = c(R, R, R, R)  # flatten 4 directions into a vector to facilitate multiplications below
+            c( 
+              pr.moult*pr.growth*Xss, # birth process (i.e. moult Prob = 1 / 365; and pr of growth ) * (Xss = soft-shelled) 
+              m*X,            # constant death process
+              b*Recruits,   # birth process
+              move_velocity * rrrr * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
+              move_velocity * xxxx * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
+              Da * rrrr,   # diffusion
+              Da * xxxx    # diffusion
             )
-            res$P.total = res$P.total + sum( res$P[ip] - PP )
-            res$P[ip] = PP
-            return( res )
+          }) # end with
+        }  # end RE
 
-          })
-        }
-    
+   
         # Changes associated with Reaction processes 
         # Lagrangian operator structure: 
         #   (row, column, operation) 

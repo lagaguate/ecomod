@@ -20,9 +20,8 @@
   
 
   p = list()
-
+  p$lib = loadlibraries( c("parallel", "Rcpp", "RcppArmadillo"))
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab" )  )
-  p$lib = loadlibraries( c("parallel", "snow" ))
   
 
 
@@ -38,7 +37,8 @@
   
   # ----------------------------
   # Additional parameters and some calculations here to avoid repeating within the simulation loop
-  p$nX   = 5 /100  # 5 = approx max density t / km^2; /100 so ~ 1 percentage min dX value to use at the lowest level for rate processes 
+  # p$increment   = 5 /100 * 5  # 5 = approx max density t / km^2; /100 so ~ 1 percentage min dX value to use at the lowest level for rate processes; *5 -> ~ 5% 
+  p$increment   = 100L
   p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
   p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
   p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
@@ -64,12 +64,13 @@
   # ----------------------------
   # Model definitions
   
-  stop( "stop and choose a model" )
-
-  # p = ssa.model.definition( p, ptype = "logistic", increment=p$nX ) 
-  # p = ssa.model.definition( p, ptype = "logistic.randomwalk", increment=p$nX ) 
-  # p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk", increment=p$nX ) 
-
+  choose.model = TRUE
+  if (choose.model) {
+    stop( "stop and choose a model" )
+    p = ssa.model.definition( p, ptype = "logistic", increment=p$increment ) 
+    p = ssa.model.definition( p, ptype = "logistic.randomwalk", increment=p$increment ) 
+    p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk", increment=p$increment ) 
+  }
 
 
   # ----------------------------
@@ -101,9 +102,14 @@
     d = matrix( nrow=nr, ncol=nc, data=2/365 ) # death rate
     r = b-d # not used in SSA but must match above for PDE
     K = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" )
+    # K = matrix(K, sparse=TRUE)
+
     # K = matrix( nrow=p$nr, ncol=p$nc, data=rnorm( p$nrc, mean=p$K, sd=p$K/10) )
     # K[ inothabitat ] = eps
    
+    K = K *10^3  # convert t to kg ;; ### Assume 1 individual ~ 1 kg --> K is in t/km^2 --> x 1000
+    K [ K<= eps] = 0 
+
     randomstep = TRUE
     if (randomstep) {
       
@@ -126,6 +132,7 @@
       rrr = rep(1, nc)  # row vector of 1's
       ccc = rep(1, nr)  
       H = model.pde.external.db( p=p, method="snowcrab.male.mature" , variable="habitat.mean" )
+      H[ H<eps ] = eps
       Hr = H[1:(nr-1),] /  H[2:nr,] 
      
       # a ratio of two probabilities should have ~ normal distribution (?? source ??)
@@ -163,6 +170,11 @@
   res = with( p, {
     # initiate state space with some random noise and a core area in the center of the system
     X = model.pde.external.db( p=p, method="snowcrab.male.mature", variable="abundance.mean" )
+    X = X * 10^3
+    X [ X<= eps] = 0 
+# convert to integer data -- 0.5 to 1 kg ~ 1 crab fully mature; X is in t/km^2; X1000 to convert to individuals/km^2
+    # X = matrix(X, sparse=TRUE)
+
     # add some random noise and a core area in the center of the system
     debug = FALSE
     if( debug) { 
@@ -170,10 +182,11 @@
       cwind = floor(nc/10*4.5):floor(nc/10*5.5)
       X[ rwind, cwind ] = round( X[ rwind, cwind ] * runif( length(X[ rwind, cwind ]) ) )
     }  
-    X = X * ( 1 - runif( length(X) ) / 100 )
+    
+    X = X * runif( length(X), min=0.75, max=0.95 )  
     
     # initiate P the propensities 
-    P = RE0(p, X )
+    P = array( RE(p, as.matrix( X) ),  dim=c( nr, nc, np ) ) 
     P.total = sum( P[] )
     simtime = 0       # time in units of the simulation (days)
     nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...
@@ -198,9 +211,21 @@
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$nsimultaneous.picks =  round( p$nrc * 0.05 ) # 0.1% update simultaneously should be safe
     p$monitor = TRUE
-    res = ssa.engine.approximation ( p, res )  
-    #  ... but if additional changes such as fishing etc ... then it should  a new engine should be created
-    # takes about 500 MB per run
+    
+    use.jit = TRUE
+    if (use.jit) {
+      require(compiler)
+      enableJIT(3)
+      p$RE = cmpfun( p$RE )
+      # ssa.engine.approximation = cmpfun(ssa.engine.approximation) 
+      ssa.engine.approximation.cpp = cmpfun(ssa.engine.approximation.cpp) 
+    }
+
+    # res = ssa.engine.approximation ( p, res ) 
+    res = ssa.engine.approximation.cpp ( p, res ) 
+
+    #  ... but if additional changes such as fishing etc ... then a new engine should be created
+    # takes about 800 MB per run
     # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
     # image(X)
   }

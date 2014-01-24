@@ -49,6 +49,12 @@
 			pkgs = c("fishmethods")
 			out = data.frame( cbind( pkgs=pkgs, repos=default.repository ) )
 		}
+		
+    if (X=="c.language") {
+			pkgs = c("Rcpp", "inline", "RUnit", "rbenchmark", "microbenchmark","RcppGSL", "RcppZiggurat", "RcppArmadillo")
+			out = data.frame( cbind( pkgs=pkgs, repos=default.repository ) )
+		}
+
 
 		if (X=="bayesian") {
 			pkgs = c( "arm", "bayesm", "bayesSurv",

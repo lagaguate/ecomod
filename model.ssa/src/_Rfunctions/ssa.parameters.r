@@ -53,7 +53,11 @@
         move_velocity =  exp(-2.729117)
         rrr = rep(1, nc)  # row vector of 1's
         ccc = rep(1, nr)  
-        H = matrix( nrow=nr, ncol=nc, data=runif( nr*nc  ) ) 
+        H = matrix( nrow=nr, ncol=nc, data=eps )
+        c0 = round( nc/2 )
+        bw = round( nc / 10 / 2 )
+        H [, (c0-bw) : (c0+bw) ] = 1
+        H = H * runif( H, min=0.8, max=1)  # make a central band "optimal"   
         Hr = H[1:(nr-1),] /  H[2:nr,] 
       # a ratio of two probabilities should have ~ normal distribution (?? source ??)
       # using a quantile-based truncation at p=0.025, and p=0.975 

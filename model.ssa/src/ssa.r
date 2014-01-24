@@ -6,9 +6,8 @@
   # set.seed(1)
 
   p = list()
-  p$init = loadfunctions( c( "model.ssa", "model.pde" )  )
-  
-   
+  p$lib = loadlibraries( c("parallel", "Rcpp", "RcppArmadillo"))
+  p$init = loadfunctions( c( "model.ssa", "model.pde", "common" )  )
   
   p = ssa.parameters( p, ptype = "systemsize.debug" ) 
   p = ssa.parameters( p, ptype = "logistic.debug" ) 
@@ -26,9 +25,9 @@
 
   
   
-  p = ssa.model.definition( p, ptype = "logistic" ) 
+  # p = ssa.model.definition( p, ptype = "logistic" ) 
   # p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
-  # p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
+  p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
   
 
 
@@ -59,9 +58,9 @@
     p$ssa.approx.proportion = 0.01
     p$nsimultaneous.picks =  round( p$nrc * p$ssa.approx.proportion ) # 1% update simultaneously should be /seems to be safe  ~ 1 day -> every 1-2 min or 2hrs->100days 
     p$monitor = TRUE
-    res = ssa.engine.approximation( p, res )
+    # res = ssa.engine.approximation( p, res )
+    res = ssa.engine.approximation.cpp ( p, res )
   }
-
 
 
 

@@ -1,9 +1,6 @@
 
 
   # simple PDE 2D spatial model of interacting nodes in a lattice
-  loadfunctions( c( "habitat", "common", "snowcrab", "temperature", "depth", "bathymetry" ) )
-  loadfunctions( "model.pde" )
-
 
   require (deSolve)
   require (lattice)
@@ -12,7 +9,11 @@
 
   p = list()
   p$init = loadfunctions( c( "model.pde" )  )
- 
+   
+  p$nr = 100  
+  p$nc = 100 
+  p$nn = p$nr*p$nc
+
   # rate of increase per day .. for snow crab r~1 per capita per year ===> therefore per day = 1/365
   p$r = 1 / 365
   p$K = 100
@@ -27,16 +28,14 @@
   
   # rows are easting (x);  columns are northing (y) --- in R 
   # ... each cell has dimensions of 1 X 1 km ^2
-  
-  p$nr = 100  
-  p$nc = 100 
-  p$nn = p$nr*p$nc
 
   # pde related params
   p$eps  = 1e-6   # A in units of t/km^2 -- number below which abundance can be considered zero ~ 1 kg/ km^2 = 1g / m^2
   p$atol = 1e-9  # atol -- absolute error tolerance for lsoda
   p$rtol = 1e-9  # rtol -- relative error tolerance for lsoda
   
+  p$dc = 1
+  p$dr = 1
 
   
  # p$modeltimes = c( 0, 5, 100, 200, 400, 800, 1600 )  # times at which output is desired
@@ -91,11 +90,15 @@
   o = array( out, dim=c( nrow(out), p$nr, p$nc)) 
 
   levelplot( o[1,,] , aspec="iso")  
+  levelplot( o[5,,] , aspec="iso")  
 
+
+
+
+  # or using deSolve's plotting mechanism:
   image(out)
-
-
-  select <- c(1, 4, 10, 20, 50, 100, 200, 500 )
+  
+  select <- c(5, 10, 50 )
   image(out, xlab = "x", ylab = "y", mtext = "Test", subset = select, mfrow = c(2,4), legend =  TRUE)
    
   image(out, subset = (time == 10))
