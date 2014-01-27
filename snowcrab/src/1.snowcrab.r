@@ -150,6 +150,10 @@
   loadfunctions ( "temperature", functionname="temperature.r" )  # days
 
 
+#     re-run to update temperatures in BIO db  :: for other analyses
+  loadfunctions ( "bio", functionname="bio.r" ) 
+
+
 # the folllowing depends upon the previous  
 #     Species area data :: 
   loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
