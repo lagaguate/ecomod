@@ -35,8 +35,8 @@ Nafo5Zw
 
     p = list()
     p$env.init = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
-    p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    p$newyear = newyear = c( 2012)
+    p$tyears = c(1950:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+    p$newyear = newyear = c( 2013)
 
 
     # only one data stream necessary at present .. the largest extent

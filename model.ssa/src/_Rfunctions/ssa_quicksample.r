@@ -8,7 +8,7 @@ require(Rcpp)
 sourceCpp( rebuild=TRUE, code='
 #include <Rcpp.h>
 
-inline int randWrapper(const int n) { return floor(unif_rand()*n); }
+// inline int randWrapper(const int n) { return floor(unif_rand()*n); }
 using namespace std;
 using namespace Rcpp;
 // [[Rcpp::export]]
@@ -32,7 +32,7 @@ IntegerVector ssa_sample_direct( NumericVector probs, NumericVector rn ) {
     }
     j++ ;
   }
-  random_shuffle(J.begin(), J.end(), randWrapper);  //randomize order
+  // random_shuffle(J.begin(), J.end(), randWrapper);  //randomize order
   return( wrap( J ) );  
 }
 ')

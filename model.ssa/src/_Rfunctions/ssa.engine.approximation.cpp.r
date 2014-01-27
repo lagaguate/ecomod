@@ -10,31 +10,31 @@ ssa.engine.approximation.cpp = function( p, res ) {
    
     while (res$simtime <= t.end )  {
       # pre-caluclate these factor outside of the loop as they change slowly
-      rns =  matrix( runif ( 2*nsimultaneous.picks ), ncol=2)
-      
       # choose reaction times
       tn = insp  ## created as a vector in list p to speed it up a little
       nt = nsimultaneous.picks
-      time.increment = -log( rns[,1] )/res$P.total 
+      time.increment = rexp(nsimultaneous.picks, res$P.total )
       tnew = res$simtime + sum( time.increment )
+      
+      # check if truncation required 
       if ( tnew > tout ) {
         tn = which(  cumsum( time.increment ) <= tout ) 
         nt = length (tn)
         time.increment = time.increment[ tn ]
         tnew = res$simtime + sum( time.increment )
       }
-      # choose reactions
-      prop = cumsum( res$P[]/res$P.total )
-      J = ssa_sample_direct( prop, sort( rns[,2] ) )
-   
-      # remap random element to correct location and process
-      jn  = floor( (J-1)/nrc ) + 1  # which reaction process
-      jj = J - (jn-1)*nrc  # which cell 
-      # determine focal cell coords
-      cc = floor( (jj-1)/nr ) + 1   # col
-      cr = jj - (cc-1) * nr         # row
-     
-      if (length(tn) > 0 ) {
+ 
+      if (nt > 0 ) {
+        # choose reactions
+        J = ssa_sample_direct( cumsum( res$P[])/res$P.total, sort( runif ( nt ) ) )
+    
+        # remap random element to correct location and process
+        jn  = floor( (J-1)/nrc ) + 1  # which reaction process
+        jj = J - (jn-1)*nrc  # which cell 
+        # determine focal cell coords
+        cc = floor( (jj-1)/nr ) + 1   # col
+        cr = jj - (cc-1) * nr         # row
+
         for ( w in tn ) {
           o = NU[[ jn[w] ]]  
           # no = dim(o)[1]  # nrows = # operations (ie, unary, or binary)

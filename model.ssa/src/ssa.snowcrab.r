@@ -51,8 +51,8 @@
   # ----------------------------
   # Time dimensions and constraints
   p <- within( p, { 
-    n.times = 365  # number of censuses  
-    t.end =   365   # in model time .. days
+    n.times = 100  # number of censuses  
+    t.end =   10   # in model time .. days
     t.censusinterval = t.end / n.times
     modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
     #modeltimeoutput = c( 0, 5, 10, 20, 21, 22, 23, 24, 25, 40, 50 )  # times at which output is desired
@@ -152,6 +152,11 @@
       Hc0 = cbind( ccc, Hc) # hazzard ratio of Pr of moving in negative direction
       Hc1 = cbind( 1/Hc, ccc ) #  positive direction
 
+      # scale probability ratios to magitude of RMS velocities
+      Hr0 = Hr0 * move_velocity
+      Hr1 = Hr1 * move_velocity
+      Hc0 = Hc0 * move_velocity
+      Hc1 = Hc1 * move_velocity
 
       H = Hc = Hr = rrr = ccc = NULL
     }
@@ -209,7 +214,8 @@
     p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
     p$runname = "snowcrab.approximation"
     p$outdir = project.directory( "model.ssa", "data", p$runname )
-    p$nsimultaneous.picks =  round( p$nrc * 0.05 ) # 0.1% update simultaneously should be safe
+    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
+    p$insp = 1:p$nsimultaneous.picks
     p$monitor = TRUE
     
     use.jit = TRUE
@@ -251,7 +257,8 @@
  
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p$nruns = 5
- 
+    p$insp = 1:p$nsimultaneous.picks
+  
     ssa.parallel.run ( DS="run", p=p, res=res  ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
 
