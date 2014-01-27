@@ -45,7 +45,7 @@
   # --------------------
 
   # add biologicals
-  p$yearstomodel = 1970:2012
+  p$yearstomodel = 1970:2013
   # biologicals begin in 1970  # need to fix this but how? 
   # .. at present data from 1970 are copied to all pre 1970 data years
  

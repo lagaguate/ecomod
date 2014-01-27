@@ -140,9 +140,6 @@
 #     Taxonomy :: 
   loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary
 
-#     BIO db update :: 
-  loadfunctions ( "bio", functionname="bio.r" ) 
-
 
 ## The following are very SLOW: 
 
@@ -150,7 +147,7 @@
   loadfunctions ( "temperature", functionname="temperature.r" )  # days
 
 
-#     re-run to update temperatures in BIO db  :: for other analyses
+#     BIO db update :: 
   loadfunctions ( "bio", functionname="bio.r" ) 
 
 

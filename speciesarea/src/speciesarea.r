@@ -36,7 +36,7 @@
 
    
   # map everything  ~ 30 minutes
-  p$yearstomodel = 1970:2012 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
 
 
   p$varstomodel = c( "C", "Z", "T", "sar.rsq", "Npred" )

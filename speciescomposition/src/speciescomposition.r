@@ -26,7 +26,7 @@
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos.beowulf", 24 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
   
-  p$yearstomodel = 1970:2012
+  p$yearstomodel = 1970:2013
   p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
   # p$mods = c("simple","simple.highdef", "complex", "full")   # GAM interpolation model types 
