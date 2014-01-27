@@ -2,7 +2,7 @@
   gmt.determine.basemap = function(params) {
 
     # default
-    basemap.location = project.directory("bathymetry" )
+    basemap.location = project.directory("bathymetry", "maps" )
     params$basemap = file.path(basemap.location, "basemap.1min.ps" )
 
     if (params$mapres %in% c("10sec"))  params$basemap = file.path(basemap.location, "basemap.10sec.ps" )
