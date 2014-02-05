@@ -76,10 +76,12 @@
       # Parameterize habitat space models for various classes, 
       # see: habitat.model.db( DS="habitat.redo" ... )
       
+      p$clusters = rep( "localhost", 2)  # only need 2 if 2 vars are being modelled
+      p$clusters = rep( "localhost", 8)  
       p$clusters = rep( "localhost", 24)  
       # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
       p = make.list( list(v=p$vars.to.model ), Y=p )
-      parallel.run( clusters=p$clusters[1:min(24,p$nruns)], n=p$nruns, habitat.model.db, DS="habitat.redo", p=p, predictionYears=p$years.to.model ) # predictionYears = years that inform the model
+      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p, predictionYears=p$years.to.model ) # predictionYears = years that inform the model
 
       # or
       # habitat.model.db( DS="habitat.redo", p=p, predictionYears=p$years.to.model )   
