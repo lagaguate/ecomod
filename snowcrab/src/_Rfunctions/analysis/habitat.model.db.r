@@ -77,6 +77,8 @@
       tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "t", "tmean", "tmean.cl", 
             "tamp", "wmin", "z", "substrate.mean", "dZ", "ddZ", "wt",
             "pca1", "pca2", "ca1", "ca2", "mr", "smr", "C", "Z", "sar.rsq", "Npred" ) 
+      tokeep = intersect( names(set), tokeep) 
+      
       set = set[ , tokeep ]
       n0 = nrow(set)
 
@@ -244,10 +246,10 @@
           set$Y[iii] = min( set$Y[ which(set$Y>0) ], na.rm=T ) / 100
         }
         set = set[ which( is.finite(set$Y + set$tmean + set$plon + set$z + set$wgts + set$weekno ) ) ,]
-       
-        set = set[ , c( "Y", "yr", "weekno", "plon", "plat", "tmean", "dt.annual", "dt.seasonal", 
-            "tamp", "wmin", 
-             "z",  "dZ", "substrate.mean", "wgts", "ca1", "ca2", "Npred", "Z", "smr", "mr"  ) ]
+        tokeep = c( "Y", "yr", "weekno", "plon", "plat", "tmean", "dt.annual", "dt.seasonal", 
+            "tamp", "wmin",  "z",  "dZ", "substrate.mean", "wgts", "ca1", "ca2", "Npred", "Z", "smr", "mr"  ) 
+        tokeep = intersect( names(set), tokeep) 
+        set = set[ , tokeep ]
  
         # remove extremes where variance is high due to small n
         set = filter.independent.variables( x=set )
