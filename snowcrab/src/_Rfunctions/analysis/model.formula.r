@@ -1,15 +1,25 @@
 
-    model.formula = function( V ) {
+    model.formula = function( V="default" ) {
       
       # basic model ..  everything with no tweaking
-      out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+      if ( V %in% c("default", "R0.mass") {
+          out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
+            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
+            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
+            + s(plon, plat, k=200, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+      }
+
+      if ( V=="all" ) {
+        out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
             + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
             + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
             + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
             + s(ca1, k=4, bs="ts" ) + s(ca2, k=4, bs="ts" ) 
             + s(Npred, k=4 , bs="ts") + s(Z, k=4, bs="ts" ) + s(smr, k=4, bs="ts" ) + s(mr, k=4, bs="ts" ) 
             + s(plon, plat, k=200, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
-          
+      }
+
 			if ( V=="simple" ) {
         # simple model in case of failures in other attempts
         out = formula( Y ~  s(weekno, k=4, bs="ts" ) 
@@ -17,7 +27,7 @@
             + s(plon, plat, bs="tp", by=as.factor(yr)) + as.factor(yr) ) 
       }
       
-			if ( V=="R0.mass" ) {
+			if ( V=="R0.mass.2012" ) {
         # enough data for a high spatial resolution of data variability
         out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
             + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
