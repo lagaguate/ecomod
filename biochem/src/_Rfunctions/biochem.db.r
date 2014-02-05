@@ -51,7 +51,7 @@
       return(res)
     }
  
-    if ( DS %in% c("discrete_simple", "discrete_simple.redo") {
+    if ( DS %in% c("discrete_simple", "discrete_simple.redo")) {
         
       fn = file.path( biochem.datadump.dir, paste( "biochem","discrete_simple", "rdata", sep=".") )
    
@@ -281,6 +281,7 @@
     }
 
 
+  }
 
 }
 
