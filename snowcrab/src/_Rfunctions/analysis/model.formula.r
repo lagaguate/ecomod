@@ -2,7 +2,7 @@
     model.formula = function( V="default" ) {
       
       # basic model ..  everything with no tweaking
-      if ( V %in% c("default", "R0.mass") {
+      if ( V %in% c("default", "R0.mass") ) {
           out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
             + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
             + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
