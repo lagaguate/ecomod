@@ -93,119 +93,120 @@
         E$z = NULL
 
         PS = merge( PS, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
-
+        
+        # 
         # ---------------------
         # Species-area
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
-        pm = p
-        pm$taxa = p$speciesarea.taxa
-        pm$season = p$speciesarea.season
-        pm$data.sources = p$speciesarea.data.sources
-        pm$speciesarea.variables = c( "C", "Z", "T", "sar.rsq", "Npred" )
-        
-        SAG =  speciesarea.interpolate( p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype  )
-
+        #         pm = p
+        #         pm$taxa = p$speciesarea.taxa
+        #         pm$season = p$speciesarea.season
+        #         pm$data.sources = p$speciesarea.data.sources
+        #         pm$speciesarea.variables = c( "C", "Z", "T", "sar.rsq", "Npred" )
+        #         
+        #         SAG =  speciesarea.interpolate( p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype  )
+        # 
         # remove duplicates derived from repeated tows
-        oo = which( duplicated (SAG$platplon ) )
-        if (length( oo)> 0 ) {
-          todrop= NULL
-          for (o in oo ) {
-            i = which( SAG$platplon == SAG$platplon[o] )
-            for (w in pm$speciesarea.variables ) {
-              SAG[i[1],w] = mean(SAG[i,w], na.rm=TRUE)
-              todrop = c(todrop, i[-1])
-            }
-          }
-          SAG = SAG[ -todrop, ]
-        }
-        SAG = SAG[ , c("plon", "plat", pm$speciesarea.variables ) ]
-        PS = merge( PS, SAG, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sag" ) ) 
-        rm (SAG)
-
-
+        #         oo = which( duplicated (SAG$platplon ) )
+        #         if (length( oo)> 0 ) {
+        #           todrop= NULL
+        #           for (o in oo ) {
+        #             i = which( SAG$platplon == SAG$platplon[o] )
+        #             for (w in pm$speciesarea.variables ) {
+        #               SAG[i[1],w] = mean(SAG[i,w], na.rm=TRUE)
+        #               todrop = c(todrop, i[-1])
+        #             }
+        #           }
+        #           SAG = SAG[ -todrop, ]
+        #         }
+        #         SAG = SAG[ , c("plon", "plat", pm$speciesarea.variables ) ]
+        #         PS = merge( PS, SAG, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sag" ) ) 
+        #         rm (SAG)
+        # 
+        # 
         # ---------------------
         # Species composition
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
-        pm = p
-        pm$taxa = p$speciescomposition.taxa  
-        pm$season = p$speciescomposition.season
-        pm$speciescomposition.variables = c( "ca1", "ca2", "pca1", "pca2" )
-        
-        SC = speciescomposition.interpolate( p=pm, yr=max(1970,yr), modtype=pm$speciescomposition.modeltype ) 
-
+        #         pm = p
+        #         pm$taxa = p$speciescomposition.taxa  
+        #         pm$season = p$speciescomposition.season
+        #         pm$speciescomposition.variables = c( "ca1", "ca2", "pca1", "pca2" )
+        #         
+        #         SC = speciescomposition.interpolate( p=pm, yr=max(1970,yr), modtype=pm$speciescomposition.modeltype ) 
+        # 
         # remove duplicates derived from repeated tows --- slow ... 
-        oo = which( duplicated (SC$platplon ) )
-        if (length( oo)> 0 ) {
-          todrop= NULL
-          for (o in oo ) {
-            i = which( SC$platplon == SC$platplon[o] )
-            for (w in pm$speciescomposition.variables ) {
-              SC[i[1],w] = mean(SC[i,w], na.rm=TRUE)
-              todrop = c(todrop, i[-1])
-            }
-          }
-          SC = SC[ -todrop, ]
-        }
-        SC = SC[ , c("plon", "plat", pm$speciescomposition.variables ) ]
-        PS = merge( PS, SC, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sc" ) ) 
-        rm (SC)
-
-
-        # ---------------------
-        # size spectrum stats
-        pm = p
-        pm$taxa = p$sizespectrum.taxa
-        pm$season = p$sizespectrum.season
-        pm$sizespectrum.variables = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
-
-        SS = sizespectrum.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$sizespectrum.modeltype ) 
-        
-        # remove duplicates derived from repeated tows --- slow ... 
-        oo = which( duplicated (SS$platplon ) )
-        if (length( oo)> 0 ) {
-          todrop= NULL
-          for (o in oo ) {
-            i = which( SS$platplon == SS$platplon[o] )
-            for (w in pm$sizespectrum.variables) {
-              SS[i[1],w] = mean(SS[i,w], na.rm=TRUE)
-              todrop = c(todrop, i[-1])
-            }
-          }
-          SS = SS[ -todrop, ]
-        }
-        SS = SS[ , c("plon", "plat", pm$sizespectrum.variables ) ]
-        PS = merge( PS, SS, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".ss" ) ) 
-        rm(SS)
-
-
-        # --------------- 
-        # metabolic rates
-        # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
-        pm = p
-        pm$taxa = p$metabolism.taxa 
-        pm$season = p$metabolism.season 
-        pm$varstomodel = p$metabolism.variables 
-
-        MR = metabolism.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$metabolism.modeltype ) 
-    
-                
-        # remove duplicates derived from repeated tows --- slow ... 
-        oo = which( duplicated (MR$platplon ) )
-        if (length( oo)> 0 ) {
-          todrop= NULL
-          for (o in oo ) {
-            i = which( MR$platplon == MR$platplon[o] )
-            for (w in pm$metabolism.variables) {
-              MR[i[1],w] = mean(MR[i,w], na.rm=TRUE)
-              todrop = c(todrop, i[-1])
-            }
-          }
-          MR = MR[ -todrop, ]
-        }
-        MR = MR[ , c("plon", "plat", pm$metabolism.variables ) ]
-        PS = merge( PS, MR, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".mr" ) ) 
-        rm(MR)
-
+        #         oo = which( duplicated (SC$platplon ) )
+        #         if (length( oo)> 0 ) {
+        #           todrop= NULL
+        #           for (o in oo ) {
+        #             i = which( SC$platplon == SC$platplon[o] )
+        #             for (w in pm$speciescomposition.variables ) {
+        #               SC[i[1],w] = mean(SC[i,w], na.rm=TRUE)
+        #               todrop = c(todrop, i[-1])
+        #             }
+        #           }
+        #           SC = SC[ -todrop, ]
+        #         }
+        #         SC = SC[ , c("plon", "plat", pm$speciescomposition.variables ) ]
+        #         PS = merge( PS, SC, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".sc" ) ) 
+        #         rm (SC)
+        # 
+        # 
+        #       ---------------------
+        #       size spectrum stats
+        #         pm = p
+        #         pm$taxa = p$sizespectrum.taxa
+        #         pm$season = p$sizespectrum.season
+        #         pm$sizespectrum.variables = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
+        # 
+        #         SS = sizespectrum.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$sizespectrum.modeltype ) 
+        #         
+        #        remove duplicates derived from repeated tows --- slow ... 
+        #         oo = which( duplicated (SS$platplon ) )
+        #         if (length( oo)> 0 ) {
+        #           todrop= NULL
+        #           for (o in oo ) {
+        #             i = which( SS$platplon == SS$platplon[o] )
+        #             for (w in pm$sizespectrum.variables) {
+        #               SS[i[1],w] = mean(SS[i,w], na.rm=TRUE)
+        #               todrop = c(todrop, i[-1])
+        #             }
+        #           }
+        #           SS = SS[ -todrop, ]
+        #         }
+        #         SS = SS[ , c("plon", "plat", pm$sizespectrum.variables ) ]
+        #         PS = merge( PS, SS, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".ss" ) ) 
+        #         rm(SS)
+        # 
+        # 
+        #        --------------- 
+        #        metabolic rates
+        #        no biological data prior to 1970 .. fill with data from 1970 until another solution is found
+        #         pm = p
+        #         pm$taxa = p$metabolism.taxa 
+        #         pm$season = p$metabolism.season 
+        #         pm$varstomodel = p$metabolism.variables 
+        # 
+        #         MR = metabolism.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$metabolism.modeltype ) 
+        #     
+        #                 
+        #       remove duplicates derived from repeated tows --- slow ... 
+        #         oo = which( duplicated (MR$platplon ) )
+        #         if (length( oo)> 0 ) {
+        #           todrop= NULL
+        #           for (o in oo ) {
+        #             i = which( MR$platplon == MR$platplon[o] )
+        #             for (w in pm$metabolism.variables) {
+        #               MR[i[1],w] = mean(MR[i,w], na.rm=TRUE)
+        #               todrop = c(todrop, i[-1])
+        #             }
+        #           }
+        #           MR = MR[ -todrop, ]
+        #         }
+        #         MR = MR[ , c("plon", "plat", pm$metabolism.variables ) ]
+        #         PS = merge( PS, MR, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".mr" ) ) 
+        #         rm(MR)
+        # 
 
         vars = setdiff( names(PS), c("plon", "plat") )
         require (gstat)
