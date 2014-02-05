@@ -13,7 +13,7 @@ ssa.engine.approximation.cpp = function( p, res ) {
       # choose reaction times
       tn = insp  ## created as a vector in list p to speed it up a little
       nt = nsimultaneous.picks
-      time.increment = rexp(nsimultaneous.picks, res$P.total )
+      time.increment = rexp(nt, res$P.total )
       tnew = res$simtime + sum( time.increment )
       
       # check if truncation required 
