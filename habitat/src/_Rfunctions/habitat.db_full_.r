@@ -1,5 +1,5 @@
 
-  habitat.db = function( ip=NULL, DS="baseline", p=NULL, year=NULL ) {
+  habitat.db_full = function( ip=NULL, DS="baseline", p=NULL, year=NULL ) {
  
     if (DS %in% c("baseline", "baseline.redo") ) {
       
