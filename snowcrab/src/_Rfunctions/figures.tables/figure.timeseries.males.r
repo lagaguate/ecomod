@@ -21,7 +21,7 @@
 
       td =  get.time.series ( from.file=T )
       ii =  which( td$variable == v)
-      if (length(11) < 5) next()
+      if (length(ii) < 5) next()
       td = td[ii ,]
       td = td[ order(td$region, td$year) , ]
       td$region = factor(td$region, levels=areas, labels =regions)
