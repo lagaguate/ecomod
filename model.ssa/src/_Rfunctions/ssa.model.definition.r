@@ -64,7 +64,7 @@
             c( 
               bx + dx*x_k,   # birth process
               dx + bx*x_k,   # death process
-              Da * c(X, X, X, X) # diffusion
+              Da * c(X, X, X, X) # fixed diffusion coef
             )
           }) # end with
         }  # end RE
@@ -112,12 +112,10 @@
             bx = b[ix]*X
             dx = d[ix]*X
             x_k = X/K[ix]
-            xxxx = c(X, X, X, X)  # flatten 4 directions into a vector to facilitate multiplications below
             c( 
               bx + dx*x_k,   # birth process
               dx + bx*x_k,   # death process
-              move_velocity * xxxx * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
-              Da * xxxx   # diffusion
+              move_velocity * c(X, X, X, X) * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] )   # advection --- >>> the diffusion comes from its' stochasticity and with a magnitude of (u+d)^/2
             )
           }) # end with
         }  # end RE
@@ -132,10 +130,6 @@
           rbind( c(0,0,-increment), c(-1,0,increment) ), # advection jumps :: X[i] -> X[i-1] -- negative index direction
           rbind( c(0,0,-increment), c(+1,0,increment) ),
           rbind( c(0,0,-increment), c(0,-1,increment) ),  # same as above but now for column-wise jumps advection
-          rbind( c(0,0,-increment), c(0,+1,increment) ),
-          rbind( c(0,0,-increment), c(-1,0,increment) ), # diffusion jumps :: X[i] -> X[i-1] -- negative index direction
-          rbind( c(0,0,-increment), c(+1,0,increment) ),
-          rbind( c(0,0,-increment), c(0,-1,increment) ),  # same as above but now for column-wise jumps
           rbind( c(0,0,-increment), c(0,+1,increment) )
         )
 
@@ -176,16 +170,12 @@
             bx = b[ix]*X
             dx = d[ix]*X
             x_k = X/K[ix]
-            xxxx = c(X, X, X, X)  # flatten 4 directions into a vector to facilitate multiplications below
-            rrrr = c(R, R, R, R)  # flatten 4 directions into a vector to facilitate multiplications below
             c( 
               pr.moult*pr.growth*Xss, # birth process (i.e. moult Prob = 1 / 365; and pr of growth ) * (Xss = soft-shelled) 
               m*X,            # constant death process
               b*Recruits,   # birth process
-              move_velocity * rrrr * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
-              move_velocity * xxxx * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
-              Da * rrrr,   # diffusion
-              Da * xxxx    # diffusion
+              move_velocity * c(X, X, X, X) * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] ) ,  # advection
+              move_velocity * c(R, R, R, R) * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] )   # advection
             )
           }) # end with
         }  # end RE
@@ -198,6 +188,7 @@
         NU = list (
           rbind( c(0,0, increment) ),  # for the focal cell (0,0), the birth process: "bX"
           rbind( c(0,0,-increment) )  # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+          #  ... unfinished 
         )
 
         np = length(NU)  # no. of processes
