@@ -1,7 +1,14 @@
 
     model.formula = function( V="default" ) {
       
-      # basic model ..  everything with no tweaking
+      # basic model -- less spatial density 
+      out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
+            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
+            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
+            + s(plon, plat, k=100, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+     
+      #  same as basic model but with higher spatial densities
       if ( V %in% c("default", "R0.mass") ) {
           out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
             + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
