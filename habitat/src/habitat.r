@@ -50,21 +50,21 @@
   # .. at present data from 1970 are copied to all pre 1970 data years
  
 
-  p$speciesarea.modeltype = "complex"
+  p$speciesarea.modeltype = "complex.no.years"
   p$speciesarea.method = "glm"   ## this is chosen in speciesarea.r ... make sure it matches up
   p$speciesarea.season = "allseasons"  
   p$speciesarea.taxa = "maxresolved"  # use only unique taxa
   p$speciesarea.data.sources = c("groundfish", "snowcrab")
 
-  p$speciescomposition.modeltype = "complex"  
+  p$speciescomposition.modeltype = "complex.no.years"  
   p$speciescomposition.season = "allseasons"  
   p$speciescomposition.taxa = "maxresolved"  
   
-  p$sizespectrum.modeltype = "complex" 
+  p$sizespectrum.modeltype = "complex.no.years" 
   p$sizespectrum.taxa = "maxresolved"
   p$sizespectrum.season = "allseasons"
 
-  p$metabolism.modeltype = "complex" 
+  p$metabolism.modeltype = "complex.no.years" 
   p$metabolism.taxa = "alltaxa"
   p$metabolism.season = "allseasons"
   p$metabolism.variables = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
@@ -83,6 +83,10 @@
     # p$clusters = rep("localhost",8)
     # p$clusters = c( rep("kaos", 14), rep("tartarus", 14), rep("nyx", 14) )
     # parallel.run(  clusters=p$clusters, n=length(p$yearstomodel), habitat.db, DS="complete.redo", p=p )
+    
+    # not used but here in case
+    # habitat.db( DS="complete_no.biologicals.redo", p=p ) 
+
   }
 
 

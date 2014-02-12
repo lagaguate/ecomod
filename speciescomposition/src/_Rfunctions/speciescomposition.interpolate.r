@@ -33,11 +33,11 @@
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]
+      
       ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain, p$taxa, p$season, modtype  )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
  
       my = speciescomposition.db( DS="speciescomposition.merged", p=p )
-      
         
       P0 = habitat.db( DS="baseline", p=p )  
       P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
@@ -59,8 +59,17 @@
       for ( ww in p$varstomodel ) {
           
         if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-   
-        mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww )
+         
+        if (modtype=="complex.no.years") {
+          mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww, yr=yr )
+          if (is.null( mod.sc)) {
+            sc[,ww] = NA
+            next()
+          }
+        } else { 
+          mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww )
+        }
+
         sc[,ww] = predict( mod.sc, newdata=sc, type="response", na.action="na.pass" ) 
         # require (lattice)
         # levelplot( ca1 ~ plon+plat, sc[which(sc$ca1>-3 & sc$ca1< 3),], aspect="iso")
@@ -72,8 +81,6 @@
    
         id = which(SC < myr[1])
         if (length( id)>0) SC[id] = myr[1]
-        
-
 
         fn = file.path( ddir, paste("speciescomposition.annual.gridded", ww,  yr, "rdata", sep=".") )
         save ( SC, file=fn, compress=T )

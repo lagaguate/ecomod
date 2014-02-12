@@ -1,21 +1,71 @@
 
-    model.formula = function( V="default" ) {
+    model.formula = function( V="default", variant="" ) {
       
-      # basic model -- less spatial density 
-      out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
-            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
-            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
-            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
-            + s(plon, plat, k=100, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
-     
-      #  same as basic model but with higher spatial densities
-      if ( V %in% c("default", "R0.mass") ) {
+      if ( V %in% c("default") ) {
+        if ( variant=="") {
+          # basic model -- less spatial density .. all covariates
           out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
             + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
             + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
             + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
-            + s(plon, plat, k=200, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+            + s(ca1, k=4, bs="ts" ) + s(ca2, k=4, bs="ts" ) 
+            + s(Npred, k=4 , bs="ts") + s(Z, k=4, bs="ts" ) + s(smr, k=4, bs="ts" ) + s(mr, k=4, bs="ts" ) 
+            + s(plon, plat, k=100, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+        }
+        if (variant=="no.years") {
+          # basic model -- less spatial density and no years 
+          out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
+            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
+            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
+            + s(ca1, k=4, bs="ts" ) + s(ca2, k=4, bs="ts" ) 
+            + s(Npred, k=4 , bs="ts") + s(Z, k=4, bs="ts" ) + s(smr, k=4, bs="ts" ) + s(mr, k=4, bs="ts" ) 
+            + s(plon, plat, k=100, bs="tp" )   ) 
+        }
       }
+
+      if ( V %in% c("default.simple") ) {
+        if ( variant=="") {
+          # basic model -- less spatial density 
+          out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
+            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
+            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
+            + s(plon, plat, k=100, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+        }
+        if (variant=="no.years") {
+          # basic model -- less spatial density and no years 
+          out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
+            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
+            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
+            + s(plon, plat, k=100, bs="tp" )   ) 
+        }
+      }
+
+      
+      if ( V %in% c("R0.no", "R0.mass", "totmass.com") ) {
+        #  same as basic model but with higher spatial densities
+        if ( variant=="") {
+          out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
+            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
+            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
+            + s(ca1, k=4, bs="ts" ) + s(ca2, k=4, bs="ts" ) 
+            + s(Npred, k=4 , bs="ts") + s(Z, k=4, bs="ts" ) + s(smr, k=4, bs="ts" ) + s(mr, k=4, bs="ts" ) 
+            + s(plon, plat, k=200, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+        }
+        if (variant=="no.years") {
+          out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
+            + s(tamp, k=4, bs="ts" )+ s(wmin, k=4 , bs="ts" ) 
+            + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
+            + s(ca1, k=4, bs="ts" ) + s(ca2, k=4, bs="ts" ) 
+            + s(Npred, k=4 , bs="ts") + s(Z, k=4, bs="ts" ) + s(smr, k=4, bs="ts" ) + s(mr, k=4, bs="ts" ) 
+            + s(plon, plat, k=200, bs="tp" ) ) 
+        }
+      }
+      
 
       if ( V=="all" ) {
         out = formula( Y ~ s(weekno, k=4, bs="ts" ) 
@@ -33,7 +83,14 @@
             + s(tmean) + s(z) + s(dZ, k=4, bs="ts" ) + s(substrate.mean, k=4, bs="ts" )             
             + s(plon, plat, bs="tp", by=as.factor(yr)) + as.factor(yr) ) 
       }
-      
+			
+      if ( V=="simple" & variant=="no.years" ) {
+        # simple model in case of failures in other attempts
+        out = formula( Y ~  s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(z) + s(dZ, k=4, bs="ts" ) + s(substrate.mean, k=4, bs="ts" )             
+            + s(plon, plat, bs="tp") ) 
+      }
+
 			if ( V=="R0.mass.2012" ) {
         # enough data for a high spatial resolution of data variability
         out = formula( Y ~ s(weekno, k=4, bs="ts" ) 

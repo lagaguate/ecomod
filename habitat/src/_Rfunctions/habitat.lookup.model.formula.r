@@ -32,7 +32,13 @@ habitat.lookup.model.formula = function( YY="presence", modeltype="complex", ind
         ' + s(tmean, k=3, bs="tp") + s(tamp, k=3, bs="tp" ) + s(wmin, k=3 , bs="tp" )',
         ' + s(z, k=3 , bs="tp" ) + s(dZ, k=3, bs="tp" ) + s(substrate.mean, k=3, bs="tp" ) ' 
       ),
-   
+    
+      complex.no.years = paste( 
+        ' s(plon,plat, k=spatial.knots, bs="tp"  ) + s(julian, k=3, bs="tp") + s(t, k=3 , bs="tp" ) ',
+        ' + s(tmean, k=3, bs="tp") + s(tamp, k=3, bs="tp" ) + s(wmin, k=3 , bs="tp" )',
+        ' + s(z, k=3 , bs="tp" ) + s(dZ, k=3, bs="tp" ) + s(substrate.mean, k=3, bs="tp" ) ' 
+      ),
+    
       complete = paste( 
         ' as.factor(yr) + s(plon,plat, k=spatial.knots, by=as.factor(yr) ) + s(julian ) + s(tmean, k=3, bs="ts")',
         ' + s(dt.annual, k=3, bs="ts" ) + s(dt.seasonal, k=3, bs="ts" ) ', 

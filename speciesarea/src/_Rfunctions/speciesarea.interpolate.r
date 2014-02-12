@@ -59,8 +59,17 @@
       for( ww in p$varstomodel ) {
        
         if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-       
-        mod.sar = speciesarea.model.spatial( p=p, modeltype=modtype, var=ww )
+        
+        if (modtype=="complex.no.years") {
+          mod.sar = speciesarea.model.spatial( p=p, modeltype=modtype, var=ww, yr=yr )
+          if (is.null( mod.sar)) {
+            sc[,ww] = NA
+            next()
+          }
+        } else { 
+          mod.sar = speciesarea.model.spatial( p=p, modeltype=modtype, var=ww )
+        }
+
         sc[,ww] = predict( mod.sar, newdata=sc, type="response", na.action="na.pass" ) 
         # require (lattice)
         # levelplot( Z ~ plon+plat, sc, aspect="iso")

@@ -27,9 +27,10 @@
   # choose:
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
+   p$clusters = rep( "localhost", 4 )
   # p$clusters = rep( "localhost", 8 )
   # p$clusters = rep( "localhost", 24 )
-  p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
   # p$clusters = c( rep( "kaos.beowulf", 6), rep("nyx.beowulf", 24))
   # p$clusters = c( rep("tartarus.beowulf", 24), rep("kaos", 17 ) )
 
@@ -45,7 +46,7 @@
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
   # p$mods = c("simple","simple.highdef" )  # model types to attempt
-  p$mods = "complex"
+  p$mods = "complex.no.years"
 
 
   # prepare data
@@ -53,27 +54,28 @@
    
   
   # model the data ~ 14GB/ variable
-  p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 
+  p = make.list( list(vars= p$varstomodel, modtype=p$mods, years=p$yearstomodel), Y=p ) 
   metabolism.model( p=p, DS="redo" ) 
   # RAM requirements are large ... single processing only 
   # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
 
 
   # predict data: gridded extrapolations to full domain  
-  np = 1:12  # ~ 5 GB / process
+  # ~ 5 GB / process
   p$clusters = c( rep( "nyx.beowulf", 12), rep("tartarus.beowulf", 12), rep("kaos", 12 ) )
-  p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters[np], n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
+  p$clusters =  "localhost"
   
-  p$clusters = c( rep( "nyx.beowulf", 12), rep("tartarus.beowulf", 12), rep("kaos", 12 ) )
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
- 
+  # parallel.run( clusters=p$clusters, n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
+  metabolism.interpolate( p=p, DS="redo" ) 
+  
+
+
 
   # map everything
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, metabolism.map, p=p, type="annual"  ) 
-  # metabolism.map ( p=p, type="annual" )
+  # parallel.run( clusters=p$clusters, n=p$nruns, metabolism.map, p=p, type="annual"  ) 
+  metabolism.map ( p=p, type="annual" )
 
 
 summary(models)

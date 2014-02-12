@@ -38,9 +38,9 @@
 
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-  
-      my = metabolism.db( DS="metabolism", p=p )
       
+      my = metabolism.db( DS="metabolism", p=p )
+
       P0 = habitat.db( DS="baseline", p=p )  
       P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
       P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
@@ -62,10 +62,18 @@
       for ( ww in p$varstomodel ) {
               
         if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-        
-        mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww )
+
+        if (modtype=="complex.no.years") {
+          mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww, yr=yr )
+          if (is.null( mod.metab)) {
+            sc[,ww] = NA
+            next()
+          }
+        } else { 
+          mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww )
+        }
+
         sc[,ww] = predict( mod.metab, newdata=sc, type="response", na.action="na.pass" ) 
-      
         
         # require (lattice)
         # levelplot( mr ~ plon+plat, sc, aspect="iso")

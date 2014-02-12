@@ -1,13 +1,12 @@
 
-  metabolism.model = function( ip=NULL, p=NULL, DS="saved", modeltype=NULL, var=NULL ) {
-  
+  metabolism.model = function( ip=NULL, p=NULL, DS="saved", modeltype=NULL, var=NULL, yr=1000 ) {
+    # year = 1000 to indicicate all years
     if (DS=="saved") {
       models = NULL
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modeltype )
-      fn.models =  file.path( ddir, paste("metabolism.models", var, "rdata", sep=".") )
+      fn.models =  file.path( ddir, paste("metabolism.models", var, yr, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
-
     }
 
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
@@ -21,11 +20,15 @@
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
       modeltype = p$runs[iip,"modtype"]
+      yr = p$runs[iip,"years"]
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modeltype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      fn.models =  file.path( ddir, paste("metabolism.models", ww, "rdata", sep=".") )
+      fn.models =  file.path( ddir, paste("metabolism.models", ww, yr, "rdata", sep=".") )
       SC = metabolism.db( DS="metabolism", p=p )
-      
+      ioo = which( SC$yr == yr )
+      if (length(ioo) < 50 ) next() 
+      SC = SC[ioo,]
+
       formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="metabolism", spatial.knots=p$spatial.knots )
           
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
@@ -39,8 +42,8 @@
       
       metab.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
 
-
-      models = metab.model(ww, SC, fmly)
+      models = try ( metab.model(ww, SC, fmly) )
+      if  ( "try-error" %in% class(models) ) next()
       save( models, file=fn.models, compress=T)
       print(fn.models)
       rm (models, SC); gc() 

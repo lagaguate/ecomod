@@ -106,7 +106,7 @@
       }
 
       x =  groundfish.db( "det" )  # mass and length are not transformed
-      x = x[ which(x$settype %in% c(1,2,5) ), ]
+      # x = x[ which(x$settype %in% c(1,2,5) ), ]
       # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage),
       #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment,
       #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography

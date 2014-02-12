@@ -1,6 +1,4 @@
 
-	env.init = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
-
 	### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
@@ -10,6 +8,9 @@
 # create base species area stats  ... a few hours
 
   p = list()
+  p$env.init = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
+
+
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$init.files = env.init
   p$data.sources = c("groundfish", "snowcrab") 
@@ -30,7 +31,7 @@
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  p$clusters = rep( "localhost", 24 )
+  p$clusters = rep( "localhost", 4 )
 
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
 
@@ -42,7 +43,7 @@
   p$varstomodel = c( "C", "Z", "T", "sar.rsq", "Npred" )
 
   # p$mods = c("simple","simple.highdef", "time.invariant", "complex", "full" ) 
-  p$mods = "complex" 
+  p$mods = "complex.no.years" 
   
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
@@ -67,22 +68,25 @@
 
 
   # create a spatial interpolation model for each variable of interest ~ 10 min
-  p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 
+  p = make.list( list(vars= p$varstomodel, modtype=p$mods, years=p$yearstomodel), Y=p ) 
   speciesarea.model.spatial ( DS="redo", p=p ) 
   # each process requires 30-40 GB .. no parallel runs right now
   # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, speciesarea.model.spatial, DS="redo", p=p ) 
 
 
   # predictive interpolation to full domain (iteratively expanding spatial extent) ~ 30 min to 1 hr / year (simple)
-  np = 1:12  # number of processes = 64 / 5 = 12
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters[np], n=p$nruns, speciesarea.interpolate, DS="redo", p=p ) 
+  # parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.interpolate, DS="redo", p=p ) 
+  speciesarea.interpolate( DS="redo", p=p ) 
+
 
 
   # map everything
   p = make.list( list( vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods ), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.map, p=p, type="annual"  ) 
+  # parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.map, p=p, type="annual"  ) 
+  speciesarea.map( p=p, type="annual"  ) 
+
 
   # to do: maps and gridding in 5 and 10 year blocks ... 
-#
+
 

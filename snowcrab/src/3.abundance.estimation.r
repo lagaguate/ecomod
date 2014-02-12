@@ -55,6 +55,7 @@
   # 2. Abundance estimation via GAM   
 
     # create some intermediary files to speed up analysis
+
     habitat.model.db( DS="large.male.auxillary.data.redo", p=p )
 
 
@@ -68,8 +69,9 @@
 			p$prediction.weekno = 39 # predict for ~ Sept 1 
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
+      p$use.annual.models = TRUE  ## <<<<< new addition
 
-      
+
       # ---------------------
       # model habitat and intermediate predictions
       # ~ 1 MB / process  .. use all 24 CPUs
@@ -80,42 +82,50 @@
       p$clusters = rep( "localhost", 8)  
       p$clusters = rep( "localhost", 24)  
       # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-      p = make.list( list(v=p$vars.to.model ), Y=p )
-      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p, predictionYears=p$years.to.model ) # predictionYears = years that inform the model
+      
+      if ( p$use.annual.models ) {
+         p = make.list( list(v=p$vars.to.model, years=p$years.to.model ), Y=p )
+         habitat.model.db( DS="habitat_annual.redo", p=p )   
+         # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat_annual.redo", p=p ) 
+       } else { # annual representation of habitat response surfaces
+         p = make.list( list(v=p$vars.to.model ), Y=p )
+         habitat.model.db( DS="habitat.redo", p=p )   
+         # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p ) 
+      }
 
-      # or
-      # habitat.model.db( DS="habitat.redo", p=p, predictionYears=p$years.to.model )   
-   
 
-   
       # ---------------------
-      # habitat surface area estimation for R0.mass from 1970 to present --- for timeseries and direct prediction maps
-      p$clusters = c( rep( "localhost", 20) )
-      # p$clusters = rep( "localhost", 2)  
-      
-      p = make.list( list(v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
-        habitat.model.db (DS="habitat.redo", p=p, predictionYears=p$years.to.model )  # predictionYears = years that inform the model
-      
-      p = make.list( list(y=1970:p$current.assessment.year, v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
-        parallel.run( clusters=p$clusters[1:min(24,p$nruns)], n=length(p$yearswithTdata), snowcrab.habitat.db, p=p ) 
-      # or
-      # snowcrab.habitat.db (p=p) -- working?    
-    
+      testing.environmentals.only = FALSE
+      if ( testing.environmentals.only ) {
+        # habitat surface area estimation for R0.mass from 1970 to present --- for timeseries and direct prediction maps
+        p$clusters = c( rep( "localhost", 20) )
+        # p$clusters = rep( "localhost", 2)  
+        p = make.list( list(v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
+          habitat.model.db (DS="habitat.redo", p=p ) 
+        p = make.list( list(y=1970:p$current.assessment.year, v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
+          parallel.run( clusters=p$clusters, n=length(p$yearswithTdata), snowcrab.habitat.db, p=p ) 
+        # or
+        # snowcrab.habitat.db (p=p) -- working?    
+      }      
 
 
       # ---------------------
       # model abundance and intermediate predictions 
-      # p$clusters = rep( "localhost", 1)  
-      # p$clusters = c( rep( "nyx.beowulf", 16), rep("tartarus.beowulf", 16), rep("kaos", 16 ) )
-      p = make.list( list(v=p$vars.to.model ), Y=p )
-      parallel.run( clusters=p$clusters[1:min(24,p$nruns)], n=p$nruns, habitat.model.db, DS="abundance.redo", p=p, predictionYears=p$years.to.model )
-      # or
-      # habitat.model.db( DS="abundance.redo", p=p, predictionYears=p$years.to.model ) 
-
+      if ( p$use.annual.models ) {
+        p = make.list( list(v=p$vars.to.model, years=p$years.to.model ), Y=p )
+        habitat.model.db( DS="abundance_annual.redo", p=p ) 
+        # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance_annual.redo", p=p)
+      } else {    
+        p = make.list( list(v=p$vars.to.model ), Y=p )
+        habitat.model.db( DS="abundance.redo", p=p) 
+        # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance.redo", p=p )
+      } 
+      
+      
       # ---------------------
       # compute posterior simulated estimates using habitat and abundance predictions 
       # and then map, stored in R/gam/maps/
-      
+
       p$vars.to.model= "R0.mass"
       p$nsims = 2000 # n=1000 ~ 1 , 3 GB/run for sims; estim ~ 8 GB (upto 10)  
       # p$nsims = 1000 # n=1000 ~ 1 , 3 GB/run for sims; estim ~ 8 GB (upto 10)   --< FOR R0.mass ...
@@ -162,15 +172,27 @@
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
       
-      H = habitat.model.db( DS="habitat", p=p, predictionYears=p$years.to.model, v="R0.mass" )
-      set$predicted.pa = predict( H, set, type="response" )
-     
+
+      if ( p$use.annual.models ) {
+        for ( yr in sort(unique( set$yr) ) ) {
+          o = which( set$yr==yr)
+          if (length(o) < 5 ) next()
+          set$predicted.pa = NA
+          set$predicted.abund = NA
+          H = habitat.model.db( DS="habitat", p=p, yr=yr, v="R0.mass" )
+          set$predicted.pa[o] = predict( H, set[o,], type="response" )
+          A = habitat.model.db( DS="abundance", p=p, yr=yr, v="R0.mass" )
+          set$predicted.abund[o] = predict( A, set[o,], type="response" )
+        }
+
+      } else {
+          H = habitat.model.db( DS="habitat", p=p, v="R0.mass" )
+          set$predicted.pa = predict( H, set, type="response" )
+          A = habitat.model.db( DS="abundance", p=p, v="R0.mass" )
+          set$predicted.abund = predict( A, set, type="response" )
+      }
 
 
-
-      A = habitat.model.db( DS="abundance", p=p, predictionYears=p$years.to.model, v="R0.mass" )
-      set$predicted.abund = predict( A, set, type="response" )
-      
       set$predicted.R0.mass = set$predicted.abund
       set$predicted.R0.mass[ which( set$predicted.pa < 0.5) ] = 0
 

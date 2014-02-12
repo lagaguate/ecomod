@@ -32,7 +32,6 @@
     if (is.null(ip)) ip = 1:p$nruns
  
     for ( iip in ip ) {
-
       yr = p$runs[iip,"yr"]
       modtype = p$runs[iip,"modtype"]
 
@@ -63,8 +62,17 @@
       for( ww in p$varstomodel ) {
             
         if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-        
-        mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww )
+      
+        if (modtype=="complex.no.years") {
+          mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww, yr=yr )
+          if (is.null( mod.nss)) {
+            sc[,ww] = NA
+            next()
+          }
+        } else { 
+          mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww )
+        }
+ 
         require(mgcv)
         sc[,ww] = predict( mod.nss, newdata=sc, type="response", na.action="na.pass" ) 
         # require (lattice)

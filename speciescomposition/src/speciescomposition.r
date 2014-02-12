@@ -1,14 +1,15 @@
 
-	env.init = loadfunctions( c( "common", "bathymetry", "temperature", "substrate", "habitat", "taxonomy", "bio", "speciescomposition"  ) )
 
 
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
   # and the glue function "bio.db"
-
+  
+  require(sp)
 
   p = list()
+	p$env.init = loadfunctions( c( "common", "bathymetry", "temperature", "substrate", "habitat", "taxonomy", "bio", "speciescomposition"  ) )
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$init.files = env.init
   p$data.sources = c("groundfish", "snowcrab") 
@@ -27,11 +28,13 @@
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
   
   p$yearstomodel = 1970:2013
-  p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
+  p$varstomodel = c( "ca1", "ca2")
+#  p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
   # p$mods = c("simple","simple.highdef", "complex", "full")   # GAM interpolation model types 
   # p$mods = c("simple.highdef" )   # GAM interpolation model types 
-  p$mods = "complex"
+  p$mods = "complex.no.years"
+
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
   
   p$spatial.knots = 100
@@ -44,9 +47,7 @@
 			
 
   # model the data ~ 2hrs
-  p = make.list( list(vars=p$varstomodel, modtype=p$mods), Y=p ) 
-    
-  
+  p = make.list( list(vars=p$varstomodel, modtype=p$mods, years=p$yearstomodel ), Y=p ) 
   parallel = FALSE
   if (parallel) {
     p$clusters = rep("localhost", p$nruns)
@@ -56,25 +57,26 @@
   }
 
   
+  p$clusters = "localhost"
 
   # interpolate onto a grid via prediction ::: ~ 3 GB / process 
-  np = 1:24 # beowulf
-  np = 1:10 # shiva
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters[np], n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
+  #parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
   speciescomposition.interpolate (p=p, DS="redo" ) 
 
 
  
   # map everything
   p = make.list( list(yrs=p$yearstomodel, vars=p$varstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  )  
+  # parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  )  
+  speciescomposition.map( p=p, type="annual"  )  
+
 
 
   testing = FALSE
   if ( testing)  {
 
-      ca = speciescomposition.db(DS="ca", p=p) 
+      ca = speciescomposition.db(DS="ca", p=p)
       ca$variance
 
       pca =  speciescomposition.db(DS="pca", p=p)
