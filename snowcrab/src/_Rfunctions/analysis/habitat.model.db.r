@@ -138,8 +138,12 @@
       if (is.null(ip)) ip = 1:p$nruns
 
       for ( iip in ip ) {
+        
         v0 = v = p$runs[iip,"v"]
         yr = p$runs[iip,"years"]
+        
+        print ( p$runs[iip,] )
+
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
         fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") )
         set = habitat.model.db( DS="basedata", p=p, v=v )
@@ -452,6 +456,7 @@
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
         yr = p$runs[iip, "year"]
+        print( p$runs[iip,] )
 
         fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
         set = snowcrab.db( DS="set.logbook" )
