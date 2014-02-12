@@ -81,6 +81,7 @@ habitat.lookup.default = function(x,  p, discretization.scale, dist.scale ) {
     print( "Merge error -- duplicated coords" )
     stop()
   }
+  
   return( out )
-
 }
+

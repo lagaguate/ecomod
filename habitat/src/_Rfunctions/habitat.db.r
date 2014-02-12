@@ -101,9 +101,9 @@
         pm$taxa = p$speciesarea.taxa
         pm$season = p$speciesarea.season
         pm$data.sources = p$speciesarea.data.sources
-        pm$speciesarea.variables = c( "C", "Z", "T", "sar.rsq", "Npred" )
-        
-        SAG =  speciesarea.interpolate( p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype  )
+        pm$varstomodel = pm$speciesarea.variables
+
+        SAG =  speciesarea.interpolate( DS="all", p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype  )
 
         # remove duplicates derived from repeated tows
         oo = which( duplicated (SAG$platplon ) )
@@ -129,9 +129,9 @@
         pm = p
         pm$taxa = p$speciescomposition.taxa  
         pm$season = p$speciescomposition.season
-        pm$speciescomposition.variables = c( "ca1", "ca2", "pca1", "pca2" )
-        
-        SC = speciescomposition.interpolate( p=pm, yr=max(1970,yr), modtype=pm$speciescomposition.modeltype ) 
+        pm$varstomodel= pm$speciescomposition.variables
+
+        SC = speciescomposition.interpolate( DS="all", p=pm, yr=max(1970,yr), modtype=pm$speciescomposition.modeltype ) 
 
         # remove duplicates derived from repeated tows --- slow ... 
         oo = which( duplicated (SC$platplon ) )
@@ -156,9 +156,9 @@
         pm = p
         pm$taxa = p$sizespectrum.taxa
         pm$season = p$sizespectrum.season
-        pm$sizespectrum.variables = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
+        pm$varstomodel = pm$sizespectrum.variables
 
-        SS = sizespectrum.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$sizespectrum.modeltype ) 
+        SS = sizespectrum.interpolate ( DS="all", p=pm, yr=max(1970,yr), modtype=pm$sizespectrum.modeltype ) 
         
         # remove duplicates derived from repeated tows --- slow ... 
         oo = which( duplicated (SS$platplon ) )
@@ -186,7 +186,7 @@
         pm$season = p$metabolism.season 
         pm$varstomodel = p$metabolism.variables 
 
-        MR = metabolism.interpolate ( p=pm, yr=max(1970,yr), modtype=pm$metabolism.modeltype ) 
+        MR = metabolism.interpolate ( DS="all", p=pm, yr=max(1970,yr), modtype=pm$metabolism.modeltype ) 
     
                 
         # remove duplicates derived from repeated tows --- slow ... 

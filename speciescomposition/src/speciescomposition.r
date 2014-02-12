@@ -6,7 +6,8 @@
   # groundfish: "sm.base", "set"
   # and the glue function "bio.db"
   
-  require(sp)
+  loadlibraries ( c("chron", "fields", "mgcv", "sp")) 
+
 
   p = list()
 	p$env.init = loadfunctions( c( "common", "bathymetry", "temperature", "substrate", "habitat", "taxonomy", "bio", "speciescomposition"  ) )
@@ -63,7 +64,6 @@
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
   #parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
   speciescomposition.interpolate (p=p, DS="redo" ) 
-
 
  
   # map everything

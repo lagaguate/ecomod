@@ -78,7 +78,7 @@
       # set$totno = set$totno / 10^3
       # set$totwgt = set$totwgt / 10^3
    
-      set = habitat.lookup.data( p=p, sc=set, modtype="full" )
+      set = habitat.lookup.data( p=p, sc=set, modtype="default" )
 
       save( set, file=fn, compress=T )
       

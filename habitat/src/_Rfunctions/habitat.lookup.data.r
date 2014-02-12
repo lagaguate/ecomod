@@ -7,7 +7,7 @@ habitat.lookup.data = function( p, sc, modtype ) {
     sc = habitat.lookup(x=sc, p=p, dist.scale=p$interpolation.distances, keep.lon.lat=TRUE, datatype="time.invariant"  )
   }
 
-  if (modtype=="complex") { 
+  if (modtype %in% c("complex", "default" ) ) { 
     sc = habitat.lookup(x=sc, p=p, dist.scale=p$interpolation.distances, keep.lon.lat=TRUE, datatype="default"  )
   }
 

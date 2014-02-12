@@ -4,12 +4,12 @@
     if (DS=="all") {
       # glue all variables for 1 year
       sc = habitat.db( DS="baseline", p=p )  
-      ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, modtype )
+      ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season,paste(p$data.sources, collapse=".")  , p$speciesarea.method, modtype )
       for ( vn in  p$varstomodel ) {
         fn = file.path( ddir, paste("speciesarea.annual.gridded", vn, yr, "rdata", sep=".") )
         if( file.exists(fn)) {
           load( fn)
-          sc[, vname] = SC
+          sc[, vn] = SC
         }
       }
       return ( sc )

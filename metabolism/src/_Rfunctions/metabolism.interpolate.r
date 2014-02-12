@@ -9,7 +9,7 @@
         fn = file.path( ddir, paste("metabolism.annual.gridded", vn, yr, "rdata", sep=".") )
         if( file.exists(fn)) {
           load( fn)
-          sc[, vname] = SC
+          sc[, vn] = SC
         }
       }
       return ( sc )

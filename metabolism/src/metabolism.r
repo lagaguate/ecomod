@@ -1,7 +1,7 @@
   
   # estimate metabolic demand, given size structure
 
-	loadlibraries ( c("chron", "fields", "mgcv")) 
+	loadlibraries ( c("chron", "fields", "mgcv", "sp")) 
 
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"

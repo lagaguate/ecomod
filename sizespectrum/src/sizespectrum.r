@@ -10,6 +10,9 @@
 
 # create base species area stats  ... a few hours
 
+	loadlibraries ( c("chron", "fields", "mgcv", "sp")) 
+
+
   p = list()
   p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "sizespectrum"  ) )
 

@@ -175,7 +175,7 @@
       if (!exists( "t", SC)) SC$t = NA
       SC$t = habitat.lookup.simple( SC,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
 	
-      SC = habitat.lookup.data( p=p, sc=SC, modtype="full" )
+      SC = habitat.lookup.data( p=p, sc=SC, modtype="default" )
 
 			save( SC, file=fn, compress=T )
 			return (fn)
