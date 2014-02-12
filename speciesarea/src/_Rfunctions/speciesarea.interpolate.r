@@ -7,10 +7,9 @@
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season,paste(p$data.sources, collapse=".")  , p$speciesarea.method, modtype )
       for ( vn in  p$varstomodel ) {
         fn = file.path( ddir, paste("speciesarea.annual.gridded", vn, yr, "rdata", sep=".") )
-        if( file.exists(fn)) {
-          load( fn)
-          sc[, vn] = SC
-        }
+        SC=NA
+        if( file.exists(fn)) load( fn)
+        sc[, vn] = SC
       }
       return ( sc )
     }
