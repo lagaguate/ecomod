@@ -65,7 +65,7 @@
         
       p$model.type = "gam.full" # choose method for habitat model :
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-      p$optimizers = c( "nls", "perf", "bam", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
+      p$optimizers = c( "bam", "perf", "nls",  "bfgs", "newton", "Nelder-Mead" )  # used by GAM
 			p$prediction.weekno = 39 # predict for ~ Sept 1 
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      

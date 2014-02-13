@@ -148,8 +148,8 @@
         fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") )
         set = habitat.model.db( DS="basedata", p=p, v=v )
         ist = which( set$yr ==yr )
-        if ( length(ist) < 30 ) {
-            print( paste( "Insufficient data found for:", v0, yy ) )
+        if ( length(ist) < 10 ) {
+            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
         set = set[ ist , ]
@@ -478,8 +478,8 @@
         set$wgts = ceiling( set$sa.scaled * 1000 )
         
         ist = which( set$yr ==yr )
-        if ( length(ist) < 30 ) {
-            print( paste( "Insufficient data found for:", v, yy ) )
+        if ( length(ist) < 10 ) {
+            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
         set = set[ ist , ]
