@@ -455,7 +455,7 @@
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
-        yr = p$runs[iip, "year"]
+        yr = p$runs[iip, "years"]
         print( p$runs[iip,] )
 
         fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
