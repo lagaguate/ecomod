@@ -102,11 +102,13 @@
         PS$sa = 1
 
 				# posterior simulations
+        Hmodel = NULL
         if ( p$use.annual.models ) {
           Hmodel = habitat.model.db( DS="habitat_annual", v= v, yr=y )
         } else {
           Hmodel = habitat.model.db( DS="habitat", v= v )
         }
+        if (is.null( Hmodel)) next()
 
         Hsim = gam.simulation( M=Hmodel, X= PS, nsims=p$nsims ) #~8min
         rm( Hmodel); gc()
@@ -114,12 +116,15 @@
         oops = which( is.na(Hsim) ) 
         if (length(oops) > 0)  Hsim[oops ] = 0  # assume to be zero
         #Hsim = round(Hsim)  # force binary
-
+        
+        Amodel = NULL
         if ( p$use.annual.models ) {
 				  Amodel = habitat.model.db( DS="abundance_annual", v=v, yr=y )
         } else {
 				  Amodel = habitat.model.db( DS="abundance", v=v )
         }
+        if (is.null(Amodel)) next()
+
         Asim = gam.simulation( M=Amodel, X= PS, nsims=p$nsims ) # ~5min
 	      rm( Amodel); gc()
 		

@@ -7,7 +7,7 @@
       # factors that do not "change" rapidly and 
     
       outdir = file.path( project.directory("habitat"), "data", p$spatial.domain, "baseline" )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE" )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE", "baseline" )
       
       dir.create(outdir, recursive=T, showWarnings=F)
       outfile =  file.path( outdir, "PS.baseline.rdata" )
@@ -61,7 +61,7 @@
     if (DS %in% c("complete", "complete.redo") ) {
       
       outdir =  file.path( project.directory("habitat"), "data", p$spatial.domain, "complete" )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE" )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE","complete" )
       dir.create(outdir, recursive=T, showWarnings=F)
    
       if ( DS=="complete" ) {
@@ -235,7 +235,7 @@
     if (DS %in% c("complete_no.biologicals", "complete_no.biologicals.redo") ) {
       
       outdir =  file.path( project.directory("habitat"), "data", p$spatial.domain, "complete_no.biologicals" )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE" )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE",  "complete_no.biologicals"  )
       dir.create(outdir, recursive=T, showWarnings=F)
    
       if ( DS=="complete_no.biologicals" ) {

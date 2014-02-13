@@ -113,7 +113,7 @@
       outdir =  project.directory("snowcrab", "R", "gam", "models", "habitat", "annual" )
       dir.create(path=outdir, recursive=T, showWarnings=F)
 
-      if( DS=="habitat") {
+      if( DS=="habitat_annual") {
         Q = NULL
                 
         # ****************************************
@@ -440,7 +440,7 @@
       outdir = file.path( project.directory("snowcrab"), "R", "gam", "models", "abundance", "annual"  )
       dir.create(path=outdir, recursive=T, showWarnings=F)
       
-      if( DS=="abundance") {
+      if( DS=="abundance_annual") {
         Q = NULL
         fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
         if (file.exists(fn)) load(fn)
