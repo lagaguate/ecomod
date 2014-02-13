@@ -62,7 +62,7 @@
             + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
             + s(ca1, k=4, bs="ts" ) + s(ca2, k=4, bs="ts" ) 
             + s(Npred, k=4 , bs="ts") + s(Z, k=4, bs="ts" ) + s(smr, k=4, bs="ts" ) + s(mr, k=4, bs="ts" ) 
-            + s(plon, plat, k=200, bs="tp" ) ) 
+            + s(plon, plat, k=100, bs="tp" ) ) 
         }
       }
       
