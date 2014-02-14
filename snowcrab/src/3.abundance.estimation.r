@@ -2,9 +2,8 @@
   # --------------------------
   # 0. Initialise work space 
 
-  loadlibraries( "mgcv", "chron", "lattice"  ) 
-	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-
+  p$libs = loadlibraries( "mgcv", "chron", "lattice", "lattice", "grid", "fields"  ) 
+	p$env.init = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
   # --------------------------

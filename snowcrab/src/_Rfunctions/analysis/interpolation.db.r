@@ -13,10 +13,8 @@
       dir.create(path=loc.sol, recursive=T, showWarnings=F)
       dir.create(path=loc.res, recursive=T, showWarnings=F)
   
-      require (lattice)
-      require (grid)
-      require(fields)
-         
+      loadlibraries(p$libs)
+
       if( DS=="interpolation.simulation.complete") {
         load( p$ofname )
         return( K ) 

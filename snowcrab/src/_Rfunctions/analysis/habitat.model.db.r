@@ -7,6 +7,7 @@
     # currently fast GAM == "bam" is used
     if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
 
+    loadlibraries (p$libs)
 
     if (DS %in% c("large.male.auxillary.data", "large.male.auxillary.data.redo") ) {
       
@@ -131,8 +132,7 @@
         return(Q)
       }
 
-      loadlibraries (p$libs)
-      
+       
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
@@ -216,7 +216,6 @@
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
    
-      loadlibraries (p$libs)
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
