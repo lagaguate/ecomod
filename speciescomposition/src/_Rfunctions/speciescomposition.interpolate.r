@@ -24,7 +24,7 @@
 
     require(chron) 
     require(mgcv)
-    require(snow)
+    require(parallel)
     
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
@@ -32,7 +32,6 @@
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]
-      
       ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain, p$taxa, p$season, modtype  )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
  
@@ -56,20 +55,13 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
      
       for ( ww in p$varstomodel ) {
-          
-        if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-         
-        if (modtype=="complex.no.years") {
-          mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww, yr=yr )
-          if (is.null( mod.sc)) {
-            sc[,ww] = NA
-            next()
-          }
-        } else { 
-          mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww )
-        }
+        sc[,ww] = NA
+        mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww )
+   
+        cl <- makeCluster( p$n.cores )   # attempt to predict with clusters ... "bam" permits this
+        sc[,ww] = predict( mod.sc, newdata=sc, type="response", na.action="na.pass", cluster=cl ) 
+        stopCluster(cl)
 
-        sc[,ww] = predict( mod.sc, newdata=sc, type="response", na.action="na.pass" ) 
         # require (lattice)
         # levelplot( ca1 ~ plon+plat, sc[which(sc$ca1>-3 & sc$ca1< 3),], aspect="iso")
         SC = sc[,ww]

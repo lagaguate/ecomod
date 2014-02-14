@@ -1,8 +1,6 @@
   
   # estimate metabolic demand, given size structure
 
-	loadlibraries ( c("chron", "fields", "mgcv", "sp")) 
-
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
@@ -15,6 +13,8 @@
 
 
   p = list()
+
+  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel"))
   p$init.files = loadfunctions( c(
 	  "common", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "metabolism"
 	) )
@@ -42,21 +42,22 @@
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
   p$spatial.knots = 100
-
+  p$movingdatawindow = c( -3:+3 )  # this is the range in years to supplement data to model 
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
   # p$mods = c("simple","simple.highdef" )  # model types to attempt
-  p$mods = "complex.no.years"
+  p$mods = "complex"
 
 
   # prepare data
   metabolism.db( DS="metabolism.redo", p=p )
    
   
-  # model the data ~ 14GB/ variable
-  p = make.list( list(vars= p$varstomodel, modtype=p$mods, years=p$yearstomodel), Y=p ) 
-  metabolism.model( p=p, DS="redo" ) 
-  # RAM requirements are large ... single processing only 
+  # full model: the data ~ 14GB/ variable
+  # RAM requirements are large and speed is slow for a full model .. using a moving time-window 
+  p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
+  metabolism.model( p=p, DS="redo" )   
   # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
 
 
@@ -66,11 +67,10 @@
   p$clusters =  "localhost"
   
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
+  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
   # parallel.run( clusters=p$clusters, n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
   metabolism.interpolate( p=p, DS="redo" ) 
   
-
-
 
   # map everything
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods), Y=p )

@@ -83,15 +83,10 @@
       p$clusters = rep( "localhost", 24)  
       # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
       
-      if ( p$use.annual.models ) {
-         p = make.list( list(v=p$vars.to.model, years=p$years.to.model ), Y=p )
-         habitat.model.db( DS="habitat_annual.redo", p=p )   
-         # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat_annual.redo", p=p ) 
-       } else { # annual representation of habitat response surfaces
-         p = make.list( list(v=p$vars.to.model ), Y=p )
-         habitat.model.db( DS="habitat.redo", p=p )   
-         # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p ) 
-      }
+
+      p = make.list( list(v=p$vars.to.model ), Y=p )
+      habitat.model.db( DS="habitat.redo", p=p )   
+      # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p ) 
 
 
       # ---------------------
@@ -111,15 +106,9 @@
 
       # ---------------------
       # model abundance and intermediate predictions 
-      if ( p$use.annual.models ) {
-        p = make.list( list(v=p$vars.to.model, years=p$years.to.model ), Y=p )
-        habitat.model.db( DS="abundance_annual.redo", p=p ) 
-        # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance_annual.redo", p=p)
-      } else {    
-        p = make.list( list(v=p$vars.to.model ), Y=p )
-        habitat.model.db( DS="abundance.redo", p=p) 
-        # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance.redo", p=p )
-      } 
+      p = make.list( list(v=p$vars.to.model ), Y=p )
+      habitat.model.db( DS="abundance.redo", p=p) 
+      # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance.redo", p=p )
       
       
       # ---------------------
@@ -127,11 +116,10 @@
       # and then map, stored in R/gam/maps/
 
       p$vars.to.model= "R0.mass"
-      p$nsims = 2000 # n=1000 ~ 1 , 3 GB/run for sims; estim ~ 8 GB (upto 10)  
-      # p$nsims = 1000 # n=1000 ~ 1 , 3 GB/run for sims; estim ~ 8 GB (upto 10)   --< FOR R0.mass ...
+      p$nsims = 2000 # n=1000 ~ 1 , 15 GB/run for sims 
       p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
 
-      p$clusters = c( rep( "nyx.beowulf",2), rep("tartarus.beowulf",2), rep("kaos", 2 ) )
+      p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )
       p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
       
 			# interpolation.db ( DS="interpolation.redo", p=p )
@@ -140,7 +128,7 @@
 
       # collect all results into a single file and return: 
       K = interpolation.db( DS="interpolation.simulation", p=p  ) 
-      table.view( K )      
+      table.view( K ) 
  
       abund.v = c("yr", "total", "lbound", "ubound" )
 
@@ -171,27 +159,11 @@
       set$weekno = floor(set$julian / 365 * 52) + 1
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
-      
 
-      if ( p$use.annual.models ) {
-        for ( yr in sort(unique( set$yr) ) ) {
-          o = which( set$yr==yr)
-          if (length(o) < 5 ) next()
-          set$predicted.pa = NA
-          set$predicted.abund = NA
-          H = habitat.model.db( DS="habitat", p=p, yr=yr, v="R0.mass" )
-          set$predicted.pa[o] = predict( H, set[o,], type="response" )
-          A = habitat.model.db( DS="abundance", p=p, yr=yr, v="R0.mass" )
-          set$predicted.abund[o] = predict( A, set[o,], type="response" )
-        }
-
-      } else {
-          H = habitat.model.db( DS="habitat", p=p, v="R0.mass" )
-          set$predicted.pa = predict( H, set, type="response" )
-          A = habitat.model.db( DS="abundance", p=p, v="R0.mass" )
-          set$predicted.abund = predict( A, set, type="response" )
-      }
-
+      H = habitat.model.db( DS="habitat", p=p, v="R0.mass" )
+      set$predicted.pa = predict( H, set, type="response" )
+      A = habitat.model.db( DS="abundance", p=p, v="R0.mass" )
+      set$predicted.abund = predict( A, set, type="response" )
 
       set$predicted.R0.mass = set$predicted.abund
       set$predicted.R0.mass[ which( set$predicted.pa < 0.5) ] = 0

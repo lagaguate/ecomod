@@ -85,8 +85,8 @@
       depthrange = range( set$z, na.rm= T) 
 
       if ( grepl("R0.mass", v) ) {   
-   #     aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
-   #     set = rbind( set, aset[, names(set)] )
+        aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
+        set = rbind( set, aset[, names(set)] )
       }
 
       set$weekno = floor(set$julian / 365 * 52) + 1
@@ -106,103 +106,6 @@
       return(set)
 
     }
-
- 
-    if ( DS %in% c("habitat_annual.redo", "habitat_annual" ) ) {
-      
-      outdir =  project.directory("snowcrab", "R", "gam", "models", "habitat", "annual" )
-      dir.create(path=outdir, recursive=T, showWarnings=F)
-
-      if( DS=="habitat_annual") {
-        Q = NULL
-                
-        # ****************************************
-        # Parameterize habitat space models for various classes of crab rather than for every class 
-        # (at least until we have more data) The following is what would need to change if 
-        # this ever comes to pass
-        # ****************************************
-
-        # v = habitat.template.lookup( v )   # <------
-
-        # ****************************************
-        
-        fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
-        if (file.exists(fn)) load(fn)
-        return(Q)
-      }
-
-      require(fields)
-      require(mgcv)
-      
-      if (is.null(p$optimizers) ) p$optimizers = c("nlm", "bfgs", "perf", "bam", "newton", "optim", "nlm.fd")
-      if (is.null(ip)) ip = 1:p$nruns
-
-      for ( iip in ip ) {
-        
-        v0 = v = p$runs[iip,"v"]
-        yr = p$runs[iip,"years"]
-        
-        print ( p$runs[iip,] )
-
-        if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
-        fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") )
-        set = habitat.model.db( DS="basedata", p=p, v=v )
-        ist = which( set$yr ==yr )
-        if ( length(ist) < 10 ) {
-            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
-          next()
-        } 
-        set = set[ ist , ]
-       
-        Q = NULL
-        for ( o in p$optimizers ) {
-          print (o )
-          print( Sys.time() )
-          
-          .model = model.formula( v0, variant="no.years" )
-
-          ops = c( "outer", o ) 
-          if (o=="perf") ops=o
-          if (o=="bam") {
-            Q = try( 
-              bam( .model, data=set, weights=wt, family=binomial() ) ,
-              silent=T
-            )
-          } else {
-            Q = try( 
-              gam( .model, data=set, optimizer=ops, weights=wt, family=binomial(), select=T )
-              , silent=T
-            )
-          }
-
-          if ( ! ("try-error" %in% class(Q) ) ) break()  # take the first successful solution
-        }
-        
-        if ( "try-error" %in% class(Q) ) {
-          print( paste( "No solutions found for:", v0 ) )
-          next()
-        
-        }
-        print (fn )
-
-        save( Q, file=fn, compress=T )
-        print( summary(Q) )
-        print( fn )
-        print( Sys.time() )
-        
-        debug = F
-        if (debug) {
-          summary(Q); AIC (Q) #207506
-          ppp = predict( Q, set, type="response"); cor(ppp,set$Y, use="pairwise.complete.obs")^2 #.54
-          require (boot)
-          plot(Q, all.terms=T, rug=T, jit=T, seWithMean=T, pers=T, trans=inv.logit, scale=0 )
-        }
-      }
-
-      return ( "Complete"  )  
-
-    } # end if habitat
-
 
     
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
@@ -231,49 +134,44 @@
       require(fields)
       require(mgcv)
       
-      if (is.null(p$optimizers) ) p$optimizers = c("nlm", "bfgs", "perf", "bam", "newton", "optim", "nlm.fd")
+      if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
       for ( iip in ip ) {
         v0 = v = p$runs[iip,"v"]
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
-
         fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") )
-    
         set = habitat.model.db( DS="basedata", p=p, v=v )
-
         Q = NULL
-
+        .model = model.formula( v0 )
+        fmly = binomial()
         for ( o in p$optimizers ) {
           print (o )
           print( Sys.time() )
           
-          .model = model.formula( v0 )
-
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            Q = try( 
-              bam( .model, data=set, weights=wt, family=binomial() ) ,
-              silent=T
-            )
+            cl <- makeCluster( p$n.cores) 
+            Q = try(  bam( .model, data=set, weights=wt, family=fmly, cluster=cl, samfrac=0.1, use.chol=TRUE  ), silent=T )
+            stopCluster(cl)
           } else {
-            Q = try( 
-              gam( .model, data=set, optimizer=ops, weights=wt, family=binomial(), select=T )
-              , silent=T
-            )
+            Q = try( gam( .model, data=set, optimizer=ops, weights=wt, family=fmly, select=T ) , silent=T )
           }
-
           if ( ! ("try-error" %in% class(Q) ) ) break()  # take the first successful solution
         }
-        
+         
+        # last resort
         if ( "try-error" %in% class(Q) ) {
-          print( paste( "No solutions found for:", v0 ) )
-          next()
-        
+          # last attempt with a simplified model and default optimizer
+          .model = model.formula ("simple" )
+          Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = T )
+          if ( "try-error" %in% class(Q) ) {
+            print( paste( "No solutions found for:", v ) )
+            next()
+          }
         }
         print (fn )
-
         save( Q, file=fn, compress=T )
         print( summary(Q) )
         print( fn )
@@ -353,209 +251,58 @@
         print( summary(set))
         
         Q = NULL
+        .model = model.formula (v )
+        fmly = gaussian(link = "log")
 
         for ( o in p$optimizers ) {
           print (o )
           print( Sys.time() )
-          ops = c( "outer", o ) 
-          if (o=="perf") ops=o
-          
-          p$use.variogram.method = F
-          if ( p$use.variogram.method) {
-
-            Vrange = NULL
-            Vpsill = NULL
-            Zannual = NULL
-            
-            for ( iy in sort(unique(set$yr)) ) {
-              ii = which(set$yr==iy)
-              Z = var( set$Y[ii], na.rm=T )
-              V = variogram( Y ~ 1, locations=~plon + plat, data=set[ii ,] , cutoff=100, 
-                  boundaries=c(10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100 ) , cressie=T)
-              V$gamma = V$gamma / Z  # normalise it
-              vf = fit.variogram(V, vgm(psill=0.5, model="Sph", range=50, nugget=0.5 ))
-              plot( V, model=vf )
-              Vrange = c( Vrange, vf$range[2] )
-              Vpsill = c( Vpsill, vf$psill[2] / (vf$psill[1] + vf$psill[2] ) )
-              Zannual = c( Zannual, Z )
-
-            }
-            Vrange = mean(Vrange[which(Vrange< 200)] , na.rm=T) 
-            Vpsill = mean(Vpsill[which(Vrange< 200)], na.rm=T)
-          
-            Q = try( 
-              gamm( model.formula (v ), data=set, optimizer=ops, weights=wgts,
-                correlation=corSpher(c( Vrange, Vpsill ), form=~plon+plat | yr, nugget=T) ,
-                family=gaussian(link = "log"),
-              silent = T)
-            )
-
-          } else {
          
-            Q = try( 
-              gam(  model.formula (v ), data=set, optimizer=ops, weights=wgts, family=gaussian(link = "log"), select=T), silent = T )
-           
-          }
-          if ( ! ("try-error" %in% class(Q) ) ) break()
-        }
-          
-        if ( "try-error" %in% class(Q) ) {
-          # last attempt with a simplified model
-          Q = try( 
-              gam(  model.formula ("simple" ), data=set, optimizer=ops, weights=wgts, family=gaussian(link = "log"), select=T), silent = T )
-          if ( "try-error" %in% class(Q) ) {
-            print( paste( "No solutions found for:", v ) )
-            next()
-          }
-        }
-        
-        save( Q, file=fn, compress=T )
-        print( summary(Q) )
-        print( fn )
-        print( Sys.time() )
-        
-        if (debug) {
-          require (boot)
-          AIC (Q) 
-          summary(Q)
-          ppp = predict( Q, set, type="response" )
-          cor(ppp, set$Y, use="pairwise.complete.obs")^2 
-          plot(Q, all.terms=T, rug=T, jit=T, seWithMean=F, pers=T, trans=exp, scale=0 )
-        }
-
-      }
-      
-      return ( "Complete"  )  
-
-    } # end if
-
-    
-    
-    # --------
-
-
-
-    if ( DS %in% c("abundance_annual.redo", "abundance_annual" ) ) {
-      
-      outdir = file.path( project.directory("snowcrab"), "R", "gam", "models", "abundance", "annual"  )
-      dir.create(path=outdir, recursive=T, showWarnings=F)
-      
-      if( DS=="abundance_annual") {
-        Q = NULL
-        fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-        if (file.exists(fn)) load(fn)
-        return(Q)
-      }
-            
-      if (is.null(p$optimizers) ) p$optimizers = c( "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
-      if (is.null(ip)) ip = 1:p$nruns
-   
-      require(mgcv)
-      require(boot)  
-
-      for ( iip in ip ) {
-        v = p$runs[iip, "v"]
-        yr = p$runs[iip, "years"]
-        print( p$runs[iip,] )
-
-        fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-        set = snowcrab.db( DS="set.logbook" )
-        set$Y = set[, v]
-        set = set[ which(set$yr %in% p$years.to.model ) , ]
-        set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]
-        
-        set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-        set$sa.scaled =rescale.min.max(set$sa)
-        set$sa.scaled[ which(set$sa.scaled==0)] = min (set$sa.scaled[ which(set$sa.scaled>0)], na.rm=T) / 2
-     
-        set$plon = jitter(set$plon)
-        set$plat = jitter(set$plat)  
-        
-        set$weekno = floor(set$julian / 365 * 52) + 1
-        set$dt.seasonal = set$tmean -  set$t 
-        set$dt.annual = set$tmean - set$tmean.cl
-
-        set$wgts = ceiling( set$sa.scaled * 1000 )
-        
-        ist = which( set$yr ==yr )
-        if ( length(ist) < 10 ) {
-            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
-          next()
-        } 
-        set = set[ ist , ]
-
-        # set zero values to a low number to be informative as this is in log-space
-        iii = which(set$Y == 0 )
-        if (length(iii)>0 ){
-          # set = set[ - iii, ]
-          set$Y[iii] = min( set$Y[ which(set$Y>0) ], na.rm=T ) / 100
-        }
-        set = set[ which( is.finite(set$Y + set$tmean + set$plon + set$z + set$wgts + set$weekno ) ) ,]
-        tokeep = c( "Y", "yr", "weekno", "plon", "plat", "tmean", "dt.annual", "dt.seasonal", 
-            "tamp", "wmin",  "z",  "dZ", "substrate.mean", "wgts", "ca1", "ca2", "Npred", "Z", "smr", "mr"  ) 
-        tokeep = intersect( names(set), tokeep) 
-        set = set[ , tokeep ]
+          p$use.variogram.method = F
+            if ( p$use.variogram.method) {
+              Vrange = NULL
+              Vpsill = NULL
+              Zannual = NULL
+              for ( iy in sort(unique(set$yr)) ) {
+                ii = which(set$yr==iy)
+                Z = var( set$Y[ii], na.rm=T )
+                V = variogram( Y ~ 1, locations=~plon + plat, data=set[ii ,] , cutoff=100, 
+                    boundaries=c(10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100 ) , cressie=T)
+                V$gamma = V$gamma / Z  # normalise it
+                vf = fit.variogram(V, vgm(psill=0.5, model="Sph", range=50, nugget=0.5 ))
+                plot( V, model=vf )
+                Vrange = c( Vrange, vf$range[2] )
+                Vpsill = c( Vpsill, vf$psill[2] / (vf$psill[1] + vf$psill[2] ) )
+                Zannual = c( Zannual, Z )
+              }
+              Vrange = mean(Vrange[which(Vrange< 200)] , na.rm=T) 
+              Vpsill = mean(Vpsill[which(Vrange< 200)], na.rm=T)
+              Q = try( 
+                gamm( model.formula (v ), data=set, optimizer=ops, weights=wgts,
+                  correlation=corSpher(c( Vrange, Vpsill ), form=~plon+plat | yr, nugget=T) ,
+                  family=gaussian(link = "log"),
+                silent = T)
+              )
+            } 
  
-        # remove extremes where variance is high due to small n
-        set = filter.independent.variables( x=set )
-
-        print( summary(set))
-        
-        Q = NULL
-
-        for ( o in p$optimizers ) {
-          print (o )
-          print( Sys.time() )
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
-          
-          p$use.variogram.method = F
-          if ( p$use.variogram.method) {
-
-            Vrange = NULL
-            Vpsill = NULL
-            Zannual = NULL
-            
-            for ( iy in sort(unique(set$yr)) ) {
-              ii = which(set$yr==iy)
-              Z = var( set$Y[ii], na.rm=T )
-              V = variogram( Y ~ 1, locations=~plon + plat, data=set[ii ,] , cutoff=100, 
-                  boundaries=c(10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100 ) , cressie=T)
-              V$gamma = V$gamma / Z  # normalise it
-              vf = fit.variogram(V, vgm(psill=0.5, model="Sph", range=50, nugget=0.5 ))
-              plot( V, model=vf )
-              Vrange = c( Vrange, vf$range[2] )
-              Vpsill = c( Vpsill, vf$psill[2] / (vf$psill[1] + vf$psill[2] ) )
-              Zannual = c( Zannual, Z )
-
-            }
-            Vrange = mean(Vrange[which(Vrange< 200)] , na.rm=T) 
-            Vpsill = mean(Vpsill[which(Vrange< 200)], na.rm=T)
-          
-            .model = model.formula( v, variant="no.years" )
-            
-            Q = try( 
-              gamm( .model, data=set, optimizer=ops, weights=wgts,
-                correlation=corSpher(c( Vrange, Vpsill ), form=~plon+plat | yr, nugget=T) ,
-                family=gaussian(link = "log"),
-              silent = T)
-            )
-
+          if (o=="bam") {
+            cl <- makeCluster( p$n.cores) 
+            Q = try(  bam( .model, data=set, weights=wts, family=fmly, cluster=cl, samfrac=0.1, use.chol=TRUE  ), silent=T )
+            stopCluster(cl)
           } else {
-         
-            .model = model.formula( v, variant="no.years" )
-            Q = try( 
-              gam(  .model, data=set, optimizer=ops, weights=wgts, family=gaussian(link = "log"), select=T), silent = T )
-           
+            Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T), silent = T )
           }
+
           if ( ! ("try-error" %in% class(Q) ) ) break()
         }
-          
+        
+        # last resort
         if ( "try-error" %in% class(Q) ) {
           # last attempt with a simplified model
-          .model = model.formula( "simple", variant="no.years" )
-          Q = try( 
-              gam(  .model, data=set, optimizer=ops, weights=wgts, family=gaussian(link = "log"), select=T), silent = T )
+          .model = model.formula ("simple" )
+          Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = T )
           if ( "try-error" %in% class(Q) ) {
             print( paste( "No solutions found for:", v ) )
             next()
@@ -575,14 +322,9 @@
           cor(ppp, set$Y, use="pairwise.complete.obs")^2 
           plot(Q, all.terms=T, rug=T, jit=T, seWithMean=F, pers=T, trans=exp, scale=0 )
         }
-
       }
-      
       return ( "Complete"  )  
-
     } # end if
-              
-
   
   } # end function
 

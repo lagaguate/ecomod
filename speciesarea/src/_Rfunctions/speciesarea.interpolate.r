@@ -23,16 +23,16 @@
       return ( SC )
     }
     
-    require(snow)
+    require(chron)
     require(mgcv)
-
+    require(parallel)
+ 
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
  
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]
-
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain,  p$taxa, p$season, paste(p$data.sources, collapse=".")  , p$speciesarea.method, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
   
@@ -56,20 +56,13 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
 
       for( ww in p$varstomodel ) {
-       
-        if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
+        sc[,ww] = NA
+        mod.sar = speciesarea.model.spatial( p=p, modeltype=modtype, var=ww )
         
-        if (modtype=="complex.no.years") {
-          mod.sar = speciesarea.model.spatial( p=p, modeltype=modtype, var=ww, yr=yr )
-          if (is.null( mod.sar)) {
-            sc[,ww] = NA
-            next()
-          }
-        } else { 
-          mod.sar = speciesarea.model.spatial( p=p, modeltype=modtype, var=ww )
-        }
+        cl <- makeCluster( p$n.cores )   # attempt to predict with clusters ... "bam" permits this
+        sc[,ww] = predict( mod.sar, newdata=sc, type="response", na.action="na.pass", cluster=cl ) 
+        stopCluster(cl)
 
-        sc[,ww] = predict( mod.sar, newdata=sc, type="response", na.action="na.pass" ) 
         # require (lattice)
         # levelplot( Z ~ plon+plat, sc, aspect="iso")
         SC = sc[,ww]

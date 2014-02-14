@@ -14,7 +14,6 @@
       return ( sc )
     }
 
-
     if (DS=="saved") {
       SC = NULL
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
@@ -24,16 +23,16 @@
     }
     
     require(chron)
-    require(snow)
     require(mgcv)
+    require(parallel)  
 
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
 
-
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]
+      print( p$runs[iip,])
 
       ddir = file.path( project.directory("metabolism"), "data", p$spatial.domain, p$taxa, p$season, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
@@ -54,37 +53,26 @@
       sc$yr = yr # update all other records
       sc$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
       sc$julian = convert.datecodes(  sc$chron, "julian" )
-   
       sc$t = NA
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
- 
+
       for ( ww in p$varstomodel ) {
-              
-        if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-
-        if (modtype=="complex.no.years") {
-          mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww, yr=yr )
-          if (is.null( mod.metab)) {
-            sc[,ww] = NA
-            next()
-          }
+        mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww )
+        if (is.null( mod.metab)) next()
+        sol = try( predict( mod.metab, newdata=sc, type="response", na.action="na.pass") )
+        if  ( "try-error" %in% class(sol) ) {
+          sc[,ww] = NA
         } else { 
-          mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww )
+          sc[,ww] = sol
         }
-
-        sc[,ww] = predict( mod.metab, newdata=sc, type="response", na.action="na.pass" ) 
-        
         # require (lattice)
         # levelplot( mr ~ plon+plat, sc, aspect="iso")
         SC = sc[,ww]
-        
         myr = range( my[,ww], na.rm=T )   
         iu = which(SC > myr[2])
         if (length( iu)>0) SC[iu] = myr[2]
-   
         id = which(SC < myr[1])
         if (length( id)>0) SC[id] = myr[1]
-        
         fn = file.path( ddir, paste("metabolism.annual.gridded", ww, yr, "rdata", sep=".") )
         save ( SC, file=fn, compress=T )
         print(fn)

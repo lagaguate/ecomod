@@ -28,7 +28,6 @@
 
       # last filter on set:: filter years
       set = set[ which(set$yr %in% p$yearstomodel) , ]
-     
       
       set = lonlat2planar( set, proj.type=p$internal.projection, ndigits=2 )
       set$platplon = paste( round( set$plat ), round(set$plon), sep="_" )

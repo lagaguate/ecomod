@@ -8,12 +8,11 @@
   # and the glue function "bio.db"
 
 
-# create base species area stats  ... a few hours
-
-	loadlibraries ( c("chron", "fields", "mgcv", "sp")) 
-
+  # create base species area stats  ... a few hours
 
   p = list()
+ 
+  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel")) 
   p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "sizespectrum"  ) )
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
@@ -28,10 +27,8 @@
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
   p$clusters = rep( "localhost", 4 )
-
   # p$clusters = c( rep( "nyx.beowulf", 14), rep("tartarus.beowulf", 14), rep("kaos", 13 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-
 
   p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   
@@ -39,12 +36,10 @@
   p$varstomodel = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
   # p$mods = c("simple","simple.highdef", "complex", "full" ) 
   # p$mods = c("simple","simple.highdef") 
-  p$mods =  "complex.no.years" 
+  p$mods =  "complex" 
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
   p$spatial.knots = 100
-
-
 
   p$timescale = c( 0,1,2,5 ) # yr  
   p$interpolation.distances =  25 # for interpolation of habitat vars
@@ -74,7 +69,8 @@
 
 
   # create a spatial interpolation model for each variable of interest 
-  p = make.list( list(vars= p$varstomodel, mods=p$mods, years=p$yearstomodel), Y=p ) 
+  p = make.list( list(vars= p$varstomodel, mods=p$mods ), Y=p ) 
+  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
   sizespectrum.model.spatial ( DS="redo", p=p ) 
   # each process requires 30-40 GB ! no parallel right now
   # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
@@ -83,6 +79,7 @@
   # predictive interpolation to full domain (iteratively expanding spatial extent)
   # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
   p = make.list( list( yr=p$yearstomodel, modtype=p$mods), Y=p )
+  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
   # parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.interpolate, p=p, DS="redo" ) 
   sizespectrum.interpolate( p=p, DS="redo" ) 
 

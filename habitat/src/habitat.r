@@ -50,24 +50,24 @@
   # .. at present data from 1970 are copied to all pre 1970 data years
  
 
-  p$speciesarea.modeltype = "complex.no.years"
+  p$speciesarea.modeltype = "complex"
   p$speciesarea.method = "glm"   ## this is chosen in speciesarea.r ... make sure it matches up
   p$speciesarea.season = "allseasons"  
   p$speciesarea.taxa = "maxresolved"  # use only unique taxa
   p$speciesarea.data.sources = c("groundfish", "snowcrab")
   p$speciesarea.variables = c( "C", "Z", "T", "sar.rsq", "Npred" )
   
-  p$speciescomposition.modeltype = "complex.no.years"  
+  p$speciescomposition.modeltype = "complex"  
   p$speciescomposition.season = "allseasons"  
   p$speciescomposition.taxa = "maxresolved"  
   p$speciescomposition.variables = c( "ca1", "ca2" )
 
-  p$sizespectrum.modeltype = "complex.no.years" 
+  p$sizespectrum.modeltype = "complex" 
   p$sizespectrum.taxa = "maxresolved"
   p$sizespectrum.season = "allseasons"
   p$sizespectrum.variables = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
 
-  p$metabolism.modeltype = "complex.no.years" 
+  p$metabolism.modeltype = "complex" 
   p$metabolism.taxa = "alltaxa"
   p$metabolism.season = "allseasons"
   p$metabolism.variables = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
@@ -80,7 +80,6 @@
     p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
     p$interpolation.nmax = 100 
     
-   
     habitat.db( DS="complete.redo", p=p ) 
     # or
     # p$clusters = rep("localhost",8)

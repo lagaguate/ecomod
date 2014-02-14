@@ -14,7 +14,6 @@
       return ( sc )
     }
 
-    
     if (DS=="saved") {
       SC = NULL
       ddir = file.path( project.directory("sizespectrum"), "data", p$spatial.domain, p$taxa, p$season, modtype )
@@ -23,9 +22,9 @@
       return ( SC )
     }
     
-    require(snow)
     require(mgcv)
-
+    require(chron)
+    require(parallel)  
 
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
@@ -58,32 +57,21 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
   
       for( ww in p$varstomodel ) {
-            
-        if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-      
-        if (modtype=="complex.no.years") {
-          mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww, yr=yr )
-          if (is.null( mod.nss)) {
-            sc[,ww] = NA
-            next()
-          }
-        } else { 
-          mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww )
-        }
- 
-        require(mgcv)
-        sc[,ww] = predict( mod.nss, newdata=sc, type="response", na.action="na.pass" ) 
+        sc[,ww] = NA
+        mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww )
+
+        cl <- makeCluster( p$n.cores )   # attempt to predict with clusters ... "bam" permits this
+        sc[,ww] = predict( mod.nss, newdata=sc, type="response", na.action="na.pass", cluster=cl ) 
+        stopCluster(cl)
+
         # require (lattice)
         # levelplot( mr ~ plon+plat, sc, aspect="iso")
         SC = sc[,ww]
-        
         myr = range( my[,ww], na.rm=T )
         iu = which(SC > myr[2])
         if (length( iu)>0) SC[iu] = myr[2]
-
         id = which(SC < myr[1])
         if (length( id)>0) SC[id] = myr[1]
-
         fn = file.path(  ddir, paste("sizespectrum.annual.gridded", ww, yr, "rdata", sep=".") )
         save ( SC, file=fn, compress=T )
         print(fn)

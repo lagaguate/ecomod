@@ -6,10 +6,10 @@
   # groundfish: "sm.base", "set"
   # and the glue function "bio.db"
   
-  loadlibraries ( c("chron", "fields", "mgcv", "sp")) 
-
 
   p = list()
+  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel")) 
+
 	p$env.init = loadfunctions( c( "common", "bathymetry", "temperature", "substrate", "habitat", "taxonomy", "bio", "speciescomposition"  ) )
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$init.files = env.init
@@ -29,12 +29,11 @@
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
   
   p$yearstomodel = 1970:2013
-  p$varstomodel = c( "ca1", "ca2")
-#  p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
+  p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
   # p$mods = c("simple","simple.highdef", "complex", "full")   # GAM interpolation model types 
   # p$mods = c("simple.highdef" )   # GAM interpolation model types 
-  p$mods = "complex.no.years"
+  p$mods = "complex"
 
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
   
@@ -48,22 +47,20 @@
 			
 
   # model the data ~ 2hrs
+  # p$clusters = rep("localhost", p$nruns)
   p = make.list( list(vars=p$varstomodel, modtype=p$mods, years=p$yearstomodel ), Y=p ) 
-  parallel = FALSE
-  if (parallel) {
-    p$clusters = rep("localhost", p$nruns)
-    parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.model, p=p, DS="redo" ) 
-  } else {
-    speciescomposition.model( p=p, DS="redo" ) 
-  }
+  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
+  speciescomposition.model( p=p, DS="redo" )    ### internal to "bam" a parallel solution is attempted so do this in series and not parallel
+  # RAM requirements are large ... single processing only 
+  # parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.model, p=p, DS="redo" ) 
 
   
   p$clusters = "localhost"
-
   # interpolate onto a grid via prediction ::: ~ 3 GB / process 
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
-  #parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
+  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
   speciescomposition.interpolate (p=p, DS="redo" ) 
+  #parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
 
  
   # map everything
