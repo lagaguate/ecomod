@@ -14,8 +14,7 @@
    
     require(chron)
     require(mgcv)
-    require(multicore)
-    require(parallel)  
+    require(snow)  
 
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]

@@ -14,7 +14,7 @@
 
   p = list()
 
-  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel"))
+  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel", "snow" ))
   p$init.files = loadfunctions( c(
 	  "common", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "metabolism"
 	) )
@@ -31,6 +31,7 @@
   # p$clusters = rep( "localhost", 8 )
   # p$clusters = rep( "localhost", 24 )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("localhost", 24 ) )
   # p$clusters = c( rep( "kaos.beowulf", 6), rep("nyx.beowulf", 24))
   # p$clusters = c( rep("tartarus.beowulf", 24), rep("kaos", 17 ) )
 
@@ -55,10 +56,11 @@
    
   
   # full model: the data ~ 14GB/ variable
+  # moving 7yr window < 1GB / variable and ~ 5 min
   # RAM requirements are large and speed is slow for a full model .. using a moving time-window 
   p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
-  metabolism.model( p=p, DS="redo" )   
-  # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
+  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
+  # metabolism.model( p=p, DS="redo" )   
 
 
   # predict data: gridded extrapolations to full domain  
@@ -67,9 +69,8 @@
   p$clusters =  "localhost"
   
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
-  # parallel.run( clusters=p$clusters, n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
-  metabolism.interpolate( p=p, DS="redo" ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, metabolism.interpolate, p=p, DS="redo" ) 
+  # metabolism.interpolate( p=p, DS="redo" ) 
   
 
   # map everything
