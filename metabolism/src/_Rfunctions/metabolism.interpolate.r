@@ -22,9 +22,7 @@
       return ( SC )
     }
     
-    require(chron)
-    require(mgcv)
-    require(parallel)  
+    loadlibraries (p$libs)
 
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns

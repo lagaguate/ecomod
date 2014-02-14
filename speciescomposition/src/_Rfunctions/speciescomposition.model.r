@@ -1,5 +1,5 @@
 
-  speciescomposition.model = function(ip=NULL, p=NULL, DS="saved", modeltype=NULL, var=NULL) { 
+  speciescomposition.model = function(ip=NULL, p=NULL, DS="saved", modeltype=NULL, var=NULL, yr=1000) { 
     
     if (DS=="saved") {
       models = NULL
@@ -13,31 +13,30 @@
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
    
-    require(chron) 
-    require(mgcv)
-    require(snow)
-    require(multicore)
-   
+    loadlibraries (p$libs)
+
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
+      yr = p$runs[iip,"yrs"]
       modeltype = p$runs[iip,"modtype"]
+      print( p$runs[iip,])
+  
       ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain, p$taxa, p$season, modeltype  )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      fn.models =  file.path( ddir, paste("speciescomposition.models", ww, "rdata", sep=".") )
+      fn.models =  file.path( ddir, paste("speciescomposition.models", ww, yr, "rdata", sep=".") )
 			SC = speciescomposition.db( DS="speciescomposition.merged", p=p )
-
       formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciescomposition", spatial.knots=p$spatial.knots )
-  
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]
       SC = na.omit( SC )
-   
+      ioo = which( SC$yr %in% c(p$movingdatawindow+yr) ) # five year window
+      if (length(ioo) < 200 ) next() 
+      SC = SC[ioo,]
+  
       fmly = gaussian()
       # first attempt : use bam .. as it allows clusters and memory optimized 
-      cl <- makeCluster( p$n.cores) 
-        spcomp.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly, cluster=cl, samfrac=0.1, use.chol=TRUE  )}
-        models = try ( spcomp.model (ww, SC, fmly) )
-      stopCluster(cl)
+      spcomp.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly )}
+      models = try ( spcomp.model (ww, SC, fmly) )
       if  ( "try-error" %in% class(models) ) { 
         spcomp.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
         models = try ( spcomp.model (ww, SC, fmly) )

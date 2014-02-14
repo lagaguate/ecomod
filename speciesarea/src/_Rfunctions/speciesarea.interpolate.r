@@ -23,9 +23,8 @@
       return ( SC )
     }
     
-    require(chron)
-    require(mgcv)
-    require(parallel)
+    loadlibraries (p$libs)
+
  
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
@@ -33,6 +32,8 @@
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]
+      print( p$runs[iip,])
+
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain,  p$taxa, p$season, paste(p$data.sources, collapse=".")  , p$speciesarea.method, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
   
@@ -56,12 +57,14 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
 
       for( ww in p$varstomodel ) {
-        sc[,ww] = NA
         mod.sar = speciesarea.model.spatial( p=p, modeltype=modtype, var=ww )
-        
-        cl <- makeCluster( p$n.cores )   # attempt to predict with clusters ... "bam" permits this
-        sc[,ww] = predict( mod.sar, newdata=sc, type="response", na.action="na.pass", cluster=cl ) 
-        stopCluster(cl)
+        if (is.null( mod.sar)) next()
+        sol = try( predict( mod.sar, newdata=sc, type="response", na.action="na.pass") )
+        if  ( "try-error" %in% class(sol) ) {
+          sc[,ww] = NA
+        } else { 
+          sc[,ww] = sol
+        }
 
         # require (lattice)
         # levelplot( Z ~ plon+plat, sc, aspect="iso")

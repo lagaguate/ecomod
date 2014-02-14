@@ -38,6 +38,9 @@
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
   
   p$spatial.knots = 100
+  p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
+
 
 
   # ordination
@@ -47,20 +50,17 @@
 			
 
   # model the data ~ 2hrs
-  # p$clusters = rep("localhost", p$nruns)
-  p = make.list( list(vars=p$varstomodel, modtype=p$mods, years=p$yearstomodel ), Y=p ) 
-  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
-  speciescomposition.model( p=p, DS="redo" )    ### internal to "bam" a parallel solution is attempted so do this in series and not parallel
   # RAM requirements are large ... single processing only 
+  p = make.list( list(vars=p$varstomodel, modtype=p$mods, yrs=p$yearstomodel ), Y=p ) 
+  speciescomposition.model( p=p, DS="redo" )    ### internal to "bam" a parallel solution is attempted so do this in series and not parallel
   # parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.model, p=p, DS="redo" ) 
 
   
   p$clusters = "localhost"
   # interpolate onto a grid via prediction ::: ~ 3 GB / process 
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
-  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
-  speciescomposition.interpolate (p=p, DS="redo" ) 
-  #parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
+  # speciescomposition.interpolate (p=p, DS="redo" ) 
 
  
   # map everything

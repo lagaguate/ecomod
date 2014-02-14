@@ -70,6 +70,7 @@
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
       p$use.annual.models = TRUE  ## <<<<< new addition
+      p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
 
 
       # ---------------------
@@ -84,9 +85,9 @@
       # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
       
 
-      p = make.list( list(v=p$vars.to.model ), Y=p )
-      habitat.model.db( DS="habitat.redo", p=p )   
-      # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p ) 
+      p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
+      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p ) 
+      # habitat.model.db( DS="habitat.redo", p=p, yrs=p$years.to.model )   
 
 
       # ---------------------
@@ -106,9 +107,9 @@
 
       # ---------------------
       # model abundance and intermediate predictions 
-      p = make.list( list(v=p$vars.to.model ), Y=p )
-      habitat.model.db( DS="abundance.redo", p=p) 
-      # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance.redo", p=p )
+      p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
+      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance.redo", p=p )
+      # habitat.model.db( DS="abundance.redo", p=p) 
       
       
       # ---------------------

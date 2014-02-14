@@ -10,9 +10,7 @@
 	
   p = list()
   p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel")) 
-
   p$env.init = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
-
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$init.files = env.init
@@ -41,8 +39,6 @@
    
   # map everything  ~ 30 minutes
   p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
-
-
   p$varstomodel = c( "C", "Z", "T", "sar.rsq", "Npred" )
 
   # p$mods = c("simple","simple.highdef", "time.invariant", "complex", "full" ) 
@@ -51,6 +47,8 @@
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
   p$spatial.knots = 100
+  p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
 
 
 
@@ -71,19 +69,16 @@
 
 
   # create a spatial interpolation model for each variable of interest ~ 10 min
-  p = make.list( list(vars= p$varstomodel, modtype=p$mods, years=p$yearstomodel), Y=p ) 
-  p$n.cores = floor( detectCores() / 2 ) # no of cores to use if "bam" works
-  speciesarea.model.spatial ( DS="redo", p=p ) 
-  # each process requires 30-40 GB .. no parallel runs right now
-  # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, speciesarea.model.spatial, DS="redo", p=p ) 
+  # for Fulll model each process requires 30-40 GB 
+  p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.model.spatial, DS="redo", p=p ) 
+  # speciesarea.model.spatial ( DS="redo", p=p ) 
 
 
   # predictive interpolation to full domain (iteratively expanding spatial extent) ~ 30 min to 1 hr / year (simple)
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  p$n.cores = floor( detectCores() / 2 ) # no of cores to use if "bam" works
-  speciesarea.interpolate( DS="redo", p=p ) 
-   # parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.interpolate, DS="redo", p=p ) 
-
+  parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.interpolate, DS="redo", p=p ) 
+  # speciesarea.interpolate( DS="redo", p=p ) 
 
 
   # map everything

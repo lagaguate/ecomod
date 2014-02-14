@@ -103,8 +103,7 @@
 
 				# posterior simulations
         Hmodel = NULL
-        Hmodel = habitat.model.db( DS="habitat", v= v )
-        
+        Hmodel = habitat.model.db( DS="habitat", v=v, yr=y )
         if (is.null( Hmodel)) next()
 
         Hsim = gam.simulation( M=Hmodel, X= PS, nsims=p$nsims ) #~8min
@@ -115,7 +114,7 @@
         #Hsim = round(Hsim)  # force binary
         
         Amodel = NULL
-			  Amodel = habitat.model.db( DS="abundance", v=v )
+			  Amodel = habitat.model.db( DS="abundance", v=v, yr=y )
         if (is.null(Amodel)) next()
 
         Asim = gam.simulation( M=Amodel, X= PS, nsims=p$nsims ) # ~5min

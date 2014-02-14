@@ -1,11 +1,11 @@
 
 
-  speciesarea.model.spatial = function( ip=NULL, p=NULL, DS="saved", modeltype=NULL, var=NULL) {
+  speciesarea.model.spatial = function( ip=NULL, p=NULL, DS="saved", modeltype=NULL, var=NULL, yr=1000 ) {
   
     if (DS=="saved") {
       models = NULL
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse="."), p$speciesarea.method, modeltype )
-      fn.models =  file.path( ddir, paste("speciesarea.models", var, "rdata", sep=".") )
+      fn.models =  file.path( ddir, paste("speciesarea.models", var, yr, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
     }
@@ -13,14 +13,14 @@
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
    
-    require(mgcv)
-    require(snow)
-    require(chron)
+    loadlibraries (p$libs)
  
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
+      yr = p$runs[iip,"yrs"]
       modeltype = p$runs[iip,"modtype"]
-  
+      print( p$runs[iip,])
+ 
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".") , p$speciesarea.method, modeltype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       fn.models =  file.path( ddir, paste("speciesarea.models", ww, "rdata", sep=".") )
@@ -29,6 +29,9 @@
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]
       SC = na.omit( SC )
+      ioo = which( SC$yr %in% c(p$movingdatawindow+yr) ) # five year window
+      if (length(ioo) < 200 ) next() 
+      SC = SC[ioo,]
 
       if ( ww %in% c("Npred" ) ) {
         fmly = gaussian("log")
@@ -36,12 +39,10 @@
         fmly = gaussian()  # default
       }
 
-      cl <- makeCluster( p$n.cores) 
-        sar.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly,cluster=cl, samfrac=0.1, use.chol=TRUE  )}
-        models =  try ( sar.model(ww, SC, fmly) )
-      stopCluster(cl)
+      sar.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly )}
+      models =  try ( sar.model(ww, SC, fmly) )
       if  ( "try-error" %in% class(models) ) { 
-        sar.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}
+        sar.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=p$optimizer.alternate, na.action="na.omit", family=fmly )}
         models =  try ( sar.model(ww, SC, fmly) )
       }
       if  ( "try-error" %in% class(models) ) next()

@@ -30,7 +30,7 @@
    p$clusters = rep( "localhost", 4 )
   # p$clusters = rep( "localhost", 8 )
   # p$clusters = rep( "localhost", 24 )
-  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = c( "localhost", rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 23 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("localhost", 24 ) )
   # p$clusters = c( rep( "kaos.beowulf", 6), rep("nyx.beowulf", 24))
   # p$clusters = c( rep("tartarus.beowulf", 24), rep("kaos", 17 ) )
@@ -43,7 +43,7 @@
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
   p$spatial.knots = 100
-  p$movingdatawindow = c( -3:+3 )  # this is the range in years to supplement data to model 
+  p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
@@ -59,7 +59,7 @@
   # moving 7yr window < 1GB / variable and ~ 5 min
   # RAM requirements are large and speed is slow for a full model .. using a moving time-window 
   p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
-  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, metabolism.model, p=p, DS="redo" ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, metabolism.model, p=p, DS="redo" ) 
   # metabolism.model( p=p, DS="redo" )   
 
 

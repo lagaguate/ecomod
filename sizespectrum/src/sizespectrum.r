@@ -40,6 +40,9 @@
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
   p$spatial.knots = 100
+  p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
+
 
   p$timescale = c( 0,1,2,5 ) # yr  
   p$interpolation.distances =  25 # for interpolation of habitat vars
@@ -69,19 +72,17 @@
 
 
   # create a spatial interpolation model for each variable of interest 
-  p = make.list( list(vars= p$varstomodel, mods=p$mods ), Y=p ) 
-  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
-  sizespectrum.model.spatial ( DS="redo", p=p ) 
-  # each process requires 30-40 GB ! no parallel right now
-  # parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
+  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+  p = make.list( list(vars= p$varstomodel, mods=p$mods, yrs=p$yearstomodel ), Y=p ) 
+  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
+  # sizespectrum.model.spatial ( DS="redo", p=p ) 
  
 
   # predictive interpolation to full domain (iteratively expanding spatial extent)
   # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
-  p = make.list( list( yr=p$yearstomodel, modtype=p$mods), Y=p )
-  p$n.cores = floor( detectCores() / 2)  # no of cores to use if "bam" works
-  # parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.interpolate, p=p, DS="redo" ) 
-  sizespectrum.interpolate( p=p, DS="redo" ) 
+  p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
+  parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.interpolate, p=p, DS="redo" ) 
+  # sizespectrum.interpolate( p=p, DS="redo" ) 
 
 
   # map everything

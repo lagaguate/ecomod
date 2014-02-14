@@ -126,22 +126,31 @@
 
         # ****************************************
         
-        fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
+        fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
         if (file.exists(fn)) load(fn)
         return(Q)
       }
 
-      require(fields)
-      require(mgcv)
+      loadlibraries (p$libs)
       
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
       for ( iip in ip ) {
         v0 = v = p$runs[iip,"v"]
+        yr = p$runs[iip,"years"]
+        print ( p$runs[iip,] )
+        
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
-        fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") )
+        fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") )
         set = habitat.model.db( DS="basedata", p=p, v=v )
+        ist = which( set$yr %in% c(p$movingdatawindow+yr) )
+        if ( length(ist) < 50 ) {
+            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
+          next()
+        } 
+        set = set[ ist , ]        
+        
         Q = NULL
         .model = model.formula( v0 )
         fmly = binomial()
@@ -152,11 +161,9 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            cl <- makeCluster( p$n.cores) 
-            Q = try(  bam( .model, data=set, weights=wt, family=fmly, cluster=cl, samfrac=0.1, use.chol=TRUE  ), silent=T )
-            stopCluster(cl)
+            Q = try( bam( .model, data=set, weights=wt, family=fmly ), silent=T )
           } else {
-            Q = try( gam( .model, data=set, optimizer=ops, weights=wt, family=fmly, select=T ) , silent=T )
+            Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=T )
           }
           if ( ! ("try-error" %in% class(Q) ) ) break()  # take the first successful solution
         }
@@ -201,24 +208,38 @@
       
       if( DS=="abundance") {
         Q = NULL
-        fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
         if (file.exists(fn)) load(fn)
         return(Q)
       }
             
-      if (is.null(p$optimizers) ) p$optimizers = c( "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
+      if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
    
-      require(mgcv)
-      require(boot)  
+      loadlibraries (p$libs)
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
-        fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        yr = p$runs[iip,"yrs"]
+        print( p$runs[iip,])
+
+        fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
         set = snowcrab.db( DS="set.logbook" )
         set$Y = set[, v]
-        set = set[ which(set$yr %in% p$years.to.model ) , ]
-        set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]
+            
+        ist = which( set$yr %in% c(p$movingdatawindow+yr) )
+        if ( length(ist) < 50 ) {
+            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
+          next()
+        } 
+        set = set[ ist , ]        
+
+        im = which (is.finite(set$Y + set$t + set$plon + set$z)) # impertive
+        if ( length(im) < 50 ) {
+            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
+          next()
+        } 
+        set = set[ im ,]  
         
         set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
         set$sa.scaled =rescale.min.max(set$sa)
@@ -288,14 +309,11 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            cl <- makeCluster( p$n.cores) 
-            Q = try(  bam( .model, data=set, weights=wts, family=fmly, cluster=cl, samfrac=0.1, use.chol=TRUE  ), silent=T )
-            stopCluster(cl)
+            Q = try(  bam( .model, data=set, weights=wts, family=fmly ), silent=T )
           } else {
-            Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T), silent = T )
+            Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = T )
           }
-
-          if ( ! ("try-error" %in% class(Q) ) ) break()
+          if ( ! ("try-error" %in% class(Q) ) ) break()  # first good solution exits
         }
         
         # last resort

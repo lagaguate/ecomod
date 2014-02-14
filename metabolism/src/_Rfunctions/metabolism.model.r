@@ -12,9 +12,7 @@
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
    
-    require(chron)
-    require(mgcv)
-    require(snow)  
+    loadlibraries (p$libs)
 
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
@@ -30,10 +28,11 @@
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       
       SC = SC[, vlist]
+      SC = na.omit( SC )
       ioo = which( SC$yr %in% c(p$movingdatawindow+yr) ) # five year window
       if (length(ioo) < 200 ) next() 
-
       SC = SC[ioo,]
+      
       if ( ww %in% c("smr", "zn", "zm", "qn", "qm", "Pr.reaction", "Ea", "A" ) ) {
         fmly = gaussian()
       } else {
