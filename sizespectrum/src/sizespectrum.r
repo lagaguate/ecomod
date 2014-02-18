@@ -74,7 +74,7 @@
   # create a spatial interpolation model for each variable of interest 
   # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
   p = make.list( list(vars= p$varstomodel, mods=p$mods, yrs=p$yearstomodel ), Y=p ) 
-  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.model.spatial, DS="redo", p=p ) 
   # sizespectrum.model.spatial ( DS="redo", p=p ) 
  
 

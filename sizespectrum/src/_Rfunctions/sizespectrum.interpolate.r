@@ -57,7 +57,7 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
   
       for( ww in p$varstomodel ) {
-        mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww )
+        mod.nss = sizespectrum.model.spatial( p=p, modeltype=modtype, var=ww, yr=yr )
         if (is.null( mod.nss)) next()
         sol = try( predict( mod.nss, newdata=sc, type="response", na.action="na.pass") )
         if  ( "try-error" %in% class(sol) ) {

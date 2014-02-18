@@ -55,7 +55,7 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
 
       for ( ww in p$varstomodel ) {
-        mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww )
+        mod.metab = metabolism.model( p=p, modeltype=modtype, var=ww,yr=yr )
         if (is.null( mod.metab)) next()
         sol = try( predict( mod.metab, newdata=sc, type="response", na.action="na.pass") )
         if  ( "try-error" %in% class(sol) ) {
