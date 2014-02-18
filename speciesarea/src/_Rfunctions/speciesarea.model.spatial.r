@@ -29,7 +29,22 @@
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]
       SC = na.omit( SC )
-      ioo = which( SC$yr %in% c(p$movingdatawindow+yr) ) # five year window
+      
+ 
+      yrsw = c( p$movingdatawindow + yr  ) 
+      ioo = which( SC$yr %in% yrsw ) # default year window centered on focal year
+      nyrsw = length ( unique( SC$yr[ ioo ] ) )
+      if ( nyrsw  < p$movingdatawindowyears ) {
+        for ( ny in 1:5 ) {
+          yrsw = c( (min(yrsw)-1), yrsw, (max(yrsw)+1) )
+          ioo = which( SC$yr %in% yrsw ) # five year window
+          yrs_selected = sort( unique( SC$yr[ ioo ] ) )
+          nyrsw = length ( yrs_selected )
+          if (nyrsw == p$movingdatawindowyears ) break() 
+        }
+      }
+
+        
       if (length(ioo) < 200 ) next() 
       SC = SC[ioo,]
 

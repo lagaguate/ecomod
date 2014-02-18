@@ -70,6 +70,8 @@
      
       p$use.annual.models = TRUE  ## <<<<< new addition
       p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
+      p$movingdatawindowyears = length (p$movingdatawindow)
+
 
 
       # ---------------------

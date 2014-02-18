@@ -143,8 +143,22 @@
         
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
         fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") )
-        set = habitat.model.db( DS="basedata", p=p, v=v )
-        ist = which( set$yr %in% c(p$movingdatawindow+yr) )
+        set = habitat.model.db( DS="basedata", p=p, v=v, yr=yr )
+        
+        
+     yrsw = c( p$movingdatawindow + yr  ) 
+      ist = which( set$yr %in% yrsw ) # default year window centered on focal year
+      nyrsw = length ( unique( set$yr[ ist ] ) )
+      if ( nyrsw  < p$movingdatawindowyears ) {
+        for ( ny in 1:5 ) {
+          yrsw = c( (min(yrsw)-1), yrsw, (max(yrsw)+1) )
+          ist = which( set$yr %in% yrsw ) # five year window
+          yrs_selected = sort( unique( set$yr[ ist ] ) )
+          nyrsw = length ( yrs_selected )
+          if (nyrsw == p$movingdatawindowyears ) break() 
+        }
+      }
+       
         if ( length(ist) < 50 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
@@ -225,8 +239,23 @@
         fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
         set = snowcrab.db( DS="set.logbook" )
         set$Y = set[, v]
-            
-        ist = which( set$yr %in% c(p$movingdatawindow+yr) )
+           
+
+     
+     yrsw = c( p$movingdatawindow + yr  ) 
+      ist = which( set$yr %in% yrsw ) # default year window centered on focal year
+      nyrsw = length ( unique( set$yr[ ist ] ) )
+      if ( nyrsw  < p$movingdatawindowyears ) {
+        for ( ny in 1:5 ) {
+          yrsw = c( (min(yrsw)-1), yrsw, (max(yrsw)+1) )
+          ist = which( set$yr %in% yrsw ) # five year window
+          yrs_selected = sort( unique( set$yr[ ist ] ) )
+          nyrsw = length ( yrs_selected )
+          if (nyrsw == p$movingdatawindowyears ) break() 
+        }
+      }
+       
+
         if ( length(ist) < 50 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
