@@ -56,7 +56,7 @@
      
       for ( ww in p$varstomodel ) {
         sc[,ww] = NA
-        mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww )
+        mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww, yr=yr )
    
         cl <- makeCluster( p$n.cores )   # attempt to predict with clusters ... "bam" permits this
         sc[,ww] = predict( mod.sc, newdata=sc, type="response", na.action="na.pass", cluster=cl ) 
