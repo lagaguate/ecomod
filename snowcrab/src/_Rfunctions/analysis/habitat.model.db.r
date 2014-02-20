@@ -165,7 +165,7 @@
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
-        set = set[ ist , ]        
+        set = set[ ist , ]
         
         Q = NULL
         .model = model.formula( v0 )
@@ -194,6 +194,7 @@
             next()
           }
         }
+        
         print (fn )
         save( Q, file=fn, compress=T )
         print( summary(Q) )
