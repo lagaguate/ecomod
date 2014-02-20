@@ -130,8 +130,10 @@
         return(Q)
       }
 
+      p0 = p  # original parameter list
       loadlibraries (p$libs)
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)  
+      p = p0 # env.init alters p so return p to orginal state
 
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
@@ -226,9 +228,11 @@
         if (file.exists(fn)) load(fn)
         return(Q)
       }
-    
+ 
+      p0 = p  # original parameter list
       loadlibraries (p$libs)
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)  
+      p = p0 # env.init alters p so return p to orginal state
           
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
