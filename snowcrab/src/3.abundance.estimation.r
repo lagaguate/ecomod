@@ -1,8 +1,9 @@
 
   # --------------------------
   # 0. Initialise work space 
+  p= list()
 
-  p$libs = loadlibraries( "mgcv", "chron", "lattice", "lattice", "grid", "fields"  ) 
+  p$libs = loadlibraries( "mgcv", "chron", "lattice", "lattice", "grid", "fields", "parallel"  ) 
 	p$env.init = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
@@ -12,9 +13,10 @@
   
   p$regions = c("cfa4x", "cfanorth","cfasouth" )
   
-  p$vars.to.model = c("R0.mass",  "R1.no")
-  p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
-  p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
+  p$vars.to.model = c("R0.mass")
+  # p$vars.to.model = c("R0.mass",  "R1.no")
+  # p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
+  # p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   
 
   
@@ -38,11 +40,17 @@
       
       p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "R2.no", "R3.no", "R4.no", "R5p.no", 
         "totno.female.berried", "totno.female.imm", "totno.female.mat", "totno.female.primiparous","totno.female.multiparous",
-        "fecundity", "totno.male.com", "totno.male.mat", "totno.male.imm","dwarf.no", "totno.male.skip.moulter", "totno.male.com.CC5"   )
+        "fecundity", "totno.male.com", "totno.male.mat", "totno.male.imm","dwarf.no", "totno.male.skip.moulter", "totno.male.com.CC5" 
+      )
 
     # modify cluster requirements
-      p$do.parallel =F
-      p$clusters = rep("localhost",8)
+      # p$do.parallel =F
+      p$clusters = rep("localhost", detectCores() )
+      # p$clusters = rep( "localhost", 2)  # only need 2 if 2 vars are being modelled
+      # p$clusters = rep( "localhost", 8)  
+      # p$clusters = rep( "localhost", 24)  
+      # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+       
       # p$clusters = rep("tethys", 7 )
       # p$clusters = rep("kaos",23 )
       # p$clusters = rep("nyx",24 )
@@ -80,15 +88,10 @@
       # Parameterize habitat space models for various classes, 
       # see: habitat.model.db( DS="habitat.redo" ... )
       
-      p$clusters = rep( "localhost", 2)  # only need 2 if 2 vars are being modelled
-      p$clusters = rep( "localhost", 8)  
-      p$clusters = rep( "localhost", 24)  
-      # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-      
 
       p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
       parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p ) 
-      # habitat.model.db( DS="habitat.redo", p=p, yrs=p$years.to.model )   
+      # habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
 
 
       # ---------------------
@@ -121,7 +124,7 @@
       p$nsims = 2000 # n=1000 ~ 1 , 15 GB/run for sims 
       p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
 
-      p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )
+      # p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )
       p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
       
 			# interpolation.db ( DS="interpolation.redo", p=p )

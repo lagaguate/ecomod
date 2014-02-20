@@ -23,7 +23,7 @@
  
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".") , p$speciesarea.method, modeltype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      fn.models =  file.path( ddir, paste("speciesarea.models", ww, "rdata", sep=".") )
+      fn.models =  file.path( ddir, paste("speciesarea.models", ww, yr, "rdata", sep=".") )
       SC = speciesarea.db( DS="speciesarea.stats.merged", p=p )
       formu = habitat.lookup.model.formula( YY=ww, modeltype=modeltype, indicator="speciesarea", spatial.knots=p$spatial.knots )
       vlist = setdiff( all.vars( formu ), "spatial.knots" )

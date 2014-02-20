@@ -4,9 +4,8 @@
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
 		
-    require( lattice )
-    require (grid)
-    
+    loadlibraries (p$libs)
+     
    
     if ( type=="annual" ) {
       for ( iip in ip ) {
@@ -29,15 +28,18 @@
         annot = paste("Metabolism: ", toupper(v), " (", y, ")", sep="")
         dr = NULL
         
-     #   if (v=="mr") dr=c(3, 90)
-     #   if (v=="mrA") dr=c(3, 100)
-     #   if (v=="smr") dr=c(0.003, 0.0065)
-     #   if (v=="smrA")   dr=c(0.0025, 0.0065)
-     #   if (v=="totwgt") dr=c( 100, 10^5)
-     #   if (v=="totno")    dr=c( 750, 10^6)
-     #   if (v=="meanwgt")    dr=c( 0.01, 2.5)
-     #   if (v=="meanlen")    dr=c( 1.0, 50)
-        
+        if (v=="mr") dr=c( 10^0.5, 10^5.5  )
+        if (v=="smr") dr=c(10^-2.50, 10^-2.10 )
+        if (v=="A") dr=c(0.0020, 0.0060 )
+        if (v=="Ea")   dr=c( -1400, -200 )
+        if (v=="len") dr=c( 15, 60 )
+        if (v=="mass")    dr=c( 0.1, 1.2 )
+        if (v=="Pr.Reaction") dr = c(1, 2 ) 
+        if (v=="qm") dr=c( 0.1, 0.9 )
+        if (v=="qn") dr=c( 0.1, 0.9 )
+        if (v=="zm") dr=c( 0.25, 0.70 )
+        if (v=="zn") dr=c( 0.25, 0.70 )
+           
         debug = T; if (debug) dr = quantile(sc[,v], probs=c(0.05, 0.95), na.rm=T)
 
         if ( v %in% c("mr", "smr") ) {

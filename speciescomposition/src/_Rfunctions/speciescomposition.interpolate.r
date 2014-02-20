@@ -22,10 +22,8 @@
       return ( SC )
     }
 
-    require(chron) 
-    require(mgcv)
-    require(parallel)
-    
+    loadlibraries (p$libs)
+
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
  
@@ -58,9 +56,7 @@
         sc[,ww] = NA
         mod.sc = speciescomposition.model( p=p, modeltype=modtype, var=ww, yr=yr )
    
-        cl <- makeCluster( p$n.cores )   # attempt to predict with clusters ... "bam" permits this
-        sc[,ww] = predict( mod.sc, newdata=sc, type="response", na.action="na.pass", cluster=cl ) 
-        stopCluster(cl)
+        sc[,ww] = predict( mod.sc, newdata=sc, type="response", na.action="na.pass" ) 
 
         # require (lattice)
         # levelplot( ca1 ~ plon+plat, sc[which(sc$ca1>-3 & sc$ca1< 3),], aspect="iso")

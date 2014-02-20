@@ -81,6 +81,8 @@
       if (is.null(ip)) ip = 1:length(p$yearstomodel)
       ip = as.numeric(ip)   # indexing variable (year) of the serial or parallel run
     
+      loadlibraries (p$libs)
+
       for (iy in ip) {
         yr = p$yearstomodel[iy]
         print (yr)

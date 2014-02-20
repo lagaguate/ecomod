@@ -21,6 +21,7 @@
 		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
 	) )
 
+  p$libs = loadlibraries( "mgcv", "sp" ) 
 
   baseline.redo = FALSE
   if (baseline.redo) { 

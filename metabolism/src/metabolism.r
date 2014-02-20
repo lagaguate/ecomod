@@ -24,20 +24,12 @@
   p$season = "allseasons"
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 )  
   
-  # choose:
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
-   p$clusters = rep( "localhost", 4 )
-  # p$clusters = rep( "localhost", 8 )
-  # p$clusters = rep( "localhost", 24 )
-  # p$clusters = c( "localhost", rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 23 ) )
+   p$clusters = rep("localhost", detectCores() )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("localhost", 24 ) )
-  # p$clusters = c( rep( "kaos.beowulf", 6), rep("nyx.beowulf", 24))
-  # p$clusters = c( rep("tartarus.beowulf", 24), rep("kaos", 17 ) )
 
   p$varstomodel = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
-    # p$varstomodel = c( "mr", "smr", "Pr.Reaction" , "Ea", "A" )
-    # p$varstomodel = c( "zn", "zm", "qn", "qm", "mass", "len"  )
   
   p$yearstomodel = 1970:2013
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
@@ -62,7 +54,7 @@
   # RAM requirements are large and speed is slow for a full model .. using a moving time-window 
   p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
   parallel.run( clusters=p$clusters, n=p$nruns, metabolism.model, p=p, DS="redo" ) 
-  # metabolism.model( p=p, DS="redo" )   
+  # metabolism.model( p=p, DS="redo" ) 
 
 
   # predict data: gridded extrapolations to full domain  

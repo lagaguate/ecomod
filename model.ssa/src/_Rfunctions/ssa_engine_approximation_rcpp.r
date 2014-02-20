@@ -15,7 +15,7 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
     
     List out;  // output container .. an update of res
     std::stringstream fn;
-    std::char*  outfilenameroot = as< std::char >( p["outfilenameroot" ] ) ;
+    std::char  outfilenameroot = as< std::char >( p["outfilenameroot" ] ) ;
     
     // unpack the p and res input data
     List NU = as<List>( p["NU"] ) ;
@@ -41,12 +41,20 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
     double tnew ;
     double simtime = 0 ;
     
+    // counters
+    int w = 0;
+    int m = 0;
+    int jj = 0; 
     int i = 0;
     int j = 0;
+
     int tio = 0 ; 
     int tout = 0 ;
-    int tend = as<int>( p["monitor"] ) ;
+    int tend = as<int>( p["t.end"] ) ;
+    int tcensusinterval = as<int>( p["t.censusinterval"] ) ;
     int nsimultaneous_picks = as<int>(p["nsimultaneous.picks"]) ;
+    int nreactions = as<int>(p["np"]) ;
+
     int nt = nsimultaneous_picks ;
     int cr = 0 ;
     int cc = 0 ;
@@ -56,7 +64,7 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
     int co = 0 ;
     int no = 0 ;
 
-    arma::mat XX(nr,nc);
+    arma::Mat<double> XX(nr,nc);
     
     NumericVector o;
     int osize ;
@@ -82,7 +90,6 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
         tic = as< std::vector < double> > ( time_increment ); 
         tinc = std::accumulate( tic.begin(), tic.end(), 0.0) ; // sum the time proposals
         tnew = simtime + tinc ;
-
         
         if ( tnew > tout ) {
             // if overshoot time to output, truncate and modify indices and length dimensions of choices   
@@ -100,7 +107,7 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
         }
  
         if (nt <= 0 ) {
-          end_of_reactions;
+          goto end_of_reactions;
         }
          
         // choose reactions 
@@ -123,7 +130,7 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
           ++j ;
         }
         // remap random element to correct location and process
-        for ( int w=0 ; w < nt ; ++w ) {
+        for ( w=0 ; w < nt ; ++w ) {
             // determine focal cell coords in P
             ii = J[w] ;
             cr =  ii % nr;           //    -- row no
@@ -131,7 +138,7 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
             jn =  ii / nrc ;         // -- processes np
             o = NU( jn ) ;
             osize = o.size() / 3 ;
-            for ( int m=0; m<osize; ++m) {
+            for ( m=0; m<osize; ++m) {
                 // determine new candidate locations 
                 ro = cr + o( m*3  );  // # row of the focal cell
                 co = cc + o( m*3 + 2 ) ; // # column of the focal cell
@@ -144,9 +151,9 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
                 ix = ro + (co * nr);      // X-indices
                 X[ix] = X[ix] + o( m*3 + 4 ) ;
                 // update P-state space and associated propensities in cells where state has changed, etc
-                for ( jj in nreactions) {
-                  ip = ro + (co * nr) + jn * nrc ; // P-indices
-                  P[ip] = RE(p, X[ix], ix);
+                for ( jj=0; jj < nreactions; ++jj ) {
+                    ip = ro + (co * nr) + jj * nrc ; // update all P-indices
+                    P[ip] = RE(p, X[ix], ix);
                 }
             } // end for m
         }  //# end for w
@@ -158,10 +165,10 @@ List ssa_engine_approximation_rcpp ( List p, List res ) {
         nevaluations =+ nt ;
         
         if ( tnew >= tout ) {   // save output to disk ...
-            tout =+ t.censusinterval ;
-            ++tio  // time as index ;
-            fn << outdir << "individual.runs" << rn << outfilenameroot << tio << "dat" ;
-            XX = as<arma::matrix>(X) ;
+            tout += tcensusinterval ;
+            ++tio ;  // time as index 
+            fn << outfilenameroot << tio << ".txtdata" ;
+            XX = arma::conv_to< arma::Mat<double> >::from(X) ;
             XX.save( fn.str().c_str(), arma::raw_ascii ) ;
         }   
     }  // end while 

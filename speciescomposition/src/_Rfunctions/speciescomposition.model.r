@@ -4,7 +4,7 @@
     if (DS=="saved") {
       models = NULL
       ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain, p$taxa, p$season, modeltype )
-      fn.models = file.path( ddir, paste("speciescomposition.models", var, "rdata", sep=".") )
+      fn.models = file.path( ddir, paste("speciescomposition.models", var, yr, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
 

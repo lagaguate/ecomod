@@ -5,9 +5,8 @@
     if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
 
-		require( lattice )
-    require (grid)
-
+    loadlibraries (p$libs)
+ 
     if ( type=="annual" ) {
           
       my = sizespectrum.db( DS="sizespectrum.stats.merged", p=p )

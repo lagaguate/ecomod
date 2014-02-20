@@ -19,15 +19,6 @@
   
   # get data tables from Oracle server and store local copies
   # !!!!!! --------- these should be run on a windows machine: !!!!!!!!! <--------- READ THIS
- 
-    peaks = function(x) {
-      # find adjacent local peaks
-      l = length(x)
-      xm1 = c(x[-1], x[l])
-      xp1 = c(x[1], x[-l])
-      out = which(x > xm1 & x > xp1 | x < xm1 & x < xp1 )
-      return(out)
-    }
 
 
   if (obtain.database.snapshot) {
