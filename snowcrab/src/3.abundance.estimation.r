@@ -90,8 +90,9 @@
       
 
       p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
-      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p ) 
-      # habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
+      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
+      # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p )  
+      #  --- parallel mode is not completing ... FIXME
 
 
       # ---------------------

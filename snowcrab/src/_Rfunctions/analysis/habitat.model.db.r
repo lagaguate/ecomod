@@ -1,14 +1,12 @@
 
   habitat.model.db = function( ip=NULL, DS=NULL, v=NULL, p=NULL, yr=NULL, debug=F ) {
    
+
     # ~ 5hr , when k=200
     # variograms are not used .. the model solutions require > 3 days to complete! 
     # if GAMM speeds improve try again
     # currently fast GAM == "bam" is used
-    if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
-
-    loadlibraries (p$libs)
-
+     
     if (DS %in% c("large.male.auxillary.data", "large.male.auxillary.data.redo") ) {
       
       outdir = project.directory("snowcrab", "R"  )
@@ -69,7 +67,7 @@
 
 
     if ( DS %in% c("basedata" ) ) {
-
+    
       set = snowcrab.db( DS="set.logbook" )
       set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
         
@@ -110,7 +108,7 @@
 
     
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
-      
+         
       outdir =  project.directory("snowcrab", "R", "gam", "models", "habitat" )
       dir.create(path=outdir, recursive=T, showWarnings=F)
 
@@ -132,18 +130,21 @@
         return(Q)
       }
 
-       
+      loadlibraries (p$libs)
+      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
       for ( iip in ip ) {
+
         v0 = v = p$runs[iip,"v"]
         yr = p$runs[iip,"yrs"]
         print ( p$runs[iip,] )
         
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
         fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") )
-        set = habitat.model.db( DS="basedata", p=p, v=v, yr=yr )
+        set = habitat.model.db( DS="basedata", p=p, v=v )
             
         yrsw = c( p$movingdatawindow + yr  ) 
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
@@ -225,10 +226,12 @@
         if (file.exists(fn)) load(fn)
         return(Q)
       }
-            
+    
+      loadlibraries (p$libs)
+      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+          
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
-   
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
