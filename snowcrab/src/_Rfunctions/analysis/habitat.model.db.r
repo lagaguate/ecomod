@@ -132,11 +132,15 @@
 
       p0 = p  # original parameter list
       loadlibraries (p$libs)
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)  
-      p = p0 # env.init alters p so return p to orginal state
+      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)  
+      p = p0 # init.files alters p so return p to orginal state
+
+      require(mgcv)
 
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
+
+      dbgfn = "~/tmp/debug.txt"
 
       for ( iip in ip ) {
 
@@ -165,7 +169,10 @@
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
-        set = set[ ist , ]
+
+
+        set = set[ ist , ]        
+        
         
         Q = NULL
         .model = model.formula( v0 )
@@ -174,6 +181,7 @@
           print (o )
           print( Sys.time() )
           
+          
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
@@ -181,7 +189,11 @@
           } else {
             Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=T )
           }
-          if ( ! ("try-error" %in% class(Q) ) ) break()  # take the first successful solution
+          
+          
+          if ( ! ("try-error" %in% class(Q) ) ) {
+            break()  # take the first successful solution
+          }
         }
          
         # last resort
@@ -232,8 +244,9 @@
  
       p0 = p  # original parameter list
       loadlibraries (p$libs)
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)  
-      p = p0 # env.init alters p so return p to orginal state
+      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)  
+      p = p0 # init.files alters p so return p to orginal state
+      require(mgcv)
           
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
@@ -341,7 +354,7 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            Q = try(  bam( .model, data=set, weights=wts, family=fmly ), silent=T )
+            Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=T )
           } else {
             Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = T )
           }

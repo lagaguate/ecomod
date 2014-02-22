@@ -54,8 +54,7 @@
   #  == R2 + R3 + R4
      
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
-     
-  p = parameter.list.snowcrab ( current.assessment.year=2010, set="default")
+  
   set = snowcrab.db("set.complete")
   # overrides:
   p$regions.to.model = "cfa.23ab.24ab"
@@ -94,8 +93,7 @@
   # reulsts in: ~/ecomod/snowcrab/issues/briefing.note.glace.bay/2005
   
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
-     
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")
+  
   set = snowcrab.db("set")
 
   # overrides:
@@ -130,8 +128,6 @@
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default") # <---------- !!!
-
   loc = file.path(p$annual.results, "size.data")
  
   dir.create(path=loc, recursive=T, showWarnings=F)
@@ -381,7 +377,6 @@ observer.data.request.oracle = function () {
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")
   set = snowcrab.db("set")
 
   # overrides:
@@ -490,7 +485,6 @@ observer.data.request.oracle = function () {
   
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
-  p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")
   set = snowcrab.db("set")
 
   # overrides:  

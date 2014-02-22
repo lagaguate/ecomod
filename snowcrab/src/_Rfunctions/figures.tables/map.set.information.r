@@ -14,7 +14,7 @@
       outdir = file.path( outdir, paste( p$mapres, p$spatial.domain, sep=".") )
            
       make.maps( set, p=p, variables=variables, plottimes=p$plottimes, 
-        basedir=outdir, conversions=p$conversions, init.files=p$env.init )
+        basedir=outdir, conversions=p$conversions, init.files=p$init.files )
     }
     
     if (method=="levelplot") {
@@ -23,7 +23,7 @@
       mapyears = sort( unique(set$yr) )
       p = make.list( list(variables, mapyears ), Y=p )
 
-      for (i in p$env.init ) source( i )
+      for (i in p$init.files ) source( i )
      
       if ( is.null(id)) id = c(1: p$nruns ) 
       id = as.numeric(id)

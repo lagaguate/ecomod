@@ -1,6 +1,5 @@
 
-	env.init = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
-
+	
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
@@ -11,7 +10,8 @@
 
   p = list()
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
-  p$init.files = env.init
+  p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
+
   p$data.sources = c("groundfish", "snowcrab") 
   p$speciesarea.method = "glm" 
   

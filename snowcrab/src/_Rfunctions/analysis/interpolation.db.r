@@ -13,7 +13,6 @@
       dir.create(path=loc.sol, recursive=T, showWarnings=F)
       dir.create(path=loc.res, recursive=T, showWarnings=F)
   
-      loadlibraries(p$libs)
 
       if( DS=="interpolation.simulation.complete") {
         load( p$ofname )
@@ -30,8 +29,10 @@
         return (PS)
       }
 
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
       if (is.null(ip)) ip = 1:p$nruns
+      
+      loadlibraries(p$libs)
     
       if (DS %in% c("interpolation.simulation")  ) {
         out = NULL
@@ -78,6 +79,8 @@
         y = p$runs[iip,"y"]
         v = p$runs[iip,"v"]
 
+        print ( p$runs[iip,] )
+
         qs = empirical.ranges( db="snowcrab", v, probs=c(p$habitat.threshold.quantile, 0.95), remove.zeros=T ) 
   
         PS = habitat.db ( DS="complete", year=y, p=p )
@@ -106,7 +109,9 @@
 
         Hsim = gam.simulation( M=Hmodel, X= PS, nsims=p$nsims ) #~8min
         rm( Hmodel); gc()
-			  
+			 
+        print("finished H sim")
+
         oops = which( is.na(Hsim) ) 
         if (length(oops) > 0)  Hsim[oops ] = 0  # assume to be zero
         #Hsim = round(Hsim)  # force binary
@@ -117,6 +122,7 @@
 
         Asim = gam.simulation( M=Amodel, X= PS, nsims=p$nsims ) # ~5min
 	      rm( Amodel); gc()
+        print("finished A sim")
 		
         oops = which( is.na(Asim) ) 
         if (length(oops) > 0)  Asim[oops ] = 0  # assume to be zero
@@ -204,6 +210,8 @@
 				
         PS$abundance.mean.log = NULL
 				gc()
+        
+        print( "finished maps")
 
         for (r in p$regions ){
 

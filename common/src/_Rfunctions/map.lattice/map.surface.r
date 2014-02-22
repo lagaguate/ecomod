@@ -1,8 +1,8 @@
  
-      map.surface = function( ip=NULL, plotvar, pyears, vclass, env.init=NULL, log.transf=F, ... ) {
+      map.surface = function( ip=NULL, plotvar, pyears, vclass, init.files=NULL, log.transf=F, ... ) {
         
       # ip is the first parameter passed in the parallel mode
-        if (!is.null(env.init)) for( i in env.init ) source (i)
+        if (!is.null(init.files)) for( i in init.files ) source (i)
         if (is.null(ip)) ip = 1:length(pyears)
 
         outdir = file.path( project.directory("snowcrab"), "R", "habitat", "maps" ) 

@@ -115,7 +115,7 @@
 
 
 
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
       if (is.null(ip)) ip = 1:p$nruns
 
       
@@ -217,7 +217,7 @@
 
     if (DS =="map.habitat" ) {
 
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
       if (is.null(ip)) ip = 1:p$nruns
       
       map.loc = file.path( project.directory("habitatsuitability"), p$speciesofinterest, "maps" )

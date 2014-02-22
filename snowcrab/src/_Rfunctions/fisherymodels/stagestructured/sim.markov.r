@@ -2,7 +2,7 @@
   sim.markov = function( ip=NULL, p, DS="file" ) {
       
     if (length( p$clusters ) > 1 ) { 
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     } 
     
     if (is.null(ip)) ip = 1:length(p$exploit.rate)

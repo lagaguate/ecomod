@@ -16,7 +16,7 @@
 #  require (geoR)
 
   p = list()
-  p$env.init = loadfunctions( c(
+  p$init.files = loadfunctions( c(
 	  "common", "habitat", "substrate", "bathymetry", "speciesarea", "metabolism", 
 		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
 	) )

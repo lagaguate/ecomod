@@ -1,4 +1,4 @@
-  map.krige.lattice = function( ip=NULL, M=NULL, env.init=NULL, log.transf=T ) {
+  map.krige.lattice = function( ip=NULL, M=NULL, init.files=NULL, log.transf=T ) {
 
     loc = file.path( project.directory("snowcrab"), "R", "kriging", "maps" )
 
@@ -11,7 +11,7 @@
     dir.create(path=loc, recursive=T, showWarnings=F)
 
     # ip is the first parameter passed in the parallel mode
-    if (!is.null(env.init)) for( i in env.init ) source (i)
+    if (!is.null(init.files)) for( i in init.files ) source (i)
     if (is.null(ip)) ip = 1:M$nruns
 
     for (iip in ip) {

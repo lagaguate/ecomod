@@ -40,7 +40,7 @@
         if (v=="zm") dr=c( 0.25, 0.70 )
         if (v=="zn") dr=c( 0.25, 0.70 )
            
-        debug = T; if (debug) dr = quantile(sc[,v], probs=c(0.05, 0.95), na.rm=T)
+        debug = F; if (debug) dr = quantile(sc[,v], probs=c(0.05, 0.95), na.rm=T)
 
         if ( v %in% c("mr", "smr") ) {
           sc[,v] = log10( sc[,v] )

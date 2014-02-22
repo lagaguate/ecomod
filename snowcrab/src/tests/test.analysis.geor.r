@@ -46,10 +46,6 @@ names(ca20)
   
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
-
-p = parameter.list.snowcrab ( current.assessment.year=2006, set="default")  # <---------- !!!
-
-
 kvar = "R0.mass"
 kyear = 2007
 

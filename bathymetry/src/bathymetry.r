@@ -27,7 +27,7 @@
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
 		depths = c(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 800 )
 		p$clusters = rep( "kaos", length(depths) )
-		p$env.init = init
+		p$init.files = init
 		parallel.run( clusters=p$clusters, n=length(depths), isobath.db,  p=p, depths=depths, DS="redo" ) 	
 		# isobath.db( p=p, depths=depths, DS="redo" ) 
 	}

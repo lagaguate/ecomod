@@ -70,6 +70,8 @@
       }
 
     }
+   
+    if ( file.exists( ecomod.rprofile) )  filestosource = c( ecomod.rprofile, filestosource )
 
     if ( length( filestosource) > 0 ) {
       for ( nm in filestosource ) source( file=nm )

@@ -2,7 +2,7 @@
   temporal.interpolation = function( ip=NULL, p=NULL ) {
          			
 		  ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$env.init)) for( i in p$env.init ) source (i)
+      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
       if (is.null(ip)) ip = 1:p$nP
 			
 			require(mgcv)

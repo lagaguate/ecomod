@@ -34,7 +34,7 @@ Nafo5Zw
     # start data uptake and processing
 
     p = list()
-    p$env.init = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+    p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
     p$tyears = c(1950:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$newyear = newyear = c( 2013)
 
@@ -53,13 +53,13 @@ Nafo5Zw
     # ----------------
       hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=p$tyears
     # or if in parallel mode: 
-    # parallel.run( clusters=rep("localhost",23), n=length(p$tyears), p=p, FUNC=hydro.db, yr=p$tyears, DS="profiles.annual.redo", env.init=p$env.init ) 
+    # parallel.run( clusters=rep("localhost",23), n=length(p$tyears), p=p, FUNC=hydro.db, yr=p$tyears, DS="profiles.annual.redo", init.files=p$init.files ) 
 
     # ----------------
     # extract bottom data
       hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
     # hydro.db( DS="bottom.annual.redo", yr=p$tyears )
-    # parallel.run( clusters=rep("localhost",16), n=length(p$tyears), FUNC=hydro.db, yr=p$tyears, p=p,  DS="bottom.annual.redo", env.init=p$env.init ) 
+    # parallel.run( clusters=rep("localhost",16), n=length(p$tyears), FUNC=hydro.db, yr=p$tyears, p=p,  DS="bottom.annual.redo", init.files=p$init.files ) 
 
   
 
@@ -236,7 +236,7 @@ Nafo5Zw
     # start data uptake and processing
 
     p = list()
-    p$env.init = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+    p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
     p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
 
     p = spatial.parameters( p=p, type= "SSE" )

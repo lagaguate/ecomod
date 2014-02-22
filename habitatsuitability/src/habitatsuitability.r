@@ -9,7 +9,7 @@
 	loadlibraries (c("chron", "fields", "rgdal", "snow", "mgcv", "arm" ))
 
 	p = list()
-  p$env.init = loadfunctions(c( "common", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
+  p$init.files = loadfunctions(c( "common", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
   
   p = spatial.parameters( type="SSE" ) # 4VWX
   p$studyarea = c( "4vwx" )
