@@ -49,7 +49,9 @@
   
       fmly = gaussian()
       # first attempt : use bam .. as it allows clusters and memory optimized 
-      spcomp.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly )}
+      cl = NULL
+      if (detectCores()>1) cl <- makeCluster(detectCores()-1)
+      spcomp.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly , cluster=cl, samfrac=0.1  )}
       models = try ( spcomp.model (ww, SC, fmly) )
       if  ( "try-error" %in% class(models) ) { 
         spcomp.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=c("outer","nlm"), na.action="na.omit", family=fmly )}

@@ -52,7 +52,9 @@
       }
       
       # first attempt : use bam .. 
-      metab.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly  )}
+      cl = NULL
+      if (detectCores()>1) cl <- makeCluster(detectCores()-1)
+      metab.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly, cluster=cl, samfrac=0.1 )}
       models = try ( metab.model(ww, SC, fmly) )
       if  ( "try-error" %in% class(models) ) { 
         metab.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=p$optimizer.alternate, na.action="na.omit", family=fmly )}
