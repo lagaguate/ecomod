@@ -83,10 +83,10 @@
 
       depthrange = range( set$z, na.rm= T) 
 
-      if ( grepl("R0.mass", v) ) {   
-        aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
-        set = rbind( set, aset[, names(set)] )
-      }
+#      if ( grepl("R0.mass", v) ) {   
+#        aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
+#        set = rbind( set, aset[, names(set)] )
+#      }
 
       set$weekno = floor(set$julian / 365 * 52) + 1
 
@@ -94,7 +94,7 @@
       set$plat = jitter(set$plat)  
       
       set = set[ which(set$yr %in% p$years.to.model ) , ]
-      set = set[ which (is.finite(set$Y + set$t + set$plon + set$z)) ,]
+      set = set[ which (is.finite(set$Y + set$t + set$plon + set$zm + set$wt)) ,]
       
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
