@@ -66,12 +66,12 @@
   p$sizespectrum.modeltype = "complex" 
   p$sizespectrum.taxa = "maxresolved"
   p$sizespectrum.season = "allseasons"
-  p$sizespectrum.variables = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
+  p$sizespectrum.variables = c( "nss.b1", "nss.rsquared", "nss.shannon")
 
   p$metabolism.modeltype = "complex" 
   p$metabolism.taxa = "alltaxa"
   p$metabolism.season = "allseasons"
-  p$metabolism.variables = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
+  p$metabolism.variables = c( "smr", "Pr.Reaction" , "Ea", "A", "qn", "qm", "mass", "len"  )
 
 	
   for ( j in c( "SSE") ) {  # sse is the only relevent area for which all data exists ~ 5 min / yr 

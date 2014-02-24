@@ -33,14 +33,14 @@
   p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   
   # for spatial interpolation of nss stats
-  p$varstomodel = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon", "nss.evenness", "nss.Hmax")
+  p$varstomodel = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon" )
   # p$mods = c("simple","simple.highdef", "complex", "full" ) 
   # p$mods = c("simple","simple.highdef") 
   p$mods =  "complex" 
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
   p$spatial.knots = 100
-  p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
+  p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options

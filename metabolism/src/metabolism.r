@@ -34,8 +34,8 @@
   p$yearstomodel = 1970:2013
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
-  p$spatial.knots = 200
-  p$movingdatawindow = c( -2:+2 )  # this is the range in years to supplement data to model 
+  p$spatial.knots = 100
+  p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options

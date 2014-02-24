@@ -53,9 +53,7 @@
       } else {
         fmly = gaussian()  # default
       }
-      cl = NULL
-      if (detectCores()>1) cl <- makeCluster(detectCores()-1)
-      sar.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly, cluster=cl, samfrac=0.1  )}
+      sar.model = function(ww, SC, fmly) { bam( formu, data=SC, na.action="na.omit", family=fmly )}
       models =  try ( sar.model(ww, SC, fmly) )
       if  ( "try-error" %in% class(models) ) { 
         sar.model = function(ww, SC, fmly) { gam( formu, data=SC, optimizer=p$optimizer.alternate, na.action="na.omit", family=fmly )}

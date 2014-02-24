@@ -185,9 +185,7 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            cl = NULL
-            if (detectCores()>1) cl <- makeCluster(detectCores()-1)
-            Q = try( bam( .model, data=set, weights=wt, family=fmly, cluster=cl, samfrac=0.1  ), silent=T )
+            Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=T )
           } else {
             Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=T )
           }
