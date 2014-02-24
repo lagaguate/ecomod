@@ -36,7 +36,7 @@
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
 
   p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
-  p$varstomodel = c( "C", "Z", "T", "sar.rsq", "Npred" )
+  p$varstomodel = c( "C", "Z", "T", "Npred" )
 
   # p$mods = c("simple","simple.highdef", "time.invariant", "complex", "full" ) 
   p$mods = "complex" 

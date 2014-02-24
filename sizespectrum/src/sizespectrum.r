@@ -89,8 +89,8 @@
 
   # map everything
   p = make.list( list(v=p$varstomodel, y=p$yearstomodel, modtype=p$mods ), Y=p )
-  # parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.map, p=p, type="annual"  ) 
-  sizespectrum.map( p=p, type="annual"  ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.map, p=p, type="annual"  ) 
+  #sizespectrum.map( p=p, type="annual"  ) 
 
 
   # to do: maps and gridding in 5 and 10 year blocks ... 
