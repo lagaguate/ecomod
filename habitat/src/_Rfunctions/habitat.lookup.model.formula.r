@@ -30,7 +30,7 @@ habitat.lookup.model.formula = function( YY="presence", modeltype="complex", ind
       complex = paste( 
         ' as.factor(yr) + s(plon,plat, by=as.factor(yr), k=spatial.knots, bs="tp"  ) + s(julian, k=3, bs="tp") + s(t, bs="tp" ) ',
         ' + s(tmean, bs="tp") + s(tamp, bs="tp" ) + s(wmin, bs="tp" )',
-        ' + s(z, bs="tp" ) + s(dZ,, bs="tp" ) + s(substrate.mean, bs="tp" ) ' 
+        ' + s(z, bs="tp" ) + s(dZ, bs="tp" ) + s(substrate.mean, bs="tp" ) ' 
       ),
    
       complete = paste( 

@@ -53,11 +53,11 @@
   # model the data ~ 2hrs
   # RAM requirements are large ... single processing only 
   p = make.list( list(vars=p$varstomodel, modtype=p$mods, yrs=p$yearstomodel ), Y=p ) 
-  speciescomposition.model( p=p, DS="redo" )    ### internal to "bam" a parallel solution is attempted so do this in series and not parallel
-  # parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.model, p=p, DS="redo" ) 
+  # speciescomposition.model( p=p, DS="redo" )    ### internal to "bam" a parallel solution is attempted so do this in series and not parallel
+  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.model, p=p, DS="redo" ) 
 
   
-  p$clusters = "localhost"
+  # p$clusters = "localhost"
   # interpolate onto a grid via prediction ::: ~ 3 GB / process 
   p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
   parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.interpolate, p=p, DS="redo" ) 
@@ -66,8 +66,8 @@
  
   # map everything
   p = make.list( list(yrs=p$yearstomodel, vars=p$varstomodel, modtype=p$mods), Y=p ) 
-  # parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  )  
-  speciescomposition.map( p=p, type="annual"  )  
+  parallel.run( clusters=p$clusters, n=p$nruns, speciescomposition.map, p=p, type="annual"  )  
+  # speciescomposition.map( p=p, type="annual"  )  
 
 
 
