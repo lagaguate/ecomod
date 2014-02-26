@@ -1,8 +1,6 @@
   
   # estimate condition
 
-	loadlibraries ( c("chron", "fields", "mgcv")) 
-
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
@@ -14,7 +12,7 @@
 
   p = list()
   p$init.files = loadfunctions( c( "common", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "condition" ) )
-  
+  p$libs = loadlibraries( c("chron", "fields", "mgcv", "sp", "parallel" ))
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
 #    p$taxa = "alltaxa"   # do not use any other category
   p$season = "allseasons"
@@ -39,6 +37,11 @@
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
   p$spatial.knots = 100
+  p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
+  p$movingdatawindowyears = length (p$movingdatawindow)
+
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
+
 
 
 
@@ -51,8 +54,8 @@
  
 
   # model the data ~ 14GB/ variable
-  p = make.list( list(vars= p$varstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( clusters=p$clusters[1:p$nruns], n=p$nruns, condition.model, p=p, DS="redo" ) 
+  p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
+  parallel.run( clusters=p$clusters, n=p$nruns, condition.model, p=p, DS="redo" ) 
 
 
   # predict data: gridded extrapolations to full domain  

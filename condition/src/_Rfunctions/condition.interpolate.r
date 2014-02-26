@@ -36,6 +36,7 @@
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]
+      print( p$runs[iip,])
 
       ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modtype )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
@@ -61,11 +62,16 @@
       sc$t = habitat.lookup.simple( sc,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
  
       for ( ww in p$varstomodel ) {
-      
-        if (length( which( my$yr ==yr & is.finite(my[,ww]) ) ) < 10 ) next()
-        
-        condition.interpolation.model = condition.model( p=p, modeltype=modtype, var=ww )
-        sc[,ww] = predict( condition.interpolation.model, newdata=sc, type="response", na.action="na.pass" ) 
+  
+        mod.cond = condition.model( p=p, modeltype=modtype, var=ww, yr=yr )
+        if (is.null( mod.cond )) next()
+        sol = try( predict( mod.cond, newdata=sc, type="response", na.action="na.pass") )
+        if  ( "try-error" %in% class(sol) ) {
+          sc[,ww] = NA
+        } else { 
+          sc[,ww] = sol
+        }
+
         # require (lattice)
         # levelplot( mr ~ plon+plat, sc, aspect="iso")
         SC = sc[,ww]
