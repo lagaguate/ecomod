@@ -101,8 +101,8 @@
   p$clusters = rep("localhost", detectCores() )
    
       p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
-      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
-      # parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p )  
+      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p )  
+      # habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
       #  --- parallel mode is not completing ... FIXME
 
 

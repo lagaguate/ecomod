@@ -72,11 +72,6 @@
       set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
         
       set = presence.absence( set, v, p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
-
-      tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "wt", p$auxilliary.data ) 
-      tokeep = intersect( names(set), tokeep) 
-      
-      set = set[ , tokeep ]
       n0 = nrow(set)
 
       depthrange = range( set$z, na.rm= T) 
@@ -96,9 +91,20 @@
       
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
+      
+      # used for abundance modelling
+      set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
+      set$sa.scaled =rescale.min.max(set$sa)
+      set$sa.scaled[ which(set$sa.scaled==0)] = min (set$sa.scaled[ which(set$sa.scaled>0)], na.rm=T) / 2
+      set$wgts = ceiling( set$sa.scaled * 1000 )
 
       # remove extremes where variance is high due to small n
       # set = filter.independent.variables( x=set )
+
+      tokeep=  c( "Y", "yr",  "julian", "weekno", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
+      # tokeep = intersect( names(set), tokeep) 
+      
+      set = set[ , tokeep ]
 
       return(set)
 
@@ -160,7 +166,7 @@
           }
         }
        
-        if ( length(ist) < 50 ) {
+        if ( length(ist) < 30 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
@@ -251,26 +257,19 @@
       loadlibraries (p$libs)
       if (!is.null(p$init.files)) for( i in p$init.files ) source (i)  
       p = p0 # init.files alters p so return p to orginal state
-      require(mgcv)
           
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
-        ntest = setdiff( names(set), terms(.model) )
-        if ( length(ntest) > 0 ) {
-          print( "Error: data elements in set do not match those of the formula" )
-          print (ntest)
-          stop()
-        }
-
         yr = p$runs[iip,"yrs"]
         print( p$runs[iip,])
 
         fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-        set = snowcrab.db( DS="set.logbook" )
-        set$Y = set[, v]
+        set = habitat.model.db( DS="basedata", p=p, v=v )
+        # set = snowcrab.db( DS="set.logbook" )
+        set$Y = set[, v]  # override -- Y is P/A
        
         yrsw = c( p$movingdatawindow + yr  ) 
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
@@ -285,46 +284,29 @@
           }
         }
 
-        if ( length(ist) < 50 ) {
+        if ( length(ist) < 30 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
         set = set[ ist , ]        
 
         im = which (is.finite(set$Y + set$t + set$plon + set$z)) # impertive
-        if ( length(im) < 50 ) {
+        if ( length(im) < 30 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
         set = set[ im ,]  
         
-        set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-        set$sa.scaled =rescale.min.max(set$sa)
-        set$sa.scaled[ which(set$sa.scaled==0)] = min (set$sa.scaled[ which(set$sa.scaled>0)], na.rm=T) / 2
-     
-        set$plon = jitter(set$plon)
-        set$plat = jitter(set$plat)  
-        
-        set$weekno = floor(set$julian / 365 * 52) + 1
-        set$dt.seasonal = set$tmean -  set$t 
-        set$dt.annual = set$tmean - set$tmean.cl
-
-        set$wgts = ceiling( set$sa.scaled * 1000 )
 
         # set zero values to a low number to be informative as this is in log-space
         iii = which(set$Y == 0 )
         if (length(iii)>0 ){
           # set = set[ - iii, ]
-          set$Y[iii] = min( set$Y[ which(set$Y>0) ], na.rm=T ) / 100
+          set$Y[iii] = min( set$Y[ which(set$Y>0) ], na.rm=T ) / 100   # 1 percentile 
         }
-        set = set[ which( is.finite(set$Y + set$tmean + set$plon + set$z + set$wgts + set$weekno ) ) ,]
-        tokeep = c( "Y", "yr", "weekno", "plon", "plat", "tmean", "dt.annual", "dt.seasonal", 
-            "tamp", "wmin",  "z",  "dZ", "substrate.mean", "wgts", "ca1", "ca2", "Npred", "Z", "smr", "mr"  ) 
-        tokeep = intersect( names(set), tokeep) 
-        set = set[ , tokeep ]
  
         # remove extremes where variance is high due to small n
-        set = filter.independent.variables( x=set )
+        # set = filter.independent.variables( x=set )
 
         print( summary(set))
         
@@ -334,7 +316,7 @@
         ntest = all.vars(.model) %in% names(set)
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
-          print ( all.vars(.model)[  which(ntest)] )
+          print ( all.vars(.model)[  which(!ntest)] )
           stop()
         }
 
