@@ -56,7 +56,7 @@
   p$speciesarea.season = "allseasons"  
   p$speciesarea.taxa = "maxresolved"  # use only unique taxa
   p$speciesarea.data.sources = c("groundfish", "snowcrab")
-  p$speciesarea.variables = c( "C", "Z", "T", "sar.rsq", "Npred" )
+  p$speciesarea.variables = c( "C", "Z", "T", "Npred" )
   
   p$speciescomposition.modeltype = "complex"  
   p$speciescomposition.season = "allseasons"  

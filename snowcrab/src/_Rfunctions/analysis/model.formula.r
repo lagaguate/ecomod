@@ -1,5 +1,5 @@
 
-    model.formula = function( V="default" ) {
+    model.formula = function( V="default", spatial.knots=100 ) {
       
       if ( V %in% c("default") ) {
           # basic model -- less spatial density .. all covariates
@@ -11,7 +11,7 @@
             + s(Npred, bs="ts") + s(Z, bs="ts" ) 
             + s(smr, bs="ts" ) + s(A, bs="ts" ) + s(Ea, bs="ts" )     
             + s(nss.shannon, bs="ts" ) + s(nss.rsquared, bs="ts" ) 
-            + s(plon, plat, k=100, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+            + s(plon, plat, k=spatial.knots, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
        }
       
       if ( V %in% c("R0.no", "R0.mass", "totmass.com") ) {
@@ -42,7 +42,7 @@
             + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
             + s(ca1, k=4, bs="ts" ) + s(ca2, k=4, bs="ts" ) 
             + s(Npred, k=4 , bs="ts") + s(Z, k=4, bs="ts" ) + s(smr, k=4, bs="ts" ) + s(mr, k=4, bs="ts" ) 
-            + s(plon, plat, bs="ts", k=100, by=as.factor(yr)) + as.factor(yr) ) 
+            + s(plon, plat, bs="ts", k=spatial.knots, by=as.factor(yr)) + as.factor(yr) ) 
       }
      
       if ( V=="R0.mass.old" ) {
