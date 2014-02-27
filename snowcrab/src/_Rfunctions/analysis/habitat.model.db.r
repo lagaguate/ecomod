@@ -133,8 +133,6 @@
       if (!is.null(p$init.files)) for( i in p$init.files ) source (i)  
       p = p0 # init.files alters p so return p to orginal state
 
-      require(mgcv)
-
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
