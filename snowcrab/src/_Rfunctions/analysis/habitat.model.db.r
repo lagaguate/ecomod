@@ -73,9 +73,7 @@
         
       set = presence.absence( set, v, p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
 
-      tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "t", "tmean", "tmean.cl", 
-            "tamp", "wmin", "z", "substrate.mean", "dZ", "ddZ", "wt",
-            "pca1", "pca2", "ca1", "ca2", "mr", "smr", "C", "Z", "sar.rsq", "Npred" ) 
+      tokeep=  c( "Y", "yr",  "julian", "plon", "plat", "wt", p$auxilliary.data ) 
       tokeep = intersect( names(set), tokeep) 
       
       set = set[ , tokeep ]
@@ -176,6 +174,14 @@
         
         Q = NULL
         .model = model.formula( v0 )
+
+        ntest = setdiff( names(set), terms(.model) )
+        if ( length(ntest) > 0 ) {
+          print( "Error: data elements in set do not match those of the formula" )
+          print (ntest)
+          stop()
+        }
+
         fmly = binomial()
         for ( o in p$optimizers ) {
           print (o )
@@ -185,12 +191,13 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=T )
+            Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=F )
           } else {
-            Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=T )
+            Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
           }
           
-          
+          print(Q)
+
           if ( ! ("try-error" %in% class(Q) ) ) {
             break()  # take the first successful solution
           }
@@ -200,7 +207,8 @@
         if ( "try-error" %in% class(Q) ) {
           # last attempt with a simplified model and default optimizer
           .model = model.formula ("simple" )
-          Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = T )
+          Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = F )
+          print(Q)
           if ( "try-error" %in% class(Q) ) {
             print( paste( "No solutions found for:", v ) )
             next()
@@ -318,6 +326,14 @@
         
         Q = NULL
         .model = model.formula (v )
+
+        ntest = setdiff( names(set), terms(.model) )
+        if ( length(ntest) > 0 ) {
+          print( "Error: data elements in set do not match those of the formula" )
+          print (ntest)
+          stop()
+        }
+
         fmly = gaussian(link = "log")
 
         for ( o in p$optimizers ) {
@@ -347,17 +363,18 @@
                 gamm( model.formula (v ), data=set, optimizer=ops, weights=wgts,
                   correlation=corSpher(c( Vrange, Vpsill ), form=~plon+plat | yr, nugget=T) ,
                   family=gaussian(link = "log"),
-                silent = T)
+                silent = F)
               )
             } 
  
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=T )
+            Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=F )
           } else {
-            Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = T )
+            Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
           }
+          print(Q)
           if ( ! ("try-error" %in% class(Q) ) ) break()  # first good solution exits
         }
         
@@ -365,7 +382,8 @@
         if ( "try-error" %in% class(Q) ) {
           # last attempt with a simplified model
           .model = model.formula ("simple" )
-          Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = T )
+          Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = F )
+          print(Q)
           if ( "try-error" %in% class(Q) ) {
             print( paste( "No solutions found for:", v ) )
             next()

@@ -69,7 +69,17 @@
     if (abundance.estimation.via.GAM) {
       
       # Define controlling parameters 
-        
+      p$auxilliary.data = c( 
+            "t", "tmean", "tmean.cl", "tamp", "wmin", 
+            "z", "substrate.mean", "dZ", "ddZ", 
+            "ca1", "ca2", 
+            "nss.rsquared", "nss.shannon", 
+            "smr", "Ea", "A", "qm", "mass",
+            "Z", "Npred" ) 
+
+      print( "Make sure variable list here matches those in ecomod/habitat/src/habitat.r ") 
+      print( "and in the model statement in ecomod/snowcrab/_Rfunctions/analysis/model.formula.r")
+
       p$model.type = "gam.full" # choose method for habitat model :
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
       p$optimizers = c( "bam", "perf","nlm",   "bfgs", "newton", "Nelder-Mead" )  # used by GAM
