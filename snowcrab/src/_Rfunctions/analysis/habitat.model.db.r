@@ -92,13 +92,13 @@
       set$plat = jitter(set$plat)  
       
       set = set[ which(set$yr %in% p$years.to.model ) , ]
-      set = set[ which (is.finite(set$Y + set$t + set$plon + set$zm + set$wt)) ,]
+      set = set[ which (is.finite(set$Y + set$t + set$plon + set$wt)) ,]
       
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
 
       # remove extremes where variance is high due to small n
-      set = filter.independent.variables( x=set )
+      # set = filter.independent.variables( x=set )
 
       return(set)
 
@@ -138,7 +138,6 @@
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
-      dbgfn = "~/tmp/debug.txt"
 
       for ( iip in ip ) {
 
