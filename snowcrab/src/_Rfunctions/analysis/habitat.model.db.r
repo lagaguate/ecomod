@@ -172,10 +172,10 @@
         Q = NULL
         .model = model.formula( v0 )
 
-        ntest = setdiff( names(set), terms(.model) )
-        if ( length(ntest) > 0 ) {
-          print( "Error: data elements in set do not match those of the formula" )
-          print (ntest)
+        ntest = all.vars(.model) %in% names(set)
+        if ( !all(ntest) ) {
+          print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
+          print ( all.vars(.model)[  which(ntest)] )
           stop()
         }
 
@@ -258,6 +258,13 @@
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
+        ntest = setdiff( names(set), terms(.model) )
+        if ( length(ntest) > 0 ) {
+          print( "Error: data elements in set do not match those of the formula" )
+          print (ntest)
+          stop()
+        }
+
         yr = p$runs[iip,"yrs"]
         print( p$runs[iip,])
 
@@ -323,13 +330,14 @@
         
         Q = NULL
         .model = model.formula (v )
-
-        ntest = setdiff( names(set), terms(.model) )
-        if ( length(ntest) > 0 ) {
-          print( "Error: data elements in set do not match those of the formula" )
-          print (ntest)
+   
+        ntest = all.vars(.model) %in% names(set)
+        if ( !all(ntest) ) {
+          print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
+          print ( all.vars(.model)[  which(ntest)] )
           stop()
         }
+
 
         fmly = gaussian(link = "log")
 
