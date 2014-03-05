@@ -8,7 +8,7 @@
 		if (X=="basic") {
 			pkgs = c( "abind", "acepack", "ade4",  "aplpack",
 					"bigmemory", "boot", "car", "chron", "Cairo", "class" , "cluster", "setwidth",
-					"date", "Design", "doBy", "eco", "effects", "filehash", "ff", "foreign", 
+					"date", "Design", "doBy", "eco", "effects", "filehash", "ff", "forecast", "foreign", 
 					"gee", "geepack", "gamm4", "graph",  "Hmisc", "igraph", "its", "jit", "lattice", "lme4", 
 					"MASS", "maxLik", "mgcv", "mixdist", "mvtnorm", "nlme", "multcomp", "nlme", "nnet", "oz",
 					"qcc", "quadprog", "randomForest","rCurl", "XML",

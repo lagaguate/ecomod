@@ -2,11 +2,11 @@
 
   sizespectrum.map = function( ip=NULL, p, type="annual" ) { 
 
-    if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-    if (is.null(ip)) ip = 1:p$nruns
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
 
-    loadlibraries (p$libs)
- 
+    if (is.null(ip)) ip = 1:p$nruns
+    
     if ( type=="annual" ) {
           
       my = sizespectrum.db( DS="sizespectrum.stats.merged", p=p )

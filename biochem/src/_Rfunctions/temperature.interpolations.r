@@ -1,6 +1,9 @@
 
   temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
     
+    ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
+    if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
+
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
          
 			# interpolated predictions for only missing data
@@ -31,8 +34,7 @@
 	
 			p$optimizers = c( "perf", "nlm", "bfgs", "optim", "newton",  "nlm.fd") # optimizers for gam
 			p$nMin.tbot = 200 # min number of data points req before attempting to model timeseries.
-			p$dist.multiplier = c( 1, 2, 3, 4, 5, 7.5, 10 ) # additional distance multipliers to extend search for data
-			p$dist.km = 10 # search "radius" (actually a box)
+			p$dist.km = c( 1, 2, 3, 4, 5, 7.5, 10, 20, 40, 60, 100 ) # search "radius" (actually a box)
 
 			require( bigmemory )
 
@@ -128,12 +130,7 @@
         return ( V )
       }
          
-      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
       if (is.null(ip)) ip = 1:length(p$tyears)
-
-      require( gstat )
-			require (mgcv )
 
       for ( r in ip ) { 
         y = p$tyears[r]

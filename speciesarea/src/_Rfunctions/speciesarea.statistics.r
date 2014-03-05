@@ -1,21 +1,18 @@
 
   speciesarea.statistics = function( ip=NULL, p ) {
-         
-    if (!is.null( p$init.files)) for (i in p$init.files) source( i )
-    if (is.null(ip)) ip = 1:p$nsets
+     
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (is.null(ip)) ip = 1:p$nruns
 
     predict.param = data.frame( sa = pi * ( p$pred.radius ^ 2), nyrs=1 )   # km^2
 
     Y = speciesarea.db( DS="speciesarea.counts", p=p )
     nY = speciesarea.db( DS="speciesarea.counts.ny", p=p )
-   
-    require(bigmemory)
     o <- attach.big.matrix( p$bigmem.desc )
     
-    for (ii in ip) {
-      
+    for (ii in ip ) {
       print(ii)
-
       y =  t( Y[ii,,] ) 
       ny =  t( nY[ii,,] ) 
 
@@ -60,7 +57,6 @@
     }
 
     return ( NULL )
-
   }
 
 

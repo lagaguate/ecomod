@@ -1,6 +1,10 @@
 
   temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
     
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+ 
+
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
          
 			# interpolated predictions for only missing data
@@ -22,54 +26,42 @@
           return ( tinterp.se )
       }
 
-			# require( mgcv ) # for "gam"
-			P = bathymetry.db( p=p, DS="baseline" )
-      p$nP = nrow(P);	rm(P); gc()
-			p$wtimes = 1:52 
-			p$nw = length(p$wtimes)
-			p$ny = length(p$tyears)
-	
-			p$optimizers = c( "perf", "nlm", "bfgs", "optim", "newton",  "nlm.fd") # optimizers for gam
-			p$nMin.tbot = 200 # min number of data points req before attempting to model timeseries.
-			p$dist.multiplier = c( 1, 2, 3, 4, 5, 7.5, 10 ) # additional distance multipliers to extend search for data
-			p$dist.km = 10 # search "radius" (actually a box)
-
-			require( bigmemory )
-
+ 
 			nr = p$nP
 			nc = p$nw * p$ny
 
-      basenm = file.path( make.random.string("interpolated.bigmemory.rdata.tmp") )
+      if (p$use.bigmemory.file.backing) {
       
-      p$fn.tbot =  paste( basenm, "pred", sep="." )
-	  	p$fn.tbot.se = paste( basenm, "se", sep="." )
-      
-      bf1 = basename(p$fn.tbot) 
-      bf2 = basename(p$fn.tbot.se) 
-          
-      df1 = paste(bf1, "desc",sep=".")
-      df2 = paste(bf2, "desc",sep=".")
-		
+        basenm = file.path( make.random.string("interpolated.bigmemory.rdata.tmp") )
+        p$fn.tbot =  paste( basenm, "pred", sep="." )
+        p$fn.tbot.se = paste( basenm, "se", sep="." )
+        bf1 = basename(p$fn.tbot) 
+        bf2 = basename(p$fn.tbot.se) 
+        df1 = paste(bf1, "desc",sep=".")
+        df2 = paste(bf2, "desc",sep=".")
+        tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA,   backingfile=bf1, descriptorfile=df1   )  
+        tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, backingfile=bf2, descriptorfile=df2  )
 
-      # backingdirectory location does not seem to work in V 4.2.3 .. defaulting to home dir
-      tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA,   backingfile=bf1, descriptorfile=df1   )  
-      tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, backingfile=bf2, descriptorfile=df2  )
+      } else {
+      
+        tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA, shared=TRUE  )  
+        tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, shared=TRUE  )
+      
+      }
 
       # required to operate with bigmemory objects in parallel 
       p$tbot.desc = describe(tbot)
       p$tbot.se.desc = describe(tbot.se)
- 
 
-			require(snow)
-			cl = makeCluster( spec=p$clusters, type="SOCK" )
-			ssplt = lapply( clusterSplit( cl, 1:p$nP ), function(i){i} )
-      clusterApplyLB( cl, ssplt, temporal.interpolation, p=p )
-			stopCluster( cl )
-
+      
+      if (length( p$clusters) == 1 ) {
+        temporal.interpolation ( p=p )
+      } else {
+        parallel.run( clusters=p$clusters, n=p$nruns, temporal.interpolation, p=p )
+      }
 
 			tbot <- attach.big.matrix( p$tbot.desc )
 			tbot.se <- attach.big.matrix( p$tbot.se.desc )
-
 
 			for ( r in 1:length(p$tyears) ) {
 				yt = p$tyears[r]
@@ -84,8 +76,10 @@
 				save( tinterp.se, file=fn2, compress=T) 
 			}
 		
-			file.remove( p$fn.tbot , p$fn.tbot.se )
-			file.remove( paste( c(p$fn.tbot , p$fn.tbot.se), "desc", sep=".") )
+      if (p$use.bigmemory.file.backing) {
+  			file.remove( p$fn.tbot , p$fn.tbot.se )
+	  		file.remove( paste( c(p$fn.tbot , p$fn.tbot.se), "desc", sep=".") )
+      }
 
 			return ("completed temporal interpolations ")
     }
@@ -97,7 +91,7 @@
 
 
     if (DS %in% c(  "spatial.interpolation", "spatial.interpolation.se", "spatial.interpolation.redo" )){
-			
+			   
 			# interpolated predictions over only missing data
 			spinterpdir =  file.path( project.directory("temperature"), "data", "interpolated", "spatial", p$spatial.domain )
 			if (p$spatial.domain=="snowcrab") {
@@ -127,17 +121,13 @@
         }
         return ( V )
       }
-         
-      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(p$tyears)
 
-      require( gstat )
-			require (mgcv )
+      if ( exists("init.files", p) ) loadfunctions( p$init.files ) 
+      if ( exists("libs", p) ) loadlibraries( p$libs ) 
+      if ( is.null(ip) ) ip = 1:length(p$nruns)
 
       for ( r in ip ) { 
-        y = p$tyears[r]
- 
+        y = p$runs[r, "yrs"]
         P = temperature.interpolations( p=p, DS="temporal.interpolation", yr=y  )
         P[ P < -1.9 ] = NA
         P[ P > 34 ] = NA
@@ -196,7 +186,6 @@
     }
  
 
-    
     
   } 
 

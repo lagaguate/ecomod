@@ -9,7 +9,7 @@
   # ----------------------------------------------------------------------------------
 
   loadfunctions( "snowcrab", functionname="current.assessment.year.r") 
-  loadfunctions( "snowcrab", functionname="parameter.list.snowcrab.r") 
+  loadfunctions( "snowcrab", functionname="parameter.list.snowcrab.r") # load the function first  
 
   p = parameter.list.snowcrab ( current.assessment.year=current.assessment.year, set="default")
 

@@ -1,6 +1,9 @@
 
   condition.interpolate = function( ip=NULL,  p=NULL, DS="saved", modtype=NULL, vname=NULL, yr=NULL ) {
-            
+ 
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+           
     if (DS=="all") {
       # glue all variables for 1 year
       sc = habitat.db( DS="baseline", p=p )  
@@ -25,13 +28,7 @@
       return ( SC )
     }
     
-    require(chron)
-    require(snow)
-    require(mgcv)
-
-    if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
- 
 
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]

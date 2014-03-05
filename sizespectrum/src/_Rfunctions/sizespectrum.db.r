@@ -1,7 +1,7 @@
 
   sizespectrum.db = function( DS="", p=NULL ) {
     ### dependency is only groundfish db for now. ... 
-    
+ 
     if (DS %in% c("sizespectrum.by.set", "sizespectrum.by.set.redo") ) {
       
       # make the base normalised size spectral statistics summaries
@@ -14,8 +14,6 @@
         return (ss )
       }
 
-      loadfunctions( "groundfish")
-      
       x =  groundfish.db( "det" )  # mass and length are not transformed
       # x = x[ which(x$settype %in% c(1,2,5) ), ]
       # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage),
@@ -63,8 +61,6 @@
 
     if (DS %in% c( "sizespectrum.stats", "sizespectrum.stats.redo" ) ) {
 
-      loadfunctions( "groundfish")
-
       ddir = file.path( project.directory("sizespectrum"), "data"  )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       
@@ -76,12 +72,16 @@
         if (file.exists( fn) ) load( fn ) 
         return ( nss )
       }
-
       
       sm = bio.db( "set" )
       sm = sm[ which( sm$data.source=="groundfish") ,]
       sm$area = sm$sa
       sm$sa = NULL
+
+      sm$id = as.character( sm$id )
+      smdups = which( duplicated (sm$id ) )
+      if (length(smdups) > 0) sm = sm[ -smdups, ]
+      sm = sm[ order(sm$id) , ]
       gc()
 
       nss = NULL
@@ -91,26 +91,21 @@
       p$nlengthscale = length(p$nss.bins)
       p$ntimescale = length(p$nss.stimes)
      
-      require(bigmemory)
+      if (p$use.bigmemory.file.backing) {
+        p$fn.tmp = file.path(  make.random.string( "nss.bigmemory.tmp" ) )
+        p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
+        nss = big.matrix( nrow=p$nsets, ncol=length(p$newvars), type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc )  
+      } else {
+        nss = big.matrix( nrow=p$nsets, ncol=length(p$newvars), type="double" , init=NA, shared=TRUE )  
+      }
 
-
-      p$fn.tmp = file.path(  make.random.string( "nss.bigmemory.tmp" ) )
-      p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
-      nss = big.matrix( nrow=p$nsets, ncol=length(p$newvars), type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc )  
       p$bigmem.desc = describe(nss)
-
-
+  
+      p = make.list( list( nsets=1:p$nsets ), Y=p ) 
+ 
       if ( length( p$clusters) > 1 ) {
-        # parallel mode
-        # bigmemory's backingdir does not seem to be working? ... defaulting to working directory
-        require(snow)
-        cl = makeCluster( spec=p$clusters, type="SOCK" )
-        ssplt = lapply( clusterSplit( cl, 1:p$nsets ), function(i){i} )
-        clusterApplyLB( cl, ssplt, fun=sizespectrum.compute, p=p, sm=sm )
-        stopCluster( cl )
-       
-      } else { 
-        # serial mode 
+        parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.compute, p=p, sm=sm )
+      } else {
         sizespectrum.compute ( p=p, sm=sm )
       }
 
@@ -125,11 +120,12 @@
 
       save(nss, file=fn, compress=T)
    
-      file.remove( p$fn.tmp )
-      file.remove( p$fn.desc )
+      if (p$use.bigmemory.file.backing) {
+        file.remove( p$fn.tmp )
+        file.remove( p$fn.desc )
+      }
 
       return ( "Done" )
-    
     }
 
 
@@ -182,8 +178,6 @@
       
       # make the base normalised size spectral statistics summaries
       
-      require(chron)
-
       ddir = file.path( project.directory("sizespectrum"), "data" )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       

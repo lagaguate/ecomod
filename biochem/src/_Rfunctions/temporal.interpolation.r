@@ -24,8 +24,8 @@
 			for ( mm in ip ) {
 				Pi=P[mm,]
 			  # print (mm)			
-				for ( dm in p$dist.multiplier ) { 
-					drange = p$dist.km * c(-1,1) * dm
+				for ( dm in p$dist.km ) { 
+					drange = c(-1,1) * dm
 					plon0 = Pi$plon + drange
 					plat0 = Pi$plat + drange
 					i = which( O0$plon > plon0[1] & O0$plon < plon0[2] & O0$plat > plat0[1] & O0$plat < plat0[2] ) 

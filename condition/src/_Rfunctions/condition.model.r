@@ -2,6 +2,10 @@
     
     # compute the spatial interpolation model
     
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+
+
     if (DS=="saved") {
       models = NULL
       ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modeltype )
@@ -10,10 +14,7 @@
       return( models )
     }
 
-    if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
     if (is.null(ip)) ip = 1:p$nruns
- 
-    loadlibraries (p$libs)
 
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]

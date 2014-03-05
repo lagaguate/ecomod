@@ -1,6 +1,6 @@
 
-  speciesarea.db = function( ip=NULL, DS="", p=NULL, yr=NULL ) {
-   
+  speciesarea.db = function( DS="", p=NULL, yr=NULL ) {
+    
     if (DS %in% c("speciesarea.counts", "speciesarea.counts.ny", "speciesarea.counts.redo") ) {
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".")  )
       
@@ -25,53 +25,53 @@
       p$nlengthscale = length(p$lengthscale)
       p$ntimescale = length(p$timescale)
      
-      require(bigmemory)
-
+      if (p$use.bigmemory.file.backing) {
+ 
         p$fn.tmp = file.path(  make.random.string("speciesarea.bigmemory.tmp" ))
         p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
+        p$fn.ny.tmp = file.path(  make.random.string("speciesarea.ny.bigmemory.tmp" ) )
+        p$fn.ny.desc = paste( p$fn.ny.tmp, "desc", sep=".") 
 
         sar = big.matrix(nrow=p$nsets, ncol=p$nlengthscale*p$ntimescale, 
             type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc  )  
         
-        p$fn.ny.tmp = file.path(  make.random.string("speciesarea.ny.bigmemory.tmp" ) )
-        p$fn.ny.desc = paste( p$fn.ny.tmp, "desc", sep=".") 
-
         sar.ny = big.matrix(nrow=p$nsets, ncol=p$nlengthscale*p$ntimescale, 
             type="double" , init=NA, backingfile=p$fn.ny.tmp, descriptorfile=p$fn.ny.desc )
-             
-        p$bigmem.desc = describe(sar)
-        p$bigmem.ny.desc = describe(sar.ny)  # counts the # of years of data
+       
+      } else {
+         
+        sar = big.matrix(nrow=p$nsets, ncol=p$nlengthscale*p$ntimescale, type="double" , init=NA  )  
+        sar.ny = big.matrix(nrow=p$nsets, ncol=p$nlengthscale*p$ntimescale, type="double", init=NA )
+ 
+      }
+        
+      
+      p$bigmem.desc = describe(sar)
+      p$bigmem.ny.desc = describe(sar.ny)  # counts the # of years of data
 
       
+      p = make.list( list( nsets=1:p$nsets ), Y=p )
       if ( length( p$clusters) > 1 ) {
-        require(snow)
-        
-        cl = makeCluster( spec=p$clusters, type="SOCK" )
-        ssplt = lapply( clusterSplit( cl, 1:p$nsets ), function(i){i} )
-        clusterApplyLB( cl, ssplt, fun=species.count.engine, p=p, set=set, sc=scat )
-        stopCluster( cl )
-        
-       
-      } else { 
-        # serial mode 
+        parallel.run( clusters=p$clusters, n=p$nruns, species.count.engine, p=p, set=set, sc=scat )
+      } else {
         species.count.engine ( p=p, set=set, sc=scat )
-        
       }
-
+  
       sar <- attach.big.matrix( p$bigmem.desc )
       sar.ny <- attach.big.matrix( p$bigmem.ny.desc )
 
       SC = array( data=sar[], dim=c( p$nsets, p$ntimescale, p$nlengthscale) )
       SC.ny = array( data=sar.ny[], dim=c( p$nsets, p$ntimescale, p$nlengthscale) )
 
-      file.remove( p$fn.tmp )
-      file.remove( p$fn.desc )
-   
-      file.remove( p$fn.ny.tmp )
-      file.remove( p$fn.ny.desc )
-
       save( SC, file=fn, compress=T )
       save( SC.ny, file=fn.ny, compress=T )
+      
+      if (p$use.bigmemory.file.backing) {
+        file.remove( p$fn.tmp )
+        file.remove( p$fn.desc )
+        file.remove( p$fn.ny.tmp )
+        file.remove( p$fn.ny.desc )
+      }
 
       return( fn )
     }
@@ -95,30 +95,28 @@
 
       p$nsets = nrow(SC)
       rm(SC); gc()
+   
+      if (p$use.bigmemory.file.backing) {
+        p$fn.tmp = file.path( make.random.string("speciesarea.stats.bigmemory.tmp") )
+        p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
+        o = big.matrix(nrow=p$nsets, ncol=p$nvars, 
+            type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc) 
 
-      # bigmemory's backingdir does not seem to be working? ... defaulting to home directory
-      require(bigmemory)
-      p$fn.tmp = file.path( make.random.string("speciesarea.stats.bigmemory.tmp") )
-      p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
-
-      o = big.matrix(nrow=p$nsets, ncol=p$nvars, 
-          type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc) 
-      p$bigmem.desc = describe(o)
-
-      if ( length( p$clusters) > 1 ) {
-        # parallel mode
-        require(snow)
-        cl = makeCluster( spec=p$clusters, type="SOCK" )
-        ssplt = lapply( clusterSplit( cl, 1:p$nsets ), function(i){i} )
-        clusterApplyLB( cl, ssplt, fun=speciesarea.statistics, p=p )
-        stopCluster( cl )
-       
-      } else { 
-        # serial mode 
-        speciesarea.statistics ( p=p )
-        
+      } else {
+      
+        o = big.matrix(nrow=p$nsets, ncol=p$nvars, type="double", init=NA ) 
+      
       }
 
+      p$bigmem.desc = describe(o)
+
+      p = make.list( list( nsets=1:p$nsets ), Y=p )
+      if ( length( p$clusters) > 1 ) {
+        parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.statistics, p=p )
+      } else {
+        speciesarea.statistics(p=p)
+      }
+ 
       o <- attach.big.matrix( p$bigmem.desc )
       o = as.data.frame(o[])
       
@@ -137,9 +135,11 @@
       sa = cbind( set, o )
       save ( sa, file=fn, compress=T )
 
-      file.remove( p$fn.tmp )
-      file.remove( p$fn.desc )
- 
+      if (p$use.bigmemory.file.backing) {
+        file.remove( p$fn.tmp )
+        file.remove( p$fn.desc )
+      }
+
       return( fn )
 
     }
@@ -187,8 +187,6 @@
 
     if (DS %in% c( "speciesarea.stats.merged", "speciesarea.stats.merged.redo" ) ) {
       
-      require(chron)
-
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".")   )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       
@@ -211,7 +209,6 @@
       if (length(oo)>0) SC = SC[ -oo , ]  # a required field for spatial interpolation
 
       rm(ks); gc()
-
 
       SC$chron = as.chron( as.numeric(string2chron( paste( paste( SC$yr, "Jan", "01", sep="-" ), "12:00:00") )) + SC$julian ) # required for time-dependent lookups
   

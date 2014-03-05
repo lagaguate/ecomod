@@ -34,13 +34,13 @@
 			#		bathy = bathy[ - i, ]
 
 			if ( "snowcrab" %in% additional.data ) {
-				
+			  p0 = p  # loadfunctions "snowcrab" will overwrite p .. store a copy and return it to original state below	
         loadfunctions( "snowcrab",  functionname="initialise.local.environment.r" )
-				
         sc = snowcrab.db("set.clean")[,c("lon", "lat", "z") ]
 				sc = sc [ which (is.finite( rowSums( sc ) ) ) ,]
 				bathy = rbind( bathy, sc )
-			}
+			  p = p0
+      }
 
 			if ( "groundfish" %in% additional.data ) {
 				loadfunctions("groundfish")

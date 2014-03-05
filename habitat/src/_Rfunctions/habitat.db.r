@@ -1,6 +1,10 @@
 
   habitat.db = function( ip=NULL, DS="baseline", p=NULL, year=NULL ) {
  
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+
+
     if (DS %in% c("baseline", "baseline.redo") ) {
       
       # form a basic prediction surface in planar coords for SS habitat for 
@@ -76,15 +80,10 @@
         return (PS)
       }
 
-      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files )) for( i in  p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(p$yearstomodel)
-      ip = as.numeric(ip)   # indexing variable (year) of the serial or parallel run
+      if (is.null(ip)) ip = 1:length(p$nruns)
     
-      loadlibraries (p$libs)
-
       for (iy in ip) {
-        yr = p$yearstomodel[iy]
+        yr = p$runs[iy, "yrs"]
         print (yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
        
@@ -252,13 +251,11 @@
         return (PS)
       }
 
-      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files)) for( i in  p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(p$yearstomodel)
-      ip = as.numeric(ip)   # indexing variable (year) of the serial or parallel run
+
+      if (is.null(ip)) ip = 1:length(p$nruns)
     
       for (iy in ip) {
-        yr = p$yearstomodel[iy]
+        yr = p$runs[iy, "yrs"]
         print (yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
        
@@ -269,7 +266,7 @@
         E$z = NULL
 
         PS = merge( PS, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
-               vars = setdiff( names(PS), c("plon", "plat") )
+        vars = setdiff( names(PS), c("plon", "plat") )
         require (gstat)
         for (v in vars) {
           for (dists in p$interpolation.distances) { 

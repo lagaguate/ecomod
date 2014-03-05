@@ -22,6 +22,16 @@
 	) )
 
   p$libs = loadlibraries( "mgcv", "sp" ) 
+  p$taxa = "maxresolved"
+  p$season = "allseasons"
+  p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
+  p$interpolation.nmax = 100 
+   
+ 
+  p$clusters = rep("localhost", detectCores() )
+ # p$clusters = rep("localhost",8)
+  # p$clusters = c( rep("kaos", 14), rep("tartarus", 14), rep("nyx", 14) )
+
 
   baseline.redo = FALSE
   if (baseline.redo) { 
@@ -30,12 +40,7 @@
  	
     for ( j in c( "SSE") ) {  # sse is the only relevent area for which all data exists 
       p = spatial.parameters( p=p, type=j )
-      p$taxa = "maxresolved"
-      p$season = "allseasons"
-      p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
-      p$interpolation.nmax = 100 
       habitat.db( DS="baseline.redo", p=p ) ## Time-invariant data (depth, substate, etc) 
-      
       habitat.xyz.to.grid ( p, redo=TRUE ) # redo lookup table to convert xyz data to matrix/grid format
      
     }
@@ -76,20 +81,10 @@
 	
   for ( j in c( "SSE") ) {  # sse is the only relevent area for which all data exists ~ 5 min / yr 
 		p = spatial.parameters( p=p, type=j )
-		p$taxa = "maxresolved"
-    p$season = "allseasons"
-    p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
-    p$interpolation.nmax = 100 
-    
+    p = make.list( list( yrs=p$yearstomodel), Y=p )
     habitat.db( DS="complete.redo", p=p ) 
-    # or
-    # p$clusters = rep("localhost",8)
-    # p$clusters = c( rep("kaos", 14), rep("tartarus", 14), rep("nyx", 14) )
-    # parallel.run(  clusters=p$clusters, n=length(p$yearstomodel), habitat.db, DS="complete.redo", p=p )
-    
-    # not used but here in case
-    # habitat.db( DS="complete_no.biologicals.redo", p=p ) 
-
+    # parallel.run(  clusters=p$clusters, n=p$nruns, habitat.db, DS="complete.redo", p=p )
+    # habitat.db( DS="complete_no.biologicals.redo", p=p )  # not used but here in case
   }
 
 

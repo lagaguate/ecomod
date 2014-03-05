@@ -1,10 +1,5 @@
 
-  require(chron)
-  require(gstat)
-  require(snow)
 
-
- 
   # ----------------
   # Prep OSD, snow crab and groundfish temperature profiles    
   # this one has to be done manually .. 2008 data still pending,
@@ -14,27 +9,22 @@
   # depths: 500,500, "complete profile"   .. raw data  for the SS (region: jc.ss")
   # must download manually to this directory and run gzip
 
-  NOTE :: SSE seems to contain more data than the canada.east ! check this with OSD people why
-"canada.east" =
-Nafo2J
-Nafo3K
-Nafo3L
-Nafo3N
-Nafo3O
-Nafo4R
-Nafo4S
-Nafo4V
-Nafo4W
-Nafo4X
-Nafo5Ze
-Nafo5Zw
+  # "canada.east" = Nafo2J + Nafo3K + Nafo3L + Nafo3N +  Nafo3O + Nafo4R + Nafo4S + Nafo4V + Nafo4W + Nafo4X + Nafo5Ze + Nafo5Zw
      
-
 
     # start data uptake and processing
 
     p = list()
     p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+    p$libs = loadlibraries( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory" ) )
+		
+    # faster to use RAM-based data objects but this forces use only of local cpu's
+    # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
+    p$use.bigmemory.file.backing = FALSE  
+    # p$use.bigmemory.file.backing = TRUE  # file-backing is slower but can use all cpu's in a distributed cluster
+
+ 
+    # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$tyears = c(1950:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$newyear = newyear = c( 2013)
 
@@ -42,7 +32,24 @@ Nafo5Zw
     # only one data stream necessary at present .. the largest extent
     p = spatial.parameters( p=p, type= "canada.east" )
 
-     
+    p$wtimes = 1:52 
+    p$nw = length(p$wtimes)
+    p$ny = length(p$tyears)
+
+    p$optimizers = c( "perf", "nlm", "bfgs", "optim", "newton",  "nlm.fd") # optimizers for gam
+    p$nMin.tbot = 400 # min number of data points req before attempting to model timeseries in a localized space.
+    p$dist.km = c( 1, 2, 4, 5, 10, 15, 20, 25, 30, 35, 40, 100 ) / 2 # additional (1/2) distances to extend search for data
+
+    p$clusters = rep("localhost", detectCores() )
+  # p$clusters = rep("localhost",  1) # debug
+  # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+	
+
+
+
+  # ----------------
+  # data up-take for all of the "canada.east" only
+
     # ----------------
     # extract all hydro data and add snow crab and groundfish data
       hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) 
@@ -50,6 +57,7 @@ Nafo5Zw
     # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical)
     # hydro.db( DS="osd.rawdata.all.redo", yr=p$tyears, p=p )  
  
+
     # ----------------
       hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=p$tyears
     # or if in parallel mode: 
@@ -58,59 +66,60 @@ Nafo5Zw
     # ----------------
     # extract bottom data
       hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
-    # hydro.db( DS="bottom.annual.redo", yr=p$tyears )
+    # hydro.db( DS="bottom.annual.redo", yr=p$tyears, p=p )
     # parallel.run( clusters=rep("localhost",16), n=length(p$tyears), FUNC=hydro.db, yr=p$tyears, p=p,  DS="bottom.annual.redo", init.files=p$init.files ) 
 
   
 
 
   # ----------------
-  # Basic data uptake now complete
-  
-  # Now do area-specific divisions of data and gridding 
+  # Basic data uptake now complete 
+  # .. subset the data to smaller areas of interest
+  # .. ie. area-specific divisions of data and gridding 
   # to optimize speed for snow crab /SSE only results 
-  # do first:
-  #   j = "SSE"
-  #   ... j = "canada.east" can be completed later (after assessment) when time permits
 
-  for ( j in c("SSE", "canada.east" ) ) {
-      
-		# ----------------
-    # parameters 
-    
-    #   j = "SSE"
+  #   j = "SSE"  # do first
+  #   j = "canada.east" # can be completed later (after assessment) when time permits
  
-      p = spatial.parameters( p=p, type=j )
-		  p$clusters = rep("localhost",  1) # debug
-      # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
-		
- 		# ----------------
+    
+    # update spatial parameters for the region of interest
+    j = "SSE"
+    p = spatial.parameters( p=p, type=j )
+  	P = bathymetry.db( p=p, DS="baseline" )
+    p$nP = nrow(P);	rm(P); gc()
+	
+ 	
+    # ----------------
     # grid bottom data    
-			hydro.db( p=p, DS="bottom.gridded.redo", yr=p$tyears )
+		hydro.db( p=p, DS="bottom.gridded.redo", yr=p$tyears )
 		
  		# ----------------
     # this glues all the years together
-      hydro.db( p=p, DS="bottom.gridded.all.redo", yr=p$tyears  ) 
+    hydro.db( p=p, DS="bottom.gridded.all.redo", yr=p$tyears  ) 
    			
  		# ----------------
-    # temporal interpolations assuming a sinusoidal seasonal pattern 
-      p$clusters = rep("localhost",  24) # ~ 155 hours with 24 cpus and 1950:2012, ESS; 20 GB total
-      # ?? p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) ) # speeded ??
-      temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
-        # 1950-2012, SSE took +46 hrs  
+    # temporal interpolations assuming some seasonal pattern 
+    # 1950-2012, SSE took +46 hrs  
+    # p$clusters = rep("localhost", 1 )  # serial mode when no clusters == 1
+    p$clusters = rep("localhost", detectCores() )  # parallel mode
+    p = make.list( list( loc=1:p$nP ), Y=p )
+    temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
+
 
  		# ----------------
     # simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
     # temperature.interpolations( p=p, DS="spatial.interpolation.redo" ) 
     p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
-    parallel.run( clusters=p$clusters, n=length(p$tyears), temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
+    p = make.list( list( yrs=p$tyears), Y=p )
+    parallel.run( clusters=p$clusters, n=p$nruns, temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
   
+
  		# ----------------
     # extract relevant statistics
     # hydro.modelled.db(  p=p, DS="bottom.statistics.annual.redo" )
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
-    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
     parallel.run( clusters=p$clusters, n=length(p$tyears),	hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
 
     # ----------------
@@ -118,7 +127,7 @@ Nafo5Zw
     # 4 cpu's ~ 5 min
     bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
     # hydro.modelled.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
-    p$clusters = rep( "nyx", length(bstats) )
+    # p$clusters = rep( "nyx", length(bstats) )
     parallel.run( clusters=p$clusters, n=length(bstats), hydro.modelled.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
  
 
@@ -130,18 +139,12 @@ Nafo5Zw
 
 
 
-
-
-
-
     # ----------------
     # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
     # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
-    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
     parallel.run( clusters=p$clusters, n=length(p$tyears), hydro.map, p=p, yr=p$tyears, type="annual"  ) 
     parallel.run( clusters=p$clusters, n=length(p$tyears), hydro.map, p=p, yr=p$tyears, type="global") 
-
-
 
 
   }

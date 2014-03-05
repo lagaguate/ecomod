@@ -1,5 +1,5 @@
 
-  condition.db = function( ip=NULL, DS="", p=NULL, yr=NULL ) {
+  condition.db = function( DS="", p=NULL, yr=NULL ) {
  
     if (DS %in% c( "condition", "condition.redo" ) ) {
  

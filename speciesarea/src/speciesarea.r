@@ -11,6 +11,12 @@
   p = list()
   p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel")) 
   p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
+ 
+  # faster to use RAM-based data objects but this forces use only of local cpu's
+  # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
+  p$use.bigmemory.file.backing = FALSE  
+  # p$use.bigmemory.file.backing = TRUE  # file-backing is slower but can use all cpu's in a distributed cluster
+
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$data.sources = c("groundfish", "snowcrab") 

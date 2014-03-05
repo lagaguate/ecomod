@@ -1,5 +1,9 @@
 
   hydro.modelled.db = function( ip=NULL, p, DS, vname, yr=NULL ) {
+    
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+
 
     if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo" )){
       
@@ -14,10 +18,7 @@
       }
         
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(p$tyears)
- 
-      require( gstat )
+      if ( is.null(ip)) ip = 1:length(p$tyears)
 
       for ( r in ip ) { 
         y = p$tyears[r]
@@ -85,8 +86,7 @@
 				return(P)
 			}
 
-			if (!is.null(p$init.files )) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(vname)
+      if ( is.null(ip) ) ip = 1:length(vname)
  
 			for ( iv in ip ) {
 				vn = vname[iv]

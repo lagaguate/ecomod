@@ -16,6 +16,9 @@
     loc.basedata = file.path( basedir, "basedata", "rawdata", p$spatial.domain )
     
     dir.create( loc.basedata, recursive=T, showWarnings=F )
+  
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
     
     # OSD data series variables of interest
     varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE" ,"SALINITY" ,"SIGMAT" ) 
@@ -140,15 +143,13 @@
       }
  
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(yr)
+ 
+      if ( is.null(ip) ) ip = 1:length(yr)
 
       # bring in snow crab, groundfish and OSD data ...
-      require(chron)
       
-      p0 = p  #store parameters as snowcrab and groundfish functions will overwrite it
-
-      loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+      loadfunctions( "snowcrab")  # only need the functions not the whole environment
+      
       set = snowcrab.db( DS="setInitial" )
       mlu = minilog.db( DS="set.minilog.lookuptable" )
       slu = seabird.db( DS="set.seabird.lookuptable" )
@@ -164,8 +165,6 @@
 			
       loadfunctions( "groundfish")
       grdfish = groundfish.db( "gshyd.georef" )
-			
-      p = p0
 
       for (iy in ip) {
         yt = yr[iy]
@@ -174,7 +173,7 @@
   
           if ( is.null(Y) ) {
         
-            Y = hydro.db( DS="osd.rawdata", yr=2009, p=p ) [1,]
+            Y = hydro.db( DS="osd.rawdata", yr=yr, p=p ) [1,]
             Y$id =  "dummy"
             Y$yr =  yt
             Y$dayno = 1
@@ -267,9 +266,7 @@
         return(Z)
       }
 
-      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(yr)
+      if ( is.null(ip)) ip = 1:length(yr)
 
       for (iy in ip) {
         yt = yr[iy]

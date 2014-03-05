@@ -478,6 +478,8 @@ observer.data.request.oracle = function () {
      l = merge(l23, l24, by="yr", suffixes=c(".23", ".24" ) )
       plot(l$yr, l$total.23/(l$total.24+l$total.23))
 
+
+
 # ----------------------------------
 # MacMullin: GBH vs NENS partitionning
  
@@ -677,5 +679,17 @@ Y$totno[ which(!is.finite( Y$totno))] = 0
 
 
 write.csv( Y, file="~/tmp/jim.csv" )
+
+
+# ------
+# NENS data request WRT EMERA power line
+
+loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
+set = snowcrab.db("set")
+set = set[,c( "yr", "lon", "lat", "t", "sa", "R0.mass", "totmass.female.mat", "totmass.male.imm", "totmass.female.imm" )]
+nens = filter.region.polygon( set, region="cfanorth" )
+innergutter = intersect( nens, which(set$lon < -59.8 ) )
+nensdata = set[innergutter,]
+
 
 

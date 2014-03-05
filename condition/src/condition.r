@@ -12,7 +12,7 @@
 
   p = list()
   p$init.files = loadfunctions( c( "common", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "condition" ) )
-  p$libs = loadlibraries( c("chron", "fields", "mgcv", "sp", "parallel" ))
+  p$libs = loadlibraries( c("chron", "fields", "mgcv", "sp", "parallel", "grid" , "lattice" ))
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
 #    p$taxa = "alltaxa"   # do not use any other category
   p$season = "allseasons"

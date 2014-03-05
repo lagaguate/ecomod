@@ -1,5 +1,5 @@
 
-  speciescomposition.db = function( ip=NULL, DS="", p=NULL, yr=NULL ) {
+  speciescomposition.db = function( DS="", p=NULL, yr=NULL ) {
  
     if (DS %in% c( "speciescomposition", "speciescomposition.redo", "pca", "ca") ) {
       

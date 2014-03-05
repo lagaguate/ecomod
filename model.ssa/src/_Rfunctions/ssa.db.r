@@ -64,6 +64,7 @@
     
     if ( ptype=="debug.big.matrix.rambacked" ) {
       # as in the basic "debug" form but using a bigmemory RAM object 
+      # .. make sure SHM (shared memory is used an d properly configured on the OS) in /etc/fstab
       require(bigmemory)
 
       out = with( p, {

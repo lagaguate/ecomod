@@ -12,8 +12,15 @@
 
   p = list()
  
-  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel")) 
-  p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "sizespectrum"  ) )
+  p$libs = loadlibraries ( c( "chron", "fields", "mgcv", "sp", "parallel", "bigmemory" )) 
+  p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat",  "taxonomy", "groundfish", "bio", "sizespectrum"  ) )
+  
+  
+  # faster to use RAM-based data objects but this forces use only of local cpu's
+  # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
+  p$use.bigmemory.file.backing = FALSE  
+  # p$use.bigmemory.file.backing = TRUE  # file-backing is slower but can use all cpu's in a distributed cluster
+
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$taxa = "maxresolved"
@@ -26,9 +33,11 @@
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  p$clusters = rep( "localhost", 4 )
+  # p$clusters = rep( "localhost", 4 )
   # p$clusters = c( rep( "nyx.beowulf", 14), rep("tartarus.beowulf", 14), rep("kaos", 13 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  p$clusters = rep("localhost", detectCores() )
+
 
   p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   

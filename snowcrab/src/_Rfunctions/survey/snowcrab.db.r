@@ -782,11 +782,11 @@
     # --------------------------------
     
 
-    if (DS %in% c("set.complete", "set.complete.redo") ) {
+    if (DS %in% c("set", "set.complete", "set.complete.redo") ) {
       
       fn = file.path( project.directory("snowcrab"), "R", "set.complete.rdata") 
 
-      if (DS %in% c("set.complete") ){
+      if (DS %in% c("set", "set.complete") ){
         load( fn )
         return ( set )
       }
