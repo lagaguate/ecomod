@@ -100,10 +100,8 @@
       }
 
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (is.null(ip)) ip = 1:length(p$tyears)
+      if (is.null(ip)) ip = 1:length(p$nruns)
       
-      ip = as.numeric(ip)   # indexing variable (year) of the serial or parallel run
-        
       # depth is the primary constraint 
       Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
       Z$id = 1:nrow(Z)
@@ -115,7 +113,7 @@
       CL = merge( Z, CL,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F ) ## should not be required but in case ordining get messed up
 
       for (iy in ip) {
-        yr = p$tyears[iy]
+        yr = p$runs[iy, "yrs"]
         print (yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
 		

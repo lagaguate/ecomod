@@ -144,7 +144,7 @@
  
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
  
-      if ( is.null(ip) ) ip = 1:length(yr)
+      if ( is.null(ip) ) ip = 1:length(p$nruns)
 
       # bring in snow crab, groundfish and OSD data ...
       
@@ -167,13 +167,10 @@
       grdfish = groundfish.db( "gshyd.georef" )
 
       for (iy in ip) {
-        yt = yr[iy]
-  
+        yt = p$runs[iy, "yrs"]
         Y = hydro.db( DS="osd.rawdata", yr=yt, p=p )
-  
           if ( is.null(Y) ) {
-        
-            Y = hydro.db( DS="osd.rawdata", yr=yr, p=p ) [1,]
+            Y = hydro.db( DS="osd.rawdata", yr=2000, p=p ) [1,]  # dummy entry using year=2000
             Y$id =  "dummy"
             Y$yr =  yt
             Y$dayno = 1
@@ -266,11 +263,10 @@
         return(Z)
       }
 
-      if ( is.null(ip)) ip = 1:length(yr)
+      if ( is.null(ip)) ip = 1:length(p$nruns)
 
       for (iy in ip) {
-        yt = yr[iy]
-        
+        yt = p$runs[iy, "yrs"]
         Y = hydro.db( DS="profiles.annual", yr=yt, p=p )
         # Bottom temps
         if (is.null(Y)) next()
@@ -344,7 +340,11 @@
        
   
       if (DS == "bottom.gridded.redo" ) {
-        for (y in yr) {
+          
+        if ( is.null(ip)) ip = 1:length(p$nruns)
+        
+        for (iip in ip) {
+          y = p$runs[iip, "yrs"]
           fn = file.path( loc.gridded , paste( "bottom", y, "rdata", sep="." ) )
           print(fn)
           tp = NULL

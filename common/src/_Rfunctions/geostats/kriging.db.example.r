@@ -61,15 +61,16 @@
   
       model.habitat( model.type="gam.full.redo", p=p, plotdata=F ) # only a single habitat type is used with this method
 
-      parallel.run( clusters=p$clusters, n=length(p$yearswithTdata), snowcrab.habitat.db.old, 
-        DS="habitat.redo",   model.type=p$model.type, vclass=vclass, pyears=p$yearswithTdata,  init.files=init.files, p=p ) 
+      p = make.list( list( yrs=p$yearswithTdata ), Y=p )
+      parallel.run( snowcrab.habitat.db.old, DS="habitat.redo", model.type=p$model.type, vclass=vclass, pyears=p$yearswithTdata, init.files=init.files, p=p ) 
 
 
       # V prepare prediction surface data sets for kriging analysis and GAM
       # snowcrab.habitat.db.old( DS="PS.redo", p=p, yrs=p$years.to.model,  model.type=p$model.type, vclass=vclass) 
       # or 
-      parallel.run( clusters=p$clusters, n=length(p$years.to.model), snowcrab.habitat.db.old, DS="PS.redo", p=p, 
-        yrs=p$years.to.model, model.type=p$model.type, vclass=vclass, init.files=init.files) 
+      
+      p = make.list( list( yrs=p$years.to.model ), Y=p )
+      parallel.run( snowcrab.habitat.db.old, DS="PS.redo", p=p, yrs=p$years.to.model, model.type=p$model.type, vclass=vclass, init.files=init.files) 
     
 
 			# determine potential habitat stats in historical data ( 1950 to present ) for timeseries plots
@@ -99,11 +100,11 @@
 
         # kriging.db( DS="UK.redo", p=p, init.files=init.files  ) 
         # or
-        parallel.run( clusters=p$clusters, n=p$nruns, kriging.db, DS="UK.redo", p=p, init.files=init.files  ) 
+        parallel.run( kriging.db, DS="UK.redo", p=p, init.files=init.files  ) 
         
         # the following is completed within the kriging.db but can be re-run this way: 
         # map.krige.lattice( M=p, init.files=init.files )
-        # parallel.run( clusters=p$clusters, n=p$nruns, map.krige.lattice, M=p, init.files=init.files )
+        # parallel.run( map.krige.lattice, M=p, init.files=init.files )
 
         # test plot 
         # PS = kriging.db( DS="UK.point.PS", p=list(v="R0.mass", y=p$current.assessment.year, r="cfanorth")  ) 
@@ -150,8 +151,8 @@
         # kriging.db( DS="UK.redo", p=p, overwrite.threshold=NULL ) # overwrite all data files  
         # kriging.db( DS="UK.redo", p=p, overwrite.threshold=-1 ) # complete only if no data files exist 
         # kriging.db( DS="UK.redo", p=p, overwrite.threshold=100 ) # overwrite if over a certain number of days  
-        parallel.run( clusters=p$clusters, n=p$nruns, kriging.db, DS="UK.redo", p=p, init.files=init.files, overwrite.threshold=NULL  )  
-        # parallel.run( clusters=p$clusters, n=p$nruns, kriging.db, DS="UK.redo", p=p, init.files=init.files, overwrite.threshold=200  )  # ~ 0.4 GB / process (GSTAT)
+        parallel.run( kriging.db, DS="UK.redo", p=p, init.files=init.files, overwrite.threshold=NULL  )  
+        # parallel.run( kriging.db, DS="UK.redo", p=p, init.files=init.files, overwrite.threshold=200  )  # ~ 0.4 GB / process (GSTAT)
         # ~ 0.4 GB / process (GSTAT);; 
         # overwrite.threshold is # days required to trigger an over-write
         # overwrite.threshold=NULL  is overwrite all

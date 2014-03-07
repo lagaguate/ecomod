@@ -6,10 +6,10 @@
   # loadfunctions( "bio", functionname="bio.r" )
 
 
-	loadlibraries (c("chron", "fields", "rgdal", "snow", "mgcv", "arm" ))
 
 	p = list()
   p$init.files = loadfunctions(c( "common", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
+	p$libs = loadlibraries (c("chron", "fields", "rgdal", "snow", "mgcv", "arm" ))
   
   p = spatial.parameters( type="SSE" ) # 4VWX
   p$studyarea = c( "4vwx" )
@@ -158,11 +158,11 @@
     # --------------
     # predict data: gridded extrapolations to full domain  
     p = make.list( list( y=p$yearstomodel), Y=p )
-    parallel.run( clusters=p$clusters, n=p$nruns,  predict.discretised.habitat, DS="sim.redo", p=p ) 
+    parallel.run( predict.discretised.habitat, DS="sim.redo", p=p ) 
 
       
     p = make.list( list(y=p$yearstomodel ), Y=p )
-    parallel.run( clusters=p$clusters, n=p$nruns,  predict.discretised.habitat, DS="map.habitat", p=p ) 
+    parallel.run( predict.discretised.habitat, DS="map.habitat", p=p ) 
 
   }  # end for each species
 

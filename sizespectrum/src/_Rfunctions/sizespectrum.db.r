@@ -102,12 +102,7 @@
       p$bigmem.desc = describe(nss)
   
       p = make.list( list( nsets=1:p$nsets ), Y=p ) 
- 
-      if ( length( p$clusters) > 1 ) {
-        parallel.run( clusters=p$clusters, n=p$nruns, sizespectrum.compute, p=p, sm=sm )
-      } else {
-        sizespectrum.compute ( p=p, sm=sm )
-      }
+      parallel.run( sizespectrum.compute, p=p, sm=sm )
 
       nss <- attach.big.matrix( p$bigmem.desc )
       nss = as.data.frame(as.matrix(nss) )

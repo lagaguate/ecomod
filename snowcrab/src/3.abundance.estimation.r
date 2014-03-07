@@ -98,13 +98,12 @@
       # Parameterize habitat space models for various classes, 
       # see: habitat.model.db( DS="habitat.redo" ... )
       
-  p$clusters = rep("localhost", detectCores() )
+      p$clusters = rep("localhost", detectCores() )
    
       p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
-      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="habitat.redo", p=p )  
+      parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
       # habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
       #  --- parallel mode is not completing ... FIXME
-
 
       # ---------------------
       testing.environmentals.only = FALSE
@@ -115,7 +114,7 @@
         p = make.list( list(v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
           habitat.model.db (DS="habitat.redo", p=p ) 
         p = make.list( list(y=1970:p$current.assessment.year, v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
-          parallel.run( clusters=p$clusters, n=length(p$yearswithTdata), snowcrab.habitat.db, p=p ) 
+          parallel.run( snowcrab.habitat.db, p=p ) 
         # or
         # snowcrab.habitat.db (p=p) -- working?    
       }      
@@ -124,7 +123,7 @@
       # ---------------------
       # model abundance and intermediate predictions 
       p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
-      parallel.run( clusters=p$clusters, n=p$nruns, habitat.model.db, DS="abundance.redo", p=p )
+      parallel.run( habitat.model.db, DS="abundance.redo", p=p )
       # habitat.model.db( DS="abundance.redo", p=p) 
       
       
@@ -138,10 +137,8 @@
 
       # p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )
       p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
-      
+      parallel.run( interpolation.db, DS="interpolation.redo", p=p )
 			# interpolation.db ( DS="interpolation.redo", p=p )
-      # or:
-      parallel.run( clusters=p$clusters, n=p$nruns, interpolation.db, DS="interpolation.redo", p=p )
 
       # collect all results into a single file and return: 
       K = interpolation.db( DS="interpolation.simulation", p=p  ) 

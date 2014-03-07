@@ -1,6 +1,10 @@
  
   predict.discretised.habitat = function(ip=NULL, DS="", p=NULL, yr=NULL ){
  
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (is.null(ip)) ip = 1:p$nruns
+
     dir.create( file.path( project.directory("habitatsuitability"), p$speciesofinterest ), recursive=T, showWarnings=F )
         
     if (DS %in% c( "model.pa", "model.pa.redo") ) {
@@ -11,8 +15,6 @@
         return(Q)
       }
       
-      require(mgcv)
-
       W = habitatsuitability.data.extract(p)
 
       W$plon = jitter(W$plon)
@@ -49,7 +51,6 @@
         load(fn.model.ra)
         return(Q)
       }
-      require(mgcv)
     
       W = habitatsuitability.data.extract(p)
 
@@ -113,11 +114,6 @@
         return( out )
       }
 
-
-
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:p$nruns
-
       
       W = habitatsuitability.data.extract(p)
       qs = c(0.05, 0.95)   ### <<<< is this too small a range? >>  c(0.01, 0.99) 
@@ -125,7 +121,7 @@
 
       for ( iip in 1:p$nruns ) {
         
-        y = p$runs[iip,"y"]
+        y = p$runs[iip, "y"]
         
         fn.ts = file.path( tdir, paste( "TS", y, "rdata", sep=".")) 
         fn.ps = file.path( gdir, paste( "PS", y, "rdata", sep="."))
@@ -217,9 +213,6 @@
 
     if (DS =="map.habitat" ) {
 
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:p$nruns
-      
       map.loc = file.path( project.directory("habitatsuitability"), p$speciesofinterest, "maps" )
       dir.create (map.loc,  recursive=T, showWarnings=F )
       planar.corners = data.frame(rbind( cbind( plon=p$corners$plon, plat=p$corners$plat ))) 

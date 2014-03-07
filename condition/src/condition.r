@@ -55,16 +55,16 @@
 
   # model the data ~ 14GB/ variable
   p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
-  parallel.run( clusters=p$clusters, n=p$nruns, condition.model, p=p, DS="redo" ) 
+  parallel.run( condition.model, p=p, DS="redo" ) 
 
 
   # predict data: gridded extrapolations to full domain  
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, condition.interpolate, p=p, DS="redo" ) 
+  parallel.run( condition.interpolate, p=p, DS="redo" ) 
   
 
   # map everything
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, condition.map, p=p, type="annual"  ) 
+  parallel.run( condition.map, p=p, type="annual"  ) 
   # condition.map ( p=p, type="annual" )
 

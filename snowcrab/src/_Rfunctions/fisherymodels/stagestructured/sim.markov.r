@@ -1,18 +1,14 @@
 
   sim.markov = function( ip=NULL, p, DS="file" ) {
       
-    if (length( p$clusters ) > 1 ) { 
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-    } 
-    
-    if (is.null(ip)) ip = 1:length(p$exploit.rate)
-    ip = as.numeric(ip)   # indexing variable (year) of the serial or parallel run
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (is.null(ip)) ip = 1:p$nruns
    
     fn.root =  file.path( project.directory("snowcrab"), "markov"  )
     fn =  file.path( project.directory("snowcrab"), "markov", paste( p$senario, "rdata", sep=".")  )
 
     dir.create( fn.root, recursive=T, showWarnings=F )
-
 
     if ( DS=="saved" ) { # default is to return the saved output
       load (fn )
@@ -36,8 +32,7 @@
     prj = FB = out =NULL
     
     for ( i in ip ) {
-      
-      ER = p$exploit.rate[i]
+      ER = p$runs[, "er"]
       sizes = mean.weights.by.category( p )  # use the previously saved file
       
       tmatrix = transition.matrices(p) 

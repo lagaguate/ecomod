@@ -1,5 +1,5 @@
 
-  lookup.spatial = function( id=NULL, X, Y, do.parallel, init.files, distance.threshold.km=1, ix=1, iy=2, iz=3 ) {
+  lookup.spatial = function( id=NULL, X, Y, init.files, distance.threshold.km=1, ix=1, iy=2, iz=3 ) {
     
     # this can be made faster by using plon and plat and a direct search for distance
     # ie. rectangular blocks but at the cost of warped space at the extremes ... should explore
@@ -19,7 +19,7 @@
 
     # compute variogram parameters this way too ...     
     for ( i in id ) {
-      if (!do.parallel) print(i)
+      print(i)
       
       # approximation appropriate for scotian shelf 
       # initial screen based upon 1 nm ~ 1.85 km, or 1 km ~ 0.54 nm

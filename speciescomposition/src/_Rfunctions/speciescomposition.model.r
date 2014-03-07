@@ -3,7 +3,7 @@
     
     if (exists( "init.files", p)) loadfilelist( p$init.files ) 
     if (exists( "libs", p)) loadlibraries( p$libs ) 
-
+    if (is.null(ip)) ip = 1:p$nruns
 
     if (DS=="saved") {
       models = NULL
@@ -11,15 +11,12 @@
       fn.models = file.path( ddir, paste("speciescomposition.models", var, yr, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
-
     }
-
-    if (is.null(ip)) ip = 1:p$nruns
 
     for ( iip in ip ) {
       ww = p$runs[iip,"vars"]
-      yr = p$runs[iip,"yrs"]
       modeltype = p$runs[iip,"modtype"]
+      yr = p$runs[iip,"yrs"]
       print( p$runs[iip,])
   
       ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain, p$taxa, p$season, modeltype  )
@@ -30,7 +27,6 @@
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]
       SC = na.omit( SC )
-      
  
       yrsw = c( p$movingdatawindow + yr  ) 
       ioo = which( SC$yr %in% yrsw ) # default year window centered on focal year

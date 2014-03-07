@@ -9,17 +9,14 @@
     require(RODBC)
 
 
-
     if (is.null(biochem.user)) biochem.user = "you.need.to.define.biochem.user"
     if (is.null(biochem.password)) biochem.password = "you.need.to.define.biochem.password"
-
 
 
     biochem.db( DS="odbc.datadump" ) 
     biochem.db( DS="flatten" ) 
     biochem.db( DS="scotian.shelf.redo" )
     
-
 
     # Biochem data analysis  .. focus on bottom oxygen
 
@@ -34,7 +31,6 @@
     # only one data stream necessary at present .. the largest extent
     p = spatial.parameters( p=p, type= "canada.east" )
     
-
 
     for ( j in c("SSE", "canada.east" ) ) {
         

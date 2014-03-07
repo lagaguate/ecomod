@@ -1,11 +1,12 @@
 
-  hydro.map = function( ip=NULL, p=NULL, yr, type="annual", ... ) {
+  hydro.map = function( ip=NULL, p=NULL, type="annual", ... ) {
     
     # ip is the first parameter passed in the parallel mode
     
     if (exists( "init.files", p)) loadfilelist( p$init.files ) 
     if (exists( "libs", p)) loadlibraries( p$libs ) 
-    if (is.null(ip)) ip = 1:length(yr)
+    
+    if (is.null(ip)) ip = 1:length(p$nruns)
 
 		require( lattice )
 		datarange = seq(-0.5,12, length.out=50)
@@ -19,7 +20,7 @@
       xyz = bathymetry.db( p=p, DS="Z.planar" )
       xyz = xyz[, c("plon", "plat")]
       for (iy in ip ) {
-        y = yr[iy] 
+        y = p$runs[iy, "yrs"] 
         H = temperature.interpolations( p=p, DS = "temporal.interpolation", yr=y  )
         if (is.null(H)) next ()
         for (w in 1:52) {
@@ -40,7 +41,7 @@
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
  
       for (iy in ip ) {
-        y = yr[iy] 
+        y = p$runs[iy, "yrs"] 
         print(y)
         
         H = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )

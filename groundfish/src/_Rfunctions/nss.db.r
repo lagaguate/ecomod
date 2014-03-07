@@ -1,5 +1,5 @@
 
-  nss.db = function(  DS="", nss.taxa="all", nss.base=2, nss.type="mass", nss.distances=1, nss.stimes=30, clusters="localhost", init.files=NULL, plottimes=NULL, regions=NULL, nss.bins=NULL ) {
+  nss.db = function(  DS="", nss.taxa="all", nss.base=2, nss.type="mass", nss.distances=1, nss.stimes=30, clusters="localhost", init.files=NULL, plottimes=NULL, regions=NULL, nss.bins=NULL, cltype="SOCK" ) {
   
     if (length( clusters) > 1 ) {
       do.parallel = T
@@ -34,10 +34,12 @@
       if (!do.parallel) {
         nss = nss.core( set=set, nss.base=nss.base, nss.distances=nss.distances, nss.stimes=nss.stimes, nss.taxa=nss.taxa, nss.type=nss.type, nss.bins=nss.bins, do.parallel=F,  init.files=init.files )
       } else if (do.parallel) {
-        pp = prep.parallel.run( clusters, nid )
-          nss.pp = clusterApplyLB( pp$cl, pp$ssplt, fun=nss.core, set=set, nss.base=nss.base,
-            nss.distances=nss.distances, nss.stimes=nss.stimes, nss.taxa=nss.taxa, nss.type=nss.type, nss.bins=nss.bins, do.parallel=T, init.files=init.files )
-        stopCluster(pp$cl)
+        cl = makeCluster( spec=clusters, type=cltype)
+        ssplt = lapply( clusterSplit(cl, 1:nid), function(i) i )      
+        nss.pp = clusterApplyLB( cl, ssplt, 
+            fun=nss.core, set=set, nss.base=nss.base, nss.distances=nss.distances, 
+            nss.stimes=nss.stimes, nss.taxa=nss.taxa, nss.type=nss.type, nss.bins=nss.bins, do.parallel=T, init.files=init.files )
+        stopCluster(cl)
         for (m in 1:length(nss.pp)) nss = rbind(nss , nss.pp[[m]])
       }
 

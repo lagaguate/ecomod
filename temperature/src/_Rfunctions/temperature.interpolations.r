@@ -52,13 +52,8 @@
       # required to operate with bigmemory objects in parallel 
       p$tbot.desc = describe(tbot)
       p$tbot.se.desc = describe(tbot.se)
-
       
-      if (length( p$clusters) == 1 ) {
-        temporal.interpolation ( p=p )
-      } else {
-        parallel.run( clusters=p$clusters, n=p$nruns, temporal.interpolation, p=p )
-      }
+      parallel.run( temporal.interpolation, p=p )  # will run serially if no clusters == 1
 
 			tbot <- attach.big.matrix( p$tbot.desc )
 			tbot.se <- attach.big.matrix( p$tbot.se.desc )

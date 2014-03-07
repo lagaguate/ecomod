@@ -1,21 +1,42 @@
 
   
-  parallel.run = function( clusters, n, FUNC, export=NULL, clustertype="SOCK", ... ) {
-    # used for running in parallel where output is directly to a storage device ... 
-		# no need to process /reformat data .. eg.  maps, etc
-      require(snow)
+  parallel.run = function( FUNC, p, export=NULL,  ... ) {
+    # expectation of all relevant parameters in a list 'pl'
+      require(parallel)
+      
+      res = with( p, {
 
-      cl = makeCluster( spec=clusters, type=clustertype )  # SOCK works well but does not load balance as MPI 
-      clusterSetupRNG(cl)
- 
-      idx = clusterSplit( cl, 1:n )
-      ssplt = lapply( idx, function(i) i )
-      if ( !is.null(export)) clusterExport( cl, export )
-      #			clusterApplyLB( cl, ssplt, FUNC, ... )
-			clusterApply( cl, ssplt, FUNC, ... )
+        if (!exists("clusters")) {
+          k = detectCores()
+          clusters = "localhost"
+          print( paste( "Using serial mode as no clusters were defined.", k, "cores are found on localhost, Define 'p$clusters' if you wish to run in parallel mode." ))
+        }
 
-      stopCluster( cl )
-    return ("Completed parallel run")
+        if (!exists("clustertype")) {
+          clustertype = "SOCK"
+          print( paste( "Using", clustertype, "connections as default, 'clustertype' was not defined." ))
+        }
+        
+        if (!exists("rndseed")) {
+          rndseed = round( runif(1)*100 )  
+          print( paste( "Using", rndseed, "as the default random number seed for parallel operations, 'rndseed' was not defined." ))
+        }
+
+        if (!exists("nruns")) stop( "Must define 'nruns' in the paramater list")
+        
+        if ( length(clusters) == 1 ) {
+          out = FUNC( p=p, ... )
+        } else {
+          cl = makeCluster( spec=clusters, type=clustertype ) # SOCK works well but does not load balance as MPI 
+          clusterSetRNGStream(cl, iseed=rndseed )
+          ssplt = lapply( clusterSplit( cl, 1:nruns ), function(i) i )
+          if ( !is.null(export)) clusterExport( cl, export )
+          out = clusterApplyLB( cl, ssplt, FUNC, p=p, ... )
+          # clusterApply( cl, ssplt, FUNC, p=p, ... )
+          stopCluster( cl )
+        out  # return this
+      })
+      return(res)
   }
 
 

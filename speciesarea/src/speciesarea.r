@@ -76,19 +76,19 @@
   # create a spatial interpolation model for each variable of interest ~ 10 min
   # for Fulll model each process requires 30-40 GB 
   p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
-  parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.model.spatial, DS="redo", p=p ) 
+  parallel.run( speciesarea.model.spatial, DS="redo", p=p ) 
   # speciesarea.model.spatial ( DS="redo", p=p ) 
 
 
   # predictive interpolation to full domain (iteratively expanding spatial extent) ~ 30 min to 1 hr / year (simple)
   p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.interpolate, DS="redo", p=p ) 
+  parallel.run( speciesarea.interpolate, DS="redo", p=p ) 
   # speciesarea.interpolate( DS="redo", p=p ) 
 
 
   # map everything
   p = make.list( list( vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods ), Y=p )
-  parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.map, p=p, type="annual"  ) 
+  parallel.run( speciesarea.map, p=p, type="annual"  ) 
   # speciesarea.map( p=p, type="annual"  ) 
 
 

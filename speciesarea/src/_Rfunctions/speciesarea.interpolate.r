@@ -1,9 +1,5 @@
 
   speciesarea.interpolate = function( ip=NULL, p=NULL, DS="saved", modtype=NULL, vname=NULL, yr=NULL ) {
-      
-    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-    if (exists( "libs", p)) loadlibraries( p$libs ) 
-
      
     if (DS=="all") {
       # glue all variables for 1 year
@@ -17,7 +13,6 @@
       }
       return ( sc )
     }
-
  
     if (DS=="saved") {
       SC = NULL
@@ -27,9 +22,11 @@
       return ( SC )
     }
     
- 
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
     if (is.null(ip)) ip = 1:p$nruns
- 
+
+
     for ( iip in ip ) {
       yr = p$runs[iip,"yrs"]
       modtype = p$runs[iip,"modtype"]

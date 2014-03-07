@@ -1,7 +1,11 @@
 
  
   isobath.db = function( ip=NULL, p=NULL, depths, DS="" ) {
-      
+
+    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (is.null(ip)) ip = 1:p$nruns
+
       if ( DS == "" ) {
         out = NULL
         for (d in depths) {
@@ -16,8 +20,6 @@
   
 			# ip is the first parameter passed in the parallel mode
     
-      if (!is.null(p$init.files)) for( i in p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length( depths )
 
 			p$mapres = "-I20c" 
 			p$gmtproj = "-JM6i"
@@ -29,7 +31,7 @@
 
 			for (id in ip ) {
 
-				d = depths[ id ]
+				d = p$runs[ id, "depths" ]
         
 				fn = file.path( project.directory("bathymetry"), "isobaths", paste( p$spatial.domain, "isobath", d, "rdata", sep=".") )
         ib = NULL

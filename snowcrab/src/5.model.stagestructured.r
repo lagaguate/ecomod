@@ -3,9 +3,8 @@
   # forward projection
   
   # ++++++++++ must check timing of 4X to make sure that the season is not an issue ++++++++++
-
-  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-
+  p=list()
+  p$init.files = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
   p$clusters = "localhost"
   # p$clusters = rep("localhost",2)
@@ -33,7 +32,8 @@
     tmatrix = transition.matrices( p, redo=T) 
   }
 
-  parallel.run( clusters=p$clusters, n=p$nclusters, sim.markov, p=p, DS="redo" ) 
+  p = make.list( list( er = 1:length(p$exploit.rate))  , Y=p )
+  parallel.run( sim.markov, p=p, DS="redo" ) 
   sim.markov( p=p, DS="redo" ) 
  
   fp = sim.markov( p=p, DS="collect" )

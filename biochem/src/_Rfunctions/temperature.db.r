@@ -77,9 +77,15 @@
 
 
     if (DS %in% c("complete", "complete.redo" )) {
+    
+      if (exists( "init.files", p)) loadfilelist( p$init.files ) 
+      if (exists( "libs", p)) loadlibraries( p$libs ) 
+      if (is.null(ip)) ip = 1:p$nruns
+ 
       ### a conveniance data table to reduce number of merges occuring during modelling steps
       ### annual stats and climatology are merged together  
       ### essentially the base level data set for habitat db but needed at a lower level as it is used for the other indicators
+      
       outdir =  file.path( project.directory("temperature"), "data", "interpolated", "complete", p$spatial.domain )
       if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("temperature"), "data", "interpolated", "complete", "SSE" )
       dir.create(outdir, recursive=T, showWarnings=F)
@@ -95,11 +101,6 @@
         return (PS)
       }
 
-      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (!is.null(p$init.files)) for( i in  p$init.files ) source (i)
-      if (is.null(ip)) ip = 1:length(p$tyears)
-      ip = as.numeric(ip)   # indexing variable (year) of the serial or parallel run
-        
       # depth is the primary constraint 
       Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
       Z$id = 1:nrow(Z)
@@ -111,7 +112,7 @@
       CL = merge( Z, CL,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F ) ## should not be required but in case ordining get messed up
 
       for (iy in ip) {
-        yr = p$tyears[iy]
+        yr = p$runs[iy, "yrs"]
         print (yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
 		

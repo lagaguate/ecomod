@@ -18,10 +18,10 @@
       }
         
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if ( is.null(ip)) ip = 1:length(p$tyears)
+      if ( is.null(ip)) ip = 1:length(p$nruns)
 
       for ( r in ip ) { 
-        y = p$tyears[r]
+        y = p$runs[r, "yrs"]
 				print ( paste("Year:", y)  )
 				
 				O = bathymetry.db( p=p, DS="baseline" )
@@ -86,10 +86,10 @@
 				return(P)
 			}
 
-      if ( is.null(ip) ) ip = 1:length(vname)
+      if ( is.null(ip) ) ip = 1:length(p$nruns)
  
 			for ( iv in ip ) {
-				vn = vname[iv]
+				vn = p$runs[iv, "vname"]
 				B = NULL
 				for (y in p$tyears ) {
 					H = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y ) 

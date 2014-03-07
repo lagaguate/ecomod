@@ -5,7 +5,6 @@
     if (exists( "init.files", p)) loadfilelist( p$init.files ) 
     if (exists( "libs", p)) loadlibraries( p$libs ) 
 
-
     if (DS=="saved") {
       models = NULL
       ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season, modeltype )
@@ -33,7 +32,6 @@
       vlist = setdiff( all.vars( formu ), "spatial.knots" )
       SC = SC[, vlist]
       SC = na.omit( SC )
-
        
       yrsw = c( p$movingdatawindow + yr  ) 
       ioo = which( SC$yr %in% yrsw ) # default year window centered on focal year

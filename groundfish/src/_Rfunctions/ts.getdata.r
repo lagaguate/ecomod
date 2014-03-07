@@ -1,5 +1,5 @@
 
-ts.getdata = function (set=NULL, from.file=T, variables=NULL, plottimes=NULL, regions=NULL, do.parallel=F, fname="all", custom="normal", clusters=NULL, init.files=NULL ) {
+ts.getdata = function (set=NULL, from.file=T, variables=NULL, plottimes=NULL, regions=NULL, do.parallel=F, fname="all", custom="normal", clusters=NULL, init.files=NULL, cltype="SOCK" ) {
 
   outfile1 = paste( "byyear", fname, "rdata", sep=".")
   outfile2 = paste( "bystrata", fname, "rdata", sep=".")
@@ -20,12 +20,11 @@ ts.getdata = function (set=NULL, from.file=T, variables=NULL, plottimes=NULL, re
       res = get.ts.core( set=set, do.parallel=F, regions=regions, plottimes=plottimes, variables=variables, custom=custom , init.files=init.files)
       byyear = res$byyear
       bystrata = res$bystrata
-    }
-    if (do.parallel) {
-      snow = prep.parallel.run(clusters, nid)
-      print(snow)
-      ts.snow = clusterApplyLB( snow$cl, snow$ssplt, get.ts.core, set=set, do.parallel=T, regions=regions, plottimes=plottimes, variables=variables, custom=custom, init.files=init.files   )
-      stopCluster(snow$cl)
+    } else {
+      cl = makeCluster( spec=clusters, type=cltype)
+      ssplt = lapply( clusterSplit(cl, 1:nid), function(i) i )   # subset data into lists
+      ts.snow = clusterApplyLB( cl, ssplt, get.ts.core, set=set, do.parallel=T, regions=regions, plottimes=plottimes, variables=variables, custom=custom, init.files=init.files   )
+      stopCluster(cl)
       byyear = bystrata = NULL
       for (m in 1:length(ts.snow)) {
         byyear = rbind( byyear, ts.snow[[m]]$byyear)

@@ -83,7 +83,7 @@
 		p = spatial.parameters( p=p, type=j )
     p = make.list( list( yrs=p$yearstomodel), Y=p )
     habitat.db( DS="complete.redo", p=p ) 
-    # parallel.run(  clusters=p$clusters, n=p$nruns, habitat.db, DS="complete.redo", p=p )
+    # parallel.run(  habitat.db, DS="complete.redo", p=p )
     # habitat.db( DS="complete_no.biologicals.redo", p=p )  # not used but here in case
   }
 

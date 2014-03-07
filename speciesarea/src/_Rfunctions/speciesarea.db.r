@@ -49,13 +49,8 @@
       p$bigmem.desc = describe(sar)
       p$bigmem.ny.desc = describe(sar.ny)  # counts the # of years of data
 
-      
       p = make.list( list( nsets=1:p$nsets ), Y=p )
-      if ( length( p$clusters) > 1 ) {
-        parallel.run( clusters=p$clusters, n=p$nruns, species.count.engine, p=p, set=set, sc=scat )
-      } else {
-        species.count.engine ( p=p, set=set, sc=scat )
-      }
+      parallel.run( species.count.engine, p=p, set=set, sc=scat )
   
       sar <- attach.big.matrix( p$bigmem.desc )
       sar.ny <- attach.big.matrix( p$bigmem.ny.desc )
@@ -101,21 +96,14 @@
         p$fn.desc = paste( p$fn.tmp, "desc", sep="." )
         o = big.matrix(nrow=p$nsets, ncol=p$nvars, 
             type="double" , init=NA, backingfile=p$fn.tmp, descriptorfile=p$fn.desc) 
-
       } else {
-      
         o = big.matrix(nrow=p$nsets, ncol=p$nvars, type="double", init=NA ) 
-      
       }
 
       p$bigmem.desc = describe(o)
 
       p = make.list( list( nsets=1:p$nsets ), Y=p )
-      if ( length( p$clusters) > 1 ) {
-        parallel.run( clusters=p$clusters, n=p$nruns, speciesarea.statistics, p=p )
-      } else {
-        speciesarea.statistics(p=p)
-      }
+      parallel.run( speciesarea.statistics, p=p )
  
       o <- attach.big.matrix( p$bigmem.desc )
       o = as.data.frame(o[])
