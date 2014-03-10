@@ -78,11 +78,10 @@
   # .. ie. area-specific divisions of data and gridding 
   # to optimize speed for snow crab /SSE only results 
 
-  #   j = "SSE"  # do first
-  #   j = "canada.east" # can be completed later (after assessment) when time permits
- 
+
     
     # update spatial parameters for the region of interest
+    #  j = "canada.east" # can be completed later (after assessment) when time permits
     j = "SSE"
     p = spatial.parameters( p=p, type=j )
   	P = bathymetry.db( p=p, DS="baseline" )
@@ -156,128 +155,132 @@
     parallel.run( hydro.map, p=p, type="global") 
 
 
-  }
 
 
+debug = FALSE
+
+if (debug) { 
 
 # ----------------
 # to access data:
-    p = spatial.parameters( type="SSE" )
-    tp = hydro.db(  p=p, DS="profiles.annual", yr=2007 )
-    tp = hydro.db(  p=p, DS="bottom.annual", yr=2007 )
+        p = spatial.parameters( type="SSE" )
+        tp = hydro.db(  p=p, DS="profiles.annual", yr=2007 )
+        tp = hydro.db(  p=p, DS="bottom.annual", yr=2007 )
 
 
-    
+        
 # ----------------
 #  test analysis spatial variations in temperature
 
-    require( gstat )
-    p = spatial.parameters( type="SSE" )
-    
-    O = hydro.db( p=p, DS="bottom.gridded" )
-    O = O[, c("plon", "plat", "t", "yr", "weekno")]
-    O = O[ which( is.finite(O$t)) ,]
+        require( gstat )
+        p = spatial.parameters( type="SSE" )
+        
+        O = hydro.db( p=p, DS="bottom.gridded" )
+        O = O[, c("plon", "plat", "t", "yr", "weekno")]
+        O = O[ which( is.finite(O$t)) ,]
 
-    testyear = 2006
-    i = which(O$yr == testyear & O$weekno %in% testweeks ) 
+        testyear = 2006
+        i = which(O$yr == testyear & O$weekno %in% testweeks ) 
 
-    ee.g = gstat( id = "t", formula=t~plon+plat, locations=~plon+plat, data=O[i,] ) 
-    vg <- variogram( ee.g, boundaries=c(2, 4, 8, 16, 20, 32, 40, 64, 80, 128, 150 ) )
-    vm0 = vgm( psill=max(vg$gamma) * 0.75, model="Mat", range=max(vg$dist)*0.5, nugget=max(vg$gamma) * 0.25, kappa = 2 ) #initial settings
-    vg.fit = fit.variogram( vg, vm0 )
-    plot( vg, model=vg.fit, plot.numbers=T )
+        ee.g = gstat( id = "t", formula=t~plon+plat, locations=~plon+plat, data=O[i,] ) 
+        vg <- variogram( ee.g, boundaries=c(2, 4, 8, 16, 20, 32, 40, 64, 80, 128, 150 ) )
+        vm0 = vgm( psill=max(vg$gamma) * 0.75, model="Mat", range=max(vg$dist)*0.5, nugget=max(vg$gamma) * 0.25, kappa = 2 ) #initial settings
+        vg.fit = fit.variogram( vg, vm0 )
+        plot( vg, model=vg.fit, plot.numbers=T )
 
-    # running various models suggest on dates with good data :
-    #   range: about 40 km
-    #   nugget: 1.5
-    #   partial sill: 3.7
-    
+        # running various models suggest on dates with good data :
+        #   range: about 40 km
+        #   nugget: 1.5
+        #   partial sill: 3.7
+        
 
 
 
- # ----------------
+     # ----------------
 #  test analysis GAMM ... localised
 
- 
+     
 
-    
+        
 
- # ----------------
+     # ----------------
 #  test analysis GAMM ... global 
 
-    require( mgcv )
-    p = spatial.parameters( type="SSE" )
- 
-    O = hydro.db( p=p, DS="bottom.gridded.all"  )
-    O = O[, c("plon", "plat", "t", "yr", "weekno")]
-    O = O[ which( is.finite(O$t)) ,]
-
-   
-    testyears = c(1950:2007)
-    testyears = sort( unique(O$yr) )
+        require( mgcv )
+        p = spatial.parameters( type="SSE" )
      
-    i = which( O$yr %in% testyears ) 
-    # i = sample( i, floor(length(i) * 0.1 )) 
+        O = hydro.db( p=p, DS="bottom.gridded.all"  )
+        O = O[, c("plon", "plat", "t", "yr", "weekno")]
+        O = O[ which( is.finite(O$t)) ,]
 
-    O = O[ i, ]
+       
+        testyears = c(1950:2007)
+        testyears = sort( unique(O$yr) )
+         
+        i = which( O$yr %in% testyears ) 
+        # i = sample( i, floor(length(i) * 0.1 )) 
 
-    e = gam( t ~ s(yr, weekno) + s(plon, plat) , data=O[i,] )
+        O = O[ i, ]
 
-
-
-   
-    e = gam( t ~ s(yr, ttime) + s(plon, plat) , data=O )
-    e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1 ) )
-    e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1,ttime=~1 ) )
-    e = gamm( t~ s(yr) + ttime + s(plon,plat), data=O, random=list(plonplat=~1 ) )
-
-    e = gamm( t~ s(yr,weekno) + s(plon,plat), data=O, random=list(plon=~1, plat=~1), correlation=corSpher( c(range, nugg), form = ~ plon+plat, nugget=T) )
-    
-    
-    summary(e)
-    AIC(e)
-    plot(e, all.terms=T, pers=T,theta=60)
+        e = gam( t ~ s(yr, weekno) + s(plon, plat) , data=O[i,] )
 
 
 
-    # ---------------------
-    # data extraction for Katja Fennel
+       
+        e = gam( t ~ s(yr, ttime) + s(plon, plat) , data=O )
+        e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1 ) )
+        e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1,ttime=~1 ) )
+        e = gamm( t~ s(yr) + ttime + s(plon,plat), data=O, random=list(plonplat=~1 ) )
+
+        e = gamm( t~ s(yr,weekno) + s(plon,plat), data=O, random=list(plon=~1, plat=~1), correlation=corSpher( c(range, nugg), form = ~ plon+plat, nugget=T) )
+        
+        
+        summary(e)
+        AIC(e)
+        plot(e, all.terms=T, pers=T,theta=60)
 
 
 
-    # start data uptake and processing
+        # ---------------------
+        # data extraction for Katja Fennel
 
-    p = list()
-    p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
-    p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
 
-    p = spatial.parameters( p=p, type= "SSE" )
-    
-    out = NULL
-    out = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=p$tyears[1] )
-    out = planar2lonlat( out, proj.type=p$internal.projection )
-    out = out[ , c("lon", "lat", "tmean" ) ]
-    names(out) = c( "lon", "lat", paste("tmean", p$tyears[1],sep="_") ) 
-    
-    for ( y in p$tyears[-1] ) {
-      r = NULL 
-      r = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
-      names(r) = paste( names(r), y, sep="_") 
-      iname = grep( "tmean", names(r) )
-      out = cbind( out, r[,iname] )
-    }
 
-    names(out) = c( "lon", "lat", paste( "tmean", p$tyears, sep="_") ) 
+        # start data uptake and processing
 
-    library(R.matlab)
+        p = list()
+        p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+        p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
 
-    writeMat("tdata.mat", tdata=out )
-    
+        p = spatial.parameters( p=p, type= "SSE" )
+        
+        out = NULL
+        out = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=p$tyears[1] )
+        out = planar2lonlat( out, proj.type=p$internal.projection )
+        out = out[ , c("lon", "lat", "tmean" ) ]
+        names(out) = c( "lon", "lat", paste("tmean", p$tyears[1],sep="_") ) 
+        
+        for ( y in p$tyears[-1] ) {
+          r = NULL 
+          r = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
+          names(r) = paste( names(r), y, sep="_") 
+          iname = grep( "tmean", names(r) )
+          out = cbind( out, r[,iname] )
+        }
 
-    # ----------------
- 
+        names(out) = c( "lon", "lat", paste( "tmean", p$tyears, sep="_") ) 
 
+        library(R.matlab)
+
+        writeMat("tdata.mat", tdata=out )
+        
+
+        # ----------------
      
 
+}
 
-   
+
+
+
+       

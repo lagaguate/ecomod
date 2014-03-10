@@ -43,41 +43,48 @@
 				O$w[ which( is.infinite( O$w ) ) ] = 1
 							
         out = list()
-        nmodels = 8
-        # the models that have been blanked out below are consistently poor in terms of AIC 
-        # but a few of the simplest are retained in case there is no optimal solution using all covariates
+        mds = list(
+          quote( gam( t ~ s(yr) + s(weekno), data=O ) ) ,
+          quote( gam( t ~ s(yr) + s(weekno, k=2, bs="cc"), data=O , optimizer="perf") ),
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) , data=O , optimizer="perf") ),
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) , data=O , optimizer="perf", weights=w ) ),
+          quote( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) , data=O , optimizer="perf", weights=w ) ),
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(z) , data=O , optimizer="perf") ),
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(z) , data=O , optimizer="perf", weights=w) ),
+          quote( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) + s(z) , data=O , optimizer="perf", weights=w) ),
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, optimizer="perf" )) ,
+          quote( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, optimizer="perf" )) ,
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, weights=w, optimizer="perf" )) ,
+          quote( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, weights=w, optimizer=c("outer", "nlm" ) )), 
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat, z) + s(z), data=O, optimizer="perf" )), 
+          quote( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat, z) + s(z), data=O, weights=w,  optimizer="perf" )) 
+        )
+        
+        # model attempt sequence 
+        # mdssel = 1:length( mds)
+        mdssel = c(11, 10, 14, 7,  4 , 2, 1 )  #  orde rto try the models ... 10 and 11 generally perform best in terms of AIC
         j = 1 # output counter
-        for ( nn in 1:nmodels ) {
-          model = switch( nn,
-            try( gam( t ~ s(yr) + s(weekno), data=O ) ),
-            try( gam( t ~ s(yr) + s(weekno, k=2, bs="cc"), data=O , optimizer="perf") ),
-#            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) , data=O , optimizer="perf") ),
-#            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) , data=O , optimizer="perf", weights=w ) ),
-#            try( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) , data=O , optimizer="perf", weights=w ) ),
-#            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(z) , data=O , optimizer="perf") ),
-#            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(z) , data=O , optimizer="perf", weights=w) ),
-            try( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) + s(z) , data=O , optimizer="perf", weights=w) ),
-            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, optimizer="perf" )) ,
-            try( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, optimizer="perf" )) ,
-            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, weights=w, optimizer="perf" )) ,
-            try( gam( t ~ s(weekno, yr) + s(weekno, bs="cc") + s(yr) + s(plon, plat) + s(z), data=O, weights=w, optimizer=c("outer", "nlm" ) )), # in case perf does not converge
-            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat, z) + s(z), data=O, optimizer="perf" )) 
-#            try( gam( t ~ s(weekno, yr) + s(weekno, k=2, bs="cc") + s(yr) + s(plon, plat, z) + s(z), data=O, weights=w, optimizer="perf" )) 
-          )
+        for ( nn in mdssel ) {
+# not all the models are useful .. they are consistently poor in performance based upon AIC ... commented out to speed things up
+          model = try( eval( mds[[ nn ]] ) ) 
           if ( "try-error" %in% class(model) ) next()
-          out[[j]] = model
+          e = out[[j]] = model
           j = j+1
         }
         
         if (j==1) next() # no success 
 
-        aics = lapply( out, AIC )
-        sel = which.min( aics)
-        e = out[[sel]]  # final model
-        # print(aics)
-        # print(sel)
-
-        rm(out) ; gc()
+        debug = FALSE
+        if  (debug) {
+          # use the following in the generic case to identify best performing models
+          # force running of one model only if possible to speed things up .. the following diagnostics are 
+          aics = lapply( out, AIC )
+          sel = which.min( aics)
+          e = out[[sel]]  # final model
+          # print(aics)
+          # print(sel)
+          rm(out) ; gc()
+        }
 
 				OP2 =  OP = expand.grid( plon=Pi$plon, plat=Pi$plat, weekno=p$wtimes, yr=p$tyears, z=Pi$z )
 

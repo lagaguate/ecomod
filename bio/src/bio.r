@@ -1,15 +1,20 @@
 
   # glue biological data sets together from various surveys
 
-	p = list( init.files=loadfunctions( c( "common", "taxonomy", "groundfish", "snowcrab", "bio" ))) 
+	p = list( init.files=loadfunctions( c( "common", "taxonomy", "groundfish", "snowcrab", "bathymetry", "temperature", "habitat", "bio" ))) 
+  
+  p$init.files = loadfunctions( "snowcrab", functionname="default.project.environment" )
+  p$libs = loadlibraries ("parallel" )
 
-  loadfunctions( "snowcrab", functionname="default.project.environment" )
+  
+  p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
 
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$taxa =  "maxresolved"
   # p$seasons = "allseasons"
 	p$data.sources = c("groundfish", "snowcrab") 
-
+  p$clusters = rep("localhost", detectCores() )
+ 
 
   # load and glue data together
   bio.db( DS="set.init.redo", p=p )

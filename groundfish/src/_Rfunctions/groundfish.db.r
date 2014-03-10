@@ -475,7 +475,6 @@
         deepest = c(deepest, q[r])
       }
       gshyd = gshyd[deepest,]
-      
       oo = which( duplicated( gshyd$id ) )
       if (length(oo) > 0) stop( "Duplicated data in GSHYD" )
 

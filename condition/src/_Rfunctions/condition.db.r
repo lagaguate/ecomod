@@ -27,9 +27,13 @@
      
       # last filter on set:: filter years
       set = set[ which(set$yr %in% p$yearstomodel) , ]
+  
+      oo = which(!is.finite( set$plon+set$plat ) )
+      if (length(oo)>0)  set = set[ -oo, ]  # a required field for spatial interpolation
+    
       set = lonlat2planar( set, proj.type=p$internal.projection, ndigits=2 )
       set$platplon = paste( round( set$plat ), round(set$plon), sep="_" )
-   
+  	
       # match sets and other data sources
       det = bio.db( DS="det" ) # kg/km^2, no/km^2
       det = det[ which( det$id %in% unique( set$id) ), ]
@@ -49,10 +53,6 @@
       }
       sm$yr = NULL
       set = merge( set, sm, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-
-      set = habitat.lookup.data( p=p, sc=set, modtype="full" )
-      set = set[ which( is.finite(set$residual + set$Y ) ), ]
-
       save( set, file=fn, compress=T )
       return (fn) 
     }

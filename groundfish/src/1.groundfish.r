@@ -5,21 +5,21 @@
 # ------------------  Common initialisation for groundfish 
 # ------------------
 	
-	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
+  p = list()
+
+	p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
 # not too many as it has high memory requirements
 # clusters=c("tethys", "tethys", "io", "io", "io" )
 # clusters=c("tethys", "tethys", "tethys", "tethys", "lotka")
 # clusters=rep("kaos",10)
-  clusters=c("localhost")
-
+  p$clusters = rep("localhost", detectCores() )
+ 
 # choose taxa or taxonomic groups of interest
-  taxa = variable.list.expand("catch.summary")
+  p$taxa.of.interest = variable.list.expand("catch.summary")
 
-  season = "summer"
+  p$season = "summer"
 
-
-  p = list()
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
 
   p$taxa =  "maxresolved"
@@ -76,12 +76,12 @@
   groundfish.db( "cat.redo" )  # add correction factors, and express per unit area
   groundfish.db( "det.redo" ) # ~ 10 min on io
 
-  groundfish.db( "catchbyspecies.redo", taxa=taxa )
+  groundfish.db( "catchbyspecies.redo", taxa=p$taxa.of.interest )
 
 
 # ---------
 # 3. sm_det.rdata .. summarize condition 
-  groundfish.db( "set.det.redo", taxa=taxa )
+  groundfish.db( "set.det.redo", taxa=p$taxa.of.interest )
 
   groundfish.db( "set.complete.redo", p=p )
 

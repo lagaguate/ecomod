@@ -73,6 +73,11 @@
   p$sizespectrum.season = "allseasons"
   p$sizespectrum.variables = c( "nss.b1", "nss.rsquared", "nss.shannon")
 
+  p$condition.modeltype = "complex" 
+  p$condition.taxa = "maxresolved"
+  p$condition.season = "allseasons"
+  p$condition.variables = c( "coAll", "coFish", "coElasmo", "coGadoid", "coDemersal", "coPelagic", "coSmallPelagic", "coLargePelagic", "coSmallDemersal", "coLargeDemersal")
+
   p$metabolism.modeltype = "complex" 
   p$metabolism.taxa = "alltaxa"
   p$metabolism.season = "allseasons"

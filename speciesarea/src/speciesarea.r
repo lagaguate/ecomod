@@ -34,12 +34,13 @@
   p$season = "allseasons"
 
   # choose:
+  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  p$clusters = rep( "localhost", 4 )
-
-  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = rep( "localhost", 4 )
+  p$clusters = rep("localhost", detectCores() )
+  
 
   p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
@@ -69,7 +70,6 @@
 
   # compute species-area relationships 
   speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
-  speciesarea.db( DS="speciesarea.stats.filtered.redo", p=p ) # ~ 1 minute
   speciesarea.db( DS="speciesarea.stats.merged.redo", p=p ) # intermediary file for modelling and interpolation
 
 

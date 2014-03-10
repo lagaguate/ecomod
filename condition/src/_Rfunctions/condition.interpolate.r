@@ -52,6 +52,7 @@
       rm( P0, td); gc()
 
       sc$yr = yr # update all other records
+      
       sc$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
       sc$julian = convert.datecodes(  sc$chron, "julian" )
    

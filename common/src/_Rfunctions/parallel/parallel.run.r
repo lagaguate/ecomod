@@ -34,9 +34,11 @@
           out = clusterApplyLB( cl, ssplt, FUNC, p=p, ... )
           # clusterApply( cl, ssplt, FUNC, p=p, ... )
           stopCluster( cl )
-        out  # return this
+        }
+        return( out )  # return this
       })
-      return(res)
+      
+    return(res)
   }
 
 

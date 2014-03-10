@@ -43,6 +43,8 @@
         rm (y); gc()
       }
       
+      # set$chron = as.chron( as.numeric(string2chron( paste( paste( set$yr, "Jan", "01", sep="-" ), "12:00:00") )) + set$julian ) # required for time-dependent lookups
+      
       save( set, file=fn, compress=T )
       return (fn) 
     }
@@ -210,12 +212,10 @@
      
       print( "Interpolating depth and temperature")
 
-      p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
-
       set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
       set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
-      
       set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
+      set = habitat.lookup.data( p=p, sc=set, modtype="default" )  # temp, depth, substrate. ..
 
       save( set, file=fn, compress=T )
       return (fn) 
@@ -339,7 +339,6 @@
       cat$massTotdet[ which( !is.finite (cat$massTotdet ))] = 0  ### whenn missing it means no determinations were made
       cat = merge( cat, noTotCat, by="id2", all.x=T, all.y=F, sort=F )    # set-->no/km^2, det-->no
       cat$noTotdet[ which( !is.finite (cat$noTotdet ))] = 0  ### whenn missing it means no determinations were made
-
       
 
       cf = data.frame( cbind( cfdetm =  cat$totmass/ cat$massTotdet, cfdetn =  cat$totno/ cat$noTotdet ) )

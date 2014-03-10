@@ -179,6 +179,37 @@
         rm(SS)
 
 
+
+        # --------------- 
+        # Condition db
+
+        pm = p
+        pm$taxa = p$condition.taxa
+        pm$season = p$condition.season
+        pm$varstomodel = pm$condition.variables
+
+        CD = condition.interpolate ( DS="all", p=pm,  yr=max(1970,yr), modtype=pm$condition.modeltype )
+        
+        # remove duplicates derived from repeated tows --- slow ... 
+        oo = which( duplicated (CD$platplon ) )
+        if (length( oo)> 0 ) {
+          todrop= NULL
+          for (o in oo ) {
+            i = which( CD$platplon == CD$platplon[o] )
+            for (w in pm$condition.variables) {
+              CD[i[1],w] = mean(CD[i,w], na.rm=TRUE)
+              todrop = c(todrop, i[-1])
+            }
+          }
+          CD = CD[ -todrop, ]
+        }
+        CD = CD[ , c("plon", "plat", pm$condition.variables ) ]
+        PS = merge( PS, CD, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".CD" ) ) 
+        rm(CD)
+
+
+
+
         # --------------- 
         # metabolic rates
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found

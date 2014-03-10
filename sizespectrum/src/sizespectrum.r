@@ -78,7 +78,6 @@
 
   sizespectrum.db( DS="sizespectrum.by.set.redo", p=p ) 
   sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  
-  sizespectrum.db( DS="sizespectrum.stats.filtered.redo", p=p )
   sizespectrum.db( DS="sizespectrum.stats.merged.redo", p=p )
 
 

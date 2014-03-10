@@ -23,10 +23,12 @@
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  p$clusters = rep( "localhost", 24 )
+  # p$clusters = rep( "localhost", 24 )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos.beowulf", 24 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-  
+  p$clusters = rep("localhost", detectCores() )
+
+ 
   p$yearstomodel = 1970:2013
   p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
@@ -46,7 +48,6 @@
 
   # ordination
   speciescomposition.db( DS="speciescomposition.redo", p=p )
-  speciescomposition.db( DS="speciescomposition.filtered.redo", p=p )
   speciescomposition.db( DS="speciescomposition.merged.redo", p=p )
 			
 

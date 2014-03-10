@@ -125,48 +125,6 @@
 
 
     
-    # --------------------
-    
-    if (DS %in% c( "sizespectrum.stats.filtered", "sizespectrum.stats.filtered.redo" ) ) {
- 
-      ddir = file.path( project.directory("sizespectrum"), "data", p$spatial.domain, p$taxa, p$season )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      
-      fn = file.path( ddir, "set.sizespectrum.filtered.rdata" )
-        
-      if (DS=="sizespectrum.stats.filtered") {
-        ks = NULL
-        if (file.exists( fn) ) load( fn ) 
-        return ( ks )
-      }
-
-      ks = sizespectrum.db( DS="sizespectrum.stats", p=p )
-      sm = groundfish.db( "set.base" )
-      ks = merge (ks, sm, by="id", all.x=T, all.y=F, sort= F) 
-
-      ks = lonlat2planar( ks, proj.type=p$internal.projection, ndigits=2 )
-      ks$platplon = paste( round( ks$plat ), round(ks$plon), sep="_" )
-      
-      ks$plon = ks$plat = NULL
-      ks$lon = ks$lat = NULL
-      
-      # check for duplicates
-      for ( y in p$yearstomodel ) {
-        yy = which (ks$yr == y)
-        ii = which( duplicated( ks$id[yy] ) )
-        
-        if (length(ii) > 0) {
-          print( "The following sets have duplicated positions. The first only will be retained" )
-          print( ks[yy,] [ duplicates.toremove( ks$id[yy] ) ] )
-          ks = ks[ - ii,]
-        }
-      }
-    
-      save( ks, file=fn, compress=T )
-      
-      return (fn) 
- 
-    }
     
     # --------------------
     if (DS %in% c("sizespectrum.stats.merged", "sizespectrum.stats.merged.redo") ) {
@@ -187,23 +145,34 @@
 			P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
 			P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )
 
-      sm = sizespectrum.db( DS="sizespectrum.stats.filtered", p=p )
+      sm = sizespectrum.db( DS="sizespectrum.stats", p=p )
+      smg = groundfish.db( "set.base" )
+      sm = merge (sm, smg, by="id", all.x=T, all.y=F, sort= F) 
+
+      sm = lonlat2planar( sm, proj.type=p$internal.projection, ndigits=2 )
+      sm$platplon = paste( round( sm$plat ), round(sm$plon), sep="_" )
+      
+      sm$plon = sm$plat = NULL
+      sm$lon  = sm$lat = NULL
+      
+      # check for duplicates
+      for ( y in p$yearstomodel ) {
+        yy = which (sm$yr == y)
+        ii = which( duplicated( sm$id[yy] ) )
+        
+        if (length(ii) > 0) {
+          print( "The following sets have duplicated positions. The first only will be retained" )
+          print( sm[yy,] [ duplicates.toremove( sm$id[yy] ) ] )
+          sm = sm[ - ii,]
+        }
+      }
+
       sm = sm[ which( is.finite(sm$nss.b0) ) ,]
       
 			SC = merge( sm, P0, by="platplon", all.x=T, all.Y=F, sort= F)
 			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
 		  rm(sm, P0); gc()
       
-			SC$chron = as.chron( as.numeric(string2chron( paste( paste( SC$yr, "Jan", "01", sep="-" ), "12:00:00") )) + SC$julian ) # required for time-dependent lookups
-   
-      if (!exists( "z", SC)) SC$z = NA
-			SC$z = habitat.lookup.simple( SC,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances ) 
-			
-      if (!exists( "t", SC)) SC$t = NA
-      SC$t = habitat.lookup.simple( SC,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
-	
-      SC = habitat.lookup.data( p=p, sc=SC, modtype="default" )
-
       save(SC, file=fn, compress=T ) 
       return ( "Done" )
     }
