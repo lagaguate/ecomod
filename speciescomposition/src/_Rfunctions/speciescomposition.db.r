@@ -1,7 +1,7 @@
 
   speciescomposition.db = function( DS="", p=NULL, yr=NULL ) {
  
-    if (DS %in% c( "speciescomposition", "speciescomposition.redo", "pca", "ca") ) {
+    if (DS %in% c( "speciescomposition.ordination", "speciescomposition.ordination.redo", "pca", "ca") ) {
       
       ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain,  p$taxa, p$season  )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
@@ -10,7 +10,7 @@
       fn.pca = file.path( ddir, "pca.rdata" )
       fn.ca  = file.path( ddir, "ca.rdata" )
         
-      if (DS=="speciescomposition") {
+      if (DS=="speciescomposition.ordination") {
         set = NULL
         if (file.exists( fn.set) ) load( fn.set) 
         return ( set )
@@ -104,9 +104,13 @@
       return (fn.set) 
     }
 
+
+
     # -----------------------
 
-		if (DS %in% c( "speciescomposition.merged", "speciescomposition.merged.redo" ) ) {
+
+
+		if (DS %in% c( "speciescomposition", "speciescomposition.redo" ) ) {
 
 			require( chron) 
       
@@ -121,7 +125,7 @@
         return ( SC )
 			}
 
-      ks = speciescomposition.db( DS="speciescomposition", p=p )
+      ks = speciescomposition.db( DS="speciescomposition.ordination", p=p )
       ks = lonlat2planar( ks, proj.type=p$internal.projection, ndigits=2 )
       ks$platplon = paste( round( ks$plat ), round(ks$plon), sep="_" )
       ks$plon = ks$plat = NULL

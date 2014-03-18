@@ -795,22 +795,17 @@
 
 			# bring in time invariant features:: depth
 			print ("Bring in depth")
-      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth" )
+      set = habitat.lookup( set,  p=p, DS="depth" )
       set$z = log( set$z )
 			
 		  # bring in time varing features:: temperature
 			print ("Bring in temperature")
-      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly" )
+      set = habitat.lookup( set, p=p, DS="temperature" )
 
 			# bring in all other habitat variables, use "z" as a proxy of data availability
 			# and then rename a few vars to prevent name conflicts
 			print ("Bring in all other habitat variables")
-      sH = habitat.lookup.grouped( set,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
-      sH$z = NULL
-			sH$yr = NULL
-			vars = names (sH )
-
-      set = cbind( set, sH )
+      set = habitat.lookup( set,  p=p, DS="all.data" )
 		
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )

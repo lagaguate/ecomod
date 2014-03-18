@@ -5,7 +5,6 @@
       loadfunctions( "groundfish", functionname="current.year.r" )
       loadfunctions( "groundfish", functionname="load.groundfish.environment.r" )
 
-
       ct = groundfish.db( "det" )
       ct = filter.taxa( x=ct, method="snowcrab")
      
@@ -99,24 +98,16 @@
 			print ("Bring in depth")
       todrop = which(set$z < 20 | set$z > 500 )
       if (length( todrop) > 0 ) set$z [todrop ] = NA
-      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth" )
+      set = habitat.lookup( set,  p=p, DS="depth" )
       set$z = log( set$z )
 			
 		  # bring in time varing features:: temperature
 			print ("Bring in temperature")
-      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly" )
+      set = habitat.lookup( set,  p=p, DS="temperature" )
 
-			# bring in all other habitat variables, use "z" as a proxy of data availability
-			# and then rename a few vars to prevent name conflicts
+			# bring in all other habitat variables, 
 			print ("Bring in all other habitat variables")
-      sH = habitat.lookup.grouped( set,  p=p, lookuptype="all.data", sp.br=sp.br )
-      sH$z = NULL 
-			sH$yr = NULL
-			sH$weekno = NULL
-      sH
-      vars = names (sH )
-
-      set = cbind( set, sH )
+      set = habitat.lookup( set,  p=p, DS="all.data" )
 		
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )

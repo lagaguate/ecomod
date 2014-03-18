@@ -1,7 +1,7 @@
 
 # Biochem data analysis  .. focus on bottom oxygen for now
  
-  biochem.db = function(DS="", ss=NULL, tbl=NULL ) {
+  biochem.db = function(DS="", p=NULL, ss=NULL, tbl=NULL ) {
       
     biochem.dir = project.directory("biochem") 
     biochem.data.dir = file.path( biochem.dir, "data" ) 

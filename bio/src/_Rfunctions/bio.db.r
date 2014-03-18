@@ -200,23 +200,14 @@
         if (file.exists( fn) ) load( fn)
         return ( set )
       }
- 
       set = bio.db( DS="set.init", p=p )
-      
       set = set[ which(is.finite(set$lon + set$lat + set$yr ) ) , ]  #  fields are required
-
       oo =  which( !duplicated(set$id) )
       if (length(oo) > 0 ) set = set[ oo, ] 
-   
       set = lonlat2planar( set, proj.type=p$internal.projection )  # plon+plat required for lookups
-     
-      print( "Interpolating depth and temperature")
-
-      set$z = habitat.lookup.simple( set,  p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distances   ) 
-      set$t = habitat.lookup.simple( set,  p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+      set = habitat.lookup( set, DS="depth", p=p )
+      set = habitat.lookup( set, DS="temperature", p=p )
       set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)
-      set = habitat.lookup.data( p=p, sc=set, modtype="default" )  # temp, depth, substrate. ..
-
       save( set, file=fn, compress=T )
       return (fn) 
     }

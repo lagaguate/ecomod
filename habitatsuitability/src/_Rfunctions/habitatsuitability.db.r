@@ -45,46 +45,29 @@
  
 
       # depth
-      bs$z.lookup = NA
-      bs$z.lookup = habitat.lookup.simple( bs, p=p, vnames="z", lookuptype="depth", sp.br=p$interpolation.distance  )  # takes 14GB!
+      bs = habitat.lookup( bs, p=p, DS="depth" ) 
        
       if (exists( "depthrange", p) ) {
         to.na = unique( c( which( bs$z < p$depthrange[1] ) , which( bs$z > p$depthrange[2] ) ) )
-        to.na2 = unique( c( which( bs$z.lookup < p$depthrange[1] ) , which( bs$z.lookup > p$depthrange[2] ) ) )
         if (length( to.na) > 0 ) bs$z[ to.na ] = NA
-        if (length( to.na2) > 0 ) bs$z.lookup[to.na2] = NA
       }
 
-      iiz = which( abs( bs$z - bs$z.lookup) > 20 ) 
-      if (length( iiz ) >0) bs$z[ iiz ] =  bs$z.lookup[ iiz ]
-      iizna = which( !is.finite( bs$z ) ) 
-      if (length( iizna ) >0)  bs$z[ iizna ] = bs$z.lookup [iizna ]
-      iizna = which( !is.finite( bs$z ) ) 
-      if (length( iizna ) >0)  bs$z[ iizna ] = bs$z.lookup [iizna ]
-      bs$z.lookup = NULL
       bs = bs[ which( is.finite( bs$z ) ), ]
       gc()
  
 
       # temperature
-      bs$t.lookup = NA
-      bs$t.lookup = habitat.lookup.simple( bs, p=p, vnames="t", lookuptype="temperature.weekly", sp.br=p$interpolation.distances ) 
+      bs = habitat.lookup( bs, p=p, DS="temperature" ) 
       if (exists( "temperaturerange", p) ) {
         to.na = unique( c( which( bs$t < p$temperaturerange[1] ) , which( bs$t > p$temperaturerange[2] ) ) )
-        to.na2 = unique( c( which( bs$t.lookup < p$temperaturerange[1] ) , which( bs$t.lookup > p$temperaturerange[2] ) ) )
         if (length( to.na) > 0 ) bs$t[ to.na ] = NA
-        if (length( to.na2) > 0 ) bs$t.lookup[to.na2] = NA
       }
-      iitna = which( ! is.finite( bs$t ) ) 
-      if (length( iitna ) >0) bs$t[ iitna ] = bs$t.lookup[ iitna ]
-      bs$t.lookup = NULL
       bs = bs[ which( is.finite( bs$t ) ), ]
       gc()
 
    
       # merge in other habitat data
-      bs = habitat.lookup(x=bs, p=p, dist.scale=p$interpolation.distances, 
-        keep.lon.lat=TRUE, datatype="all.data"  )
+      bs = habitat.lookup(x=bs, DS="all.data", p=p )
 
       oo = which( is.finite( bs$totno + bs$totwgt + bs$substrate.mean ) )
       bs = bs[oo,]

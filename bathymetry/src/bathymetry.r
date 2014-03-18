@@ -25,6 +25,8 @@
 	for ( j in c( "canada.east", "SSE", "snowcrab" ) ) {
 		p = spatial.parameters( type=j )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
+    bathymetry.db ( p, DS="complete.redo" ) # glue all together 
+
 		depths = c(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 800 )
 		p$clusters = rep( "kaos", length(depths) )
 		p = make.list( list( depths = 1:length(depthsyrs) ), Y=p )

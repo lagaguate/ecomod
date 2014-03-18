@@ -1,9 +1,18 @@
 
   habitat.db = function( ip=NULL, DS="baseline", p=NULL, year=NULL ) {
+
+
+    # simple wrappers to load relevant, uninterpolated point data 
+    if (DS == "sizespectrum")  return( sizespectrum.db( DS=DS, p=p ) )
+    if (DS == "metabolism")    return( metabolism.db( DS=DS, p=p ) )
+    if (DS == "speciesarea")   return( speciesarea.db( DS=DS, p=p ) )
+    if (DS == "speciescomposition")  return( speciescomposition.db( DS=DS, p=p ) )
+    if (DS == "condition")  return( condition.db( DS=DS, p=p ) )
+    if (DS == "biochem")  return( biochem.db( DS=DS, p=p ) )
+
  
     if (exists( "init.files", p)) loadfilelist( p$init.files ) 
     if (exists( "libs", p)) loadlibraries( p$libs ) 
-
 
     if (DS %in% c("baseline", "baseline.redo") ) {
       
@@ -61,6 +70,46 @@
     }
 
 
+    #  -------------------------------
+
+
+    if (DS %in% c("environmentals", "environmentals.redo") ) {
+      
+      outdir =  file.path( project.directory("habitat"), "data", p$spatial.domain, "environmentals" )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE","environmentals" )
+      dir.create(outdir, recursive=T, showWarnings=F)
+   
+      if ( DS=="environmentals" ) {
+        outfile =  file.path( outdir, paste( "PS", year, "rdata", sep= ".") )
+        PS = NULL
+        if ( file.exists( outfile ) ) load( outfile )
+        if ( p$spatial.domain =="snowcrab" ) {
+          id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
+          PS = PS[ id, ]
+        }
+        return (PS)
+      }
+
+      if (!exists("ip")) ip = 1:p$nruns
+    
+      for (iy in ip) {
+        yr = p$runs[iy, "yrs"]
+        outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
+        PS = NULL
+        PS = habitat.db( DS="baseline", p=p )  
+        PS$id = 1:nrow(PS)
+        E = temperature.db( DS="complete", p=p, year=yr  ) 
+        E$z = NULL
+        PS = merge( PS, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
+        PS = PS[ order( PS$id ) ,]
+        PS$id = NULL
+        save (PS, file=outfile, compress=T )
+      }
+    }
+
+
+    #  -------------------------------
+
 
     if (DS %in% c("complete", "complete.redo") ) {
       
@@ -87,24 +136,22 @@
         print (yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
        
-        PS = habitat.db( DS="baseline", p=p )  
+        PS = habitat.db( DS="environmentals", p=p, year=yr )
         PS$id = 1:nrow(PS)
-        
-        E = temperature.db( DS="complete", p=p, year=yr  ) 
-        E$z = NULL
-
-        PS = merge( PS, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
 
         # ---------------------
         # Species-area
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
         pm = p
+        pm$modtype = pm$speciesarea.modeltype
         pm$taxa = p$speciesarea.taxa
         pm$season = p$speciesarea.season
         pm$data.sources = p$speciesarea.data.sources
         pm$varstomodel = pm$speciesarea.variables
+        pm$project.name = "specesarea"
+        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
 
-        SAG =  speciesarea.interpolate( DS="all", p=pm, yr=max(1970,yr) , modtype=pm$speciesarea.modeltype  )
+        SAG =  habitat.interpolate( DS="all", p=pm, yr=max(1970,yr)   )
 
         # remove duplicates derived from repeated tows
         oo = which( duplicated (SAG$platplon ) )
@@ -128,11 +175,15 @@
         # Species composition
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
         pm = p
+        pm$modtype = pm$speciescomposition.modeltype
         pm$taxa = p$speciescomposition.taxa  
         pm$season = p$speciescomposition.season
         pm$varstomodel= pm$speciescomposition.variables
+        pm$project.name = "speciescomposition"
+        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
 
-        SC = speciescomposition.interpolate( DS="all", p=pm, yr=max(1970,yr), modtype=pm$speciescomposition.modeltype ) 
+
+        SC = habitat.interpolate( DS="all", p=pm, yr=max(1970,yr) ) 
 
         # remove duplicates derived from repeated tows --- slow ... 
         oo = which( duplicated (SC$platplon ) )
@@ -155,11 +206,15 @@
         # ---------------------
         # size spectrum stats
         pm = p
+        pm$modtype = pm$sizespectrum.modeltype
         pm$taxa = p$sizespectrum.taxa
         pm$season = p$sizespectrum.season
         pm$varstomodel = pm$sizespectrum.variables
+        pm$project.name = "size.spectrum"
+        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
 
-        SS = sizespectrum.interpolate ( DS="all", p=pm, yr=max(1970,yr), modtype=pm$sizespectrum.modeltype ) 
+
+        SS = habitat.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 
         
         # remove duplicates derived from repeated tows --- slow ... 
         oo = which( duplicated (SS$platplon ) )
@@ -184,11 +239,15 @@
         # Condition db
 
         pm = p
+        pm$modtype = pm$condition.modeltype
         pm$taxa = p$condition.taxa
         pm$season = p$condition.season
         pm$varstomodel = pm$condition.variables
+        pm$project.name = "condition"
+        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
 
-        CD = condition.interpolate ( DS="all", p=pm,  yr=max(1970,yr), modtype=pm$condition.modeltype )
+
+        CD = condition.interpolate ( DS="all", p=pm,  yr=max(1970,yr) )
         
         # remove duplicates derived from repeated tows --- slow ... 
         oo = which( duplicated (CD$platplon ) )
@@ -214,11 +273,15 @@
         # metabolic rates
         # no biological data prior to 1970 .. fill with data from 1970 until another solution is found
         pm = p
+        pm$modtype = pm$metabolism.modeltype
         pm$taxa = p$metabolism.taxa 
         pm$season = p$metabolism.season 
         pm$varstomodel = p$metabolism.variables 
+        pm$project.name = "metabolism"
+        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
 
-        MR = metabolism.interpolate ( DS="all", p=pm, yr=max(1970,yr), modtype=pm$metabolism.modeltype ) 
+
+        MR = metabolism.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 
     
                 
         # remove duplicates derived from repeated tows --- slow ... 
@@ -256,68 +319,14 @@
         PS$Y = 1 # required to run "model.matrix"
         if (yr < min( p$yearstomodel ) ) PS$yr = max( p$yearstomodel )  # most recent year as reference
 
-        save (PS, file=outfile, compress=T )
-      }
-      return( "Complete" )
-    }
-
-
-
-
-    if (DS %in% c("complete_no.biologicals", "complete_no.biologicals.redo") ) {
-      
-      outdir =  file.path( project.directory("habitat"), "data", p$spatial.domain, "complete_no.biologicals" )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE",  "complete_no.biologicals"  )
-      dir.create(outdir, recursive=T, showWarnings=F)
-   
-      if ( DS=="complete_no.biologicals" ) {
-        outfile =  file.path( outdir, paste( "PS", year, "rdata", sep= ".") )
-        PS = NULL
-        if ( file.exists( outfile ) ) load( outfile )
-        if ( p$spatial.domain =="snowcrab" ) {
-          id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
-          PS = PS[ id, ]
-        }
-   
-        return (PS)
-      }
-
-
-      if (is.null(ip)) ip = 1:length(p$nruns)
-    
-      for (iy in ip) {
-        yr = p$runs[iy, "yrs"]
-        print (yr)
-        outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
-       
-        PS = habitat.db( DS="baseline", p=p )  
-        PS$id = 1:nrow(PS)
-        
-        E = temperature.db( DS="complete", p=p, year=yr  ) 
-        E$z = NULL
-
-        PS = merge( PS, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
-        vars = setdiff( names(PS), c("plon", "plat") )
-        require (gstat)
-        for (v in vars) {
-          for (dists in p$interpolation.distances) { 
-            ii = which ( !is.finite( PS[, v]) )
-            if (length(ii)==0 | length(ii)==nrow(PS) ) break()
-            print( paste( "Interpolating missing data with inverse-distance weighted means", v, ":", length(ii) ) )
-            gs = gstat( id=v, formula=PS[-ii,v]~1, locations=~plon+plat, data=PS[-ii,], 
-                nmax=p$interpolation.nmax, maxdist=dists, set=list(idp=.5)) 
-            PS[ii,v] = predict( object=gs, newdata=PS[ii,] ) [,3]
-        }}
-           
-        PS = PS[ order( PS$id ) ,]
-        PS$id =NULL
-        PS$Y = 1 # required to run "model.matrix"
-        if (yr < min( p$yearstomodel ) ) PS$yr = max( p$yearstomodel )  # most recent year as reference
+        for (o in 1:ncol(PS) ) attributes( PS[,o]) <- NULL  # remove rownames, etc .. reduces size of data object
 
         save (PS, file=outfile, compress=T )
       }
       return( "Complete" )
     }
+
+
    
 
   }

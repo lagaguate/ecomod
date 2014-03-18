@@ -377,7 +377,7 @@
 			logbook$depth = NULL
       oo =  which( logbook$z < 10 | logbook$z > 500 ) # screen out large z's
       if (length(oo) > 0 )  logbook$z[ oo ] = NA  
-			logbook$z = habitat.lookup.simple( logbook, p=p, vnames="z", lookuptype="depth" )
+			logbook = habitat.lookup( logbook, p=p, DS="depth" )
       logbook$z = log( logbook$z )
 			
       ii = which( ! is.finite( logbook$z) )  
@@ -385,21 +385,11 @@
 
 		  # bring in time varing features:: temperature
 			logbook$t = NA
-      logbook$t = habitat.lookup.simple( logbook, p=p, vnames="t", lookuptype="temperature.weekly" )
+      logbook$t = habitat.lookup( logbook, p=p, DS="temperature" )
 
 			# bring in habitat variables
-			sH = habitat.lookup.grouped( logbook, p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
-			
-      # rename a few vars to prevent name conflicts
-      sH$z = log(sH$z) 
-      sH = rename.df( sH, "z", "z.H" )
-			sH$yr = NULL
-			vars = names (sH )
-
-      logbook = cbind( logbook, sH )
-		 
-      ii =  which( ! is.finite( logbook$z ) )
-      logbook$z[ ii] = logbook$z.H[ ii]
+			logbook = habitat.lookup( logbook, p=p, DS="all.data" )
+      logbook$z = log(logbook$z) 
 
 			logbook = lonlat2planar( logbook, proj.type=p$internal.projection )  # return to original resolution
       logbook$chron = NULL

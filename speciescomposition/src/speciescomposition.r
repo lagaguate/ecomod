@@ -32,9 +32,7 @@
   p$yearstomodel = 1970:2013
   p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
-  # p$mods = c("simple","simple.highdef", "complex", "full")   # GAM interpolation model types 
-  # p$mods = c("simple.highdef" )   # GAM interpolation model types 
-  p$mods = "complex"
+  p$modtype = "complex"
 
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
   
@@ -47,29 +45,48 @@
 
 
   # ordination
+  speciescomposition.db( DS="speciescomposition.ordination.redo", p=p )
   speciescomposition.db( DS="speciescomposition.redo", p=p )
-  speciescomposition.db( DS="speciescomposition.merged.redo", p=p )
-			
+	
 
-  # model the data ~ 2hrs
-  # RAM requirements are large ... single processing only 
-  p = make.list( list(vars=p$varstomodel, modtype=p$mods, yrs=p$yearstomodel ), Y=p ) 
-  # speciescomposition.model( p=p, DS="redo" )    ### internal to "bam" a parallel solution is attempted so do this in series and not parallel
-  parallel.run( speciescomposition.model, p=p, DS="redo" ) 
 
-  
-  # p$clusters = "localhost"
-  # interpolate onto a grid via prediction ::: ~ 3 GB / process 
-  p = make.list( list(yrs=p$yearstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( speciescomposition.interpolate, p=p, DS="redo" ) 
-  # speciescomposition.interpolate (p=p, DS="redo" ) 
+# -------------------------------------------------------------------------------------
+# Generic spatio-temporal interpolations and maping of data 
+# using the interpolating functions and models defined in ~ecomod/habitat/src/
+# -------------------------------------------------------------------------------------
 
+  #required for interpolations and mapping 
+  p$project.name = "speciescomposition"
+  p$project.outdir.root = project.directory( p$project.name, "analysis" )
+
+
+  # create a spatial interpolation model for each variable of interest 
+  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
  
-  # map everything
-  p = make.list( list(yrs=p$yearstomodel, vars=p$varstomodel, modtype=p$mods), Y=p ) 
-  parallel.run( speciescomposition.map, p=p, type="annual"  )  
-  # speciescomposition.map( p=p, type="annual"  )  
 
+  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+  p = make.list( list( yrs=p$yearstomodel ), Y=p )
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+  # habitat.interpolate( p=p, DS="redo" ) 
+
+
+  # map everything
+  p = make.list( list(v=p$varstomodel, y=p$yearstomodel ), Y=p )
+  parallel.run( habitat.map, p=p, type="annual"  ) 
+  # habitat.map( p=p, type="annual"  ) 
+
+
+
+
+
+
+
+
+# -------------------------------------------------------------------------------------
 
 
   testing = FALSE

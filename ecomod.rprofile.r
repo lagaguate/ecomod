@@ -12,7 +12,7 @@ if (is.null( ecomod.workdirectory )) {
   setwd( ecomod.workdirectory )
 }
 
-print( paste( "Currently using", ecomod.workdirectory, "as the working directory" ) ) 
+# print( paste( "Currently using", ecomod.workdirectory, "as the working directory" ) ) 
 
 
 # name of the start-up file (this file) .. used for initializing parallel processing

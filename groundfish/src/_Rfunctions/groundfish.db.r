@@ -956,33 +956,12 @@
         
       set = groundfish.db( "set.partial" )
       set = lonlat2planar(set, proj.type=p$internal.projection ) # get planar projections of lon/lat in km
-      
-	    # bring in time invariant features:: depth
-			print ("Bring in depth")
-      set$sdepth = habitat.lookup.simple( set,  p=p, vnames="sdepth", lookuptype="depth" )
-      set$z = set$sdepth  # dummy var for later merges
-      # set$z = log( set$z )
-			
-		  
-      # bring in time varing features:: temperature
-			print ("Bring in temperature")
-      set$temp = habitat.lookup.simple( set,  p=p, vnames="temp", lookuptype="temperature.weekly" )
-
-			# bring in all other habitat variables, use "z" as a proxy of data availability
-			# and then rename a few vars to prevent name conflicts
-			print ("Bring in all other habitat variables")
-      
-      sH = habitat.lookup.grouped( set,  p=p, lookuptype="all.data", sp.br=seq(5, 25, 50) )
-      sH$z = log(sH$z) 
-      sH = rename.df( sH, "z", "z.H" )
-			sH$yr = NULL
-			vars = names (sH )
-
-      set = cbind( set, sH )
-		
+      set$z = set$sdepth 
+      set$t = set$temp
+      set = habitat.lookup( set, DS="baseline", p=p, vlist=c("t", "z") )
+      set$z = log(set$z) 
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )
-         
       save ( set, file=fn, compress=F )
       return( fn )
     }

@@ -135,14 +135,14 @@
     
     # --------------------
 
-    if (DS %in% c( "speciesarea.stats.merged", "speciesarea.stats.merged.redo" ) ) {
+    if (DS %in% c( "speciesarea", "speciesarea.redo" ) ) {
       
       ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".")   )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       
       fn = file.path( ddir, "set.speciesarea.merged.rdata" )
         
-      if (DS=="speciesarea.stats.merged") {
+      if (DS=="speciesarea") {
         SC = NULL
         if (file.exists( fn) ) load( fn ) 
         return ( SC )

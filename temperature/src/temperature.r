@@ -85,7 +85,8 @@
     j = "SSE"
     p = spatial.parameters( p=p, type=j )
   	P = bathymetry.db( p=p, DS="baseline" )
-    p$nP = nrow(P);	rm(P); gc()
+    p$nP = nrow(P);	
+    rm(P); gc()
 	
  	
     # ----------------
@@ -99,9 +100,9 @@
    			
  		# ----------------
     # temporal interpolations assuming some seasonal pattern 
-    # 1950-2012, SSE took +46 hrs  
+    # 1950-2013, SSE took ~ 40 hrs (shared RAM, 24 CPU) 
     # p$clusters = rep("localhost", 1 )  # serial mode when no clusters == 1
-    p$clusters = rep("localhost", detectCores() )  # parallel mode
+    # p$clusters = rep("localhost", detectCores() )  # parallel mode
     p = make.list( list( loc=1:p$nP ), Y=p )
     temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
 

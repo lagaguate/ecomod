@@ -50,7 +50,7 @@
 
   # modeltype choice
   p$modeltype="simple"
-  p$gam.model.pa = habitat.lookup.model.formula ( modeltype=p$modeltype )
+  p$gam.model.pa = habitat.model.formula ( modeltype=p$modeltype )
 
 
 

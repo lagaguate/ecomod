@@ -4,7 +4,7 @@
 	p = list( init.files=loadfunctions( c( "common", "taxonomy", "groundfish", "snowcrab", "bathymetry", "temperature", "habitat", "bio" ))) 
   
   p$init.files = loadfunctions( "snowcrab", functionname="default.project.environment" )
-  p$libs = loadlibraries ("parallel" )
+  p$libs = loadlibraries ("parallel", "fields" )
 
   
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale

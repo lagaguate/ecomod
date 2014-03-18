@@ -347,6 +347,31 @@
     }
  
 
+
+
+    if (DS %in% c( "complete", "complete.redo") ) {
+      # form prediction surface in planar coords for SS snowcrab area
+      outfile =  file.path( project.directory("bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
+
+      if ( DS=="complete" ) {
+        load( outfile )
+        return (Z )
+      }
+
+      Z = bathymetry.db( p, DS="Z.planar" )
+      dZ = bathymetry.db( p, DS="dZ.planar" )
+      ddZ = bathymetry.db( p, DS="ddZ.planar" )
+		
+      Z = merge( Z, dZ, by=c("plon", "plat"), sort=FALSE )
+      Z = merge( Z, ddZ, by=c("plon", "plat"), sort=FALSE )
+
+      save (Z, file=outfile, compress=T )
+
+			return( paste( "Completed:", outfile )  )
+    }
+ 
+	
+
     if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) { 
       # create a lookuptable for SSE -> snowvrab domains
       # both share the same initial domains + resolutions

@@ -127,7 +127,7 @@
     
     
     # --------------------
-    if (DS %in% c("sizespectrum.stats.merged", "sizespectrum.stats.merged.redo") ) {
+    if (DS %in% c("sizespectrum", "sizespectrum.redo") ) {
       
       # make the base normalised size spectral statistics summaries
       
@@ -136,7 +136,7 @@
       
       fn = file.path( ddir, "sm_nss.rdata" ) 
    
-      if ( DS=="sizespectrum.stats.merged" ) {
+      if ( DS=="sizespectrum" ) {
         SC = NULL
         if (file.exists( fn) ) load( fn )
         return ( SC )

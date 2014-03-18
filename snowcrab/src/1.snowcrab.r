@@ -133,31 +133,31 @@
 
 
 ## The following are very SLOW: 
-
-#     Temperatures ::  
+# Temperatures ::  
   loadfunctions ( "temperature", functionname="temperature.r" )  # days
 
-
-#     BIO db update :: 
-  loadfunctions ( "bio", functionname="bio.r" ) 
-
-
-# the folllowing depends upon the previous  
-#     Species area data :: 
-  loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
-
-#     Species composition data :: 
-  loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
   
-#     Size spectrum data :: 
-  loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
+# Habitat data ... environmentals only as it is used by bio.db etc
+  habitat.add.environmentals = TRUE ## a flag withing habitat.r
+  loadfunctions ( "habitat", functionname="habitat.r" ) 
 
-#     Metabolism data :: 
+
+# BIO db update :: 
+# must come after temperature interpolations to permit temperature lookups 
+  loadfunctions ( "bio", functionname="bio.r" )  
+
+
+# the folllowing depends upon bio.db and temperature  
+  loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
+  loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
+  loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
   loadfunctions ( "metabolism", functionname="metabolism.r" ) 
 
-#     Habitat data :: NOTE:: This glues all the above together in 
-#     planar coord system to allow fast lookup of data for 
-#     matching with set, logbook data
+
+
+# Habitat data :: NOTE:: This glues all the above together in planar coord system 
+# to allow fast lookup of data for matching with set, logbook data
+  habitat.add.biologicals = TRUE  ## a flag withing habitat.r
   loadfunctions ( "habitat", functionname="habitat.r" ) 
 
 

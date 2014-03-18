@@ -41,23 +41,40 @@
 
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
-  p$mods = "complex"
+  p$modtype = "complex"
 
   # prepare data
   condition.db( DS="condition.redo", p=p )
 
-  # model the data ~ 14GB/ variable
-  p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
-  parallel.run( condition.model, p=p, DS="redo" ) 
+# -------------------------------------------------------------------------------------
+# Generic spatio-temporal interpolations and maping of data 
+# using the interpolating functions and models defined in ~ecomod/habitat/src/
+# -------------------------------------------------------------------------------------
+
+  #required for interpolations and mapping 
+  p$project.name = "condition"
+  p$project.outdir.root = project.directory( p$project.name, "analysis" )
 
 
-  # predict data: gridded extrapolations to full domain  
-  p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( condition.interpolate, p=p, DS="redo" ) 
-  
+  # create a spatial interpolation model for each variable of interest 
+  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
+ 
+
+  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+  p = make.list( list( yrs=p$yearstomodel ), Y=p )
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+  # habitat.interpolate( p=p, DS="redo" ) 
+
 
   # map everything
-  p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( condition.map, p=p, type="annual"  ) 
-  # condition.map ( p=p, type="annual" )
+  p = make.list( list(v=p$varstomodel, y=p$yearstomodel ), Y=p )
+  parallel.run( habitat.map, p=p, type="annual"  ) 
+  # habitat.map( p=p, type="annual"  ) 
+
+
+
 

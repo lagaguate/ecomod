@@ -45,8 +45,7 @@
   p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
 
-  # p$mods = c("simple","simple.highdef", "time.invariant", "complex", "full" ) 
-  p$mods = "complex" 
+  p$modtype = "complex" 
   
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
@@ -64,34 +63,44 @@
 
 
   # count and record rarification curves from all available data --- refresh "bio.db" ~/ecomod/bio/src/bio.r  
-  p$clusters = rep( "localhost", 24 )
   speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
   
 
   # compute species-area relationships 
   speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
-  speciesarea.db( DS="speciesarea.stats.merged.redo", p=p ) # intermediary file for modelling and interpolation
+  speciesarea.db( DS="speciesarea.redo", p=p ) # intermediary file for modelling and interpolation
 
 
-  # create a spatial interpolation model for each variable of interest ~ 10 min
-  # for Fulll model each process requires 30-40 GB 
-  p = make.list( list(vars= p$varstomodel, modtype=p$mods, yrs=p$yearstomodel), Y=p ) 
-  parallel.run( speciesarea.model.spatial, DS="redo", p=p ) 
-  # speciesarea.model.spatial ( DS="redo", p=p ) 
+
+# -------------------------------------------------------------------------------------
+# Generic spatio-temporal interpolations and maping of data 
+# using the interpolating functions and models defined in ~ecomod/habitat/src/
+# -------------------------------------------------------------------------------------
+
+  #required for interpolations and mapping 
+  p$project.name = "speciesarea"
+  p$project.outdir.root = project.directory( p$project.name, "analysis" )
 
 
-  # predictive interpolation to full domain (iteratively expanding spatial extent) ~ 30 min to 1 hr / year (simple)
-  p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( speciesarea.interpolate, DS="redo", p=p ) 
-  # speciesarea.interpolate( DS="redo", p=p ) 
+  # create a spatial interpolation model for each variable of interest 
+  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
+ 
+
+  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+  p = make.list( list( yrs=p$yearstomodel ), Y=p )
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+  # habitat.interpolate( p=p, DS="redo" ) 
 
 
   # map everything
-  p = make.list( list( vars=p$varstomodel, yrs=p$yearstomodel, modtype=p$mods ), Y=p )
-  parallel.run( speciesarea.map, p=p, type="annual"  ) 
-  # speciesarea.map( p=p, type="annual"  ) 
+  p = make.list( list(v=p$varstomodel, y=p$yearstomodel ), Y=p )
+  parallel.run( habitat.map, p=p, type="annual"  ) 
+  # habitat.map( p=p, type="annual"  ) 
 
 
-  # to do: maps and gridding in 5 and 10 year blocks ... 
 
 

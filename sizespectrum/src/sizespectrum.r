@@ -13,7 +13,7 @@
   p = list()
  
   p$libs = loadlibraries ( c( "chron", "fields", "mgcv", "sp", "parallel", "bigmemory" )) 
-  p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat",  "taxonomy", "groundfish", "bio", "sizespectrum"  ) )
+  p$init.files = loadfunctions( c( "common", "bathymetry", "temperature",  "habitat",  "taxonomy", "groundfish", "bio", "sizespectrum"  ) )
   
   
   # faster to use RAM-based data objects but this forces use only of local cpu's
@@ -43,9 +43,8 @@
   
   # for spatial interpolation of nss stats
   p$varstomodel = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon" )
-  # p$mods = c("simple","simple.highdef", "complex", "full" ) 
-  # p$mods = c("simple","simple.highdef") 
-  p$mods =  "complex" 
+  
+  p$modtype =  "complex"  
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
 
   p$spatial.knots = 100
@@ -78,30 +77,38 @@
 
   sizespectrum.db( DS="sizespectrum.by.set.redo", p=p ) 
   sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  
-  sizespectrum.db( DS="sizespectrum.stats.merged.redo", p=p )
+  sizespectrum.db( DS="sizespectrum.redo", p=p )  # all point data to be interpolated 
+
+
+# -------------------------------------------------------------------------------------
+# Generic spatio-temporal interpolations and maping of data 
+# using the interpolating functions and models defined in ~ecomod/habitat/src/
+# -------------------------------------------------------------------------------------
+
+  #required for interpolations and mapping 
+  p$project.name = "sizespectrum"
+  p$project.outdir.root = project.directory( p$project.name, "analysis" )
 
 
   # create a spatial interpolation model for each variable of interest 
   # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
-  p = make.list( list(vars= p$varstomodel, mods=p$mods, yrs=p$yearstomodel ), Y=p ) 
-  parallel.run( sizespectrum.model.spatial, DS="redo", p=p ) 
-  # sizespectrum.model.spatial ( DS="redo", p=p ) 
+  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
  
 
   # predictive interpolation to full domain (iteratively expanding spatial extent)
   # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
-  p = make.list( list( yrs=p$yearstomodel, modtype=p$mods), Y=p )
-  parallel.run( sizespectrum.interpolate, p=p, DS="redo" ) 
-  # sizespectrum.interpolate( p=p, DS="redo" ) 
+  p = make.list( list( yrs=p$yearstomodel ), Y=p )
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+  # habitat.interpolate( p=p, DS="redo" ) 
 
 
   # map everything
-  p = make.list( list(v=p$varstomodel, y=p$yearstomodel, modtype=p$mods ), Y=p )
-  parallel.run( sizespectrum.map, p=p, type="annual"  ) 
-  #sizespectrum.map( p=p, type="annual"  ) 
+  p = make.list( list(v=p$varstomodel, y=p$yearstomodel ), Y=p )
+  parallel.run( habitat.map, p=p, type="annual"  ) 
+  # habitat.map( p=p, type="annual"  ) 
 
-
-  # to do: maps and gridding in 5 and 10 year blocks ... 
 
 
 

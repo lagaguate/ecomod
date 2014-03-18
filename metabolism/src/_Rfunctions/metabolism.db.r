@@ -34,18 +34,6 @@
       set = lonlat2planar( set, proj.type=p$internal.projection, ndigits=2 )
       set$platplon = paste( round( set$plat ), round(set$plon), sep="_" )
 	 
-      truncate.variables = FALSE 
-      if (truncate.variables) {
-        probs = c(0.005, 0.995)
-        for (ww in p$varstomodel) {
-          qnts = quantile(  set[ which(set[,ww]>0) , ww], probs=c(0, 0.95), na.rm=T ) # quantiles of positive valued data
-          iq0 = which(set[,ww] < qnts[1])
-          if (length(iq0) > 0)  set[ iq0, ww] = qnts[1] / 2  # assume this is the detection limit   
-          iq1 = which(set[,ww] > qnts[2])
-          if (length(iq1) > 0) set[ which(set[,ww] > qnts[2]), ww] = qnts[2]   
-        }
-      }
-   
       save( set, file=fn, compress=T )
       return (fn) 
     }
