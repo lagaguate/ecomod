@@ -1,19 +1,11 @@
 
   temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
-    
-    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-    if (exists( "libs", p)) loadlibraries( p$libs ) 
- 
 
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
-         
-			# interpolated predictions for only missing data
-		
+ 
       tinterpdir = project.directory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
       dir.create( tinterpdir, recursive=T, showWarnings=F )
-			
-			# bigmemory's backingdir does not seem to be working? ... defaulting to home directory
-		
+				
       if (DS %in% c("temporal.interpolation")) {
           fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yr, "rdata", sep=".") )
           if (file.exists( fn1) ) load(fn1)
@@ -25,9 +17,11 @@
           if (file.exists( fn1) ) load(fn1)
           return ( tinterp.se )
       }
+		  	
+      P = bathymetry.db( p=p, DS="baseline" )
+      p$nP = nrow(P);	
 
- 
-			nr = p$nP
+      nr = p$nP
 			nc = p$nw * p$ny
 
       if (p$use.bigmemory.file.backing) {
@@ -52,17 +46,28 @@
       # required to operate with bigmemory objects in parallel 
       p$tbot.desc = describe(tbot)
       p$tbot.se.desc = describe(tbot.se)
-      
-      parallel.run( temporal.interpolation, p=p )  # will run serially if no clusters == 1
+     	    
+      B = hydro.db( p=p, DS="bottom.gridded.all"  )
+      B = B[, c("plon", "plat", "yr", "weekno", "t", "z", "salinity") ]
+      B = B[ which( is.finite(B$t)) ,]
 
-			tbot <- attach.big.matrix( p$tbot.desc )
+      gc()
+      # sample.int used to randomize order ... to use all cpu's as much as possible
+      p = make.list( list( loc=sample.int(p$nP) ), Y=p ) 
+      parallel.run( temperature.timeseries.interpolate, p=p, P=P, B=B )
+      # temperature.timeseries.interpolate ( p=p )
+      
+
+      tbot <- attach.big.matrix( p$tbot.desc )
 			tbot.se <- attach.big.matrix( p$tbot.se.desc )
 
 			for ( r in 1:length(p$tyears) ) {
 				yt = p$tyears[r]
 				fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
 				fn2 = file.path( tinterpdir, paste( "temporal.interpolation.se", yt, "rdata", sep=".") )
-				
+        
+        print( fn1 )
+
 				cstart = (r-1) * p$nw 
 				col.ranges = cstart + (1:p$nw) 
 				tinterp = tbot[,col.ranges]
@@ -75,11 +80,10 @@
   			file.remove( p$fn.tbot , p$fn.tbot.se )
 	  		file.remove( paste( c(p$fn.tbot , p$fn.tbot.se), "desc", sep=".") )
       }
-
-			return ("completed temporal interpolations ")
+      
+			return ( p )
     }
-   
-
+ 
 
 		# -------------------
 
@@ -116,7 +120,7 @@
         }
         return ( V )
       }
-
+ 
       if ( exists("init.files", p) ) loadfunctions( p$init.files ) 
       if ( exists("libs", p) ) loadlibraries( p$libs ) 
       if ( is.null(ip) ) ip = 1:length(p$nruns)

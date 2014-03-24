@@ -38,7 +38,12 @@
 
     p$optimizers = c( "perf", "nlm", "bfgs", "optim", "newton",  "nlm.fd") # optimizers for gam
     p$nMin.tbot = 400 # min number of data points req before attempting to model timeseries in a localized space.
-    p$dist.km = c( 1, 2, 4, 5, 10, 15, 20, 25, 30, 35, 40, 100 ) / 2 # additional (1/2) distances to extend search for data
+    p$dist.km = c( 2, 4, 8, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120 ) / 2 # additional (1/2) distances to extend search for data
+    p$depthrange.fraction = c( 2/3, 4/3 ) # -/+ 33% of actual depth to include in interpolation
+
+    p$tsmethod ="harmonics"  # temporal interpolation method ... harmonic analysis seems most reasonable
+    p$tsharmonics = 2  # highest harmonic to use ... will use lower if it fails .. do not use more than 3 as it chases noise too much .. 2 seems sufficient and faster
+ 
 
     p$clusters = rep("localhost", detectCores() )
   # p$clusters = rep("localhost",  1) # debug
@@ -82,28 +87,23 @@
     
     # update spatial parameters for the region of interest
     #  j = "canada.east" # can be completed later (after assessment) when time permits
-    j = "SSE"
-    p = spatial.parameters( p=p, type=j )
-  	P = bathymetry.db( p=p, DS="baseline" )
-    p$nP = nrow(P);	
-    rm(P); gc()
-	
+    p = spatial.parameters( p=p, type="SSE" )
  	
     # ----------------
     # grid bottom data    
     p = make.list( list( yrs=p$tyears), Y=p )
-  	parallel.run( hydro.db, p=p, DS="bottom.gridded.redo", yr=p$tyears )
+  	# parallel.run( hydro.db, p=p, DS="bottom.gridded.redo", yr=p$tyears )
+		hydro.db( p=p, DS="bottom.gridded.redo", yr=newyear )
 		
+
  		# ----------------
     # this glues all the years together
     hydro.db( p=p, DS="bottom.gridded.all.redo", yr=p$tyears  ) 
    			
  		# ----------------
     # temporal interpolations assuming some seasonal pattern 
-    # 1950-2013, SSE took ~ 40 hrs (shared RAM, 24 CPU) 
-    # p$clusters = rep("localhost", 1 )  # serial mode when no clusters == 1
-    # p$clusters = rep("localhost", detectCores() )  # parallel mode
-    p = make.list( list( loc=1:p$nP ), Y=p )
+    # 1950-2013, SSE took ~ 40 hrs (shared RAM, 24 CPU) ... 17 GB req of shared memory
+    # this is parallelized ... the call is internal to this 
     temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
 
 

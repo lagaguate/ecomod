@@ -1,6 +1,6 @@
 
   
-  parallel.run = function( FUNC, p, export=NULL,  ... ) {
+  parallel.run = function( FUNC, p, export=NULL, rndseed = 1, ... ) {
     # expectation of all relevant parameters in a list 'pl'
       require(parallel)
       
@@ -18,8 +18,7 @@
         }
         
         if (!exists("rndseed")) {
-          rndseed = round( runif(1)*100 )  
-          print( paste( "Using", rndseed, "as the default random number seed for parallel operations, 'rndseed' was not defined." ))
+          print( paste( "Using", rndseed, "as the default random number seed for parallel operations, Specify 'rndseed' to change." ))
         }
 
         if (!exists("nruns")) stop( "Must define 'nruns' in the paramater list")
