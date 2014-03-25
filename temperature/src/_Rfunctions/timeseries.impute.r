@@ -84,7 +84,6 @@
       
     }
   
-
    
 
     if ( method=="harmonics" ) {
@@ -117,27 +116,45 @@
       x$tyr = 2*pi * x$weekno/52
       x$cos.w  = cos( x$tyr )
       x$sin.w  = sin( x$tyr )
-      x$cos.w2 = cos( 2*x$tyr )
-      x$sin.w2 = sin( 2*x$tyr )
-      x$cos.w3 = cos( 3*x$tyr )
-      x$sin.w3 = sin( 3*x$tyr )
 
+      if (harmonics>1) {
+        # compute additional harmonics only if required (to try to spped things up a bit)
+        x$cos.w2 = cos( 2*x$tyr )
+        x$sin.w2 = sin( 2*x$tyr )
+      }
+
+      if (harmonics>2) {
+        x$cos.w3 = cos( 3*x$tyr )
+        x$sin.w3 = sin( 3*x$tyr )
+      }
 
       for ( h in (harmonics+1):1) {
-        model = try( bam( formula( mf[h] ), data=x, weights=w ) ) 
+        model = switch( p$gam.optimizer,
+          bam = try( bam( formula( mf[h] ), data=x, weights=w ) ) ,
+          bfgs = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","bfgs")  ) ) ,
+          perf = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("perf")  ) ) ,
+          newton = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","newton")  ) ) ,
+          nlm = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","nlm")  ) ) 
+        )
         if ( ! "try-error" %in% class(model) ) break() 
       }
 
       if ( ! "try-error" %in% class(model) ) { 
         OP$tyr = 2*pi * OP$weekno/52
-
         OP$cos.w  = cos( OP$tyr )
         OP$sin.w  = sin( OP$tyr )
-        OP$cos.w2 = cos( 2*OP$tyr )
-        OP$sin.w2 = sin( 2*OP$tyr )
-        OP$cos.w3 = cos( 3*OP$tyr )
-        OP$sin.w3 = sin( 3*OP$tyr )
-        
+
+        if (harmonics>1) {
+          # compute additional harmonics only if required (to try to spped things up a bit)
+          OP$cos.w2 = cos( 2*OP$tyr )
+          OP$sin.w2 = sin( 2*OP$tyr )
+        }
+
+        if (harmonics>2) {
+          OP$cos.w3 = cos( 3*OP$tyr )
+          OP$sin.w3 = sin( 3*OP$tyr )
+        }
+
         out = NULL
         out = try( predict( model, newdata=OP, type="response", se.fit=T ) ) 
         if ( ! "try-error" %in% class(out) ) {

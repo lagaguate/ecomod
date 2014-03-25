@@ -55,7 +55,7 @@
       }
       substrate = substrate.db( p, DS="lonlat.highres" ) 
     
-      p$res = "-I10c"
+      p$res = "-I10s"  # 10 arc sec -- ie. all data
       p$tension = "-T1" # interpolated but minimally smoothed solutions
       rlons = range(p$lons)
       rlats = range(p$lats)

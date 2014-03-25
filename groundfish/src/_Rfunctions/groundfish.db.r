@@ -384,9 +384,12 @@
 					gsinf$sakm2[oo] = median (gsinf$sakm2, na.rm=T)
 				pp = which( gsinf$sakm2 > 0.09 )
 					gsinf$sakm2[pp] = median (gsinf$sakm2, na.rm=T)
+      gsinf$bottom_depth = rowMeans( gsinf[, c("dmin", "dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
+      ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
+      gsinf$bottom_depth[ii] = NA
 
+			gsinf = gsinf[, c("id", "sdate", "time", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
 
-			gsinf = gsinf[, c("id", "sdate", "time", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "surface_temperature","bottom_temperature","bottom_salinity")]
       save(gsinf, file=fn, compress=T)
       return(fn)
     }
@@ -451,7 +454,8 @@
       save(gshyd, file=fn, compress=T)
       return( fn )
     }
-      
+     
+
  # ----------------------
 
 
@@ -465,7 +469,8 @@
       }
       gshyd = groundfish.db( DS="gshyd.profiles" )
       nr = nrow( gshyd)
-
+      
+      # candidate depth estimates from profiles
       deepest = NULL
       t = which( is.finite(gshyd$sdepth) )
       id = unique(gshyd$id)
@@ -479,20 +484,27 @@
       if (length(oo) > 0) stop( "Duplicated data in GSHYD" )
 
       gsinf = groundfish.db( "gsinf" ) 
-      gsinf = gsinf[, c("id", "bottom_temperature", "bottom_salinity" ) ] 
+      gsinf = gsinf[, c("id", "bottom_temperature", "bottom_salinity", "bottom_depth" ) ] 
       gshyd = merge( gshyd, gsinf, by="id", all.x=T, all.y=F, sort=F )
-      
+     
+      ## bottom_depth is a profile-independent estimate .. asuming it has higher data quality
+      ii = which(!is.finite( gshyd$bottom_depth ))
+      if (length(ii)>0) gshyd$bottom_depth[ii] = gshyd$sdepth[ii]
+      gshyd$sdepth = gshyd$bottom_depth        #overwrite
+      ii = which( gshyd$sdepth < 10 )
+      if (length(ii)>0) gshyd$sdepth[ii] = NA
+
       ii = which( is.na( gshyd$temp) )
       if (length(ii)>0) gshyd$temp[ii] =  gshyd$bottom_temperature[ii]
 
       jj = which( is.na( gshyd$sal) )
       if (length(jj)>0) gshyd$sal[jj] =  gshyd$bottom_salinity[jj]
+      gshyd$sal[gshyd$sal<5 ] = NA
 
+      gshyd$bottom_depth = NULL
       gshyd$bottom_temperature = NULL
       gshyd$bottom_salinity = NULL
 
-
-      gshyd$sal[gshyd$sal<5 ] = NA
       
       save(gshyd, file=fn, compress=T)
       return( fn )
@@ -958,7 +970,7 @@
       set = lonlat2planar(set, proj.type=p$internal.projection ) # get planar projections of lon/lat in km
       set$z = set$sdepth 
       set$t = set$temp
-      set = habitat.lookup( set, DS="baseline", p=p, vlist=c("t", "z") )
+      set = habitat.lookup( set, DS="baseline", p=p )
       set$z = log(set$z) 
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )

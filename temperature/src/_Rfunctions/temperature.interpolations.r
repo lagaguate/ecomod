@@ -48,7 +48,7 @@
       p$tbot.se.desc = describe(tbot.se)
      	    
       B = hydro.db( p=p, DS="bottom.gridded.all"  )
-      B = B[, c("plon", "plat", "yr", "weekno", "t", "z", "salinity") ]
+      B = B[, c("plon", "plat", "yr", "weekno", "t", "z") ]
       B = B[ which( is.finite(B$t)) ,]
 
       gc()

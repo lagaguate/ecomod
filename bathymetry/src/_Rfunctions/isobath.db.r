@@ -19,9 +19,8 @@
 			if ( DS != "redo" ) return( NULL)
   
 			# ip is the first parameter passed in the parallel mode
-    
 
-			p$mapres = "-I20c" 
+			p$mapres = "-I10s" 
 			p$gmtproj = "-JM6i"
 			p$bathy.tension = "-T0.75"
 			p$bathy.zrange="-Sa1010/NaN -Sb1/NaN"

@@ -36,7 +36,8 @@
     p$nw = length(p$wtimes)
     p$ny = length(p$tyears)
 
-    p$optimizers = c( "perf", "nlm", "bfgs", "optim", "newton",  "nlm.fd") # optimizers for gam
+    p$gam.optimizer = "bam" ## other optimizers:: "bam", "perf", "nlm", "bfgs", "optim", "newton", "nlm.fd"
+
     p$nMin.tbot = 400 # min number of data points req before attempting to model timeseries in a localized space.
     p$dist.km = c( 2, 4, 8, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120 ) / 2 # additional (1/2) distances to extend search for data
     p$depthrange.fraction = c( 2/3, 4/3 ) # -/+ 33% of actual depth to include in interpolation

@@ -8,6 +8,7 @@
   p = list()
 
 	p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
+  p$libs = loadlibraries( c( "chron", "parallel" )  )
 
 # not too many as it has high memory requirements
 # clusters=c("tethys", "tethys", "io", "io", "io" )

@@ -1,13 +1,17 @@
 # -------------------------------------------------------------------------------------
 # Bathymetry data
   
-  require(chron)
   
+  p=list()
   p$init.files = loadfunctions( c( "common", "bathymetry" ) )
+  p$libs = loadlibraries( c("chron", "rgdal", "lattice" ) )
+  p$depthrange = c(-3000, 100) # permissible depth ranges for all following analyses ... contrainted to limit file sizes .. keep above sea level for coastal areas 
 
- 
 	if ( bathymetry.rawdata.redo ) { 
 		# glue all data sources (spherical coords) 
+    # ... right now this is about 17 GB in size when expanded .... SLOW .... 
+    # and it takes about 50+ GB RAM (due to addition of Greenlaw's DEM )
+    # run on servers only unless your machine can handle it
 		p = spatial.parameters( type="canada.east" )
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
 	}
@@ -29,7 +33,7 @@
 
 		depths = c(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 800 )
 		p$clusters = rep( "kaos", length(depths) )
-		p = make.list( list( depths = 1:length(depthsyrs) ), Y=p )
+		p = make.list( list( depths = 1:length(depths) ), Y=p )
     parallel.run( isobath.db,  p=p, depths=depths, DS="redo" ) 	
 		# isobath.db( p=p, depths=depths, DS="redo" ) 
 	}

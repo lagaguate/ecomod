@@ -1,6 +1,35 @@
 
   bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish") ) {
      
+    if ( DS =="Greenlaw_DEM") {
+      # DEM created 2014
+      # GCS_WGS_1984, UTM_Zone_20N; spheroid:: 6378137.0, 298.257223563
+      # 322624071 "grid points
+      # 50 m  horizontal resolution
+      # depth range: -5053.6 to 71.48 m 
+      fn = project.directory( "bathymetry", "data", "bathymetry.greenlaw.rdata" )
+      if (file.exists (fn) ) {
+        load(fn)
+        return(gdem)
+      }
+
+      require(rgdal)
+      demfile.adf = project.directory( "bathymetry", "data", "greenlaw_DEM", "mdem_50", "w001001.adf" )  # in ArcInfo adf format
+      dem = new( "GDALReadOnlyDataset", demfile.adf )
+      # gdem = asSGDF_GROD( dem, output.dim=dim(dem) ) # regrid to another dim
+      # gdem = getRasterData(dem) # in matrix format
+      gdem = getRasterTable(dem) # as a data frame
+      names(gdem) = c("plon", "plat", "z")
+      gdem = gdem[ is.finite( gdem$z ) , ]
+      gdem = gdem[ which( gdem$z < p$depthrange[2] ) , ] # limit to 3000m depths due to file size
+      gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
+      gdem = planar2lonlat( gdem, "utm20", planar.coord.scale="m" )  # plon,plat already in meters
+      gdem = gdem[, c("lon", "lat", "z") ]
+      save( gdem, file=project.directory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
+    }
+
+
+
     if (  DS %in% c("z.lonlat.rawdata.redo", "z.lonlat.rawdata") ) {
 			# raw data minimally modified all concatenated
       
@@ -14,46 +43,86 @@
         return( bathy )
       }
  
-			# this data was obtained from CHS via Jerry Black in 13 April 2009
-			chs.jerry.black = read.table( file.path( datadir, "jerry.black.xyz"), header=T, sep="," )
-			chs.jerry.black = chs.jerry.black[ which (is.finite( rowSums( chs.jerry.black ) ) ) , ]
-			names( chs.jerry.black ) = c("lon", "lat", "z")
+			# this data was obtained from CHS via Jerry Black in 13 April 2009 n=9,965,979 -- 
+      con <- xzfile( file.path( datadir, "jerry.black.xyz.xz") ) # xz compressed file
+      chs.jerry.black = read.table( con, header=T, sep="," )
+      # close(con)
+			  names( chs.jerry.black ) = c("lon", "lat", "z")
+			  chs.jerry.black = chs.jerry.black[ which (is.finite( rowSums( chs.jerry.black ) ) ) , ]
+        # some very large numbers above sea level ... drop
+        chs.jerry.black = chs.jerry.black[ which( chs.jerry.black$z < p$depthrange[2] ) , ]  # above sea lvel retain to help with coastlines 
+        # some very small numbers below sea level ... drop
+        chs.jerry.black = chs.jerry.black[ which( chs.jerry.black$z > p$depthrange[1] ) , ]
+				j = which(duplicated( chs.jerry.black ))
+        if (length (j) > 0 ) chs.jerry.black = chs.jerry.black[-j,]
+ 
 	
-			# this data was obtained from CHS via David Greenberg in 2004
-			chs15 = read.table( file.path( datadir, "nwa.chs15sec.xyz" ) )  
-      names(chs15) = c("lon", "lat", "z")
-      
-	 		# chs depth convention: "-" is below sea level,
-			# change to snowcrab convention  where "-" is above sea level
-			bathy = rbind( chs15, chs.jerry.black )
-	    bathy$z = -bathy$z 
+			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
 			
+      con <- xzfile( file.path( datadir, "nwa.chs15sec.xyz.xz") ) # xz compressed file
+      chs15 = read.table( con )  
+      # close(con)
+        names(chs15) = c("lon", "lat", "z")
+        chs15 = chs15[ which( chs15$z < p$depthrange[2] ) , ]  # above sea lvel retain to help with coastlines 
+        # some very small numbers below sea level ... drop
+        chs15 = chs15[ which( chs15$z > p$depthrange[1]) , ]
+				j = which(duplicated(chs15))
+        if (length (j) > 0 ) chs15 = chs15[-j,]
+ 
+      bathy = rbind( chs15, chs.jerry.black )
+      rm( chs15, chs.jerry.black ); gc()
+
+
+      # Michelle Greenlaw's DEM from 2014
+      # range -3000 to 71.5 m; n=155,241,029 .. but mostly interpolated 
+      bathy = rbind( bathy, bathymetry.db( DS="Greenlaw_DEM" ) )
+      gc()
+
+
+	 		# chs and others above use chs depth convention: "-" is below sea level,
+			# change to snowcrab and groundfish convention  where "-" is above sea level
+ 	    bathy$z = -bathy$z 
+
+
 			# retain postive values to help contouring near coastlines
 			# bathy = bathy[ which( bathy$z > 0 ), ]
 			#		i = which( duplicated(bathy) )
 			#		bathy = bathy[ - i, ]
 
 			if ( "snowcrab" %in% additional.data ) {
+        # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
 			  p0 = p  # loadfunctions "snowcrab" will overwrite p .. store a copy and return it to original state below	
-        loadfunctions( "snowcrab",  functionname="initialise.local.environment.r" )
+        loadfunctions( "snowcrab")
         sc = snowcrab.db("set.clean")[,c("lon", "lat", "z") ]
 				sc = sc [ which (is.finite( rowSums( sc ) ) ) ,]
-				bathy = rbind( bathy, sc )
+				j = which(duplicated(sc))
+        if (length (j) > 0 ) sc = sc[-j,]
+        bathy = rbind( bathy, sc )
 			  p = p0
+        rm (sc); gc()
       }
 
 			if ( "groundfish" %in% additional.data ) {
+        # n=13031; range = 0 to 1054
 				loadfunctions("groundfish")
-				gf = groundfish.db( "set" )[, c("lon","lat", "sdepth") ]
+				gf = groundfish.db( "set.base" )[, c("lon","lat", "sdepth") ]
 				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
-				names(gf) = names( bathy )
-				bathy = rbind( bathy, gf )
+        names(gf) = c("lon", "lat", "z")
+				j = which(duplicated(gf))
+        if (length (j) > 0 ) gf = gf[-j,]
+ 				bathy = rbind( bathy, gf )
+        rm (gf); gc()
 			}
+
+
+      j = which(duplicated(bathy))
+      if (length (j) > 0 ) bathy = bathy[-j,]
+ 
       write.table( bathy, file=p$bathymetry.xyz, col.names=F, quote=F, row.names=F)
       
 			cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
       save( bathy, file=fn, compress=T )
-      return ( str(bathy) )
+      return ( fn )
     }
 
 
@@ -84,7 +153,7 @@
 			} 
 
 			append = "-O -K"
-			b.res = "-I10c"  # use full resolution of bathymetry data
+			b.res = "-I10s"  # use full resolution of bathymetry data
 			bathy.tension = "-T0.75"  # large steepness :: 0.35+ for steep; 0.25 for smooth
 			blocked = file.path(tmpdir, make.random.string(".gmt.blocked"))
 			grids  = file.path(tmpdir, make.random.string( ".gmt.depths"))
@@ -391,6 +460,7 @@
       # oo= zSSE[id,] 
 
       save( id, file=fn, compress=T )
+      return(fn)
     }     
 
   }  
