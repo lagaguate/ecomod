@@ -3,6 +3,8 @@
         
     OP$fit = NA
     OP$se  = NA
+
+    if ( nrow(x) < 30 ) return(OP)  # data needs vary depending upon modelling approach
  
     if ( method=="gam" ) {
       require(mgcv)
@@ -25,8 +27,6 @@
           OP$fit = out$fit
           OP$se = out$se
         }
-        
-
     }
   
 
@@ -174,6 +174,16 @@
       plot(  fit ~ I(yr+ty), data=OP, pch=".", type="l")
       points( t ~I(ty + yr), data=x, pch="*", col="red")
     }
+   
+    # constrain range of predicted data to the input data range
+    
+    TR =  quantile( x$t, probs=c(0.005, 0.995), na.rm=TRUE  )
+    TR[1] = max( TR[1], -3)
+    TR[2] = min( TR[2], 30)
+    toolow = which( OP$fit < TR[1] )
+    if ( length(toolow) > 0 )  OP$fit[toolow] = TR[1]
+    toohigh = which( OP$fit > TR[2] )
+    if ( length(toohigh) > 0 ) P[toohigh,ww] = TR[2]
 
     return ( OP ) 
 

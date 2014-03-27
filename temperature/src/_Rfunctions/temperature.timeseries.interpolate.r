@@ -31,18 +31,12 @@
       # weight data in space: inverse distance squared
       b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )
       b$w[ which( is.infinite( b$w ) ) ] = 1
-      
+        
+
       OP = expand.grid( plon=Pi$plon, plat=Pi$plat, z=Pi$z, weekno=p$wtimes, yr=p$tyears )
-      OP$fit=NA
-      OP$se=NA
-      if (length(i) > length(p$tyears)*2 ) {
-        OP = timeseries.impute( x=b, OP=OP, method=p$tsmethod, harmonics=p$tsharmonics ) 
-        trange = range(b$t, na.rm=TRUE ) 
-        u = which( OP$fit < trange[1] )
-        if ( length(u) > 0 ) OP$t[u] = trange[1]
-        v = which( OP$fit > trange[2] )
-        if ( length(u) > 0 ) OP$t[v] = trange[2]
-      }
+
+      OP = timeseries.impute( x=b, OP=OP, method=p$tsmethod, harmonics=p$tsharmonics ) 
+      
       OP$id = c( 1: nrow(OP) )
       OPnrow = nrow(OP)
 

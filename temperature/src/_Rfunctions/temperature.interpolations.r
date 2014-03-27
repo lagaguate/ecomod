@@ -52,6 +52,12 @@
      	    
       B = hydro.db( p=p, DS="bottom.gridded.all"  )
       B = B[, c("plon", "plat", "yr", "weekno", "t", "z") ]
+
+      TR = quantile(B$t, probs=c(0.005, 0.995), na.rm=TRUE ) 
+      TR[1] = max( TR[1], -3)
+      TR[2] = min( TR[2], 30)
+      B$t [ which( B$t < TR[1]) ] = NA
+      B$t [ which( B$t > TR[2]) ] = NA
       B = B[ which( is.finite(B$t)) ,]
 
       gc()
@@ -60,7 +66,6 @@
       parallel.run( temperature.timeseries.interpolate, p=p, P=P, B=B )
       # temperature.timeseries.interpolate ( p=p )
       
-
       tbot <- attach.big.matrix( p$tbot.desc )
 			tbot.se <- attach.big.matrix( p$tbot.se.desc )
 
@@ -68,9 +73,7 @@
 				yt = p$tyears[r]
 				fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
 				fn2 = file.path( tinterpdir, paste( "temporal.interpolation.se", yt, "rdata", sep=".") )
-        
         print( fn1 )
-
 				cstart = (r-1) * p$nw 
 				col.ranges = cstart + (1:p$nw) 
 				tinterp = tbot[,col.ranges]
@@ -127,57 +130,71 @@
       if ( exists("init.files", p) ) loadfunctions( p$init.files ) 
       if ( exists("libs", p) ) loadlibraries( p$libs ) 
       if ( is.null(ip) ) ip = 1:length(p$nruns)
+     
+      O = bathymetry.db( p=p, DS="baseline" )
+      O$z = NULL
 
       for ( r in ip ) { 
         y = p$runs[r, "yrs"]
         P = temperature.interpolations( p=p, DS="temporal.interpolation", yr=y  )
-        P[ P < -1.9 ] = NA
-        P[ P > 34 ] = NA
-							
         V = temperature.interpolations( p=p, DS="temporal.interpolation.se", yr=y  )
-				V[ V < 0.1 ] = 100  # shrink weighting of unreasonably small SEs
-				W = 1 / V^2 
+        TRv = quantile( V[,ww], probs=c(0.005, 0.995), na.rm=TRUE  )   
+        V[ V < TRv[1] ] = TRv[1] 
+        V[ V > TRv[2] ] = TRv[2] 
+        W = 1 / V^2 
  
-        O = bathymetry.db( p=p, DS="baseline" )
 				print ( paste("Year:", y)  )
         for ( ww in 1:52 ) {
           print ( paste( "Week:", ww) )
+          TR =  quantile( P[,ww], probs=c(0.005, 0.995), na.rm=TRUE  )  
+          TR[1] = max( TR[1], -3)
+          TR[2] = min( TR[2], 30)
+          toolow = which( P[,ww] < TR[1] )
+          if ( length(toolow) > 0 )  P[toolow,ww] = NA
+          toohigh = which( P[,ww] > TR[2] )
+          if ( length(toohigh) > 0 )  P[toohigh,ww] = NA 
+
+          ai = which(is.finite(P[,ww]))
+          Tdat = P[ai,ww]
+          gs = NULL
+          # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
+          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
+          if ( "try-error" %in% class(gs) ) { 
+            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=200, maxdist=50, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
+          }
+          if ( "try-error" %in% class(gs) ) { 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=50, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
+          }
+          if ( "try-error" %in% class(gs) ) { 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=50, set=list(idp=.5)), silent=TRUE) 
+          }
+          if ( "try-error" %in% class(gs) ) { 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], set=list(idp=.5)), silent=TRUE) 
+          }
+          count = 0
           todo = 1
+          aj = which( ! is.finite(P[,ww]) )
           while ( todo > 0 )  {
-            ai = which(is.finite(P[,ww]))
-            aj = setdiff( 1:nrow(P), ai)
-						pp = pp.se = NULL
-
-            # testing
-            testing= FALSE
-            if (testing) {
-              gs =  try(
-                gstat( id="t", formula=P[ai,ww]~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]) 
-              , silent=T ) 
-              if ( "try-error" %in% class(e) ) { 
-                # simplest default inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
-                gs = gstat( id="t", formula=P[ai,ww]~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]) 
-              }
-            }
-
-            # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
-            gs = gstat( id="t", formula=P[ai,ww]~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]) 
-						preds = predict( object=gs, newdata=O[aj,]  ) 
-
+            preds = predict( object=gs, newdata=O[aj,]  )
+            extrapolated = which( preds[,3] < TR[1] &  preds[,3] > TR[2] )
+            if (length( extrapolated ) > 0 ) preds[ extrapolated, 3] = NA
             P[aj,ww] = preds[,3]
 						V[aj,ww] = sqrt( V[aj,ww]^2 + preds[,4]^2 )     # assume additive error 
-						
-						rm( preds, gs ); gc()
-            
-						ai = which(is.finite( P[,ww] ))
-            aj = setdiff( 1:nrow(P), ai )
+            aj = which( ! is.finite(P[,ww]) )
             last = todo
             todo = length( aj )
-            if (todo == last) break  # converged
+            count = count + 1
+            if ( (todo == last) | (count > 10) ) {
+              # stuck in a loop or converged.. take a global mean 
+              if (todo > 0) {
+                P[aj,ww] = median( P[,ww], na.rm=TRUE )
+                V[aj,ww] = median( V[,ww], na.rm=TRUE )
+              }
+              break() 
+            }
           } 
-          rm ( ai, aj, pp, pp.se ); gc()
+          rm ( ai, aj ); gc()
         }
-       
 				fn1 = file.path( spinterpdir,paste("spatial.interpolation",  y, "rdata", sep=".") )
 				fn2 = file.path( spinterpdir,paste("spatial.interpolation.se",  y, "rdata", sep=".") )
 				save( P, file=fn1, compress=T )
