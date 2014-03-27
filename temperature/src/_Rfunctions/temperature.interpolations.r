@@ -2,7 +2,10 @@
   temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
 
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
- 
+   
+      if ( exists("init.files", p) ) loadfunctions( p$init.files ) 
+      if ( exists("libs", p) ) loadlibraries( p$libs ) 
+  
       tinterpdir = project.directory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
       dir.create( tinterpdir, recursive=T, showWarnings=F )
 				

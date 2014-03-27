@@ -4,13 +4,12 @@
   
   p=list()
   p$init.files = loadfunctions( c( "common", "bathymetry" ) )
-  p$libs = loadlibraries( c("chron", "rgdal", "lattice" ) )
-  p$depthrange = c(-3000, 100) # permissible depth ranges for all following analyses ... contrainted to limit file sizes .. keep above sea level for coastal areas 
+  p$libs = loadlibraries( c("chron", "rgdal", "lattice", "parallel" ) )
 
 	if ( bathymetry.rawdata.redo ) { 
 		# glue all data sources (spherical coords) 
     # ... right now this is about 17 GB in size when expanded .... SLOW .... 
-    # and it takes about 50+ GB RAM (due to addition of Greenlaw's DEM )
+    # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
     # run on servers only unless your machine can handle it
 		p = spatial.parameters( type="canada.east" )
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
@@ -30,9 +29,12 @@
 		p = spatial.parameters( type=j )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
     bathymetry.db ( p, DS="complete.redo" ) # glue all together 
-
-		depths = c(0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 800 )
-		p$clusters = rep( "kaos", length(depths) )
+  }
+  
+  for ( j in c( "canada.east", "SSE", "snowcrab" ) ) {
+		p = spatial.parameters( type=j )
+ 		depths = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 800, 1000 )
+		p$clusters = rep( "localhost", detectCores() )
 		p = make.list( list( depths = 1:length(depths) ), Y=p )
     parallel.run( isobath.db,  p=p, depths=depths, DS="redo" ) 	
 		# isobath.db( p=p, depths=depths, DS="redo" ) 
@@ -46,7 +48,8 @@
 
 
 ## a few maps:
-  
+ 
+  p = spatial.parameters( type="SSE" )
   x = bathymetry.db ( p, DS="baseline" )
   
 	snowcrab.area=F
@@ -61,34 +64,37 @@
 	
 	x$z =log( x$z )
   
-  datarange = seq(-1, 8, length.out=100)
+  dr = quantile( x$z, probs=c(0.025, 0.975))
+  datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "depth"
   annot = "ln ( Depth; m )"
   map( xyz=x[,c("plon", "plat", "z")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry"), at=datarange , col.regions=cols )
+    fn=outfn, loc=project.directory("bathymetry", "maps"), at=datarange , col.regions=cols )
   
 
   
   x = bathymetry.db ( p, DS="dZ.planar" )
 	if (snowcrab.area) x = x[sc,]
-  datarange = seq(-12, -1, length.out=100)
+  dr = quantile( x$dZ, probs=c(0.025, 0.975))
+  datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "slope"
   annot = "ln ( Slope; m/m )"
   map( xyz=x[ ,c("plon", "plat", "dZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry"), at=datarange , col.regions=cols )
+    fn=outfn, loc=project.directory("bathymetry","maps"), at=datarange , col.regions=cols )
 
   
  
   x = bathymetry.db ( p, DS="ddZ.planar" )
 	if (snowcrab.area) x = x[sc,]
-  datarange = seq(6, 14, length.out=100)
+  dr = quantile( x$ddZ, probs=c(0.025, 0.975))
+  datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "curvature"
   annot = "ln ( Curvature; m/m/m )"
   map( xyz=x[,c("plon", "plat", "ddZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry"), at=datarange , col.regions=cols )
+    fn=outfn, loc=project.directory("bathymetry", "maps"), at=datarange , col.regions=cols )
 
   
 

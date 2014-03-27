@@ -29,7 +29,6 @@
     }
 
 
-
     if (  DS %in% c("z.lonlat.rawdata.redo", "z.lonlat.rawdata") ) {
 			# raw data minimally modified all concatenated
       
@@ -46,48 +45,31 @@
 			# this data was obtained from CHS via Jerry Black in 13 April 2009 n=9,965,979 -- 
       con <- xzfile( file.path( datadir, "jerry.black.xyz.xz") ) # xz compressed file
       chs.jerry.black = read.table( con, header=T, sep="," )
-      # close(con)
-			  names( chs.jerry.black ) = c("lon", "lat", "z")
-			  chs.jerry.black = chs.jerry.black[ which (is.finite( rowSums( chs.jerry.black ) ) ) , ]
-        # some very large numbers above sea level ... drop
-        chs.jerry.black = chs.jerry.black[ which( chs.jerry.black$z < p$depthrange[2] ) , ]  # above sea lvel retain to help with coastlines 
-        # some very small numbers below sea level ... drop
-        chs.jerry.black = chs.jerry.black[ which( chs.jerry.black$z > p$depthrange[1] ) , ]
-				j = which(duplicated( chs.jerry.black ))
-        if (length (j) > 0 ) chs.jerry.black = chs.jerry.black[-j,]
- 
-	
+			names( chs.jerry.black ) = c("lon", "lat", "z")
+      chs.jerry.black = chs.jerry.black[ which( chs.jerry.black$z < 1000 ), ] # remove some large values that are likely "missing values" 
+      chs.jerry.black$z = - chs.jerry.black$z  
+
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
-			
       con <- xzfile( file.path( datadir, "nwa.chs15sec.xyz.xz") ) # xz compressed file
       chs15 = read.table( con )  
-      # close(con)
-        names(chs15) = c("lon", "lat", "z")
-        chs15 = chs15[ which( chs15$z < p$depthrange[2] ) , ]  # above sea lvel retain to help with coastlines 
-        # some very small numbers below sea level ... drop
-        chs15 = chs15[ which( chs15$z > p$depthrange[1]) , ]
-				j = which(duplicated(chs15))
-        if (length (j) > 0 ) chs15 = chs15[-j,]
+      names(chs15) = c("lon", "lat", "z")
+      chs15 = chs15[ which( chs15$z < 1000 ) , ] 
+      chs15$z = - chs15$z  
  
       bathy = rbind( chs15, chs.jerry.black )
       rm( chs15, chs.jerry.black ); gc()
 
-
       # Michelle Greenlaw's DEM from 2014
       # range -3000 to 71.5 m; n=155,241,029 .. but mostly interpolated 
-      bathy = rbind( bathy, bathymetry.db( DS="Greenlaw_DEM" ) )
-      gc()
+      gdem = bathymetry.db( DS="Greenlaw_DEM" )
+      gdem$z = - gdem$z
 
+      bathy = rbind( bathy, gdem )
+      rm(gdem) ; gc()
 
 	 		# chs and others above use chs depth convention: "-" is below sea level,
-			# change to snowcrab and groundfish convention  where "-" is above sea level
- 	    bathy$z = -bathy$z 
-
-
-			# retain postive values to help contouring near coastlines
-			# bathy = bathy[ which( bathy$z > 0 ), ]
-			#		i = which( duplicated(bathy) )
-			#		bathy = bathy[ - i, ]
+			# in snowcrab and groundfish convention "-" is above sea level
+			# retain postive values at this stage to help contouring near coastlines
 
 			if ( "snowcrab" %in% additional.data ) {
         # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
@@ -113,10 +95,6 @@
  				bathy = rbind( bathy, gf )
         rm (gf); gc()
 			}
-
-
-      j = which(duplicated(bathy))
-      if (length (j) > 0 ) bathy = bathy[-j,]
  
       write.table( bathy, file=p$bathymetry.xyz, col.names=F, quote=F, row.names=F)
       
@@ -163,12 +141,11 @@
 			cmd( "blockmean", p$bathymetry.bin, "-bi3 -bo", p$region, b.res, ">", blocked )  
 			cmd( "surface", blocked, "-bi3", p$region, b.res, bathy.tension, paste("-G", grids, sep="") )
 			cmd( "grdmath -M", grids, "DDX ABS", grids, "DDY ABS ADD 0.5 MUL =", z.dds )
-			cmd( "grdmath -N", grids, "CURV =", z.d2ds2 )
+			cmd( "grdmath -M -N", grids, "CURV =", z.d2ds2 )
 			cmd( "grd2xyz", grids, ">", fn.interp.z )  # the scalar in meter 
 			cmd( "grd2xyz", z.dds, ">", fn.interp.dz )  # the scalar in meter / meter
 			cmd( "grd2xyz", z.d2ds2, ">", fn.interp.ddz )  # the scalar m / m^2
 
-			# image.plot(M.dz)
 			remove.files( c(blocked, grids, z.dds, z.d2ds2  ) )
 			return ("intermediate files completed")
 		}
@@ -187,7 +164,7 @@
         load( fn.lonlat )
         return( Z )
       }
-      if ( DS == "Z.lonlat.grid" ) {
+      if ( DS == "Z.lonlat.grid" ) {   # not used ... drop?
         load( fn.lonlat.grid )
         return( Z )
       }
@@ -195,7 +172,7 @@
         load( fn.planar )
         return( Z )
       }
-      if ( DS == "Z.planar.grid" ) {
+      if ( DS == "Z.planar.grid" ) {    # used by map.substrate
         load( fn.planar.grid )
         return( Z )
       }
@@ -442,7 +419,7 @@
 	
 
     if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) { 
-      # create a lookuptable for SSE -> snowvrab domains
+      # create a lookuptable for SSE -> snowcrab domains
       # both share the same initial domains + resolutions
       fn = file.path( project.directory("bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata") 
       if (DS== "lookuptable.sse.snowcrab" ) { 
@@ -450,8 +427,14 @@
         return(id)
       }
       zSSE = bathymetry.db ( p=spatial.parameters( type="SSE" ), DS="baseline" )
+      zSSE$co = paste( zSSE$plon, zSSE$plat )
+      #  which(duplicated( zSSE$co))
+
       zSSE$id.sse = 1:nrow(zSSE)
       zsc  = bathymetry.db ( p=spatial.parameters( type="snowcrab" ), DS="baseline" )
+      zsc$co = paste( zsc$plon, zsc$plat )
+      # which(duplicated( zsc$co))
+
       zsc$id.sc = 1:nrow(zsc)
       z = merge( zSSE, zsc, by=c("plon", "plat"),  all.x=T, all.y=T, sort=F )
       ii = which(is.finite(z$id.sc ) & is.finite(z$id.sse )  )
@@ -464,4 +447,9 @@
     }     
 
   }  
+
+
+
+
+
 
