@@ -15,8 +15,10 @@
     # start data uptake and processing
 
     p = list()
-    p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
+    
     p$libs = loadlibraries( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory" ) )
+    
+    p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
 		
     # faster to use RAM-based data objects but this forces use only of local cpu's
     # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)

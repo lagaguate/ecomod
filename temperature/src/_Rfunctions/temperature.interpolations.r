@@ -3,9 +3,6 @@
 
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
    
-      if ( exists("init.files", p) ) loadfunctions( p$init.files ) 
-      if ( exists("libs", p) ) loadlibraries( p$libs ) 
-  
       tinterpdir = project.directory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
       dir.create( tinterpdir, recursive=T, showWarnings=F )
 				
@@ -96,7 +93,11 @@
 
 
     if (DS %in% c(  "spatial.interpolation", "spatial.interpolation.se", "spatial.interpolation.redo" )){
-			   
+			     
+      if ( exists("init.files", p) ) loadfilelist( p$init.files ) 
+      if ( exists("libs", p) ) loadlibraries( p$libs ) 
+      if ( is.null(ip) ) ip = 1:length(p$nruns)
+     
 			# interpolated predictions over only missing data
 			spinterpdir =  file.path( project.directory("temperature"), "data", "interpolated", "spatial", p$spatial.domain )
 			if (p$spatial.domain=="snowcrab") {
@@ -126,11 +127,7 @@
         }
         return ( V )
       }
- 
-      if ( exists("init.files", p) ) loadfunctions( p$init.files ) 
-      if ( exists("libs", p) ) loadlibraries( p$libs ) 
-      if ( is.null(ip) ) ip = 1:length(p$nruns)
-     
+
       O = bathymetry.db( p=p, DS="baseline" )
       O$z = NULL
 
