@@ -183,7 +183,7 @@
     toolow = which( OP$fit < TR[1] )
     if ( length(toolow) > 0 )  OP$fit[toolow] = TR[1]
     toohigh = which( OP$fit > TR[2] )
-    if ( length(toohigh) > 0 ) P[toohigh,ww] = TR[2]
+    if ( length(toohigh) > 0 ) OP$fit[toohigh] = TR[2]
 
     return ( OP ) 
 

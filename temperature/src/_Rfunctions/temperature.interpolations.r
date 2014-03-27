@@ -135,7 +135,7 @@
         y = p$runs[r, "yrs"]
         P = temperature.interpolations( p=p, DS="temporal.interpolation", yr=y  )
         V = temperature.interpolations( p=p, DS="temporal.interpolation.se", yr=y  )
-        TRv = quantile( V[,ww], probs=c(0.005, 0.995), na.rm=TRUE  )   
+        TRv = quantile( V, probs=c(0.005, 0.995), na.rm=TRUE  )   
         V[ V < TRv[1] ] = TRv[1] 
         V[ V > TRv[2] ] = TRv[2] 
         W = 1 / V^2 
