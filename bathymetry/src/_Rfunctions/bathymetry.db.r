@@ -352,27 +352,23 @@
 			if ( p$spatial.domain == "snowcrab" ) {
   
         # begin with the SSE conditions 
-        Z = Z[ which(Z$z < 800 & Z$z > 0 ) ,] 
-		    
-        # filter out area 4X   
-		    corners = data.frame( cbind( 
-					lon = c(-67, -65,  -63, -66 ),
-          lat = c( 45,  44.2, 45, 45.7)
-				) )
-				corners = lonlat2planar( corners, proj.type=p$internal.projection )
-				ii = which(  
-					( Z$plon < corners$plon[1] ) | 
-					( Z$plon < corners$plon[2]  & Z$plat > corners$plat[2] ) |
-					( Z$plon <= corners$plon[3] & Z$plon >= corners$plon[4] &  
-						Z$plat >= corners$plat[3] & Z$plat <= corners$plat[4] ) 
-				)
-
-				if (length( ii) > 0) Z = Z[- ii, ]
-				jj = filter.region.polygon( Z[,c(1:2)], region="cfaall", planar=T,  proj.type=p$internal.projection ) 
-				if (length( jj) > 0) Z = Z[ jj, ]
 				kk = which( Z$z < 350 & Z$z > 10  )
 				if (length( kk) > 0) Z = Z[ kk, ]
-			
+
+				jj = filter.region.polygon( Z[,c(1:2)], region="cfaall", planar=T,  proj.type=p$internal.projection ) 
+				if (length( jj) > 0) Z = Z[ jj, ]
+			   
+        # filter out area 4X   
+		    corners = data.frame( cbind( 
+					lon = c(-63, -65.5 ),
+          lat = c( 44.75, 43.8)
+				) )
+				corners = lonlat2planar( corners, proj.type=p$internal.projection )
+        dd1 = which( Z$plon < corners$plon[1] & Z$plat > corners$plat[1]  ) 
+        if (length( dd1) > 0) Z = Z[- dd1, ]
+        
+        dd2 = which( Z$plon < corners$plon[2] & Z$plat > corners$plat[2]  ) 
+        if (length( dd2) > 0) Z = Z[- dd2, ]
 
 				# require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
 			}

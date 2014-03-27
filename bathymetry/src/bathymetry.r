@@ -5,19 +5,22 @@
   p=list()
   p$init.files = loadfunctions( c( "common", "bathymetry" ) )
   p$libs = loadlibraries( c("chron", "rgdal", "lattice", "parallel" ) )
+ 
+  p$isobaths = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 800, 1000 )
+	
 
 	if ( bathymetry.rawdata.redo ) { 
 		# glue all data sources (spherical coords) 
     # ... right now this is about 17 GB in size when expanded .... SLOW .... 
     # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
     # run on servers only unless your machine can handle it
-		p = spatial.parameters( type="canada.east" )
+		p = spatial.parameters( type="canada.east", p=p )
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
 	}
 
 	# begin interpolations using GMT  
 	for ( j in c( "canada.east", "SSE" ) ) {
-		p = spatial.parameters( type=j )
+		p = spatial.parameters( type=j, p=p )
 		bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
 		bathymetry.db ( p, DS="Z.redo" )
 		bathymetry.db ( p, DS="dZ.redo" )
@@ -26,17 +29,16 @@
 
 
 	for ( j in c( "canada.east", "SSE", "snowcrab" ) ) {
-		p = spatial.parameters( type=j )
+		p = spatial.parameters( type=j, p=p )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
     bathymetry.db ( p, DS="complete.redo" ) # glue all together 
   }
   
   for ( j in c( "canada.east", "SSE", "snowcrab" ) ) {
-		p = spatial.parameters( type=j )
- 		depths = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 800, 1000 )
-		p$clusters = rep( "localhost", detectCores() )
-		p = make.list( list( depths = 1:length(depths) ), Y=p )
-    parallel.run( isobath.db,  p=p, depths=depths, DS="redo" ) 	
+		p = spatial.parameters( type=j, p=p )
+		p = make.list( list( depths=p$isobaths ), Y=p )
+    p$clusters = rep( "localhost", 2 )  # too many clusters will overload the system ... data files are large ~(11GB RAM required to block) and can be deleted in the temporary drives 
+    parallel.run( isobath.db,  p=p, DS="redo" ) 	
 		# isobath.db( p=p, depths=depths, DS="redo" ) 
 	}
 

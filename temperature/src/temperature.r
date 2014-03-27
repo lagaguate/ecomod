@@ -167,7 +167,7 @@ if (debug) {
 
 # ----------------
 # to access data:
-        p = spatial.parameters( type="SSE" )
+        p = spatial.parameters( p=p, type="SSE" )
         tp = hydro.db(  p=p, DS="profiles.annual", yr=2007 )
         tp = hydro.db(  p=p, DS="bottom.annual", yr=2007 )
 
@@ -177,7 +177,7 @@ if (debug) {
 #  test analysis spatial variations in temperature
 
         require( gstat )
-        p = spatial.parameters( type="SSE" )
+        p = spatial.parameters( p=p, type="SSE" )
         
         O = hydro.db( p=p, DS="bottom.gridded" )
         O = O[, c("plon", "plat", "t", "yr", "weekno")]
@@ -211,7 +211,7 @@ if (debug) {
 #  test analysis GAMM ... global 
 
         require( mgcv )
-        p = spatial.parameters( type="SSE" )
+        p = spatial.parameters( p=p, type="SSE" )
      
         O = hydro.db( p=p, DS="bottom.gridded.all"  )
         O = O[, c("plon", "plat", "t", "yr", "weekno")]

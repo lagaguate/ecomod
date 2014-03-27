@@ -1,6 +1,6 @@
 
  
-  isobath.db = function( ip=NULL, p=NULL, depths, DS="" ) {
+  isobath.db = function( ip=NULL, p=NULL, depths=NULL, DS="" ) {
 
     if (exists( "init.files", p)) loadfilelist( p$init.files ) 
     if (exists( "libs", p)) loadlibraries( p$libs ) 
@@ -40,7 +40,10 @@
 				  isobaths = file.path(tmpdir, make.random.string(".tmp.isobaths"))
           tmp.iso = file.path(tmpdir, make.random.string(".tmp.iso"))
           if (d==0) {
-            cmd( "pscoast", p$region, p$gmtproj, " -Df -m -W -Na -Ir >", isobaths )
+            cmd( "pscoast", p$region, p$gmtproj, " -Df -M -W  >", isobaths )   # shorelines
+            cmd( "pscoast", p$region, p$gmtproj, " -Df -M -N1 -N3  >>", isobaths ) # political boundaries
+            cmd( "pscoast", p$region, p$gmtproj, " -Df -M -Ir >>", isobaths ) # rivers and lakes
+
           } else {
 						# gmt.bin = gsub(".xyz$", ".bin", inp)
 						gmt.bin = p$bathymetry.bin 
@@ -50,7 +53,7 @@
             gmt.data.landmask = file.path(tmpdir, make.random.string(".gmt.data.landmask"))
             basemap = file.path(tmpdir, make.random.string(".gmt.basemap.ps"))
 						bathy.masked = file.path(tmpdir, make.random.string(".gmt.bathy.masked"))
-            bathy.contour= paste( "-m -S10", paste("-D", isobaths, sep=""), 
+            bathy.contour= paste( "-S10", paste("-D", isobaths, sep=""), 
               paste("-C", abs(d), sep=""), 
               paste("-L",d-1,"/",d+1,sep="") ) # override default
 

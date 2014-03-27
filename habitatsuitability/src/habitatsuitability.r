@@ -11,7 +11,7 @@
   p$init.files = loadfunctions(c( "common", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
 	p$libs = loadlibraries (c("chron", "fields", "rgdal", "snow", "mgcv", "arm" ))
   
-  p = spatial.parameters( type="SSE" ) # 4VWX
+  p = spatial.parameters(p=p, type="SSE" ) # 4VWX
   p$studyarea = c( "4vwx" )
   # p$studyarea = c("4vwx", "5yz" )
   

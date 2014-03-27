@@ -232,7 +232,7 @@ if (testing) {
 
   # -------------------------------------------------------------------------------------
   # example plot mechanism
-  p = spatial.parameters( type="snowcrab" )
+  p = spatial.parameters( p=p, type="snowcrab" )
 	xyz=bathymetry.db(p=p, DS="baseline.planar.500")
   map( xyz, xyz.coords="planar", cfa.regions=T, depthcontours=T, pts=NULL, annot=NULL, fn="test", loc=getwd() )
 
