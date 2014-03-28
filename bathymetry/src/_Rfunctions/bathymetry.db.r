@@ -43,15 +43,15 @@
       }
  
 			# this data was obtained from CHS via Jerry Black in 13 April 2009 n=9,965,979 -- 
-      con <- xzfile( file.path( datadir, "jerry.black.xyz.xz") ) # xz compressed file
-      chs.jerry.black = read.table( con, header=T, sep="," )
+      fn  = file.path( datadir, "jerry.black.xyz.xz")  # xz compressed file
+      chs.jerry.black = read.table( xzfile(fn), header=T, sep="," )
 			names( chs.jerry.black ) = c("lon", "lat", "z")
       chs.jerry.black = chs.jerry.black[ which( chs.jerry.black$z < 1000 ), ] # remove some large values that are likely "missing values" 
       chs.jerry.black$z = - chs.jerry.black$z  
 
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
-      con <- xzfile( file.path( datadir, "nwa.chs15sec.xyz.xz") ) # xz compressed file
-      chs15 = read.table( con )  
+      fn = file.path( datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
+      chs15 = read.table( xzfile( con ) ) 
       names(chs15) = c("lon", "lat", "z")
       chs15 = chs15[ which( chs15$z < 1000 ) , ] 
       chs15$z = - chs15$z  

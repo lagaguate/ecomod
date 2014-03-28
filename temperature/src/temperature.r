@@ -60,10 +60,12 @@
 
     # ----------------
     # extract all hydro data and add snow crab and groundfish data
-      hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) 
+    # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical) from 1910 to 2010
+    # hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) # temp data not maintained any longer ???
     # hydro.db( DS="osd.oneoff.singleyear.redo", yr=2011, p=p ) 
-    # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical)
-    # hydro.db( DS="osd.rawdata.all.redo", yr=p$tyears, p=p )  
+    # .. not sure where data are being stored 
+    # .. right now using data obtained directly from Roger Pettipas (OSD)  
+      hydro.db( DS="osd.pettipas.redo", p=p, yr=c(2010:2013) ) 
  
 
     # ----------------
@@ -93,7 +95,7 @@
     p = spatial.parameters( p=p, type="SSE" )
  	
     # ----------------
-    # grid bottom data  ; <1 min  
+    # grid bottom data to internal spatial resolution ; <1 min  
     p = make.list( list( yrs=p$tyears), Y=p )
   	# parallel.run( hydro.db, p=p, DS="bottom.gridded.redo", yr=p$tyears )
 		hydro.db( p=p, DS="bottom.gridded.redo", yr=p$tyears )

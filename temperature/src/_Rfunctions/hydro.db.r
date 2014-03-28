@@ -94,19 +94,19 @@
         save( X, file=fn.out, compress=T)
     }
 
-    if (DS=="osd.oneoff.petipas.redo" ) {
+    if (DS=="osd.pettipas.redo" ) {
       ## this is another data dump directly from Roger Petipasfort 2010 to 2012 using MSACCESS -> text
       ## and merging here
-      datadir = file.path( loc.archive, "petitpas" )
-      yrs = c(2010:2012)
-      for ( y in yrs ) {
-        fndata = file.path( datadir, paste( "temp_dt_", y, ".txt", sep="" ) )
-        fnset = file.path( datadir, paste( "temp_st_", y, ".txt", sep="" ) )
-        
-        tdata = read.csv( file=fndata, header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
+      datadir = file.path( loc.archive, "pettipas" )
+     
+      for ( y in yr ) {
+        fndata = file.path( datadir, paste( "temp_dt_", y, ".txt.xz", sep="" ) ) # xz compressed files
+        fnset = file.path( datadir, paste( "temp_st_", y, ".txt".xz, sep="" ) )
+
+        tdata = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
         names( tdata) = c("pressure", "temperature", "salinity", "sigmat", "stationid" )
 
-        tsets = read.csv( file=fnset, header=TRUE, stringsAsFactors=FALSE , na.strings="9999" )
+        tsets = read.csv( file=xzfile(fnset), header=TRUE, stringsAsFactors=FALSE , na.strings="9999" )
         names( tsets) = c("cruiseid", "latitude", "longitude", "cruise_date", "time", "depth_sounding", "pmax", "stationid" )
 
         X = merge( tdata, tsets, by="stationid", all.x=TRUE, all.y=FALSE )
