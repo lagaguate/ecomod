@@ -101,7 +101,7 @@
      
       for ( y in yr ) {
         fndata = file.path( datadir, paste( "temp_dt_", y, ".txt.xz", sep="" ) ) # xz compressed files
-        fnset = file.path( datadir, paste( "temp_st_", y, ".txt".xz, sep="" ) )
+        fnset = file.path( datadir, paste( "temp_st_", y, ".txt.xz", sep="" ) )
 
         tdata = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
         names( tdata) = c("pressure", "temperature", "salinity", "sigmat", "stationid" )
