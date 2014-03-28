@@ -2,6 +2,7 @@
 
   temperature.timeseries.interpolate = function( ip=NULL, p, P, B ) {
 
+
     if (exists( "init.files", p)) loadfilelist( p$init.files ) 
     if (exists( "libs", p)) loadlibraries( p$libs ) 
     if (is.null(ip)) ip = 1:p$nruns
@@ -10,6 +11,7 @@
       mm = p$runs[iip,"loc"]
       Pi=P[mm,]
       print (mm)			
+      
       for ( dm in p$dist.km ) { 
         drange = c(-1,1) * dm
         plon0 = Pi$plon + drange
@@ -24,7 +26,7 @@
         ) 
         if (length(i) > p$nMin.tbot ) break()  # nMin.tbot is the prefered number of data points
       }						
-     
+      
       if (length(i) == 0 ) next()  # do not return yet as raw data must be placed into the output 
 
       b = B[i,] # faster to reduce the size of  B
@@ -35,7 +37,7 @@
 
       OP = expand.grid( plon=Pi$plon, plat=Pi$plat, z=Pi$z, weekno=p$wtimes, yr=p$tyears )
 
-      OP = timeseries.impute( x=b, OP=OP, method=p$tsmethod, harmonics=p$tsharmonics ) 
+      OP = timeseries.impute( x=b, OP=OP, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) 
       
       OP$id = c( 1: nrow(OP) )
       OPnrow = nrow(OP)

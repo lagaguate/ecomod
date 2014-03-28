@@ -129,7 +129,7 @@
         return (PS)
       }
 
-      if (is.null(ip)) ip = 1:length(p$nruns)
+      if (is.null(ip)) ip = 1:p$nruns
     
       for (iy in ip) {
         yr = p$runs[iy, "yrs"]

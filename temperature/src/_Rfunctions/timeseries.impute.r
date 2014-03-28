@@ -1,10 +1,10 @@
 
-  timeseries.impute = function( x, OP, method="harmonics", harmonics=3 ) {
+  timeseries.impute = function( x, OP, method="harmonics", harmonics=3, gam.optimizer="bam" ) {
         
     OP$fit = NA
     OP$se  = NA
 
-    if ( nrow(x) < 30 ) return(OP)  # data needs vary depending upon modelling approach
+    if ( nrow(x) < 100 ) return(OP)  # data needs vary depending upon modelling approach
  
     if ( method=="gam" ) {
       require(mgcv)
@@ -129,7 +129,7 @@
       }
 
       for ( h in (harmonics+1):1) {
-        model = switch( p$gam.optimizer,
+        model = switch( gam.optimizer,
           bam = try( bam( formula( mf[h] ), data=x, weights=w ) ) ,
           bfgs = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","bfgs")  ) ) ,
           perf = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("perf")  ) ) ,
@@ -157,13 +157,16 @@
 
         out = NULL
         out = try( predict( model, newdata=OP, type="response", se.fit=T ) ) 
+        
         if ( ! "try-error" %in% class(out) ) {
           OP$fit = out$fit 
           OP$se = out$se  
         }
       }
     }
-  
+ 
+
+
     debug = FALSE
     if (debug) {
       AIC(model)

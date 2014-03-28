@@ -48,7 +48,7 @@
 
     lp = levelplot( z ~ plon+plat, data=xyz, aspect="iso", pts=pts, colpts=colpts, annot=annot, pp=pp, 
       annot.cex=annot.cex, xlab="", ylab="", scales=list(draw=F), col.regions=col.regions, at=at, xlim=xlim, ylim=ylim, 
-      colorkey=colorkey , rez=rez,  
+      colorkey=colorkey , rez=rez, leg=leg,  
       panel = function(x, y, subscripts, rez=rez,  ...) {
         
         panel.levelplot (x, y, subscripts, aspect="iso", rez=rez, ...)
@@ -111,10 +111,11 @@
         zc = lonlat2planar( zc, proj.type= projection )
         panel.xyplot( zc$plon, zc$plat, col = "black", pch=".", cex=1 )
 
-				if ( is.null( leg ) ){
-					xoffset = 30
-					leg = c( xlim[2]-xoffset, ylim[1] + 0.2*(ylim[2]-ylim[1]) ) 
-				}
+        if (is.null(leg) ) {
+				  xoffset = 30
+				  leg = c( xlim[2]-xoffset, ylim[1] + 0.2*(ylim[2]-ylim[1]) ) 
+        }
+
         panel.arrows( x0=leg[1]-100, y0=leg[2], x1=leg[1], y1=leg[2], 
 						angle=90, length=0.06, ends="both", lwd=3, col="black", ...)
         panel.text( x=leg[1]+18, y=leg[2]+25, "100 km", cex=1.7, pos=2 )

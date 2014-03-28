@@ -347,43 +347,61 @@
         return (Z)
       }
 
-      Z = bathymetry.db( p, DS="Z.planar" )
+	
+      # ---------
 			
-			if ( p$spatial.domain == "snowcrab" ) {
-  
-        # begin with the SSE conditions 
-				kk = which( Z$z < 350 & Z$z > 10  )
-				if (length( kk) > 0) Z = Z[ kk, ]
+      if ( p$spatial.domain == "canada.east" ) {
+     		p = spatial.parameters( type=p$spatial.domain, p=p )
+        Z = bathymetry.db( p, DS="Z.planar" )
+				Z = Z[ which(Z$z < 1000 & Z$z > 0 ) ,] 
+			}
 
-				jj = filter.region.polygon( Z[,c(1:2)], region="cfaall", planar=T,  proj.type=p$internal.projection ) 
-				if (length( jj) > 0) Z = Z[ jj, ]
-			   
+      # ---------
+		
+			if ( p$spatial.domain =="SSE" ) {
+        Z = bathymetry.db( p, DS="Z.planar" )
+  		  Z = Z[ which(Z$z < 800 & Z$z > 0 ) ,] 
+		  }
+
+      # ---------
+
+			if ( p$spatial.domain == "snowcrab" ) {
+ 
+        # NOTE::: snowcrab baseline == SSE baseline, except it is a subset 
+        # begin with the SSE conditions 
+        p0 = p 
+        p = spatial.parameters( type="SSE", p=p )
+        Z = bathymetry.db( p, DS="baseline" )
+        p = p0
+
+        kk = which( Z$z < 350 & Z$z > 10  )
+	  	  if (length( kk) > 0) Z = Z[ kk, ]
+        jj = filter.region.polygon( Z[,c(1:2)], region="cfaall", planar=T,  proj.type=p$internal.projection ) 
+        if (length( jj) > 0) Z = Z[ jj, ]
         # filter out area 4X   
-		    corners = data.frame( cbind( 
-					lon = c(-63, -65.5 ),
-          lat = c( 44.75, 43.8)
-				) )
-				corners = lonlat2planar( corners, proj.type=p$internal.projection )
+        corners = data.frame( cbind( 
+          lon = c(-63, -65.5, -56.8, -66.3 ),  
+          lat = c( 44.75, 43.8, 47.5, 42.8 )  
+        ) )
+        corners = lonlat2planar( corners, proj.type=p$internal.projection )
         dd1 = which( Z$plon < corners$plon[1] & Z$plat > corners$plat[1]  ) 
         if (length( dd1) > 0) Z = Z[- dd1, ]
-        
         dd2 = which( Z$plon < corners$plon[2] & Z$plat > corners$plat[2]  ) 
         if (length( dd2) > 0) Z = Z[- dd2, ]
-
-				# require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
-			}
+        dd3 = which( Z$plon > corners$plon[3] ) # east lim
+        if (length( dd3) > 0) Z = Z[- dd3, ]
+        dd4 = which( Z$plon < corners$plon[4] )  #west lim
+        if (length( dd4) > 0) Z = Z[- dd4, ]
+        dd5 = which( Z$plat > corners$plat[3]  ) # north lim
+        if (length( dd5) > 0) Z = Z[- dd5, ]
+        dd6 = which( Z$plat < corners$plat[4]  )  #south lim 
+        if (length( dd6) > 0) Z = Z[- dd6, ]
+         
+      }
 			
-			if ( p$spatial.domain == "SSE" ) {
-				Z = Z[ which(Z$z < 800 & Z$z > 0 ) ,] 
-				# require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
-			}
+      # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
 			
-			if ( p$spatial.domain == "canada.east" ) {
-				Z = Z[ which(Z$z < 1000 & Z$z > 0 ) ,] 
-				# require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
-			}
-
-			save (Z, file=outfile, compress=T )
+      save (Z, file=outfile, compress=T )
 
 			return( paste( "Baseline data file completed:", outfile )  )
     }
@@ -393,20 +411,24 @@
 
     if (DS %in% c( "complete", "complete.redo") ) {
       # form prediction surface in planar coords for SS snowcrab area
+      
       outfile =  file.path( project.directory("bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
+      if (p$spatial.domain == "snowcrab" ) outfile=gsub( p$spatial.domain, "SSE", outfile )
 
       if ( DS=="complete" ) {
-        load( outfile )
+        if (file.exists( outfile) ) load( outfile )
+        if (p$spatial.domain == "snowcrab" ) {
+          id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
+          Z = Z[id,]
+        }
         return (Z )
       }
-
+   
       Z = bathymetry.db( p, DS="Z.planar" )
       dZ = bathymetry.db( p, DS="dZ.planar" )
       ddZ = bathymetry.db( p, DS="ddZ.planar" )
-		
       Z = merge( Z, dZ, by=c("plon", "plat"), sort=FALSE )
       Z = merge( Z, ddZ, by=c("plon", "plat"), sort=FALSE )
-
       save (Z, file=outfile, compress=T )
 
 			return( paste( "Completed:", outfile )  )
@@ -423,19 +445,15 @@
         return(id)
       }
       zSSE = bathymetry.db ( p=spatial.parameters( type="SSE" ), DS="baseline" )
-      zSSE$co = paste( zSSE$plon, zSSE$plat )
-      #  which(duplicated( zSSE$co))
-
       zSSE$id.sse = 1:nrow(zSSE)
+      
       zsc  = bathymetry.db ( p=spatial.parameters( type="snowcrab" ), DS="baseline" )
-      zsc$co = paste( zsc$plon, zsc$plat )
-      # which(duplicated( zsc$co))
-
       zsc$id.sc = 1:nrow(zsc)
-      z = merge( zSSE, zsc, by=c("plon", "plat"),  all.x=T, all.y=T, sort=F )
+
+      z = merge( zSSE, zsc, by =c("plon", "plat"), all.x=T, all.y=T, sort=F )
       ii = which(is.finite(z$id.sc ) & is.finite(z$id.sse )  )
       if (length(ii) != nrow(zsc) ) stop("Error in sse-snowcrab lookup table size")
-      id = z$id.sse[ ii]
+      id = sort( z$id.sse[ ii] )
       # oo= zSSE[id,] 
 
       save( id, file=fn, compress=T )

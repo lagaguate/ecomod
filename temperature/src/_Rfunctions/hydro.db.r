@@ -144,7 +144,7 @@
  
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
  
-      if ( is.null(ip) ) ip = 1:length(p$nruns)
+      if ( is.null(ip) ) ip = 1:p$nruns
 
       # bring in snow crab, groundfish and OSD data ...
       
@@ -263,7 +263,7 @@
         return(Z)
       }
 
-      if ( is.null(ip)) ip = 1:length(p$nruns)
+      if ( is.null(ip)) ip = 1:p$nruns
 
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
@@ -341,7 +341,7 @@
   
       if (DS == "bottom.gridded.redo" ) {
           
-        if ( is.null(ip)) ip = 1:length(p$nruns)
+        if ( is.null(ip)) ip = 1:p$nruns
         
         for (iip in ip) {
           y = p$runs[iip, "yrs"]

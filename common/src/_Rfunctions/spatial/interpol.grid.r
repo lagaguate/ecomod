@@ -28,8 +28,8 @@
       Ml = make.random.string(".gmt.data.landmask")
       cmd( "grdlandmask", region, res,"-N1/NaN/NaN/NaN/NaN -Di", paste("-G", Ml, sep=""))
 
-      cmd( "grdmath", Ml, Surf, "MUL =", outfile )
-      cmd( "grd2xyz", outfile, "-S >", Surf.xy )
+      cmd( "grdmath", Ml, urf, "MUL =", outfile )
+      cmd( "grd2xyz", outfile, "-s >", Surf.xy )
 
       out = read.table( file=Surf.xy, sep="\t", header=F, strip.white=T )
       names(out) = c("lon", "lat", "z")

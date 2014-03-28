@@ -4,8 +4,9 @@
 
     if (exists( "init.files", p)) loadfilelist( p$init.files ) 
     if (exists( "libs", p)) loadlibraries( p$libs ) 
-    if (is.null(ip)) ip = 1:p$nruns
 
+    if (p$spatial.domain == "snowcrab" )  p = spatial.parameters( type="SSE", p=p )
+  
       if ( DS == "" ) {
         out = NULL
         for (d in depths) {
@@ -18,7 +19,6 @@
 
 			if ( DS != "redo" ) return( NULL)
   
-			# ip is the first parameter passed in the parallel mode
 
 			p$mapres = "-I10s" 
 			p$gmtproj = "-JM6i"
@@ -28,6 +28,8 @@
 			tmpdir =  tempdir()
 
 
+			# ip is the first parameter passed in the parallel mode
+      if (is.null(ip)) ip = 1:p$nruns
 			for (id in ip ) {
 
 				d = p$runs[ id, "depths" ]

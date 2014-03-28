@@ -18,32 +18,28 @@
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
 	}
 
-	# begin interpolations using GMT  
-	for ( j in c( "canada.east", "SSE" ) ) {
+	# begin interpolations using GMT 
+ 
+  for ( j in c( "canada.east", "SSE" ) ) {
 		p = spatial.parameters( type=j, p=p )
 		bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
 		bathymetry.db ( p, DS="Z.redo" )
 		bathymetry.db ( p, DS="dZ.redo" )
 		bathymetry.db ( p, DS="ddZ.redo" )
-  }
-
-
-	for ( j in c( "canada.east", "SSE", "snowcrab" ) ) {
-		p = spatial.parameters( type=j, p=p )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
     bathymetry.db ( p, DS="complete.redo" ) # glue all together 
-  }
-  
-  for ( j in c( "canada.east", "SSE", "snowcrab" ) ) {
-		p = spatial.parameters( type=j, p=p )
 		p = make.list( list( depths=p$isobaths ), Y=p )
     p$clusters = rep( "localhost", 2 )  # too many clusters will overload the system ... data files are large ~(11GB RAM required to block) and can be deleted in the temporary drives 
     parallel.run( isobath.db,  p=p, DS="redo" ) 	
 		# isobath.db( p=p, depths=depths, DS="redo" ) 
 	}
 
-  # create a lookuptable for SSE -> snowvrab domains
+ 
+  # "snowcrab" subsets do exist but are simple subsets of SSE 
+  # so only the lookuptable below is all that is important as far as bathymetry is concerned
   # both share the same initial domains + resolutions
+ 	p = spatial.parameters( type="snowcrab", p=p )
+  bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
   bathymetry.db( DS="lookuptable.sse.snowcrab.redo" ) 
  
 

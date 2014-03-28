@@ -18,7 +18,7 @@
       }
         
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if ( is.null(ip)) ip = 1:length(p$nruns)
+      if ( is.null(ip)) ip = 1:p$nruns
 
       for ( r in ip ) { 
         y = p$runs[r, "yrs"]
@@ -86,7 +86,7 @@
 				return(P)
 			}
 
-      if ( is.null(ip) ) ip = 1:length(p$nruns)
+      if ( is.null(ip) ) ip = 1:p$nruns
  
 			for ( iv in ip ) {
 				vn = p$runs[iv, "vname"]

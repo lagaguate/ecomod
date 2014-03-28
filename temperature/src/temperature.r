@@ -93,14 +93,14 @@
     p = spatial.parameters( p=p, type="SSE" )
  	
     # ----------------
-    # grid bottom data    
+    # grid bottom data  ; <1 min  
     p = make.list( list( yrs=p$tyears), Y=p )
   	# parallel.run( hydro.db, p=p, DS="bottom.gridded.redo", yr=p$tyears )
-		hydro.db( p=p, DS="bottom.gridded.redo", yr=newyear )
+		hydro.db( p=p, DS="bottom.gridded.redo", yr=p$tyears )
 		
 
  		# ----------------
-    # this glues all the years together
+    # this glues all the years together; <1 min
     hydro.db( p=p, DS="bottom.gridded.all.redo", yr=p$tyears  ) 
    			
  		# ----------------

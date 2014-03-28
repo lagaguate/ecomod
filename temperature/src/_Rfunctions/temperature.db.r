@@ -100,7 +100,7 @@
       }
 
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
-      if (is.null(ip)) ip = 1:length(p$nruns)
+      if (is.null(ip)) ip = 1:p$nruns
       
       # depth is the primary constraint 
       Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
