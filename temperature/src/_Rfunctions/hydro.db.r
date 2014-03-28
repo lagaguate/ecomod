@@ -100,6 +100,7 @@
       datadir = file.path( loc.archive, "pettipas" )
      
       for ( y in yr ) {
+        print (y)
         fndata = file.path( datadir, paste( "temp_dt_", y, ".txt.xz", sep="" ) ) # xz compressed files
         fnset = file.path( datadir, paste( "temp_st_", y, ".txt.xz", sep="" ) )
 
@@ -116,9 +117,10 @@
   
         fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
         names(X) = tolower( names(X) )
-        X$cruise_date = gsub(  "0:00:00", "", X$cruise_date )
+        
+        u = matrix( unlist(strsplit( X$cruise_date, split=" ")), nrow=nrow(X), byrow=TRUE )
 
-        X$date = chron( dates.=X$cruise_date, format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
+        X$date = chron( dates.=u[,1], format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
         X$cruise_date = NULL
         save( X, file=fn.out, compress=T)
       }

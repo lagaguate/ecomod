@@ -69,12 +69,15 @@
  
 
     # ----------------
-      p = make.list( list( yrs=p$tyears), Y=p )
+    # Merge depth profiles from all data streams: OSD, groundfish, snowcrab
+    # p = make.list( list( yrs=p$tyears), Y=p )
+      p = make.list( list( yrs=2010:2013), Y=p )
       hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=p$tyears
     # parallel.run( hydro.db, p=p, yr=p$tyears, DS="profiles.annual.redo", init.files=p$init.files ) 
 
+
     # ----------------
-    # extract bottom data
+    # Extract bottom data from each profile
       p = make.list( list( yrs=p$tyears), Y=p )
       hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
     # hydro.db( DS="bottom.annual.redo", yr=p$tyears, p=p )
@@ -82,18 +85,18 @@
 
 
 
-  # ----------------
-  # Basic data uptake now complete 
-  # .. subset the data to smaller areas of interest
-  # .. ie. area-specific divisions of data and gridding 
-  # to optimize speed for snow crab /SSE only results 
-
-
-    
+    # ----------------
+    # Basic data uptake now complete 
+    # .. subset the data to smaller areas of interest
+    # .. ie. area-specific divisions of data and gridding 
+    # to optimize speed for snow crab /SSE only results 
     # update spatial parameters for the region of interest
-    #  j = "canada.east" # can be completed later (after assessment) when time permits
+    #  type="canada.east"  can be completed later (after assessment) when time permits if required
+    
+    
     p = spatial.parameters( p=p, type="SSE" )
  	
+
     # ----------------
     # grid bottom data to internal spatial resolution ; <1 min  
     p = make.list( list( yrs=p$tyears), Y=p )
