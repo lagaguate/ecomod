@@ -387,9 +387,7 @@
       gsinf$bottom_depth = rowMeans( gsinf[, c("dmin", "dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
-
 			gsinf = gsinf[, c("id", "sdate", "time", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
-
       save(gsinf, file=fn, compress=T)
       return(fn)
     }
@@ -424,6 +422,13 @@
         "    and YEAR=", YR, ";"
         ) )
         names(gshyd) =  tolower( names(gshyd) )
+            
+        if(all(is.na(gshyd$mission))) {
+        	#if gshyd is not loaded and the odf files are obtained AMC
+		        fy <- file.path(project.directory("temperature"), "data", "archive", "ctd",YR)
+		        o <- compileODF(path=fy)
+		        gshyd <- makeGSHYD(o)
+        }
         gshyd$mission = as.character( gshyd$mission )
         save(gshyd, file=fny, compress=T)
         print(fny)

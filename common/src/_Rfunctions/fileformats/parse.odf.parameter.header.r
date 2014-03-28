@@ -23,14 +23,15 @@ parse.odf.parameter.header = function ( header ) {
     unit = gsub( gg, "", ph[nm] )
     unit = gsub("',$", "", unit )
     unit = gsub( "[[:space:]]", "", unit )
-
     gg = "NULL_VALUE='"
-    nm = grep( gg, ph, fixed=TRUE )
+    nm = grep( gg, ph, fixed=TRUE ) 
+    if(is.integer(nm)) gg = "NULL_VALUE=";    nm = grep( gg, ph, fixed=TRUE ) #AMC added
     nv = gsub( gg, "", ph[nm] )
     nv = gsub("',$", "", nv )
     nv = gsub( "[[:space:]]", "", nv )
+    nv = gsub( ",", "", nv )
     nv = as.numeric( nv )
-
+    
     vn$pname[i] = pname
     vn$units[i] = unit
     vn$nullvalue[i] = nv
