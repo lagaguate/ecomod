@@ -118,7 +118,7 @@
         names(X) = tolower( names(X) )
         X$cruise_date = gsub(  "0:00:00", "", X$cruise_date )
 
-        X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+        X$date = chron( dates.=X$cruise_date, format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
         X$cruise_date = NULL
         save( X, file=fn.out, compress=T)
       }
