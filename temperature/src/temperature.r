@@ -40,8 +40,8 @@
 
     p$gam.optimizer = "bam" ## other optimizers:: "bam", "perf", "nlm", "bfgs", "optim", "newton", "nlm.fd"
 
-    p$nMin.tbot = 400 # min number of data points req before attempting to model timeseries in a localized space.
-    p$dist.km = c( 2, 4, 8, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120 ) / 2 # additional (1/2) distances to extend search for data
+    p$nMin.tbot = 200 # min number of data points req before attempting to model timeseries in a localized space.
+    p$dist.km = c( 2, 4, 8, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150 ) / 2 # additional (1/2) distances to extend search for data
     p$depthrange.fraction = c( 2/3, 4/3 ) # -/+ 33% of actual depth to include in interpolation
 
     p$tsmethod ="harmonics"  # temporal interpolation method ... harmonic analysis seems most reasonable
@@ -110,7 +110,7 @@
    			
  		# ----------------
     # temporal interpolations assuming some seasonal pattern 
-    # 1950-2013, SSE took ~ 40 hrs (shared RAM, 24 CPU) ... 17 GB req of shared memory
+    # 1950-2013, SSE took ~ 40 hrs (shared RAM, 24 CPU; 1950-2013 run March 2014 ) ... 17 GB req of shared memory
     # this is parallelized ... the call is internal to this 
     temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
 
@@ -119,6 +119,7 @@
     # simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
     # temperature.interpolations( p=p, DS="spatial.interpolation.redo" ) 
     # p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    # using localhost in 2014 6+ hr for each run but with multiple cycles ~ 10 hr total 
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
   

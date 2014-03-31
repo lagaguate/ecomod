@@ -155,7 +155,7 @@
           Tdat = P[ai,ww]
           gs = NULL
           # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
-          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=25, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
+          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], nmax=200, maxdist=20, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
           if ( "try-error" %in% class(gs) ) { 
             gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=200, maxdist=50, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
           }
@@ -173,8 +173,10 @@
           aj = which( ! is.finite(P[,ww]) )
           while ( todo > 0 )  {
             preds = predict( object=gs, newdata=O[aj,]  )
-            extrapolated = which( preds[,3] < TR[1] &  preds[,3] > TR[2] )
-            if (length( extrapolated ) > 0 ) preds[ extrapolated, 3] = NA
+            extrapolated1 = which( preds[,3] < TR[1] )
+            extrapolated2 = which( preds[,3] > TR[2] )
+            if (length( extrapolated1 ) > 0 ) preds[ extrapolated1, 3] = TR[1]
+            if (length( extrapolated2 ) > 0 ) preds[ extrapolated2, 3] = TR[2]
             P[aj,ww] = preds[,3]
 						V[aj,ww] = sqrt( V[aj,ww]^2 + preds[,4]^2 )     # assume additive error 
             aj = which( ! is.finite(P[,ww]) )
