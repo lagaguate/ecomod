@@ -1,0 +1,38 @@
+# sample from the exponential distribution using Rcpp
+
+require(Rcpp)
+
+sourceCpp( rebuild=TRUE, code='
+#include <Rcpp.h>
+//[[Rcpp::export]]
+using namespace Rcpp;
+
+NumericVector random_deviate_exponential_rcpp ( int nobs, double scale ) {
+  // Rcpp:rexp uses scale (1/lambda) rather than rate (lambda) 
+  // leave it this way for ssa as then there are fewer divisions
+  RNGScope scope ;
+  NumericVector rnddevs ; 
+  rnddevs = rexp( nobs, scale ) ; 
+
+  return( rnddevs );
+}')
+
+
+compare = FALSE
+if (compare) {
+  require(rbenchmark)
+  n=10^7
+  lambda = 10^-5
+  sc = 1/lambda
+  benchmark( 
+    random_deviate_exponential_rcpp ( n, sc ),
+    -(1/sc)*log( runif ( n ) ), 
+    rexp( n, lambda ) 
+  )
+
+#                            test replications elapsed relative user.self sys.self user.child sys.child
+# 2        -(1/sc) * log(runif(n))          100   7.327    2.640     7.320        0          0         0
+# 3                rexp(n, lambda)          100   3.958    1.426     3.955        0          0         0
+# 1 sample_exponential_rcpp(n, sc)          100   2.775    1.000     2.771        0          0         0
+
+}
