@@ -2,25 +2,20 @@
 
   ssa.db = function( p=NULL, ptype="debug", out=NULL, tio=NULL, rn=NULL, outdir=NULL ) {
     
-    if (is.null(p)) p = list()
- 
     odir = file.path( outdir, "individual.runs", rn ) 
-    
     fn = file.path( odir, paste( "out", tio, "rdata", sep="." )) 
     
     if ( ptype=="save" ) {
-      if (!is.null(out)) {
-        dir.create( odir, recursive=TRUE, showWarnings=FALSE  )
-        save (out, file=fn, compress=TRUE )
-        return (fn)
-      }
+      if (! file.exists(odir) ) dir.create( odir, recursive=TRUE, showWarnings=FALSE  )
+      save (out, file=fn, compress=TRUE )
+      return (fn)
     }
 
 
     if ( ptype=="load" ) {
-        out = NULL
-        if (file.exists( fn) ) load (fn )
-        return(out)
+      out = NULL
+      if (file.exists( fn) ) load (fn )
+      return(out)
     }
       
 
@@ -33,7 +28,6 @@
       return(out)
     }
      
-    
     
     if ( ptype=="restart" ) {
       out = with(p, {

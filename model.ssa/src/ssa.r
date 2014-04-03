@@ -23,13 +23,10 @@
       })
 
 
-  
-  
   # p = ssa.model.definition( p, ptype = "logistic" ) 
   # p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
   p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
   
-
 
   # initialize state variables and propensity matrix
   res = ssa.db( p , ptype="debug" ) 
@@ -37,6 +34,29 @@
   res$nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...
 
 
+  ## profiling
+  profiling =FALSE
+  if (profiling) {
+    require(profr)
+    o = profr( {ssa.engine.approximation ( p, res )} ) 
+    o = profr( {ssa.engine.approximation.rcpp ( p, res )} ) 
+    summary(o)
+    plot(o)
+  }
+
+
+  ## benchmarking
+  compare = FALSE
+  if (compare) {
+    require(rbenchmark)
+    res0 = res
+    benchmark( 
+      res = ssa.engine.approximation.rcpp ( p, res0 ) , 
+      res = ssa.engine.approximation ( p, res0 ) ,
+      res = ssa.engine.exact ( p, res0 ) 
+    )
+
+  }
 
 
   if (ssa.method == "exact" ) {
@@ -47,29 +67,7 @@
     res = ssa.engine.exact( p, res)   # using the exact solution ... ~ 1 day -> every 25-30 minutes
   }
 
- 
-
-  if (ssa.method == "approximation_rcpp" ) {
-    p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
-    p$runname = "snowcrab.approximation"
-    p$outdir = project.directory( "model.ssa", "data", p$runname )
-    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
-    p$insp = 1:p$nsimultaneous.picks
-    p$monitor = TRUE
-    p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
-   
-    loadfunctions(  "model.ssa", filepattern="ssa_engine_approximation.rcpp") ## loads ssa_engine_approximation_rcpp into memory
-    
-    res = ssa_engine_approximation_rcpp ( p, res ) 
-
-    #  ... but if additional changes such as fishing etc ... then a new engine should be created
-    # takes about 800 MB per run
-    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
-    # image(X)
-  }
-
-
-
+  
   if (ssa.method == "approximation" ) {
     # approximation simular to the tau-leaping method:: ideally only one process should be picked at a time ... 
     #   sampling from the propensities is time-expensive, so a number of picks are made in advance and then updated ..
@@ -81,18 +79,48 @@
     p$insp = 1:p$nsimultaneous.picks
     p$monitor = TRUE
     # res = ssa.engine.approximation( p, res )
-    res = ssa.engine.approximation.cpp ( p, res )
-  
-    profiling =FALSE
-    if (profiling) {
-      require(profr)
-      o = profr( {ssa.engine.approximation.cpp ( p, res )} ) 
-      summary(o)
-      plot(o)
-
-    }
-  
+    res = ssa.engine.approximation ( p, res )
   }
+
+
+  if (ssa.method == "approximation.rcpp" ) {
+    # ~ 2X faster  than ssa.method="approximation"
+    p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
+    p$runname = "snowcrab.approximation"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
+    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
+    p$insp = 1:p$nsimultaneous.picks
+    p$monitor = TRUE
+    p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
+    res = ssa.engine.approximation.rcpp ( p, res ) 
+    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
+    # image(X)
+  }
+
+
+  if (ssa.method == "approximation_rcpp_direct" ) {
+    ## incomplete ... file save and "RE" non yet operational data typing issues
+    p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
+    p$runname = "snowcrab.approximation"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
+    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
+    p$insp = 1:p$nsimultaneous.picks
+    p$monitor = TRUE
+    p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
+    
+    loadfunctions( "model.ssa", directorypattern="rcpp", filepattern="*_rcpp.r" )
+
+    loadfilelist( paste( rcppdir, c("ssa_engine_approximation.rcpp") ## loads ssa_engine_approximation_rcpp into memory
+    loadfunctions(  "model.ssa", filepattern="ssa_engine_approximation.rcpp") ## loads ssa_engine_approximation_rcpp into memory
+    
+    res = ssa_engine_approximation_rcpp_direct ( p, res ) 
+
+    #  ... but if additional changes such as fishing etc ... then a new engine should be created
+    # takes about 800 MB per run
+    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
+    # image(X)
+  }
+
 
 
 
