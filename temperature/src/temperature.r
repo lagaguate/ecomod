@@ -124,6 +124,8 @@
     parallel.run( temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
   
 
+    p$clusters = rep("localhost", detectCores() )
+ 
  		# ----------------
     # extract relevant statistics
     # hydro.modelled.db(  p=p, DS="bottom.statistics.annual.redo" )

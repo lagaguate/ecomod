@@ -7,16 +7,16 @@ sourceCpp( rebuild=TRUE, code='
 //[[Rcpp::export]]
 using namespace Rcpp;
 
-std::vector<unsigned int> random_deviate_uniform_weighted_rcpp ( int nobs, NumericVector probs ) {
-  // sample nobs number of indices from a vector of probabilities of length np, without replacement
+std::vector<unsigned int> random_deviate_uniform_weighted_rcpp ( unsigned int nobs, NumericVector probs ) {
+  // sample nobs number of indices range of (1...np) from a vector of probabilities of length np (which must sum to 1), without replacement
   // about 500X faster than using "sample"
-  int np = probs.size() ;
+  unsigned int np = probs.size() ;
   std::vector<double> cumprobs( np ) ; // container for the CDF
   std::vector<double> rn =  as< std::vector < double> > ( runif( nobs ) ); 
   std::partial_sum( probs.begin(), probs.end(), cumprobs.begin() );  // compute CDF
   std::vector<unsigned int> J( nobs ) ; 
-  int j=0 ;
-  int i=0 ;
+  unsigned int j=0 ;
+  unsigned int i=0 ;
   std::sort(rn.begin(), rn.end());
   while( i < nobs ) {  // cycle over random numbers and classify reaction in sequence
     while ( j < np &&  i < nobs ) {

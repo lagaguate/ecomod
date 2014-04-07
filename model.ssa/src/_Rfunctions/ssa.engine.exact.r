@@ -2,47 +2,65 @@
 ssa.engine.exact = function( p, res ) {
 
   res <- with (p, { 
-    on.exit( browser())   # to debug
-    dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
+    on.exit( return(res ))    # to debug
     tio = tout = 0
+    
+    # indices used for id reaction channel (v) -- 2x as they are binary  
+    # calculate here as it is used repeatedly and fixed for the simple case
+    ipp1 = NULL; for ( v in 1:np ) ipp1 = c( ipp1, v )   # for unary processes 
+    ipp2 = NULL; for ( v in 1:np ) ipp2 = c( ipp2, v,v ) # for binary processes
+    
     while(res$simtime <= t.end ) {
-      # NOTE: using .Internal is not good syntax but this gives a major perfance boost > 40% !
-      prop = .Internal(pmax(na.rm=FALSE, 0, res$P[]/res$P.total  ))   # propensity
-      # j =  ssa_sample_direct( cumsum(prop), runif(1)) 
-      j = .Internal(sample( nP, size=1, replace=FALSE, prob=prop ) ) # index selection
+      # browser()
+      prop = res$P[]/res$P.total     # propensity
+      j = sample( nP, size=1, replace=FALSE, prob=prop ) # index selection
       # remap random element to correct location and process
       jn = floor( (j-1)/nrc ) + 1  # which reaction process
       jj =  j - (jn-1)*nrc         # which cell 
+      
       # determine focal cell coords
       cc = floor( (jj-1)/nr ) + 1   # col
       cr = jj - (cc-1) * nr         # row
-      o = NU[[ jn ]]  
-      ro = cr + o[,1]  # row of the focal cell
-      co = cc + o[,2]  # column of the focal cell
-      no = length(ro)  # nrows = # operations (ie, unary, or binary)
+      ro = cr + NU[1,,jn]  # row of the focal cell(s)
+      co = cc + NU[2,,jn]  # column of the focal cell
+      op = NU[3,,jn]
       
-      OP = o[,3] # operation upon the state variable
+      ipp = ipp2  # default .. most frequent 
+      mm = which( op == 0 ) 
+      if (length(mm) > 0 ) { # switch to unary process
+        op = op[-nn]
+        ro = ro[-nn]
+        co = co[-nn]
+        ipp = ipp1  
+      }
+
       # ensure boundary conditions are sane (reflective boundary conditions)
       ro[ro < 1] = 2
       ro[ro > nr] = nr_1
       co[co < 1] = 2
       co[co > nc] = nc_1 
+
       # determine the appropriate operations for the reaction and their 'real' locations
       # build correctly structured indices 
-      ix = cbind( ro, co)  ## row, column in X
-      ip = cbind( ro, co, po[[no]] )   # rows and columns in P 
+      ## row, column in X
+      ix = cbind( ro, co)  
+      ip = cbind( ro, co, ipp )   
+
       # update state space and associated propensities in cells where state has changed, etc
-      res$X[ix] = XX = .Internal( pmax( na.rm=FALSE, 0, res$X[ix] + o[,3] ))
-      res$P[ip] = RE( p, X=XX, ix=ix ) 
+      res$X[ix] = XX = pmax( 0, res$X[ix] + op )
+      P0 = res$P[ip]
+      res$P[ip] = P1 = RE( p, X=XX, ix=ix ) 
   
-      res$P.total = sum( res$P )
+      res$P.total = res$P.total + sum( P1 ) - sum(P0)
       res$simtime = res$simtime - (1/res$P.total) * log( runif(1) ) 
       ## this is the exponential deviate
       ## exp ~ -ln(1-runif)/lambda 
       ## but as 1-runif is also runif ==> -ln(runif())/lambda 
       ## -- ziggurat is faster ... willl add this
       res$nevaluations = res$nevaluations + 1
-      
+     
+ 
+
       if (res$simtime > tout) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index

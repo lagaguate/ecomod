@@ -7,7 +7,7 @@ sourceCpp( rebuild=TRUE, code='
 //[[Rcpp::export]]
 using namespace Rcpp;
 
-NumericVector random_deviate_exponential_rcpp ( int nobs, double scale ) {
+NumericVector random_deviate_exponential_rcpp ( unsigned int nobs, double scale ) {
   // Rcpp:rexp uses scale (1/lambda) rather than rate (lambda) 
   // leave it this way for ssa as then there are fewer divisions
   RNGScope scope ;

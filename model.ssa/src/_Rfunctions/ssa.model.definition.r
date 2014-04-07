@@ -18,8 +18,8 @@
             dx = d[ix]*X
             x_k = X/K[ix]
             c( 
-              bx + dx*x_k,   # birth process
-              dx + bx*x_k   # death process
+              bx + dx*x_k,    # birth process -- unary process .. second elements are dummy space-filling values
+              dx + bx*x_k    # death process
             )
           }) # end with
         }  # end RE
@@ -29,21 +29,14 @@
         # Lagrangian operator structure: 
         #   (row, column, operation) 
         # where row, column are relative to the focal cell 
-        NU = list (
-          rbind( c(0,0, increment) ),  # for the focal cell (0,0), the birth process: "bX"
-          rbind( c(0,0,-increment) )  # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+        NU = c (
+          c(0,0, increment), c(0,  0, 0)  , # for the focal cell (0,0), the birth process: "bX" .. second set of zeros are dummy place holders
+          c(0,0,-increment), c(0,  0, 0)   # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
         )
-
-        np = length(NU)  # no. of processes
+     
+        np = 2  # no. of processes
+        NU = array ( NU, dim = c(3, 2, np) ) # dim1 are row,col,operation; dim2 are focal cell(s), unary operations have second operation as 0; dim3 is number of reaction channels
         nP = nc*nr*np    # total number of cell in the propensity matrix
- 
-        # pre-sorted data indices ('pox') that permit rapid transcription of propensity calculations, 
-        # that depends upon if they are unary or binary interactions
-        po = list(
-          rep(1:np), # for 1 set
-          c(t(matrix( rep(1:np,2), ncol=2)))  # for 2 sets 
-        )
-    
       }) # first within
     }
 
@@ -62,9 +55,9 @@
             dx = d[ix]*X
             x_k = X/K[ix]
             c( 
-              bx + dx*x_k,   # birth process
-              dx + bx*x_k,   # death process
-              Da * c(X, X, X, X) # fixed diffusion coef
+              bx + dx*x_k,  # birth process 
+              dx + bx*x_k,  # death process
+              Da * c(X,X,X,X) # advection --- >>> the diffusion comes from its' stochasticity and with a magnitude of (u+d)^/2
             )
           }) # end with
         }  # end RE
@@ -74,27 +67,20 @@
         # Lagrangian operat x or structure: 
         #   (row i, column j, operation) 
         # where row, column are relative to the focal cell 
-        NU = list (
-          rbind( c(0,0, increment) ),  # for the focal cell (0,0), the birth process: "bX"
-          rbind( c(0,0,-increment) ), # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+        NU = c( 
+          c(0,0, increment), c(0,  0, 0) , # for the focal cell (0,0), the birth process: "bX" .. second set of zeros are dummy place holders
+          c(0,0,-increment), c(0,  0, 0) , # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
           # row-wise movements (i)
-          rbind( c( 0,  0, -increment), c(-1,  0, +increment) ), # move "left":: X[i,]   -> X[i-1,]  .. all left-ward components  
-          rbind( c( 0,  0, -increment), c(+1,  0, +increment) ), # move:: X[i,] -> X[i+1,]
+          c( 0,  0, -increment), c(-1,  0, +increment) , # move "left":: X[i,]   -> X[i-1,]  .. all left-ward components  
+          c( 0,  0, -increment), c(+1,  0, +increment) , # move:: X[i,] -> X[i+1,]
           # column-wise movements (j)
-          rbind( c( 0,  0, -increment), c( 0, -1, +increment) ), # move:: X[,j] -> X[,j-1]
-          rbind( c( 0,  0, -increment), c( 0, +1, +increment) )  # move:: X[,j] -> X[,j+1]
-        )
+          c( 0,  0, -increment), c( 0, -1, +increment) , # move:: X[,j] -> X[,j-1]
+          c( 0,  0, -increment), c( 0, +1, +increment)   # move:: X[,j] -> X[,j+1]
+          )
 
-        np = length(NU)  # no. of processes
+        np = 6  # no. of processes
+        NU = array ( NU, dim = c(3, 2, np) ) # dim1 are row,col,operation; dim2 are focal cell(s), unary operations have second operation as 0; dim3 is number of reaction channels
         nP = nc*nr*np    # total number of cell in the propensity matrix
-        
-        # pre-sorted data indices ('pox') that permit rapid transcription of propensity calculations, 
-        # that depends upon if they are unary or binary interactions
-        po = list(
-          rep(1:np), # for 1 set
-          c(t(matrix( rep(1:np,2), ncol=2)))  # for 2 sets 
-        )
-
       })
     }
 
@@ -113,9 +99,9 @@
             dx = d[ix]*X
             x_k = X/K[ix]
             c( 
-              bx + dx*x_k,   # birth process
-              dx + bx*x_k,   # death process
-              move_velocity * c(X, X, X, X) * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] )   # advection --- >>> the diffusion comes from its' stochasticity and with a magnitude of (u+d)^/2
+              bx + dx*x_k,    # birth process -- unary process ing values
+              dx + bx*x_k,    # death process
+              move_velocity * c(X,X,X,X) * c( Hr0[ix], Hr1[ix], Hc0[ix], Hc1[ix] )   # advection --- >>> the diffusion comes from its' stochasticity and with a magnitude of (u+d)^/2
             )
           }) # end with
         }  # end RE
@@ -124,25 +110,19 @@
         # Lagrangian operator structure: 
         #   (row, column, operation) 
         # where row, column are relative to the focal cell 
-        NU = list (
-          rbind( c(0,0, increment) ),  # for the focal cell (0,0), the birth process: "bX"
-          rbind( c(0,0,-increment) ), # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
-          rbind( c(0,0,-increment), c(-1,0,increment) ), # advection jumps :: X[i] -> X[i-1] -- negative index direction
-          rbind( c(0,0,-increment), c(+1,0,increment) ),
-          rbind( c(0,0,-increment), c(0,-1,increment) ),  # same as above but now for column-wise jumps advection
-          rbind( c(0,0,-increment), c(0,+1,increment) )
+        NU = c (
+          c(0,0, increment), c(0,  0, 0)  , # for the focal cell (0,0), the birth process: "bX"
+          c(0,0,-increment), c(0,  0, 0)  , # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+          c(0,0,-increment), c(-1,0,increment) , # advection jumps :: X[i] -> X[i-1] -- negative index direction
+          c(0,0,-increment), c(+1,0,increment) ,
+          c(0,0,-increment), c(0,-1,increment) ,  # same as above but now for column-wise jumps advection
+          c(0,0,-increment), c(0,+1,increment) 
         )
+ 
+        np = 6  # no. of processes
+        NU = array ( NU, dim = c(3, 2, np) ) # dim1 are row,col,operation; dim2 are focal cell(s), unary operations have second operation as 0; dim3 is number of reaction channels
 
-        np = length(NU)  # no. of processes
         nP = nc*nr*np    # total number of cell in the propensity matrix
-
-        # pre-sorted data indices ('pox') that permit rapid transcription of propensity calculations, 
-        # that depends upon if they are unary or binary interactions
-        po = list(
-          rep(1:np), # for 1 set
-          c(t(matrix( rep(1:np,2), ncol=2)))  # for 2 sets 
-        )
-
       })
     }
  
@@ -153,15 +133,6 @@
     if ( ptype %in% c( "stage.based.snow.crab", "stage.based.advection.diffusion.snow.crab") ) {  # similar to a delay-difference model with no recruitment
 
       p <- within( p, {
-
-        RE = function(p, X, X1) { 
-          with( p, { 
-            array( c( 
-              pr.moult*pr.growth*Xss, # birth process (i.e. moult Prob = 1 / 365; and pr of growth ) * (Xss = soft-shelled) 
-              m*X,            # constant death process
-            ), dim=c( nr, nc, np ) ) 
-          })
-        }
        
         RE = function( p, X, ix=1:length(X) ) {
           with(p, { 
@@ -171,6 +142,10 @@
             dx = d[ix]*X
             x_k = X/K[ix]
             c( 
+              bx + dx*x_k,   # birth process
+              dx + bx*x_k,   # death process
+              move_velocity * c(X,X,X,X) * c( Hr0[ix], Hr1[ix],Hc0[ix], Hc1[ix] ),   # advection --- >>> the diffusion comes from its' stochasticity and with a magnitude of (u+d)^/2
+ 
               pr.moult*pr.growth*Xss, # birth process (i.e. moult Prob = 1 / 365; and pr of growth ) * (Xss = soft-shelled) 
               m*X,            # constant death process
               b*Recruits,   # birth process
@@ -185,21 +160,16 @@
         # Lagrangian operator structure: 
         #   (row, column, operation) 
         # where row, column are relative to the focal cell 
-        NU = list (
-          rbind( c(0,0, increment) ),  # for the focal cell (0,0), the birth process: "bX"
-          rbind( c(0,0,-increment) )  # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
-          #  ... unfinished 
+        NU = c (
+          c(0,0, increment), c(0,  0, 0)  , # for the focal cell (0,0), the birth process: "bX"
+          c(0,0,-increment), c(0,  0, 0)  , # for the focal cell (0,0), the death process: "(d+(b-d)*X/K)*X""
+              #  ... unfinished 
+  
         )
 
-        np = length(NU)  # no. of processes
+        np = xxx  # no. of processes
+        NU = array ( NU, dim = c(3, 2, np) ) # dim1 are row,col,operation; dim2 are focal cell(s), unary operations have second operation as 0; dim3 is number of reaction channels
         nP = nc*nr*np    # total number of cell in the propensity matrix
- 
-        # pre-sorted data indices ('pox') that permit rapid transcription of propensity calculations, 
-        # that depends upon if they are unary or binary interactions
-        po = list(
-          rep(1:np), # for 1 set
-          c(t(matrix( rep(1:np,2), ncol=2)))  # for 2 sets 
-        )
     
       }) # first within
     }

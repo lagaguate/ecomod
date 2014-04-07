@@ -32,10 +32,10 @@
 
     while( simtime <= t.end ) {
      
-      prop = .Internal(pmax(na.rm=FALSE, 0, P[]/P.total ) )
-      J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) ) 
-      time.increment = -(1/P.total)*log(runif( nsimultaneous.picks ) ) 
-      
+      prop = .Internal( pmax( na.rm=FALSE, 0, P[]/P.total))
+      J = random_deviate_uniform_weighted_rcpp( nsimultaneous.picks, prop )
+      time.increment = random_deviate_exponential_rcpp( nsimultaneous.picks, P.total)
+
       psums = clusterApplyLB( cl=cl, x=ssplt, J=J, p=p, 
         
         fun = function( ip=NULL, J, p ) { 

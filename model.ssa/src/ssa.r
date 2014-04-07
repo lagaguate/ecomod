@@ -1,4 +1,6 @@
 
+# 50,44
+# 52,52
 
   # Spatial reaction-diffusion model solved via stochastic simulation using the Gillespie Alogrithm
   # exact and approximations with some parallel implementations
@@ -6,7 +8,7 @@
   # set.seed(1)
 
   p = list()
-  p$lib = loadlibraries( c("parallel", "Rcpp", "RcppArmadillo"))
+  p$libs = loadlibraries( c("parallel", "Rcpp", "RcppArmadillo"))
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common" )  )
   
   p = ssa.parameters( p, ptype = "systemsize.debug" ) 
@@ -55,6 +57,10 @@
       res = ssa.engine.approximation ( p, res0 ) ,
       res = ssa.engine.exact ( p, res0 ) 
     )
+   
+    benchmark( res = ssa.engine.approximation ( p, res0 ) , replications=1 )
+    
+    benchmark( res = ssa.engine.approximation.rcpp ( p, res0 ) , replications=1 )
 
   }
 
@@ -77,7 +83,7 @@
     p$ssa.approx.proportion = 0.01
     p$nsimultaneous.picks =  round( p$nrc * p$ssa.approx.proportion ) # 1% update simultaneously should be /seems to be safe  ~ 1 day -> every 1-2 min or 2hrs->100days 
     p$insp = 1:p$nsimultaneous.picks
-    p$monitor = TRUE
+    p$monitor = TRUE  # 10% performance hit
     # res = ssa.engine.approximation( p, res )
     res = ssa.engine.approximation ( p, res )
   }
@@ -85,12 +91,13 @@
 
   if (ssa.method == "approximation.rcpp" ) {
     # ~ 2X faster  than ssa.method="approximation"
+    loadfunctions( "model.ssa", filepattern="*.rcpp" )
     p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
     p$runname = "snowcrab.approximation"
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
     p$insp = 1:p$nsimultaneous.picks
-    p$monitor = TRUE
+    p$monitor = TRUE  # 10% performance hit
     p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
     res = ssa.engine.approximation.rcpp ( p, res ) 
     # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
@@ -98,54 +105,20 @@
   }
 
 
-  if (ssa.method == "approximation_rcpp_direct" ) {
-    ## incomplete ... file save and "RE" non yet operational data typing issues
-    p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
-    p$runname = "snowcrab.approximation"
-    p$outdir = project.directory( "model.ssa", "data", p$runname )
-    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
-    p$insp = 1:p$nsimultaneous.picks
-    p$monitor = TRUE
-    p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
-    
-    loadfunctions( "model.ssa", directorypattern="rcpp", filepattern="*_rcpp.r" )
-
-    loadfilelist( paste( rcppdir, c("ssa_engine_approximation.rcpp") ## loads ssa_engine_approximation_rcpp into memory
-    loadfunctions(  "model.ssa", filepattern="ssa_engine_approximation.rcpp") ## loads ssa_engine_approximation_rcpp into memory
-    
-    res = ssa_engine_approximation_rcpp_direct ( p, res ) 
-
-    #  ... but if additional changes such as fishing etc ... then a new engine should be created
-    # takes about 800 MB per run
-    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
-    # image(X)
-  }
-
-
-
 
   if (ssa.method == "approximation.parallel" ) {
-
-    # use parallel mode to run multiple simulations is the most efficient use of resources 
+    # use parallel mode to run multiple simulations .. currently the most efficient use of resources 
     # wrapper is "ssa.parallel" (below)
- 
+    loadfunctions( "model.ssa", filepattern="*.rcpp" )
     p$runname = "debug.approximation.parallel"
     p$outdir = project.directory( "model.ssa", "data", p$runname )
- 
-    p$libs = loadlibraries(  "parallel" , "rlecuyer", "snow" )
+    p$libs = c( p$libs,  loadlibraries(  "parallel" , "rlecuyer", "snow" ) )
   
-    p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
-    # p$cluster = 4  # if a single number then run only on localhost with n cores.
-    p$cluster = rep( "localhost", 5 )
-    
+    # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
+    p$cluster = rep( "localhost", detectCores() )
     p$cluster.message.system = "SOCK" 
     #p$cluster.message.system = "PSOCK" 
-
-    # choose and make a copy of the core ssa engine 
-    # p$ssa.engine = ssa.engine.exact
-    # p$ssa.engine = ssa.engine.approximation
-    p$ssa.engine = ssa.engine.approximation 
-
+    p$ssa.engine = ssa.engine.approximation.rcpp 
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p$nruns = 6
    
@@ -167,41 +140,53 @@
   
 
   if ( pmethod=="rambacked.approximation.parallel" )  {
-    # no real spead up vs exact method ... most time is spent swaping memory space / attaching/detaching
-    
-    #### BROKEN for now ... no need to fix until speed increase is worth the trouble 
-    
-    p$libs = loadlibraries(  "parallel", "bigmemory" )
-    p$cluster = c( rep("localhost", 4) ) 
-    p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
-    p$pconnectmethod = "SOCK" 
+  
+    loadfunctions( "model.ssa", filepattern="*.rcpp" )
+    p$libs = c( p$libs, loadlibraries(  "parallel", "bigmemory" ) )
+    p$cluster = rep( "localhost", detectCores() )
+    p$cluster.message.system = "SOCK" 
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
+    
     p = ssa.db( p , ptype="debug.big.matrix.rambacked" )
-
     p$monitor = FALSE
- 
-    p = ssa.engine.parallel.bigmemory( p  )
+    b = ssa.engine.parallel.bigmemory( p  )
   }
 
 
 
   if (ssa.method == "filebacked.approximation.parallel" ) {
-    # no real spead up vs exact method ... most time is spent swaping memory space / attaching/detaching
-    
-    #### BROKEN for now ... no need to fix until speed increase is worth the trouble 
-    
+    loadfunctions( "model.ssa", filepattern="*.rcpp" )
     p$libs = loadlibraries(  "parallel", "bigmemory" )
-    p$cluster = c( rep("localhost", 4) ) 
-    p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
+    p$cluster = rep( "localhost", detectCores() )
+    # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
     p$cluster.message.system = "SOCK" 
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p = ssa.db( p , ptype="debug.big.matr:ix.filebacked" )
-       
     p$monitor = FALSE
     p = ssa.engine.parallel.bigmemory( p )
   }
 
 
+
+  if (ssa.method == "approximation_rcpp_direct" ) {
+    ## incomplete ... file save and "RE" non yet operational data typing issues
+    p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
+    p$runname = "snowcrab.approximation"
+    p$outdir = project.directory( "model.ssa", "data", p$runname )
+    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
+    p$insp = 1:p$nsimultaneous.picks
+    p$monitor = TRUE
+    p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
+    
+    loadfunctions( "model.ssa", filepattern="*.rcpp" )
+
+    res = ssa_engine_approximation_rcpp_direct ( p, res ) 
+
+    #  ... but if additional changes such as fishing etc ... then a new engine should be created
+    # takes about 800 MB per run
+    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
+    # image(X)
+  }
 
 
 

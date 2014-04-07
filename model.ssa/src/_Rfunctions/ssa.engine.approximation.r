@@ -1,29 +1,23 @@
 
 ssa.engine.approximation = function( p, res ) {
+  
   # optimized and some minor approximations 
   
+  #  on.exit( browser())   # to debug
+ 
   res <- with (p, { 
     
-    tio = tout = 0  # internal time counters to trigger data output (disk saves)
     on.exit( return(res) )  # in case we need to restart the sim with the last run
-    #  on.exit( browser())   # to debug
-   
+    tio = tout = 0  # internal time counters to trigger data output (disk saves)
+    ip1 = 1:np  # unary indices
+    ip2 = NULL; for ( v in 1:np ) ip2 = c( ip2, v, v )  # binary indices
+  
     while (res$simtime <= t.end )  {
       # pre-caluclate these factor outside of the loop as they change slowly
-      # prop = .Internal(pmax(na.rm=FALSE, 0, res$P[]/res$P.total ) )
-      prop = res$P[]/res$P.total
-      
-      J = .Internal(sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) ) 
-      time.increment = -(1/res$P.total)*log( runif ( nsimultaneous.picks ) ) 
-      # remap random element to correct location and process
-      jn  = floor( (J-1)/nrc ) + 1  # which reaction process
-      jj = J - (jn-1)*nrc  # which cell 
-      # determine focal cell coords
-      cc = floor( (jj-1)/nr ) + 1   # col
-      cr = jj - (cc-1) * nr         # row
-      
+     
+      time.increment = -(1/res$P.total)*log( runif ( nsimultaneous.picks ) ) # R only -- slow
       tnew = res$simtime + sum( time.increment )
-      tn = 1:nsimultaneous.picks
+      tn = insp  # stored in 'p'
       
       if ( tnew > tout ) {
         tcs = cumsum( time.increment )
@@ -32,30 +26,62 @@ ssa.engine.approximation = function( p, res ) {
         tnew = res$simtime + sum( time.increment )
       }
 
-      if (length(tn) > 0 ) {
+      tnlen =length(tn)
 
-        for ( w in tn ) {
-          o = NU[[ jn[w] ]]  
-          # no = dim(o)[1]  # nrows = # operations (ie, unary, or binary)
-          ro = cr[w] + o[,1]  # row of the focal cell
-          co = cc[w] + o[,2]  # column of the focal cell
-          # OP = o[,3] # operation upon the state variable
-          # ensure boundary conditions are sane (reflective boundary conditions)
-          ro[ro < 1] = 2
-          ro[ro > nr] = nr_1
-          co[co < 1] = 2
-          co[co > nc] = nc_1 
+      if (tnlen > 0 ) {
+        prop = res$P[]/res$P.total
+        J = sample( nP, size=nsimultaneous.picks, replace=FALSE, prob=prop ) 
+        # remap random element to correct location and process 
+        # the following uses a common C-algorthm that uses minimal number of computations
+        # C uses indices that begin at 0 so subtract 1 firt (J ranges from 1 ...) 
+        # %/% is integer division; %% is modulus ~ 5% faster than using direct older index method .. but could be statistical fluctuation too
+        J = J - 1 # to get C-index starting at 0;; 
+        cr =  J %% nr + 1;           #    -- row no , the +1's are because R indices begin at 1 not 0 as in C
+        cc = (J%/%nr) %% nc + 1;       #    -- col no
+        jn =  J %/% nrc + 1;             # -- processes np
+ 
+        # apply offsets to focal coord
+        
+        ro = cr + t(NU[1,,jn])  # row of the focal cell(s)
+        co = cc + t(NU[2,,jn])  # column of the focal cell
+        op = t(NU[3,,jn])     # operations upon each offset
+
+        # ensure boundary conditions are sane (reflective boundary conditions)
+        ro[ro < 1] = 2
+        ro[ro > nr] = nr_1
+        co[co < 1] = 2
+        co[co > nc] = nc_1 
+      
+      
+        Ptot_delta = 0
+        for ( w in 1:tnlen ) {
           # determine the appropriate operations for the reaction and their 'real' locations
           # build correctly structured indices 
-          ix = .Internal( cbind( deparse.level=1, ro, co))   ## row, column in X .. Internal speeds up 26%
-          ip = .Internal( cbind( deparse.level=1, ro, co, po[[length(ro)]] ) )  # rows and columns in P 
-          # update state space and associated propensities in cells where state has changed, etc
-          
-          res$X[ix] = XX = .Internal( pmax( na.rm=FALSE, 0, res$X[ix] + o[,3] ))
-          res$P[ip] = RE( p, X=XX, ix=ix ) 
-        }  # end for
+          op_w = op[w,]
+          ro_w = ro[w,]
+          co_w = co[w,]
 
-        res$P.total = sum( res$P )
+          unary = which(op_w == 0)
+          if (length( unary)>0 ) {
+            op_w = op_w[-unary]
+            ro_w = ro_w[-unary]
+            co_w = co_w[-unary]
+            ip = .Internal( cbind( deparse.level=1, ro_w, co_w, ip1))   ## row, column in X .. Internal speeds up 26%
+          } else {
+            ip = .Internal( cbind( deparse.level=1, ro_w, co_w, ip2))   ## row, column in X .. Internal speeds up 26%
+          }
+          
+          ix = .Internal( cbind( deparse.level=1, ro_w, co_w ) )   ## row, column in X .. Internal speeds up 26%
+          res$X[ix] = XX = .Internal( pmax( na.rm=FALSE, 0, res$X[ix] + op_w ) )
+          
+          P0 = sum( res$P[ip] )
+          res$P[ip] = PP = RE( p, X=XX, ix=ix )
+          Ptot_delta = Ptot_delta + sum(PP) - P0
+        }
+        
+          
+        # update state space and associated propensities in cells where state has changed, etc
+        res$P.total = sum(res$P[]) 
         res$simtime = res$simtime + sum(time.increment)
         res$nevaluations = res$nevaluations + length(time.increment)
       }
@@ -64,8 +90,8 @@ ssa.engine.approximation = function( p, res ) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
         # print( P.total - sum(P[]) ) # debug
+        res$P.total = sum(res$P)  # reset P.total in case of divergence due to floating point errors
         ssa.db( ptype="save", out=res$X[], tio=tio, outdir=outdir, rn=rn )  
-        # res$P.total = sum(res$P[]) # reset P.total in case of divergence due to floating point errors
         # browser()
         if (monitor) {
           # res$P = RE( p, res$X ) # full refresh of propensities in case of numerical drift
