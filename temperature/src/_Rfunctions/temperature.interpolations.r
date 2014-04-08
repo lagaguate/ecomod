@@ -19,6 +19,7 @@
       }
 		  	
       P = bathymetry.db( p=p, DS="baseline" )
+      P$z = log(P$z)   # operate on log scale for depth
       p$nP = nrow(P);	
 
       nr = p$nP
@@ -48,9 +49,10 @@
       p$tbot.se.desc = describe(tbot.se)
      	    
       B = hydro.db( p=p, DS="bottom.gridded.all"  )
+      B$z = log(B$z)   # operate on log scale for depth
       B = B[, c("plon", "plat", "yr", "weekno", "t", "z") ]
 
-      TR = quantile(B$t, probs=c(0.005, 0.995), na.rm=TRUE ) 
+      TR = range(B$t, na.rm=TRUE ) 
       TR[1] = max( TR[1], -3)
       TR[2] = min( TR[2], 30)
       B$t [ which( B$t < TR[1]) ] = NA

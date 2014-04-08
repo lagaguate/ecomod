@@ -20,9 +20,7 @@
           B$plon > plon0[1] & 
           B$plon < plon0[2] & 
           B$plat > plat0[1] & 
-          B$plat < plat0[2] &
-          B$z > (Pi$z * p$depthrange.fraction[1] )  &  # +/1 25% of depth
-          B$z < (Pi$z * p$depthrange.fraction[2] )   
+          B$plat < plat0[2]    
         ) 
         if (length(i) > p$nMin.tbot ) break()  # nMin.tbot is the prefered number of data points
       }						
@@ -33,7 +31,6 @@
       # weight data in space: inverse distance squared
       b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )
       b$w[ which( is.infinite( b$w ) ) ] = 1
-        
 
       OP = expand.grid( plon=Pi$plon, plat=Pi$plat, z=Pi$z, weekno=p$wtimes, yr=p$tyears )
 

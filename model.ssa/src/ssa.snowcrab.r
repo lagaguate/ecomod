@@ -215,7 +215,6 @@
     p$runname = "snowcrab.approximation"
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
-    p$insp = 1:p$nsimultaneous.picks
     p$monitor = TRUE
     
     use.jit = TRUE
@@ -257,7 +256,6 @@
  
     p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p$nruns = 5
-    p$insp = 1:p$nsimultaneous.picks
   
     ssa.parallel.run ( DS="run", p=p, res=res  ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics

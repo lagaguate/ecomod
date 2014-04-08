@@ -8,11 +8,11 @@ ssa.engine.approximation.rcpp = function( p, res ) {
     tio = tout = 0  # internal time counters to trigger data output (disk saves)
     ip1 = 1:np  # unary indices
     ip2 = NULL; for ( v in 1:np ) ip2 = c( ip2, v, v )  # binary indices
-  
+    tn0 = 1:nsimultaneous.picks
 
     while ( res$simtime <= t.end )  {
 
-      tn = insp
+      tn = tn0
       time.increment = random_deviate_exponential_rcpp( nsimultaneous.picks, res$P.total)
       tnew = res$simtime + sum( time.increment )
       

@@ -42,7 +42,8 @@ ssa.engine.approximation.rcpp.parallel.bigmemory = function( p, res ) {
   attach(p)
     
     tio = tout = 0  # internal time counters to trigger data output (disk saves)
-    
+    tn0 = 1:nsimultaneous.picks
+
     X = res$X 
     P = res$P 
     P.total = res$P.total
@@ -52,7 +53,7 @@ ssa.engine.approximation.rcpp.parallel.bigmemory = function( p, res ) {
 
     while (simtime <= t.end )  {
 
-      tn = insp
+      tn = tn0
       time.increment = random_deviate_exponential_rcpp( nsimultaneous.picks, P.total)
       tnew = simtime + sum( time.increment )
       

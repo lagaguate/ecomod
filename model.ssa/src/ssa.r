@@ -31,38 +31,21 @@
   
 
   # initialize state variables and propensity matrix
-  res = ssa.db( p , ptype="debug" ) 
-  res$simtime = 0       # time in units of the simulation (days)
-  res$nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...
+  res0 = ssa.db( p , ptype="debug" ) 
+  res0$simtime = 0       # time in units of the simulation (days)
+  res0$nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...
 
 
   ## profiling
   profiling =FALSE
   if (profiling) {
     require(profr)
-    o = profr( {ssa.engine.approximation ( p, res )} ) 
-    o = profr( {ssa.engine.approximation.rcpp ( p, res )} ) 
+    o = profr( {ssa.engine.approximation ( p, res0 )} ) 
+    o = profr( {ssa.engine.approximation.rcpp ( p, res0 )} ) 
     summary(o)
     plot(o)
   }
 
-
-  ## benchmarking
-  compare = FALSE
-  if (compare) {
-    require(rbenchmark)
-    res0 = res
-    benchmark( 
-      res = ssa.engine.approximation.rcpp ( p, res0 ) , 
-      res = ssa.engine.approximation ( p, res0 ) ,
-      res = ssa.engine.exact ( p, res0 ) 
-    )
-   
-    benchmark( res = ssa.engine.approximation ( p, res0 ) , replications=1 )
-    
-    benchmark( res = ssa.engine.approximation.rcpp ( p, res0 ) , replications=1 )
-
-  }
 
 
   if (ssa.method == "exact" ) {
@@ -70,7 +53,14 @@
     p$runname = "debug.exact"
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$monitor = TRUE
-    res = ssa.engine.exact( p, res)   # using the exact solution ... ~ 1 day -> every 25-30 minutes
+    res = ssa.engine.exact( p, res0)   # using the exact solution ... ~ 1 day -> every 25-30 minutes
+   
+    require(rbenchmark)
+    benchmark( res = ssa.engine.exact( p, res0 ) , replications=1 )
+    
+    require(profr)
+    o = profr( {ssa.engine.direct ( p, res0 )} ) 
+    summary(o)
   }
 
   
@@ -82,10 +72,13 @@
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$ssa.approx.proportion = 0.01
     p$nsimultaneous.picks =  round( p$nrc * p$ssa.approx.proportion ) # 1% update simultaneously should be /seems to be safe  ~ 1 day -> every 1-2 min or 2hrs->100days 
-    p$insp = 1:p$nsimultaneous.picks
     p$monitor = TRUE  # 10% performance hit
-    # res = ssa.engine.approximation( p, res )
-    res = ssa.engine.approximation ( p, res )
+    # res = ssa.engine.approximation( p, res0 )
+    res = ssa.engine.approximation ( p, res0 )
+
+    require(rbenchmark)
+    benchmark( ssa.engine.approximation ( p, res0 ) , replications=1 )
+
   }
 
 
@@ -96,10 +89,13 @@
     p$runname = "snowcrab.approximation"
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
-    p$insp = 1:p$nsimultaneous.picks
     p$monitor = TRUE  # 10% performance hit
     p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
-    res = ssa.engine.approximation.rcpp ( p, res ) 
+    res = ssa.engine.approximation.rcpp ( p, res0 ) 
+      
+    require(rbenchmark)
+    benchmark( ssa.engine.approximation.rcpp ( p, res0 ) , replications=1 )
+
     # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
     # image(X)
   }
@@ -124,7 +120,7 @@
    
     p$monitor = FALSE
     
-    ssa.parallel.run ( DS="run", p=p, res=res  ) # run the simulation in parallel
+    ssa.parallel.run ( DS="run", p=p, res=res0  ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
 
     # load some of the run results
@@ -174,13 +170,12 @@
     p$runname = "snowcrab.approximation"
     p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
-    p$insp = 1:p$nsimultaneous.picks
     p$monitor = TRUE
     p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
     
     loadfunctions( "model.ssa", filepattern="*.rcpp" )
 
-    res = ssa_engine_approximation_rcpp_direct ( p, res ) 
+    res = ssa_engine_approximation_rcpp_direct ( p, res0 ) 
 
     #  ... but if additional changes such as fishing etc ... then a new engine should be created
     # takes about 800 MB per run
