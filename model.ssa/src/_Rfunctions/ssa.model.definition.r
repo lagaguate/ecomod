@@ -1,12 +1,12 @@
 
 
 
-  ssa.model.definition = function( p=NULL, ptype = "logistic", increment=1L ) {
+  ssa.model.definition = function( p=NULL, DS = "logistic", increment=1L ) {
 
     if (is.null(p)) p = list()
         
     
-    if ( ptype %in% c("logistic", "logistic.no.movement") ) {
+    if ( DS %in% c("logistic", "logistic.no.movement") ) {
 
       p <- within( p, {
 
@@ -41,7 +41,7 @@
     }
 
       
-    if ( ptype %in% c( "logistic.randomwalk", "logistic,diffusion") ) {
+    if ( DS %in% c( "logistic.randomwalk", "logistic,diffusion") ) {
 
       p <- within( p, {
         # propensity calculating function .. returns as a vector of reaction process rates ...
@@ -85,7 +85,7 @@
     }
 
 
-    if ( ptype %in% c("logistic.correlated.randomwalk", "logistic.advection.diffusion") ) {
+    if ( DS %in% c("logistic.correlated.randomwalk", "logistic.advection.diffusion") ) {
 
       p <- within( p, {
         # propensity calculating function .. returns as a vector of reaction process rates ...
@@ -130,7 +130,7 @@
     # -------------------
     
 
-    if ( ptype %in% c( "stage.based.snow.crab", "stage.based.advection.diffusion.snow.crab") ) {  # similar to a delay-difference model with no recruitment
+    if ( DS %in% c( "stage.based.snow.crab", "stage.based.advection.diffusion.snow.crab") ) {  # similar to a delay-difference model with no recruitment
 
       p <- within( p, {
        

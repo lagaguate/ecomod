@@ -1,38 +1,39 @@
 
 
-  ssa.db = function( p=NULL, ptype="debug", out=NULL, tio=NULL, rn=NULL, outdir=NULL ) {
+  ssa.db = function( p=NULL, DS="debug", out=NULL, tio=NULL, rn=0 ) {
     
-    odir = file.path( outdir, "individual.runs", rn ) 
+    outdir = project.directory( "model.ssa", "data", p$runname )
+    odir = file.path( outdir, "individual.runs", rn )  # rn is the default run number when not in parallel mode .. no need to change
     fn = file.path( odir, paste( "out", tio, "rdata", sep="." )) 
     
-    if ( ptype=="save" ) {
+    if ( DS=="save" ) {
       if (! file.exists(odir) ) dir.create( odir, recursive=TRUE, showWarnings=FALSE  )
       save (out, file=fn, compress=TRUE )
       return (fn)
     }
 
 
-    if ( ptype=="load" ) {
+    if ( DS=="load" ) {
       out = NULL
       if (file.exists( fn) ) load (fn )
       return(out)
     }
       
 
-    if ( ptype=="load.all" ) {
+    if ( DS=="load.all" ) {
       out = array( NA, dim=c(p$nr, p$nc, p$n.times)  )  
       for ( i in 1:p$n.times ) {
-        X = ssa.db( ptype="load", tio=i )
+        X = ssa.db( DS="load", tio=i )
         if ( !is.null(X) ) out[,,i] = X 
       }
       return(out)
     }
      
     
-    if ( ptype=="restart" ) {
+    if ( DS=="restart" ) {
       out = within(p, {
         # initiate state space with some random noise and a core area in the center of the system
-        X = ssa.db( ptype="load", tio=tio )
+        X = ssa.db( DS="load", tio=tio )
         P = RE( p, X ) 
         P.total = sum( P[] )
         list( X=X, P=P, P.total=P.total)
@@ -41,7 +42,7 @@
     }
      
     
-    if ( ptype=="debug" ) {
+    if ( DS=="debug" ) {
       out = within( p, {
         # initiate state space with some random noise and a core area in the center of the system
         X = array( 0, dim=c( nr, nc ) ) 
@@ -56,7 +57,7 @@
     }    
     
     
-    if ( ptype=="debug.big.matrix.rambacked" ) {
+    if ( DS=="debug.big.matrix.rambacked" ) {
       # as in the basic "debug" form but using a bigmemory RAM object 
       # .. make sure SHM (shared memory is used an d properly configured on the OS) in /etc/fstab
       require(bigmemory)
@@ -76,7 +77,7 @@
     }
  
     
-    if ( ptype=="debug.big.matrix.filebacked" ) {
+    if ( DS=="debug.big.matrix.filebacked" ) {
       # as in the basic "debug" form but using a bigmemory RAM object 
       require(bigmemory)
 

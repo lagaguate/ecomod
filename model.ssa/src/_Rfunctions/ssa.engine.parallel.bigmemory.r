@@ -110,7 +110,7 @@
 
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
-        ssa.db( ptype="save", out=as.matrix(X[]), tio=tio )  
+        ssa.db( p=p, DS="save", out=as.matrix(X[]), tio=tio )  
         # print( P.total - sum(P[]) )
         P.total = sum(P[]) # reset P.total to prevent divergence due to floating point errors
         if (monitor) {

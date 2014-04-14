@@ -9,7 +9,7 @@
         # load a specific run --- for debugging
         for ( it in 1:p$n.times ) {
           X = array( NA, dim=c(p$nr, p$nc, p$n.times)) 
-          X[,,it] = ssa.db( ptype="load", outdir=p$outdir, tio=it, rn=run ) 
+          X[,,it] = ssa.db( p=p, DS="load", tio=it ) 
         }
         return(X)
       }
@@ -85,7 +85,7 @@
         for ( it in 1:n.times ) {
           X = array( NA, dim=c(nr, nc, nruns)) 
           for ( ir in 1:nruns ) {
-            u = ssa.db( ptype="load", outdir=outdir, tio=it, rn=ir )  
+            u = ssa.db( DS="load", outdir=outdir, tio=it, rn=ir )  
             if (is.null(u)) next() 
             X[,,ir] = u
           }

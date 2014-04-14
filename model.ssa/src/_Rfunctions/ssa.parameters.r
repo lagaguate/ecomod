@@ -2,7 +2,7 @@
 
 
 
-  ssa.parameters= function( p=NULL, ptype = "debug" ) {
+  ssa.parameters= function( p=NULL, DS = "debug" ) {
 
     if (is.null(p)) p = list()
       
@@ -12,7 +12,7 @@
       rtol = 1e-9  # rtol -- relative error tolerance for lsoda
     })
 
-    if ( ptype=="systemsize.debug" ) {
+    if ( DS=="systemsize.debug" ) {
       
       p <- within( p, {
         ############## Spatial extents
@@ -31,7 +31,7 @@
     }
  
     
-    if ( ptype=="logistic.debug" ) {
+    if ( DS=="logistic.debug" ) {
       
       p <- within( p, {
         
@@ -83,7 +83,7 @@
     }
 
    
-    if ( ptype=="simtimes.debug" ) {
+    if ( DS=="simtimes.debug" ) {
    
       p <- within( p, { 
         n.times = 10 # 365  # number of censuses  

@@ -1,10 +1,10 @@
 
 ssa.engine.exact = function( p, res ) {
 
+  
   res <- with (p, { 
     on.exit( return(res ))    # to debug
     tio = tout = 0
-    
     # indices used for id reaction channel (v) -- 2x as they are binary  
     # calculate here as it is used repeatedly and fixed for the simple case
     ipp1 = NULL; for ( v in 1:np ) ipp1 = c( ipp1, v )   # for unary processes 
@@ -14,23 +14,38 @@ ssa.engine.exact = function( p, res ) {
       # browser()
       prop = res$P[]/res$P.total     # propensity
       j = sample( nP, size=1, replace=FALSE, prob=prop ) # index selection
+     
       # remap random element to correct location and process
-      jn = floor( (j-1)/nrc ) + 1  # which reaction process
-      jj =  j - (jn-1)*nrc         # which cell 
       
-      # determine focal cell coords
-      cc = floor( (jj-1)/nr ) + 1   # col
-      cr = jj - (cc-1) * nr         # row
-      ro = cr + NU[1,,jn]  # row of the focal cell(s)
-      co = cc + NU[2,,jn]  # column of the focal cell
+      # in C, using integer math, this seems to be the fastest (avoiding use of the modulo) .. remember that C indices begin at 0
+      # (http://stackoverflow.com/questions/13894028/efficient-way-to-compute-3d-indexes-from-1d-array-representation) 
+      
+      # index = i + j*nr + k*nxy
+      # k = index / (nr * ny) 
+      # j = (index % (nr * ny)) / nr
+      # i = index - j * nr - k * nrc
+      # j = (index - (k*nrc))/nr
+      j0 = j-1  # above math applies to 0-indexing 
+      jn = j0 %/% nrc   # which reaction process  %/% is integer division 
+      jj = j0 - jn*nrc   # which cell  
+      cc = jj %/% nr    # col
+      cr = jj - cc*nr  # row
+      
+      ## ---- above was using 0-indexing now must add 1 to return to R-indexing
+      jn = jn + 1 
+      cr = cr + 1
+      cc = cc + 1
+
+      ro = cr + NU[1,,jn]   # row of the focal cell(s)
+      co = cc + NU[2,,jn] # column of the focal cell
       op = NU[3,,jn]
       
       ipp = ipp2  # default .. most frequent 
       mm = which( op == 0 ) 
       if (length(mm) > 0 ) { # switch to unary process
-        op = op[-nn]
-        ro = ro[-nn]
-        co = co[-nn]
+        op = op[-mm]
+        ro = ro[-mm]
+        co = co[-mm]
         ipp = ipp1  
       }
 
@@ -64,7 +79,7 @@ ssa.engine.exact = function( p, res ) {
       if (res$simtime > tout) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
-        ssa.db( ptype="save", out=res$X[], tio=tio, outdir=outdir, rn=rn )  
+        ssa.db( p=p, DS="save", out=res$X[], tio=tio )  
         # global update of P in case of numerical drift
         res$P.total = sum(res$P[]) # reset P.total in case of divergence due to floating point errors
         if (monitor) {

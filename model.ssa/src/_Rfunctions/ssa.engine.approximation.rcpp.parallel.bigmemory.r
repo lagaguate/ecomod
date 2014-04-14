@@ -93,7 +93,7 @@ ssa.engine.approximation.rcpp.parallel.bigmemory = function( p, res ) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
         # print( P.total - sum(P[]) ) # debug
-        ssa.db( ptype="save", out=X[], tio=tio, outdir=outdir, rn=rn )  
+        ssa.db( DS="save", out=X[], tio=tio, outdir=outdir, rn=rn )  
         # P.total = sum(P[]) # P.total in case of divergence due to floating point errors
         # browser()
         if (monitor) {

@@ -67,9 +67,9 @@
   choose.model = TRUE
   if (choose.model) {
     stop( "stop and choose a model" )
-    p = ssa.model.definition( p, ptype = "logistic", increment=p$increment ) 
-    p = ssa.model.definition( p, ptype = "logistic.randomwalk", increment=p$increment ) 
-    p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk", increment=p$increment ) 
+    p = ssa.model.definition( p, DS = "logistic", increment=p$increment ) 
+    p = ssa.model.definition( p, DS = "logistic.randomwalk", increment=p$increment ) 
+    p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk", increment=p$increment ) 
   }
 
 
@@ -231,7 +231,7 @@
 
     #  ... but if additional changes such as fishing etc ... then a new engine should be created
     # takes about 800 MB per run
-    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
+    # X = ssa.db( DS="load", outdir=p$outdir, tio=10, rn=p$rn )  
     # image(X)
   }
 

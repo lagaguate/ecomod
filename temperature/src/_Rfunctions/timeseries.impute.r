@@ -4,8 +4,6 @@
     OP$fit = NA
     OP$se  = NA
 
-    if ( nrow(x) < 100 ) return(OP)  # data needs vary depending upon modelling approach
- 
     if ( method=="gam" ) {
       require(mgcv)
         # base model -- seasonal smoothing model

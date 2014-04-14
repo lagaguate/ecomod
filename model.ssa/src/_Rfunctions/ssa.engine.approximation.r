@@ -1,24 +1,27 @@
 
 ssa.engine.approximation = function( p, res ) {
   
-  # optimized and some minor approximations 
-  
-  #  on.exit( browser())   # to debug
- 
+  # optimized a few steps at the cost of a few approximations relating to simultaneity of processes
+  # approximation simular to the tau-leaping method:: ideally only one process should be picked at a time ... 
+  # sampling from the propensities is time-expensive, so a number of picks are made in advance and then updated ..
+
   res <- with (p, { 
     
+    #  on.exit( browser())   # to debug
     on.exit( return(res) )  # in case we need to restart the sim with the last run
     tio = tout = 0  # internal time counters to trigger data output (disk saves)
     ip1 = 1:np  # unary indices
     ip2 = NULL; for ( v in 1:np ) ip2 = c( ip2, v, v )  # binary indices
+      
+    nsimultaneous.picks = round( p$nrc * ssa.approx.proportion )
     tn0 = 1:nsimultaneous.picks
 
     while (res$simtime <= t.end )  {
       # pre-caluclate these factor outside of the loop as they change slowly
      
+      tn = tn0  
       time.increment = -(1/res$P.total)*log( runif ( nsimultaneous.picks ) ) # R only -- slow
       tnew = res$simtime + sum( time.increment )
-      tn = tn0  
       
       if ( tnew > tout ) {
         tcs = cumsum( time.increment )
@@ -36,13 +39,18 @@ ssa.engine.approximation = function( p, res ) {
         # the following uses a common C-algorthm that uses minimal number of computations
         # C uses indices that begin at 0 so subtract 1 firt (J ranges from 1 ...) 
         # %/% is integer division; %% is modulus ~ 5% faster than using direct older index method .. but could be statistical fluctuation too
-        J = J - 1 # to get C-index starting at 0;; 
-        cr =  J %% nr + 1;           #    -- row no , the +1's are because R indices begin at 1 not 0 as in C
-        cc = (J%/%nr) %% nc + 1;       #    -- col no
-        jn =  J %/% nrc + 1;             # -- processes np
- 
-        # apply offsets to focal coord
+        j0 = J-1  # above math applies to 0-indexing 
+        jn = j0 %/% nrc   # which reaction process  %/% is integer division 
+        jj = j0 - jn*nrc   # which cell  
+        cc = jj %/% nr    # col
+        cr = jj - cc*nr  # row
         
+        ## ---- above was using 0-indexing now must add 1 to return to R-indexing
+        jn = jn + 1 
+        cr = cr + 1
+        cc = cc + 1
+
+        # apply offsets to focal coord
         ro = cr + t(NU[1,,jn])  # row of the focal cell(s)
         co = cc + t(NU[2,,jn])  # column of the focal cell
         op = t(NU[3,,jn])     # operations upon each offset
@@ -52,7 +60,6 @@ ssa.engine.approximation = function( p, res ) {
         ro[ro > nr] = nr_1
         co[co < 1] = 2
         co[co > nc] = nc_1 
-      
       
         Ptot_delta = 0
         for ( w in 1:tnlen ) {
@@ -92,10 +99,11 @@ ssa.engine.approximation = function( p, res ) {
         tio = tio + 1  # time as index
         # print( P.total - sum(P[]) ) # debug
         res$P.total = sum(res$P)  # reset P.total in case of divergence due to floating point errors
-        ssa.db( ptype="save", out=res$X[], tio=tio, outdir=outdir, rn=rn )  
+        ssa.db( p=p, DS="save", out=res$X[], tio=tio )  
         # browser()
         if (monitor) {
-          # res$P = RE( p, res$X ) # full refresh of propensities in case of numerical drift
+          # res$P =array( RE( p, res$X ),  dim=c( nr, nc, np ) )
+          # # full refresh of propensities in case of numerical drift
           cat( paste( tio, res$nevaluations, round(sum(res$X)), round(res$P.total), Sys.time(), sep="\t\t" ), "\n" )
           image( res$X[], col=heat.colors(100)  )
           assign( "res", res, pos=1 ) # update the res output in the gloabl environment in case a restart is necessary

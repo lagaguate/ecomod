@@ -1,21 +1,23 @@
 
-# 50,44
-# 52,52
 
   # Spatial reaction-diffusion model solved via stochastic simulation using the Gillespie Alogrithm
   # exact and approximations with some parallel implementations
 
-  # set.seed(1)
+  # ---------
+  # Runtime parameters and options
 
   p = list()
-  p$libs = loadlibraries( c("parallel", "Rcpp", "RcppArmadillo"))
+  p$libs = loadlibraries( c("parallel", "Rcpp"))
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common" )  )
-  
-  p = ssa.parameters( p, ptype = "systemsize.debug" ) 
-  p = ssa.parameters( p, ptype = "logistic.debug" ) 
-  
-  
-  p = ssa.parameters( p, ptype = "simtimes.debug" ) 
+
+  loadfunctions( "model.ssa", filepattern="*.rcpp" )  # load and compile supporting C/Rcpp programs
+
+  p$monitor = TRUE  # output figures / summary stats ~ 10% performance hit
+  p$ssa.approx.proportion = 0.01  # 0.1% update simultaneously should be safe
+
+  p = ssa.parameters( p, DS = "systemsize.debug" ) 
+  p = ssa.parameters( p, DS = "logistic.debug" ) 
+  p = ssa.parameters( p, DS = "simtimes.debug" ) 
   # overrides
       p <- within( p, { 
         n.times =  365  # number of censuses  
@@ -24,103 +26,50 @@
         modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
       })
 
-
-  # p = ssa.model.definition( p, ptype = "logistic" ) 
-  # p = ssa.model.definition( p, ptype = "logistic.randomwalk" ) 
-  p = ssa.model.definition( p, ptype = "logistic.correlated.randomwalk" ) 
-  
+  # p = ssa.model.definition( p, DS = "logistic" ) 
+  # p = ssa.model.definition( p, DS = "logistic.randomwalk" ) 
+  p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk" ) 
 
   # initialize state variables and propensity matrix
-  res0 = ssa.db( p , ptype="debug" ) 
-  res0$simtime = 0       # time in units of the simulation (days)
-  res0$nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...
-
-
-  ## profiling
-  profiling =FALSE
-  if (profiling) {
-    require(profr)
-    o = profr( {ssa.engine.approximation ( p, res0 )} ) 
-    o = profr( {ssa.engine.approximation.rcpp ( p, res0 )} ) 
-    summary(o)
-    plot(o)
-  }
-
+  res = ssa.db( p , DS="debug" ) 
+  res$simtime = 0       # time in units of the simulation (days)
+  res$nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...
 
 
   if (ssa.method == "exact" ) {
-    p$rn = 0  # default run number when not in parallel mode .. no need to change
     p$runname = "debug.exact"
-    p$outdir = project.directory( "model.ssa", "data", p$runname )
-    p$monitor = TRUE
-    res = ssa.engine.exact( p, res0)   # using the exact solution ... ~ 1 day -> every 25-30 minutes
-   
-    require(rbenchmark)
-    benchmark( res = ssa.engine.exact( p, res0 ) , replications=1 )
-    
-    require(profr)
-    o = profr( {ssa.engine.direct ( p, res0 )} ) 
-    summary(o)
+    res = ssa.engine.exact( p, res)   # using the exact solution ... ~ 1 day -> every 25-30 minutes
   }
 
-  
   if (ssa.method == "approximation" ) {
-    # approximation simular to the tau-leaping method:: ideally only one process should be picked at a time ... 
-    #   sampling from the propensities is time-expensive, so a number of picks are made in advance and then updated ..
-    p$rn = 0  # default run number when not in parallel mode .. no need to change
     p$runname = "debug.approximation"
-    p$outdir = project.directory( "model.ssa", "data", p$runname )
-    p$ssa.approx.proportion = 0.01
-    p$nsimultaneous.picks =  round( p$nrc * p$ssa.approx.proportion ) # 1% update simultaneously should be /seems to be safe  ~ 1 day -> every 1-2 min or 2hrs->100days 
-    p$monitor = TRUE  # 10% performance hit
-    # res = ssa.engine.approximation( p, res0 )
-    res = ssa.engine.approximation ( p, res0 )
-
-    require(rbenchmark)
-    benchmark( ssa.engine.approximation ( p, res0 ) , replications=1 )
-
+    res = ssa.engine.approximation ( p, res )
   }
 
 
-  if (ssa.method == "approximation.rcpp" ) {
-    # ~ 2X faster  than ssa.method="approximation"
-    loadfunctions( "model.ssa", filepattern="*.rcpp" )
-    p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
-    p$runname = "snowcrab.approximation"
-    p$outdir = project.directory( "model.ssa", "data", p$runname )
-    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
-    p$monitor = TRUE  # 10% performance hit
-    p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
-    res = ssa.engine.approximation.rcpp ( p, res0 ) 
-      
-    require(rbenchmark)
-    benchmark( ssa.engine.approximation.rcpp ( p, res0 ) , replications=1 )
-
-    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
+  if (ssa.method == "default" ) {   # ~ 2X faster  than ssa.method="approximation" .. uses Rcpp/C++
+    p$runname = "default"
+    res = ssa.engine.approximation.rcpp ( p, res ) 
+    # X = ssa.db( p=p, DS="load", tio=10 )  
     # image(X)
   }
-
 
 
   if (ssa.method == "approximation.parallel" ) {
     # use parallel mode to run multiple simulations .. currently the most efficient use of resources 
     # wrapper is "ssa.parallel" (below)
-    loadfunctions( "model.ssa", filepattern="*.rcpp" )
     p$runname = "debug.approximation.parallel"
-    p$outdir = project.directory( "model.ssa", "data", p$runname )
     p$libs = c( p$libs,  loadlibraries(  "parallel" , "rlecuyer", "snow" ) )
-  
     # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
     p$cluster = rep( "localhost", detectCores() )
     p$cluster.message.system = "SOCK" 
     #p$cluster.message.system = "PSOCK" 
     p$ssa.engine = ssa.engine.approximation.rcpp 
-    p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p$nruns = 6
    
     p$monitor = FALSE
     
-    ssa.parallel.run ( DS="run", p=p, res=res0  ) # run the simulation in parallel
+    ssa.parallel.run ( DS="run", p=p, res=res  ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
 
     # load some of the run results
@@ -136,14 +85,11 @@
   
 
   if ( pmethod=="rambacked.approximation.parallel" )  {
-  
-    loadfunctions( "model.ssa", filepattern="*.rcpp" )
     p$libs = c( p$libs, loadlibraries(  "parallel", "bigmemory" ) )
     p$cluster = rep( "localhost", detectCores() )
     p$cluster.message.system = "SOCK" 
-    p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     
-    p = ssa.db( p , ptype="debug.big.matrix.rambacked" )
+    p = ssa.db( p , DS="debug.big.matrix.rambacked" )
     p$monitor = FALSE
     b = ssa.engine.parallel.bigmemory( p  )
   }
@@ -151,38 +97,29 @@
 
 
   if (ssa.method == "filebacked.approximation.parallel" ) {
-    loadfunctions( "model.ssa", filepattern="*.rcpp" )
     p$libs = loadlibraries(  "parallel", "bigmemory" )
     p$cluster = rep( "localhost", detectCores() )
     # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
     p$cluster.message.system = "SOCK" 
-    p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
-    p = ssa.db( p , ptype="debug.big.matr:ix.filebacked" )
+    p = ssa.db( p , DS="debug.big.matr:ix.filebacked" )
     p$monitor = FALSE
     p = ssa.engine.parallel.bigmemory( p )
   }
 
 
-
-  if (ssa.method == "approximation_rcpp_direct" ) {
-    ## incomplete ... file save and "RE" non yet operational data typing issues
-    p$rn = 0  # default if using single runs ... otherwise, with multiple runs, the run numebers are generated automatically 
-    p$runname = "snowcrab.approximation"
-    p$outdir = project.directory( "model.ssa", "data", p$runname )
-    p$nsimultaneous.picks =  round( p$nrc * 0.1 ) # 0.1% update simultaneously should be safe
-    p$monitor = TRUE
-    p$outfilenameroot = file.path( p$outdir, "individual.runs", p$rn, "out" )
+  if (debugmodels) {
+    require(profr)
+    require(rbenchmark)
+    res0 = res
+    p$monitor = FALSE
     
-    loadfunctions( "model.ssa", filepattern="*.rcpp" )
-
-    res = ssa_engine_approximation_rcpp_direct ( p, res0 ) 
-
-    #  ... but if additional changes such as fishing etc ... then a new engine should be created
-    # takes about 800 MB per run
-    # X = ssa.db( ptype="load", outdir=p$outdir, tio=10, rn=p$rn )  
-    # image(X)
+    benchmark( res = ssa.engine.exact( p, res0 ) , replications=1 )
+    benchmark( ssa.engine.approximation ( p, res0 ) , replications=1 )
+    benchmark( ssa.engine.approximation.rcpp ( p, res0 ) , replications=1 )
+    
+    o = profr( {ssa.engine.direct ( p, res0 )} ) ; summary(o)
+ 
   }
-
 
 
   if ( pmethod=="compare.with.PDE.solution" ) {
@@ -190,7 +127,7 @@
     require (deSolve)
     require (lattice)
     p$parmeterizations = c( "reaction", "diffusion.second.order.central") 
-    p = ssa.db( p , ptype="debug" )  # update state variable to initial conditions
+    p = ssa.db( p , DS="debug" )  # update state variable to initial conditions
     A = p$X
     out <- ode.2D(  times=p$modeltimeoutput, y=as.vector(A), parms=p, dimens=c(p$nr, p$nc),
       func=single.species.2D.logistic, 

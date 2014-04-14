@@ -11,6 +11,8 @@
       mm = p$runs[iip,"loc"]
       Pi=P[mm,]
       print (mm)			
+      OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, z=Pi$z, weekno=p$wtimes, yr=p$tyears )
+      # OP$id = c( 1: nrow(OP) )
       
       for ( dm in p$dist.km ) { 
         drange = c(-1,1) * dm
@@ -22,24 +24,21 @@
           B$plat > plat0[1] & 
           B$plat < plat0[2]    
         ) 
-        if (length(i) > p$nMin.tbot ) break()  # nMin.tbot is the prefered number of data points
+        if (length(i) > p$nMin.tbot ) {  # nMin.tbot is the min number of data points before attempting interpolation
+          b = B[i,] # faster to reduce the size of  B
+          # weight data in space: inverse distance squared
+          b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )
+          b$w[ which( is.infinite( b$w ) ) ] = 1
+          b$w[ which( b$w < 1e-3 ) ] = 1e-3
+          OP = timeseries.impute( x=b, OP=OP0, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) 
+          if ( is.finite ( sum( OP$fit, na.rm=T)  ) ) break()  # solution found
+        }
+
       }						
       
-      if (length(i) == 0 ) next()  # do not return yet as raw data must be placed into the output 
+      if (length(i) == 0 ) next() # no data 
 
-      b = B[i,] # faster to reduce the size of  B
-      # weight data in space: inverse distance squared
-      b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )
-      b$w[ which( is.infinite( b$w ) ) ] = 1
-
-      OP = expand.grid( plon=Pi$plon, plat=Pi$plat, z=Pi$z, weekno=p$wtimes, yr=p$tyears )
-
-      OP = timeseries.impute( x=b, OP=OP, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) 
-      
-      OP$id = c( 1: nrow(OP) )
-      OPnrow = nrow(OP)
-
-      # return real data back into the predictions
+      # return original (observed) data back into the predictions
       ii = which( b$plon==Pi$plon & b$plat==Pi$plat )
       if ( length (ii) > 0 ) {
         b = b[ii,]

@@ -98,7 +98,6 @@
 			     
       if ( exists("init.files", p) ) loadfilelist( p$init.files ) 
       if ( exists("libs", p) ) loadlibraries( p$libs ) 
-      if ( is.null(ip) ) ip = 1:p$nruns
      
 			# interpolated predictions over only missing data
 			spinterpdir =  file.path( project.directory("temperature"), "data", "interpolated", "spatial", p$spatial.domain )
@@ -133,6 +132,7 @@
       O = bathymetry.db( p=p, DS="baseline" )
       O$z = NULL
 
+      if ( is.null(ip) ) ip = 1:p$nruns
       for ( r in ip ) { 
         y = p$runs[r, "yrs"]
         P = temperature.interpolations( p=p, DS="temporal.interpolation", yr=y  )
@@ -157,18 +157,24 @@
           Tdat = P[ai,ww]
           gs = NULL
           # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
-          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], nmax=200, maxdist=20, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
+          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=20, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=200, maxdist=50, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=100, maxdist=20, set=list(idp=.5)), silent=TRUE) 
           }
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=50, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=200, maxdist=40, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
           }
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=50, set=list(idp=.5)), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=200, maxdist=40, set=list(idp=.5)), silent=TRUE) 
           }
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], set=list(idp=.5)), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=60, set=list(idp=.5)), silent=TRUE) 
+          }
+          if ( "try-error" %in% class(gs) ) { 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=80, set=list(idp=.5)), silent=TRUE) 
+          }
+          if ( "try-error" %in% class(gs) ) { 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=100, set=list(idp=.5)), silent=TRUE) 
           }
           count = 0
           todo = 1

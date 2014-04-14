@@ -122,6 +122,11 @@
 
         X$date = chron( dates.=u[,1], format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
         X$cruise_date = NULL
+       
+        X$temperature = as.numeric( X$temperature ) 
+        X$salinity= as.numeric(X$salinity)
+        X$sigmat = as.numeric(X$sigmat)
+  
         save( X, file=fn.out, compress=T)
       }
      
@@ -179,7 +184,7 @@
             Y$weekno = 1
             Y$depth = -1
             Y$oxyml = NA
-
+  
           } else {
 
             Y$id =  paste( Y$longitude, Y$latitude, Y$dayno, sep="~" )
@@ -188,6 +193,11 @@
             Y$weekno = ceiling ( Y$dayno / 365 * 52 )
             Y$depth = decibar2depth ( P=Y$pressure, lat=Y$latitude )
             Y$oxyml = NA
+            
+            # next should not be necessary .. but just in case the osd data types get altered  
+            Y$temperature = as.numeric(Y$temperature ) 
+            Y$salinity= as.numeric(Y$salinity)
+            Y$sigmat = as.numeric(Y$sigmat)
           }
         
         Y$pressure = NULL

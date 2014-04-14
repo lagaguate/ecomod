@@ -26,7 +26,7 @@
 				
 				O = bathymetry.db( p=p, DS="baseline" )
         P = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
-     		P[ P < -2 ] = -2  # shrink weighting of unreasonably small SEs
+     		P[ P < -2 ] = -2  
 			  P[ P > 30 ] = 30 
 			  ibaddata = which( !is.finite(P) )
 				P[ ibaddata ] = mean(P, na.rm=T )
@@ -48,8 +48,8 @@
         
         O$wmin = apply( P, 1, which.min )
         O$wmax = apply( P, 1, which.max )
-				O$tmin = apply( P, 1, min )
-        O$tmax = apply( P, 1, max )
+				O$tmin = apply( P, 1, quantile, probs=0.025 )
+        O$tmax = apply( P, 1, quantile, probs=0.975 )
 
 				W = 1/V^2   # weights: inverse variance, normalised
 				W = W / rowSums(W)
@@ -59,7 +59,7 @@
 				O$tsd  = apply( SS*W, 1, sum, na.rm=T ) # weighted seasonal mean sums of squares
 
 				O$tamplitude = O$tmax- O$tmin  # approximate as sinusoid can span 2 yrs
-				
+
 				# half-period .. also approximate as sinusoid can also span 2 yrs
 				# sin tranf required to make circular and then take difference and rescale
         O$thalfperiod = abs( sin(O$wmax/52*pi) - sin(O$wmin/52*pi) ) * 52/pi 
