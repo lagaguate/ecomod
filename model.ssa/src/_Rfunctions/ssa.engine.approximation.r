@@ -1,10 +1,12 @@
 
-ssa.engine.approximation = function( p, res ) {
+ssa.engine.approximation = function( p, res, rn=0 ) {
   
   # optimized a few steps at the cost of a few approximations relating to simultaneity of processes
   # approximation simular to the tau-leaping method:: ideally only one process should be picked at a time ... 
   # sampling from the propensities is time-expensive, so a number of picks are made in advance and then updated ..
-
+  
+  # rn is run number ..used for parallel runs
+  
   res <- with (p, { 
     
     #  on.exit( browser())   # to debug
@@ -99,7 +101,7 @@ ssa.engine.approximation = function( p, res ) {
         tio = tio + 1  # time as index
         # print( P.total - sum(P[]) ) # debug
         res$P.total = sum(res$P)  # reset P.total in case of divergence due to floating point errors
-        ssa.db( p=p, DS="save", out=res$X[], tio=tio )  
+        ssa.db( p=p, DS="save", out=res$X[], tio=tio, rn=rn )  
         # browser()
         if (monitor) {
           # res$P =array( RE( p, res$X ),  dim=c( nr, nc, np ) )

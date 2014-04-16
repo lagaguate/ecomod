@@ -2,7 +2,8 @@
 
 
   ssa.parallel.run = function( DS="load", p=NULL, run=NULL, res=NULL ) {
-
+   
+    outdir = project.directory( "model.ssa", "data", p$runname )
 
     if (DS=="load") {
       if (is.numeric(run)) {
@@ -15,37 +16,37 @@
       }
 
       if (run=="median") {
-        load( file.path( p$outdir, "ssa.med.rdata" ) )
+        load( file.path( outdir, "ssa.med.rdata" ) )
         return( ssa.med )
       }
       
       if (run=="mean") {
-        load( file.path( p$outdir, "ssa.mean.rdata" ) )
+        load( file.path( outdir, "ssa.mean.rdata" ) )
         return( ssa.mean )
       }
       
       if (run=="var") {
-        load( file.path( p$outdir, "ssa.var.rdata" ) )
+        load( file.path( outdir, "ssa.var.rdata" ) )
         return( ssa.var )
       }
       
       if (run=="max") {
-        load( file.path( p$outdir, "ssa.max.rdata" ) )
+        load( file.path( outdir, "ssa.max.rdata" ) )
         return( ssa.max )
       }
       
       if (run=="min") {
-        load( file.path( p$outdir, "ssa.min.rdata" ) )
+        load( file.path( outdir, "ssa.min.rdata" ) )
         return( ssa.min )
       }
     
       if (run=="qu.95") {
-        load( file.path( p$outdir, "ssa.qu.95.rdata" ) )
+        load( file.path( outdir, "ssa.qu.95.rdata" ) )
         return( ssa.qu.95 )
       }
       
       if (run=="ql.95") {
-        load( file.path( p$outdir, "ssa.ql.95.rdata" ) )
+        load( file.path( outdir, "ssa.ql.95.rdata" ) )
         return( ssa.ql.95 )
       }
 
@@ -61,14 +62,13 @@
       idx = clusterSplit( cl, 1:p$nruns )
       ssplt = lapply( idx, function(i) i )
 
-      oo = clusterApplyLB( cl, ssplt, p=p, res=res,
-        fun=function(ip, p, res) { 
-          print(ip)
-          for( i in p$init ) source (i)
-          for ( ooo in ip ) {
-            p$rn = ooo
-            res = p$ssa.engine( p, res )  # default
-          }
+      oo = clusterApply( cl, ssplt, p=p, res=res, 
+        fun=function(ip=NULL, p=p, res=res) { 
+          if (is.null(ip)) ip =1:p$nruns
+          loadfilelist( p$init ) 
+          loadlibraries( "Rcpp") 
+          
+          for ( rn in ip ) rout = ssa.engine( p=p, res=res, rn=rn )  # default
           return(ip)
         } )
 
@@ -79,13 +79,12 @@
     if (DS =="post.process" ) {
 
       # now load the saved data and process a few statistics 
-
-      with(p, {
-        ssa.mean = ssa.var = ssa.med = ssa.min = ssa.max = ssa.ql.95 = ssa.qu.95 = array( NA, dim=c(nr, nc, n.times) )
-        for ( it in 1:n.times ) {
-          X = array( NA, dim=c(nr, nc, nruns)) 
-          for ( ir in 1:nruns ) {
-            u = ssa.db( DS="load", outdir=outdir, tio=it, rn=ir )  
+        ssa.mean = ssa.var = ssa.med = ssa.min = ssa.max = ssa.ql.95 = ssa.qu.95 = array( NA, dim=c(p$nr, p$nc, p$n.times) )
+        for ( it in 1:p$n.times ) {
+          print(it)
+          X = array( NA, dim=c(p$nr, p$nc, p$nruns)) 
+          for ( ir in 1:p$nruns ) {
+            u = ssa.db( p=p, DS="load", tio=it, rn=ir )  
             if (is.null(u)) next() 
             X[,,ir] = u
           }
@@ -105,17 +104,19 @@
         save ( ssa.ql.95, file=file.path( outdir,  "ssa.ql.95.rdata" ), compress=TRUE )
         save ( ssa.qu.95, file=file.path( outdir,  "ssa.qu.95.rdata" ), compress=TRUE )
         save ( p, file=file.path( outdir, "p.rdata" ), compress=TRUE )
-      })
 
     }
 
 
     if (DS=="delete.individual.runs") {
+      
+      for ( prefix in file.path( p$runname, 1:p$nruns) ) {
       repeat {
-        fns = list.files( file.path( p$outdir, "individual.runs"), pattern="*", recursive=TRUE, full.names=TRUE, include.dirs=TRUE  )
-        to.delete = fns[ grep( "individual.runs", fns ) ]
+        fns = list.files( outdir, pattern="*", recursive=TRUE, full.names=TRUE, include.dirs=TRUE  )
+        to.delete = fns[ grep( prefix, fns ) ]
         if (length( to.delete) ==0 ) break() 
         file.remove( to.delete ) # newly emptied directories 
+      }
       }
     }
   }

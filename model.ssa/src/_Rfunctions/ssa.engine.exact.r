@@ -1,6 +1,7 @@
 
-ssa.engine.exact = function( p, res ) {
+ssa.engine.exact = function( p, res, rn=0 ) {
 
+  # is the run number 0 when in single processor mode, else run muber for parallel
   
   res <- with (p, { 
     on.exit( return(res ))    # to debug
@@ -79,7 +80,7 @@ ssa.engine.exact = function( p, res ) {
       if (res$simtime > tout) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
-        ssa.db( p=p, DS="save", out=res$X[], tio=tio )  
+        ssa.db( p=p, DS="save", out=res$X[], tio=tio, rn=rn )  
         # global update of P in case of numerical drift
         res$P.total = sum(res$P[]) # reset P.total in case of divergence due to floating point errors
         if (monitor) {

@@ -1,8 +1,11 @@
 
   temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
+    
 
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
    
+      starttime = Sys.time()
+      
       tinterpdir = project.directory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
       dir.create( tinterpdir, recursive=T, showWarnings=F )
 				
@@ -85,7 +88,11 @@
   			file.remove( p$fn.tbot , p$fn.tbot.se )
 	  		file.remove( paste( c(p$fn.tbot , p$fn.tbot.se), "desc", sep=".") )
       }
-      
+     
+      endtime = Sys.time()
+
+      print( endtime - starttime )
+
 			return ( p )
     }
  
@@ -95,7 +102,9 @@
 
 
     if (DS %in% c(  "spatial.interpolation", "spatial.interpolation.se", "spatial.interpolation.redo" )){
-			     
+			
+      starttime = Sys.time()
+        
       if ( exists("init.files", p) ) loadfilelist( p$init.files ) 
       if ( exists("libs", p) ) loadlibraries( p$libs ) 
      
@@ -208,6 +217,13 @@
 				save( V, file=fn2, compress=T )
  
 			}
+
+         
+      endtime = Sys.time()
+
+      print( endtime - starttime )
+
+
       return ("Completed")
     }
  

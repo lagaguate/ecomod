@@ -1,6 +1,10 @@
 
-ssa.engine.approximation.rcpp = function( p, res ) {
+ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
 
+  loadfunctions( "model.ssa", filepattern="*\\.rcpp$" )  # load and compile supporting C/Rcpp programs  
+  ## -- NOTE each parallel process needs it own copy of the Rcpp functions .. 
+  ##         better to make into a package for a quick load in future.
+  
   # optimized more than approximation with and some minor approximations and C-language / Rccp functions  
   # about 2X faster than the "approximation" method
   res <- with (p, { 
@@ -11,6 +15,8 @@ ssa.engine.approximation.rcpp = function( p, res ) {
     
     NU = as.vector(NU) # convert to vector as it is easier to operate with in C
     
+    ###  next optimaization (todo) --- convert P and X to vectors and operate upon vectors rather than matricses/arrays
+
     nsimultaneous.picks = round( p$nrc * ssa.approx.proportion )
     tn0 = 1:nsimultaneous.picks
 
@@ -54,7 +60,7 @@ ssa.engine.approximation.rcpp = function( p, res ) {
       if ( tnew >= tout ) {
         tout = tout + t.censusinterval 
         tio = tio + 1  # time as index
-        ssa.db( p=p, DS="save", out=res$X[], tio=tio)  
+        ssa.db( p=p, DS="save", out=res$X[], tio=tio, rn=rn )  
         if (monitor) {
           res$P[] =  array( RE( p, res$X ),  dim=c( nr, nc, np ) ) # full refresh of propensities in case of numerical drift
           res$P.total = sum( res$P[] )

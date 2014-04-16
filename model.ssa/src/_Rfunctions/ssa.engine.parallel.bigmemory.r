@@ -1,28 +1,36 @@
 
+  # the bigmemeory approach is broken for now ... do not see utility
 
-    ### ---- this is broken right now as 
-    ### RE has been altered to work more autonomously ... 
-    ### not fixed right now as bigmatrix does not seem to provide any speed benefits
-    ### if fixing, make a local copy of relevant state space and then send to RE
-    ### ... it used to be this:
-       
-        # propensity  (reaction rate) calculating function .. returns as a vector of reaction process rates ...
-#        RE = function( p, x, ix ) {
-#          with( p, { 
-#            XX = x[ix]
-#            bb = b[ix]
-#            dd = d[ix]
-#            KK = K[ix]
-#            c( bb*XX ,
-#              (dd+(bb-dd)*XX/KK)*XX 
-#            )
-#          })
-#        }
+ ssa.engine.approximation.rcpp.parallel.bigmemory = function( p ) { 
+  
+  if ( pmethod=="rambacked.approximation.parallel" )  {
+    # use parallel mode to run multiple simulations .. currently, this is the most efficient use of resources 
+    p$libs = c( p$libs, loadlibraries(  "parallel", "bigmemory" ) )
+    p$cluster = rep( "localhost", detectCores() )
+    p$cluster.message.system = "SOCK" 
+    
+    p = ssa.db( p , DS="debug.big.matrix.rambacked" )
+    p$monitor = FALSE
+    b = ssa.engine.parallel.bigmemory( p  )
+  }
 
 
 
- ssa.engine.parallel.bigmemory = function( p ) { 
+  if (ssa.method == "filebacked.approximation.parallel" ) {
+    p$libs = loadlibraries(  "parallel", "bigmemory" )
+    p$cluster = rep( "localhost", detectCores() )
+    # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
+    p$cluster.message.system = "SOCK" 
+    p = ssa.db( p , DS="debug.big.matr:ix.filebacked" )
+    p$monitor = FALSE
+    p = ssa.engine.parallel.bigmemory( p )
+  }
 
+
+  loadfunctions( "model.ssa", filepattern="*\\.rcpp$" )  # load and compile supporting C/Rcpp programs  
+  ## -- NOTE each parallel process needs it own copy of the Rcpp functions .. 
+  ##         better to make into a package for a quick load in future.
+  
   p <- within (p, { 
                
     simtime = tio = tout = nevaluations = 0
@@ -31,10 +39,29 @@
     ssplt = lapply( clusterSplit( cl, 1:nsimultaneous.picks ), function(i){i} )
 
     while( simtime <= t.end ) {
+        
+        tn = tn0
+        time.increment = random_deviate_exponential( nsimultaneous.picks, res$P.total) # rcpp function to sample from an exponential distrib
+        tnew = res$simtime + sum( time.increment )
+         
+        if ( tnew > tout ) {
+          tcs = cumsum( time.increment )
+          tn = which( tcs <= tout ) 
+          time.increment = time.increment[ tn ]
+          tnew = res$simtime + sum( time.increment )
+        }
+
+        tnlen =length(tn)
+
+        if ( tnlen > 0 ) {
+ 
+          probs = res$P[]/res$P.total
+          J = random_deviate_uniform_weighted( nsimultaneous.picks, probs )  # rcpp function to sample from a weighted uniform dist.
      
-      prop = .Internal( pmax( na.rm=FALSE, 0, P[]/P.total))
-      J = random_deviate_uniform_weighted_rcpp( nsimultaneous.picks, prop )
-      time.increment = random_deviate_exponential_rcpp( nsimultaneous.picks, P.total)
+          ri = reaction_location_indices( J, NU, nr, nc ) # rcpp function to remap random element to correct location and process
+          ix = cbind( ri$xr, ri$xc ) # rows and columns
+          ip = cbind( ri$pr, ri$pc, ri$po ) 
+        } 
 
       psums = clusterApplyLB( cl=cl, x=ssplt, J=J, p=p, 
         
@@ -42,7 +69,7 @@
         
           require(bigmemory)
 
-          p <- within( p, {  # watch out ... a nested p ... only changing p$ppp
+          p <- with( p, {  # watch out ... a nested p ... only changing p$ppp
 
             X <- attach.big.matrix( bm.X )
             P <- attach.big.matrix( bm.P )
@@ -53,26 +80,8 @@
             ppp = list()
 
             for ( iip in ip ) { 
-              j = J[iip]
-             
-              # remap random index to correct location and process
-              jn  = floor( (j-1)/nrc ) + 1  # which reaction process
-              jj = j - (jn-1)*nrc  # which cell 
-              cc = floor( (jj-1)/nr ) + 1
-              cr = jj - (cc-1) * nr 
               
-              # determine the appropriate operations for the reaction
-              o = NU[[jn]] 
-              no = dim(o)[1]
-               
-              # id coord(s) of reaction process(es) and ensure boundary conditions are sane
-              ro = cr + o[,1] 
-              co = cc + o[,2]
-              ro[ro < 1] = 2
-              ro[ro > nr] = nr_1
-              co[co < 1] = 2
-              co[co > nc] = nc_1 
-
+              j = 
               # update state (X) 
               Pchange = 0
               for ( l in 1:no ) {

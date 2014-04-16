@@ -4,6 +4,10 @@ ssa.engine.approximation.rcpp.parallel.bigmemory = function( p, res ) {
   
   on.exit( return(res) )  # in case we need to restart the sim with the last run
   #  on.exit( browser())   # to debug
+   
+  loadfunctions( "model.ssa", filepattern="*\\.rcpp$" )  # load and compile supporting C/Rcpp programs  
+  ## -- NOTE each parallel process needs it own copy of the Rcpp functions .. 
+  ##         better to make into a package for a quick load in future.
   
 
       focal.cell.iterate = function( ip=NULL, NU, RE, tn, jn, w, cr, cc, r_ub=nr-1, r_lb=2, c_ub=nc-1, c_lb=2, bm.X, bm.P ) {

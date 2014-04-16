@@ -9,12 +9,16 @@
   p = list()
   p$libs = loadlibraries( c("parallel", "Rcpp"))
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common" )  )
+  # loadfunctions( "model.ssa", filepattern="*.rcpp" )  # load and compile supporting C/Rcpp programs
 
-  loadfunctions( "model.ssa", filepattern="*.rcpp" )  # load and compile supporting C/Rcpp programs
+  p$runname = "debug"
 
+  p$ssa.method = "fast" 
+  # p$ssa.method = "approximation" 
+  
+  
   p$monitor = TRUE  # output figures / summary stats ~ 10% performance hit
   p$ssa.approx.proportion = 0.01  # 0.1% update simultaneously should be safe
-
   p = ssa.parameters( p, DS = "systemsize.debug" ) 
   p = ssa.parameters( p, DS = "logistic.debug" ) 
   p = ssa.parameters( p, DS = "simtimes.debug" ) 
@@ -32,44 +36,23 @@
 
   # initialize state variables and propensity matrix
   res = ssa.db( p , DS="debug" ) 
-  res$simtime = 0       # time in units of the simulation (days)
-  res$nevaluations = 0  # used for debugging and counting evaluations to estimate computational speed ...
+  
+  # run the simulation
+  res = ssa.engine( p, res)
 
 
-  if (ssa.method == "exact" ) {
-    p$runname = "debug.exact"
-    res = ssa.engine.exact( p, res)   # using the exact solution ... ~ 1 day -> every 25-30 minutes
-  }
-
-  if (ssa.method == "approximation" ) {
-    p$runname = "debug.approximation"
-    res = ssa.engine.approximation ( p, res )
-  }
-
-
-  if (ssa.method == "default" ) {   # ~ 2X faster  than ssa.method="approximation" .. uses Rcpp/C++
-    p$runname = "default"
-    res = ssa.engine.approximation.rcpp ( p, res ) 
-    # X = ssa.db( p=p, DS="load", tio=10 )  
-    # image(X)
-  }
-
-
-  if (ssa.method == "approximation.parallel" ) {
-    # use parallel mode to run multiple simulations .. currently the most efficient use of resources 
-    # wrapper is "ssa.parallel" (below)
-    p$runname = "debug.approximation.parallel"
+  if ( do.in.parallel ) {
+    # use parallel mode to run multiple simulations .. currently, this is the most efficient use of resources 
     p$libs = c( p$libs,  loadlibraries(  "parallel" , "rlecuyer", "snow" ) )
     # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
     p$cluster = rep( "localhost", detectCores() )
     p$cluster.message.system = "SOCK" 
     #p$cluster.message.system = "PSOCK" 
-    p$ssa.engine = ssa.engine.approximation.rcpp 
     p$nruns = 6
    
     p$monitor = FALSE
-    
-    ssa.parallel.run ( DS="run", p=p, res=res  ) # run the simulation in parallel
+   
+    ssa.parallel.run ( DS="run", p=p, res=res ) # run the simulation in parallel
     ssa.parallel.run ( DS="post.process", p=p  ) # postprocess the simulations gathering a few statistics
 
     # load some of the run results
@@ -84,29 +67,6 @@
 
   
 
-  if ( pmethod=="rambacked.approximation.parallel" )  {
-    p$libs = c( p$libs, loadlibraries(  "parallel", "bigmemory" ) )
-    p$cluster = rep( "localhost", detectCores() )
-    p$cluster.message.system = "SOCK" 
-    
-    p = ssa.db( p , DS="debug.big.matrix.rambacked" )
-    p$monitor = FALSE
-    b = ssa.engine.parallel.bigmemory( p  )
-  }
-
-
-
-  if (ssa.method == "filebacked.approximation.parallel" ) {
-    p$libs = loadlibraries(  "parallel", "bigmemory" )
-    p$cluster = rep( "localhost", detectCores() )
-    # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
-    p$cluster.message.system = "SOCK" 
-    p = ssa.db( p , DS="debug.big.matr:ix.filebacked" )
-    p$monitor = FALSE
-    p = ssa.engine.parallel.bigmemory( p )
-  }
-
-
   if (debugmodels) {
     require(profr)
     require(rbenchmark)
@@ -118,6 +78,9 @@
     benchmark( ssa.engine.approximation.rcpp ( p, res0 ) , replications=1 )
     
     o = profr( {ssa.engine.direct ( p, res0 )} ) ; summary(o)
+ 
+    X = ssa.db( p=p, DS="load", tio=10 )  
+    image(X)
  
   }
 
