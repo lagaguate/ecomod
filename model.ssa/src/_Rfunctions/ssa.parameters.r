@@ -104,12 +104,7 @@
         ssa.approx.proportion = 0.01  # 0.1% update simultaneously should be safe
         ssa.method = "fast" 
 
-        # System size definitions
-        # pde related params already define the snow crab data 
-        # rows are easting (x);  columns are northing (y) --- in R 
-        # ... each cell has dimensions of 1 X 1 km ^2
-        spatial.domain = "snowcrab"  # spatial extent and data structure 
-        p = model.pde.define.spatial.domain(p)
+
         nr_1 = nr-1
         nc_1 = nc-1
 

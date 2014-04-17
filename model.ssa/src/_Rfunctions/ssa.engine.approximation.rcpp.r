@@ -1,12 +1,17 @@
 
+
 ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
 
-  loadfunctions( "model.ssa", filepattern="*\\.rcpp$" )  # load and compile supporting C/Rcpp programs  
+  ## load and compile supporting C/Rcpp programs
   ## -- NOTE each parallel process needs it own copy of the Rcpp functions .. 
   ##         better to make into a package for a quick load in future.
+  ssadir = project.directory( "model.ssa", "src",  "_Rfunctions")
+  source( file.path( ssadir, "random_deviate_exponential.rcpp" ) )
+  source( file.path( ssadir, "reaction_locations.rcpp" ) )
   
   # optimized more than approximation with and some minor approximations and C-language / Rccp functions  
-  # about 2X faster than the "approximation" method
+  # about 10 X faster than the "approximation" method
+
   res <- with (p, { 
      
     #  on.exit( browser())   # to debug
@@ -15,6 +20,9 @@ ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
     
     NU = as.vector(NU) # convert to vector as it is easier to operate with in C
     
+    res$X = as.vector( res$X )
+    res$P = as.vector( res$P )
+
     ###  next optimaization (todo) --- convert P and X to vectors and operate upon vectors rather than matricses/arrays
 
     nsimultaneous.picks = round( p$nrc * ssa.approx.proportion )
@@ -37,22 +45,18 @@ ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
 
       if ( tnlen > 0 ) {
         probs = res$P[]/res$P.total
-        J = random_deviate_uniform_weighted( nsimultaneous.picks, probs )  # rcpp function to sample from a weighted uniform dist.
-   
-        ri = reaction_location_indices( J, NU, nr, nc ) # rcpp function to remap random element to correct location and process
-        ix = cbind( ri$xr, ri$xc ) # rows and columns
-        ip = cbind( ri$pr, ri$pc, ri$po ) 
+        # rcpp function to sample from a weighted uniform dist and then remap random elements to correct location and process 
+        ri = reaction_locations ( nsimultaneous.picks, probs, NU, nr, nc, np ) 
        
         # update state space and associated propensities in cells where state has changed, etc
-        res$X[ ix] = XX = .Internal( pmax( na.rm=FALSE, 0, res$X[ix] + ri$xo ) )
+        res$X[ ri$ix ] = .Internal( pmax( na.rm=FALSE, 0, res$X[ ri$ix ] + ri$xo ) )
 
         # update propensities
-        Pold = res$P[ip]
-        res$P[ip] = Pnew = RE( p, X=XX, ix=ix )
-        dP =  Pnew -Pold 
+        Pold = res$P[ ri$ip ]
+        res$P[ ri$ip ] =  RE( p, X=res$X[ ri$ix ], ix=ri$ix )
 
-        # update state space and associated propensities in cells where state has changed, etc
-        res$P.total = res$P.total + sum(dP) 
+        # update state space 
+        res$P.total = res$P.total + sum( res$P[ ri$ip ] ) -sum( Pold )
         res$simtime = tnew
         res$nevaluations = res$nevaluations + tnlen
       }
@@ -62,17 +66,23 @@ ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
         tio = tio + 1  # time as index
         ssa.db( p=p, DS="save", out=res$X[], tio=tio, rn=rn )  
         if (monitor) {
-          res$P[] =  array( RE( p, res$X ),  dim=c( nr, nc, np ) ) # full refresh of propensities in case of numerical drift
+          res$P[] =  RE( p, res$X[] ) # full refresh of propensities in case of numerical drift
           res$P.total = sum( res$P[] )
           cat( paste( tio, res$nevaluations, round(sum(res$X)), round(res$P.total), Sys.time(), sep="\t\t" ), "\n" )
-          image( res$X[], col=heat.colors(100)  )
+          image( matrix(res$X[], nrow=nr, ncol=nc ), col=heat.colors(100)  )
           # assign( "res", res, pos=1 ) # update the res output in the gloabl environment in case a restart is necessary
         }
       }
 
     } # end while 
+  
+    res$X[] =  matrix( res$X , nrow=nr, ncol=nc )   
+    res$P[] =  array( RE( p, res$X ),  dim=c( nr, nc, np ) )
+
     return(res)
+  
   })  # end repeat and within
+    
   return(res)
 }
 

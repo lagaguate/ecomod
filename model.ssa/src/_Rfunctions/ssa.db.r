@@ -8,7 +8,7 @@
     
     if ( DS=="save" ) {
       if (! file.exists(odir) ) dir.create( odir, recursive=TRUE, showWarnings=FALSE  )
-      save (out, file=fn, compress=TRUE )
+      save (out, file=fn, compress="xz", compression_level=2 )  ## faster 
       return (fn)
     }
 

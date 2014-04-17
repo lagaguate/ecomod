@@ -91,9 +91,7 @@
      
       endtime = Sys.time()
 
-      print( endtime - starttime )
-
-			return ( p )
+			return ( endtime - starttime )
     }
  
 
@@ -218,13 +216,9 @@
  
 			}
 
-         
       endtime = Sys.time()
 
-      print( endtime - starttime )
-
-
-      return ("Completed")
+      return (endtime - starttime)
     }
  
 

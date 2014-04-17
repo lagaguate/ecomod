@@ -12,22 +12,29 @@
   p$libs = loadlibraries( c("parallel", "Rcpp",  "rlecuyer" ))
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab"  )  )
   # loadfunctions( "model.ssa", filepattern="*.rcpp" )  # load and compile supporting C/Rcpp programs
+   
+  # diffusion coef d=D/h^2 ; h = 1 km; per year (range from 1.8 to 43  ) ... using 10 here 
+  # ... see b ulk estimation in model.lattice/src/_Rfunctions/estimate.bulk.diffusion.coefficient.r
+  p$runname = "debug"
+  p$monitor = TRUE  # output figures / summary stats ~ 10% performance hit
+
+  # System size definitions
+  # pde related params already define the snow crab data 
+  # rows are easting (x);  columns are northing (y) --- each cell has dimensions of 1 X 1 km ^2
+  p$spatial.domain = "snowcrab"
+  p = model.pde.define.spatial.domain(p)
+
+  p$y = 2011  # currently picking a single year for data streams ... must make this more general
+  p = ssa.parameters( p, DS = "snowcrab.debug" )
+ 
+
+  # over-rides
+  p$ssa.approx.proportion = 0.05
   
+ 
   # ----------------------------
   # Model definitions
- 
-  # p$increment   = 5 /100 * 5  # 5 = approx max density t / km^2; /100 so ~ 1 percentage min dX value to use at the lowest level for rate processes; *5 -> ~ 5% 
-  p$increment   = 10L
- 
-  choose.model = TRUE
-  if (choose.model) {
-    stop( "stop and choose a model" )
-    p = ssa.model.definition( p, DS = "logistic", increment=p$increment ) 
-    p = ssa.model.definition( p, DS = "logistic.randomwalk", increment=p$increment ) 
-    p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk", increment=p$increment ) 
-  }
 
-  # ----------------------------
   # Biological rates parameterizations
   # rate of increase per day .. for snow crab r~1 per capita per year ===> therefore per day = 1/365
   # in the stochastic form:: using a birth-death Master Equation approach 
@@ -36,16 +43,19 @@
   # carrying capacity = K
   # r = b-d >0 
  
+  # p$increment   = 5 /100 * 5  # 5 = approx max density t / km^2; /100 so ~ 1 percentage min dX value to use at the lowest level for rate processes; *5 -> ~ 5% 
+  p$increment   = 10L
   
-  # diffusion coef d=D/h^2 ; h = 1 km; per year (range from 1.8 to 43  ) ... using 10 here 
-  # ... see b ulk estimation in model.lattice/src/_Rfunctions/estimate.bulk.diffusion.coefficient.r
-  p$runname = "debug"
-  p$monitor = TRUE  # output figures / summary stats ~ 10% performance hit
-  p$ssa.method = "fast" 
+  choose.model = TRUE
+  if (choose.model) {
+    stop( "stop and choose a model" )
+    p = ssa.model.definition( p, DS = "logistic", increment=p$increment ) 
+    p = ssa.model.definition( p, DS = "logistic.randomwalk", increment=p$increment ) 
+    p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk", increment=p$increment ) 
+  }
 
-  p$y = 2011  # currently picking a single year for data streams ... must make this more general
-  p = ssa.parameters( p, DS = "snowcrab.debug" )
  
+  
   res = ssa.db( p , DS="snowcrab.debug" ) 
   
   # same as  ssa.engine.approximation right now but if additional changes such as fishing etc 
@@ -63,7 +73,6 @@
     p$cluster.message.system = "SOCK" 
     #p$cluster.message.system = "PSOCK"
 
-    p$nsimultaneous.picks =  round( p$nrc * 0.01 ) # 0.1% update simultaneously should be safe
     p$nruns = 5
   
     ssa.parallel.run ( DS="run", p=p, res=res  ) # run the simulation in parallel

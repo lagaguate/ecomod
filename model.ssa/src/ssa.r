@@ -9,13 +9,12 @@
   p = list()
   p$libs = loadlibraries( c("parallel", "Rcpp"))
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common" )  )
-  # loadfunctions( "model.ssa", filepattern="*.rcpp" )  # load and compile supporting C/Rcpp programs
 
   p$runname = "debug"
 
-  p$ssa.method = "fast" 
-  # p$ssa.method = "approximation" 
-  
+  p$ssa.method = "fast"  # 62480 evaluations/sec ( 8-18X speed increase)
+  # p$ssa.method = "approximation"  # ~ 7405 evaluations/sec
+  # p$ssa.method = "direct" # way too slow ... only for didactic/error checking
   
   p$monitor = TRUE  # output figures / summary stats ~ 10% performance hit
   p$ssa.approx.proportion = 0.01  # 0.1% update simultaneously should be safe

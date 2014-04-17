@@ -1,5 +1,7 @@
 # sample from the exponential distribution using Rcpp
 
+## --->> Not used. Moved into reaction_locations.rcpp for the sake of speeding things up
+
 require(Rcpp)
 
 sourceCpp( rebuild=TRUE, code='

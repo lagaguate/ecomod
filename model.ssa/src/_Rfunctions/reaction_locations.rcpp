@@ -1,0 +1,140 @@
+
+# Using Rcpp/C++ build correct row, col indices and associated operations for state space and propensity calculations
+
+require(Rcpp)
+
+sourceCpp( rebuild=TRUE, code='
+#include <Rcpp.h>
+#include<string>
+#include<iostream>
+#include<algorithm>
+
+using namespace Rcpp;
+
+
+
+// [[Rcpp::export]]
+bool is_zero (int y) {
+  return(y==0); // integer math used below
+}   
+
+
+
+// [[Rcpp::plugins("cpp11")]]  
+// [[Rcpp::export]]
+List reaction_locations ( int nobs, NumericVector probs, std::vector<int> NU, int nr, int nc, int np ) {
+
+  // sample nobs number of indices ranging from (1...nprobs) weighted by probabilities 
+  // without replacement .. about 500X faster than using sample
+  // then remap random elements to correct location and process
+
+  RNGScope scope ;
+
+  List out ;
+
+  const int nrc = nr * nc;
+  const int nc0 = 1 ;  // # boundaries using C-indices 
+  const int nc1 = nc-2 ; 
+  const int nr0 = 1 ;
+  const int nr1 = nr-2 ;
+  const int plen = 6 ; // number of elements in NU for each process 3 (r,c,oper) X 2 (focal, neighbour)
+
+  int  jj, cr, cc, jn, jnplen, oi, op, w, v, ro, co, nix;  // # row and col can turn negative (temporarily)
+
+  const int nprobs = probs.size() ;
+  std::vector<double> cumprobs( nprobs ) ; // container for the CDF
+  std::vector<int> ixoper, ix ;
+
+  // random selection of locations and processes weighted by probabilities
+  // then identify and check for duplicated reactions and compile them into simple vector operations
+  // C is row-major order (rows filled first); but R matrix and array functions fill in col-major (col first)
+  // so the following formulae are modified from the standard indexing methods
+
+  std::partial_sum( probs.begin(), probs.end(), cumprobs.begin() );  // compute CDF
+  std::vector<double> rn =  as< std::vector < double> > ( runif( nobs ) ); 
+  std::sort(rn.begin(), rn.end());
+
+  int j=0 ;
+  int i=0 ;
+  while( i < nobs ) {  // cycle over random numbers and classify reaction in sequence
+    while ( j < nprobs &&  i < nobs ) {
+        if ( rn[i] < cumprobs[j] ) { // then j is the candidate index of the reaction process
+            // focal cell coords in P
+            ++i ;
+            jn =  j / nrc ;      // -- process no
+            jj =  j - jn*nrc ;   // -- index number in X
+            cc =  jj / nr ;      //    -- col no
+            cr =  jj - cc*nr ;   //    -- row no 
+            jnplen = jn * plen ;
+            
+            for ( v = 0; v < 2; ++v ) {
+                oi = jnplen + v*3 ;  // starting index of operations from jn
+                
+                // determine new operations and candidate locations 
+                op = NU[oi+2] ;  // # 1st operation
+                if (op==0) continue ;  // # check if this is a unary reaction .. skip the rest if it is
+
+                ro = cr + NU[oi]   ; // # row of the focal cell  ; C-indices 
+                co = cc + NU[oi+1] ; // # column of the focal cell
+
+                //# ensure boundary conditions are sane (reflective boundary conditions, these are now R-indices)
+                if (ro < 1) ro=nr0 ;
+                if (ro >= nr) ro=nr1 ;
+                if (co < 1) co= nc0 ;
+                if (co >= nc) co = nc1 ; 
+                
+                // add operations to output indices
+                ix.push_back( ro + co*nr + 1 ) ;  // convert the index value for X as an R-index (+1)
+                ixoper.push_back(op) ;
+            } 
+
+        } else {
+            ++j ;
+        }
+    }
+    ++j ;
+  }
+ 
+ 
+  // id duplicated locations but keep/tabulate operations 
+  nix = ix.size() ;
+  for ( w =0; w < nix ; ++w ) {
+    for ( v=w+1; v < nix; ++v ){  
+      if ( ix[w] == ix[v] ) {
+        ixoper[w] += ixoper[v] ;
+        ixoper[v] = 0 ; // set to zero to flag for deletion
+      }
+    }
+    // duplicate checking completed for w, mark for deletion where required for ix 
+    if ( ixoper[w] == 0 ) {
+      ix[w] = 0 ; // as above  .. R-indices start at 1 so 0 is used to flag for delete
+    }
+  }
+
+  ixoper.erase( remove_if( ixoper.begin(), ixoper.end(), is_zero), ixoper.end() ) ;
+  ix.erase( remove_if( ix.begin(), ix.end(), is_zero), ix.end() ) ;
+  nix = ix.size() ;  // update nix as it has be shrunk down
+
+  // ix complete, now re-create ip (iprow, ipcol, ipreactionchanel )
+  
+  int nip = nix * np  ; 
+  std::vector<int> ip (nip) ; 
+  int m = 0;
+  for ( w=0; w < np; ++w) {
+  for ( v=0; v < nix ; ++v ) {
+     ip[m] = ix[v]  + w*nrc ; // ix is already an R-index so its +1 cancels out the need to add 1 here
+     ++m ;
+  }
+  }
+
+  out["xo"] = ixoper   ;
+  out["ix"] = ix ;
+  out["ip"] = ip ;
+  
+  return( out );
+
+}')
+
+
+
+
