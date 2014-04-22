@@ -1,89 +1,83 @@
 
-  timeseries.impute = function( x, OP, method="harmonics", harmonics=3, gam.optimizer="bam" ) {
+  timeseries.impute = function( x, OP, method="harmonics", harmonics=3, gam.optimizer="bam", smoothdata=TRUE, smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
         
     OP$fit = NA
     OP$se  = NA
+    
+    if ( method=="simple" ) {
+      # this method recovers the mean interannual trends nicely but misses the seasonality
+      # model formulae .. first one is a basic one in case the others fail
+      # order is important here .. most complex at bottom
+ 
+      x$tiyr =  x$yr + x$weekno/52
+      OP$tiyr = OP$yr + OP$weekno/52
+ 
+      mf = c( 
+        ' t ~ s(tiyr) + s(z)',
+        ' t ~ s(tiyr) + s(plon) +s(plat) + s(z)',
+        ' t ~ s(tiyr) + s(plon, plat) + s(plon) + s(plat) + s(z) '
+      )
+      nmods = length(mf)
 
-    if ( method=="gam" ) {
-      require(mgcv)
-        # base model -- seasonal smoothing model
-          model = try( gam( t ~ s(weekno, bs="cc") + s(yr) + s(plon, plat) + s(plon) + s(plat) + s(z), data=x, optimizer="perf", weights=w ) )  
-        # time-smoothed model 
-        # if ( "try-error" %in% class(model) ) { 
-          # model = try( gam( t ~ s(yr, weekno) +s(yr) +s(weekno) + s(plon, plat) + s(plon) + s(plat), data=x, optimizer="perf", weights=w ) )  
-        # }
-        if ( "try-error" %in% class(model) ) { 
-          model = try( gam( t ~ s(yr) + s(weekno) + s(plon) + s(plat) + s(z), data=x, optimizer="perf" ) )  
-        }
-           # last resort .. simplest time smoothed model
-        if ( "try-error" %in% class(model) ) { 
-          model = try( gam( t ~ s(weekno, bs="cc") + s(yr) + s(z), data=x, optimizer="perf", weights=w ) )  
-        }
-
+      for ( h in nmods:1 ) {
+        model = switch( gam.optimizer,
+          bam = try( bam( formula( mf[h] ), data=x, weights=w ) ) ,
+          bfgs = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","bfgs")  ) ) ,
+          perf = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("perf")  ) ) ,
+          newton = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","newton")  ) ) ,
+          nlm = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","nlm")  ) ) 
+        )
         if ( ! "try-error" %in% class(model) ) { 
-				  out = try( predict( model, newdata=OP, type="response", se.fit=T ) ) 
-          OP$fit = out$fit
-          OP$se = out$se
+          out = NULL
+          out = try( predict( model, newdata=OP, type="response", se.fit=T ) ) 
+          if ( ! "try-error" %in% class(out) ) {
+            OP$fit = out$fit 
+            OP$se = out$se  
+          }
         }
-    }
-  
-
-    if ( method=="seasonal.detrending.arma" ) {
-      stop( "not yet working fully ... need to fix a few things ... see below")
-
-      # not sure if this is worth it .. slow and hard to use with NA's  ... 
-      # need to recode directly as a regression model
-      # require(forecast)
-      # xts = ts(x$t )
-      # g = Arima( xts) ## but recoded as a regression --- fix me
-      # predict (g, x) # , model=fit )
-      # plot( forecast( f1, 20  ) )
-      
-      # estimate seasonal trend with regression and remove effect and then model annual trends with residuals
-      
-      md = gam( t ~ s(weekno), data=x, weights=w)
-      x$t.seasonal = predict( md, x, se.fit=FALSE )
-      x$t.detrended = x$t - x$t.seasonal
-      x$t_1 = lag( x$t.detrended, -1 ) 
-      x$t_2 = lag( x$t.detrended, -2 )
-      x$t_3 = lag( x$t.detrended, -3 )
-
-      md2 = gam( t.detrended ~ s(yr) + s(t_1) + s(t_2) + s(t_3) + s(plon,plat), data=x, weights=w )
-
-      ### fix me --- seed OP with raw data to speed up convergence and also get a better estimate for OP$t[1,] than the mean
-      OP$t.seasonal = predict( md, OP, se.fit=FALSE )
-      OP$t.detrended = NA
-      OP$t.detrended[1:10] = mean( x$t.detrended, na.rm=TRUE )
-      OP$t_1 = lag( OP$t.detrended, -1 ) 
-      OP$t_2 = lag( OP$t.detrended, -2 )
-      OP$t_3 = lag( OP$t.detrended, -3 )
-
-      icount = 0
-      ii = which( !is.finite( OP$t.detrended ))
-      while( length(ii)>0) {
-        OP$t.detrended.predicted = predict( md2, OP, se.fit=FALSE )
-        ii = which( !is.finite( x$t.detrended ))
-        OP$t.detrended[ii] = OP$t.detrended.predicted[ii]
-        # refresh lags
-        OP$t_1 = lag( OP$t.detrended, -1 ) 
-        OP$t_2 = lag( OP$t.detrended, -2 )
-        OP$t_3 = lag( OP$t.detrended, -3 )
-        icount = icount + 1
-        if (icount > nrow(OP) ) break() # looks like no solution ... break
       }
-      
-      OP$t.predicted = OP$t.detrended + OP$t.seasonal
-      jj = which(!is.finite( OP$t))
-      if ( length(tt) > 0 ) OP$t[jj] = OP$t.predicted[jj]
-
-      ### easier to do in one model: gam( t ~ s(weekno) + s(yr) ... ) 
-      ### .. but the above is more simplistic and so more flexible wrt AR effect
-      ### .. however, we could use gamm with ARMA random effect ... to consider one day ...
-      
     }
-  
-   
 
+
+
+   
+    if ( method=="seasonal.smoothed" ) {
+      # this method recovers the mean interannual trends nicely but misses the seasonality
+      # model formulae .. first one is a basic one in case the others fail
+      # order is important here .. most complex at bottom
+ 
+      x$tiyr =  x$yr + x$weekno/52
+      OP$tiyr = OP$yr + OP$weekno/52
+ 
+      mf = c( 
+        ' t ~ s(yr) + s(weekno, bs="cc") +  s(z) ',
+        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon) + s(plat) + s(z) ', 
+        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) + s(z) ',
+        ' t ~ s(yr, weekno) + s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) + s(z) '  
+      )
+      nmods = length(mf)
+
+      for ( h in nmods:1 ) {
+        model = switch( gam.optimizer,
+          bam = try( bam( formula( mf[h] ), data=x, weights=w ) ) ,
+          bfgs = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","bfgs")  ) ) ,
+          perf = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("perf")  ) ) ,
+          newton = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","newton")  ) ) ,
+          nlm = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","nlm")  ) ) 
+        )
+        if ( ! "try-error" %in% class(model) ) { 
+          out = NULL
+          out = try( predict( model, newdata=OP, type="response", se.fit=T ) ) 
+          if ( ! "try-error" %in% class(out) ) {
+            OP$fit = out$fit 
+            OP$se = out$se  
+          }
+        }
+      }
+    }
+
+
+  
     if ( method=="harmonics" ) {
       
       # old method use 1 harmonic ... forcing sinusoid as a seasonal component
@@ -102,14 +96,10 @@
       # model formulae .. first one is a basic one in case the others fail
       # order is important here .. last three must be harmonic 3, 2 and 1, then altenates in case they fail
       # at present these additional models are unsmoothed harmonics ..2 and 1 
-      n.additional.models = 3 # how many more than the 3 harmonic models in mf
       mf = c( 
-        ' t ~ s(yr) + s(plon) +s(plat) + cos.w + sin.w' ,
-        ' t ~ s(yr) + s(plon, plat)+ s(plon) +s(plat) + s(z) + cos.w + sin.w ' ,
-        ' t ~ s(yr) + s(plon, plat)+ s(plon) +s(plat) + s(z) + cos.w + sin.w + cos.w2 + sin.w2 ' ,
-        ' t ~ s(yr) + s(plon, plat)+ s(plon) +s(plat) + s(z) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w)' ,
-        ' t ~ s(yr) + s(plon, plat)+ s(plon) +s(plat) + s(z) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w) + s(cos.w2, yr ) + s(sin.w2, yr ) + s(cos.w2) + s(sin.w2) ' ,
-        ' t ~ s(yr) + s(plon, plat)+ s(plon) +s(plat) + s(z) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w) + s(cos.w2, yr ) + s(sin.w2, yr ) + s(cos.w2) + s(sin.w2) + s(cos.w3, yr ) + s(sin.w3, yr ) + s(cos.w3) + s(sin.w3) '
+       ' t ~ s(plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(cos.w, sin.w) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w)' ,
+       ' t ~ s(plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(cos.w, sin.w) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w) + s(cos.w2, sin.w2) + s(cos.w2, yr) + s( sin.w2, yr ) + s(cos.w2) + s(sin.w2) ' ,
+       ' t ~ s(plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(cos.w, sin.w) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w) + s(cos.w2, sin.w2) + s(cos.w2, yr) + s( sin.w2, yr ) + s(cos.w2) + s(sin.w2) + s(cos.w3, sin.w3) + s(cos.w3, yr ) + s(sin.w3, yr ) + s(cos.w3) + s(sin.w3) '
       )
       x$tyr = 2*pi * x$weekno/52
       x$cos.w  = cos( x$tyr )
@@ -126,7 +116,7 @@
         x$sin.w3 = sin( 3*x$tyr )
       }
 
-      for ( h in (harmonics+1):1) {
+      for ( h in harmonics:1) {
         model = switch( gam.optimizer,
           bam = try( bam( formula( mf[h] ), data=x, weights=w ) ) ,
           bfgs = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","bfgs")  ) ) ,
@@ -162,9 +152,35 @@
         }
       }
     }
+
+
+
+    if( any( is.finite( OP$fit) ) ) {
+
+      if ( smoothdata ) {
+        # default is a 2X smoothing kernel: 2 adjacent values and then 1 adjacent on the smoothed series .. i.e. a high-pass filter
+        nd = length(smoothing.kernel$coef) - 1 # data points will be trimmed from tails so need to recenter:
+        nd0 = length(OP$fit) 
+        si = (nd+1):(nd0-nd)
+        # plot( fit~time, OP, type="l" )
+        OP$fit[si] = kernapply( as.vector(OP$fit), smoothing.kernel ) 
+        # lines( fit~time, OP, col="green" )
+      }
+
+
+      # constrain range of predicted data to the input data range
+      TR =  quantile( x$t, probs=c(0.0005, 0.9995), na.rm=TRUE  )
+      TR[1] = max( TR[1], -3)
+      TR[2] = min( TR[2], 30)
+      toolow = which( OP$fit < TR[1] )
+      if ( length(toolow) > 0 )  OP$fit[toolow] = TR[1]
+      toohigh = which( OP$fit > TR[2] )
+      if ( length(toohigh) > 0 ) OP$fit[toohigh] = TR[2]
+    }
+
+
+
  
-
-
     debug = FALSE
     if (debug) {
       AIC(model)
@@ -174,17 +190,69 @@
       OP$ty = OP$weekno / 52
       plot(  fit ~ I(yr+ty), data=OP, pch=".", type="l")
       points( t ~I(ty + yr), data=x, pch="*", col="red")
-    }
+     
+      # comparison/debug of different imputation methods here:
+      compare.imputation = FALSE
+      if (compare.imputation) {
+
+        oH1 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=1, gam.optimizer=p$gam.optimizer ) 
+        oH2 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=2, gam.optimizer=p$gam.optimizer ) 
+        oH3 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=3, gam.optimizer=p$gam.optimizer ) 
+        oS1 = timeseries.impute( x=x, OP=OP, method="simple", gam.optimizer=p$gam.optimizer ) 
+        oS2 = timeseries.impute( x=x, OP=OP, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
+        
+        oH1$time = oH1$yr + oH1$weekno/52
+        oH2$time = oH2$yr + oH2$weekno/52
+        oH3$time = oH3$yr + oH3$weekno/52
+        oS1$time = oS1$yr + oS1$weekno/52
+        oS2$time = oS1$yr + oS2$weekno/52
+        x$time = x$yr + x$weekno/52 
+        
+        plot( t~time, x )
+        lines( oH1$time, oH1$fit, col="black", lwd=2 )
+        lines( oH2$time, oH2$fit, col="blue", lwd="3" )
+        lines( oH3$time, oH3$fit, col="orange" )
+        lines( oS1$time, oS1$fit, col="red")
+        lines( oS2$time, oS2$fit, col="brown", lwd=2)
+      }
+
+      OP$time = OP$yr + OP$weekno / 52
+      OP = OP[ order( OP$time ) ,]
+      
+      # STL method
+      OPts = ts( oH1$fit, start=c( min(p$tyears), 1), frequency=52 )  # testing oH1's fit
+      plot.default(  OPts, type="l" )
+
+      OPstl = stl( OPts, s.window=4) # seasonal decomposition using loess 
+      plot(OPstl)
+
+      # StructTS method
+      OPstr  = StructTS( OPts, type = "BSM") ### much slower ... used only as a daignostic tool checking stability
+      OPstrsm = tsSmooth( OPstr )
+      plot( OPstrsm )
    
-    # constrain range of predicted data to the input data range
-    
-    TR =  quantile( x$t, probs=c(0.0005, 0.9995), na.rm=TRUE  )
-    TR[1] = max( TR[1], -3)
-    TR[2] = min( TR[2], 30)
-    toolow = which( OP$fit < TR[1] )
-    if ( length(toolow) > 0 )  OP$fit[toolow] = TR[1]
-    toohigh = which( OP$fit > TR[2] )
-    if ( length(toohigh) > 0 ) OP$fit[toohigh] = TR[2]
+      spectrum( OPts )
+      kn = kernel( "modified.daniell", c(2,1))
+
+      opop = kernapply( as.vector(oH1$fit), kn)
+      plot(oH1$fit, type="l")
+      lines(opop, type="l", col="orange")
+
+      ppp = kernapply( OPts, kn)
+      plot.default(  OPts, type="l", col="green" )
+      lines( ppp, col = "red")  
+
+      ooo = spectrum( OPts, kn, plot=FALSE )
+      plot( ooo, plot.type = "marginal") # the default type
+      plot( ooo, plot.type = "coherency")
+      plot( ooo, plot.type = "phase")
+
+
+      require(forecast)
+      ppp = Arima( OPts )
+
+
+    }
 
     return ( OP ) 
 

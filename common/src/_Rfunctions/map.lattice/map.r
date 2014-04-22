@@ -1,4 +1,8 @@
-  map = function( xyz, cfa.regions=T, depthcontours=T, pts=NULL, colpts=F, annot=NULL, annot.cex=2.2, leg = NULL, projection = "utm20", col.regions=F, at=0:1, fn, loc, corners=NULL, rez=c(1,1), spatial.domain="", ... ) {
+ 
+  map = function( xyz, cfa.regions=T, depthcontours=T, pts=NULL, colpts=F, annot=NULL, annot.cex=2.2, 
+                 leg = NULL, projection = "utm20", col.regions=F, at=0:1, 
+                 fn=paste("map", trunc(runif(1)*1e8), sep=""), loc=tempdir(), 
+                 corners=NULL, rez=c(1,1), spatial.domain="canada.east", ... ) {
    
     # map using levelplot ... no GMT dependency
     # source (  file.path( project.directory("common"), "functions.map.r" ) ) # reload "grid.rect" in case overwritten by lattice
@@ -6,7 +10,6 @@
 		require( lattice )
 
     xlim =ylim = NULL
-    
     colorkey=list(space="right", labels=list(cex=3)) # these are lattice options
 
     if (ncol( xyz) == 2) { # assuming points
@@ -24,8 +27,8 @@
       
     } else {
       names( xyz ) = c( "plon", "plat", "z" )
-    }  
-    
+    } 
+
     if ( is.logical( colorkey) )  pts = xyz      # flag from above when only XY data are passed,.. after conversion to planar coords
     
     if ( !is.null(corners) ) {
@@ -38,17 +41,16 @@
       
     if ( ! is.null(pts) ) { 
       if ( is.null( pts$plon) ) {
-        pts = lonlat2planar(z,  proj.type="utm20") 
+        pts = lonlat2planar(xyz,  proj.type="utm20") 
         pts = pts[, c("plon", "plat")]
       }
     }
 		
-		if (spatial.domain =="") spatial.domain="canada.east"  
 		pp = list( spatial.domain=spatial.domain )
 
     lp = levelplot( z ~ plon+plat, data=xyz, aspect="iso", pts=pts, colpts=colpts, annot=annot, pp=pp, 
       annot.cex=annot.cex, xlab="", ylab="", scales=list(draw=F), col.regions=col.regions, at=at, xlim=xlim, ylim=ylim, 
-      colorkey=colorkey , rez=rez, leg=leg,  
+      colorkey=colorkey , rez=rez, leg=leg,  cfa.regions=cfa.regions,
       panel = function(x, y, subscripts, rez=rez,  ...) {
         
         panel.levelplot (x, y, subscripts, aspect="iso", rez=rez, ...)
@@ -126,9 +128,9 @@
     } # end panel
     ) # end levelplot
 
-    
+    dir.create (loc, showWarnings=FALSE, recursive =TRUE) 
     fn = file.path( loc, paste(fn, "png", sep="." ) )
-    png(  filename=fn, width=3072, height=2304, pointsize=60, res=300 ) 
+    png(  filename=fn, width=3072, height=2304, pointsize=40, res=300 ) 
     print(lp)
     dev.off()
    

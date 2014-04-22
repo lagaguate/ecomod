@@ -11,8 +11,7 @@
       mm = p$runs[iip,"loc"]
       Pi=P[mm,]
       print (mm)			
-      OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, z=Pi$z, weekno=p$wtimes, yr=p$tyears )
-      # OP$id = c( 1: nrow(OP) )
+      OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, weekno=p$wtimes, yr=p$tyears, z=Pi$z )
       
       for ( dm in p$dist.km ) { 
         drange = c(-1,1) * dm
@@ -24,19 +23,26 @@
           B$plat > plat0[1] & 
           B$plat < plat0[2]    
         ) 
-        if (length(i) > p$nMin.tbot ) {  # nMin.tbot is the min number of data points before attempting interpolation
-          b = B[i,] # faster to reduce the size of  B
-          # weight data in space: inverse distance squared
-          b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )
-          b$w[ which( is.infinite( b$w ) ) ] = 1
+        if (length(i) > p$nMin.tbot ) {  
+          # only attempt interpolation if we have enough data (nMin.tbot)
+          b = B[i,] # faster to reduce the size of B here
+          b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )# weight data in space: inverse distance squared
+          b$w[ which( is.infinite( b$w ) ) ] = 1e+3
           b$w[ which( b$w < 1e-3 ) ] = 1e-3
-          OP = timeseries.impute( x=b, OP=OP0, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) 
+          OP = timeseries.impute( x=b, OP=OP0, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) # smoothing done on harmonics as they are noisy
           if ( is.finite ( sum( OP$fit, na.rm=T)  ) ) break()  # solution found
         }
-
       }						
+     
+      if (length(i) < p$nMin.tbot ) next() # no data 
+
+      if ( is.finite ( sum( OP$fit, na.rm=T)  ) ) {
+        # is this is the case then there was no model that worked 
+        # as a last resort, try a much simpler yr/season correlated gam
+        OP = timeseries.impute( x=b, OP=OP0, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer, smoothdata=FALSE ) 
+      }
       
-      if (length(i) == 0 ) next() # no data 
+ 
 
       # return original (observed) data back into the predictions
       ii = which( b$plon==Pi$plon & b$plat==Pi$plat )
