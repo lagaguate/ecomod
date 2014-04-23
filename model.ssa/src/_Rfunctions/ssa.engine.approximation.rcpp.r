@@ -5,10 +5,14 @@ ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
   ## load and compile supporting C/Rcpp programs
   ## -- NOTE each parallel process needs it own copy of the Rcpp functions .. 
   ##         better to make into a package for a quick load in future.
+  print( "Compiling supporting methods ...")
+
   ssadir = project.directory( "model.ssa", "src",  "_Rfunctions")
   source( file.path( ssadir, "random_deviate_exponential.rcpp" ) )
   source( file.path( ssadir, "reaction_locations.rcpp" ) )
   
+  print( "Compile finished. Running simulation ...")
+ 
   # optimized more than approximation with and some minor approximations and C-language / Rccp functions  
   # about 10 X faster than the "approximation" method
 
