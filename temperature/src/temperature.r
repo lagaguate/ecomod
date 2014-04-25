@@ -25,8 +25,8 @@
 
     p$gam.optimizer = "bam" ## other optimizers:: "bam", "perf", "nlm", "bfgs", "optim", "newton", "nlm.fd" --- bfgs is way too slow to use
 
-    p$nMin.tbot = 3*p$ny # min number of data points req before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
-    p$dist.km = c( 2, 4, 8, 10, 15, 20 ) # "manhattan" radius distances to extend search for data
+    p$nMin.tbot = 2*p$ny # min number of data points req before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
+    p$dist.km = c( 2, 4, 8, 10, 15, 20 ) # "manhattan" (~radius) distances to extend search for data
 
     p$tsmethod ="harmonics"  # temporal interpolation method ... harmonic analysis seems most reasonable
     p$tsharmonics = 1  # highest harmonic to use (will use lower if it fails)
