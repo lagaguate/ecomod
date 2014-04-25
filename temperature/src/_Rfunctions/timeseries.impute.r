@@ -132,7 +132,7 @@
         if ( ! "try-error" %in% class(model) ) break() 
       }
 
-      if ( "try-error" %in% class(out) ) {
+      if ( "try-error" %in% class(model) ) {
           # last try with a simpler model with yr/season correlated gam
           OP = timeseries.impute( x=b, OP=OP0, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer, smoothdata=FALSE ) 
       }
