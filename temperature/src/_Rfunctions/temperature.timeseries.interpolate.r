@@ -30,19 +30,11 @@
           b$w[ which( is.infinite( b$w ) ) ] = 1e+3
           b$w[ which( b$w < 1e-3 ) ] = 1e-3
           OP = timeseries.impute( x=b, OP=OP0, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) # smoothing done on harmonics as they are noisy
-          if ( is.finite ( sum( OP$fit, na.rm=T)  ) ) break()  # solution found
+          if ( any( is.finite ( OP$fit, na.rm=T  ) ) ) break()  # solution found
         }
       }						
      
       if (length(i) < p$nMin.tbot ) next() # no data 
-
-      if ( is.finite ( sum( OP$fit, na.rm=T)  ) ) {
-        # is this is the case then there was no model that worked 
-        # as a last resort, try a much simpler yr/season correlated gam
-        OP = timeseries.impute( x=b, OP=OP0, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer, smoothdata=FALSE ) 
-      }
-      
- 
 
       # return original (observed) data back into the predictions
       ii = which( b$plon==Pi$plon & b$plat==Pi$plat )

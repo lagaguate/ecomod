@@ -14,7 +14,7 @@ ssa.engine.exact = function( p, res, rn=0 ) {
     while(res$simtime <= t.end ) {
       # browser()
       prop = res$P[]/res$P.total     # propensity
-      j = sample( nP, size=1, replace=FALSE, prob=prop ) # index selection
+      j = sample( nP, size=1, replace=FALSE, prob=prop ) # index selection -- in the exact form only 1 is operated upon at a time ... essentially a poisson process, weighted by the mean rate 
      
       # remap random element to correct location and process
       
@@ -68,14 +68,14 @@ ssa.engine.exact = function( p, res, rn=0 ) {
       res$P[ip] = P1 = RE( p, X=XX, ix=ix ) 
   
       res$P.total = res$P.total + sum( P1 ) - sum(P0)
+
+      # now identify the time frame for this reaction .. again assuming 
+      # a poisson process which has time interavals that scale as an exponential random number  
       res$simtime = res$simtime - (1/res$P.total) * log( runif(1) ) 
-      ## this is the exponential deviate
       ## exp ~ -ln(1-runif)/lambda 
       ## but as 1-runif is also runif ==> -ln(runif())/lambda 
-      ## -- ziggurat is faster ... willl add this
+      ## -- the ziggurat formulation is faster ... will add this when it becomes available
       res$nevaluations = res$nevaluations + 1
-     
- 
 
       if (res$simtime > tout) {
         tout = tout + t.censusinterval 

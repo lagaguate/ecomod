@@ -38,8 +38,6 @@
       }
     }
 
-
-
    
     if ( method=="seasonal.smoothed" ) {
       # this method recovers the mean interannual trends nicely but misses the seasonality
@@ -104,16 +102,23 @@
       x$tyr = 2*pi * x$weekno/52
       x$cos.w  = cos( x$tyr )
       x$sin.w  = sin( x$tyr )
+      OP$tyr = 2*pi * OP$weekno/52
+      OP$cos.w  = cos( OP$tyr )
+      OP$sin.w  = sin( OP$tyr )
 
       if (harmonics>1) {
         # compute additional harmonics only if required (to try to spped things up a bit)
         x$cos.w2 = cos( 2*x$tyr )
         x$sin.w2 = sin( 2*x$tyr )
+        OP$cos.w2 = cos( 2*OP$tyr )
+        OP$sin.w2 = sin( 2*OP$tyr )
       }
 
       if (harmonics>2) {
         x$cos.w3 = cos( 3*x$tyr )
         x$sin.w3 = sin( 3*x$tyr )
+        OP$cos.w3 = cos( 3*OP$tyr )
+        OP$sin.w3 = sin( 3*OP$tyr )
       }
 
       for ( h in harmonics:1) {
@@ -127,25 +132,14 @@
         if ( ! "try-error" %in% class(model) ) break() 
       }
 
+      if ( "try-error" %in% class(out) ) {
+          # last try with a simpler model with yr/season correlated gam
+          OP = timeseries.impute( x=b, OP=OP0, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer, smoothdata=FALSE ) 
+      }
+
       if ( ! "try-error" %in% class(model) ) { 
-        OP$tyr = 2*pi * OP$weekno/52
-        OP$cos.w  = cos( OP$tyr )
-        OP$sin.w  = sin( OP$tyr )
-
-        if (harmonics>1) {
-          # compute additional harmonics only if required (to try to spped things up a bit)
-          OP$cos.w2 = cos( 2*OP$tyr )
-          OP$sin.w2 = sin( 2*OP$tyr )
-        }
-
-        if (harmonics>2) {
-          OP$cos.w3 = cos( 3*OP$tyr )
-          OP$sin.w3 = sin( 3*OP$tyr )
-        }
-
         out = NULL
         out = try( predict( model, newdata=OP, type="response", se.fit=T ) ) 
-        
         if ( ! "try-error" %in% class(out) ) {
           OP$fit = out$fit 
           OP$se = out$se  
@@ -154,9 +148,8 @@
     }
 
 
-
+    # final pass to constrain predictions to be smoother and within empirical range (99.9% quantiles)
     if( any( is.finite( OP$fit) ) ) {
-
       if ( smoothdata ) {
         # default is a 2X smoothing kernel: 2 adjacent values and then 1 adjacent on the smoothed series .. i.e. a high-pass filter
         nd = length(smoothing.kernel$coef) - 1 # data points will be trimmed from tails so need to recenter:
@@ -166,8 +159,6 @@
         OP$fit[si] = kernapply( as.vector(OP$fit), smoothing.kernel ) 
         # lines( fit~time, OP, col="green" )
       }
-
-
       # constrain range of predicted data to the input data range
       TR =  quantile( x$t, probs=c(0.0005, 0.9995), na.rm=TRUE  )
       TR[1] = max( TR[1], -3)
@@ -177,8 +168,6 @@
       toohigh = which( OP$fit > TR[2] )
       if ( length(toohigh) > 0 ) OP$fit[toohigh] = TR[2]
     }
-
-
 
  
     debug = FALSE

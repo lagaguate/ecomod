@@ -104,13 +104,10 @@
         ssa.approx.proportion = 0.01  # 0.1% update simultaneously should be safe
         ssa.method = "fast" 
 
-
         nr_1 = nr-1
         nc_1 = nc-1
 
         # System time and output times
-        n.times = 100  # number of censuses  
-        t.end =   10   # in model time .. days
         t.censusinterval = t.end / n.times
         modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
 
