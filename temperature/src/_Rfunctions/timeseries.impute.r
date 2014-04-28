@@ -131,17 +131,8 @@
           nlm = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","nlm")  ) ) 
         )
         if ( ! "try-error" %in% class(model) ) break() 
-
       }
      
-
-      debug = FALSE
-          if (debug) {
-            AIC(model)
-            summary(model)
-          }
-
-
       if ( ! "try-error" %in% class(model) ) { 
         out = NULL
         out = try( predict( model, newdata=OP, type="response", se.fit=T ) ) 
@@ -150,14 +141,7 @@
           OP$se = out$se  
         }
       } 
-          
-      
-      # last try with a simpler model with yr/season correlated gam
-      if ( "try-error" %in% class(model) |  "try-error" %in% class(out) ) {
-        OP = timeseries.impute( x=b, OP=OP, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
-      }
-
-  }  # end harmonic method
+    }  # end harmonic method
 
 
     # final pass to constrain predictions to be smoother and within empirical range (99.9% quantiles)
