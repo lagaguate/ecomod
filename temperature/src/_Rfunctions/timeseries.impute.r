@@ -1,5 +1,5 @@
 
-  timeseries.impute = function( x, OP, method="harmonics", harmonics=3, gam.optimizer="bam", smoothdata=FALSE, smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
+  timeseries.impute = function( x, OP, method="harmonics", harmonics=2, gam.optimizer="bam", smoothdata=FALSE, smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
         
     OP$fit = NA
     OP$se  = NA
@@ -95,14 +95,15 @@
       # order is important here .. last three must be harmonic 3, 2 and 1, then altenates in case they fail
       # at present these additional models are unsmoothed harmonics ..2 and 1 
       mf = c( 
-       ' t ~ s(plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(cos.w, sin.w) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w)' ,
-       ' t ~ s(plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(cos.w, sin.w) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w) + s(cos.w2, sin.w2) + s(cos.w2, yr) + s( sin.w2, yr ) + s(cos.w2) + s(sin.w2) ' ,
-       ' t ~ s(plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(cos.w, sin.w) + s(cos.w, yr) + s(sin.w, yr) + s(cos.w) + s(sin.w) + s(cos.w2, sin.w2) + s(cos.w2, yr) + s( sin.w2, yr ) + s(cos.w2) + s(sin.w2) + s(cos.w3, sin.w3) + s(cos.w3, yr ) + s(sin.w3, yr ) + s(cos.w3) + s(sin.w3) '
-      )
-      x$tyr = 2*pi * x$weekno/52
+' t ~ s(z, plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w)' ,
+' t ~ s(z, plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) ' ,
+' t ~ s(z, plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) + s(yr, cos.w3) + s( yr, sin.w3)  + s(cos.w3) + s(sin.w3) '
+      ) 
+      
+      x$tyr = 2*pi *  x$weekno/52
       x$cos.w  = cos( x$tyr )
       x$sin.w  = sin( x$tyr )
-      OP$tyr = 2*pi * OP$weekno/52
+      OP$tyr = 2*pi * OP$weekno/52 
       OP$cos.w  = cos( OP$tyr )
       OP$sin.w  = sin( OP$tyr )
 
@@ -130,12 +131,16 @@
           nlm = try( gam( formula( mf[h] ), data=x, weights=w, optimizer=c("outer","nlm")  ) ) 
         )
         if ( ! "try-error" %in% class(model) ) break() 
-      }
 
-      if ( "try-error" %in% class(model) ) {
-          # last try with a simpler model with yr/season correlated gam
-          OP = timeseries.impute( x=b, OP=OP0, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
       }
+     
+
+      debug = FALSE
+          if (debug) {
+            AIC(model)
+            summary(model)
+          }
+
 
       if ( ! "try-error" %in% class(model) ) { 
         out = NULL
@@ -144,8 +149,15 @@
           OP$fit = out$fit 
           OP$se = out$se  
         }
+      } 
+          
+      
+      # last try with a simpler model with yr/season correlated gam
+      if ( "try-error" %in% class(model) |  "try-error" %in% class(out) ) {
+        OP = timeseries.impute( x=b, OP=OP, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
       }
-    }
+
+  }  # end harmonic method
 
 
     # final pass to constrain predictions to be smoother and within empirical range (99.9% quantiles)
@@ -170,42 +182,9 @@
       if ( length(toohigh) > 0 ) OP$fit[toohigh] = TR[2]
     }
 
- 
+
     debug = FALSE
-    if (debug) {
-      AIC(model)
-      summary(model)
-      x11()
-      x$ty = x$weekno/52 
-      OP$ty = OP$weekno / 52
-      plot(  fit ~ I(yr+ty), data=OP, pch=".", type="l")
-      points( t ~I(ty + yr), data=x, pch="*", col="red")
-     
-      # comparison/debug of different imputation methods here:
-      compare.imputation = FALSE
-      if (compare.imputation) {
-
-        oH1 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=1, gam.optimizer=p$gam.optimizer ) 
-        oH2 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=2, gam.optimizer=p$gam.optimizer ) 
-        oH3 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=3, gam.optimizer=p$gam.optimizer ) 
-        oS1 = timeseries.impute( x=x, OP=OP, method="simple", gam.optimizer=p$gam.optimizer ) 
-        oS2 = timeseries.impute( x=x, OP=OP, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
-        
-        oH1$time = oH1$yr + oH1$weekno/52
-        oH2$time = oH2$yr + oH2$weekno/52
-        oH3$time = oH3$yr + oH3$weekno/52
-        oS1$time = oS1$yr + oS1$weekno/52
-        oS2$time = oS1$yr + oS2$weekno/52
-        x$time = x$yr + x$weekno/52 
-        
-        plot( t~time, x )
-        lines( oH1$time, oH1$fit, col="black", lwd=2 )
-        lines( oH2$time, oH2$fit, col="blue", lwd="3" )
-        lines( oH3$time, oH3$fit, col="orange" )
-        lines( oS1$time, oS1$fit, col="red")
-        lines( oS2$time, oS2$fit, col="brown", lwd=2)
-      }
-
+    if(debug) {
       OP$time = OP$yr + OP$weekno / 52
       OP = OP[ order( OP$time ) ,]
       

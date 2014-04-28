@@ -64,7 +64,7 @@
 
       gc()
       # sample.int used to randomize order ... to use all cpu's as much as possible
-      p = make.list( list( loc=sample.int(p$nP) ), Y=p ) 
+      p = make.list( list( loc=sample.int(p$nP) ), Y=p ) # random order helps use all cpus 
       parallel.run( temperature.timeseries.interpolate, p=p, P=P, B=B )
       # temperature.timeseries.interpolate ( p=p )
       

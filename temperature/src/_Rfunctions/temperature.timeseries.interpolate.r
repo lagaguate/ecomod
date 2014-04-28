@@ -30,7 +30,7 @@
           b$w[ which( is.infinite( b$w ) ) ] = 1e+3
           b$w[ which( b$w < 1e-3 ) ] = 1e-3
           OP = timeseries.impute( x=b, OP=OP0, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) # smoothing done on harmonics as they are noisy
-          if ( any( is.finite ( OP$fit, na.rm=T  ) ) ) break()  # solution found
+          if ( any( is.finite ( OP$fit ) ) ) break()  # solution found
         }
       }						
      
@@ -73,6 +73,43 @@
       tbot.se[mm,] <- OP$se
     
     } # end each point
+
+
+    debug = FALSE
+    if (debug) {
+      AIC(model)
+      summary(model)
+      x11()
+      
+      x = b
+
+      # comparison/debug of different imputation methods here:
+      compare.imputation = FALSE
+      if (compare.imputation) {
+
+        oH1 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=1, gam.optimizer=p$gam.optimizer ) 
+        oH2 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=2, gam.optimizer=p$gam.optimizer ) 
+        oH3 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=3, gam.optimizer=p$gam.optimizer ) 
+        oS1 = timeseries.impute( x=x, OP=OP, method="simple", gam.optimizer=p$gam.optimizer ) 
+        oS2 = timeseries.impute( x=x, OP=OP, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
+        
+        oH1$time = oH1$yr + oH1$weekno/52
+        oH2$time = oH2$yr + oH2$weekno/52
+        oH3$time = oH3$yr + oH3$weekno/52
+        oS1$time = oS1$yr + oS1$weekno/52
+        oS2$time = oS1$yr + oS2$weekno/52
+        x$time = x$yr + x$weekno/52 
+        
+        plot( t~time, x )
+        lines( oH1$time, oH1$fit, col="black", lwd=2 )
+        lines( oH2$time, oH2$fit, col="blue", lwd="3" )
+        lines( oH3$time, oH3$fit, col="orange" )
+        lines( oS1$time, oS1$fit, col="red")
+        lines( oS2$time, oS2$fit, col="brown", lwd=2)
+      }
+
+    }
+
 
   }
 

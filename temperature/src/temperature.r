@@ -25,8 +25,8 @@
 
     p$gam.optimizer = "bam" ## other optimizers:: "bam", "perf", "nlm", "bfgs", "optim", "newton", "nlm.fd" --- bfgs is way too slow to use
 
-    p$nMin.tbot = p$ny # min number of data points req before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
-    p$dist.km = c( 2, 4, 8, 10, 15, 20, 25 ) # "manhattan" (~radius) distances to extend search for data
+    p$nMin.tbot = p$ny*5 # min number of data points req (5 or 6 X greater than no yr seems to work best) before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
+    p$dist.km = c( 5, 10, 15, 20 ) # "manhattan" (~radius) distances to extend search for data
 
     p$tsmethod ="harmonics"  # temporal interpolation method ... harmonic analysis seems most reasonable
     p$tsharmonics = 1  # highest harmonic to use (will use lower if it fails)
@@ -101,7 +101,7 @@
           debugdata = FALSE
           if ( debugdata ){
             require(lattice)
-            for (yr in 2000:2013) {
+            for (yr in 2010:2013) {
               k= hydro.db( p=p, DS="bottom.gridded", yr=yr )
               k = lonlat2planar( k, proj.type=p$internal.projection )
               k$t [ k$t>10] = 10
@@ -130,8 +130,9 @@
           debugdata = FALSE
           if ( debugdata ){
             bd = bathymetry.db( p=p, DS="baseline" )
-            for (yr in 2000:2013) {
+            for (yr in 2010:2013) {
               k = temperature.interpolations( p=p, DS="temporal.interpolation", yr=2013 )
+              k [ k>10] = 10
               x11()
               y = levelplot( k[,30] ~ plon+plat, data=bd, 
                 aspect="iso", xlab="", ylab="", main=as.character(yr))
