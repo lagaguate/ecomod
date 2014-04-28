@@ -164,24 +164,21 @@
           Tdat = P[ai,ww]
           gs = NULL
           # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
-          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], nmax=100, maxdist=20, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
+          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=10, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=100, maxdist=20, set=list(idp=.5)), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], maxdist=20, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
           }
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=200, maxdist=40, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], maxdist=40, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
           }
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], nmax=200, maxdist=40, set=list(idp=.5)), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], maxdist=10, set=list(idp=.5)), silent=TRUE) 
           }
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=60, set=list(idp=.5)), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=20, set=list(idp=.5)), silent=TRUE) 
           }
           if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=80, set=list(idp=.5)), silent=TRUE) 
-          }
-          if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=100, set=list(idp=.5)), silent=TRUE) 
+            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=40, set=list(idp=.5)), silent=TRUE) 
           }
           count = 0
           todo = 1

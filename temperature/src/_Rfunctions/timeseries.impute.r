@@ -1,5 +1,5 @@
 
-  timeseries.impute = function( x, OP, method="harmonics", harmonics=3, gam.optimizer="bam", smoothdata=TRUE, smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
+  timeseries.impute = function( x, OP, method="harmonics", harmonics=3, gam.optimizer="bam", smoothdata=FALSE, smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
         
     OP$fit = NA
     OP$se  = NA
@@ -134,7 +134,7 @@
 
       if ( "try-error" %in% class(model) ) {
           # last try with a simpler model with yr/season correlated gam
-          OP = timeseries.impute( x=b, OP=OP0, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer, smoothdata=FALSE ) 
+          OP = timeseries.impute( x=b, OP=OP0, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
       }
 
       if ( ! "try-error" %in% class(model) ) { 
@@ -159,6 +159,7 @@
         OP$fit[si] = kernapply( as.vector(OP$fit), smoothing.kernel ) 
         # lines( fit~time, OP, col="green" )
       }
+      
       # constrain range of predicted data to the input data range
       TR =  quantile( x$t, probs=c(0.0005, 0.9995), na.rm=TRUE  )
       TR[1] = max( TR[1], -3)
