@@ -29,17 +29,12 @@
         modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
       })
 
+  p$jump.increment = 1
   
-  rate.increment = 0.5 ---- trying partial 
-
   # p = ssa.model.definition( p, DS = "logistic" ) 
   # p = ssa.model.definition( p, DS = "logistic.randomwalk" ) 
-  p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk", increment=rate.increment ) 
+  p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk", increment=p$jump.increment ) 
   
-  p$r = p$r / rate.increment
-  p$b = p$b / rate.increment
-  p$d = p$d / rate.increment
-
   # initialize state variables and propensity matrix
   res = ssa.db( p , DS="debug" ) 
   
