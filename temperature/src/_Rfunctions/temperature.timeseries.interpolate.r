@@ -26,8 +26,13 @@
         if (length(i) > p$nMin.tbot ) {  
           # only attempt interpolation if we have enough data (nMin.tbot)
           b = B[i,] # faster to reduce the size of B here
+          
+          # remove potentially noisy/erroneous data --- they are highly influential when there is little data 
+          bt = quantile( b$t, probs=c(0.005, 0.995) )
+          bz = quantile( b$z, probs=c(0.005, 0.995) )
+          bi =  which( b$t >= bt[1] & b$t <= bt[2] & b$z >= bz[1] & b$z <= bz[2] ) 
+          b = b[ bi ,  ] 
           b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )# weight data in space: inverse distance squared
-          b$w[ which( is.infinite( b$w ) ) ] = 1e+3
           b$w[ which( b$w < 1e-3 ) ] = 1e-3
           OP = timeseries.impute( x=b, OP=OP0, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) # smoothing done on harmonics as they are noisy
           if ( any( is.finite ( OP$fit ) ) ) break()  # solution found

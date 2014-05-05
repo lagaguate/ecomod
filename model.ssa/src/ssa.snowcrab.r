@@ -8,29 +8,25 @@
 
   # set.seed(1)
 
-  p = list()
-  within(p, 
-    libs = loadlibraries( c("parallel", "Rcpp",  "rlecuyer" ))
-    init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab"  )  )
+   p$libs = loadlibraries( c("parallel", "Rcpp",  "rlecuyer" ))
+   p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab"  )  )
    
     # diffusion coef d=D/h^2 ; h = 1 km; per year (range from 1.8 to 43  ) ... using 10 here 
     # ... see b ulk estimation in model.lattice/src/_Rfunctions/estimate.bulk.diffusion.coefficient.r
-    runname = "debug"
-    monitor = TRUE  # output figures / summary stats ~ 10% performance hit
-    ssa.approx.proportion = 0.05
+   p$runname = "debug"
+   p$monitor = TRUE  # output figures / summary stats ~ 10% performance hit
+   p$ssa.approx.proportion = 0.05
 
     # System size definitions
     # pde related params already define the snow crab data 
     # rows are easting (x);  columns are northing (y) --- each cell has dimensions of 1 X 1 km ^2
-    spatial.domain = "snowcrab"
+   p$spatial.domain = "snowcrab"
   
     # p$increment   = 5 /100 * 5  # ...  approx max density is ~ 100 t / km^2  
     #  .... so ~ 1 percentage min dX value to use at the lowest level for rate processes; 5 -> ~ 5% 
-    increment   = 10L # ... push to 10 ?
 
-    n.times = 10  # number of censuses  
-    t.end =   100   # in model time .. days
-  )
+   p$n.times = 10  # number of censuses  
+   p$ t.end =   10   # in model time .. days
 
   p = model.pde.define.spatial.domain(p)
   p = ssa.parameters( p, DS = "snowcrab.debug" )
@@ -50,13 +46,16 @@
   choose.model = TRUE
   if (choose.model) {
     stop( "stop and choose a model" )
-    p = ssa.model.definition( p, DS = "logistic", increment=p$increment ) 
-    p = ssa.model.definition( p, DS = "logistic.randomwalk", increment=p$increment ) 
-    p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk", increment=p$increment ) 
+ 
+    p$jump.increment = 1 
+ 
+    # p = ssa.model.definition( p, DS = "logistic", increment=p$jump.increment ) 
+    # p = ssa.model.definition( p, DS = "logistic.randomwalk", increment=p$jump.increment ) 
+    p = ssa.model.definition( p, DS = "logistic.correlated.randomwalk", increment=p$jump.increment ) 
+  
   }
 
- 
-  
+   
   p$y = 2011  # currently picking a single year for data streams ... must make this more general
   res = ssa.db( p , DS="snowcrab.debug" ) 
   

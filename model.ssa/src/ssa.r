@@ -14,7 +14,7 @@
 
   p$ssa.method = "fast"  # 62480 evaluations/sec ( 8-18X speed increase)
   # p$ssa.method = "approximation"  # ~ 7405 evaluations/sec
-  # p$ssa.method = "direct" # way too slow ... only for didactic/error checking
+  # p$ssa.method = "exact" # way too slow ... only for didactic/error checking
   
   p$monitor = TRUE  # output figures / summary stats ~ 10% performance hit
   p$ssa.approx.proportion = 0.01  # 0.1% update simultaneously should be safe
@@ -29,7 +29,7 @@
         modeltimeoutput = seq( 0, t.end, length=n.times )  # times at which output is desired .. used by pde
       })
 
-  p$jump.increment = 1
+  p$jump.increment = 1 
   
   # p = ssa.model.definition( p, DS = "logistic" ) 
   # p = ssa.model.definition( p, DS = "logistic.randomwalk" ) 

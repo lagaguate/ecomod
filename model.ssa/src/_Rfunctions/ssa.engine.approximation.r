@@ -23,12 +23,14 @@ ssa.engine.approximation = function( p, res, rn=0 ) {
      
       tn = tn0  
       time.increment = -(1/res$P.total)*log( runif ( nsimultaneous.picks ) ) # R only -- slow
+      time.increment = time.increment * jump.increment # account for jumps != 1
       tnew = res$simtime + sum( time.increment )
       
       if ( tnew > tout ) {
         tcs = cumsum( time.increment )
         tn = which( tcs <= tout ) 
         time.increment = time.increment[ tn ]
+        time.increment = time.increment * jump.increment # account for jumps != 1
         tnew = res$simtime + sum( time.increment )
       }
 

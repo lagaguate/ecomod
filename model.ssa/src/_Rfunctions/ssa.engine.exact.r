@@ -71,7 +71,8 @@ ssa.engine.exact = function( p, res, rn=0 ) {
 
       # now identify the time frame for this reaction .. again assuming 
       # a poisson process which has time interavals that scale as an exponential random number  
-      res$simtime = res$simtime - (1/res$P.total) * log( runif(1) ) 
+      time.increment =  - (1/res$P.total) * log( runif(1) ) * jump.increment # account for jumps != 1
+      res$simtime = res$simtime +  time.increment
       ## exp ~ -ln(1-runif)/lambda 
       ## but as 1-runif is also runif ==> -ln(runif())/lambda 
       ## -- the ziggurat formulation is faster ... will add this when it becomes available

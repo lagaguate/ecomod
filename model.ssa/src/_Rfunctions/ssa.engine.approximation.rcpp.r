@@ -38,14 +38,14 @@ ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
 
       tn = tn0
       time.increment = random_deviate_exponential( nsimultaneous.picks, res$P.total) # rcpp function to sample from an exponential distrib
-      time.increment = time.increment * p$jump.increment # account for jumps != 1
+      time.increment = time.increment * jump.increment # account for jumps != 1
       tnew = res$simtime + sum( time.increment )
        
       if ( tnew > tout ) {
         tcs = cumsum( time.increment )
         tn = which( tcs <= tout ) 
         time.increment = time.increment[ tn ]
-        time.increment = time.increment * p$jump.increment # account for jumps != 1
+        time.increment = time.increment * jump.increment # account for jumps != 1
         tnew = res$simtime + sum( time.increment )
       }
 

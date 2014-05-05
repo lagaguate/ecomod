@@ -6,3 +6,4 @@ ssa.engine.approximation.snowcrab = function( p, res ) {
 }
 
 
+ssa.engine.approximation.snowcrab =  ssa.engine.approximation.rcpp

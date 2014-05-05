@@ -9,6 +9,7 @@
     p <- params[[1]]
     SE = switch( p$ssa.method, 
       exact = ssa.engine.exact,   # using the exact solution ... ~ 1 day -> every 25-30 minutes
+      direct = ssa.engine.exact,   # using the exact solution ... ~ 1 day -> every 25-30 minutes
       approximation = ssa.engine.approximation ,
       fast = ssa.engine.approximation.rcpp,
       default = ssa.engine.approximation.rcpp 
