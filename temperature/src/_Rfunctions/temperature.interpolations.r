@@ -55,6 +55,7 @@
       B$z = log(B$z)   # operate on log scale for depth
       B = B[, c("plon", "plat", "yr", "weekno", "t", "z") ]
 
+      # globally remove all unrealistic data
       TR = range(B$t, na.rm=TRUE ) 
       TR[1] = max( TR[1], -3)
       TR[2] = min( TR[2], 30)
@@ -152,37 +153,28 @@
 				print ( paste("Year:", y)  )
         for ( ww in 1:52 ) {
           print ( paste( "Week:", ww) )
-          TR =  quantile( P[,ww], probs=c(0.005, 0.995), na.rm=TRUE  )  
-          TR[1] = max( TR[1], -3)
-          TR[2] = min( TR[2], 30)
-          toolow = which( P[,ww] < TR[1] )
-          if ( length(toolow) > 0 )  P[toolow,ww] = NA
-          toohigh = which( P[,ww] > TR[2] )
-          if ( length(toohigh) > 0 )  P[toohigh,ww] = NA 
-
           ai = which(is.finite(P[,ww]))
           Tdat = P[ai,ww]
           gs = NULL
-          # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
-          gs =  try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=10, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE ) 
-          if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], maxdist=20, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
+          for ( distance in p$dist.km ) {
+            # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
+            gs = try( 
+              gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], 
+                     maxdist=distance, set=list(idp=.5), weights=W[ai,ww])
+              , silent=TRUE ) 
+            if ( ! ( "try-error" %in% class(gs) ) ) break() 
           }
-          if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], maxdist=40, set=list(idp=.5), weights=W[ai,ww]), silent=TRUE) 
-          }
-          if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], maxdist=10, set=list(idp=.5)), silent=TRUE) 
-          }
-          if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=20, set=list(idp=.5)), silent=TRUE) 
-          }
-          if ( "try-error" %in% class(gs) ) { 
-            gs = try(gstat( id="t", formula=Tdat~1 , locations=~plon+plat, data=O[ai,], maxdist=40, set=list(idp=.5)), silent=TRUE) 
-          }
+
+          if ( "try-error" %in% class(gs) )  next()  # give up
+
           count = 0
           todo = 1
           aj = which( ! is.finite(P[,ww]) )
+      
+          TR = quantile(  P[,ww], probs=c(0.005, 0.995), na.rm=TRUE )
+          TR[1] = max( TR[1], -3)
+          TR[2] = min( TR[2], 30)
+          
           while ( todo > 0 )  {
             preds = predict( object=gs, newdata=O[aj,]  )
             extrapolated1 = which( preds[,3] < TR[1] )
@@ -204,7 +196,7 @@
               break() 
             }
           } 
-          rm ( ai, aj ); gc()
+          rm ( aj ); gc()
         }
 				fn1 = file.path( spinterpdir,paste("spatial.interpolation",  y, "rdata", sep=".") )
 				fn2 = file.path( spinterpdir,paste("spatial.interpolation.se",  y, "rdata", sep=".") )

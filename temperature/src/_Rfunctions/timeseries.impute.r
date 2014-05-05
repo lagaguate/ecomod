@@ -157,7 +157,7 @@
       }
       
       # constrain range of predicted data to the input data range
-      TR =  quantile( x$t, probs=c(0.0005, 0.9995), na.rm=TRUE  )
+      TR =  quantile( x$t, probs=c(0.005, 0.995), na.rm=TRUE  )
       TR[1] = max( TR[1], -3)
       TR[2] = min( TR[2], 30)
       toolow = which( OP$fit < TR[1] )
