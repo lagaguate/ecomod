@@ -47,8 +47,8 @@
         w = which( x$spec==i & x$sex==sx)
         
         # remove extremes from the data to generate regressions
-          ql = quantile( x$len[w], probs=c(0.01, 0.99), na.rm=T )
-          qm = quantile( x$mass[w], probs=c(0.01, 0.99), na.rm=T )
+          ql = quantile( x$len[w], probs=c(0.005, 0.995), na.rm=T )
+          qm = quantile( x$mass[w], probs=c(0.005, 0.995), na.rm=T )
           is =  which( x$len> ql[1] & x$len< ql[2] & x$mass> qm[1] & x$mass< qm[2] ) 
         w = unique( intersect( w, is ) )
         nw = length(w)

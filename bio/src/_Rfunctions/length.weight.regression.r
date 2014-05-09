@@ -50,8 +50,8 @@
       if (length( wsp) < 10 ) next()
 
       # remove extremes for each species from the data to generate regressions
-      ql = quantile( x$len[wsp], probs=c(0.01, 0.99), na.rm=T )
-      qm = quantile( x$mass[wsp], probs=c(0.01, 0.99), na.rm=T )
+      ql = quantile( x$len[wsp], probs=c(0.005, 0.995), na.rm=T )
+      qm = quantile( x$mass[wsp], probs=c(0.005, 0.995), na.rm=T )
       
       wqn =  which( x$len> ql[1] & x$len< ql[2] & x$mass> qm[1] & x$mass< qm[2] ) 
       

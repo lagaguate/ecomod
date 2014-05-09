@@ -7,22 +7,40 @@
     if (exists( "libs", p)) loadlibraries( p$libs ) 
     if (is.null(ip)) ip = 1:p$nruns
 
+
+    debug.strangedata = FALSE
+    if (debug.strangedata) {
+      sg = which( P$plon < 520 & P$plon > 510 & P$plat> 5180 & P$plat < 5190 )
+
+    
+    
+    }
+
+
     for ( iip in ip ) {
       mm = p$runs[iip,"loc"]
       Pi=P[mm,]
       print (mm)			
       OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, weekno=p$wtimes, yr=p$tyears, z=Pi$z )
       
+      zrange = c( -0.25. 0.25 ) # approx +/- 30% (log scale)
+      z0 = Pi$z + zrange 
+
       for ( dm in p$dist.km ) { 
+        
         drange = c(-1,1) * dm
         plon0 = Pi$plon + drange
         plat0 = Pi$plat + drange
+
         i = which( 
           B$plon > plon0[1] & 
           B$plon < plon0[2] & 
           B$plat > plat0[1] & 
-          B$plat < plat0[2]    
-        ) 
+          B$plat < plat0[2] &
+          B$z > z0[1] &   # required esp in PEI area where there are extremely shallow data points .. extrapolation causes error
+          B$z < z0[2]
+        )
+
         if (length(i) > p$nMin.tbot ) {  
           # only attempt interpolation if we have enough data (nMin.tbot)
           b = B[i,] # faster to reduce the size of B here

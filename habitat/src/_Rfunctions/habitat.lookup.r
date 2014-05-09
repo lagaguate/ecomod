@@ -1,5 +1,5 @@
  
-  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, discretization.scale = 0, truncatequantiles=c(0.025, 0.975) ) {
+  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, discretization.scale = 0, truncatequantiles=c(0.005, 0.995) ) {
     
     # wrapping function to provide a common intercae to various habitat related lookup routines
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given

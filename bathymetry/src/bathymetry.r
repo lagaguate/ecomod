@@ -62,7 +62,7 @@
 	
 	x$z =log( x$z )
   
-  dr = quantile( x$z, probs=c(0.025, 0.975))
+  dr = quantile( x$z, probs=c(0.005, 0.995))
   datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "depth"
@@ -74,7 +74,7 @@
   
   x = bathymetry.db ( p, DS="dZ.planar" )
 	if (snowcrab.area) x = x[sc,]
-  dr = quantile( x$dZ, probs=c(0.025, 0.975))
+  dr = quantile( x$dZ, probs=c(0.005, 0.995))
   datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "slope"
@@ -86,7 +86,7 @@
  
   x = bathymetry.db ( p, DS="ddZ.planar" )
 	if (snowcrab.area) x = x[sc,]
-  dr = quantile( x$ddZ, probs=c(0.025, 0.975))
+  dr = quantile( x$ddZ, probs=c(0.005, 0.995))
   datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "curvature"

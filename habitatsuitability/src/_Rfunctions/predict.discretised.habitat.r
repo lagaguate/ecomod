@@ -178,7 +178,7 @@
           aa.sums = apply( Asim[ iHabitat,  ] , 2, sum ) # abundance weighted by Pr
           V.mean = mean( aa.sums )
           V.sd = sd( aa.sums )
-          ci = quantile( aa.sums, probs=c(0.025, 0.5, 0.975), na.rm=T,names=F )
+          ci = quantile( aa.sums, probs=c(0.005, 0.5, 0.995), na.rm=T,names=F )
         
         } else {
 
@@ -193,7 +193,7 @@
         bb.sums = apply( Asim[ iHabitat,  ] , 2, sum ) # abundance weighted by Pr
         W.mean = mean( bb.sums )
         W.sd = sd( bb.sums )
-        W.ci = quantile( bb.sums, probs=c(0.025, 0.5, 0.975), na.rm=T,names=F )
+        W.ci = quantile( bb.sums, probs=c(0.005, 0.5, 0.995), na.rm=T,names=F )
  
         L = data.frame( yr=y, total=V.mean, total.sd=V.sd, median=ci[2], lbound=ci[1], ubound=ci[3],
               ss=W.mean, ss.sd=W.sd, ss.median=W.ci[2], ss.lbound=W.ci[1], ss.ubound=W.ci[3],

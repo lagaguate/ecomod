@@ -10,7 +10,7 @@
 					"bigmemory", "boot", "car", "chron", "Cairo", "class" , "cluster", "setwidth",
 					"date", "Design", "doBy", "eco", "effects", "filehash", "ff", "forecast", "foreign", 
 					"gee", "geepack", "gamm4", "graph",  "Hmisc", "igraph", "its", "jit", "lattice", "lme4", 
-					"MASS", "maxLik", "mgcv", "mixdist", "mvtnorm", "nlme", "multcomp", "nlme", "nnet", "oz",
+					"MASS", "maxLik", "mgcv", "mixdist", "mvtnorm", "nlme", "multcomp", "nlme", "nnet","numDeriv", "oz",
 					"qcc", "quadprog", "randomForest","rCurl", "XML",
 					"ppso", "Rcmdr", "Rcpp", "rgl", "Rcompression", "RColorBrewer", "rlecuyer",  "plotrix",
 					"scatterplot3d",  "systemfit", "sm", "sampling",
@@ -28,7 +28,7 @@
 
 		if (X=="spatial") {
 			pkgs = c( "akima", "deldir", "fields", "gstat", "geoR", "geoRglm", "mapproj", "maps", 
-          "maptools", "RArcInfo", "rgdal", "rgeos",
+          "maptools", "RArcInfo", "raster", "rgdal", "rgeos",
 					"sgeostat", "sp", "spatial", "spatstat", "tripack", "PBSmapping" )	
 			out = data.frame( cbind( pkgs=pkgs, repos=default.repository ) )
 		}
@@ -58,7 +58,7 @@
 
 		if (X=="bayesian") {
 			pkgs = c( "arm", "bayesm", "bayesSurv",
-        "DPpackage",  "mcmc", "deal", "eco", 
+        "DPpackage",  "mcmc", "deal", "eco",  
         "lmm", "spBayes", "vabayelMix", "boa", "coda",
         "mcgibbsit", "rv", "bayesmix", "rbugs", "runjags", "rjags", "rv",
         "Umacs", "R2jags", "runjags", "gR", "MCMCpack" )

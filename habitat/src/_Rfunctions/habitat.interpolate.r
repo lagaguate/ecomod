@@ -35,7 +35,7 @@
     pdat = habitat.db( DS=p$project.name, p=p ) 
     dr = list()
     for ( ww in p$varstomodel ) {
-      dr[[ww]] = quantile( pdat[,ww], probs=c(0.025, 0.975), na.rm=TRUE ) # use 95%CI
+      dr[[ww]] = quantile( pdat[,ww], probs=c(0.005, 0.995), na.rm=TRUE ) # use 95%CI
     }
     rm (pdat); gc()
 

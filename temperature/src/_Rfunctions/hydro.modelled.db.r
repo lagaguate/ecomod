@@ -48,8 +48,8 @@
         
         O$wmin = apply( P, 1, which.min )
         O$wmax = apply( P, 1, which.max )
-				O$tmin = apply( P, 1, quantile, probs=0.025 )
-        O$tmax = apply( P, 1, quantile, probs=0.975 )
+				O$tmin = apply( P, 1, quantile, probs=0.005 )
+        O$tmax = apply( P, 1, quantile, probs=0.995 )
 
 				W = 1/V^2   # weights: inverse variance, normalised
 				W = W / rowSums(W)

@@ -48,7 +48,7 @@
       OP$tiyr = OP$yr + OP$weekno/52
  
       mf = c( 
-        ' t ~ s(yr) + s(weekno, bs="cc") +  s(z) ',
+        ' t ~ s(yr) + s(weekno, bs="cc") + s(z) ',
         ' t ~ s(yr) + s(weekno, bs="cc") + s(plon) + s(plat) + s(z) ', 
         ' t ~ s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) + s(z) ',
         ' t ~ s(yr, weekno) + s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) + s(z) '  
