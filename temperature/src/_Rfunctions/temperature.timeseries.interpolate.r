@@ -23,7 +23,7 @@
       print (mm)			
       OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, weekno=p$wtimes, yr=p$tyears, z=Pi$z )
       
-      zrange = c( -0.25. 0.25 ) # approx +/- 30% (log scale)
+      zrange = c( -0.25, 0.25 ) # approx +/- 30% (log scale) -- exp(.25)
       z0 = Pi$z + zrange 
 
       for ( dm in p$dist.km ) { 
