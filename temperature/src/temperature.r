@@ -25,8 +25,13 @@
 
     p$gam.optimizer = "bam" ## other optimizers:: "bam", "perf", "nlm", "bfgs", "optim", "newton", "nlm.fd" --- bfgs is way too slow to use
 
-    p$nMin.tbot = p$ny*5 # min number of data points req (5 or 6 X greater than no yr seems to work best) before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
-    p$dist.km = c( 5, 10, 15, 20, 25 ) # "manhattan" (~radius) distances to extend search for data (for timeseries interpolation and spatial interpolations)
+    # min number of data points req 
+    # before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
+    p$nMin.tbot = p$ny*3 
+    
+    # "manhattan" (~radius) distances to extend search for data 
+    # (for timeseries interpolation and spatial interpolations)
+    p$dist.km = c( 5, 10, 15, 20 ) 
 
     p$tsmethod ="harmonics"  # temporal interpolation method ... harmonic analysis seems most reasonable
     p$tsharmonics = 1  # highest harmonic to use (will use lower if it fails)
@@ -144,10 +149,15 @@
             }
           
 
-            sgulf=which(k$plon<600 & k$plon> 560 & k$plat>5190 & k$plat<5210)
+            y = levelplot( k[sgulf,30] ~ plon+plat, data=bd, 
+                aspect="iso", xlab="", ylab="", main=as.character(yr))
+              print(y)
+    
+            sgulf=which(bd$plon<600 & bd$plon> 560 & bd$plat>5190 & bd$plat<5210)
 
           
           }
+
 
       # ----------------
       # simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run

@@ -12,8 +12,9 @@
     if (debug.strangedata) {
       sg = which( P$plon < 520 & P$plon > 510 & P$plat> 5180 & P$plat < 5190 )
 
-    
-    
+      mm = sg[1]
+      hist(b$t)
+
     }
 
 
@@ -21,11 +22,8 @@
       mm = p$runs[iip,"loc"]
       Pi=P[mm,]
       print (mm)			
-      OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, weekno=p$wtimes, yr=p$tyears, z=Pi$z )
+      OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, weekno=p$wtimes, yr=p$tyears )
       
-      zrange = c( -0.25, 0.25 ) # approx +/- 30% (log scale) -- exp(.25)
-      z0 = Pi$z + zrange 
-
       for ( dm in p$dist.km ) { 
         
         drange = c(-1,1) * dm
@@ -36,9 +34,7 @@
           B$plon > plon0[1] & 
           B$plon < plon0[2] & 
           B$plat > plat0[1] & 
-          B$plat < plat0[2] &
-          B$z > z0[1] &   # required esp in PEI area where there are extremely shallow data points .. extrapolation causes error
-          B$z < z0[2]
+          B$plat < plat0[2] 
         )
 
         if (length(i) > p$nMin.tbot ) {  
@@ -47,8 +43,7 @@
           
           # remove potentially noisy/erroneous data --- they are highly influential when there is little data 
           bt = quantile( b$t, probs=c(0.005, 0.995) )
-          bz = quantile( b$z, probs=c(0.005, 0.995) )
-          bi =  which( b$t >= bt[1] & b$t <= bt[2] & b$z >= bz[1] & b$z <= bz[2] ) 
+          bi =  which( b$t >= bt[1] & b$t <= bt[2] ) 
           b = b[ bi ,  ] 
           b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )# weight data in space: inverse distance squared
           b$w[ which( b$w < 1e-3 ) ] = 1e-3
@@ -57,6 +52,12 @@
         }
       }						
      
+      # if (length(i) < p$nMin.tbot ) {
+        # last try using a much simpler model 
+        
+      # }
+      
+      
       if (length(i) < p$nMin.tbot ) next() # no data 
 
       # return original (observed) data back into the predictions
@@ -109,7 +110,9 @@
       # comparison/debug of different imputation methods here:
       compare.imputation = FALSE
       if (compare.imputation) {
-
+   
+        oH1 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=1, gam.optimizer=p$gam.optimizer, smoothdata=TRUE ) 
+     
         oH1 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=1, gam.optimizer=p$gam.optimizer ) 
         oH2 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=2, gam.optimizer=p$gam.optimizer ) 
         oH3 = timeseries.impute( x=x, OP=OP, method="harmonics", harmonics=3, gam.optimizer=p$gam.optimizer ) 

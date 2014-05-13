@@ -13,9 +13,9 @@
       OP$tiyr = OP$yr + OP$weekno/52
  
       mf = c( 
-        ' t ~ s(tiyr) + s(z)',
-        ' t ~ s(tiyr) + s(plon) +s(plat) + s(z)',
-        ' t ~ s(tiyr) + s(plon, plat) + s(plon) + s(plat) + s(z) '
+        ' t ~ s(tiyr) ',
+        ' t ~ s(tiyr) + s(plon) +s(plat) ',
+        ' t ~ s(tiyr) + s(plon, plat) + s(plon) + s(plat) '
       )
       nmods = length(mf)
 
@@ -48,10 +48,10 @@
       OP$tiyr = OP$yr + OP$weekno/52
  
       mf = c( 
-        ' t ~ s(yr) + s(weekno, bs="cc") + s(z) ',
-        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon) + s(plat) + s(z) ', 
-        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) + s(z) ',
-        ' t ~ s(yr, weekno) + s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) + s(z) '  
+        ' t ~ s(yr) + s(weekno, bs="cc") ',
+        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon) + s(plat) ', 
+        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat)  ',
+        ' t ~ s(yr, weekno) + s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) '  
       )
       nmods = length(mf)
 
@@ -95,9 +95,9 @@
       # order is important here .. last three must be harmonic 3, 2 and 1, then altenates in case they fail
       # at present these additional models are unsmoothed harmonics ..2 and 1 
       mf = c( 
-' t ~ s(z, plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w)' ,
-' t ~ s(z, plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) ' ,
-' t ~ s(z, plon, plat)+ s(plon) +s(plat) + s(z) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) + s(yr, cos.w3) + s( yr, sin.w3)  + s(cos.w3) + s(sin.w3) '
+' t ~ s(plon, plat)+ s(plon) +s(plat) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w)' ,
+' t ~ s(plon, plat)+ s(plon) +s(plat) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) ' ,
+' t ~ s(plon, plat)+ s(plon) +s(plat) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) + s(yr, cos.w3) + s( yr, sin.w3)  + s(cos.w3) + s(sin.w3) '
       ) 
       
       x$tyr = 2*pi *  x$weekno/52
