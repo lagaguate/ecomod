@@ -11,19 +11,22 @@
     debug.strangedata = FALSE
     if (debug.strangedata) {
       sg = which( P$plon < 520 & P$plon > 510 & P$plat> 5180 & P$plat < 5190 )
-
       mm = sg[1]
       hist(b$t)
-
     }
 
+    # default output grid
+    OP0 = expand.grid( weekno=p$wtimes, yr=p$tyears )
+    OP0$fit = NA  # these will be filled in with predicted fits and se's
+    OP0$se  = NA
 
     for ( iip in ip ) {
       mm = p$runs[iip,"loc"]
       Pi=P[mm,]
       print (mm)			
-      OP0 = expand.grid( plon=Pi$plon, plat=Pi$plat, weekno=p$wtimes, yr=p$tyears )
-      
+   
+      OP = OP0
+
       for ( dm in p$dist.km ) { 
         
         drange = c(-1,1) * dm
@@ -42,25 +45,22 @@
           b = B[i,] # faster to reduce the size of B here
           
           # remove potentially noisy/erroneous data --- they are highly influential when there is little data 
-          bt = quantile( b$t, probs=c(0.005, 0.995) )
-          bi =  which( b$t >= bt[1] & b$t <= bt[2] ) 
-          b = b[ bi ,  ] 
+          #bt = quantile( b$t, probs=c(0.005, 0.995) )
+          #bi =  which( b$t >= bt[1] & b$t <= bt[2] ) 
+          #b = b[ bi ,  ] 
           b$w = 1 / (( Pi$plon - b$plon)**2 + (Pi$plat - b$plat)**2 )# weight data in space: inverse distance squared
           b$w[ which( b$w < 1e-3 ) ] = 1e-3
-          OP = timeseries.impute( x=b, OP=OP0, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer ) # smoothing done on harmonics as they are noisy
+          OP = timeseries.impute( x=b[,c("t", "w", "yr", "weekno")], OP=OP, method=p$tsmethod, harmonics=p$tsharmonics, gam.optimizer=p$gam.optimizer )
           if ( any( is.finite ( OP$fit ) ) ) break()  # solution found
         }
-      }						
+      } # end for dm loop						
      
-      # if (length(i) < p$nMin.tbot ) {
-        # last try using a much simpler model 
-        
-      # }
-      
-      
-      if (length(i) < p$nMin.tbot ) next() # no data 
-
-      # return original (observed) data back into the predictions
+      if ( ! any( is.finite ( OP$fit ) ) ) { 
+        # still no solution found last try using a much simpler model 
+        OP = timeseries.impute( x=b, OP=OP, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
+      }
+     
+      # return original (observed) data back into the predictions .. even if no solutions
       ii = which( b$plon==Pi$plon & b$plat==Pi$plat )
       if ( length (ii) > 0 ) {
         b = b[ii,]

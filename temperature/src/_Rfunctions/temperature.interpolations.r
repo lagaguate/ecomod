@@ -22,7 +22,6 @@
       }
 		  	
       P = bathymetry.db( p=p, DS="baseline" )
-      P$z = log(P$z)   # operate on log scale for depth
       p$nP = nrow(P);	
 
       nr = p$nP
@@ -52,8 +51,7 @@
       p$tbot.se.desc = describe(tbot.se)
      	    
       B = hydro.db( p=p, DS="bottom.gridded.all"  )
-      B$z = log(B$z)   # operate on log scale for depth
-      B = B[, c("plon", "plat", "yr", "weekno", "t", "z") ]
+      B = B[, c("plon", "plat", "yr", "weekno", "t") ]
 
       # globally remove all unrealistic data
       TR = range(B$t, na.rm=TRUE ) 
@@ -145,6 +143,7 @@
         y = p$runs[r, "yrs"]
         P = temperature.interpolations( p=p, DS="temporal.interpolation", yr=y  )
         V = temperature.interpolations( p=p, DS="temporal.interpolation.se", yr=y  )
+        # real data are set at se=0  .. they are real zero values
         TRv = quantile( V, probs=c(0.005, 0.995), na.rm=TRUE  )   
         V[ V < TRv[1] ] = TRv[1] 
         V[ V > TRv[2] ] = TRv[2] 
@@ -162,9 +161,18 @@
               gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], 
                      maxdist=distance, set=list(idp=.5), weights=W[ai,ww])
               , silent=TRUE ) 
+
             if ( ! ( "try-error" %in% class(gs) ) ) break() 
           }
 
+          if ( ( "try-error" %in% class(gs) ) ) {
+              # last try drop weights with all data .. max distance
+              gs = try( 
+                gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], 
+                     maxdist=distance, set=list(idp=.5) )
+                , silent=TRUE ) 
+          }
+ 
           if ( "try-error" %in% class(gs) )  next()  # give up
 
           count = 0

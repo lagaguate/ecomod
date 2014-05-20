@@ -131,16 +131,18 @@
     
       # ----------------
       # temporal interpolations assuming some seasonal pattern 
-      # 1950-2013, SSE took ~ 50 hrs (shared RAM, 24 CPU; 1950-2013 run April 2014 ) ... 17 GB req of shared memory
+      # 1950-2013, SSE took ~ 35 hrs on laptop (shared RAM, 24 CPU; 1950-2013 run April 2014 ) ... 17 GB req of shared memory
       # this is parallelized ... the call is internal to this 
       p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
       temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
-     
-          debugdata = FALSE
+    
+       
+        debugdata = FALSE
           if ( debugdata ){
+            require(lattice)
             bd = bathymetry.db( p=p, DS="baseline" )
             for (yr in 2010:2013) {
-              k = temperature.interpolations( p=p, DS="temporal.interpolation", yr=2013 )
+              k = temperature.interpolations( p=p, DS="temporal.interpolation", yr=yr )
               k [ k>10] = 10
               x11()
               y = levelplot( k[,30] ~ plon+plat, data=bd, 

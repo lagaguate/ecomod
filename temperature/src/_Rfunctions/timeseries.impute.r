@@ -1,9 +1,6 @@
 
-  timeseries.impute = function( x, OP, method="harmonics", harmonics=2, gam.optimizer="bam", smoothdata=FALSE, smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
+  timeseries.impute = function( x, OP, method="harmonics", harmonics=1, gam.optimizer="bam", smoothdata=FALSE, smoothing.kernel=kernel( "modified.daniell", c(2,1)), returnmodel=FALSE ) {
         
-    OP$fit = NA
-    OP$se  = NA
-    
     if ( method=="simple" ) {
       # this method recovers the mean interannual trends nicely but misses the seasonality
       # model formulae .. first one is a basic one in case the others fail
@@ -13,9 +10,7 @@
       OP$tiyr = OP$yr + OP$weekno/52
  
       mf = c( 
-        ' t ~ s(tiyr) ',
-        ' t ~ s(tiyr) + s(plon) +s(plat) ',
-        ' t ~ s(tiyr) + s(plon, plat) + s(plon) + s(plat) '
+        ' t ~ s(tiyr) '
       )
       nmods = length(mf)
 
@@ -49,9 +44,7 @@
  
       mf = c( 
         ' t ~ s(yr) + s(weekno, bs="cc") ',
-        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon) + s(plat) ', 
-        ' t ~ s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat)  ',
-        ' t ~ s(yr, weekno) + s(yr) + s(weekno, bs="cc") + s(plon, plat) + s(plon) + s(plat) '  
+        ' t ~ s(yr, weekno) + s(yr) + s(weekno, bs="cc")  '  
       )
       nmods = length(mf)
 
@@ -95,9 +88,9 @@
       # order is important here .. last three must be harmonic 3, 2 and 1, then altenates in case they fail
       # at present these additional models are unsmoothed harmonics ..2 and 1 
       mf = c( 
-' t ~ s(plon, plat)+ s(plon) +s(plat) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w)' ,
-' t ~ s(plon, plat)+ s(plon) +s(plat) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) ' ,
-' t ~ s(plon, plat)+ s(plon) +s(plat) + s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s( yr, sin.w2 )+ s(cos.w2) + s( sin.w2 ) + s(yr, cos.w3) + s( yr, sin.w3)  + s(cos.w3) + s(sin.w3) '
+  ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w)  ' ,
+  ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s(yr, sin.w2) + s(cos.w2) + s( sin.w2 ) ' ,
+  ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s(yr, sin.w2) + s(cos.w2) + s( sin.w2 ) + s(yr, cos.w3) + s(yr, sin.w3)  + s(cos.w3) + s( sin.w3 ) ' 
       ) 
       
       x$tyr = 2*pi *  x$weekno/52
@@ -158,8 +151,8 @@
       
       # constrain range of predicted data to the input data range
       TR =  quantile( x$t, probs=c(0.005, 0.995), na.rm=TRUE  )
-      TR[1] = max( TR[1], -3)
-      TR[2] = min( TR[2], 30)
+      # TR[1] = max( TR[1], -3)
+      # TR[2] = min( TR[2], 30)
       toolow = which( OP$fit < TR[1] )
       if ( length(toolow) > 0 )  OP$fit[toolow] = TR[1]
       toohigh = which( OP$fit > TR[2] )
@@ -205,6 +198,10 @@
       ppp = Arima( OPts )
 
 
+    }
+    
+    if (returnmodel) {
+      OP = list(OP=OP, model=model) 
     }
 
     return ( OP ) 
