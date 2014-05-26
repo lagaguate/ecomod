@@ -55,15 +55,11 @@
         }
       } # end for dm loop						
      
-      if ( ! any( is.finite ( OP$fit ) ) ) { 
-        # still no solution found last try using a much simpler model 
-        OP = timeseries.impute( x=b, OP=OP, method="seasonal.smoothed", gam.optimizer=p$gam.optimizer ) 
-      }
      
       # return original (observed) data back into the predictions .. even if no solutions
-      ii = which( b$plon==Pi$plon & b$plat==Pi$plat )
+      ii = which( B$plon==Pi$plon & B$plat==Pi$plat )
       if ( length (ii) > 0 ) {
-        b = b[ii,]
+        b = B[ii,]
         b$yrwk = b$yr + b$weekno/52 
         bd = duplicated( b$yrwk )
         if (any( bd)) {

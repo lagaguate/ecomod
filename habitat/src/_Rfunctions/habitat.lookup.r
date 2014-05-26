@@ -25,7 +25,7 @@
     # --------------------
     # time-invariant items 
     if ( DS %in% c( "depth", "depth.all", "substrate", "time.invariant", "baseline" )) {
-      print( paste( "Looking up", DS) )
+      print( paste( "Looking up ", DS) )
 
       H = habitat.lookup.datasource( DS, p=p )  # bring in appropriate habitat data source
       H$plon = round( H$plon, discretization.scale )
@@ -70,7 +70,7 @@
       if (! exists( "yr", x ) ) stop( "yr is required")  # required
  
       yrs = sort( unique( x$yr ))
-      print( paste( "Looking up", DS) )
+      print( paste( "Looking up ", DS) )
      
       H = habitat.lookup.datasource( DS, yr=yrs[1], p=p  )  # test load to obtain variable names
       Hnames = names(H)

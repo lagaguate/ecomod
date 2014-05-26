@@ -9,7 +9,7 @@
 
 	
   p = list()
-  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel")) 
+  p$libs = loadlibraries ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel")) 
   p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
   # faster to use RAM-based data objects but this forces use only of local cpu's
@@ -68,7 +68,7 @@
 
   # compute species-area relationships 
   speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
-  speciesarea.db( DS="speciesarea.redo", p=p ) # intermediary file for modelling and interpolation
+  speciesarea.db( DS="speciesarea.redo", p=p ) # intermediary file for modelling and interpolation ... lookup up missing data and covariates
 
 
 

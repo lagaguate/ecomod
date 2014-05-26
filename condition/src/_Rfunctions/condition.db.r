@@ -53,6 +53,13 @@
       }
       sm$yr = NULL
       set = merge( set, sm, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      
+      
+      set = habitat.lookup( set, p=p, DS="baseline" )
+      set = habitat.lookup( set, p=p, DS="environmentals" )
+
+
+      
       save( set, file=fn, compress=T )
       return (fn) 
     }

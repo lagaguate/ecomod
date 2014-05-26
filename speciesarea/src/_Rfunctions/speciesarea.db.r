@@ -174,6 +174,10 @@
       SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F, , suffixes=c("", ".P0") )
       oo = which(!is.finite( SC$plon+SC$plat ) )
       if (length(oo)>0) SC = SC[ -oo , ]  # a required field for spatial interpolation
+      
+      SC = habitat.lookup( SC, p=p, DS="baseline" )
+      SC = habitat.lookup( SC, p=p, DS="environmentals" )
+
       save( SC, file=fn, compress=T )
       return (fn) 
     }

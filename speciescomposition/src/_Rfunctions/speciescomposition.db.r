@@ -149,6 +149,10 @@
 
 			SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F)
 			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
+      
+      SC = habitat.lookup( SC, p=p, DS="baseline" )
+      SC = habitat.lookup( SC, p=p, DS="environmentals" )
+
       save( SC, file=fn, compress=T )
 			return (fn)
 		}

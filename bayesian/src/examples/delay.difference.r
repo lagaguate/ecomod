@@ -1,5 +1,9 @@
 
-tuna = matrix( c ( 
+
+--- incomplete model ..
+
+
+tuna = data.frame( matrix( c ( 
 1934,  60.9, 10361,
 1935,  72.3, 11484,
 1936,  78.4, 11571,
@@ -34,13 +38,16 @@ tuna = matrix( c (
 1965, 180.1,  4166,
 1966, 182.3,  4513,
 1967, 178.9,  5292
-), ncol=3, byrow=T, dimnames = list( NULL, c("yr", "catch", "cpue") )
+), ncol=3, byrow=T) )
+
+
+colnames(tuna) = c("yr", "catch", "cpue") 
 
  
   spdat = list(
     # r0 = 1,
     K0 = 20000, # carrying capacity estimate
-    B0 = 0.5, # initial est of unobserved/true Biomass (scaled to 0,K) 
+    B0 = 0.5 # initial est of unobserved/true Biomass (scaled to 0,K) 
  )
 
  
@@ -50,7 +57,7 @@ tuna = matrix( c (
   ))
   
   sb = list( 
-    r0 = c(1,
+    r0 = c(1),
     K0 = c(5),  # carrying capacity estimate
     b0 = c(0.9), # initial est of unobserved/true Biomass (scaled to 0,K) 
     O = tuna$cpue, 
@@ -64,6 +71,9 @@ tuna = matrix( c (
   # require(coda)
   
   loadfunctions( c("common", "bayesian" ) )
+
+
+
 
   m = jags.model( file=jags.setup( delay.difference.jags ), data=sb, n.chains=3, n.adapt=5000 )  
 
@@ -110,7 +120,6 @@ delay.difference.jags ="
 #      = surviving biomass + {growth of survivors} + new recruits biomass
 # but in snow crab growth is terminal ... ! how to adjust ?
 
-"
 data {
   Odim <- dim(O)
   Tdim <- dim(TAC)
@@ -215,4 +224,6 @@ model {
 }
 
 "
-"
+
+
+
