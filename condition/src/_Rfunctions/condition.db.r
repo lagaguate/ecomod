@@ -52,7 +52,7 @@
         sm = merge( sm, smd, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
       }
       sm$yr = NULL
-      set = merge( set, sm, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      set = merge( set, sm, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE, suffixes=c("", ".sm") )
       
       set = habitat.lookup( set, p=p, DS="environmentals" )
       

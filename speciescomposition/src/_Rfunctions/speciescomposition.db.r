@@ -147,7 +147,7 @@
       P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
 			P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
 
-			SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F)
+			SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("", ".P0"))
 			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
       
       SC = habitat.lookup( SC, p=p, DS="environmentals" )

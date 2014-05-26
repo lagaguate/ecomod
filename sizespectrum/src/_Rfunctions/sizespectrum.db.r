@@ -147,6 +147,12 @@
 
       sm = sizespectrum.db( DS="sizespectrum.stats", p=p )
       smg = groundfish.db( "set.base" )
+      
+      smg$z = smg$sdepth
+      smg$t = smg$temp
+      smg$sdepth = NULL
+      smg$temp = NULL
+
       sm = merge (sm, smg, by="id", all.x=T, all.y=F, sort= F) 
 
       sm = lonlat2planar( sm, proj.type=p$internal.projection, ndigits=2 )
@@ -169,7 +175,7 @@
 
       sm = sm[ which( is.finite(sm$nss.b0) ) ,]
       
-			SC = merge( sm, P0, by="platplon", all.x=T, all.Y=F, sort= F)
+			SC = merge( sm, P0, by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("", ".P0") )
 			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
 		  rm(sm, P0); gc()
       
