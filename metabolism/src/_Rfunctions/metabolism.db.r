@@ -34,10 +34,7 @@
       set = lonlat2planar( set, proj.type=p$internal.projection, ndigits=2 )
       set$platplon = paste( round( set$plat ), round(set$plon), sep="_" )
 	
-
-      set = habitat.lookup( set, p=p, DS="baseline" )
       set = habitat.lookup( set, p=p, DS="environmentals" )
-
 
       save( set, file=fn, compress=T )
       return (fn) 

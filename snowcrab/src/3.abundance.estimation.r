@@ -77,7 +77,7 @@
             "smr", "Ea", "A", "qm", "mass",
             "Z", "Npred" ) 
 
-      print( "Make sure variable list here matches those in ecomod/habitat/src/habitat.r ") 
+      print( "Make sure variable list here matches those in ecomod/habitat/src/habitat.complete.r ") 
       print( "and in the model statement in ecomod/snowcrab/_Rfunctions/analysis/model.formula.r")
 
       p$model.type = "gam.full" # choose method for habitat model :

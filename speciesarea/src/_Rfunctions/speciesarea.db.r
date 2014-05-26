@@ -175,7 +175,6 @@
       oo = which(!is.finite( SC$plon+SC$plat ) )
       if (length(oo)>0) SC = SC[ -oo , ]  # a required field for spatial interpolation
       
-      SC = habitat.lookup( SC, p=p, DS="baseline" )
       SC = habitat.lookup( SC, p=p, DS="environmentals" )
 
       save( SC, file=fn, compress=T )

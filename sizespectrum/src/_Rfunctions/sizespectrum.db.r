@@ -173,7 +173,6 @@
 			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
 		  rm(sm, P0); gc()
       
-      SC = habitat.lookup( SC, p=p, DS="baseline" )
       SC = habitat.lookup( SC, p=p, DS="environmentals" )
 
       save(SC, file=fn, compress=T ) 

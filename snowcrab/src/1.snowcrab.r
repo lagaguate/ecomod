@@ -113,6 +113,8 @@
   }  # end base data
 
 
+  parameters.initial = p  # copy here as the other calls below overwrites p
+
 # -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
 
@@ -138,32 +140,31 @@
 
   
 # Habitat data ... environmentals only as it is used by bio.db etc
-  habitat.add.environmentals = TRUE ## a flag withing habitat.r
-  loadfunctions ( "habitat", functionname="habitat.r" ) 
-
+  loadfunctions ( "habitat", functionname="habitat.temperatures.r" ) 
 
 # BIO db update :: 
 # must come after temperature interpolations to permit temperature lookups 
   loadfunctions ( "bio", functionname="bio.r" )  
-
 
 # the folllowing depends upon bio.db and temperature  
   loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
   loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
   loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
   loadfunctions ( "metabolism", functionname="metabolism.r" ) 
-
+  loadfunctions ( "condition", functionname="condition.r" ) 
 
 
 # Habitat data :: NOTE:: This glues all the above together in planar coord system 
 # to allow fast lookup of data for matching with set, logbook data
-  habitat.add.biologicals = TRUE  ## a flag withing habitat.r
-  loadfunctions ( "habitat", functionname="habitat.r" ) 
+  loadfunctions ( "habitat", functionname="habitat.complete.r" ) 
 
 
 
 # -------------------------------------------------------------------------------------
 # Final data lookup/matching .. AFTER refreshing all above tables (where relevent/possible)
+  
+  p = parameters.initial
+  
   logbook.db( DS="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
   snowcrab.db( DS ="set.logbook.redo", yrs=1996:p$current.assessment.year ) # add gridded fisheries data
