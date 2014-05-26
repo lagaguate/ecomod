@@ -210,7 +210,7 @@
         pm$taxa = p$sizespectrum.taxa
         pm$season = p$sizespectrum.season
         pm$varstomodel = pm$sizespectrum.variables
-        pm$project.name = "size.spectrum"
+        pm$project.name = "sizespectrum"
         pm$project.outdir.root = project.directory( p$project.name, "analysis" )
 
 

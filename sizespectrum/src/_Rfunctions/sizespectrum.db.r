@@ -9,7 +9,7 @@
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       
       if (DS == "sizespectrum.by.set" ) {
-        fn = file.path( ddir, paste(  "size.spectrum", p$nss.taxa, p$nss.type, p$nss.base, sep="." ) )
+        fn = file.path( ddir, paste(  "sizespectrum", p$nss.taxa, p$nss.type, p$nss.base, sep="." ) )
         load( fn )
         return (ss )
       }
@@ -43,7 +43,7 @@
           # closed on the right: (x,x]
           # midpoints = (l.bound [2:n.size] + l.bound [1:(n.size-1)] ) /2
 
-          fn = file.path( ddir, paste(  "size.spectrum", tx, vname, p$nss.base, sep="." ) )
+          fn = file.path( ddir, paste(  "sizespectrum", tx, vname, p$nss.base, sep="." ) )
 
           ss = NULL
           tt = XX$cf*XX[,vname]

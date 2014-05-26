@@ -99,7 +99,7 @@
     if (DS %in% c("nss.by.set", "nss.by.set.redo") ) {
       
       # make the base normalised size spectral statistics summaries
-      basefilename = file.path( project.directory("groundfish"), "R", "size.spectrum" )
+      basefilename = file.path( project.directory("groundfish"), "R", "sizespectrum" )
       
       if (DS == "nss.by.set" ) {
         fn = paste( basefilename, nss.taxa, nss.type, nss.base, sep="." )

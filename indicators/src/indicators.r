@@ -16,7 +16,7 @@
       shrimp = indicators.db( db="shrimp.timeseries.redo")
 
       sar = indicators.db( db="species.area.redo" )
-      nss = indicators.db( db="size.spectrum.redo" )
+      nss = indicators.db( db="sizespectrum.redo" )
       metab = indicators.db( db="metabolism.redo" )
       sc = indicators.db( db="species.composition.redo" )
 

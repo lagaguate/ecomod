@@ -396,10 +396,10 @@
     }
 
 
-    if (db %in% c("size.spectrum", "size.spectrum.redo" )) { 
+    if (db %in% c("sizespectrum", "sizespectrum.redo" )) { 
       
-      outfn = file.path( project.directory("indicators"), "data", "size.spectrum.ts.rdata" )
-      if ( db=="size.spectrum" ) {
+      outfn = file.path( project.directory("indicators"), "data", "sizespectrum.ts.rdata" )
+      if ( db=="sizespectrum" ) {
         load(outfn)
         return(res)
       } 
@@ -620,7 +620,7 @@
       shrimp = indicators.db( db="shrimp.timeseries")
 
       sar = indicators.db( db="species.area" )
-      nss = indicators.db( db="size.spectrum" )
+      nss = indicators.db( db="sizespectrum" )
       metab = indicators.db( db="metabolism" )
       sc = indicators.db( db="species.composition" )
 

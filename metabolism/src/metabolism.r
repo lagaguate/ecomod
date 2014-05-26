@@ -14,7 +14,7 @@
 
   p = list()
 
-  p$libs = loadlibraries ( c("chron", "fields", "mgcv", "sp", "parallel" ))
+  p$libs = loadlibraries ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel" ))
   p$init.files = loadfunctions( c(
 	  "common", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "metabolism"
 	) )
