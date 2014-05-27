@@ -57,7 +57,7 @@
       hdat$yr = yr # update all other records
       hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
       hdat$julian = convert.datecodes(  hdat$chron, "julian" )
-      hdat = habitat.lookup( hdat, p=p, DS="temperature", vlist="t" ) 
+      hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
 
       for ( ww in p$varstomodel ) {
         mod.cond = habitat.model( p=p, vn=ww, yr=yr )
