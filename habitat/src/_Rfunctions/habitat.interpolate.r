@@ -12,7 +12,7 @@
       # glue all variables for 1 year
       hdat = habitat.db( DS="baseline", p=p )  
       for ( vn in  p$varstomodel ) {
-        fn = file.path( outdir, paste( vn, yr, "rdata", sep=".") )
+        fn = file.path( outdir, paste( "interpolations", vn, yr, "rdata", sep=".") )
         if( file.exists(fn)) {
           load( fn)
           hdat[, vname] = HD
@@ -23,8 +23,8 @@
 
  
     if (DS=="saved") {
-      hdat = NULL
-      fn = file.path( outdir, paste( vname, yr, "rdata", sep=".") )
+      HD = NULL
+      fn = file.path( outdir, paste( "interpolations", vname, yr, "rdata", sep=".") )
       if( file.exists(fn)) load( fn)
       return ( HD )
     }
