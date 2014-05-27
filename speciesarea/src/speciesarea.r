@@ -97,9 +97,9 @@
 
 
   # map everything
-  p = make.list( list(v=p$varstomodel, y=p$yearstomodel ), Y=p )
-  parallel.run( habitat.map, p=p, type="annual"  ) 
-  # habitat.map( p=p, type="annual"  ) 
+  p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel ), Y=p )
+  parallel.run( habitat.map, p=p  ) 
+  # habitat.map( p=p  ) 
 
 
 

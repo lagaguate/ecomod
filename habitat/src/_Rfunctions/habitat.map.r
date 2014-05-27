@@ -31,11 +31,11 @@
         if ( ww %in% c("mr", "smr") ) {
           hd[,ww] = log10( hd[,ww] )
           dr = log10(dr)
-          annot = paste( capsword(p$project.name), " (log10) : ", capsword(ww), " (", yr, ")", sep="")
+          annot = paste( capwords(p$project.name), " (log10) : ", capwords(ww), " (", yr, ")", sep="")
         } 
         
         hd = hd[ filter.region.polygon( hd, region=c("4vwx", "5yz" ), planar=T, proj.type=p$internal.projection ) , ]
-        annot = paste( capsword(p$project.name), " : ", capsword(ww), " (", yr, ")", sep="")
+        annot = paste( capwords(p$project.name), " : ", capwords(ww), " (", yr, ")", sep="")
         datarange = seq( dr[[ww]][1], dr[[ww]][2], length.out=100 )
  
         il = which( hd[,ww] < dr[[ww]][1] )
