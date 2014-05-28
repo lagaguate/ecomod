@@ -1,13 +1,16 @@
 
   speciesarea.db = function( DS="", p=NULL, yr=NULL ) {
-    
-    if (DS %in% c("speciesarea.counts", "speciesarea.counts.ny", "speciesarea.counts.redo") ) {
-      ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".")  )
+         
+    ddir = file.path( project.directory("speciesarea"), "data"  )
+    dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-     
-      fn = file.path( ddir, paste( "speciesarea.counts", "rdata", sep=".") )
-      fn.ny = file.path( ddir, paste( "speciesarea.counts.ny", "rdata", sep=".") )
+    infix = paste( p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse="."), p$speciesarea.method, sep="." )
+
+
+    if (DS %in% c("speciesarea.counts", "speciesarea.counts.ny", "speciesarea.counts.redo") ) {
+      
+      fn = file.path( ddir, paste( "speciesarea.counts", infix, "rdata", sep=".") )
+      fn.ny = file.path( ddir, paste( "speciesarea.counts.ny", infix, "rdata", sep=".") )
 
       if (DS=="speciesarea.counts") {
         load( fn)
@@ -73,11 +76,8 @@
 
 
     if (DS %in% c("speciesarea.stats","speciesarea.stats.redo") ) {
-      
-      ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain,  p$taxa, p$season, paste(p$data.sources, collapse=".")  , p$speciesarea.method )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-    
-      fn = file.path( ddir, paste("speciesarea.stats", "rdata", sep=".") )
+     
+      fn = file.path( ddir, paste("speciesarea.stats", infix, "rdata", sep=".") )
       
       if (DS=="speciesarea.stats") {
         load( fn)
@@ -136,11 +136,8 @@
     # --------------------
 
     if (DS %in% c( "speciesarea", "speciesarea.redo" ) ) {
-      
-      ddir = file.path( project.directory("speciesarea"), "data", p$spatial.domain, p$taxa, p$season, paste(p$data.sources, collapse=".")   )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      
-      fn = file.path( ddir, "set.speciesarea.merged.rdata" )
+       
+      fn = file.path( ddir, paste( "set.speciesarea.merged", infix, "rdata", sep="." ) )
         
       if (DS=="speciesarea") {
         SC = NULL
