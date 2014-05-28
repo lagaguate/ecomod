@@ -16,21 +16,28 @@
     dr = list()
     for ( ww in p$varstomodel ) {
       dr[[ww]] = quantile( pdat[,ww], probs=c(0.025, 0.975), na.rm=TRUE ) # use 95%CI
+      if ( ww %in% c("mr", "smr") ) {
+        # exceptions that require log tranforms go here and below as well)
+        dr[[ww]] = log10(dr[[ww]])
+      }
     }
     rm (pdat); gc()
 
       for ( iip in ip ) {
+        
+        print( p$runs[iip,] )
+        
         yr = p$runs[iip,"yrs"]
         ww = p$runs[iip,"vars"]
- 
+
         hd = habitat.db( DS="baseline", p=p )  
         hi = habitat.interpolate( p=p, yr=yr, vname=ww ) 
         if (is.null(hi)) next()
         hd[,ww] =  hi
     
         if ( ww %in% c("mr", "smr") ) {
+          # exceptions that require log tranforms go here and above as well
           hd[,ww] = log10( hd[,ww] )
-          dr = log10(dr)
           annot = paste( capwords(p$project.name), " (log10) : ", capwords(ww), " (", yr, ")", sep="")
         } 
         
