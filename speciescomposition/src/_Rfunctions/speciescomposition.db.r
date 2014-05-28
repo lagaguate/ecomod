@@ -1,14 +1,16 @@
 
   speciescomposition.db = function( DS="", p=NULL, yr=NULL ) {
- 
+
+    ddir = file.path( project.directory("speciescomposition"), "data"  )
+    dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
+    
+    infix = paste( p$spatial.domain,  p$taxa, p$season, sep=".")
+
     if (DS %in% c( "speciescomposition.ordination", "speciescomposition.ordination.redo", "pca", "ca") ) {
       
-      ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain,  p$taxa, p$season  )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-     
-      fn.set = file.path( ddir, "set.speciescomposition.rdata" )
-      fn.pca = file.path( ddir, "pca.rdata" )
-      fn.ca  = file.path( ddir, "ca.rdata" )
+      fn.set = file.path( ddir, paste( "set.speciescomposition", infix, "rdata", sep=".") )
+      fn.pca = file.path( ddir, paste( "pca", infix, "rdata", sep=".") )
+      fn.ca  = file.path( ddir, paste( "ca",  infix, "rdata", sep=".") )
         
       if (DS=="speciescomposition.ordination") {
         set = NULL
@@ -113,12 +115,9 @@
 		if (DS %in% c( "speciescomposition", "speciescomposition.redo" ) ) {
 
 			require( chron) 
-      
-      ddir = file.path( project.directory("speciescomposition"), "data", p$spatial.domain, p$taxa, p$season )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      
-      fn = file.path( ddir, "set.speciescomposition.merged.rdata" )
-						
+     
+      fn = file.path( ddir, paste( "set.speciescomposition.merged", infix, "rdata", sep=".") )
+
 			if (DS=="speciescomposition.merged") {
         SC = NULL
         if (file.exists( fn) ) load( fn ) 

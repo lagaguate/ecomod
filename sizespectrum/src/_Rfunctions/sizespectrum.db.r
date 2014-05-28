@@ -2,14 +2,18 @@
   sizespectrum.db = function( DS="", p=NULL ) {
     ### dependency is only groundfish db for now. ... 
  
+    ddir = file.path( project.directory("sizespectrum"), "data"  )
+    dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
+
+    infix = paste( p$nss.taxa, p$nss.type, p$nss.base, sep="." )
+
+
     if (DS %in% c("sizespectrum.by.set", "sizespectrum.by.set.redo") ) {
       
       # make the base normalised size spectral statistics summaries
-      ddir = file.path( project.directory("sizespectrum"), "data" )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       
       if (DS == "sizespectrum.by.set" ) {
-        fn = file.path( ddir, paste(  "sizespectrum", p$nss.taxa, p$nss.type, p$nss.base, sep="." ) )
+        fn = file.path( ddir, paste(  "sizespectrum", infix, sep="." ) )
         load( fn )
         return (ss )
       }
@@ -34,7 +38,7 @@
           XX.log = log( XX[,vname], base=p$nss.base )  
           XX$sizeclass = cut( XX.log, breaks=p$nss.bins$lb, labels=F, include.lowest=F, right=T )
 
-          jjj = which( is.finite(XX$sizeclass + XX$cf) )
+          jjj = which( is.finite(XX$sizeclass + XX$cfdet) )
           XX = XX[jjj,]
           
           XX$id=as.factor(XX$id)
@@ -46,7 +50,7 @@
           fn = file.path( ddir, paste(  "sizespectrum", tx, vname, p$nss.base, sep="." ) )
 
           ss = NULL
-          tt = XX$cf*XX[,vname]
+          tt = XX$cfdet*XX[,vname]
           ss = xtab.2way( xval=tt, factors=XX[,c("id", "sizeclass")] )
           
           ### ss contains number per km2 broken down by age class and weighted for sa, etc
@@ -61,11 +65,8 @@
 
     if (DS %in% c( "sizespectrum.stats", "sizespectrum.stats.redo" ) ) {
 
-      ddir = file.path( project.directory("sizespectrum"), "data"  )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      
-      fn = file.path( ddir, "set.sizespectrum.rdata" )
-      # fn = file.path( ddir, "set.sizespectrum.rdata.tmp" )
+     
+      fn = file.path( ddir, paste( "set.sizespectrum", infix, "rdata", sep=".")  )
         
       if (DS=="sizespectrum.stats") {
         nss = NULL
@@ -131,10 +132,7 @@
       
       # make the base normalised size spectral statistics summaries
       
-      ddir = file.path( project.directory("sizespectrum"), "data" )
-      dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      
-      fn = file.path( ddir, "sm_nss.rdata" ) 
+      fn = file.path( ddir, paste( "sm_nss", infix, "rdata", sep="." ) ) 
    
       if ( DS=="sizespectrum" ) {
         SC = NULL
