@@ -8,7 +8,7 @@
 
     if (DS %in% c( "speciescomposition.ordination", "speciescomposition.ordination.redo", "pca", "ca") ) {
       
-      fn.set = file.path( ddir, paste( "set.speciescomposition", infix, "rdata", sep=".") )
+      fn.set = file.path( ddir, paste( "speciescomposition.by.set", infix, "rdata", sep=".") )
       fn.pca = file.path( ddir, paste( "pca", infix, "rdata", sep=".") )
       fn.ca  = file.path( ddir, paste( "ca",  infix, "rdata", sep=".") )
         
@@ -116,9 +116,9 @@
 
 			require( chron) 
      
-      fn = file.path( ddir, paste( "set.speciescomposition.merged", infix, "rdata", sep=".") )
+      fn = file.path( ddir, paste( "speciescomposition", infix, "rdata", sep=".") )
 
-			if (DS=="speciescomposition.merged") {
+			if (DS=="speciescomposition") {
         SC = NULL
         if (file.exists( fn) ) load( fn ) 
         return ( SC )
