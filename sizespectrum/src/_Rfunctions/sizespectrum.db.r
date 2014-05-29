@@ -8,12 +8,12 @@
     infix = paste( p$nss.taxa, p$nss.type, p$nss.base, sep="." )
 
 
-    if (DS %in% c("sizespectrum.by.set", "sizespectrum.by.set.redo") ) {
+    if (DS %in% c("sizestructure.by.set", "sizestructure.by.set.redo") ) {
       
       # make the base normalised size spectral statistics summaries
       
-      if (DS == "sizespectrum.by.set" ) {
-        fn = file.path( ddir, paste(  "sizespectrum", infix, sep="." ) )
+      if (DS == "sizestructure.by.set" ) {
+        fn = file.path( ddir, paste(  "sizestructure.by.set", infix, "rdata", sep="." ) )
         load( fn )
         return (ss )
       }
@@ -47,7 +47,7 @@
           # closed on the right: (x,x]
           # midpoints = (l.bound [2:n.size] + l.bound [1:(n.size-1)] ) /2
 
-          fn = file.path( ddir, paste(  "sizespectrum", tx, vname, p$nss.base, sep="." ) )
+          fn = file.path( ddir, paste(  "sizestructure.by.set", tx, vname, p$nss.base, "rdata", sep="." ) )
 
           ss = NULL
           tt = XX$cfdet*XX[,vname]
@@ -66,7 +66,7 @@
     if (DS %in% c( "sizespectrum.stats", "sizespectrum.stats.redo" ) ) {
 
      
-      fn = file.path( ddir, paste( "set.sizespectrum", infix, "rdata", sep=".")  )
+      fn = file.path( ddir, paste( "set.sizespectrum.stats", infix, "rdata", sep=".")  )
         
       if (DS=="sizespectrum.stats") {
         nss = NULL
@@ -132,7 +132,7 @@
       
       # make the base normalised size spectral statistics summaries
       
-      fn = file.path( ddir, paste( "sm_nss", infix, "rdata", sep="." ) ) 
+      fn = file.path( ddir, paste( "sizespectrum", infix, "rdata", sep="." ) ) 
    
       if ( DS=="sizespectrum" ) {
         SC = NULL
