@@ -3,10 +3,12 @@
  
     if (DS %in% c( "condition", "condition.redo" ) ) {
  
-      ddir = file.path( project.directory("condition"), "data", p$spatial.domain, p$season )
+      ddir = file.path( project.directory("condition"), "data" )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
-      
-      fn = file.path( ddir, "set.condition.rdata" )
+     
+      infix = paste(p$spatial.domain, p$season, sep=".")
+
+      fn = file.path( ddir, paste("set.condition", infix, "rdata", sep=".") )
         
       if (DS=="condition") {
         set = NULL
