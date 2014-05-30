@@ -149,7 +149,7 @@
         pm$data.sources = p$speciesarea.data.sources
         pm$varstomodel = pm$speciesarea.variables
         pm$project.name = "speciesarea"
-        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
+        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
 
         SAG =  habitat.interpolate( DS="all", p=pm, yr=max(1970,yr)   )
 
@@ -180,7 +180,7 @@
         pm$season = p$speciescomposition.season
         pm$varstomodel= pm$speciescomposition.variables
         pm$project.name = "speciescomposition"
-        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
+        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
 
 
         SC = habitat.interpolate( DS="all", p=pm, yr=max(1970,yr) ) 
@@ -211,7 +211,7 @@
         pm$season = p$sizespectrum.season
         pm$varstomodel = pm$sizespectrum.variables
         pm$project.name = "sizespectrum"
-        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
+        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
 
 
         SS = habitat.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 
@@ -244,7 +244,7 @@
         pm$season = p$condition.season
         pm$varstomodel = pm$condition.variables
         pm$project.name = "condition"
-        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
+        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
 
 
         CD = condition.interpolate ( DS="all", p=pm,  yr=max(1970,yr) )
@@ -278,7 +278,7 @@
         pm$season = p$metabolism.season 
         pm$varstomodel = p$metabolism.variables 
         pm$project.name = "metabolism"
-        pm$project.outdir.root = project.directory( p$project.name, "analysis" )
+        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
 
 
         MR = metabolism.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 
