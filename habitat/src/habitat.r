@@ -1,6 +1,5 @@
-   
-  loadfunctions ( "habitat", functionname="habitat.parameters.r" ) 
-  
+
+
   ### ENSURE all following incoming data are up to date before running this:
   ### i.e. : 
   ### loadfunctions( "bathymetry", functionname="bathymetry.r" ) 
@@ -9,6 +8,7 @@
   ### loadfunctions( "taxonomy", functionname="taxonomy.r" ) 
   ### loadfunctions( "temperature", functionname="temperature.r" ) 
   
+  loadfunctions ( "habitat", functionname="habitat.parameters.r" ) 
   loadfunctions ( "habitat", functionname="habitat.temperatures.r" ) 
   
 
@@ -22,6 +22,7 @@
   ### loadfunctions ( "metabolism", functionname="metabolism.r" ) 
   ### loadfunctions ( "condition", functionname="condition.r" ) 
 
+  loadfunctions ( "habitat", functionname="habitat.parameters.r" ) 
   loadfunctions ( "habitat", functionname="habitat.complete.r" ) 
  
 

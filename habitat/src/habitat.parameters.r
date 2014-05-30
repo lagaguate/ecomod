@@ -14,6 +14,9 @@
   p$interpolation.nmax = 100 
    
  
+
+  p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
+
   p$yearstomodel = 1970:2013
   
   

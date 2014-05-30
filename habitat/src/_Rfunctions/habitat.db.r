@@ -148,7 +148,7 @@
         pm$season = p$speciesarea.season
         pm$data.sources = p$speciesarea.data.sources
         pm$varstomodel = pm$speciesarea.variables
-        pm$project.name = "specesarea"
+        pm$project.name = "speciesarea"
         pm$project.outdir.root = project.directory( p$project.name, "analysis" )
 
         SAG =  habitat.interpolate( DS="all", p=pm, yr=max(1970,yr)   )
