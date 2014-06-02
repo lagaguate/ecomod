@@ -247,7 +247,7 @@
         pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
 
 
-        CD = condition.interpolate ( DS="all", p=pm,  yr=max(1970,yr) )
+        CD = habitat.interpolate ( DS="all", p=pm,  yr=max(1970,yr) )
         
         # remove duplicates derived from repeated tows --- slow ... 
         oo = which( duplicated (CD$platplon ) )
@@ -281,7 +281,7 @@
         pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
 
 
-        MR = metabolism.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 
+        MR = habitat.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 
     
                 
         # remove duplicates derived from repeated tows --- slow ... 

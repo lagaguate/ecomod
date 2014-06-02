@@ -15,7 +15,7 @@
         fn = file.path( outdir, paste( "interpolations", vn, yr, "rdata", sep=".") )
         if( file.exists(fn)) {
           load( fn)
-          hdat[, vname] = HD
+          hdat[, vn] = HD
         }
       }
       return ( hdat )
