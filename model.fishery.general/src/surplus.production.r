@@ -88,3 +88,60 @@
 
 
 
+#---------------
+# now using INLA to do the above:
+
+# observation equation: observed biomass O with error;  and true unobserved biomass B
+  O{t} = B{t}/q    ; q ~ LN(0.V)  -- eq1 (observation equation)
+
+# population dynamic equation: logistic
+  B{t} = B{t-1} + r * B{t-1} * ( 1 - B{t-1} / K ) - C{t-1}    
+
+
+  require(INLA)
+
+  Schnute parameterisation:
+
+  ln( O[t+1]/O[t] ) = 4 * m / K - 4 * m / (q *K^2) *(O[t] +O[t+1])/2 - q*( C[t]/O[t] )
+  
+  nyrs = length(scallop.example$yrs)
+  ne = 2  # number of state equations
+
+    ii = 2:nyrs
+    jj = 1:(nyrs-1)
+    y  = log( scallop.example$B [ii] / scallop.example$B [jj] ) 
+    x1 = (scallop.example$B[ii] + scallop.example$B[jj]) /2 
+    x2 = (scallop.example$C[ii] / scallop.example$B[ii] + scallop.example$C[jj]/scallop.example$B[jj]) /2
+
+  dat = data.frame( y, x1, x2, yr=scallop.example$yrs[jj] )
+
+  # stacking the data 
+  # e1 = expectation for state equation 1 = observed biomass, O ~ N( B{t}, V^-1 )
+  # e2 = expectation for state equation 2 = 0 (after moving everything to right hand side) ~ N(0,W^-1) 
+  #       deterministically == 0 .. so force high fixed precision (low variance) CV=-10
+  # ti = time (yr) 
+  # iB = index of B{t}
+  # iBp = index of B{t-1}
+  # 
+  
+  d1 = data.frame( 
+    e1=scallop.example$B , # left hand side of eq 1
+    e2=NA, # left hand side eq 2 not relevent .. set to NA
+    ti=scallop.example$yrs, 
+    iB=1:nyrs, # indices for B{t} in eq 1
+    iBp=NA # indices for B{t-1} in eq 1  ... does not appear in eq 1 so set to NA
+  )
+
+  d2 = data.frame( 
+    e1=NA,  # left hand side of eq 1 not relevent .. set to NA
+    e2=0,   # left hand side of eq 2 
+    ti=scallop.example$yrs[-1],  # remove the first year as this is the index for t-1 
+    iB=2:nyrs,   # indices for B{t} in eq 2 (values must match those in d1)
+    iBp=1:(nyrs-1) # indices for B{t-1} in eq 2 
+  )
+  
+  d = rbind( d1, d2)
+
+  Y = as.matrix( d[,c(1:ne)] )
+
+

@@ -30,13 +30,13 @@
       ii = which( gf$z > log(650) ) # drop strange data
       if (length(ii)>0) gf = gf[-ii,]
 
-      gf = presence.absence( gf, "n", p$habitat.threshold.quantile )  # determine presence absence and weighting  
+      gf = presence.absence( X=gf, vname="n", px=p$habitat.threshold.quantile )  # determine presence absence and weighting  
 
       # add commerical fishery data
       lgbk = logbook.db( DS="fisheries.complete", p=p )
       lgbk = lgbk[ which( is.finite( lgbk$landings)), ]
 
-      lgbk = presence.absence( lgbk, "landings", p$habitat.threshold.quantile )  # determine presence absence and weighting  
+      lgbk = presence.absence( X=lgbk, vname="landings", px=p$habitat.threshold.quantile )  # determine presence absence and weighting  
      
       baddata = which( lgbk$z < log(50) | lgbk$z > log(600) )
       if ( length(baddata) > 0 ) lgbk = lgbk[ -baddata,]
@@ -70,7 +70,7 @@
       set = snowcrab.db( DS="set.logbook" )
       set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
         
-      set = presence.absence( set, v, p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
+      set = presence.absence( X=set, vname=v, px=p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
       n0 = nrow(set)
 
       depthrange = range( set$z, na.rm= T) 
@@ -85,8 +85,8 @@
       set$plon = jitter(set$plon)
       set$plat = jitter(set$plat)  
       
-      set = set[ which(set$yr %in% p$years.to.model ) , ]
-      set = set[ which (is.finite(set$Y + set$t + set$plon + set$wt)) ,]
+      # set = set[ which(set$yr %in% p$years.to.model ) , ]
+      # set = set[ which (is.finite(set$Y + set$t + set$plon + set$wt)) ,]
       
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl

@@ -85,12 +85,14 @@
   
         PS = habitat.db ( DS="complete", year=y, p=p )
 				PS$weekno = p$prediction.weekno  # must be same as above
-				PS$t = NA
          
         PST = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
 				if (is.null(PST)) next ()
 				
-        PS$t = PST[, p$prediction.weekno ]
+        PS$t = as.vector( PST[, p$prediction.weekno ] )
+
+        rm (PST); gc()
+
         PS$t[ which(PS$t < -2) ] = -2
 			  PS$t[ which(PS$t > 30) ] = 30 
 

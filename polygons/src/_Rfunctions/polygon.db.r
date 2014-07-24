@@ -1,7 +1,18 @@
-  get.polygon.data.location = function(object) {
+  polygon.db = function(object) {
     
 		root.polygons = project.directory("polygons","data")
 		out=NULL
+    
+    if ("snowcrab.boundingbox" %in%  object)  out = "snowcrab.boundingbox.dat" 
+    if ("snowcrab.boundingbox.redo" %in%  object) {
+      ss = snowcrab.db( DS="set.logbook")
+      plot( ss$lon, ss$lat )
+
+      bb=locator( type="l" ) 
+      bb = as.data.frame(bb)
+      names(bb) = c("lon", "lat")
+      write.table( bb, file=file.path(  root.polygons, "snowcrab.boundingbox.dat" ), col.names=FALSE, row.names=FALSE )
+    }
 
     if ("haddockbox" %in% object) out = "haddockbox.dat"  # (lon, lat)
     if ("cfaall" %in% object)     out = "cfaall.dat"  # (lon, lat)

@@ -1,6 +1,7 @@
 
-    presence.absence = function( X, vname, px ) {
-      
+    presence.absence = function( X, vname, px=NULL ) {
+     
+      if( is.null(px)) stop("Must define px")
       # calc quantiles
       sz = which( X[,vname] == 0) # assumed to be real zeros
       si = which( X[,vname] > 0)  # positive values
