@@ -118,12 +118,23 @@
   nyrs = length( unique( set0$yr) )
   set0$yrindex = set0$yr - min(set0$yr)  + 1  # nermeic encoding of year
 
-  coordinates( set0 ) = ~ plon + plat 
-  proj4string( set0 ) = CRS("+proj=utm +zone=20 +datum=WGS84")  # CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+
+# --------------------------
+# --------------------------
+# --------------------------
+
+# simple kriging using sp/gstat 
+
+  require(sp)
+
+  set = set0[ set0$yr==2013, ]
+  
+  coordinates( set ) = ~ plon + plat 
+  proj4string( set ) = CRS("+proj=utm +zone=20 +datum=WGS84")  # CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
 
 
   # single year time slice
-  set = set0[ set0$yr==2013, ]
   locs = as.matrix( coordinates(set) )
   nData = nrow( set )
 
@@ -134,15 +145,6 @@
   names(bb) =c("lon", "lat" )
   bb = lonlat2planar( bb, p$internal.projection )
 
-
-
-# --------------------------
-# --------------------------
-# --------------------------
-
-# simple kriging using sp/gstat 
-
-  require(sp)
 
   V = variogram( B ~ 1, data=set  )
   Vtot = var( set$B) 
@@ -906,7 +908,7 @@ sd           1.385588         NA  1.0899911  1.382066   1.726755        NA      
     
   # posterior random field
 
-  idat <- inla.stack.index(sdat, 'stdata') 
+  idat <- inla.stack.index(effdat, 'stdata') 
 
   cor(set$B, res$summary.linear.predictor$mean[idat])
 
@@ -947,7 +949,7 @@ A=list(Aval,1), effects=list(iset, w=vdat$w))
 
 # Now, we just use a full data stack to fit the model
 
-stfull <- inla.stack(sdat, stval)
+stfull <- inla.stack(effdat, stval)
 vres <- inla(formulae, data=inla.stack.data(stfull),
 control.predictor=list(compute=TRUE, A=inla.stack.A(stfull)), 
 control.family=list(initial=20, fixed=TRUE),
@@ -988,12 +990,22 @@ abline(0:1, col=gray(.7))
 # Full spatio-temporal model with "Semicontinuous (Gamma, Bernoulli)" or delta-type response variable
  
   # AB of values greater than 0
-  AB = set0$B
+  effdat = data.frame( set0 )
+  
+
+  ## rename Y -variables as they cannot be the same in the effects list
+  AB = effdat$B   
   AB[ AB <= 0 ] = NA
 
   # PA/absence
-  PA = set0$Y
-  
+  PA = effdat$Y
+  effdat$Y = NULL  # conflicts with "Y' below 
+
+  # intercept estimates
+  effdat$b0_PA=rep(1, nData0)
+  effdat$b0_AB=rep(1, nData0)
+ 
+
   # SPDE components
   
     # matern representation using mesh M
@@ -1006,7 +1018,7 @@ abline(0:1, col=gray(.7))
       iAB <- inla.spde.make.index('iAB', n.spde=S0$n.spde, n.group=nyrs )  
 
       # projection matrix A to translate from mesh nodes to data nodes
-      A = inla.spde.make.A( mesh=M0, loc=locs0, n.group=nyrs, group=set0$yrindex )
+      A = inla.spde.make.A( mesh=M0, loc=locs0, n.group=nyrs, group=effdat$yrindex )
  
 
   ## datastack == Y == ( PAAbsence, AB)
@@ -1014,18 +1026,18 @@ abline(0:1, col=gray(.7))
   # data stack for occurence (PA)
     Z.PA = inla.stack( 
       tag="presence_absence",
-      data=list( PA=PA, Y=cbind( PA, NA), ca1=set0$ca1 ) ,
+      data=list( PA=PA, Y=cbind( PA, NA)) ,
       A=list(A,1),
-      effects=list( iPA=iPA, data.frame( b0_PA=rep(1, nData0 )) ) 
+      effects=list( iPA=iPA, effdat ) 
     )
 
 
     # data stack for abudance
     Z.AB = inla.stack( 
       tag="abundance",
-      data=list( AB=AB, Y=cbind( NA, AB), ca1=set0$ca1  ) ,  ### NOTE -- stacking in next col similar to the latent state-space modelling approach
+      data=list( AB=AB, Y=cbind( NA, AB)) ,  ### NOTE -- stacking in next col similar to the latent state-space modelling approach
       A=list(A,1),
-      effects=list( iAB=iAB, data.frame( b0_AB=rep(1, nData0)) ) 
+      effects=list( iAB=iAB, effdat ) 
     )
 
     # data stack with both 
@@ -1036,13 +1048,15 @@ abline(0:1, col=gray(.7))
     h.spec <- list(theta=list(initial=0.7, param=c(0, 5)))
 
  
-  
-    
-  # separate fits for each of the PA and AB
+    fm.PA =  PA ~ 0 + b0_PA + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1', hyper=h.spec) ) + f(ca1, model="rw1" )
+    fm.AB =  AB ~ 0 + b0_AB + f(iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=h.spec)) + f(ca1, model="rw1" )
+    fm.PA_AB =  Y ~ 0 + b0_PA + b0_AB + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1', hyper=h.spec)) + f(iAB, copy='iPA', fixed=FALSE) + f(ca1, model="rw1" )
+    fm.PA_AB =  Y ~ 0 + b0_PA + b0_AB + f( iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=h.spec)) + f( iPA, copy='iAB', fixed=FALSE) + f(ca1, model="rw1" )
+   
+    # separate fits for each of the PA and AB
   
     R.PA <- inla( 
-      PA ~ 0 + b0_PA 
-           + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1', hyper=h.spec)),
+      formula=fm.PA ,
       family='binomial', 
       data=inla.stack.data(Z.PA), 
       control.compute=list(dic=TRUE),
@@ -1051,8 +1065,7 @@ abline(0:1, col=gray(.7))
 
 
     R.AB <- inla(
-      AB ~ 0 + b0_AB 
-             + f(iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=h.spec)), 
+      formula=fm.AB ,
       family='gamma',  # log transf by default .. (?)
       data=inla.stack.data(Z.AB), 
       control.compute=list(dic=TRUE),
@@ -1062,9 +1075,7 @@ abline(0:1, col=gray(.7))
    
     # now the joint model .. with the spatial component of PA having precedence
     R.PA_AB <- inla( 
-      Y ~ 0 + b0_PA + b0_AB 
-            + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1', hyper=h.spec)) 
-            + f(iAB, copy='iPA', fixed=FALSE),
+      formula=fm.PA_AB ,
       family=c('binomial', 'gamma'),
       data=inla.stack.data(Z.all), 
       control.compute=list(dic=TRUE),
@@ -1073,9 +1084,7 @@ abline(0:1, col=gray(.7))
 
     # and the joint model .. with the spatial component of AB having presidence
     R.AB_PA <- inla( 
-      Y ~ 0 + b0_PA + b0_AB + ca1  
-            + f( iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=h.spec)) 
-            + f( iPA, copy='iAB', fixed=FALSE),
+      formula=fm.AB_PA ,
       family=c('binomial', 'gamma'),
       data=inla.stack.data(Z.all), 
       control.compute=list(dic=TRUE),
@@ -1096,19 +1105,10 @@ abline(0:1, col=gray(.7))
 
    # Summary outputs
 
+    R = R.PA_AB 
+    
     R = R.PA
     Z = Z.PA
-
-    # and the joint model .. with the spatial component of AB having presidence
-    R.AB_PA <- inla( 
-      Y ~ 0 + b0_PA + b0_AB + ca1  
-            + f( iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=h.spec)) 
-            + f( iPA, copy='iAB', fixed=FALSE),
-      family=c('binomial', 'gamma'),
-      data=inla.stack.data(Z.all), 
-      control.compute=list(dic=TRUE),
-      control.predictor=list(A=inla.stack.A(Z.all), compute=TRUE)
-    )
 
 
     
@@ -1167,7 +1167,7 @@ abline(0:1, col=gray(.7))
       stval <- inla.stack(tag='stval', data=list(y=NA), A=list(Aval,1), effects=list(iset, w=vdat$w))
 
       # Now, we just use a full data stack to fit the model
-      stfull <- inla.stack(sdat, stval)
+      stfull <- inla.stack(effdat, stval)
 
       vres <- inla(formulae, data=inla.stack.data(stfull),
           control.predictor=list(compute=TRUE, A=inla.stack.A(stfull)),
