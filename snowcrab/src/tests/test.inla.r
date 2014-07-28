@@ -988,7 +988,24 @@ abline(0:1, col=gray(.7))
 
 
 # Full spatio-temporal model with "Semicontinuous (Gamma, Bernoulli)" or delta-type response variable
+    
+    # boundary domain
+    M0.domain = inla.nonconvex.hull( locs0, convex=10, resolution=75 )
  
+    M0 = inla.mesh.2d (
+        loc=locs0, # locations of data points
+        boundary=M0.domain, 
+        offset=c( 10, 100 ),  # how much to extend in the c(inner, outer) domains
+        max.edge=c( 10, 100 ),  # max size of a triange (in, out)
+        min.angle=c(21),   # min angle (in, out)
+        cutoff=10  # min distance allowed
+    )       
+    plot(M0, asp=1 ) # visualise mesh
+    
+  # create a mesh onto which we can represent the Latent Random (Gaussian) Field -- all data years 
+    
+
+
   # AB of values greater than 0
   effdat = data.frame( set0 )
   
@@ -1048,19 +1065,25 @@ abline(0:1, col=gray(.7))
     h.spec <- list(theta=list(initial=0.7, param=c(0, 5)))
 
  
-    fm.PA =  PA ~ 0 + b0_PA + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1', hyper=h.spec) ) + f(ca1, model="rw1" )
-    fm.AB =  AB ~ 0 + b0_AB + f(iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=h.spec)) + f(ca1, model="rw1" )
-    fm.PA_AB =  Y ~ 0 + b0_PA + b0_AB + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1', hyper=h.spec)) + f(iAB, copy='iPA', fixed=FALSE) + f(ca1, model="rw1" )
-    fm.PA_AB =  Y ~ 0 + b0_PA + b0_AB + f( iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=h.spec)) + f( iPA, copy='iAB', fixed=FALSE) + f(ca1, model="rw1" )
+    fm.PA =  PA ~ 0 + b0_PA + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1') ) + f(ca1, model="rw2" )
+    fm.AB =  AB ~ 0 + b0_AB + f(iAB, model=S0, group=iAB.group, control.group=list(model='ar1') ) + f(ca1, model="rw2" )
+    fm.PA_AB =  Y ~ 0 + b0_PA + b0_AB + f(iPA, model=S0, group=iPA.group, control.group=list(model='ar1') ) + f(iAB, copy='iPA', fixed=FALSE) + f(ca1, model="rw2" )
+    fm.AB_PA =  Y ~ 0 + b0_PA + b0_AB + f( iAB, model=S0, group=iAB.group, control.group=list(model='ar1') ) + f( iPA, copy='iAB', fixed=FALSE) + f(ca1, model="rw2" )
    
     # separate fits for each of the PA and AB
-  
+ 
+    # ncpus = 22
+    # ncpus = 8
+    ncpus = NULL
+
+
     R.PA <- inla( 
       formula=fm.PA ,
       family='binomial', 
       data=inla.stack.data(Z.PA), 
       control.compute=list(dic=TRUE),
-      control.predictor=list(A=inla.stack.A(Z.PA), compute=TRUE)
+      control.predictor=list(A=inla.stack.A(Z.PA), compute=TRUE),
+      num.threads=ncpus
     )
 
 
@@ -1069,7 +1092,8 @@ abline(0:1, col=gray(.7))
       family='gamma',  # log transf by default .. (?)
       data=inla.stack.data(Z.AB), 
       control.compute=list(dic=TRUE),
-      control.predictor=list(A=inla.stack.A(Z.AB), compute=TRUE)
+      control.predictor=list(A=inla.stack.A(Z.AB), compute=TRUE),
+      num.threads=ncpus
     )
 
    
@@ -1079,7 +1103,8 @@ abline(0:1, col=gray(.7))
       family=c('binomial', 'gamma'),
       data=inla.stack.data(Z.all), 
       control.compute=list(dic=TRUE),
-      control.predictor=list(A=inla.stack.A(Z.all), compute=TRUE)
+      control.predictor=list(A=inla.stack.A(Z.all), compute=TRUE),
+      num.threads=ncpus
     )
 
     # and the joint model .. with the spatial component of AB having presidence
@@ -1088,7 +1113,8 @@ abline(0:1, col=gray(.7))
       family=c('binomial', 'gamma'),
       data=inla.stack.data(Z.all), 
       control.compute=list(dic=TRUE),
-      control.predictor=list(A=inla.stack.A(Z.all), compute=TRUE)
+      control.predictor=list(A=inla.stack.A(Z.all), compute=TRUE),
+      num.threads=ncpus
     )
 
 
