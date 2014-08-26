@@ -1,8 +1,8 @@
 
   hydro.modelled.db = function( ip=NULL, p, DS, vname, yr=NULL ) {
     
-    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+    if (exists( "libs", p)) RLibrary( p$libs ) 
 
 
     if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo" )){

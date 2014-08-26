@@ -8,7 +8,7 @@
 
   # set.seed(1)
 
-   p$libs = loadlibraries( c("parallel", "Rcpp",  "rlecuyer" ))
+   p$libs = RLibrary( c("parallel", "Rcpp",  "rlecuyer" ))
    p$init = loadfunctions( c( "model.ssa", "model.pde", "common", "snowcrab"  )  )
    
     # diffusion coef d=D/h^2 ; h = 1 km; per year (range from 1.8 to 43  ) ... using 10 here 

@@ -5,7 +5,7 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
     
     p$current.assessment.year = current.assessment.year 
 
-    p$libs = loadlibraries ( c( 
+    p$libs = RLibrary ( c( 
       "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
     ) )
 

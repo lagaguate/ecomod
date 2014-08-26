@@ -1,8 +1,8 @@
 
   sim.markov = function( ip=NULL, p, DS="file" ) {
       
-    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+    if (exists( "libs", p)) RLibrary( p$libs ) 
     if (is.null(ip)) ip = 1:p$nruns
    
     fn.root =  file.path( project.directory("snowcrab"), "markov"  )

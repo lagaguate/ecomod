@@ -7,7 +7,7 @@
 		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
 	) )
 
-  p$libs = loadlibraries( "mgcv", "sp", "gstat",  "parallel", "fields", "chron" ) 
+  p$libs = RLibrary( "mgcv", "sp", "gstat",  "parallel", "fields", "chron" ) 
   p$taxa = "maxresolved"
   p$season = "allseasons"
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 

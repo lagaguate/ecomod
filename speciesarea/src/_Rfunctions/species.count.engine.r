@@ -2,8 +2,8 @@
    species.count.engine = function( ip=NULL, p, set, sc ) {
         # define species counting mechanism
       
-      if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-      if (exists( "libs", p)) loadlibraries( p$libs ) 
+      if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+      if (exists( "libs", p)) RLibrary( p$libs ) 
       if ( is.null(ip) ) ip = 1:p$nruns 
      
       sar <- attach.big.matrix( p$bigmem.desc )

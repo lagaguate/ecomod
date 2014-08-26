@@ -4,7 +4,7 @@
   p= list()
 
 	p$init.files = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  p$libs = loadlibraries( "mgcv", "chron", "lattice", "lattice", "grid", "fields", "parallel"  ) 
+  p$libs = RLibrary( "mgcv", "chron", "lattice", "lattice", "grid", "fields", "parallel"  ) 
 
 
   # --------------------------

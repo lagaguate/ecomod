@@ -1,6 +1,6 @@
     
 
-  loadlibraries( "mgcv", "chron", "lattice"  ) 
+  RLibrary( "mgcv", "chron", "lattice"  ) 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 

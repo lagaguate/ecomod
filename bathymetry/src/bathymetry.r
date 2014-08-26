@@ -4,7 +4,7 @@
   
   p=list()
   p$init.files = loadfunctions( c( "common", "bathymetry" ) )
-  p$libs = loadlibraries( c("chron", "rgdal", "lattice", "parallel" ) )
+  p$libs = RLibrary( c("chron", "rgdal", "lattice", "parallel" ) )
  
   p$isobaths = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 800, 1000 )
 	

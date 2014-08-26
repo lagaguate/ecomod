@@ -102,8 +102,8 @@
 			
       starttime = Sys.time()
         
-      if ( exists("init.files", p) ) loadfilelist( p$init.files ) 
-      if ( exists("libs", p) ) loadlibraries( p$libs ) 
+      if ( exists("init.files", p) ) LoadFiles( p$init.files ) 
+      if ( exists("libs", p) ) RLibrary( p$libs ) 
      
 			# interpolated predictions over only missing data
 			spinterpdir =  file.path( project.directory("temperature"), "data", "interpolated", "spatial", p$spatial.domain )

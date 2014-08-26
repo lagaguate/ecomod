@@ -11,7 +11,7 @@
 
 
     p = list()
-    p$libs = loadlibraries( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory" ) )
+    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory" ) )
     p$init.files = loadfunctions( c("common", "bathymetry", "temperature" ) ) 
 		
  

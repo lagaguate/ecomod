@@ -1,12 +1,11 @@
   
-  loadlibraries( c( 
+  RLibrary( c( 
     "RODBC", "DBI", "Cairo", "Hmisc", "chron", "akima", "fields", "lattice", 
     "gstat", "rgdal", "maptools"
   ) )
 
-  localfiles = loadfunctions( c("common", "bathymetry", "shrimp") )
+  init.files = loadfunctions( c("common", "bathymetry", "shrimp") )
 	
-  init.files = c( ecomod.rprofile, localfiles )  
 
   
   # working directory for temporary/work files 

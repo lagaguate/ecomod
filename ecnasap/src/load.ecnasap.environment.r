@@ -1,6 +1,6 @@
 
 # libraries
-  loadlibraries( "Hmisc", "date", "chron", "vegan", "fields" )
+  RLibrary( "Hmisc", "date", "chron", "vegan", "fields" )
 
 
 # primary directories

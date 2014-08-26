@@ -20,7 +20,7 @@ To fully use this respository, you will need to add the following to the end of 
     ecomod.workdirectory = file.path( "C:", "R", "workspace" )    ### replace with correct path to R workspace
     ecomod.directory = file.path( "C:", "path", "to", "ecomod" )  ### replace with correct path to cloned folder
 	
-    source( file.path( ecomod.directory, "ecomod.rprofile.r" ) ) ### initializes the ecomod environment
+    source( file.path( ecomod.directory, "_ecomodSetup", "ecomod.rprofile.r" ) ) ### initializes the ecomod environment
 
 In MSWindows, the home directory seems to be the "My Documents" directory (i.e. C:\Users\<user name>\Documents). But to be sure, run R and then type getwd(). In Linux and other UNIX variants, including MacOSX it is your usual home directory. 
 
@@ -34,7 +34,7 @@ To load in all functions under the common/src/_Rfunctions/ and snowcrab/src/_Rfu
 or to load a specific function that fuzzy matches the 'functionname' criterion under the directory snowcrab/src/
 
     loadfunctions( "snowcrab", functionname="current.assessment.year.r")  
-
+    
 
 The function, 'loadfunctions()' is a convenience wrapper for reading in all files under a particular project directory. 
 

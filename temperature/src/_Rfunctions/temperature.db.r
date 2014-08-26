@@ -1,7 +1,7 @@
   temperature.db = function ( ip=NULL, year=NULL, p, DS ) {
     
-    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+    if (exists( "libs", p)) RLibrary( p$libs ) 
   
 
     if (DS %in% c("climatology", "climatology.redo") ) {

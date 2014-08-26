@@ -133,8 +133,8 @@
         return(Q)
       }
 
-      if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-      if (exists( "libs", p)) loadlibraries( p$libs ) 
+      if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+      if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
       
       if (!exists( "optimizers", p) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
@@ -247,8 +247,8 @@
         return(Q)
       }
  
-      if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-      if (exists( "libs", p)) loadlibraries( p$libs ) 
+      if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+      if (exists( "libs", p)) RLibrary( p$libs ) 
 
       if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns

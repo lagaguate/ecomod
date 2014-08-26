@@ -65,8 +65,8 @@
       oo = clusterApply( cl, ssplt, p=p, res=res, 
         fun=function(ip=NULL, p=p, res=res) { 
           if (is.null(ip)) ip =1:p$nruns
-          loadfilelist( p$init ) 
-          loadlibraries( "Rcpp") 
+          LoadFiles( p$init ) 
+          RLibrary( "Rcpp") 
           
           for ( rn in ip ) rout = ssa.engine( p=p, res=res, rn=rn )  # default
           return(ip)

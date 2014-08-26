@@ -5,7 +5,7 @@
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
     # x must contain plon, plat, and chron
     
-    loadlibraries (p$libs) 
+    RLibrary (p$libs) 
  
     coords = c("plon", "plat" )
     out = NULL

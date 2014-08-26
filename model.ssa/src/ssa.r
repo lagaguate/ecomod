@@ -7,7 +7,7 @@
   # Runtime parameters and options
 
   p = list()
-  p$libs = loadlibraries( c("parallel", "Rcpp"))
+  p$libs = RLibrary( c("parallel", "Rcpp"))
   p$init = loadfunctions( c( "model.ssa", "model.pde", "common" )  )
 
   p$runname = "debug"
@@ -44,7 +44,7 @@
 
   if ( do.in.parallel ) {
     # use parallel mode to run multiple simulations .. currently, this is the most efficient use of resources 
-    p$libs = c( p$libs,  loadlibraries(  "parallel" , "rlecuyer", "snow" ) )
+    p$libs = c( p$libs,  RLibrary(  "parallel" , "rlecuyer", "snow" ) )
     # p$cluster = c( rep("tethys", 7), rep( "kaos", 23), rep("nyx", 24), rep( "tartarus", 24) ) 
     p$cluster = rep( "localhost", detectCores() )
     p$cluster.message.system = "SOCK" 

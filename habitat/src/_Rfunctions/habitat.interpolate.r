@@ -2,8 +2,8 @@
 
   habitat.interpolate = function( ip=NULL,  p=NULL, DS="saved", vname=NULL, yr=NULL ) {
 
-    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+    if (exists( "libs", p)) RLibrary( p$libs ) 
     
     outdir = file.path( p$project.outdir.root, p$spatial.domain, p$season, p$modtype, "interpolations" )
     dir.create( outdir, showWarnings=FALSE, recursive=TRUE )

@@ -1,5 +1,12 @@
 
-	loadfunctions = function( projectname, directorypattern=NULL, functionname=NULL, keydirectories=c("r", "\\.r", "\\_r", "rfunctions", "\\.rfunctions", "\\_rfunctions" ), filepattern="\\.r$" ) {
+	loadfunctions = function( 
+    projectname, 
+    directorypattern=NULL, 
+    functionname=NULL,
+    RcodeDirectory="src", 
+    keydirectories=c("r", "\\.r", "\\_r", "rfunctions", "\\.rfunctions", "\\_rfunctions" ), 
+    toignore = c("retired", "_archive", "archive", "orphan", "request", "example" ),
+    filepattern="\\.r$" ) {
 	
     # used to load local functions conveniently
     # sequence slightly important ... modify with care
@@ -14,7 +21,7 @@
 
       projectdirectory = project.directory( name=pn )
 
-      for (searchdirectory in c( file.path( projectdirectory, "src" ), projectdirectory ) ) {  # first try in "src" and then the project if not found in first pass  
+      for (searchdirectory in c( file.path( projectdirectory, RcodeDirectory ), projectdirectory ) ) {  # first try in RcodeDirectory and then the project if not found in first pass  
 
         projectfiles = NULL
         projectfiles = list.files( path=searchdirectory, pattern=filepattern, full.names=T, recursive=T,  ignore.case=T, include.dirs=F )
@@ -43,10 +50,9 @@
         } 
       
 
-        # remove archived functions, etc.
-        toremove = c("retired", "_archive", "archive", "orphan", "request", "example" )
+        # remove archived functions, etc. that are to be "ignored"
         rem  = NULL
-        for (i in toremove) {
+        for (i in toignore) {
           rem0 = grep ( i, projectfiles,  ignore.case =T ) 
           if (length( rem0)>0 ) rem = c( rem, rem0)
         }
@@ -71,9 +77,12 @@
 
     }
    
-    if ( file.exists( ecomod.rprofile) )  filestosource = c( ecomod.rprofile, filestosource )
+    if ( exists( "ecomod.startupfiles" ) ) {
+      # add ecomod-startup files to permit replication of environment in parallel runs
+      filestosource = unique( c( ecomod.startupfiles, filestosource ) )
+    }
 
-    loadfilelist( filestosource )
+    LoadFiles( filestosource )
     
     return( filestosource )
  

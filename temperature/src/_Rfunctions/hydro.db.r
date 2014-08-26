@@ -17,8 +17,8 @@
     
     dir.create( loc.basedata, recursive=T, showWarnings=F )
   
-    if (exists( "init.files", p)) loadfilelist( p$init.files ) 
-    if (exists( "libs", p)) loadlibraries( p$libs ) 
+    if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+    if (exists( "libs", p)) RLibrary( p$libs ) 
     
     # OSD data series variables of interest
     varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE" ,"SALINITY" ,"SIGMAT" ) 
