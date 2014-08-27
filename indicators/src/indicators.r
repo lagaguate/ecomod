@@ -2,9 +2,7 @@
 
   require(chron)
 
-	loadfunctions( ("common") )
-	loadfunctions( ("sorted.ordination") ) 
-	loadfunctions( ("indicators") ) 
+	loadfunctions( c( "spatialmethods", "utility", "parallel", "sorted.ordination", "indicators") ) 
  
   setwd( project.directory("indicators") )
         

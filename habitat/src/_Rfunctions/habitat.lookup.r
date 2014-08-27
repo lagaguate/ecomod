@@ -5,6 +5,7 @@
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
     # x must contain plon, plat, and chron
     
+    loadfunctions( "utility" )
     RLibrary (p$libs) 
  
     coords = c("plon", "plat" )
@@ -127,7 +128,7 @@
       if (! exists( "yr", x ) ) stop( "yr is required")  # required
       
       if (! exists("weekno", x) ) {
-        x$dayno = convert.datecodes(x$chron, "julian")  # from  source ("/home/jae/ecomod/common/functions.date.r")
+        x$dayno = convert.datecodes(x$chron, "julian")  
         x$weekno = ceiling (x$dayno / 365 * 52 )
       }
       if (! exists( "weekno", x ) ) stop( "weekno is required")  # required

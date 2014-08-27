@@ -1,9 +1,10 @@
 
 
   
- 	loadfunctions( c("groundfish", "common", "taxonomy") ) 
+  require ( multicore ) # simple parallel interface (using threads) .. does not work well in MSWindows?
+ 	
+  loadfunctions( c("groundfish", "utility", "taxonomy") ) 
  
-  require ( multicore ) # simple parallel interface (using threads)
 
 
   refresh.itis.tables = FALSE

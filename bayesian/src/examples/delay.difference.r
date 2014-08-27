@@ -70,7 +70,7 @@ colnames(tuna) = c("yr", "catch", "cpue")
   require (rjags)
   # require(coda)
   
-  loadfunctions( c("common", "bayesian" ) )
+  loadfunctions( c( "bayesian" ) )
 
 
 

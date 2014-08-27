@@ -2,7 +2,7 @@
   # maps some fishery performance indicators in Google Earth
 
   loadfunctions( "shrimp", functionname="load.shrimp.environment.r" )
-  loadfunctions( "googleearth" )
+  loadfunctions( "plottingmethods" )
     
 
   refresh.data=F

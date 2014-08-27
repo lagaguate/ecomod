@@ -1,9 +1,11 @@
 
   # glue biological data sets together from various surveys
 
-	p = list( init.files=loadfunctions( c( "common", "taxonomy", "groundfish", "snowcrab", "bathymetry", "temperature", "habitat", "bio" ))) 
-  
-  p$init.files = loadfunctions( "snowcrab", functionname="default.project.environment" )
+	pinits = loadfunctions( c( 
+    "spatialmethods", "utility", "parallel", "taxonomy", 
+    "groundfish", "snowcrab", "bathymetry", "temperature", "habitat", "bio" ))
+
+  p$init.files = unique( c( pinits, loadfunctions( "snowcrab", functionname="default.project.environment" ) ) )
   p$libs = RLibrary ("parallel", "fields" )
 
   

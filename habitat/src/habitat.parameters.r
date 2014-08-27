@@ -3,7 +3,7 @@
 
   p = list()
   p$init.files = loadfunctions( c(
-	  "common", "habitat", "substrate", "bathymetry", "speciesarea", "metabolism", 
+	  "spatialmethods", "utility", "parallel", "habitat", "substrate", "bathymetry", "speciesarea", "metabolism", 
 		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
 	) )
 

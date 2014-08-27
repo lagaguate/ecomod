@@ -1,9 +1,9 @@
 
 
 
-  require(maptools)
+  RLibrary( "maptools" , "rgdal" )
 
-	loadfunctions( c("common", "substrate" ) ) 
+	loadfunctions( c("spatialmethods", "utility", "substrate", "bathymetry" ) ) 
 
 	# --------------------------------------
   # create the main database
@@ -28,6 +28,8 @@
   # levelplot( log(grainsize) ~ lon + lat, substrate, main = "ln( grainsize; mm )", aspect="iso")
   
   # load the imported data in a data.frame format in a snow crab-consistent coordinates framework
+  p = spatial.parameters( type="SSE" )
+		
   substrate = substrate.db( p, DS="planar" ) # or lonlat to refresh, planar or planar.saved 
   i = which( substrate$plon< 990 &  substrate$plon > 220  &
              substrate$plat< 5270 &  substrate$plat > 4675 

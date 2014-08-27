@@ -66,7 +66,8 @@
   map.googleearth = T
   if (map.googleearth) {
       
-    source(  file.path( project.directory("googleearth"), "src", "functions.googleearth.r" ) )
+    loadfunctions( "plottingmethods" )
+
     loc.k = file.path( loc, "kml" )
     dir.create(path=loc.k, recursive=T, showWarnings=F)
 

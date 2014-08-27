@@ -10,7 +10,9 @@
   p = list()
   p$libs = RLibrary ( c("chron", "fields", "mgcv", "sp", "parallel")) 
 
-	p$init.files = loadfunctions( c( "common", "bathymetry", "temperature", "substrate", "habitat", "taxonomy", "bio", "speciescomposition"  ) )
+	p$init.files = loadfunctions( c(
+    "spatialmethods", "utility", "parallel", 
+    "bathymetry", "temperature", "substrate", "habitat", "taxonomy", "bio", "speciescomposition"  ) )
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$data.sources = c("groundfish", "snowcrab") 
   

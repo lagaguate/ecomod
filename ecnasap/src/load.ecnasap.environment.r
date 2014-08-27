@@ -10,8 +10,6 @@
   srcdir            = project.directory("ecnasap", "src" )
   gs.srcdir         = project.directory("groundfish", "src" )
   ecnasapdir        = project.directory("ecnasap", "src" )
-  commondir         = project.directory("common" , "src" )
-
 	
-	loadfunctions( c("common", "taxonomy", "ecnasap", "speciesarea", "groundfish" )
+	loadfunctions( c("spatialmethods", "utility", "parallel", "taxonomy", "ecnasap", "speciesarea", "groundfish" )
 

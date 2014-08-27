@@ -1,5 +1,5 @@
 	
-	loadfunctions( "googleearth", functionname="functions.googleearth.r") 
+	loadfunctions( "plottingmethods" ) 
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
 

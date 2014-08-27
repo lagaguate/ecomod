@@ -1,5 +1,3 @@
-Welcome.
-
 
 This is a code repository of various functions, scripts and tools useful for general ecological modelling, population stock assessments and habitat analysis. The code is mostly implemented in the R-language (http://www.r-project.org/) and intended to be run through the free and open-source R-environment. There is some occasional (minimal) reliance upon other languages such as python, JAGS/BUGS, GMT (Generic Mapping Tools), JAVA, Fortran, C, etc. 
 
@@ -31,14 +29,12 @@ To load in all functions under the common/src/_Rfunctions/ and snowcrab/src/_Rfu
 
     loadfunctions( c("common", "snowcrab") )  
 
-or to load a specific function that fuzzy matches the 'functionname' criterion under the directory snowcrab/src/
+or to load a specific file/function that fuzzy matches the 'functionname' criterion under the directory snowcrab/src/
 
     loadfunctions( "snowcrab", functionname="current.assessment.year.r")  
     
 
-The function, 'loadfunctions()' is a convenience wrapper for reading in all files under a particular project directory. 
+'loadfunctions()' is a simple function that reads in all files under a particular project directory in a structured manner. 
 
-Best,
 
-Jae
 

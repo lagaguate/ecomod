@@ -8,7 +8,7 @@
 
   p = list()
   p$libs = RLibrary( c("parallel", "Rcpp"))
-  p$init = loadfunctions( c( "model.ssa", "model.pde", "common" )  )
+  p$init = loadfunctions( c( "model.ssa", "model.pde", "spatialmethods", "utility", "parallel" )  )
 
   p$runname = "debug"
 

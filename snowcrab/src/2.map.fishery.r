@@ -1,7 +1,6 @@
   
-	 loadfunctions( ("common") )
-	 loadfunctions( ("googleearth"), functionname="functions.googleearth") 
-	 loadfunctions( ("snowcrab"), functionname="initialise.local.environment.r") 
+	 loadfunctions( c( "plottingmethods", "spatialmethods", "utility" ) )
+	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
   # mapping of fisher stats
@@ -28,9 +27,7 @@
   sm$julian = convert.datecodes( sm$chron, "julian" )
   sm$month = ceiling(sm$julian/365 *12)
   
-  sm = sm[ which( is.finite(sm$effort),]
-                 
-      project.directory("snowcrab")project.directory("snowcrab") ) 
+  sm = sm[ which( is.finite(sm$effort) ) ,]
   sm = sm[ which( is.finite(sm$catch) ) ,]
   sm = sm[ which( is.finite(sm$cpue) ) ,]
 

@@ -4,9 +4,8 @@
     "gstat", "rgdal", "maptools"
   ) )
 
-  init.files = loadfunctions( c("common", "bathymetry", "shrimp") )
+  init.files = loadfunctions( c( "utility", "spatialmethods", "bathymetry", "shrimp") )
 	
-
   
   # working directory for temporary/work files 
   workpath = file.path( project.directory("shrimp"), "R" )

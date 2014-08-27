@@ -2,7 +2,7 @@
   # Googleearth overlays: 
 
   # common functions:
-  loadfunctions( c("common", "bathymetry")) 
+  loadfunctions( c("spatialmethods", "utility", "bathymetry")) 
   
   cmd = function(x, ...) { system(paste(x, ...)) }
 

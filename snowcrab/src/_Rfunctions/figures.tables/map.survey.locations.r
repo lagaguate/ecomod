@@ -44,7 +44,7 @@
 
     if (map.method=="googleearth" ) {
       
-      loadfunctions("googleearth")
+      loadfunctions( "plottingmethods" )
   
       outfile =  file.path( basedir, "survey.locations.googleearth.kml" ) 
       set$desc = paste( 

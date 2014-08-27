@@ -28,7 +28,6 @@ params$overlay = ""
   #    params$overlay = c("cfa20", "cfa21", "cfa22", "cfa23", "cfa24", "cfa4x",
   #      "cfa24a", "cfa24b", "cfa24c", "cfa24d", "cfa24e", "cfa23a", "cfa23b", "cfa23c", "cfa23d",
   #      "cfa22inner", "cfa22outer", "cfa20inner", "cfa20outer", "cfaslope" )
-  #    define others in ../common/map.functions.r
 
 params$mapres = "2min"
 params$gmt.projection.long = "Lambert.conformal.conic"

@@ -18,8 +18,8 @@
         load( filename )   
         return ( substrate )
       }
-      proj4.params = "+proj=utm +zone=20 +datum=NAD83 -f %.4f"
-      substrate = readAsciiGrid( rawdata.file, proj4string=CRS(proj4.params) )
+      proj4.params = "+proj=utm +zone=20 +datum=NAD83 "
+      substrate = readAsciiGrid( rawdata.file, proj4string=CRS( proj4.params ) )
       save( substrate, file=filename, compress=T )
     }
 
@@ -37,7 +37,7 @@
       substrate = substrate[,c("plon", "plat", "grainsize")]  
       substrate$plon = substrate$plon / 1000  # convert to km
       substrate$plat = substrate$plat / 1000  # convert to km
-      proj4.params = "+proj=utm +zone=20 +datum=NAD83 -f %.4f"  # original/raw data still in NAD83 geoid
+      proj4.params = "+proj=utm +zone=20 +datum=NAD83"  # original/raw data still in NAD83 geoid
       substrate= planar2lonlat ( substrate, proj4.params, pass.direct=T ) 
       substrate= substrate[ ,c("lon", "lat", "grainsize")]
       save( substrate, file=filename, compress=T   )
