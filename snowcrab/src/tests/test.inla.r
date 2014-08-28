@@ -1101,7 +1101,7 @@ abline(0:1, col=gray(.7))
     )
 
 
-    # data stack for abudance
+    # data stack for abundance
     Z.AB = inla.stack( 
       tag="abundance",
       data=list( AB=AB, Y=cbind( NA, AB)) ,  ### NOTE -- stacking in next col similar to the latent state-space modelling approach
@@ -1308,8 +1308,9 @@ Posterior marginals for linear predictor and fitted values computed
       + f( iAB, model=S0, group=iAB.group, control.group=list(model='ar1', hyper=theta.ar1 ), diagonal=1e-2 ) 
       + f( iPA, copy='iAB', fixed=FALSE, diagonal=1e-2) 
       + f( z, model="rw2", hyper=theta.rw2, diagonal=1e-2 ) 
-      + f(tmean, model="rw2", hyper=theta.rw2, diagonal=1e-2 ) )
-    fmly = c("binomial", "gamma")
+      + f( tmean, model="rw2", hyper=theta.rw2, diagonal=1e-2 ) )
+#    fmly = c("binomial", "gamma")
+    fmly = c("binomial", "gaussian")
     Z = Z.all
     
     R = inla( formula=fmla, family=fmly, 
@@ -1385,7 +1386,11 @@ Expected number of effective parameters(std dev): 329.68(5.025)
 Number of equivalent replicates : 8.533 
 
 Marginal Likelihood:  -49229.44 
-    
+   
+
+
+
+
     # --------------------------
     # NO space 
     fmla = ( Y ~ -1 + b0_PA + b0_AB 
@@ -1401,7 +1406,6 @@ Marginal Likelihood:  -49229.44
              # control.family=theta.observations.presence_abundance,
              verbose=TRUE )
  
-
 
   
      
