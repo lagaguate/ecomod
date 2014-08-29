@@ -1,0 +1,6 @@
+Color codes in hex
+Fill map base region:  4C7FFF  RGB(76, 127, 255)   "royalblue2"
+DM200_region: 4CAEFF  RGB (76, 174, 255)           "steelblue2"
+DM100_region: BFE3FF  RGB (191, 227, 255)          "lightblue1"
+Snow_Crab_Zones_2010: F0B400        RGB(240, 180, 0)??? "gold"
+Landmass_region: D1CA91   RGB(209, 202, 145)       "khaki3"
