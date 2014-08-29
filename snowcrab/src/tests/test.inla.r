@@ -1389,6 +1389,40 @@ Marginal Likelihood:  -49229.44
    
 
 
+Call:
+c("inla(formula = fmla, family = fmly, data = inla.stack.data(Z), ",  "    verbose = TRUE, control.predictor = list(A = inla.stack.A(Z), ",  "        compute = FALSE), control.fixed = theta.beta.presence_abundance)" )
+
+Time used:
+ Pre-processing    Running inla Post-processing           Total 
+         0.4999      63567.7499          0.3120      63568.5618 
+
+Fixed effects:
+        mean     sd 0.025quant 0.5quant 0.975quant   mode kld
+b0_PA 0.5668 2.2376    -3.8264   0.5667     4.9563 0.5668   0
+b0_AB 0.5668 2.2376    -3.8264   0.5667     4.9563 0.5668   0
+
+Random effects:
+Name	  Model
+ iAB   SPDE2 model 
+z   RW2 model 
+tmean   RW2 model 
+iPA   Copy 
+
+Model hyperparameters:
+                                           mean    sd      0.025quant 0.5quant 0.975quant mode   
+Precision for the Gaussian observations[2]  3.3288  0.0000  3.3288     3.3288   3.3379     3.3289
+Theta1 for iAB                             -0.0935  0.0000 -0.0936    -0.0935  -0.0909    -0.0935
+Theta2 for iAB                             -4.3087  0.0000 -4.3087    -4.3087  -4.3061    -4.3087
+GroupRho for iAB                            0.6442  0.0000  0.6442     0.6442   0.6450     0.6442
+Precision for z                            60.4302  0.0006 60.4287    60.4300  60.5896    60.4304
+Precision for tmean                        52.9654  0.0005 52.9641    52.9653  53.1052    52.9656
+Beta for iPA                                0.9544  0.0000  0.9544     0.9544   0.9571     0.9544
+
+Expected number of effective parameters(std dev): 1109.92(0.00)
+Number of equivalent replicates : 2.534 
+
+Marginal Likelihood:  -39584.48 
+> 
 
 
     # --------------------------
