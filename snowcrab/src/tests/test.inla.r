@@ -1299,6 +1299,40 @@ Posterior marginals for linear predictor and fitted values computed
 
 
 
+-- for gaussian prior for Y
+
+
+summary(R)
+
+Call:
+c("inla(formula = fmla, family = fmly, data = inla.stack.data(Z), ",  "    verbose = TRUE, control.predictor = list(A = inla.stack.A(Z), ",  "        compute = TRUE), control.fixed = theta.beta.abundance)" )
+
+Time used:
+ Pre-processing    Running inla Post-processing           Total 
+         0.5314        603.9707          0.8313        605.3335 
+
+Fixed effects:
+        mean     sd 0.025quant 0.5quant 0.975quant   mode kld
+b0_AB 1.4335 0.1236     1.1875   1.4345     1.6739 1.4365   0
+
+Random effects:
+Name	  Model
+ iAB   SPDE2 model 
+tmean   RW2 model 
+
+Model hyperparameters:
+                                        mean     sd       0.025quant 0.5quant 0.975quant mode    
+Precision for the Gaussian observations   0.5975   0.0462   0.5072     0.5978   0.6881     0.6005
+Theta1 for iAB                            0.2985   0.1783  -0.0835     0.3128   0.6119     0.3578
+Theta2 for iAB                           -1.9902   0.1630  -2.2763    -2.0033  -1.6416    -2.0441
+GroupRho for iAB                          0.9260   0.0264   0.8676     0.9285   0.9692     0.9346
+Precision for tmean                      98.0724 115.2660  10.7534    63.5590 393.9884    27.6759
+
+Expected number of effective parameters(std dev): 316.23(38.14)
+Number of equivalent replicates : 3.722 
+
+Marginal Likelihood:  -16193.92 
+Posterior marginals for linear predictor and fitted values computed
 
    
    
