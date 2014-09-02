@@ -18,16 +18,42 @@
     seabird = as.data.frame(read.table( file=filename, sep=",", as.is=T, colClasses="character", header=F, skip= data.start, strip.white=T))
     
     if ( nrow(seabird) < 10 ) return( NULL )
-    
+    if(ncol(seabird)==1) {
+#AMC ADDED 2013 FOR FUNCTIONALITY AND IF SEABIRD DATA NOT SEPARAETED OUT BY COLUMNS
+  seabird = as.data.frame(matrix(apply(seabird,2,function(x) unlist(strsplit(x,","))),ncol=4,byrow=T))
+    }
+
+#if time is not correct in seabird file and is due to DST fix by BMC
+
+    mhead = readLines(filename, n=40)
+    #local time
+    lt = mhead[grep("System UpLoad Time",mhead)]
+    lt = unlist(strsplit(unlist(strsplit(lt,"= "))[2], " "))
+    lt  = chron(paste(lt[1],lt[2],lt[3],sep="-"),lt[4],format = c(dates="mon-d-y",times = "h:m:s"),out.format = c(dates = "y-m-d", times ="h:m:s"))
+
+    #seabird time
+    st = mhead[grep("SERIAL NO", mhead)]
+    st = unlist(strsplit(unlist(strsplit(st,"    "))[2], "  "))
+    st  = chron(st[1],st[2], format = c(dates="d mon y",times = "h:m:s"),out.format = c(dates = "y-m-d", times ="h:m:s"))
+
+    dt = as.numeric(round(difftime(lt,st,units =c("hours")))[[1]]/24)
+
+    #add Dt to seabird times
     colnames(seabird) = c( "temperature", "pressure", "mdate", "mtime")
+    date.format = seabirdDate( header=header, outvalue="format"  ) 
+
+    seabird$chron = chron(trimWhiteSpace(seabird$mdate),trimWhiteSpace(seabird$mtime),format = c("d mon y",times = "h:m:s"),out.format=dateformat.snow)
+    seabird$chron = seabird$chron +dt
+
     numerics = c("temperature", "pressure")
     seabird = factor2number(seabird, numerics)
  
     # obtain date format from the seabird header
-	  date.format = seabirdDate( header=header, outvalue="format"  ) 
-    seabird$chron = chron( dates.=seabird$mdate, times.=seabird$mtime, format=date.format, out.format=dateformat.snow )
+	  #date.format = seabirdDate( header=header, outvalue="format"  ) 
+    #seabird$chron = chron( dates.=seabird$mdate, times.=seabird$mtime, format=date.format, out.format=dateformat.snow )
  
     # check time first
+    
     seabird.date.range = range( seabird$chron )
     setxi = which( set$chron >= seabird.date.range[1] & set$chron <= seabird.date.range[2] )
     if ( length( setxi ) == 0 ) return(NULL)
