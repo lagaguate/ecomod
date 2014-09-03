@@ -6,7 +6,7 @@
   seabird.db = function( DS="", Y=NULL ){
     
     sb.dir = project.directory("snowcrab", "data", "seabird" )
-    seabird.rawdata.location = file.path( sb.dir, "archive" )
+    seabird.rawdata.location = file.path( sb.dir, "archive" ) 
     
     if (!is.null(Y)) {
         iY = which( Y>=2012 )  # no historical data prior to 2012
@@ -54,6 +54,7 @@
 
       # default is to "load"
       #
+      
       dirlist = list.files(path=seabird.rawdata.location, full.names=T, recursive=T)
       nfiles = length(dirlist)
       filelist = matrix( NA, ncol=3, nrow=nfiles) 
@@ -106,8 +107,8 @@
         }
 
         sb.stat = NULL
-        for ( i in flist ) {
-          load( flist )
+        for ( i in 1:length(flist )) {
+          load( flist[i] )
           sb.stat = rbind( sb.stat, sbStats )
         }
    
