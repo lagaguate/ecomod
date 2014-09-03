@@ -8,6 +8,7 @@
           if (a=="cfanorth") r=c( "cfa20", "cfa21", "cfa22")
           if (a=="cfasouth") r=c( "cfa23", "cfa24")
           if (a=="cfaslope") r=c( "cfa24slope", "cfa23slope")
+          if (a=="cfaall") r=c( "cfa20", "cfa21", "cfa22","cfa23", "cfa24","cfa4x")
           if (a=="cfa4x") r=c( "cfa4x")
           if (a=="cfanorth.not.glace.bay") r=c("cfa20", "cfa21", "cfa22inner")
           if (a=="cfa.23ab.24ab") r=c("cfa23a", "cfa23b", "cfa24a", "cfa24b")

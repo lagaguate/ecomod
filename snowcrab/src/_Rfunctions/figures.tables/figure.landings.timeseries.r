@@ -18,7 +18,7 @@
     dir.create( outdir, recursive=T, showWarnings=F  )
     fn = file.path( outdir, paste(outfile,"png",sep="." ) )
   #   fn = file.path( outdir, outfile )
-    Cairo( file=fn, type="png", bg="white", pointsize=30, units="in", width=6, height=4, dpi=300 )
+      Cairo( file=fn, type="png", bg="white", pointsize=30, units="in", width=7, height=5, dpi=300 )
 
     if (type=="bar") {
       cols = c("grey10", "grey40",  "grey80")
@@ -47,7 +47,7 @@
     
     dev.off()
     cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
-    table.view( l )
+    #table.view( l )
    return( fn )
   }
 
