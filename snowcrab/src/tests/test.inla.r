@@ -1038,7 +1038,7 @@ abline(0:1, col=gray(.7))
   locs0  = as.matrix( set0[,c("plon", "plat")] )
   nData0 = nrow( set0 )
   nyrs = length( unique( set0$yr) )
-  set0$yrindex = set0$yr - min(set0$yr)  + 1  # nermeic encoding of year
+  set0$yrindex = set0$yr - min(set0$yr)  + 1  # numeric encoding of year
 
 
   # boundary domain
