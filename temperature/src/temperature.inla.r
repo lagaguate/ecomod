@@ -31,12 +31,20 @@
     p$nw = length(p$wtimes)
     p$ny = length(p$tyears)
 
+    p$clusters ="localhost"
     p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
     
     t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
 
-    t0 = t0[   filter.region.polygon( t0, region="isobath1000m" ) , ]
-    t0 = t0[ - filter.region.polygon( t0, region="isobath1000m" ) , ]
+    loadfunctions( "bathymetry" )
+
+    o = isobath.db( p=p, depths=1000 )
+    corner = cbind( min( o$lon) , max(o$lat) )
+    o = rbind( corner, o, corner )
+
+    a = which(point.in.polygon( t0$lon, t0$lat, o$lon, o$lat) != 0 )
+
+    t0 = t0[ filter.region.polygon( t0, region="isobath1000m" ) , ]
 
 
     t0 = t0[ which( t0$yr %in% p$tyears ), ]
