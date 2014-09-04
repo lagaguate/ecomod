@@ -31,8 +31,10 @@
 		p = make.list( list( depths=p$isobaths ), Y=p )
     p$clusters = rep( "localhost", 2 )  # too many clusters will overload the system ... data files are large ~(11GB RAM required to block) and can be deleted in the temporary drives 
     parallel.run( isobath.db,  p=p, DS="redo" ) 	
-		# isobath.db( p=p, depths=depths, DS="redo" ) 
+	
+    # isobath.db( p=p, depths=depths, DS="redo" ) 
 	}
+
 
  
   # "snowcrab" subsets do exist but are simple subsets of SSE 
