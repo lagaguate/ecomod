@@ -1,9 +1,6 @@
 #custom functions to read in
 #source('C:\\Users\\CookA\\Desktop\\Scripts\\amc helpers.R')
 #--
-require(RODBC)
-odbcCloseAll()
-channel<<-odbcConnect("bank.canso3","mfd_stomach","bx547mj9") #called globally
 # improved list of objects
 .ls.objects <- function (pos = 1, pattern, order.by,
                         decreasing=FALSE, head=FALSE, n=5) {
