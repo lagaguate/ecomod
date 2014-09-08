@@ -80,7 +80,8 @@
 
 
     snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )
-    
+    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
+
        
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
@@ -149,7 +150,7 @@
 # the folllowing depends upon bio.db and temperature  
   loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
   loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
-  loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
+  loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) #ran into problems with mapping these need to check sept 7 2014 
   loadfunctions ( "metabolism", functionname="metabolism.r" ) 
   loadfunctions ( "condition", functionname="condition.r" ) 
 
