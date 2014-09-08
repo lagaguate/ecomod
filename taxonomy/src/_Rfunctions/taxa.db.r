@@ -1,6 +1,9 @@
 
 
   taxa.db = function( DS="complete", itis.taxa.lowest="species", find.parsimonious.spec=TRUE, res=NULL ) {
+      
+    taxadir = project.directory( "taxonomy", "data" )
+    dir.create( taxadir, recursive=TRUE, showWarnings=FALSE )
 
     if ( DS == "gstaxa" ) return( taxa.db( "life.history") )  
 
@@ -18,7 +21,7 @@
 
     if ( DS %in% c("gscat.update" ) ) {
       
-      fn = file.path( project.directory( "taxonomy"), "data", "taxa.gscat.update.rdata" )
+      fn = file.path( taxadir, "taxa.gscat.update.rdata" )
       if ( is.null(res) ) {
         if (file.exists(fn) ) load(fn)
         return( res )
@@ -41,8 +44,8 @@
 			# a partial lookup table exists and is maintained locally but then is added to using 
 			# text matching methods, which are a bit slow.
 
-      fn = file.path( project.directory("taxonomy"), "data", "spcodes.itis.rdata" )
-      fnp = file.path( project.directory("taxonomy"), "data", "spcodes.itis.parsimonious.rdata" )
+      fn = file.path( taxadir, "spcodes.itis.rdata" )
+      fnp = file.path( taxadir, "spcodes.itis.parsimonious.rdata" )
       
       if ( DS =="spcodes.itis") {
         load(fn)
@@ -71,7 +74,7 @@
 			print( "maintained in file: gstaxa_taxonomy.csv -- must be'|' delimited and 'quotes used for export' " )
 			print( "### New additions can be placed here too " )
 			
-			fn.local.taxa.lookup = file.path( project.directory("taxonomy"), "data", "gstaxa_taxonomy.csv" )
+			fn.local.taxa.lookup = file.path( taxadir, "gstaxa_taxonomy.csv" )
 			tx.local = read.csv( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T, fill=T) 
 			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "name.common.bio", "comments" )]
       
@@ -241,7 +244,7 @@
 				print( "Their tsn's should be manually identified and updated in the local updates file:" )
 				print( "gstaxa_taxonomy.csv -- see spcodes.itis.redo, above .. these are stored in with '|' as delimiter " ) 
 				print( spi[i,] )
-				fn2 = file.path( project.directory("taxonomy"), "data", "spcodes.no.itis.matches.csv" )
+				fn2 = file.path( taxadir, "spcodes.no.itis.matches.csv" )
 				print (fn2 )
 				write.csv ( spi[i,], file=fn2 )
 			}
@@ -275,7 +278,7 @@
       require ( multicore ) # simple parallel interface (using threads)
 		
       itis.taxa.lowest = tolower(itis.taxa.lowest)
-      fn = file.path( project.directory("taxonomy"), "data", paste("spcodes", itis.taxa.lowest, "rdata", sep=".") )
+      fn = file.path( taxadir, paste("spcodes", itis.taxa.lowest, "rdata", sep=".") )
       
       if (DS=="full.taxonomy") {
         load(fn)
@@ -333,8 +336,8 @@
 
     if (DS %in% c( "life.history", "life.history.redo") ) {
       
-      fn = file.path( project.directory("taxonomy"), "data", "spcodes.lifehistory.rdata") 
-      fn.local = file.path( project.directory("taxonomy"), "data", "gstaxa_working.csv") 
+      fn = file.path( taxadir, "spcodes.lifehistory.rdata") 
+      fn.local = file.path( taxadir, "gstaxa_working.csv") 
       
       if (DS == "life.history" ) {
         load(fn)
@@ -395,7 +398,7 @@
     # ----------------------------------------------
 
     if ( DS %in% c("complete", "complete.redo") ) {
-		  fn = file.path( project.directory("taxonomy"), "data", "spcodes.complete.rdata") 
+		  fn = file.path( taxadir, "spcodes.complete.rdata") 
   	  sps = NULL
 			if (DS == "complete" ) {
         if (file.exists(fn)) load(fn)
@@ -436,7 +439,7 @@
       
       ### NOT USED ??? TO DELETE ?
       
-      fn.itis = file.path( project.directory("taxonomy"), "itis.oracle.rdata" )
+      fn.itis = file.path( taxadir, "itis.oracle.rdata" )
       if (DS=="itis.oracle" ) {  
         load( fn.itis )
         return (itis)
@@ -456,7 +459,7 @@
       
       ### NOT USED ??? TO DELETE ?
       
-      fn.itis = file.path( project.directory("taxonomy"), "data", "itis.groundfish.rdata" )
+      fn.itis = file.path( taxadir, "itis.groundfish.rdata" )
       if (DS=="itis.groundfish" ) {  
         load( fn.itis )
         return (itis)
@@ -476,7 +479,7 @@
       
       ### NOT USED ??? TO DELETE ?
       
-      fn.itis = file.path( project.directory("taxonomy"), "data", "itis.observer.rdata" )
+      fn.itis = file.path( taxadir, "itis.observer.rdata" )
       if (DS=="itis.observer" ) {  
         load( fn.itis )
         return (itis)
