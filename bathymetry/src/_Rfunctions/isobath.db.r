@@ -79,8 +79,20 @@
 			      isobath = isobath[, c(1,2)]
            
 				    names( isobath ) = c( "lon", "lat" )
-					  isobath$lon = isobath$lon - 360
-						save( isobath, file=fn, compress=T)
+					  
+            check = min( isobath$lon) 
+            while ( check < -360 ) {
+              isobath$lon = isobath$lon + 360 
+              check = min( isobath$lon)
+            }
+            
+            check = max( isobath$lon) 
+            while ( check > 360 ) {
+              isobath$lon = isobath$lon - 360 
+              check = max( isobath$lon)
+            }
+						
+            save( isobath, file=fn, compress=T)
 						remove.files ( c(isobaths, tmp.iso) ) 
 					}
       }
