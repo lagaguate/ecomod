@@ -134,7 +134,7 @@
       # 1950-2013, SSE took ~ 35 hrs on laptop (shared RAM, 24 CPU; 1950-2013 run April 2014 ) ... 17 GB req of shared memory
       # this is parallelized ... the call is internal to this 
       p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
-      temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
+      temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) #amc set up at 
     
        
         debugdata = FALSE
