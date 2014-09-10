@@ -5,6 +5,8 @@
 *.old
 .tmp.*
 *.rdata
+*.kmz
+*.kml
 
 _pkg
 _src
