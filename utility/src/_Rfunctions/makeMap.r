@@ -134,34 +134,10 @@ n=7
 	addPolys(emera,col='red',lwd=2)
 }
 
-cvr()
-
-}
-
-
-
-
-cvr = function(wd=wd,area="all"){
-  require(PBSmapping)
-
-  borders= read.csv(file=file.path(wd,"areaborders.csv"), head=T, sep=",")
-  b=borders[which(borders$area==area),]
-
-# read in shapefiles
-#--------------------------------------
-  land= importShapefile(file.path(wd, "landmass_region"))
-  coast=importShapefile(file.path(wd, "coastline_polyline"))
-
-
-#Overlay land and coastline such that any bad data (on land) is hidden
-  addPolys(land, col="khaki", border="khaki")
-  addLines(coast, col="black")
-    
+addPolys(land,col='khaki',border='khaki')
+addLines(coast,col='black')
 box()
-
 }
-
-
 
 addVMSTrack <- function(dat) {
  	#dat from getVMS.R
