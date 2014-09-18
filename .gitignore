@@ -5,10 +5,14 @@
 *.old
 .tmp.*
 *.rdata
+*.kmz
+*.kml
+*.Rhistory
 
 _pkg
 _src
 maps
+private/
 
 /_Archive
 /aoi
@@ -36,5 +40,6 @@ maps
 /sustainability
 /thermodynamics
 /when.a.collapse.is.not.a.collapse
+
 
 .Rproj.user
