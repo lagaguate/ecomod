@@ -32,7 +32,7 @@ land$fy <- NA #fishing year
 	ll <- aggregate(land1$TOTAL,by=land1['y'],FUN=sum)[,2]/1000
 
 #add in 2012 landings of 8057.337 t for assessment year july 2012-june 2013 # this is a simple hard coded number should really be added by month to the landings by month.csv from above
-	p$ll <- c(ll,8.057337)
+	p$ll <- ll <- c(ll,8.057337)
 
 #landings July2013-Jan2014= 2965; if we assume only 5000t will be caught up to March 31 2014 and then the various catch
 #5000 + prop prior to 2014 survey with prop =0.2879583 and remaining of landings for second run to march 2015
@@ -74,7 +74,7 @@ land$fy <- NA #fishing year
 
 		p$input1 <- input1
 		
-spBUGS3 <- function(input=input1,inits=inits,n = 500000, burn = 15000, thin = 200, debug = F, wd=file.path(project.directory('silverhake'),'src')){
+spBUGS3 <- function(input=input1,inits=inits,n = 5000, burn = 150, thin = 2, debug = F, wd=file.path(project.directory('silverhake'),'src')){
 		require(R2WinBUGS)
 			
 	#	Initial values for WinBUGS one for each chain
@@ -100,35 +100,22 @@ spBUGS3 <- function(input=input1,inits=inits,n = 500000, burn = 15000, thin = 20
 		parameters <- c('sd.p','r','K','sd.o','q','B','Imean','P.res','P0')
 					
 		## Call to WinBUGS ##
-		tmp <- bugs(data = input, inits, parameters.to.save = parameters, model.file = paste(wd,"sp3oneI.bug",sep=""), 
-		n.chains = 3, n.iter = n, n.burnin = burn, n.thin = thin, bugs.directory = "C:/Program Files/WinBUGS14/", debug = debug)
+		tmp <- bugs(data = input, inits, parameters.to.save = parameters, model.file = file.path(wd,"sp3oneI.bug"), 
+		n.chains = 3, n.iter = n, n.burnin = burn, n.thin = thin, bugs.directory = "C:/WinBUGS14/", debug = debug)
 		return(tmp)
 	}
 
 oneI<-spBUGS3(debug=T)
 
-dput(oneI,'model with catch scenario 1.txt')
+dput(oneI,file.path(project.directory('silverhake'), 'R','model with catch scenario 1.txt'))
 #oneI <- dget('model with catch scenario 1.txt')
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 #<><><><><><><><><>NOTES<><><><>><><><><><><><><><><><><>
-#<><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-
-#target F
-#risk of exceeing FMSY
-#low neutral high (.25,.5,75)
-#probability of exceeing b ref (ogive)
-
 
 #biomass , exploitation, reference point distributions, one year projection 15t (calendar year caught) 
 #for rest of year use last couple of years, use landings scenarios for one year and relate to BMSY
 #
 
-
-
-cGivenFandB(F=FMSY,B=oneI$median$B[20])
-#45.23 t
-# prp* 45.23+ll2012.rem
-#giving 19.69 t landed before summer survey (6.6 from 2012 TAC and 13.2 from 2013TAC)
 ##################################################
 #Silver hake catch scenarios
 ##################################################
@@ -143,9 +130,9 @@ b2014<-list()
 b2015<-list()
 for(i in 1:4) {
 a <- cs(i)
-dput(a,file.path(project.directory('silverhake', 'R',paste('catchscenario2yr',i,'.txt',sep=''))))
+dput(a,file.path(project.directory('silverhake'), 'R',paste('catchscenario2yr',i,'.txt',sep='')))
 }
-save.image(file.path(project.directory('silverhake', 'R',"catchscenarions2yr.dat")
+save.image(file.path(project.directory('silverhake'), 'R',"catchscenarions2yr.dat")
 
 
 

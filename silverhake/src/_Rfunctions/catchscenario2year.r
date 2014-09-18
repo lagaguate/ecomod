@@ -1,13 +1,6 @@
 #silver hake
 #get the imputs from silver hake script final
 
-lvec1 <- lvecmar.june+5
-
-#July2014-March2015
-lvec2 <- lvec-lvecmar.june
-
-
-
 
 
 #change for landings scenarios
@@ -25,7 +18,7 @@ input1$C <- lann
 
 		
 		
-spBUGS3 <- function(input=input1,inits=inits,n = 300000, burn = 50000, thin = 20, debug = F, wd="C:/SilverHakeUpdate/"){
+spBUGS3 <- function(input=input1,inits=inits,n = 3000, burn = 50, thin = 2, debug = F, wd=file.path(project.directory('silverhake'),'src')){
 		require(R2WinBUGS)
 			
 	#	Initial values for WinBUGS one for each chain
@@ -46,21 +39,9 @@ spBUGS3 <- function(input=input1,inits=inits,n = 300000, burn = 50000, thin = 20
 		parameters <- c('sd.p','r','K','sd.o','q','B','Imean','P.res','P0')
 					
 		## Call to WinBUGS ##
-		tmp <- bugs(data = input, inits, parameters.to.save = parameters, model.file = paste(wd,"sp3oneI.bug",sep=""), 
-		n.chains = 2, n.iter = n, n.burnin = burn, n.thin = thin, bugs.directory = "C:/Program Files/WinBUGS14/", debug = debug)
+		tmp <- bugs(data = input, inits, parameters.to.save = parameters, model.file = file.path(wd,"sp3oneI.bug"), 
+		n.chains = 2, n.iter = n, n.burnin = burn, n.thin = thin, bugs.directory = "C:/WinBUGS14/", debug = debug)
 		return(tmp)
 	} 
 oneI<-spBUGS3(debug=F)
 }
-
-b2014<-list()
-b2015<-list()
-for(i in 1:4) {
-a <- cs(i)
-b2014[[i]] <- a$sims.list$B[,22]
-b2015[[i]]<- a$sims.list$B[,23]
-dput(a,paste('catchscenario2yr',i,'.txt',sep=''))
-}
-save.image("C:/SilverHakeUpdate/catchscenario2yr.RData")
-
-
