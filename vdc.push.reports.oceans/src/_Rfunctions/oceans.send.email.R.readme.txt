@@ -1,0 +1,43 @@
+In the interest of privacy, email addresses have been removed from the code and stored in a private location.
+
+To access this file, please contact Mike.McMahon@dfo-mpo.gc.ca.  
+
+You could also create it yourself in a format like the following.  Email addresses are grouped together by the reports that different people receive.  As many different email addresses can be added to each report.
+#########################
+mailgrp.Lophelia_CCA<-c(
+  "person1s@email.com", 
+  "person2@email.com", 
+  "person3@email.com"
+)
+
+emailgrp.Northeast_Channel<-c(
+  "person1s@email.com", 
+  "person2@email.com", 
+  "person3@email.com"
+)
+
+emailgrp.Gully<-c(
+  "person1s@email.com", 
+  "person2@email.com", 
+  "person3@email.com"
+)
+
+emailgrp.VazellaEmerald<-c(
+  "person1s@email.com", 
+  "person2@email.com", 
+  "person3@email.com"
+)
+
+emailgrp.St_Anns_Bank_Inventory_Box<-c(
+  "person1s@email.com", 
+  "person2@email.com", 
+  "person3@email.com"
+)
+
+emailgrp.Musquash<-c(
+  "person1s@email.com", 
+  "person2@email.com", 
+  "person3@email.com"
+)
+
+emailgrp.Debug_Folks<-c("person1s@email.com")
