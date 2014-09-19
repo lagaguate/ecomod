@@ -3,6 +3,8 @@
     a = tempfile()
     write.table (x, file=a, sep=",")
     if(.Platform$OS.type == "unix") {
+      b = try( system( paste( "libreoffice -calc", a) , wait=F )  )
+      if ( b==0 ) return()
       b = try( system( paste( "gnumeric", a) , wait=F ) )
       if ( b==0 ) return()
       b = try( system( paste( "soffice -calc", a) , wait=F )  )

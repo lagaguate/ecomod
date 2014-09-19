@@ -1,6 +1,8 @@
  
-  tranf.db.lookup = function( db ) {
-
+  lookup.datatransformation = function( db ) {
+    
+    # determine data transformations based upon category of data and data source
+    
     if (db=="snowcrab") {
       log.transform = variable.list.expand("log.transform")
       scaled.centered = variable.list.expand("scaled.centered")
