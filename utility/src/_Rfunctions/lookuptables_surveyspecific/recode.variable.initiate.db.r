@@ -1,6 +1,6 @@
   recode.variable.initiate.db = function( db ) {
     
-    tl = tranf.db.lookup( db )
+    tl = lookup.datatransformation( db )
     
     REPOS = NULL
   
