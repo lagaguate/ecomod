@@ -373,7 +373,7 @@
         print( summary(Q) )
         print( fn )
         print( Sys.time() )
-        
+        debug=F
         if (debug) {
           require (boot)
           AIC (Q) 

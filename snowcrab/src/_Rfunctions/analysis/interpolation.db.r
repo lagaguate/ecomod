@@ -88,8 +88,7 @@
          
         PST = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
 				if (is.null(PST)) next ()
-				
-        PS$t = as.vector( PST[, p$prediction.weekno ] )
+				PS$t = as.vector( PST[, p$prediction.weekno ] )
 
         rm (PST); gc()
 
