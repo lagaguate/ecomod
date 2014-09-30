@@ -1,6 +1,6 @@
 	
 
-	network.igraph = function( spec=NULL, tsn=NULL, method="default", tx=taxa.db("complete") ) {
+	network.igraph = function( spec=NULL, tsn=NULL, method="default", tx=taxonomy.db("complete") ) {
 
 		# create an igraph network graph for a given set of species (spec id's or tsn's)
 		# and then return some relevant data concerning each node (# children, children, etc)
@@ -66,7 +66,7 @@
 		if (length(rmov)>0) edges = edges[ -rmov , ]
 		vertices = data.frame( tsn=as.numeric(sort( unique( c(edges[,1], edges[,2]) ) ) ), stringsAsFactors=FALSE )
 
-		a = lookup.tsn2taxa( as.numeric(vertices$tsn))
+		a = taxonomy.recode( from="tsn", to="taxa", tolookup=as.numeric(vertices$tsn) )
 		vertices = merge( vertices, a, by="tsn", all.x=T, all.y=F) 
 
 		names.to.keep = which( vertices$rank <= 60 )  # 60=class, 100 =order, 140 =family

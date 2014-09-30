@@ -101,7 +101,7 @@
       
       toplot = pca$cscores
       spec = as.numeric( as.character( rownames( toplot )))
-      rownames(toplot) = lookup.spec2taxa(spec)
+      rownames(toplot) = taxonomy.recode( from="spec", tolookup=spec)
 
       plot.ordination (X=toplot)
 

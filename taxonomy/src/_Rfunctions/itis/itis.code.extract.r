@@ -3,7 +3,7 @@
   itis.code.extract = function ( DS, value, tx=NULL ) { 
     
     # generic data accessor function
-    # the itis taxa db (tx) can optionally be sent from calling function to speed things up 
+    # the itis taxonomy db (tx) can optionally be sent from calling function to speed things up 
     # as this loading step is slow 
     
     out = NULL

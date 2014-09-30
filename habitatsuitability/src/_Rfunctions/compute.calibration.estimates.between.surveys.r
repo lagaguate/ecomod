@@ -29,7 +29,7 @@
 
 		bc = scat
 	  tx = 10
-		lookup.spec2taxa (tx)
+		taxonomy.recode ( from="spec", tolookup=tx )
 		ww = bc[ bc$spec==tx ,]
 		require(lattice)
 		histogram( qn|data.source, bc )

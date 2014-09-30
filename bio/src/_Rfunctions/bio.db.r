@@ -64,15 +64,16 @@
       }
 
 
-###  NOTE:: cf == correction factor is a reweighting required to make each totno and totmass comparable for each set and species subsampling
+      ###  NOTE:: cf == correction factor is a reweighting required to make each totno and totmass comparable for each set and species subsampling
 
-      cat.names =  c("data.source", "id", "spec", "totno", "totmass", "cfcat") 
+      cat.names =  c("data.source", "id", "spec", "spec_bio," "totno", "totmass", "cfcat") 
       if ( "groundfish" %in% p$data.sources ) {
        
         x = groundfish.db( "cat" )   ## not really set but "cat" 
         # totno and totmass are sa, vessel and sub-sampling corrected ::  cf = cfvessel / sakm2 
         # no./km2 ; and  kg/km2
         x$data.source = "groundfish"
+        x$spec_bio = taxonomy.recode( from="spec", to="parsimonious", tolookup=x$spec )
         x$totmass = x$totwgt
         x$cfcat = x$cfset * x$cfvessel
 				x = x[, cat.names]
@@ -83,21 +84,24 @@
       if ( "snowcrab" %in% p$data.sources ) {
         x =  snowcrab.db( DS ="cat.georeferenced" ) # sa corrected ; kg/km2; no./km2 
         x$data.source = "snowcrab"
+        x$spec_bio = taxonomy.recode( from="spec", to="parsimonious", tolookup=x$spec )
         x$id = paste( x$trip, x$set, sep="." )
         x$cfcat = 1/x$sa  # no other correction factors as there is no species-based subsampling
         x = x[, cat.names]
+         
+        iissp = taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 ) # snow crab using groundfish codes
 
-        oo = which( !is.finite(x$totno) & x$spec== taxa.specid.correct(2526) )  # snow crab are assumed to be real zeros
+        oo = which( !is.finite(x$totno) & x$spec_bio==iissp  )  # snow crab are assumed to be real zeros
         if (length(oo) > 0 ) x$totno[oo] = 0
 
-        oo = which( !is.finite(x$totmass) & x$spec== taxa.specid.correct(2526) )  # snow crab are assumed to be real zeros
+        oo = which( !is.finite(x$totmass) & x$spec_bio== iissp )  # snow crab are assumed to be real zeros
         if (length(oo) > 0 ) x$totmass[oo] = 0
 
 				cat = rbind( cat, x  )
         rm (x); gc()
       }
       
-      cat$id2 = paste( cat$id, cat$spec, sep="." )
+      cat$id2 = paste( cat$id, cat$spec_bio, sep="." )
 
       save( cat, file=fn, compress=T )
       return (fn) 
@@ -129,12 +133,14 @@
         #  mat.unknown = 2
 
       
-      det.names =  c("data.source", "id", "spec", "detid", "sex", "mass", "len", "mat", "cfdet" ) 
+      det.names =  c("data.source", "id", "spec", "spec_bio", "detid", "sex", "mass", "len", "mat", "cfdet" ) 
       if ( "groundfish" %in% p$data.sources ) {
         x = groundfish.db( "det" )  
         x$data.source = "groundfish"
         x$detid = x$fshno
-        
+             
+        x$spec_bio = taxonomy.recode( from="spec", to="parsimonious", tolookup=x$spec ) 
+
         # mass in kg, len in cm
 
         # convert sex codes to snow crab standard
@@ -170,7 +176,7 @@
         x =  snowcrab.db( DS ="det.georeferenced" )  
         x$data.source = "snowcrab"
         x$id = paste( x$trip, x$set, sep="." )
-        x$spec = taxa.specid.correct(2526)  # in case there has been an interal alteration in species code for snowcrab
+        x$spec_bio =  taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 ) # snow crab using groundfish codes
         x$detid = x$crabno
         x$len = x$cw / 10  # convert mm to cm
         x$cfdet = 1/x$sa  ########## <<<<<< ------ NOTE THIS accounts only for SA as there is no subsampling (so far)
@@ -182,7 +188,7 @@
         rm (x); gc()
       }
        
-      det$id2 = paste( det$id, det$spec, sep=".") 
+      det$id2 = paste( det$id, det$spec_bio, sep=".") 
 
       save( det, file=fn, compress=T )
       return (fn) 
@@ -238,25 +244,31 @@
         #  mat.unknown = 2
         
       det = bio.db( DS="det.init", p=p )
-      det = det[ which( is.finite( det$spec)), ]   
+      det = det[ which( is.finite( det$spec_bio)), ]   
       det$sex[ which( !is.finite(det$sex)) ] = 2 # set all uncertain sexes to one code sex code 
       det$mat[ which( !is.finite(det$mat)) ] = 2 # set all uncertain sexes to one code sex code 
     
       # do this here rather than in the condition subsystem as the models are useful in predicting missing data ...
       # length-weight modelling and estimate parameters as well as residuals
+      det$spec0 = det$spec
+      det$spec  = det$spec_bio 
       det = length.weight.regression( x=det )
+      det$spec = det$spec0
+      det$spec0 = NULL
 
       # fix mass, length estimates where possible using model parameters
       # try finest match first: by spec:mat, spec:sex, spec
-      lwp = length.weight.regression( DS="parameters" )
       
+      lwp = length.weight.regression( DS="parameters" )
+      # note: lwp$spec is derived from spec_bio, as above
+
       ims = which( !is.finite( det$mass) )
-      sps = sort( unique( det$spec[ ims ] ) )
+      sps = sort( unique( det$spec_bio[ ims ] ) )
       mats = sort( unique( det$mat))
       sexes = sort( unique( det$sex))
 
       for (sp in sps) {
-        isp = which( det$spec == sp )
+        isp = which( det$spec_bio == sp )
         
         # first try exact matches based upon {spec, mat, sex}  
         for ( mat in mats ) {
@@ -300,7 +312,7 @@
 
       # last go -- try exact matches based upon {spec} only but less contrained by rquared
       for (sp in sps) {
-        isp = which( det$spec == sp )
+        isp = which( det$spec_bio == sp )
           u = which( is.na(det$mass ))
           w = intersect( isp , u )
           if (length(w) > 0) {
@@ -361,10 +373,10 @@
       oo = which ( !is.finite( cat$cfdet ) ) 
       
       for ( ds in unique( cat$data.source[oo] ) ) {
-        for ( sp in unique( cat$spec[oo]  )) {
+        for ( sp in unique( cat$spec_bio[oo]  )) {
           
-          mm = which( cat$data.source==ds & cat$spec==sp & (!is.finite( cat$cfdet ) |  cat$cfdet==0 ) ) 
-          nn = which( cat$data.source==ds & cat$spec==sp )
+          mm = which( cat$data.source==ds & cat$spec_bio==sp & (!is.finite( cat$cfdet ) |  cat$cfdet==0 ) ) 
+          nn = which( cat$data.source==ds & cat$spec_bio==sp )
           if ( length(mm)>0  & length(nn)>0  ) {
             cat$cfdet[ mm ] = median( cat$cfdet[nn] , na.rm=TRUE )  
           }
@@ -427,7 +439,7 @@
 
 
     	surveys = sort( unique( cat$data.source ) ) 
-      species = sort( unique( cat$spec ) )
+      species = sort( unique( cat$spec_bio ) )
 			
 			# in the following:	quantiles are computed, 
       cat$qn = NA  # default when no data
@@ -437,7 +449,7 @@
       for ( s in surveys ) {
         si = which( cat$data.source==s & cat$totno > 0 )
         for (sp in species ){
-          spi = which( cat$spec == sp )
+          spi = which( cat$spec_bio == sp )
           ii = intersect( si, spi )
           if (length( ii) > 0 ) {
 						cat$qn[ii] = quantile.estimate( cat$totno[ii]  )  # convert to quantiles, by species and survey
@@ -451,7 +463,7 @@
       for ( s in surveys ) {
         si = which( cat$data.source==s & cat$totmass > 0 )
         for (sp in species ){
-          spi = which( cat$spec == sp )
+          spi = which( cat$spec_bio == sp )
           ii = intersect( si, spi )
           if (length( ii) > 0 ) {
 						cat$qm[ii] = quantile.estimate( cat$totmass[ii]  )  # convert to quantiles, by species and survey	

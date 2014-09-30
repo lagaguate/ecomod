@@ -108,7 +108,7 @@
  
       # filter for species of interest 
       bc = habitatsuitability.db("initial.cat", p=p) # matches the id's in bs
-      bc = filter.taxa( x=bc, method=p$speciesofinterest )
+      bc = taxonomy.filter.taxa( bc$spec_bio, taxafilter=p$speciesofinterest )
       bc$hn = bc$totno
       bc$hm = bc$totmass
       bc$totmass = NULL
@@ -155,7 +155,7 @@
 
       # filter for species of interest 
       bd = habitatsuitability.db("initial.det", p=p) # matches the id's in bs
-      bd = filter.taxa( x=bd, method=p$speciesofinterest )
+      bd = taxonomy.filter.taxa( bd$spec_bio, taxafilte=p$speciesofinterest )
       bd = filter.biologicals ( bd, p$subset ) 
 
 

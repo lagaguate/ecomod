@@ -1,13 +1,15 @@
 
   itis.db = function( DS="itaxa", lnk=NULL, itis.kingdom=NULL ) {
     
-		datdir = file.path( project.directory("taxonomy"), "data" )
-    itis.dir = file.path( datdir, "itis" )
+		datdir = file.path( project.directory("taxonomy"), "data.locally.generated" )
+    itis.dir = file.path( project.directory("taxonomy"), "itis" )
+
+    dir.create( datdir, showWarnings = FALSE, recursive = TRUE )
 
     if (DS=="make.snapshot") {
       # unix-specific commands .. make more generic
       system( paste( "rm -rf", itis.dir ) )
-      dir.create( itis.dir, showWarnings=F, recursive=T )
+      dir.create( itis.dir, showWarnings = FALSE, recursive = TRUE )
       if (is.null(lnk)) lnk = "http://www.itis.gov/downloads/itisMySqlTables.tar.gz"
       fn = file.path( tempdir(), basename(lnk) ) 
       download.file( url=lnk, destfile=fn )

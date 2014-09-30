@@ -1,8 +1,8 @@
 
 
   itis.format = function( i, tsn, itaxa, tunits ) { 
-   
-		res = rep(NA, nrow(tunits)+5)
+
+		res = c( i, rep(NA, nrow(tunits)+5) )
 		if ( !is.finite( tsn[i] )) return (res)
 
     o = itis.traverse( tsn[i], itaxa )
@@ -28,11 +28,10 @@
    
     otj = setdiff( otj, real.na ) 
     ot$unit_name1[ otj ] = ""
-    res = c( ot$unit_name1, ot$vernacular[ ol ], ot$possible.error[ ol ], rank_id_lowest,
+    res = c( i, ot$unit_name1, ot$vernacular[ ol ], ot$possible.error[ ol ], rank_id_lowest,
 						 tunits$rank_name[which(tunits$rank_id==rank_id_lowest) ], tsn.hierarchy )
-    names(res) = c( ot$rank_name, "vernacular", "possible.error", "rank_id", "rank", "tsn.hierarchy")
+    names(res) = c( "rowindex", ot$rank_name, "vernacular", "possible.error", "rank_id", "rank", "tsn.hierarchy")
     return (res)
   }
 
   
-

@@ -342,12 +342,13 @@
       catvars =  c("trip", "set", "spec", "totno", "totmass")
 
 			# clean species codes ... this causes multiple entries for some species that need to be summed up
-      cat$spec =  taxa.specid.correct( cat$spec ) 
+      # cat$spec = taxonomy.parsimonious( spec=cat$spec )
+      # --- no longer here ... only when integrated into bio.db
 
       # remove data where species codes are ambiguous, or missing or non-living items
       xx = which( !is.finite( cat$spec) ) 
       if (length(xx)>0) cat = cat[ -xx, ] 
-      cat = cat[ filter.taxa( cat$spec, method="living.only" ) , ]
+      cat = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="living.only", outtype="groundfishcodes" ) , ]
 
 
       # update catch biomass/numbers due to altering of species id's
@@ -392,8 +393,10 @@
 
       snowcrab = merge(x=numbers, y=biomass, by=c("trip", "set"), all=T)
       snowcrab = snowcrab[ which( as.character(snowcrab$trip) != "-1") , ]
-			snowcrab$spec = taxa.specid.correct(2526)  # 2526 is the code used in the snow crab surveys .. convert to internally consistent state
-      
+			
+      # snowcrab$spec = taxonomy.parsimonious( spec=2526 )  # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
+      # longer here -- in bio db only
+
 			final = snowcrab[,names(x)]  # get the right sequence of variables
 			
 				# strip zeros when both  no and mass are 0
@@ -620,13 +623,13 @@
       X = snowcrab.db( DS="set.merge.det" )
       cat = snowcrab.db( DS="cat.initial" )
       
-      cat0 = cat[filter.taxa(x=cat$spec, method="snowcrab"), c(factors, "totno")]
+      cat0 = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="snowcrab", outtype="groundfishcodes"), c(factors, "totno")]
       names(cat0) = c(factors, "totno.all")
       X = merge(x=X, y=cat0, by=factors, all.x=T )
       X$totno.all   = X$totno.all   / X$sa
       X$totno.all[!is.finite(X$totno.all)] = 0  # convert na's to zero
 
-      cat0 = cat[filter.taxa(cat$spec, method="snowcrab"), c(factors, "totmass")]
+      cat0 = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="snowcrab", outtype="groundfishcodes" ), c(factors, "totmass")]
       names(cat0) = c(factors, "totmass.all")
       X = merge(x=X, y=cat0, by=factors, all.x=T )
       X$totmass.all = X$totmass.all / X$sa

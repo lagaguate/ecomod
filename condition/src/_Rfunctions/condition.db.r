@@ -39,12 +39,12 @@
       # match sets and other data sources
       det = bio.db( DS="det" ) # kg/km^2, no/km^2
       det = det[ which( det$id %in% unique( set$id) ), ]
-      det = det[, c("id", "spec", "residual", "cfdet" ) ]
+      det = det[, c("id", "spec_bio", "residual", "cfdet" ) ]
       
       # merge in taxa-specifc condition estimates ....
       sm = set[, c("id", "yr" )]  # # yr is a dummy variable so that sm remains a data frame
       for (tx in p$varstomodel ) {
-        ii = filter.taxa( det$spec, method=tx )
+        ii = taxonomy.filter.taxa( det$spec_bio, taxafilter=tx )
         if (is.null ( ii) ) {
           sm[,tx]= NA
           next()
