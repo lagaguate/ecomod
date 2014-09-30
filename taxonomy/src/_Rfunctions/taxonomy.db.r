@@ -3,7 +3,10 @@
   taxonomy.db = function( DS="complete", itis.taxa.lowest="species" ) {
       
     taxadir = project.directory( "taxonomy", "data" )
+    localdir = project.directory( "taxonomy", "data.locally.generated" )
+
     dir.create( taxadir, recursive=TRUE, showWarnings=FALSE )
+    dir.create( localdir, recursive=TRUE, showWarnings=FALSE )
 
     if ( DS == "gstaxa" ) return( taxonomy.db( "life.history") )  
 
@@ -35,7 +38,7 @@
 			# a partial lookup table exists and is maintained locally but then is added to using 
 			# text matching methods, which are a bit slow.
 
-      fn = file.path( taxadir, "lookup.groundfish.itis.rdata" )
+      fn = file.path( localdir, "lookup.groundfish.itis.rdata" )
       
       if ( DS =="groundfish.itis") {
         spi = NULL
@@ -225,7 +228,7 @@
       require ( parallel ) # simple parallel interface (using threads)
 		
       itis.taxa.lowest = tolower(itis.taxa.lowest)
-      fn = file.path( taxadir, paste("spcodes.full.taxonomy", itis.taxa.lowest, "rdata", sep=".") )
+      fn = file.path( localdir, paste("spcodes.full.taxonomy", itis.taxa.lowest, "rdata", sep=".") )
       
       if (DS=="full.taxonomy") {
         spf = NULL
@@ -303,7 +306,7 @@
 
     if (DS %in% c( "life.history", "life.history.redo") ) {
       
-      fn = file.path( taxadir, "spcodes.lifehistory.rdata") 
+      fn = file.path( localdir, "spcodes.lifehistory.rdata") 
       fn.local = file.path( taxadir, "groundfish.lifehistory.manually.maintained.csv") 
       
       if (DS == "life.history" ) {
@@ -366,7 +369,7 @@
     # ----------------------------------------------
 
     if ( DS %in% c("complete", "complete.redo") ) {
-		  fn = file.path( taxadir, "spcodes.complete.rdata") 
+		  fn = file.path( localdir, "spcodes.complete.rdata") 
   	  sps = NULL
 			if (DS == "complete" ) {
         if (file.exists(fn)) load(fn)
@@ -404,7 +407,7 @@
 
     if (DS %in% c( "parsimonious",  "parsimonious.redo" )) {
       
-      fn = file.path( taxadir, "spcodes.parsimonious.rdata" )
+      fn = file.path( localdir, "spcodes.parsimonious.rdata" )
      
       if ( DS =="parsimonious") {
  		    # determine the most parsimonious species list based upon know taxonomy/phylogeny and local species lists 
