@@ -51,7 +51,7 @@ require(chron)
     set = merge(x=set, y=gshyd, by=c("id"), all.x=T, all.y=F, sort=F) 
     rm (gshyd)
 
-    gstaxa = taxa.db( "gstaxa") 
+    gstaxa = taxonomy.db( "gstaxa") 
     set = merge(x=set, y=gstaxa, by=c("spec"), all.x=T, all.y=F, sort=F) 
     rm (gstaxa)
 

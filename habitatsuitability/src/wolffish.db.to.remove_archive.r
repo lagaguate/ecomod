@@ -162,7 +162,7 @@
       # loaded by initialize.local.environment above
       # p = parameter.list.snowcrab ( current.assessment.year=current.assessment.year, set="default")
      
-      tx = taxa.db( "complete" )
+      tx = taxonomy.db( "complete" )
       txi = tx[ grep( "ATLANTIC WOLFFISH",  tx$name.common, ignore.case=T ) ,]
 
       wf = snowcrab.db ( DS="cat.georeferenced" ) 

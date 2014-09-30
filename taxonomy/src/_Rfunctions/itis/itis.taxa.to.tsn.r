@@ -1,7 +1,7 @@
 
 
   itis.taxa.to.tsn = function( tx, itaxa=itis.db( "itaxa" ) ) {
-   
+    # merge taxa to itis using all possible avenues, including partial matches
     out = NA
 
     txs = unlist( strsplit( tolower( tx), "[[:space:]]+" ) )

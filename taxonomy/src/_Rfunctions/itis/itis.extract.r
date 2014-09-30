@@ -1,11 +1,11 @@
 
 
-  itis.extract = function( tsn, itaxa ) {
+  itis.extract = function( tsn, itaxa = itis.db( "itaxa" ) ) {
     
     tx.good = NULL
 
     ti = which( itaxa$tsn == tsn )
-    if (length( ti) == 0 ) return(NA)
+    if (length( ti) != 1 ) return(NA)
     
     tx = itaxa[ ti ,]
     

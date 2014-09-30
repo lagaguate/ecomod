@@ -6,7 +6,7 @@
       loadfunctions( "groundfish", functionname="load.groundfish.environment.r" )
 
       ct = groundfish.db( "det" )
-      ct = filter.taxa( x=ct, method="snowcrab")
+      ct = taxonomy.filter.taxa( ct$spec, taxafilter="snowcrab", outtype="groundfishcodes" )
      
       imale = which( ct$sex==1 )
       ifemale = which( ct$sex==2 )

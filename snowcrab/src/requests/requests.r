@@ -641,8 +641,9 @@ loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
   
 Y = snowcrab.db( DS="cat.georeferenced" )
-
-lookup.spec2taxa(lookup.taxa2spec("wolffish"))
+spec = taxonomy.recode( from="taxa", to="spec", tolookup="wolffish")
+taxonomy.recode( from="spec", to="taxa", tolookup=spec )
+                 
 spec = c(50, 51, 52)
 
 Y = Y[ which( Y$spec %in% spec & Y$yr %in% c(2009:2011) ) , ]

@@ -57,7 +57,7 @@
   length( unique(bio$sp$spec) )
 
   # breakdown by large taxonomic groups
-  tx = taxa.db("complete")  # contains a cleaned list of all taxa found in region
+  tx = taxonomy.db("complete")  # contains a cleaned list of all taxa found in region
   sc$sp = merge( sc$sp, tx, by="spec", all.x=T, all.y=F, sort=F )
   gf$sp = merge( gf$sp, tx, by="spec", all.x=T, all.y=F, sort=F )
   bio$sp = merge( bio$sp, tx, by="spec", all.x=T, all.y=F, sort=F )

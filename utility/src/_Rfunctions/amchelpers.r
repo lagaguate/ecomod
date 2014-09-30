@@ -1,10 +1,10 @@
 #custom functions to read in
 #source('C:\\Users\\CookA\\Desktop\\Scripts\\amc helpers.R')
 #--
-<<<<<<< HEAD
-=======
+#<<<<<<< HEAD
+#=======
 require(RODBC)
->>>>>>> develop
+#>>>>>>> develop
 # improved list of objects
 .ls.objects <- function (pos = 1, pattern, order.by,
                         decreasing=FALSE, head=FALSE, n=5) {

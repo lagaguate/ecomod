@@ -1,64 +1,52 @@
 
 
-  taxa.db = function( DS="complete", itis.taxa.lowest="species", find.parsimonious.spec=TRUE, res=NULL ) {
+  taxonomy.db = function( DS="complete", itis.taxa.lowest="species" ) {
       
     taxadir = project.directory( "taxonomy", "data" )
     dir.create( taxadir, recursive=TRUE, showWarnings=FALSE )
 
-    if ( DS == "gstaxa" ) return( taxa.db( "life.history") )  
+    if ( DS == "gstaxa" ) return( taxonomy.db( "life.history") )  
 
     if ( DS %in% c("spcodes", "spcodes.redo"  ) ) {
-      
+      # this is just a synonym for the groundfish data dump : 
       if ( DS == "spcodes" ) {
         spcodes = groundfish.db( DS="spcodes.odbc" ) 
         return( spcodes )
       }
       
       groundfish.db( DS="spcodes.odbc.redo" ) 
-      return ( fn )
+      return ( "Complete" )
     }
 
 
-    if ( DS %in% c("gscat.update" ) ) {
+   
+    # ------------------------------
+
+
+ 
+    if (DS %in% c("groundfish.itis.redo", "groundfish.itis" )) {
       
-      fn = file.path( taxadir, "taxa.gscat.update.rdata" )
-      if ( is.null(res) ) {
-        if (file.exists(fn) ) load(fn)
-        return( res )
-      }
-
-      save( res, file=fn, compress=T)
-      return ( fn )
-    }
-
-    
-
-    if (DS %in% c("spcodes.itis", "spcodes.itis.redo", "spcodes.itis.parsimonious" )) {
-      
-			print( "" )
-			print( "Warning:: spec = bio species codes -- use this to match data but not analysis" )
-			print( "          spec.clean = manually updated codes to use for taxonomic work in gstaxa_taxonomy.csv" )
+			print( "Warning:  ")
+      print( "  spec = bio species codes -- use this to match data but not analysis" )
+			print( "  spec.clean = manually updated codes to use for taxonomic work in groundfish.itis.lookuptable.manually.maintained.csv" )
 			print( "" )
 			
 			# add itis tsn's to spcodes -- this completes the lookup table
 			# a partial lookup table exists and is maintained locally but then is added to using 
 			# text matching methods, which are a bit slow.
 
-      fn = file.path( taxadir, "spcodes.itis.rdata" )
-      fnp = file.path( taxadir, "spcodes.itis.parsimonious.rdata" )
+      fn = file.path( taxadir, "lookup.groundfish.itis.rdata" )
       
-      if ( DS =="spcodes.itis") {
-        load(fn)
+      if ( DS =="groundfish.itis") {
+        spi = NULL
+        if (file.exists(fn)) load(fn)
         return (spi)
       }
       
-      if ( DS =="spcodes.itis.parsimonious") {
-        load(fnp)
-        return (spi)
-      }
-     
+			print( "Merging ITIS and Groundfish species codes using taxa or vernacular names ...")
       
-      spi = taxa.db( DS="spcodes" )  # load groundfish table
+      # load groundfish species codes 
+      spi = taxonomy.db( DS="spcodes" )  
       names(spi) = tolower( names(spi) )
       
       spi$name.common = as.character( spi$comm )
@@ -71,10 +59,11 @@
 			# these have been manually verified: http://www.itis.gov/servlet/SingleRpt/SingleRpt
 			# these also help speed up the lookup through itis as that is slow
 			print( "Updating from manually verified tsn/spec codes:")
-			print( "maintained in file: gstaxa_taxonomy.csv -- must be'|' delimited and 'quotes used for export' " )
+			print( "maintained in file: groundfish.itis.lookuptable.manually.maintained.csv" ) 
+      print( "      -- must be'|' delimited and 'quotes used for export' " )
 			print( "### New additions can be placed here too " )
 			
-			fn.local.taxa.lookup = file.path( taxadir, "gstaxa_taxonomy.csv" )
+			fn.local.taxa.lookup = file.path( taxadir, "groundfish.itis.lookuptable.manually.maintained.csv" )
 			tx.local = read.csv( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T, fill=T) 
 			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "name.common.bio", "comments" )]
       
@@ -86,7 +75,7 @@
       tx.local = tx.local[ which( is.finite( tx.local$spec ) ) ,]
 			it = which( duplicated( tx.local$spec))
 			if (length(it)>0) {
-				print ( "Warning: Duplicated spec codes found in gstaxa_taxonomy.csv")
+				print ( "Warning: Duplicated spec codes found in groundfish.itis.lookuptable.manually.maintained.csv")
 				print ( tx.local[ which(tx.local$spec %in% unique(tx.local$spec[it]) ), ])
 				tx.local = tx.local[ -it, ]
 			}
@@ -105,7 +94,7 @@
       spi$flag = ""
 
 
-      # items to drop identified in gstaxa_taxonomy.csv 
+      # items to drop identified in groundfish.itis.lookuptable.manually.maintained.csv 
 			# mark items to not be looked up
 			ib = which( spi$itis.tsn == -1  )
 			if (length (ib)>0 ) {
@@ -120,9 +109,9 @@
 
 
       # check for keywords that flag that no lookup is necessary
-      spi = taxonomy.flag.keywords( spi, "name.scientific" )
-      spi = taxonomy.flag.keywords( spi, "name.common" )
-      spi = taxonomy.flag.keywords( spi, "name.common.bio" )
+      spi = taxonomy.keywords.flag( spi, "name.scientific" )
+      spi = taxonomy.keywords.flag( spi, "name.common" )
+      spi = taxonomy.keywords.flag( spi, "name.common.bio" )
 
       # remove words with punctuation
       spi = taxonomy.keywords.remove( spi, "name.scientific", withpunctuation=T )
@@ -135,85 +124,56 @@
       spi = taxonomy.keywords.remove( spi, "name.common.bio", withpunctuation=F )
 
       # final formatting of names
-      spi$name.scientific = strip.unnecessary.characters(spi$name.scientific)
-      spi$name.common = strip.unnecessary.characters(spi$name.common)
-      spi$name.common.bio = strip.unnecessary.characters(spi$name.common.bio)
+      spi$name.scientific = taxonomy.strip.unnecessary.characters(spi$name.scientific)
+      spi$name.common = taxonomy.strip.unnecessary.characters(spi$name.common)
+      spi$name.common.bio = taxonomy.strip.unnecessary.characters(spi$name.common.bio)
 
    
 
+      # link itis with groundfish species codes using an exhaustive search of all taxa names
       vnames = c( "name.scientific", "name.scientific", "name.common", "name.common.bio" )
       vtypes = c( "default", "vernacular", "vernacular", "default" )
-
-      spi = itis.lookup.exhaustive.search( spi, vnames, vtypes )
-
-       
-      add.local.database.gscat = TRUE 
-      if (add.local.database.gscat) {
-
-        print("these additions will lag behind by a year unless a second update of gscat is performed" )
-        print("after running taxa.db( DS='spcodes.itis.redo')" )
-
-        res = taxa.db( DS="gscat.update" )  # created in groundfish.db( DS="gscat.redo"), ie. rerun this to update this snapshot
-        oo = which( !duplicated( res$spec ) & res$tolookup )
-        if (length(oo) >0 ) {
-          res = res[ oo ,]
-          nspi = names( spi)
-          res$itis.tsn_manually_maintained = res$itis.tsn
-          res$comments = "updated from gscat"
-          res$name.common.bio = res$name.scientific = res$name.common = res$taxa
-          res$spec.clean = NA
-          spi = rbind( spi, res[, names(spi) ] )
-          spi$todrop = FALSE
-
-          pp = which( duplicated( spi$spec ) )
-          if (length( pp) > 0 ) {
-            for ( ip in pp ) {
-              iip = which( spi$spec == spi$spec[ip] )
-              if (length(iip) > 1) {
-                print (spi[ iip, ] )
-                tokeep = which( is.finite( spi$spec.clean[iip] ) | !is.finite(spi$itis.tsn_manually_maintained[iip]) )
-                if ( length( tokeep)==1) {
-                  print( "Keeping: ")
-                  print( spi [ iip [tokeep] , ] )
-                  spi$todrop[ iip[-tokeep] ] = TRUE
-                } else {
-                  print ("Keeping: First evaluation")
-                  spi$todrop[ iip[ setdiff( 1:length(iip), 1) ] ] = TRUE
-                }
-              }
-            }
-          }
-          todrop = which( spi$todrop )
-          if (length(todrop) > 0 ) spi = spi[ -todrop, ]
-        }
-      }
-      spi$todrop = NULL
+      spi = itis.lookup.exhaustive.search( spi, vnames, vtypes )  
 
 
       # fill in missing names, etc
       i = which(is.na( spi$name.scientific))
-      if (length(i) > 0 ) spi$name.scientific[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="sci" )
-
+      if (length(i) > 0 ) {
+        oo = taxonomy.recode( from="tsn", to="sci", tolookup=spi$itis.tsn[i] )
+        if (length(oo) == length(i)) spi$name.scientific[i] = oo
+      }
       
       i = which(is.na( spi$name.common))
-      if (length(i) > 0 ) spi$name.common[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="tx" )
-        # have to do it again and fill with scientific name if missing
-        i = which(is.na( spi$name.common))
-        if (length(i) > 0 ) spi$name.common[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="sci" )
+      if (length(i) > 0 ) {
+        oo = taxonomy.recode( from="tsn", to="tx", tolookup=spi$itis.tsn[i] )
+        if (length(oo) == length(i)) spi$name.common[i] = oo        
+      }
 
-
+      # have to do it again and fill with scientific name if missing
+      i = which(is.na( spi$name.common))
+      if (length(i) > 0 ) {
+        oo = taxonomy.recode( from="tsn", to="sci", tolookup=spi$itis.tsn[i] )
+        if (length(oo) == length(i)) spi$name.common[i] = oo
+      }
+    
       i = which(is.na( spi$name.common.bio))
-      if (length(i) > 0 ) spi$name.common.bio[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="tx" )
-        # have to do it again and fill with scientific name if missing
-        i = which(is.na( spi$name.common.bio))
-        if (length(i) > 0 ) spi$name.common.bio[i] = lookup.tsn2taxa( tsn=spi$itis.tsn[i], vn="sci" )
+      if (length(i) > 0 ) {
+        oo = taxonomy.recode( from="tsn", to="tx", tolookup=spi$itis.tsn[i] )
+        if (length(oo) == length(i)) spi$name.common.bio[i] = oo
+      }
 
-
+      # have to do it again and fill with scientific name if missing
+      i = which(is.na( spi$name.common.bio))
+      if (length(i) > 0 ) {
+        oo = taxonomy.recode( from="tsn", to="sci", tolookup=spi$itis.tsn[i] )
+        if (length(oo) == length(i)) spi$name.common.bio[i] = oo
+      }
 
   		# make sure the remainder of missing spec.clean points to spec
 			i = which( !is.finite(spi$spec.clean) )
-			if (length(i)>0) spi$spec.clean[i] = spi$spec[i]
-    
+			if (length(i)>0) {
+        spi$spec.clean[i] = spi$spec[i]
+      }
       
       # now that tsn lookup's have been completed, it is necessary to update 
       # the tsn's to reflect any manually determined spec.clean from tx.local
@@ -242,7 +202,8 @@
 				print( "The following have no itis tsn matches ")
 				print( "for now, assuming their spec id's are OK" )
 				print( "Their tsn's should be manually identified and updated in the local updates file:" )
-				print( "gstaxa_taxonomy.csv -- see spcodes.itis.redo, above .. these are stored in with '|' as delimiter " ) 
+				print( "groundfish.itis.lookuptable.manually.maintained.csv")
+        print( "  -- see groundfish.itis.redo, above .. these are stored in with '|' as delimiter " ) 
 				print( spi[i,] )
 				fn2 = file.path( taxadir, "spcodes.no.itis.matches.csv" )
 				print (fn2 )
@@ -251,23 +212,9 @@
 
       save( spi, file=fn, compress=T )
 
-			# find.parsimonious.spec = T
-			if (find.parsimonious.spec) {
-				ii = which( spi$tolookup )
-        # find most parsimonious list of species and place into spec.clean
-				spi$spec.parsimonius[ii] = taxa.specid.correct( spi$spec[ii] )
-				psm = which(spi$spec.parsimonius != spi$spec.clean )
-				if (length(psm)>0) spi$spec.clean[psm] = spi$spec.parsimonius[psm]
-
-				spi$spec.parsimonius2[ii] = taxa.specid.correct( spi$spec.clean[ii] )
-				psm2 = which(spi$spec.parsimonius2 != spi$spec.clean)
-				if (length(psm2)>0) spi$spec.clean[psm2] = spi$spec.parsimonius2[psm2]
-			  
-        save( spi, file=fnp, compress=T )
-			}
-
       return ( fn )
-    }
+    } 
+
 
     # ------------------
 
@@ -275,17 +222,18 @@
       
       # add full taxonomic hierarchy to spcodes database .. 
 	
-      require ( multicore ) # simple parallel interface (using threads)
+      require ( parallel ) # simple parallel interface (using threads)
 		
       itis.taxa.lowest = tolower(itis.taxa.lowest)
-      fn = file.path( taxadir, paste("spcodes", itis.taxa.lowest, "rdata", sep=".") )
+      fn = file.path( taxadir, paste("spcodes.full.taxonomy", itis.taxa.lowest, "rdata", sep=".") )
       
       if (DS=="full.taxonomy") {
-        load(fn)
+        spf = NULL
+        if (file.exists(fn)) load(fn)
         return(spf)
       }
 
-      spf = taxa.db( "spcodes.itis" )
+      spf = taxonomy.db( DS="groundfish.itis" )
       itaxa = itis.db( "itaxa" )
       tunits =  itis.db( "taxon.unit.types" )
       kingdom =  itis.db( "kingdoms" )
@@ -321,26 +269,46 @@
 					out[i,] = o
 				}
 			}
+     
+      print( "Extracting full taxonomy" ) 
+      res = list()
+      for (i in 1:nrow(spf) ) {
+        print(i)
+        res[[i]] = itis.format( i=i, tsn=spf$itis.tsn, itaxa=itaxa, tunits=tunits )
+      }
 
-			res = mclapply( 1:nrow(spf), itis.format, tsn=spf$itis.tsn, itaxa=itaxa, tunits=tunits )
-      res = unlist( res) 
+      res = unlist( res)
       res = as.data.frame( matrix( res, nrow=nrow(spf), ncol=length(formatted.names), byrow=T ), stringsAsFactors=F )
       colnames(res) = tolower(formatted.names)
+      res = res[order(res$rowindex ) ,]
+
+      # mclapply method
+			# res = mclapply( 1:nrow(spf), itis.format, tsn=spf$itis.tsn, itaxa=itaxa, tunits=tunits )
+      # res = unlist( res) 
+      # res = as.data.frame( matrix( res, nrow=nrow(spf), ncol=length(formatted.names), byrow=T ), stringsAsFactors=F )
+      # colnames(res) = tolower(formatted.names)
 
       spf = cbind( spf, res )
+      spf$rowindex = NULL
 
       save( spf, file=fn, compress=T )
       return ( fn )
     
     }
+  
+    
+    
+    # ------------------
+
 
     if (DS %in% c( "life.history", "life.history.redo") ) {
       
       fn = file.path( taxadir, "spcodes.lifehistory.rdata") 
-      fn.local = file.path( taxadir, "gstaxa_working.csv") 
+      fn.local = file.path( taxadir, "groundfish.lifehistory.manually.maintained.csv") 
       
       if (DS == "life.history" ) {
-        load(fn)
+        sps = NULL
+        if (file.exists(fn)) load(fn)
         return(sps)
       }
 
@@ -357,7 +325,7 @@
 
       itis.taxa.lowest = tolower(itis.taxa.lowest)
 
-      sps = taxa.db( DS="full.taxonomy", itis.taxa.lowest="species" )
+      sps = taxonomy.db( DS="full.taxonomy", itis.taxa.lowest="species" )
       sps = merge( sps, lifehist, by="spec", all.x=T, all.y=T, sort=F) 
       
       sps$rank_id = as.numeric(  sps$rank_id  )
@@ -407,10 +375,7 @@
 
 			sp = NULL
 
-			tx = taxa.db("life.history")
-			# tx = tx[, c("spec", "spec.clean", "itis.tsn", "rank", "rank_id", "tsn.hierarchy")]  
-			# spec.clean contains manually updated spec id's
-			# this routine will update these by starting with the itis tsn hierarchy
+			tx = taxonomy.db("life.history")
 		
 			spec = sort( unique( tx$spec) )
 
@@ -429,70 +394,55 @@
   			by.x="itis.tsn", by.y="id", all.x=T, all.y=F) 
 	  
 			save (sps, file=fn, compress=T)
-			return (fn)
+			return ( fn )
 		} 
 		
 
     # ----------------------------------------------
-    
-    if (DS %in% c( "itis.oracle", "itis.oracle.redo" ) ) {
+ 
+
+
+    if (DS %in% c( "parsimonious",  "parsimonious.redo" )) {
       
-      ### NOT USED ??? TO DELETE ?
-      
-      fn.itis = file.path( taxadir, "itis.oracle.rdata" )
-      if (DS=="itis.oracle" ) {  
-        load( fn.itis )
-        return (itis)
+      fn = file.path( taxadir, "spcodes.parsimonious.rdata" )
+     
+      if ( DS =="parsimonious") {
+ 		    # determine the most parsimonious species list based upon know taxonomy/phylogeny and local species lists 
+  	    spi = NULL
+        if (file.exists(fn)) load(fn)
+        return(spi)
       }
-      itis.groundfish = taxa.db( "itis.groundfish.redo" )
-      itis.observer = taxa.db( "itis.observer.redo" )
-      toextract = colnames( itis.observer)  # remove a few unuses vars
-      itis = rbind( itis.groundfish[,toextract] , itis.observer[,toextract] )
-      ii = duplicates.toremove( itis$given_spec_code )
-      itis = itis[ -ii, ]
-      save(itis, file=fn.itis, compress=T)
-      return (itis)
-    }
-    
-    if (DS %in% c( "itis.groundfish", "itis.groundfish.redo" ) ) {
       
+      # load groundfish species codes 
+      spi = taxonomy.db("complete")
+      spi$spec.parsimonious = spi$spec.clean  # initialize with current best codes which are found in spec.clean
+
+      ranks = sort( unique( spi$rank_id ),decreasing=T )
+      ranks = setdiff( ranks, 220 )  # 220 is the lowest level of discrimination (species)
       
-      ### NOT USED ??? TO DELETE ?
-      
-      fn.itis = file.path( taxadir, "itis.groundfish.rdata" )
-      if (DS=="itis.groundfish" ) {  
-        load( fn.itis )
-        return (itis)
+      # search for single children and a parent, recode parent to child
+      for ( r in ranks ) {
+        oo = which( spi$rank_id == r )
+        for ( o in oo ) {
+          if ( is.finite(spi$children.n[o]) && spi$children.n[o] == 1) {
+            # only child --> recode this spec to child's spec 
+            newspec = which( spi$itis.tsn == spi$children[o] ) # multiple matches likely as this is a recursive process -- pick lowest taxa level == highest rank_id
+            if (length( newspec) == 0 ) next()
+            if (!is.finite( spi$rank_id[newspec] ) ) next()
+            nsp = newspec[which.max( spi$rank_id[newspec] )]
+            if ( o==nsp ) next()
+            spi$spec.parsimonious[o] = spi$spec.parsimonious[nsp]
+            spi$children[o] = spi$children[nsp]
+            spi$children.n[o] = spi$children.n[nsp]
+            print( paste(  "Updating species list::", spi$spec.parsimonious[o], spi$sci[o], "->", spi$spec.parsimonious[nsp], spi$sci[nsp] ) )
+          }
+        }
       }
-      require(RODBC)
-      connect=odbcConnect( oracle.taxonomy.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
-      itis = sqlQuery(connect, "select * from groundfish.itis_gs_taxon")
-      odbcClose(connect)
-      names(itis) =  tolower( names( itis ) )
-      for (i in names(itis) ) itis[,i] = as.character( itis[,i] )
-      save(itis, file=fn.itis, compress=T)
-      return (itis)
-    }
-    
-    if (DS %in% c( "itis.observer", "itis.observer.redo" ) ) {
       
-      
-      ### NOT USED ??? TO DELETE ?
-      
-      fn.itis = file.path( taxadir, "itis.observer.rdata" )
-      if (DS=="itis.observer" ) {  
-        load( fn.itis )
-        return (itis)
-      }
-      require(RODBC)
-      connect=odbcConnect( oracle.taxonomy.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
-      itis = sqlQuery(connect, "select * from observer.itis_isdb_species")
-      odbcClose(connect)
-      names(itis) =  tolower( names( itis ) )
-      for (i in names(itis) ) itis[,i] = as.character( itis[,i] )
-      save(itis, file=fn.itis, compress=T)
-      return (itis)
-    }
+      save( spi, file=fn, compress=T )
+
+      return ( fn )
+    } 
 
   }
 

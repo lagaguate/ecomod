@@ -1,4 +1,4 @@
-  taxonomy.flag.keywords = function( X, vname, wds=NULL ) {
+  taxonomy.keywords.flag = function( X, vname, wds=NULL ) {
     #  words to use to flag as not needing a tsn lookup
     if (is.null(wds)) { wds = c( 
       "eggs", "egg", "reserved",  "remains", "debris", "remains", "stones", "mucus", 

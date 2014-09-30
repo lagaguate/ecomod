@@ -40,17 +40,21 @@
     # --- for import of data year only
   
   groundfish.db( DS="odbc.redo", datayrs=odbc.data.yrs )  
-  
+    spcodes = groundfish.db( DS="spcodes.odbc.redo" )
  
+
+
   groundfish.db( DS="gscat.redo" )
     refresh.bio.species.codes = F
     if (refresh.bio.species.codes ) {
+        
+      
       # the folowing is copied from taxaonomy/src/taxonomy.r
       # refresh BIO's species codes from Oracle 
-      taxa.db( "spcodes.itis.redo" )  # new identitfication that have not yet moved into the official taxa databases added here
-      taxa.db( "full.taxonomy.redo" ) 
-      taxa.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.xls )
-      tx = taxa.db( "complete" )
+      taxonomy.db( "groundfish.itis.redo" )  # new identitfication that have not yet moved into the official taxa databases added here
+      taxonomy.db( "full.taxonomy.redo" ) 
+      taxonomy.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.xls )
+      # tx = taxonomy.db( "complete" )
     }
 
   groundfish.db( DS="gsdet.redo" )

@@ -18,17 +18,17 @@
         return (ss )
       }
 
-      x =  groundfish.db( "det" )  # mass and length are not transformed
+      x =  bio.db( "det" )  # mass and length are not transformed
+      x = x[ which( x$data.source=="groundfish"), ]
+
       # x = x[ which(x$settype %in% c(1,2,5) ), ]
       # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage),
       #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment,
       #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
    
-      x$spec = taxa.specid.correct( x$spec )
+       for (tx in p$nss.taxa) {
 
-      for (tx in p$nss.taxa) {
-
-        i.tx = filter.taxa( x=x$spec, method=tx)
+        i.tx = taxonomy.filter.taxa( x$spec_bio, taxafilter=tx)
         if ( is.null(i.tx) || length(i.tx) < 30) next()
         XX = x[ i.tx, ]
         rm( i.tx ); gc()

@@ -115,24 +115,11 @@
       gscat = groundfish.db( DS="gscat.odbc" )
       gscat$year = NULL
 
-      # update taxa codes to a clean state:
-      spec.pass1 = taxa.specid.correct( gscat$spec ) 
-      oo = which( !is.finite(spec.pass1) ) 
- 
-      if (length(oo) > 0 ) {
-        res = lookup.taxa2tsn2spec( taxa=gscat$remarks[oo] )
-        gscat$spec[oo] = res$spec
-        taxa.db( DS="gscat.update", res=res )  # this saves a local copy of the "res" file which can then be used to update the specieslist 
-      }
-
-      gscat$spec = taxa.specid.correct( gscat$spec ) 
-
-      
       # remove data where species codes are ambiguous, or missing or non-living items
       xx = which( !is.finite( gscat$spec) ) 
       if (length(xx)>0) gscat = gscat[ -xx, ] 
 
-      gscat = gscat[ filter.taxa( gscat$spec, method="living.only" ) , ]
+      gscat = gscat[ taxonomy.filter.taxa( gscat$spec, taxafilter="living.only", outtype="groundfishcodes" ) , ]
 
       min.number.observations.required = 3
       species.counts = as.data.frame( table( gscat$spec) )
@@ -289,13 +276,12 @@
 
       gsdet = groundfish.db( DS="gsdet.odbc" )
       gsdet$year = NULL
-             
-      gsdet$spec = taxa.specid.correct( gsdet$spec ) 
+
       oo = which(!is.finite(gsdet$spec) )
       if (length(oo)>0) gsdet = gsdet[-oo,]
       
       # remove data where species codes are ambiguous, or missing or non-living items
-      gsdet = gsdet[ filter.taxa( gsdet$spec, method="living.only" ) , ]
+      gsdet = gsdet[ taxonomy.filter.taxa( gsdet$spec, taxafilter="living.only", outtype="groundfishcodes" ) , ]
 
 
       gsdet$id = paste(gsdet$mission, gsdet$setno, sep=".")
@@ -641,12 +627,12 @@
       cat = merge(x=gscat, y=set, by=c("id"), all.x=T, all.y=F, sort=F) 
       rm (gscat, set)     
    
-      gstaxa = taxa.db( "life.history" ) 
+      gstaxa = taxonomy.db( "life.history" ) 
       gstaxa = gstaxa[,c("spec", "name.common", "name.scientific", "itis.tsn" )]
       oo = which( duplicated( gstaxa$spec ) )
       if (length( oo) > 0 ) {
         gstaxa = gstaxa[ -oo , ]  # arbitrarily drop subsequent matches
-        print( "NOTE -- Duplicated species codes in taxa.db(life.history) ... need to fix taxa.db, dropping for now " )
+        print( "NOTE -- Duplicated species codes in taxonomy.db(life.history) ... need to fix taxonomy.db, dropping for now " )
       }
 
       cat = merge(x=cat, y=gstaxa, by=c("spec"), all.x=T, all.y=F, sort=F) 
@@ -829,7 +815,7 @@
       rm(cat); gc()
       for (tx in taxa) {
         print(tx)
-        i = filter.taxa( x=cat0$spec, method=tx )
+        i = taxonomy.filter.taxa( cat0$spec, taxafilter=tx, outtype="groundfishcodes" )
         cat = cat0[i,]
         index = list(id=cat$id)
         qtotno = tapply(X=cat$totno, INDEX=index, FUN=sum, na.rm=T)
@@ -884,7 +870,7 @@
       for (tx in taxa) {
         print(tx)
         if (tx %in% c("northernshrimp") ) next
-        i = filter.taxa( x=det0$spec, method=tx  )
+        i = taxonomy.filter.taxa( det0$spec, taxafilter=tx, outtype="groundfishcodes"  )
         det = det0[i,]
         index = list(id=det$id)
         

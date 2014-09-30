@@ -1,63 +1,56 @@
 
 
-  
-  require ( multicore ) # simple parallel interface (using threads) .. does not work well in MSWindows?
+  # taxonomy.db contains taxa/species codes that are internally (ecomod) consistent and parsimonious 
+ 
+  # require ( multicore ) # simple parallel interface (using threads) .. does not work well in MSWindows?
  	
   loadfunctions( c("groundfish", "utility", "taxonomy") ) 
  
 
-
   refresh.itis.tables = FALSE
   if ( refresh.itis.tables ) {
     itis.db( "make.snapshot", lnk="http://www.itis.gov/downloads/itisMySQLTables.tar.gz") 
-    itis.db( "main.redo")     # merge data and handle duplicates
+    itis.db( "main.redo")     # assemble all itis tables into a coherent and usable form  
   }
 
 
-  refresh.bio.species.codes = TRUE
-  if ( refresh.bio.species.codes ) {
+  bootstrap.new.data.system = FALSE  
+  if ( bootstrap.new.data.system) {
+      
+    # first. refresh BIO's species codes from Oracle -- done also from groundfish update
+    taxonomy.db( "spcodes.odbc.redo" )  
     
-    taxa.db( "spcodes.odbc.redo" ) # refresh BIO's species codes from Oracle -- done also from groundfish update
-    groundfish.db( DS="gscat" ) # creates intermediate files to update species list
-		# merge in itis taxonomy tsn's ... use parallel=F to debug
-    taxa.db( "spcodes.itis.redo" )  
-    
-    # merge full taxonomic hierrachy (limit to animalia and resolved to species)
-    taxa.db( "full.taxonomy.redo" ) 
-    taxa.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.csv )
-    taxa.db( "complete.redo" )
-		
-		specieslist.parsimony("default.redo")  # update lookups
-		
- 
-    # not used (.. delete? .. yes )
-    # itis.groundfish = taxa.db( "itis.groundfish.redo" )
-    # itis.observer = taxa.db( "itis.observer.redo" )
-   
+    # bootstrap an initial set of tables .. these will be incomplete as a parsimonious tree needs to be created first but it depends upon the last file created taxonomy.db("complete") .. so ...
+    taxonomy.db( "groundfish.itis.redo" )  ## link itis with groundfish tables using taxa names, vernacular, etc
+    taxonomy.db( "full.taxonomy.redo" )  # merge full taxonomic hierrachy (limit to animalia and resolved to species)
+		## taxonomy.db( "parsimonious.redo" )  # (re)create lookups from old codes to a parsimonious species list
+    taxonomy.db( "life.history.redo" ) # add life history data (locally maintained in groundfish.lifehistory.manually.maintained.csv )
+    taxonomy.db( "complete.redo" )
+    taxonomy.db( "parsimonious.redo" ) 
   }
 
 
-  run.examples= FALSE
-  if (run.examples) {
+  example.usage = FALSE
+  if (example.usage) {
 
     # -------------------------------
     # example usage to extract TSN's
 		
 		tx="Microgadus tomcod"
 			
-			lookup.taxa2spec (tx) # lookup only from local taxa db
-			lookup.taxa2id (tx)  # look up species id from both itis and local taxa.db
+			taxonomy.recode( from="taxa.fast", tolookup=tx) # lookup only from local taxonomy db
+			taxonomy.recode( from="taxa", tolookup=tx ) # look up species id from both itis and local taxonomy.db
 			itis.taxa.to.tsn( tx) # look up only from itis
 
-			o = lookup.taxa2id (tx)
+			o = taxonomy.recode( from="taxa", tolookup=tx )
 				o
-				lookup.spec2taxa( o[[1]]$spec ) 
-				lookup.tsn2taxa( o[[1]]$tsn ) 
-				itis.extract( o[[1]]$tsn[1], taxa)
+				taxonomy.recode( from="spec", tolookup=o[[1]]$spec ) 
+				taxonomy.recode( from="tsn", to="taxa", tolookup= o[[1]]$tsn ) 
+				itis.extract( o[[1]]$tsn[1], itis.db( "itaxa" ))
 
 
-		lookup.spec2taxa( c(10, 20) )  # look up species names
-		
+		taxonomy.recode( from="spec", tolookup=c(10,20) ) 
+				
 		itaxa = itis.db( "itaxa" ) 
     
 		tx = "Microgadus tomcod"
@@ -65,7 +58,7 @@
     
     tx = "ling"
 			txids = itis.vernacular.to.tsn( tx=tx, itaxa=itaxa )
-      lookup.tsn2taxa(txids) 
+      taxonomy.recode( from="tsn", to="taxa", tolookup=txids ) 
 
     # ITIS data from tsn's
     tsn = c(164714:164780)

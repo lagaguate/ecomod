@@ -16,7 +16,7 @@
     sdtech = stomach.db( "sdtech.redo" )
   }
   
-  tx = taxa.db("gstaxa")
+  tx = taxonomy.db("gstaxa")
   
   sddet = stomach.db( "sddet" )
   sdinf = stomach.db( "sdinf" )

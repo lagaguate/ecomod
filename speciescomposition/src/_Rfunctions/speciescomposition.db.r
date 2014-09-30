@@ -44,8 +44,8 @@
       set = set[igood, ]
  
       # filter species 
-      # sc$spec = taxa.specid.correct( sc$spec )
-      isc = filter.taxa( sc$spec, method=p$taxa )
+      # sc$spec = taxonomy.parsimonious( spec=sc$spec )
+      isc = taxonomy.filter.taxa( sc$spec_bio, taxafilter=p$taxa, outtype="internalcodes" )
       set = set[ which( set$id %in% unique( sc$id[isc]) ),]
 
       if ( p$season != "allseasons" ) {
@@ -57,7 +57,7 @@
       # ... smallest abundance adds little information to ordinations
       k = 1e3         # a large constant number to make xtabs work  but not too large as truncation is desired
       sc$zn = as.integer( sc$zn*k )
-      m = xtabs( zn ~ as.factor(id) + as.factor(spec), data=sc ) /k
+      m = xtabs( zn ~ as.factor(id) + as.factor(spec_bio), data=sc ) /k
 
       # remove low counts (absence) in the timeseries  .. species (cols) only
       cthreshold = 0.05 * k  # quantiles to be removed 
