@@ -78,7 +78,7 @@
 *******************
 
 
-  groundfish.db( "det.base.redo", r2crit=0.75 ) # ~ 10 min on io
+  groundfish.db( "det.base.redo", r2crit=0.75 ) # ~ 10 min 
   groundfish.db( "cat.redo" )  # add correction factors, and express per unit area
   groundfish.db( "det.redo" ) # ~ 10 min on io
 

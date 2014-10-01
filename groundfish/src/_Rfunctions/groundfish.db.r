@@ -1,5 +1,5 @@
 
-  groundfish.db = function(  DS="complete", p=NULL, taxa="all", r2crit=0.75, threshold=0, type="number", season="summer", datayrs=NULL  ) {
+  groundfish.db = function(  DS="complete", p=NULL, taxa="all", datayrs=NULL  ) {
   
     loc = file.path( project.directory("groundfish"), "data" )
     DataDumpFromWindows = F
