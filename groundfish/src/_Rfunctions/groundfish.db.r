@@ -119,7 +119,8 @@
       xx = which( !is.finite( gscat$spec) ) 
       if (length(xx)>0) gscat = gscat[ -xx, ] 
 
-      gscat = gscat[ taxonomy.filter.taxa( gscat$spec, taxafilter="living.only", outtype="groundfishcodes" ) , ]
+      ii = taxonomy.filter.taxa( gscat$spec, taxafilter="living.only", outtype="groundfishcodes" )
+      gscat = gscat[ ii , ]
 
       min.number.observations.required = 3
       species.counts = as.data.frame( table( gscat$spec) )

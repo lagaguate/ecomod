@@ -40,22 +40,23 @@
     # --- for import of data year only
   
   groundfish.db( DS="odbc.redo", datayrs=odbc.data.yrs )  
-    spcodes = groundfish.db( DS="spcodes.odbc.redo" )
  
 
 
   groundfish.db( DS="gscat.redo" )
-    refresh.bio.species.codes = F
-    if (refresh.bio.species.codes ) {
-        
-      
-      # the folowing is copied from taxaonomy/src/taxonomy.r
-      # refresh BIO's species codes from Oracle 
-      taxonomy.db( "groundfish.itis.redo" )  # new identitfication that have not yet moved into the official taxa databases added here
-      taxonomy.db( "full.taxonomy.redo" ) 
-      taxonomy.db( "life.history.redo" ) # add life history data (locally maintained in gstaxa_working.xls )
-      # tx = taxonomy.db( "complete" )
-    }
+  
+  refresh.bio.species.codes = F
+  if (refresh.bio.species.codes ) {
+    # the folowing is copied from taxaonomy/src/taxonomy.r
+    groundfish.db( DS="spcodes.odbc.redo" )
+    # bootstrap an initial set of tables .. these will be incomplete as a parsimonious tree needs to be created first but it depends upon the last file created taxonomy.db("complete") .. so ...
+    taxonomy.db( "groundfish.itis.redo" )  ## link itis with groundfish tables using taxa names, vernacular, etc
+    taxonomy.db( "full.taxonomy.redo" )  # merge full taxonomic hierrachy (limit to animalia and resolved to species)
+		## taxonomy.db( "parsimonious.redo" )  # (re)create lookups from old codes to a parsimonious species list
+    taxonomy.db( "life.history.redo" ) # add life history data (locally maintained in groundfish.lifehistory.manually.maintained.csv )
+    taxonomy.db( "complete.redo" )
+    taxonomy.db( "parsimonious.redo" ) 
+  }
 
   groundfish.db( DS="gsdet.redo" )
   groundfish.db( DS="gsinf.redo" )

@@ -4,9 +4,10 @@
     if ( outtype %in% c( "spec_bio", "internalcodes", "parsimonious", "spec.parsimonious") ) outcode="spec.parsimonious"
     if ( outtype %in% c( "spec", "groundfishcodes") ) outcode ="spec"
     taxalist = taxonomy.codes( taxa=taxafilter, outcode=outcode )  # these are still groundfish codes
-    k = which( is.finite( out$spcode ) && ( out$spcode %in% taxalist) )
-    if (length(k)> 1) out$keep [k] = TRUE 
-    return( which( out$keep) )
+    f = which( is.finite( out$spcode ) )
+    k = which(( out$spcode %in% taxalist) )
+    keep = intersect( f, k )
+    return( keep )
   }
 
 
