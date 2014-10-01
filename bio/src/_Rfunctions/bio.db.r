@@ -66,7 +66,7 @@
 
       ###  NOTE:: cf == correction factor is a reweighting required to make each totno and totmass comparable for each set and species subsampling
 
-      cat.names =  c("data.source", "id", "spec", "spec_bio," "totno", "totmass", "cfcat") 
+      cat.names =  c("data.source", "id", "spec", "spec_bio", "totno", "totmass", "cfcat") 
       if ( "groundfish" %in% p$data.sources ) {
        
         x = groundfish.db( "cat" )   ## not really set but "cat" 
@@ -176,7 +176,8 @@
         x =  snowcrab.db( DS ="det.georeferenced" )  
         x$data.source = "snowcrab"
         x$id = paste( x$trip, x$set, sep="." )
-        x$spec_bio =  taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 ) # snow crab using groundfish codes
+        x$spec = 2526
+        x$spec_bio =  taxonomy.recode( from="spec", to="parsimonious", tolookup=x$spec ) # snow crab using groundfish codes
         x$detid = x$crabno
         x$len = x$cw / 10  # convert mm to cm
         x$cfdet = 1/x$sa  ########## <<<<<< ------ NOTE THIS accounts only for SA as there is no subsampling (so far)

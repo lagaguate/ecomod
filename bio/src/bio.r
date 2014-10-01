@@ -5,6 +5,7 @@
     "spatialmethods", "utility", "parallel", "taxonomy", 
     "groundfish", "snowcrab", "bathymetry", "temperature", "habitat", "bio" ))
 
+  p=list()
   p$init.files = unique( c( pinits, loadfunctions( "snowcrab", functionname="default.project.environment" ) ) )
   p$libs = RLibrary ("parallel", "fields" )
 
