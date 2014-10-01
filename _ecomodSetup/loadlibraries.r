@@ -1,5 +1,5 @@
 loadlibraries = function( ... ) {
-  print( "Depreciated .. use 'Rlibrary' instead")
+  print( "Depreciated .. use 'RLibrary' instead")
   Rlibrary( ... )
 }
 
