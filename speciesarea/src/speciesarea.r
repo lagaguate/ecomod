@@ -50,7 +50,9 @@
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
   p$spatial.knots = 100
-  p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
+    
+  p$movingdatawindow = 0  # this signifies no moving window ... all in one model
+  # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
@@ -84,7 +86,11 @@
 
   # create a spatial interpolation model for each variable of interest 
   # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
-  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  if (p$movingdatawindow == 0 ) { 
+    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+  } else {
+    p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  }
   parallel.run( habitat.model, DS="redo", p=p ) 
   # habitat.model ( DS="redo", p=p ) 
  
