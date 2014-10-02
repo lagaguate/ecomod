@@ -8,7 +8,7 @@
 #Also changed so that in the case of a single closest match, the data 
 #for the lone match is simply returned
 
-polygon.ecomod = function( 
+find.ecomod.gis = function( 
     polyname, 
     loc = project.directory("polygons","data"),
     ignorelist=c("archive", "retired"), 
