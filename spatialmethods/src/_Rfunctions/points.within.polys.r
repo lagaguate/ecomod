@@ -13,9 +13,9 @@
 #
 #Example Usage:
 #appending a single polygon field
-# pointsWithinPolys("surveypoints","Lobster_LFA_GRID_VDC","LFA",NULL)
+# points.within.polys("surveypoints","Lobster_LFA_GRID_VDC","LFA",NULL)
 #appending two polygon field
-# pointsWithinPolys("surveypoints","Lobster_LFA_GRID_VDC","LFA","GRID")
+# points.within.polys("surveypoints","Lobster_LFA_GRID_VDC","LFA","GRID")
 ########################################################################
 
 points.within.polys <- function(inputpointfile="",
