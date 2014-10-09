@@ -17,7 +17,7 @@
   # p$vars.to.model = c("R0.mass",  "R1.no")
   # p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   # p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
-  
+  p$years.to.model=2004:2005
 
   
   debug = F
@@ -63,10 +63,10 @@
 
     # create some intermediary files to speed up analysis
 
-    habitat.model.db( DS="large.male.auxillary.data.redo", p=p )
+  #  habitat.model.db( DS="large.male.auxillary.data.redo", p=p )
 
 
-    if (abundance.estimation.via.GAM) {
+ #   if (abundance.estimation.via.GAM) {
       
       # Define controlling parameters 
       p$auxilliary.data = c( 
@@ -76,6 +76,8 @@
             "nss.rsquared", "nss.shannon", 
             "smr", "Ea", "A", "qm", "mass",
             "Z", "Npred" ) 
+
+
 
       print( "Make sure variable list here matches those in ecomod/habitat/src/habitat.complete.r ") 
       print( "and in the model statement in ecomod/snowcrab/_Rfunctions/analysis/model.formula.r")

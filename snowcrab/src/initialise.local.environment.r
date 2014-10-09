@@ -11,8 +11,7 @@
   loadfunctions( "snowcrab", functionname="current.assessment.year.r") 
   loadfunctions( "snowcrab", functionname="parameter.list.snowcrab.r") # load the function first  
 
-  p = parameter.list.snowcrab ( current.assessment.year=current.assessment.year, set="default")
-
+ p = parameter.list.snowcrab ( current.assessment.year=current.assessment.year, set="default")
   workpath = file.path( project.directory("snowcrab"), "R" )
   dir.create( workpath, recursive=T, showWarnings=FALSE )
   setwd (workpath)
