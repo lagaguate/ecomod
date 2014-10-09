@@ -29,15 +29,15 @@
         vlist = setdiff( all.vars( formu ), "spatial.knots" )
         pdat = pdat0[, vlist]
         pdat = na.omit( pdat )
-        models = habitat.model.run( ww, pdat, formu, p%optimizer.alternate ) {
+        models = habitat.model.run( ww, pdat, formu, p$optimizer.alternate ) 
         if (models=="model.failure") next() 
         fn.models =  file.path( outdir, paste("models", ww, "rdata", sep=".") )
         save( models, file=fn.models, compress=T)
         print( fn.models )
         rm(models, pdat); gc()
-      }
+      
     } 
-
+}
     # -------------------------
 
     if ( p$movingdatawindow != 0 ) {  # moving window approach 
@@ -65,15 +65,16 @@
         if (length(ioo) < 200 ) next() 
         pdat = pdat[ioo,]
  
-        models = habitat.model.run( ww, pdat, formu, p%optimizer.alternate ) {
+        models = habitat.model.run( ww, pdat, formu, p$optimizer.alternate ) 
         if (models=="model.failure") next() 
      
         fn.models =  file.path( outdir, paste("models", ww, yr, "rdata", sep=".") )
         save( models, file=fn.models, compress=T)
         print( fn.models )
         rm(models, pdat); gc()
-      }
+      
     }
+}
     return( "Completed modelling" )
   }      
 

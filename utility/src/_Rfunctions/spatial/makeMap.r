@@ -15,13 +15,13 @@ wd <- file.path(project.directory('polygons'),'data')
   
 # read in shapefiles
 #--------------------------------------
-  basemap= importShapefile(file.path(wd,"map_base_region"))
-  dm200= importShapefile(file.path(wd,"dm200_region"))
-  dm100= importShapefile(file.path(wd,"dm100_region"))
-  zones= importShapefile(file.path(wd,"sczones2010_polyline"))
-  land= importShapefile(file.path(wd,"landmass_region"))
-  coast=importShapefile(file.path(wd,"coastline_polyline"))
-  axis=importShapefile(file.path(wd,"axis_polyline"))
+  basemap= importShapefile(find.ecomod.gis("map_base_region"))
+  dm200= importShapefile(find.ecomod.gis("dm200_region"))
+  dm100= importShapefile(find.ecomod.gis("dm100_region"))
+  zones= importShapefile(find.ecomod.gis("sczones2010_polyline"))
+  land= importShapefile(find.ecomod.gis("landmass_region"))
+  coast=importShapefile(find.ecomod.gis("coastline_polyline"))
+  axis=importShapefile(find.ecomod.gis("axis_polyline"))
 
 # Provide projection information
 #---------------------------------
@@ -67,13 +67,17 @@ wd <- file.path(project.directory('polygons'),'data')
   
 
 if(addStAnns) {
-	sta <- read.csv(file.path(wd,'StAnnsMPA.csv'))
+	sta <- read.csv(find.ecomod.gis('StAnnsMPA.csv'))
 	 rc = col2rgb("red")
 	addPolys(sta[sta$PID==1,],col=	rgb(rc[1]/255, rc[2]/255, rc[3]/255, .3) , border = "black")
 } 
+   if(addEmera) {
+  emera=importShapefile(find.ecomod.gis("ENL_SubseaCable_2km_StudyArea.shp"))
+  addPolys(emera,col='red',lwd=2)
+}
 
 if(addSurvey) { 
-	surveydata <- read.csv(file.path(wd,'surveypoints.csv'))
+	surveydata <- read.csv(find.ecomod.gis('surveypoints.csv'))
   surveydata = surveydata[-which(is.na(surveydata$Station)),]
   names(surveydata) = c("PID", "Y", "X", "Y2", "X2", "ID", "col" )
   surveydata$col[which(surveydata$col == 1)] = "green"
@@ -99,7 +103,7 @@ if(addSurvey) {
 
   if(length(ind)>0) surveydata = surveydata[-ind,]
   sd = as.PolyData(data.frame(surveydata), projection = "LL")
-  addPoints(sd,col=sd$col,pch=16,cex=0.8)
+  addPoints(sd,bg=sd$col,pch=21,cex=0.8,col='black')
 	} 
 
 if(addGully) {
@@ -117,7 +121,7 @@ if(addGully) {
 if(addFisheryFootprint){
 
 n=7
-	ff=importShapefile(file.path(wd,"fisheryfootprint","crq0610_weight_2minGrid.shp"))
+	ff=importShapefile(find.ecomod.gis("crq0610_weight_2minGrid.shp"))
 	cols 			<- colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
 	fp <- attr(ff,'PolyData')[,c('PID','ZDENSITY','CLASS','GMEAN')]
 	fp$Z <- log(fp$ZDENSITY+1)
@@ -129,10 +133,6 @@ n=7
 	fp <- makeProps(fp,breaks=br,propName='col',propVals=coll)
 	addPolys(ff,polyProps=fp)
 	}
-	 if(addEmera) {
-	emera=importShapefile(file.path(wd,"Emera Line","ENL_SubseaCable_2km_StudyArea.shp"))
-	addPolys(emera,col='red',lwd=2)
-}
 
 addPolys(land,col='khaki',border='khaki')
 addLines(coast,col='black')
