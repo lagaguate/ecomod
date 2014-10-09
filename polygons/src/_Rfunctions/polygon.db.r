@@ -1,5 +1,5 @@
   polygon.db = function(object) {
-    
+    # polygons aliased by keywords rather than file name 
 		root.polygons = project.directory("polygons","data")
 		out=NULL
     
