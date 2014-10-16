@@ -2,12 +2,8 @@
 #Not all analyses can be easily run in parallel, but anything that is run with a a for loop or an apply function can be relatively easily converted to parallel. 
 #uses package snow or parallel
 
-#In ecomod
-
 RLibrary(c('parallel','snowfall','snow'))
 #set up your parameter list and figure out how many processors	
-
-
 
 #Make some
 set.seed(987654321) #make reproducible example
