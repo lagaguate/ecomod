@@ -33,6 +33,8 @@ d2$names = recode(d2$spec,"10 ='Atlantic cod'; 11 ='Haddock'; 12 ='White Hake'; 
 #Method 3 using merge function
 
 d3 = merge(d,n,by='spec',all.x=T)
+n1 <- n[1:3,]
+d5 = merge(d,n1,by='spec')
 
 #method 4 using sqldf
 require(sqldf)
@@ -41,4 +43,6 @@ d4 = sqldf('select id, id2,d.spec,totno, sampwgt,n.names from d, n where d.spec=
 
 #there are probably more but here a few options to consider
 
-
+d$names =NA
+d[which(d$spec==10),'names'] <- "Atlantic cod"
+d[which(d$spec==11),'names'] <- "Haddock"
