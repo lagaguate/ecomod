@@ -33,10 +33,9 @@
     # (for timeseries interpolation and spatial interpolations)
     p$dist.km = c( 5, 10, 15, 20 ) 
 
-    p$tsmethod ="harmonics"  # temporal interpolation method ... harmonic analysis seems most reasonable
-    p$tsharmonics = 1  # highest harmonic to use (will use lower if it fails)
-    # .. do not use more than 2 as it chases noise too much 
-    # .. 1 harmonic seems the best in terms of not chasing after noise 
+    p$tsmethod ="harmonics.1"  # temporal interpolation method ... harmonic analysis seems most reasonable
+      # .. do not use more than 2 as it chases noise too much 
+      # .. 1 harmonic seems the best in terms of not chasing after noise 
  
     # faster to use RAM-based data objects but this forces use only of local cpu's
     # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
