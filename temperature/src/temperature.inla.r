@@ -24,6 +24,9 @@
     # -------------------
     # 2. now temperature data timeseries
 
+    # resource for kernel smoothers, spectral analysis, etc 
+    # https://onlinecourses.science.psu.edu/stat510/?q=book/export/html/57
+
     p = list()
     p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA" ) )
     p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
