@@ -7,8 +7,6 @@
     out = NULL
     for (reg in region) {
      poly = read.table( find.ecomod.gis(reg), header=F)
-  
-#      poly = read.table( polygon.db(reg), header=F)
       names(poly) =c("lon", "lat")
 
       a = NULL

@@ -359,6 +359,9 @@
       if (!is.null(d)) write("error: duplicates found in gsinf")
       gsinf$lat = gsinf$slat/100
       gsinf$lon = gsinf$slong/100
+      gsinf$lat.end = gsinf$elat/100
+      gsinf$lon.end = gsinf$elong/100
+      gsinf$time.end = gsinf$etime
       if (mean(gsinf$lon,na.rm=T) >0 ) gsinf$lon = - gsinf$lon  # make sure form is correct
       gsinf = convert.degmin2degdec(gsinf)
       gsinf$cftow = 1.75/gsinf$dist  # not used
@@ -374,7 +377,7 @@
       gsinf$bottom_depth = rowMeans( gsinf[, c("dmin", "dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
-			gsinf = gsinf[, c("id", "sdate", "time", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
+			gsinf = gsinf[, c("id", "sdate", "time", "time.end", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "lon.end", "lat.end", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       save(gsinf, file=fn, compress=T)
       return(fn)
     }

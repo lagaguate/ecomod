@@ -141,7 +141,7 @@
   bubble(set, "B")
   spplot(set, "B")
 
-  bb = read.table( polygon.db( "snowcrab.boundingbox") )
+  bb = read.table( polygon.ecomod( "snowcrab.boundingbox") )
   names(bb) =c("lon", "lat" )
   bb = lonlat2planar( bb, p$internal.projection )
 

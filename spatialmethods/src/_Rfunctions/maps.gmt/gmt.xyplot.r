@@ -29,7 +29,7 @@
       cmd( "cat", basemap, ">>", outfile ) # bathymetry
       if ( length(overlay)>0 & !is.null(overlay)) {
       for (o in overlay) {
-        cmd( "psxy", polygon.db(o), region, gmtproj, append, polygon.options, ">>", outfile ) # polygons
+        cmd( "psxy", polygon.ecomod(o), region, gmtproj, append, polygon.options, ">>", outfile ) # polygons
       }}
       cmd( "pscoast", region, gmtproj, coast.options, append, ">>", outfile ) # coastline
       cmd( "psxy", indat,  region, gmtproj, psxyoptions, append, " >>", outfile ) # data

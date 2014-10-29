@@ -57,7 +57,7 @@
         if ( length(P$overlay)>0) {
           for (o in P$overlay) {
             if ( o == "" ) next()
-            cmd( "psxy", polygon.db(o), P$region, P$gmtproj, gmtappend, P$polygon.options, ">>", outfile ) # polygons
+            cmd( "psxy", polygon.ecomod(o), P$region, P$gmtproj, gmtappend, P$polygon.options, ">>", outfile ) # polygons
       }}}
 
       cmd( "pscoast", P$region, P$gmtproj, P$coast.options, gmtappend, ">>", outfile ) # coastline
