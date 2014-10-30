@@ -28,7 +28,7 @@
     # https://onlinecourses.science.psu.edu/stat510/?q=book/export/html/57
 
     p = list()
-    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA" ) )
+    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
     p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(1970:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -40,6 +40,17 @@
     t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
     t0 = t0[ which( t0$yr %in% p$tyears ), ]
   # t0 = t0[ filter.region.polygon( t0, region="isobath1000m" ) , ]
+
+   # scotianshelf = locator() 
+    scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
+    names( scotianshelf) = c("lon", "lat")
+
+    plot( t0$lat ~ t0$lon, pch="." )
+    lines( scotianshelf )
+
+    a = which( point.in.polygon( t0$lon, t0$lat, scotianshelf$lon, scotianshelf$lat ) != 0 )
+
+    t0 = t0[a,]
 
 
     fp = data.frame( lon= -63, lat= 45 )
@@ -218,7 +229,7 @@ Posterior marginals for linear predictor and fitted values computed
   # 3. spatial model only on temperature
  
     p = list()
-    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA" ) )
+    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
     p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -229,9 +240,16 @@ Posterior marginals for linear predictor and fitted values computed
     
     t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
     t0 = t0[ which( t0$yr %in% p$tyears ), ]
-    
-    t0$plon = round( t0$plon)
-    t0$plat = round( t0$plat)
+       # scotianshelf = locator() 
+    scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
+    names( scotianshelf) = c("lon", "lat")
+
+    plot( t0$lat ~ t0$lon, pch="." )
+    lines( scotianshelf )
+
+    a = which( point.in.polygon( t0$lon, t0$lat, scotianshelf$lon, scotianshelf$lat ) != 0 )
+
+    t0 = t0[a,]
 
   # boundary domain
   locs0  = as.matrix( t0[,c("plon", "plat")] )
@@ -362,7 +380,7 @@ Posterior marginals for linear predictor and fitted values computed
   # 4. spatial-temporal model on temperature
  
     p = list()
-    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA" ) )
+    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
     p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(1990:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -383,9 +401,6 @@ Posterior marginals for linear predictor and fitted values computed
     a = which( point.in.polygon( t0$lon, t0$lat, scotianshelf$lon, scotianshelf$lat ) != 0 )
 
     t0 = t0[a,]
-
-   #  t0$plon = round( t0$plon)
-   #  t0$plat = round( t0$plat)
     
     t0 = t0[ which( t0$yr %in% p$tyears ), ]
     t0$yrindex = t0$yr - min(t0$yr) + 1
@@ -452,9 +467,9 @@ Posterior marginals for linear predictor and fitted values computed
       verbose=TRUE
   )
 
-
-  save(R, file="~/tmp/R.spatio.temporal.1990.2013.rdata", compress=TRUE )
-
+  fn = "~/tmp/R.spatio.temporal.1990.2013.rdata"
+  save(R, file=fn, compress=TRUE )
+  # load(fn)
 
 summary(R)
 R$summary.hyperpar
