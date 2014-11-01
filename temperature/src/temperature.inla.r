@@ -446,24 +446,27 @@ Posterior marginals for linear predictor and fitted values computed
   )
   
   # rho hyperparmeters seem to specify mean and variance instead of mean precision (according to spde tutorial) .. need to check this .. assume precision for now ...
-  hyper.year   = list( theta1=list(param=c(1, 0.01) ), rho=list( param=c( 0.9, 0.01 ) ) )  # N( mean=0.9, var=0.1)  
-  hyper.season = list( theta1=list(param=c(1, 0.01) ), rho=list( param=c( 0.8, 0.01 ) ) )  # N( mean=0.9, var=0.1) 
+  hyper.year   = list( theta1=list(param=c(1, 0.01) ), rho=list( param=c( 0.9, 1 ) ) )  # N( mean=0.9, var=0.1)  
+  hyper.season = list( theta1=list(param=c(1, 0.01) ), rho=list( param=c( 0.8, 1 ) ) )  # N( mean=0.9, var=0.1) 
 
+  library( parallel)
+  ncpu = detectCores() 
 
 # 11 years takes ~ 1 hr
   R <- inla(
       tC ~ 0 + b0 
-             + f( i, model=S0, diagonal=1e-3,
-                 group=i.group, control.group=list(model='ar1', hyper=hyper.year) ) 
-             + f( pryr, model='ar1', cyclic=TRUE, hyper=hyper.season, diagonal=1e-3) , 
-      family='gaussian',  # log transf by default .. (?)
+             + f( i, model=S0,
+                 group=i.group, control.group=list(model='ar', order=2) ) 
+             + f( pryr, model='ar1', cyclic=TRUE) , 
+   #   family='gaussian',  # log transf by default .. (?)
       data=inla.stack.data(Z), 
-      control.compute=list(dic=TRUE, mlik=TRUE),
+      control.compute=list(dic=TRUE, mlik=TRUE, openmp.strategy='huge'),
    #   quantiles=NULL,
       control.results=list(return.marginals.random=FALSE, return.marginals.predictor=FALSE ),
       control.predictor=list(A=inla.stack.A(Z), compute=TRUE),
    #   control.inla=list(strategy='gaussian'),
-      control.inla=list( h=0.01), #h is step size for hessian
+      control.inla=list( h=0.001, restart=3, stupid.search=FALSE), 
+      num.threads=ncpu,
       verbose=TRUE
   )
 
@@ -473,6 +476,24 @@ Posterior marginals for linear predictor and fitted values computed
 
 summary(R)
 R$summary.hyperpar
+
+~ 1.5 days to complete
+Max.post.marg(theta): log(dens) = -126269.867546 fn = 1003 
+theta =  
+-0.922535 
+1.191479 
+-3.791064 
+3.987786 
+0.096397 
+3.965233
+       List of hyperparameters:
+                theta[0] = [Log precision for the Gaussian observations]
+                theta[1] = [Theta1 for i]
+                theta[2] = [Theta2 for i]
+                theta[3] = [Group rho_intern for i]
+                theta[4] = [Log precision for pryr]
+                theta[5] = [Rho_intern for pryr]
+
 
 
 # seasonal effect
