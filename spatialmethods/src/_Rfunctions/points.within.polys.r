@@ -78,6 +78,7 @@ points.within.polys <- function(inputpointfile="",
        }
     } 
   }
-  write.csv(pointfile,"pointswithinpolysResults.txt")
-  print(paste("Results saved to ", getwd(),"/pointswithinpolysResults.txt", sep=""))
+  #write.csv(pointfile,"pointswithinpolysResults.txt")
+  #print(paste("Results saved to ", getwd(),"/pointswithinpolysResults.txt", sep=""))
+  return(pointfile)
 }
