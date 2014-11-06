@@ -31,7 +31,7 @@
         # more modern data have 13 columns 2000 +
         netmind$depth= NA
       }
-      if ( nc0 == 14) {
+      if ( nc0 == 14 & as.numeric(netmind[1,1])<130000) {
         # a few files have wing spread as well
         # more modern data have 13 columns 2000 +
         netmind[,13] = NULL

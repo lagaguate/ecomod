@@ -102,7 +102,7 @@
       tx=taxonomy.db("parsimonious") 
 
       for (tg in taxa) { 
-        
+        browser()
         spid = switch(tg,
           taxalevel         = which( tx$rank_id==id )  ,
           speciesandgenera  = which( tolower(tx$rank) %in% c("species", "genus") )  , 

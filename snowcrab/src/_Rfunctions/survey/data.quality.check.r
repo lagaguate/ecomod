@@ -160,7 +160,19 @@
       print (x)
       return(x)
     }
-
+  if(type=='na.spread') {
+    	ii <- which(is.na(set$spread))
+    	x = set[ii,c('trip','set','station','netmind')]
+    	print(x)
+    	return(x)   
+    }
+    if(type=='na.distance') {
+    	ii <- which(is.na(set$distance))
+    	x = set[ii,c('trip','set','station','netmind')]
+    	print(x)
+    	return(x)   
+    }
+  }
   }
 
 

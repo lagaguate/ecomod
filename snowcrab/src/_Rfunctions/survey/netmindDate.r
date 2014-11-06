@@ -5,6 +5,7 @@
       if (!is.null( fnNetmind) && file.exists(fnNetmind) ) {
         header = readLines( fnNetmind, n=20 )
         if ( !( (any(grepl("FileName", header))) & (any(grepl("Local", header))) & (any(grepl("Ship", header))) & (length(header) > 15) ) ) {
+		print(paste(fnNetmind,' error in file header;'))
           return( out )
         }
       }

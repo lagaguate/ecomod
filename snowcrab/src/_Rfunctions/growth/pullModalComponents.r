@@ -1,5 +1,5 @@
-pullModalComponents <- function() {
-		indir 	<- file.path("C:","~","ecomod","snowcrab","growth","R")
+﻿pullModalComponents <- function() {
+		indir 	<- file.path(project.directory("snowcrab"),"growth","R")
 		h 		<- dir(indir) 	
 		male	<- grep("-0",h)
 		female	<- grep("-1",h)

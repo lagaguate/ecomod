@@ -41,7 +41,7 @@ nMixNormalBoot <- function(x,aic.threshold=2,mode.thresh=5,init.mode,niter=10000
 					aic[i] 		<- p[[1]]
 					outmodes[[i]] <- mu
 				} else {
-					mixture 	<- try(normalmixEM(x,k=k,maxit=10000,epsilon=1e-2,mu=ins.mu,verb=F,sigma=sqrt(ins.var),lambda=ins.lam),silent=T)
+					mixture 	<- try(normalmixEM(x,k=k,maxit=10000,epsilon=1e-3,mu=ins.mu,verb=F,sigma=sqrt(ins.var),lambda=ins.lam),silent=T)
 					if(class(mixture)!='try-error') {
 					loglikes[i] <- loglikeMix(x,mixture=mixture)
 					aic[i] 		<- aicc(lL=loglikes[i],k=k*3-1,n=n)

@@ -12,7 +12,9 @@
       # areas = c("cfanorth.not.glace.bay", "cfa22outer", "cfasouth" )
       # areas = c("cfaall",  "cfanorth", "cfasouth", "cfa20", "cfa21", "cfa22", "cfa23", "cfa24", "cfa4x", "cfa23slope", "cfa24slope", "cfaslope"  )
       areas = c("cfanorth", "cfasouth", "cfa4x")
-      years = 1998:p$current.assessment.year
+     # years = 1998:p$current.assessment.year
+#if(length(years)>15) years = (p$current.assessment.year-14):p$current.assessment.year
+
 
 
       if (redo.data) {
