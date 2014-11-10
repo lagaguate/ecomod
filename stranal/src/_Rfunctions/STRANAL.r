@@ -8,7 +8,7 @@ strat.list<-c(470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,48
 ############################
 
 library(RODBC)
-
+library(plyr)
 
 channel<-odbcConnect(uid=oracle.personal.user,pw=oracle.personal.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)
 wd <- file.path(project.directory('stranalR'),'data')
@@ -121,7 +121,7 @@ stock_all_adj_cat$TOTNO <- (stock_all_adj_cat$TOTNO*1.75)/stock_all_adj_cat$DIST
 # drop table stock_all_raw_age;
 
 #MMM Oct 2014
-#converted to ANSI join -verified record #
+#converted to ANSI join
 stock_all_raw_age_query<-
   paste("select mission,setno,size_class,fsex,age,fwt,
           decode(1,1,flen,2,.5+2*floor(flen/2),3,1+3*floor(flen/3),flen) flen,
@@ -134,23 +134,30 @@ stock_all_raw_age_query<-
 stock_all_raw_age<-sqlQuery(channel,stock_all_raw_age_query)
 
 stock_all_adj_age<-merge(stock_all_adj_cat, stock_all_raw_age, all.x=T)
+
 stock_all_adj_age$FLEN<-floor(stock_all_adj_age$FLEN/stock_all_adj_age$BINWIDTH)*stock_all_adj_age$BINWIDTH
 stock_all_adj_age$CAGE<-NA
+
 
 #FOWLER 2014
 #Adjust raw counts for subsampling and actual tow distance (relative to standard 1.75 nm tow).
 #Aggregate counts at length according to the bin width.
 #Only addresses standard Maritimes and Gulf region survey strata, not NMFS or Industry surveys.
 
-stock_all_adj_age$CAGE<-stock_all_adj_age$RAW_TOTWGT/stock_all_adj_age$SAMPWGT*1.75/stock_all_adj_age$DIST*stock_all_adj_age$CLEN
+
+#MMM 2013 - NOT RIGHT!!!
+  stock_all_adj_age$CAGE[stock_all_adj_age$SAMPWGT>0]<-(stock_all_adj_age$RAW_TOTWGT/stock_all_adj_age$SAMPWGT)*1.75/stock_all_adj_age$DIST*stock_all_adj_age$CLEN
+  stock_all_adj_age$CAGE[stock_all_adj_age$SAMPWGT==0]<-0
+  stock_all_adj_age$CAGE[is.null(stock_all_adj_age$SAMPWGT)]<-NULL
 
 #MMM Oct 08, 2014 - MMM
 #used calculation to convert strat areas into tunits, saves referencing external, static data
 #may need to grant users access to GROUNDFISH.GS_STRATUM
+#renamed "name" to "unitarea" to match Mark's app
 tunits_query<-
-  paste("SELECT strat, ROUND(nvl(area,0)/(1.75*(41/6080.2))) tunits 
+  paste("SELECT strat, NAME UNITAREA, ROUND(nvl(area,0)/(1.75*(41/6080.2))) tunits 
           FROM 
-          GROUNDFISH.GS_STRATUM 
+          GROUNDFISH.GSSTRATUM 
           WHERE 
           strat IN (",these.strat,")", sep="")
 tunits<-sqlQuery(channel,tunits_query)
@@ -176,7 +183,6 @@ stock_agelen<-merge(stock_agelen,bottom, all.x=T)
 stock_agelen$SDEPTH[is.na(stock_agelen$SDEPTH)]<--99.9  
 stock_agelen$TEMP[is.na(stock_agelen$TEMP)]<--99.99     
 stock_agelen$SAL[is.na(stock_agelen$SAL)]<--99.999      
-
 
 #FOWLER 2014
 #From here on replicating the APL STRANAL Excel sheet outputs in the 
@@ -212,18 +218,24 @@ tunits_results<-tunits_results[order(tunits_results$STRAT),]
 alk<-stock_agelen[,c("AGE","FLEN","CAGE","SETNO")]
 alk<-alk[!is.na(alk$AGE), ]
 alk_results<-t(tapply(alk$SETNO  , list(alk$AGE, alk$FLEN), function(x) {sum(x/x)}))
+Length_Totals<-rowSums(alk_results, na.rm = T, dims = 1)
+alk_results<-cbind(alk_results,Length_Totals)
+Age_Totals<-colSums(alk_results, na.rm = T, dims = 1)
+alk_results<-rbind(alk_results,Age_Totals)
+
+#length by set sheet (not formatted for output)
+lset<-stock_agelen[,c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN","CAGE")]
+#lset$CAGE[is.na(lset$CAGE)]<-0
+
+#need plyr for here
+groupColumns = c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN")
+dataColumns = c("CAGE")
+lset = ddply(lset, groupColumns, function(x) colSums(x[dataColumns]))
+lset<-lset[with(lset,order(lset$STRAT,lset$SLAT,lset$SLONG,lset$UNITAREA,lset$MISSION,lset$SETNO,lset$FLEN)),]
 
 ##########################################BEWARE!#########################################
 #################################BEYOND HERE BE DRAGONS!##################################
 ##########################################BEWARE!#########################################
-
-#length by set sheet (not formatted for output)
-lset_query<-
-  paste("select strat,slat,slong,name unitarea,mission,setno,flen,sum(cage) cage from stock_agelen
-    where year=",year," and to_number(strat)>=",strat.min," and to_number(strat)<=",strat.max,"
-    group by strat,slat,slong,name,mission,setno,flen
-    order by strat,slat,slong,name,mission,setno,flen",sep="")
-lset<-sqlQuery(channel,lset_query)
 
 #age length weight sheet (not formatted for output)
 alw_query<-
