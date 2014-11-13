@@ -1,6 +1,5 @@
 
   groundfish.db = function(  DS="complete", p=NULL, taxa="all", datayrs=NULL  ) {
-  
     loc = file.path( project.directory("groundfish"), "data" )
     DataDumpFromWindows = F
     if ( DataDumpFromWindows ) {
@@ -80,10 +79,9 @@
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
         gscat = sqlQuery( connect,  paste( 
-               "select i.*, j.YEAR " , 
-        "    from groundfish.gscat i, groundfish.gsmissions j " , 
-        "    where i.MISSION(+)=j.MISSION " ,
-        "    and YEAR=", YR, ";"
+               "select i.*, substr(mission,4,4) year " , 
+        "    from groundfish.gscat i " , 
+        "    where substr(MISSION,4,4)=", YR, ";"
         ) )
      
         names(gscat) =  tolower( names(gscat) )
@@ -109,6 +107,7 @@
       
       if ( DS=="gscat" ) {
         load( fn )
+        print('Not tow length corrected')
         return (gscat)
       }
 
@@ -202,7 +201,6 @@
           gscat$totwgt[toreplace] = gscat$totno[toreplace] * mw$meanweight[os]
         }
       }
-
  
       gscat = gscat[, c("id", "id2", "spec", "totwgt", "totno", "sampwgt" )] # kg, no/set
 
@@ -210,16 +208,48 @@
       return( fn )
     }
 
-  # ----------------------
+   if (DS %in% c('gsdet.spec','gsdet.spec.redo')) {
+          
+             fn.root =  file.path( project.directory("groundfish"), "data")
+             fi = 'gsdet.spec.rdata'
+             dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
+          
+          if(DS=='gsdet.spec'){
+                load(file.path(fn.root,fi))
+                return(species.details)
+             }
+          
+             de  = groundfish.db(DS='gsdet.odbc')
+             ins = groundfish.db(DS='gsinf.odbc')
+             i1 = which(months(ins$sdate) %in% c('June','July','August'))
+             i2 = which(months(ins$sdate) %in% c('February','March','April'))
+             i3 = which(ins$strat %in% c(440:495))
+             i4 = which(ins$strat %in% c(398:411))
+             i5 = which(ins$strat %in% c('5Z1','5Z2','5Z3','5Z4','5Z5','5Z6','5Z7','5Z8','5Z9'))
+             ins$series =NA
+             ins$series[intersect(i1,i3)] <- 'summer'
+             ins$series[intersect(i2,i4)] <- '4vswcod'
+             ins$series[intersect(i2,i5)] <- 'georges'
+
+             ins = ins[,c('mission','setno','series')]
+             de = merge(de,ins,by=c('mission','setno'))
+             de1 = aggregate(clen~spec+year+series,data=de,FUN=sum)
+             de2 = aggregate(flen~spec+year+series,data=de,FUN=max)
+             de3 = aggregate(flen~spec+year+series,data=de,FUN=min)
+             de4 = aggregate(fwt~spec+year+series,data=de,FUN=length)
+             species.details = merge(merge(merge(de1,de2,all.x=T,by=c('spec','year','series')),de3,all.x=T,by=c('spec','year','series')),de4,all.x=T,by=c('spec','year','series'))
+             names(species.details) <- c('spec','year','series','number.lengths','max.length','min.length','number.weights')
+             save(species.details,file=file.path(fn.root,fi))
+             return(species.details)
+      }
 
 
 		if (DS %in% c( "gsdet.odbc", "gsdet.odbc.redo" ) ) {
-      
       fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gsdet" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
        
 			out = NULL
-	    if ( is.null(DS) | DS=="gsdet.odbc" ) {
+	    if ( DS=="gsdet.odbc" ) {
         fl = list.files( path=fn.root, pattern="*.rdata", full.names=T  ) 
  				for ( fny in fl ) {
 					load (fny)
@@ -234,10 +264,9 @@
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
         gsdet = sqlQuery( connect,  paste( 
-        "select i.*, j.YEAR " , 
-        "    from groundfish.gsdet i, groundfish.gsmissions j " , 
-        "    where i.MISSION(+)=j.MISSION " ,
-        "    and YEAR=", YR, ";"
+        "select i.*, substrImission,4,4) year" , 
+        "    from groundfish.gsdet i " , 
+        "    where substr(mission,4,4)=", YR, ";"
         ) )
         names(gsdet) =  tolower( names(gsdet) )
         gsdet$mission = as.character( gsdet$mission )
@@ -251,10 +280,8 @@
       return (fn.root)
 
 		}
-     
-   
+        
     # ----------------------
-
 
     if (DS %in% c("gsdet", "gsdet.redo") ) {
     
@@ -359,9 +386,6 @@
       if (!is.null(d)) write("error: duplicates found in gsinf")
       gsinf$lat = gsinf$slat/100
       gsinf$lon = gsinf$slong/100
-      gsinf$lat.end = gsinf$elat/100
-      gsinf$lon.end = gsinf$elong/100
-      gsinf$time.end = gsinf$etime
       if (mean(gsinf$lon,na.rm=T) >0 ) gsinf$lon = - gsinf$lon  # make sure form is correct
       gsinf = convert.degmin2degdec(gsinf)
       gsinf$cftow = 1.75/gsinf$dist  # not used
@@ -377,7 +401,7 @@
       gsinf$bottom_depth = rowMeans( gsinf[, c("dmin", "dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
-			gsinf = gsinf[, c("id", "sdate", "time", "time.end", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "lon.end", "lat.end", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
+			gsinf = gsinf[, c("id", "sdate", "time", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       save(gsinf, file=fn, compress=T)
       return(fn)
     }
@@ -960,7 +984,7 @@
         load( fn )
         return ( set )
       }
-        
+     
       set = groundfish.db( "set.partial" )
       set = lonlat2planar(set, proj.type=p$internal.projection ) # get planar projections of lon/lat in km
       set$z = set$sdepth 
@@ -972,8 +996,7 @@
       save ( set, file=fn, compress=F )
       return( fn )
     }
-    
-
-  }
+ 
+}
 
 
