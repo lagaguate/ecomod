@@ -23,7 +23,7 @@
   
    
   # read in set info from Oracle 
-    con = odbcConnect(oracle.shrimp.dsn, uid=oracle.shrimp.user, pwd=oracle.shrimp.password, believeNRows=F) 
+    con = odbcConnect(oracle.shrimp.server, uid=oracle.shrimp.user, pwd=oracle.shrimp.password, believeNRows=F) 
     shrsurvey = sqlQuery(con, "select * from SHRSURVEY ")
     close(con)
     shrsurvey$year = years(shrsurvey$FDATE)
