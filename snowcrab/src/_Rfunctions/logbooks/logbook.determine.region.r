@@ -17,7 +17,7 @@
       lic = merge( lic, areas, by="area_id", all.x=T, all.y=F )
       lic$area = toupper( as.character( lic$area) )
 
-# data dump from marfis.areas table (2011)
+# data dump from marfissci.areas table (2011)
 # from 
 # areas = areas[ grep ("crab", areas$desc_eng, ignore.case=T ) ,   ]  # reduce size
 # AREA_ID   AREA AREA_TYPE_ID                      DESC_ENG                                DESC_FRE PARENT_AREA_ID ACT_FLAG      CUSER

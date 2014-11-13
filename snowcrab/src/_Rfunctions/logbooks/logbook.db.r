@@ -24,7 +24,7 @@
 			for ( YR in yrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
 				query = paste(
-					"SELECT * from marfis.marfis_crab ", 
+					"SELECT * from marfissci.marfis_crab ", 
 					"where target_spc=705", 
 					"AND EXTRACT(YEAR from DATE_LANDED) = ", YR )
 				logbook = NULL
@@ -51,7 +51,7 @@
       require(RODBC)
       con=odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
       
-      lic = sqlQuery(con, "select * from marfis.licence_areas")
+      lic = sqlQuery(con, "select * from marfissci.licence_areas")
       save(lic, file=filename.licence, compress=T) 
      
 		}
@@ -68,7 +68,7 @@
 
       require(RODBC)
       con=odbcConnect(oracle.snowcrab.server , uid=oracle.snowcrab.user, pwd=oracle.snowcrab.password, believeNRows=F)
-      areas = sqlQuery(con, "select * from marfis.areas")
+      areas = sqlQuery(con, "select * from marfissci.areas")
       save(areas, file=filename.areas, compress=T) 
       
       return ("Complete")
@@ -138,7 +138,7 @@
       lb.historical = logbook.db( DS="fisheries.historical" )
       lb.historical$cfa = NA
 
-      # logbooks from marfis tables 
+      # logbooks from marfissci tables 
       x = logbook.db( DS="odbc.logbook", yrs=1996:p$current.assessment.year )
  
       names( x ) = tolower( names( x ) )
