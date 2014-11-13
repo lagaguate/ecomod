@@ -3,12 +3,13 @@
     RLibrary( "INLA" )
     inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
 
+   
     # -------------------
     # 1. example model fit of a simple AR1 data series with inla
     n = 200
     ti =  1:n
     y = arima.sim(n=n, model=list(ar=0.9))
-    y[ 75:80] = NA
+    y[ 76:79] = NA
 
     dat = data.frame( ti=ti, y=y) 
     r = inla( y ~ 0 + f( ti, model="ar1" ), 
@@ -239,20 +240,20 @@ Posterior marginals for linear predictor and fitted values computed
     inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
     
     t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
-    t0 = t0[ which( t0$yr %in% p$tyears ), ]
-       # scotianshelf = locator() 
+   
+    # scotianshelf = locator() 
     scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
     names( scotianshelf) = c("lon", "lat")
 
+    
     plot( t0$lat ~ t0$lon, pch="." )
     lines( scotianshelf )
 
     a = which( point.in.polygon( t0$lon, t0$lat, scotianshelf$lon, scotianshelf$lat ) != 0 )
-
     t0 = t0[a,]
-
   # boundary domain
-  locs0  = as.matrix( t0[,c("plon", "plat")] )
+
+    locs0  = as.matrix( t0[,c("plon", "plat")] )
   
   M0.domain = inla.nonconvex.hull( locs0, convex=10, resolution=120 )
 
@@ -378,54 +379,79 @@ Posterior marginals for linear predictor and fitted values computed
 
   # -------------------
   # 4. spatial-temporal model on temperature
- 
-    p = list()
-    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
-    p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
-    p$tyears = c(1990:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    p$wtimes = 1:52 
-    p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
-    
-    inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
-    
-    t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
+  p = list()
+  p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
+  p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
-    # scotianshelf = locator() 
-    scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
-    names( scotianshelf) = c("lon", "lat")
+  p$tyears = c(1990:2000)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+  p$wtimes = 1:52 
+  p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
+  
+  inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
+  
+  t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
 
+  # scotianshelf = locator() 
+  scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
+  names( scotianshelf) = c("lon", "lat")
+  
     plot( t0$lat ~ t0$lon, pch="." )
     lines( scotianshelf )
 
-    a = which( point.in.polygon( t0$lon, t0$lat, scotianshelf$lon, scotianshelf$lat ) != 0 )
+  a = which( point.in.polygon( t0$lon, t0$lat, scotianshelf$lon, scotianshelf$lat ) != 0 )
+  t0 = t0[a,]
 
-    t0 = t0[a,]
-    
-    t0 = t0[ which( t0$yr %in% p$tyears ), ]
-    t0$yrindex = t0$yr - min(t0$yr) + 1
-    t0$pryr = (t0$weekno-1)/52
-    t0$ti = t0$yr + t0$pryr
-    t0$logZ = log(t0$z)
-    t0$b0 = 1  # intercepts
+  t0$yrindex = t0$yr - min(t0$yr) + 1
+  t0$pryr = (t0$weekno-1)/52 
+  # t0$pryr = trunc( (t0$weekno-1)/52 /2 ) *2 ## make it every 2 weeks
+  t0$ti = t0$yr + t0$pryr
+  t0$logZ = log(t0$z)
+  t0$b0 = 1  # intercepts
+
+  if (anyDuplicated( paste( t0$plon, t0$plat, t0$yr, t0$weekno, sep="_"))) stop("Dups!")
+  
 
   # boundary domain
   locs0  = as.matrix( t0[,c("plon", "plat")] )
-  M0.domain = inla.nonconvex.hull( locs0, convex=10, resolution=120 )
+  M0.domain = inla.nonconvex.hull( locs0, convex=10, resolution=200 )
+
+  cutoff = 8 
+  max.edge = c(8, 80)
+  offset = c(8, 8)
+  
+  debug=T
+  if (debug) {
+    cutoff=15
+    max.edge = c(15, 120)
+    offset = c(15, 120)
+  }
+
 
   M0 = inla.mesh.2d (
-      loc=locs0, # locations of data points
-      boundary=M0.domain, 
-      offset=c( 5, 100 ),  # how much to extend in the c(inner, outer) domains
-      max.edge=c( 5, 100 ),  # max size of a triange (in, out)
-      min.angle=c(21),   # min angle (in, out)
-      cutoff=10 # min distance allowed
-  )       
+    loc=locs0, # locations of data points
+    boundary=M0.domain, 
+    offset=offset,  # how much to extend in the c(inner, outer) domains
+    max.edge=max.edge,  # max size of a triange (in, out)
+    min.angle=c(22),   # min angle (in, out)
+    cutoff=cutoff # min distance allowed  /.... use 8 or less for production 
+  )
   
-  # plot(M0, asp=1 ) # visualise mesh
+  plot(M0, asp=1 ) # visualise mesh
 
   # SPDE components
   # matern representation using mesh M
+  #   spatial scale parameter kappa(u) 
+  #     variance rescaling parameter tau(u)
+  #     (kappa^2(u)-Delta)^(alpha/2) (tau(u) x(u)) = W(u)         
+  # 
+  # hyperparamters for matern2d:
+  #   theta1[log prec], prior=loggamma, param=c(1, 5e-5), initial=4 
+  #   theta2[log range], prior=loggamma, param=c(1, 0.01), initial=2 
+  #   hyper.spde2 = list( theta1=list(param=c(1,0.001), theta2=list(param=c(1,0.001))) )
+  # BUT... hyper expects only one as follows! why?
+  hyper.spde2 = list( theta=list(param=c(1,0.001))) 
+                     
   S0 = inla.spde2.matern( M0, alpha=2 ) # alpha=2 is exponential correlation function
 
   # indices of SPDE 
@@ -436,41 +462,74 @@ Posterior marginals for linear predictor and fitted values computed
   # projection matrix A to translate from mesh nodes to data nodes
   A = inla.spde.make.A( mesh=M0, loc=locs0, n.group=ny, group=t0$yrindex )
 
+  tC=t0$t
+#  varstokeep = c("b0", "pryr", "yrindex" )
+  varstokeep = c("plon", "plat", "yrindex", "pryr", "b0", "z" )
+  t0 = t0[,varstokeep]
+
+  gc()
 
   # data stack for occurence (PA)
   Z = inla.stack( 
       tag="tdata",
-      data=list( tC=t0$t ) ,
+      data=list( tC=tC ) ,
       A=list(A,1),
       effects=list( i=i, t0 ) 
   )
   
-  # rho hyperparmeters seem to specify mean and variance instead of mean precision (according to spde tutorial) .. need to check this .. assume precision for now ...
-  hyper.year   = list( theta1=list(param=c(1, 0.01) ), rho=list( param=c( 0.9, 1 ) ) )  # N( mean=0.9, var=0.1)  
-  hyper.season = list( theta1=list(param=c(1, 0.01) ), rho=list( param=c( 0.8, 1 ) ) )  # N( mean=0.9, var=0.1) 
+  # hyperparmeters for ar1: 
+  #   theta1[prec] prior=loggamma, param=c(1, 5e-5) [mean, precision], initial=4
+  #   theta2[rho]  prior=normal, param=c(0, 0.15) [mean, precision?], initial=2 [[ logit lag 1 correlation]]
+  
+Max.post.marg(theta): log(dens) = -54155.754292 fn = 774 
 
-  library( parallel)
-  ncpu = detectCores() 
+theta =  -0.817457 1.335154 -4.208128 4.837452 0.095769 3.823501
 
-# 11 years takes ~ 1 hr
+List of hyperparameters: 
+		theta[0] = [Log precision for the Gaussian observations]
+		theta[1] = [Theta1 for i]
+		theta[2] = [Theta2 for i]
+		theta[3] = [Group rho_intern for i]
+		theta[4] = [Log precision for pryr]
+		theta[5] = [Rho_intern for pryr]
+
+
+  # hyper.year   = list( theta1=list(param=c(1, 0.01), initial=1 ), rho=list( param=c( 0.9, 1 ), initial=0.5 ) )  
+  hyper.year   = list( rho=list( param=c( 4, 0.1 ), initial=4 ) )  
+  # hyper.season = list( theta1=list(param=c(1, 0.01), initial=1 ), rho=list( param=c( 0.8, 1 ), initial=0.5 ) )   
+  hyper.season = list( rho=list( param=c( 4, 0.1 ), initial=4 ) )   
+
+  gc()
+
+  # 1990:2000 -- 11 years takes ~ 1 hr
+  # to complete 2000:2013  
+  #   mesh resolutionat 5 .. 60GB required and 10hrs
+  #   mesh resoltuion at 15 .. 50 GB and 7hrs
   R <- inla(
       tC ~ 0 + b0 
-             + f( i, model=S0,
-                 group=i.group, control.group=list(model='ar', order=2) ) 
-             + f( pryr, model='ar1', cyclic=TRUE) , 
-   #   family='gaussian',  # log transf by default .. (?)
+             + f( z, model='rw2' ) 
+             + f( i, model=S0, hyper=hyper.spde2, 
+                 group=i.group, control.group=list(model='ar1', hyper=hyper.year ))  
+             + f( pryr, model='ar1', cyclic=TRUE, hyper=hyper.season ) , 
+#      family='gaussian',  # log transf by default .. (?)
       data=inla.stack.data(Z), 
-      control.compute=list(dic=TRUE, mlik=TRUE, openmp.strategy='huge'),
-   #   quantiles=NULL,
-      control.results=list(return.marginals.random=FALSE, return.marginals.predictor=FALSE ),
+#      control.compute=list(dic=TRUE, mlik=TRUE, openmp.strategy='huge'),
+#      control.compute=list(dic=TRUE, mlik=TRUE),
+             # control.compute = list(cpo=TRUE, pit=TRUE ),  # cpo=conditional predictive ordinate .. leave one out measures of fit to id extreme values (p(y_i|y_{-i}) .. ie. posterior value; # PIT=probability Integral Transforms Pr( y_i {new} <= y_i | y_{-i} ) .. ie on pr scale
+              
+      #   quantiles=NULL,
+   #      control.results=list(return.marginals.random=FALSE, return.marginals.predictor=FALSE ),
       control.predictor=list(A=inla.stack.A(Z), compute=TRUE),
    #   control.inla=list(strategy='gaussian'),
-      control.inla=list( h=0.001, restart=3, stupid.search=FALSE), 
-      num.threads=ncpu,
+   #   control.inla=list( h=0.002, restart=3, stupid.search=FALSE, stencil=7), 
+    control.inla = list( h=0.002, strategy="laplace", npoints=21, stencil=7 , strategy='gaussian'),  # more points for tails (default is 9)
+    #  control.inla=list( stencil=7), 
+   #   num.threads=ncpu,
+   #   working.directory = working.directory,
       verbose=TRUE
   )
 
-  fn = "~/tmp/R.spatio.temporal.1990.2013.rdata"
+  fn = "~/tmp/R.spatio.temporal.1990.2000.rdata"
   save(R, file=fn, compress=TRUE )
   # load(fn)
 
@@ -497,6 +556,8 @@ theta =
 
 
 # seasonal effect
+graphics.off()
+
 plot(R$summary.random$pryr$mean)
 lines(R$summary.random$pryr$mean + R$summary.random$pryr$sd*2)
 lines(R$summary.random$pryr$mean - R$summary.random$pryr$sd*2)
@@ -508,15 +569,12 @@ round(res$summary.hy[3,], 5)  # temporal autocorrelation
 
 #correlation between data and predictions
 idat <- inla.stack.index( Z, 'tdata')$data 
-cor( t0$t, R$summary.linear.predictor$mean[idat], use="pairwise.complete.obs" ) # 89% 
-plot( t0$t, R$summary.linear.predictor$mean[idat] )
+cor( tC, R$summary.linear.predictor$mean[idat], use="pairwise.complete.obs" ) # 89% 
+plot( tC, R$summary.linear.predictor$mean[idat] )
 
-    
-pG = inla.mesh.projector( M0, xlim=(p$corners$plon), ylim=(p$corners$plat), dims=c(p$nplons, p$nplats) )
-out = inla.mesh.project( pG, R$summary.random$i$mean[ i$i.group==1 ] ) # first 
-levelplot( out, aspect="iso" )
+cor( R$summary.linear.predictor$mean[idat], R$summary.fitted.values, use="pairwise.complete.obs" ) # 89% 
 
-    # prediction of the random field: two ways .. with analysis or after analysis
+# prediction of the random field: two ways .. with analysis or after analysis
     # (aside: mesh points are already predicted )
 
     newlocations = rbind(  c( 330, 4790), c(788, 5080) )
@@ -524,67 +582,68 @@ levelplot( out, aspect="iso" )
     
 
     # A) simple projection, post-analysis  
-    Anew %*% R$summary.random$i$mean
+      Anew %*% R$summary.random$i$mean
+
+      # or more directly:
+      R$summary.fix[1,1] + Anew %*% R$summary.random$i$mean  # for the intercept
+      sqrt( 1^2 + R$summary.fix[1,2]^2 + drop( Anew %*% R$summary.random$i$sd^2 ) ) # for SE 
+
+
 
     # B) or using inla functionality    
-    inla.mesh.project( inla.mesh.projector( M, loc=newlocations), R$summary.random$i$mean )
+      # inla.mesh.project( inla.mesh.projector( M, loc=newlocations), R$summary.random$i$mean )
+      
+      pG = inla.mesh.projector( M0, xlim=(p$corners$plon), ylim=(p$corners$plat), dims=c(p$nplons, p$nplats) )
+      x11()
+      out = inla.mesh.project( pG, R$summary.random$i$mean[ i$i.group==8 ] ) # first 
+      levelplot( out, aspect="iso", at=seq(-5.5, 8, 0.2 )  )
+
+      # Prediction onto a grid using projections (method A/B) is faster/computationaly more efficient .. method of choice
+      pG = inla.mesh.projector( M0, xlim=p$corners$plon, ylim=p$corners$plat, dims=c(p$nplons, p$nplats) )
+      # pG = inla.mesh.projector( M0, dims=c(p$nplons, p$nplats) )
+      
+      # to get climatology .. must find overall mean ... todo
+      Pmean = inla.mesh.project( pG, R$summary.random$i$mean )  # posterior mean
+      Psd = inla.mesh.project( pG, R$summary.random$i$s )       # posterior SD
+      image(log(Pmean))
+
+
 
     # C) or using inla in a global analysis
      
-      # simple model so this is not needed but to be consistent:
+    # simple model so this is not needed but to be consistent:
       i <- inla.spde.make.index('i', n.spde=S$n.spde )  
       # i = 1:S$n.spde  # alternatively this
-    
+      Znew = inla.stack( 
+        data = list( B=NA),
+        A = list( Anew ),
+        effects = list( i=i, m=rep(1, nrow(newlocations) ) ),
+        tag="spatialpredictions"
+      )
+      Z = inla.stack( Z, Znew )
+      # refit the same model
+      ipredictions = inla.stack.index( Z, tag="spatialpredictions")
+      R$summary.linear.predctor[ ipredictions$data ,]
 
-    Znew = inla.stack( 
-      data = list( B=NA),
-      A = list( Anew ),
-      effects = list( i=i, m=rep(1, nrow(newlocations) ) ),
-      tag="spatialpredictions"
-    )
-    
-    Z = inla.stack( Z, Znew )
-   
-    # refit the same model
+      # Prediction of the response variable (B) .. ie. imputation
+      Zimp = inla.stack( 
+        data=list(B=NA), 
+        A=list( Anew, 1 ), # 1 is for the intercept
+        effects=list( i=1:S$n.spde, m=rep(1, nrow(newlocations) ) ), # 1 is for the intercept
+        tag="prediction.response"
+      )
 
+      Z = inla.stack( Z, Zimp )
+      R = inla(  
+        B ~ 0 + m + f(i, model=S), 
+        data=inla.stack.data(Z), 
+        control.predictor=list( A=inla.stack.A(Z), compute = TRUE ) ## new addition here to compute linear predictions but this is CPU expensive
+      )
 
-    ipredictions = inla.stack.index( Z, tag="spatialpredictions")
-    R$summary.linear.predctor[ ipredictions$data ,]
-
-   
-    # Prediction onto a grid using projections (method A/B) is faster/computationaly more efficient .. method of choice
-    pG = inla.mesh.projector( M0, xlim=p$corners$plon, ylim=p$corners$plat, dims=c(p$nplons, p$nplats) )
-    # pG = inla.mesh.projector( M0, dims=c(p$nplons, p$nplats) )
-    
-    Pmean = inla.mesh.project( pG, R$summary.random$i$mean )  # posterior mean
-    Psd = inla.mesh.project( pG, R$summary.random$i$s )       # posterior SD
-    image(log(Pmean))
-
-    
-    # Prediction of the response variable (B) .. ie. imputation
-    Zimp = inla.stack( 
-      data=list(B=NA), 
-      A=list( Anew, 1 ), # 1 is for the intercept
-      effects=list( i=1:S$n.spde, m=rep(1, nrow(newlocations) ) ), # 1 is for the intercept
-      tag="prediction.response"
-    )
-
-    Z = inla.stack( Z, Zimp )
-    R = inla(  
-      B ~ 0 + m + f(i, model=S), 
-      data=inla.stack.data(Z), 
-      control.predictor=list( A=inla.stack.A(Z), compute = TRUE ) ## new addition here to compute linear predictions but this is CPU expensive
-    )
-
-    iimputations = inla.stack.index( Z, tag="prediction.response")
-    R$summary.fitted.values[ iimputations$data ,]
-    oo = R$marginals.fitted.values[ iimputations$data ]
-    inla.hpdmarginal( 0.95, oo[[2]] ) 
-    inla.zmarginal( oo[[2]])
-
-
-    # or more directly:
-    R$summary.fix[1,1] + Anew %*% R$summary.random$i$mean  # for the intercept
-    sqrt( 1^2 + R$summary.fix[1,2]^2 + drop( Anew %*% R$summary.random$i$sd^2 ) ) # for SE 
+      iimputations = inla.stack.index( Z, tag="prediction.response")
+      R$summary.fitted.values[ iimputations$data ,]
+      oo = R$marginals.fitted.values[ iimputations$data ]
+      inla.hpdmarginal( 0.95, oo[[2]] ) 
+      inla.zmarginal( oo[[2]])
 
 

@@ -74,8 +74,8 @@
       # ----------------
       # Extract bottom data from each profile
         p = make.list( list( yrs=p$tyears), Y=p )
-        hydro.db( DS="bottom.annual.redo", yr=newyear, p=p )
-      # hydro.db( DS="bottom.annual.redo", yr=p$tyears, p=p )
+        hydro.db( DS="bottom.annual.redo", yr=newyear, p=p ) # yr argument overrides p$tyears .. e.g. for a new year of data
+      # hydro.db( DS="bottom.annual.redo", p=p ) 
       # parallel.run( hydro.db, p=p, yr=p$tyears, DS="bottom.annual.redo", init.files=p$init.files ) 
 
 
@@ -99,34 +99,10 @@
       # ----------------
       # grid bottom data to internal spatial resolution ; <1 min  
       p = make.list( list( yrs=p$tyears), Y=p )
-      # parallel.run( hydro.db, p=p, DS="bottom.gridded.redo", yr=p$tyears )
-      hydro.db( p=p, DS="bottom.gridded.redo", yr=p$tyears )
-        
-          debugdata = FALSE
-          if ( debugdata ){
-            require(lattice)
-            for (yr in 2010:2013) {
-              k= hydro.db( p=p, DS="bottom.gridded", yr=yr )
-              k = lonlat2planar( k, proj.type=p$internal.projection )
-              k$t [ k$t>10] = 10
-              k$plat = round( k$plat/10 )
-              k$plon = round( k$plon/10 ) 
-              x11()
-              y = levelplot(t~ plon+plat, data=k, 
-                aspect="iso", xlab="", ylab="", main=as.character(yr))
-              print(y)
-            }
-          
-            sgulf=which(k$plon<80 & k$plat>500)
+      # parallel.run( hydro.db, p=p, DS="bottom.gridded.redo" )
+      hydro.db( p=p, DS="bottom.gridded.redo" )  # all p$tyears, for a single year use with yr argument: yr=newyear
 
-          }
-
-
-
-      # ----------------
-      # this glues all the years together; <1 min
-      hydro.db( p=p, DS="bottom.gridded.all.redo", yr=p$tyears  ) 
-          
+     
     
       # ----------------
       # temporal interpolations assuming some seasonal pattern 
@@ -134,31 +110,7 @@
       # this is parallelized ... the call is internal to this 
       p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
       temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) #amc set up at 
-    
-       
-        debugdata = FALSE
-          if ( debugdata ){
-            require(lattice)
-            bd = bathymetry.db( p=p, DS="baseline" )
-            for (yr in 2010:2013) {
-              k = temperature.interpolations( p=p, DS="temporal.interpolation", yr=yr )
-              k [ k>10] = 10
-              x11()
-              y = levelplot( k[,30] ~ plon+plat, data=bd, 
-                aspect="iso", xlab="", ylab="", main=as.character(yr))
-              print(y)
-            }
-          
-
-            y = levelplot( k[sgulf,30] ~ plon+plat, data=bd, 
-                aspect="iso", xlab="", ylab="", main=as.character(yr))
-              print(y)
-    
-            sgulf=which(bd$plon<600 & bd$plon> 560 & bd$plat>5190 & bd$plat<5210)
-
-          
-          }
-
+  
 
       # ----------------
       # simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
@@ -234,14 +186,13 @@
           require( gstat )
           p = spatial.parameters( p=p, type="SSE" )
           
-          O = hydro.db( p=p, DS="bottom.gridded" )
+          testyear = 2006
+          
+          O = hydro.db( p=p, DS="bottom.gridded", yr=testyear )
           O = O[, c("plon", "plat", "t", "yr", "weekno")]
           O = O[ which( is.finite(O$t)) ,]
 
-          testyear = 2006
-          i = which(O$yr == testyear & O$weekno %in% testweeks ) 
-
-          ee.g = gstat( id = "t", formula=t~plon+plat, locations=~plon+plat, data=O[i,] ) 
+          ee.g = gstat( id = "t", formula=t~plon+plat, locations=~plon+plat, data=O ) 
           vg <- variogram( ee.g, boundaries=c(2, 4, 8, 16, 20, 32, 40, 64, 80, 128, 150 ) )
           vm0 = vgm( psill=max(vg$gamma) * 0.75, model="Mat", range=max(vg$dist)*0.5, nugget=max(vg$gamma) * 0.25, kappa = 2 ) #initial settings
           vg.fit = fit.variogram( vg, vm0 )

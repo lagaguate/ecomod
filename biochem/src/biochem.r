@@ -45,11 +45,11 @@
       
       # ----------------
       # grid bottom data    
-        hydro.db( p=p, DS="bottom.gridded.redo", yr=p$tyears )
+        hydro.db( p=p, DS="bottom.gridded.redo" )
       
       # ----------------
-      # this glues all the years together
-        hydro.db( p=p, DS="bottom.gridded.all.redo", yr=p$tyears  ) 
+      # this glues all the years together and returns the data
+      t0 = hydro.db( p=p, DS="bottom.gridded.all"  ) 
           
       # ----------------
       # temporal interpolations assuming a sinusoidal seasonal pattern 
