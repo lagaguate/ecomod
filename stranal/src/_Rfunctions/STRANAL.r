@@ -11,7 +11,7 @@ library(RODBC)
 library(plyr)
 
 channel<-odbcConnect(uid=oracle.personal.user,pw=oracle.personal.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)
-wd <- file.path(project.directory('stranalR'),'data')
+wd <- file.path(project.directory('stranal'),'data')
 options(stringsAsFactors = FALSE)
 
 #FOWLER 2014 
@@ -135,6 +135,8 @@ stock_all_raw_age<-sqlQuery(channel,stock_all_raw_age_query)
 
 stock_all_adj_age<-merge(stock_all_adj_cat, stock_all_raw_age, all.x=T)
 
+
+
 stock_all_adj_age$FLEN<-floor(stock_all_adj_age$FLEN/stock_all_adj_age$BINWIDTH)*stock_all_adj_age$BINWIDTH
 stock_all_adj_age$CAGE<-NA
 
@@ -145,10 +147,21 @@ stock_all_adj_age$CAGE<-NA
 #Only addresses standard Maritimes and Gulf region survey strata, not NMFS or Industry surveys.
 
 
-#MMM 2013 - NOT RIGHT!!!
-  stock_all_adj_age$CAGE[stock_all_adj_age$SAMPWGT>0]<-(stock_all_adj_age$RAW_TOTWGT/stock_all_adj_age$SAMPWGT)*1.75/stock_all_adj_age$DIST*stock_all_adj_age$CLEN
-  stock_all_adj_age$CAGE[stock_all_adj_age$SAMPWGT==0]<-0
-  stock_all_adj_age$CAGE[is.null(stock_all_adj_age$SAMPWGT)]<-NULL
+#MMM 2014 - NOT RIGHT!!!
+# #appears that STRANAL is totno for setno 82, 83, size class 7
+# stock_all_raw_age[stock_all_raw_age$SETNO==82 | stock_all_raw_age$SETNO==83,]
+# stock_all_adj_cat[stock_all_adj_cat$SETNO==82 | stock_all_adj_cat$SETNO==83,]
+# stock_all_adj_age[stock_all_adj_age$SETNO==82 | stock_all_adj_age$SETNO==83,]
+##MMM 2014 - NOT RIGHT!!!
+##if sampweight is 0, but totno is not 0, set raw_totwgt as totno, and SAMPWGT to 1 (totwgt/sampwt = totwgt)
+##stock_all_adj_age$RAW_TOTWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0 & stock_all_adj_age$TOTNO!=0]<-stock_all_adj_age$TOTNO[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0 & stock_all_adj_age$TOTNO!=0]  
+##stock_all_adj_age$SAMPWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0 & stock_all_adj_age$TOTNO!=0]<-1 
+
+
+stock_all_adj_age$CAGE[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0]<-((stock_all_adj_age$RAW_TOTWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0])/(stock_all_adj_age$SAMPWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0]))*1.75/(stock_all_adj_age$DIST[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0])*(stock_all_adj_age$CLEN[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0])
+stock_all_adj_age$CAGE[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0]<-0
+  stock_all_adj_age$CAGE[is.na(stock_all_adj_age$SAMPWGT)]<-NA
+
 
 #MMM Oct 08, 2014 - MMM
 #used calculation to convert strat areas into tunits, saves referencing external, static data
@@ -230,9 +243,8 @@ lset<-stock_agelen[,c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN"
 #need plyr for here
 groupColumns = c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN")
 dataColumns = c("CAGE")
-lset = ddply(lset, groupColumns, function(x) colSums(x[dataColumns]))
+lset <- ddply(lset, groupColumns, function(x) colSums(x[dataColumns]))
 lset<-lset[with(lset,order(lset$STRAT,lset$SLAT,lset$SLONG,lset$UNITAREA,lset$MISSION,lset$SETNO,lset$FLEN)),]
-
 ##########################################BEWARE!#########################################
 #################################BEYOND HERE BE DRAGONS!##################################
 ##########################################BEWARE!#########################################
