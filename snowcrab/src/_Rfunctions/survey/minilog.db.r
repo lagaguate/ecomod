@@ -6,7 +6,7 @@
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
    
     if (!is.null(Y)) {
-      iY = which( Y>=1998 )  # no historical data prior to 1998
+      iY = which( Y>=1999 )  # no historical data prior to 1999
       if (length(iY)==0) return ("No data for specified years")
       Y = Y[iY]
     }
@@ -20,6 +20,7 @@
           mm = NULL
           for (yy in Y ) {
             ll = grep( yy, flist)
+            if (length(ll)==0) return( NULL) # nothing to do
             if (length(ll)>0 ) mm = c( mm, ll) 
           }
           if (length(mm) > 0 ) flist= flist[mm]
@@ -38,6 +39,7 @@
           mm = NULL
           for (yy in Y ) {
             ll = grep( yy, flist)
+            if (length(ll)==0) return( NULL ) # nothing to do
             if (length(ll)>0 ) mm = c( mm, ll) 
           }
           if (length(mm) > 0 ) flist= flist[mm]
@@ -121,6 +123,7 @@
           mm = NULL
           for (yy in Y ) {
             ll = grep( yy, flist)
+            if (length(ll)==0) return(NULL) # nothing to do
             if (length(ll)>0 ) mm = c( mm, ll) 
           }
           if (length(mm) > 0 ) flist= flist[mm]

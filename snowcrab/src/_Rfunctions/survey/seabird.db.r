@@ -22,6 +22,7 @@
           mm = NULL
           for (yy in Y ) {
             ll = grep( yy, flist)
+            if (length(ll)==0) return( NULL) # nothing to do
             if (length(ll)>0 ) mm = c( mm, ll) 
           }
           if (length(mm) > 0 ) flist= flist[mm]
@@ -40,6 +41,7 @@
           mm = NULL
           for (yy in Y ) {
             ll = grep( yy, flist)
+            if (length(ll)==0) return( NULL) # nothing to do
             if (length(ll)>0 ) mm = c( mm, ll) 
           }
           if (length(mm) > 0 ) flist= flist[mm]
@@ -101,6 +103,7 @@
           mm = NULL
           for (yy in Y ) {
             ll = grep( yy, flist)
+            if (length(ll)==0) return( NULL) # nothing to do
             if (length(ll)>0 ) mm = c( mm, ll) 
           }
           if (length(mm) > 0 ) flist= flist[mm]

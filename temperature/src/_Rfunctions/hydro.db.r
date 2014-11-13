@@ -138,6 +138,8 @@
     if (DS %in% c( "profiles.annual.redo", "profiles.annual" ) ) {
       # read in annual depth profiles then extract bottom temperatures 
       
+      if (p$spatial.domain %in% c("SSE", "snowcrab")  ) p$spatial.domain="canada.east"  ## no point in having these as they are small subsets
+
       basedir = project.directory("temperature", "data" )
       loc.profile = file.path( basedir, "basedata", "profiles", p$spatial.domain )
       dir.create( loc.profile, recursive=T, showWarnings=F )
@@ -151,7 +153,21 @@
  
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
  
-      if ( is.null(ip) ) ip = 1:p$nruns
+        if ( is.null(ip)) {
+          if( exists( "nruns", p ) ) {
+            ip = 1:p$nruns
+          } else { 
+            if ( !is.null(yr)) {
+              # if only selected years being re-run
+              ip = 1:length(yr)
+              p$runs = data.frame(yrs = yr)
+            } else {
+              ip = 1:length(p$tyears)
+              p$runs = data.frame(yrs = p$tyears)
+            }
+          }
+        }
+
 
       # bring in snow crab, groundfish and OSD data ...
       
@@ -275,7 +291,21 @@
         return(Z)
       }
 
-      if ( is.null(ip)) ip = 1:p$nruns
+        if ( is.null(ip)) {
+          if( exists( "nruns", p ) ) {
+            ip = 1:p$nruns
+          } else { 
+            if ( !is.null(yr)) {
+              # if only selected years being re-run
+              ip = 1:length(yr)
+              p$runs = data.frame(yrs = yr)
+            } else {
+              ip = 1:length(p$tyears)
+              p$runs = data.frame(yrs = p$tyears)
+            }
+          }
+        }
+
 
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
@@ -294,10 +324,10 @@
           kk =  which( Z$depth >= zmax ) 
           R = Z[ which.max( Z$depth ) , ]
           
-          R$temperature = mean( Z$temperature[kk] , na.rm=T ) 
-          R$salinity = mean( Z$salinity[kk] , na.rm=T )
-          R$sigmat = mean( Z$sigmat[kk] , na.rm=T )
-          R$oxyml = mean( Z$oxyml[kk] , na.rm=T )
+          R$temperature = median( Z$temperature[kk] , na.rm=T ) 
+          R$salinity = median( Z$salinity[kk] , na.rm=T )
+          R$sigmat = median( Z$sigmat[kk] , na.rm=T )
+          R$oxyml = median( Z$oxyml[kk] , na.rm=T )
           res = rbind( res, R )
         
         }
@@ -314,32 +344,24 @@
 
     # -----------------
 
-    if (DS %in% c( "bottom.gridded", "bottom.gridded.redo" , "bottom.gridded.all", "bottom.gridded.all.redo" )){
+    if (DS %in% c( "bottom.gridded", "bottom.gridded.redo" , "bottom.gridded.all" )){
       # this is stored locally and not as an archive for speed and flexibility
       
       basedir = project.directory("temperature", "data" )
       loc.gridded = file.path( basedir, "basedata", "gridded", "bottom", p$spatial.domain )
       dir.create( loc.gridded, recursive=T, showWarnings=F )
-
-      if (DS == "bottom.gridded.all" ) {
-              
-				fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
-        O = NULL
-				if (file.exists(fn) ) load(fn)
-        return (O)
-      }
       
-      if (DS == "bottom.gridded.all.redo" ) {
+      if (DS == "bottom.gridded.all" ) {
         fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
         O = NULL
+        if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
         for (y in yr) {
           print (y) 
           On = hydro.db(p=p, DS="bottom.gridded", yr=y) 
 					if ( is.null( On) ) next()
 					O = rbind( O, On )
         }
-        save(O, file=fn, compress=T)
-        return ("Complete")
+        return(O)
       }
 
 
@@ -353,8 +375,21 @@
   
       if (DS == "bottom.gridded.redo" ) {
           
-        if ( is.null(ip)) ip = 1:p$nruns
-        
+        if ( is.null(ip)) {
+          if( exists( "nruns", p ) ) {
+            ip = 1:p$nruns
+          } else { 
+            if ( !is.null(yr)) {
+              # if only selected years being re-run
+              ip = 1:length(yr)
+              p$runs = data.frame(yrs = yr)
+            } else {
+              ip = 1:length(p$tyears)
+              p$runs = data.frame(yrs = p$tyears)
+            }
+          }
+        }
+
         for (iip in ip) {
           y = p$runs[iip, "yrs"]
           fn = file.path( loc.gridded , paste( "bottom", y, "rdata", sep="." ) )
@@ -389,13 +424,31 @@
 	
 					tp = tp[ which( is.finite( tp$lon + tp$lat + tp$plon + tp$plat ) ) , ]
           
+          ## ensure that inside each grid/time point 
+          ## that there is only one point estimate .. taking medians
+          vars = c("z", "t", "salinity", "sigmat", "oxyml")
+          tp$st = paste( tp$weekno, tp$plon, tp$plat ) 
+        
+          o = which( ( duplicated( tp$st )) )
+          if (length(o)>0) { 
+            dupids = unique( tp$st[o] )
+            for ( dd in dupids ) {
+              e = which( tp$st == dd )
+              keep = e[1]
+              drop = e[-1]
+              for (v in vars) tp[keep, v] = median( tp[e,v], na.rm=TRUE )
+              tp$st[drop] = NA  # flag for deletion
+            }
+            tp = tp[ -which( is.na( tp$st)) ,]  
+          }
+          tp$st = NULL
+
 					save( tp, file=fn, compress=T)
         }
       }
       return ( "Completed rebuild"  )
-      
     }
-
-    }
+    
+}
   
 
