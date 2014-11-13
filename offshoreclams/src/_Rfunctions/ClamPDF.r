@@ -27,14 +27,14 @@ MakeConnection <- function(){
   # Load RODBC Library
   require(RODBC)
   # Now get data from database
-  # Make connection to Offshore Clam Oracle database on Bank 
+  # Make connection to Offshore Clam Oracle database on PTRAN 
   #   Note: Have to have previously setup Clam_DB in System DSN
   #   You only have to set this up once:
   #   Go to Start\Programs\Administrative tools\Data Sources (ODBC) 
   #   Select "System DSN" tab, click "Add", in the window that pops up  
   #   scroll down to "Oracle in OraClient10g2",
   #   click Finish, "Oracle ODBC Driver Configuration" window pops up,
-  #   in "TSN Service Name" tab scroll down to BANK; put in your User ID 
+  #   in "TSN Service Name" tab scroll down to PTRAN; put in your User ID 
   #   for Oracle, put in a Data Source Name that you will 
   #   call from R and add a description if you want.  
   #   When you test the connection it will ask for your password.
