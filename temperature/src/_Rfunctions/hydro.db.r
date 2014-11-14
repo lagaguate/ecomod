@@ -280,6 +280,8 @@
     if (DS %in% c( "bottom.annual", "bottom.annual.redo" ) ) {
       # extract bottom temperatures 
      
+      if (p$spatial.domain %in% c("SSE", "snowcrab")  ) p$spatial.domain="canada.east"  ## no point in having these as they are small subsets
+
       basedir = project.directory("temperature", "data" )
       loc.bottom = file.path( basedir, "basedata", "bottom", p$spatial.domain )
       dir.create( loc.bottom, recursive=T, showWarnings=F )
