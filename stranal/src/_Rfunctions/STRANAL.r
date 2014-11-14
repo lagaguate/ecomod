@@ -1,14 +1,15 @@
 ############################
 #User PARAMETERS
 #
-year=1995
+year=1974
 type=c(1)
-species.code=10
-strat.list<-c(470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495)
+species.code=11
+strat.list<-c(470:495)
 ############################
 
 library(RODBC)
 library(plyr)
+library(reshape2)
 
 channel<-odbcConnect(uid=oracle.personal.user,pw=oracle.personal.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)
 wd <- file.path(project.directory('stranal'),'data')
@@ -26,9 +27,9 @@ options(stringsAsFactors = FALSE)
 #be updated - can we get this from the db? Note also that the original 
 #values like 'SUMMER ', 'FALL ', etc included trailing spaces.  I 
 #removed them, as they can only increase the suffering
+#"MISSION" created from other fields for later convenience
 
 survey_list<-read.csv(file=file.path(wd,"survey_list.csv"), head=T, sep=",")
-#MMM - "MISSION" created from other fields for later convenience
 survey_list$MISSION<-paste(survey_list$VESEL,survey_list$YEAR,sprintf("%03d",survey_list$CRUNO),sep="")
 
 #FOWLER 2014 
@@ -49,6 +50,18 @@ gstri<-gstri[which(gstri$YEAR==year),]
 these.type  <- paste(unlist(gsub("(.*)","'\\1'",type)),sep="",collapse=",")
 these.strat  <- paste(unlist(gsub("(.*)","'\\1'",strat.list)),sep="",collapse=",")  #"'470','471','472','473'
 these.missions<-paste(unlist(gsub("(.*)","'\\1'",gstri$MISSION)),sep="",collapse=",")
+
+#MMM Oct 08, 2014 - MMM
+#used calculation to convert strat areas into tunits, saves referencing external, static data
+#may need to grant users access to GROUNDFISH.GS_STRATUM
+#renamed "name" to "unitarea" to match Mark's app
+tunits_query<-
+  paste("SELECT strat, NAME UNITAREA, ROUND(nvl(area,0)/(1.75*(41/6080.2))) tunits 
+          FROM 
+          GROUNDFISH.GSSTRATUM 
+          WHERE 
+          strat IN (",these.strat,")", sep="")
+tunits<-sqlQuery(channel,tunits_query)
 
 #MMM Oct 2014
 #ctd made from joining dataframe gstri to extraction from gshyd
@@ -130,52 +143,45 @@ stock_all_raw_age_query<-
           groundfish.gsdet g 
             LEFT OUTER JOIN groundfish.gsspec s ON (s.spec=g.spec)
           WHERE MISSION IN (",these.missions,")
-          AND G.SPEC=",species.code, sep="")
+          AND G.SPEC=",species.code,"
+        AND age IS NOT NULL", sep="")
 stock_all_raw_age<-sqlQuery(channel,stock_all_raw_age_query)
 
-stock_all_adj_age<-merge(stock_all_adj_cat, stock_all_raw_age, all.x=T)
 
-
+stock_all_adj_age<-merge(stock_all_adj_cat, stock_all_raw_age, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T) #merge on particular fields by=c("MISSION", "SETNO","SIZE_CLASS"), 
 
 stock_all_adj_age$FLEN<-floor(stock_all_adj_age$FLEN/stock_all_adj_age$BINWIDTH)*stock_all_adj_age$BINWIDTH
+#instantiate cage
 stock_all_adj_age$CAGE<-NA
 
+  #if sampwgt > 0, use it to calculate cage
+  stock_all_adj_age_1<-stock_all_adj_age[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0,]
+  if (nrow(stock_all_adj_age_1) >0){
+  stock_all_adj_age_1$CAGE<-(stock_all_adj_age_1$RAW_TOTWGT/stock_all_adj_age_1$RAW_TOTWGT)*(1.75/stock_all_adj_age_1$DIST)*stock_all_adj_age_1$CLEN
+  }
+  #if sampwgt ==0, cage ==0
+  stock_all_adj_age_0<-stock_all_adj_age[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0,]
+  if (nrow(stock_all_adj_age_0) >0){
+  stock_all_adj_age_0$CAGE<-0
+  }
+  #if sampwgt is na/null, cage is na/null
+  stock_all_adj_age_NA<-stock_all_adj_age[is.na(stock_all_adj_age$SAMPWGT),]
+  if (nrow(stock_all_adj_age_NA)>0){
+    stock_all_adj_age_NA$CAGE<-NA
+  }
+stock_all_adj_age<-rbind(stock_all_adj_age_1,stock_all_adj_age_0,stock_all_adj_age_NA)
 
 #FOWLER 2014
 #Adjust raw counts for subsampling and actual tow distance (relative to standard 1.75 nm tow).
 #Aggregate counts at length according to the bin width.
 #Only addresses standard Maritimes and Gulf region survey strata, not NMFS or Industry surveys.
 
-
-#MMM 2014 - NOT RIGHT!!!
-# #appears that STRANAL is totno for setno 82, 83, size class 7
-# stock_all_raw_age[stock_all_raw_age$SETNO==82 | stock_all_raw_age$SETNO==83,]
-# stock_all_adj_cat[stock_all_adj_cat$SETNO==82 | stock_all_adj_cat$SETNO==83,]
-# stock_all_adj_age[stock_all_adj_age$SETNO==82 | stock_all_adj_age$SETNO==83,]
-##MMM 2014 - NOT RIGHT!!!
-##if sampweight is 0, but totno is not 0, set raw_totwgt as totno, and SAMPWGT to 1 (totwgt/sampwt = totwgt)
-##stock_all_adj_age$RAW_TOTWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0 & stock_all_adj_age$TOTNO!=0]<-stock_all_adj_age$TOTNO[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0 & stock_all_adj_age$TOTNO!=0]  
-##stock_all_adj_age$SAMPWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0 & stock_all_adj_age$TOTNO!=0]<-1 
-
-
-stock_all_adj_age$CAGE[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0]<-((stock_all_adj_age$RAW_TOTWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0])/(stock_all_adj_age$SAMPWGT[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0]))*1.75/(stock_all_adj_age$DIST[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0])*(stock_all_adj_age$CLEN[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0])
-stock_all_adj_age$CAGE[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0]<-0
-  stock_all_adj_age$CAGE[is.na(stock_all_adj_age$SAMPWGT)]<-NA
-
-
-#MMM Oct 08, 2014 - MMM
-#used calculation to convert strat areas into tunits, saves referencing external, static data
-#may need to grant users access to GROUNDFISH.GS_STRATUM
-#renamed "name" to "unitarea" to match Mark's app
-tunits_query<-
-  paste("SELECT strat, NAME UNITAREA, ROUND(nvl(area,0)/(1.75*(41/6080.2))) tunits 
-          FROM 
-          GROUNDFISH.GSSTRATUM 
-          WHERE 
-          strat IN (",these.strat,")", sep="")
-tunits<-sqlQuery(channel,tunits_query)
-
 stock_agelen<-merge(stock_all_adj_age,tunits, all.x=T)
+#MMM 2014 
+#now get strata results from the data frame
+tunits_results<-unique(stock_agelen[,c("STRAT","TUNITS")])
+tunits_results<-tunits_results[order(tunits_results$STRAT),]  #these results seem fine
+
 #FOWLER 2014
   #The primary table to accomplish STRANAL.
   #Includes some spurious variables that some might want to consider as 
@@ -205,46 +211,35 @@ stock_agelen$SAL[is.na(stock_agelen$SAL)]<--99.999
 #that I was given for truthing, inclusive of formatting, making it 
 #easy to compare with historical results.
 
-#MMM 2014 
-#now get strata results from the data frame
-tunits_results<-unique(stock_agelen[,c("STRAT","TUNITS")])
-tunits_results<-tunits_results[order(tunits_results$STRAT),]
-
-#age length key (not formatted for output)
-#MMM 2014
-#Matches stranale results for:
-# year=1974
-# type=c(1)
-# species.code=11
-# strat.list<-c(470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495)
-
-# year=2013
-# type=c(1)
-# species.code=11
-# strat.list<-c(470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495)
-
-# year=1995
-# type=c(1)
-# species.code=10
-# strat.list<-c(470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495)
-
 alk<-stock_agelen[,c("AGE","FLEN","CAGE","SETNO")]
 alk<-alk[!is.na(alk$AGE), ]
 alk_results<-t(tapply(alk$SETNO  , list(alk$AGE, alk$FLEN), function(x) {sum(x/x)}))
-Length_Totals<-rowSums(alk_results, na.rm = T, dims = 1)
-alk_results<-cbind(alk_results,Length_Totals)
-Age_Totals<-colSums(alk_results, na.rm = T, dims = 1)
-alk_results<-rbind(alk_results,Age_Totals)
+  Length_Totals<-rowSums(alk_results, na.rm = T, dims = 1)
+  alk_results<-cbind(alk_results,Length_Totals)
+  Age_Totals<-colSums(alk_results, na.rm = T, dims = 1)
+
+  propage<-alk_results/Age_Totals  #unverified
+
+
+  alk_results<-rbind(alk_results,Age_Totals)  #these results seem fine
 
 #length by set sheet (not formatted for output)
 lset<-stock_agelen[,c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN","CAGE")]
-#lset$CAGE[is.na(lset$CAGE)]<-0
-
 #need plyr for here
 groupColumns = c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN")
 dataColumns = c("CAGE")
 lset <- ddply(lset, groupColumns, function(x) colSums(x[dataColumns]))
-lset<-lset[with(lset,order(lset$STRAT,lset$SLAT,lset$SLONG,lset$UNITAREA,lset$MISSION,lset$SETNO,lset$FLEN)),]
+
+lset<-lset[with(lset,order(lset$STRAT,lset$MISSION,lset$SETNO,lset$FLEN,lset$SLAT,lset$SLONG,lset$UNITAREA)),]
+lset<-melt(lset, id.vars = c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN"))
+lset_results <- dcast(lset, STRAT + SLAT + SLONG + UNITAREA + MISSION + SETNO  ~ FLEN)
+  remove<-c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO")
+  Set_Totals<-rowSums(lset_results[-match(remove, names(lset_results))], na.rm = T)
+  lset_results<-cbind(lset_results,Set_Totals)  
+#length by set values do not match STRANAL - these reults are MISSING data for some sets
+
+
+results<-list(tunits_results, alk_results,lset_results)
 ##########################################BEWARE!#########################################
 #################################BEYOND HERE BE DRAGONS!##################################
 ##########################################BEWARE!#########################################
