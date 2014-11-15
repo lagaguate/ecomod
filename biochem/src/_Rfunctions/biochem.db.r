@@ -20,7 +20,7 @@
 
       require(RODBC)
       dir.create( biochem.datadump.dir, recursive=TRUE, showWarnings=FALSE )
-      con = odbcConnect( "bank", uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+      con = odbcConnect( oracle.personal.dsn, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
 
       for ( o in 1:length(bctables) ) {
         tblname =  bctables[o]

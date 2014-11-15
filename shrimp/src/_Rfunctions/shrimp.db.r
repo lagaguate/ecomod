@@ -13,7 +13,7 @@
           "DATE_FISHED, DATE_LANDED, LATITUDE, LONGITUDE, END_LATITUDE," , 
           "END_LONGITUDE, DET_SHRIMP_FISHING_AREA, AVERAGE_DEPTH, TOW_DURATION_HOURS," ,
           "TOW_DURATION_MINUTES, RND_WEIGHT_KGS, COUNT_PER_LB" ,
-        "from MARFIS.MOBILE_SHRIMP", 
+        "from MARFISSCI.MOBILE_SHRIMP", 
         "ORDER BY VESSEL_NAME, DATE_FISHED, TRIP_NUMBER, TOW" )
 		
 	    print("WARNING --- this needs to be run from an R environment on a windows machine")

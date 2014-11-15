@@ -1,6 +1,5 @@
 
   temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
-    
 
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
    
