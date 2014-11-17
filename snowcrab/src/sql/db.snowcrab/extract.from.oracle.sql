@@ -1,11 +1,3 @@
-telnet canso2 : snowcrab/0505wel
-use tbank
-
-sqlplus snowcrab/0507wel < q > /dev/null
-
-q:
-
-# data dump from canso2 (snowcrab/0507wel)
 
 set pagesize 10000
 set arraysize 5000

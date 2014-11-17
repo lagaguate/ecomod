@@ -1,8 +1,8 @@
 
 
-mysql -u jae -p
+mysql -u user -p
 
-pass is .kropotkin.
+pass 
 
 create database ecnasap;
 use ecnasap;

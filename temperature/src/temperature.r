@@ -5,7 +5,7 @@
   # this one has to be done manually .. no longer mainted by anyone ..
   # temperature.profiles = hydro.db( DS="osd.rawdata.refresh" )  
   
-  # from choijae; Jc#00390 :: (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
+  # from (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
   # depths: 500,500, "complete profile"   .. raw data  for the SS (region: jc.ss")
   # must download manually to this directory and run gzip
 

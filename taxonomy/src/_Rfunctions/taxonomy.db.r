@@ -3,7 +3,7 @@
   taxonomy.db = function( DS="complete", itis.taxa.lowest="species" ) {
       
     taxadir = file.path(project.directory( "taxonomy"), "data" )
-    localdir = file.path(project.directory( "taxonomy"), "data.locally.generated" )
+    localdir = file.path(project.directory( "taxonomy"), "data", "data.locally.generated" )
 
     dir.create( taxadir, recursive=TRUE, showWarnings=FALSE )
     dir.create( localdir, recursive=TRUE, showWarnings=FALSE )

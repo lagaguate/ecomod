@@ -384,7 +384,7 @@ Posterior marginals for linear predictor and fitted values computed
   p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
   p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
-  p$tyears = c(1990:2000)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+  p$tyears = c(1990:1995)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
   p$wtimes = 1:52 
   p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
   

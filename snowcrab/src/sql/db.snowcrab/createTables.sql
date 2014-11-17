@@ -30,8 +30,8 @@ sed -e '1d' -e 's/\"//g' -e 's/\r//g' species.tmp > species.csv
 
 # --- create snowcrab database
 
-mysql -u jae -p
-# .kropotkin.
+mysql -u user -p
+# pass
 
 create database snowcrab;
 use snowcrab;
