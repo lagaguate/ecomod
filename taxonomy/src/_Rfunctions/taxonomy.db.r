@@ -1,10 +1,12 @@
 
 
   taxonomy.db = function( DS="complete", itis.taxa.lowest="species" ) {
-      
+    
+    taxadir.manually.maintained =  file.path(project.directory( "taxonomy"), "data.manually.maintained" )  # part of the respository
     taxadir = file.path(project.directory( "taxonomy"), "data" )
     localdir = file.path(project.directory( "taxonomy"), "data", "data.locally.generated" )
 
+    dir.create( taxadir.manually.maintained, recursive=TRUE, showWarnings=FALSE )
     dir.create( taxadir, recursive=TRUE, showWarnings=FALSE )
     dir.create( localdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -66,7 +68,7 @@
       print( "      -- must be'|' delimited and 'quotes used for export' " )
 			print( "### New additions can be placed here too " )
 			
-			fn.local.taxa.lookup = file.path( taxadir, "groundfish.itis.lookuptable.manually.maintained.csv" )
+			fn.local.taxa.lookup = file.path( taxadir.manually.maintained, "groundfish.itis.lookuptable.manually.maintained.csv" )
 			tx.local = read.csv( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T, fill=T) 
 			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "name.common.bio", "comments" )]
       
@@ -307,7 +309,7 @@
     if (DS %in% c( "life.history", "life.history.redo") ) {
       
       fn = file.path( localdir, "spcodes.lifehistory.rdata") 
-      fn.local = file.path( taxadir, "groundfish.lifehistory.manually.maintained.csv") 
+      fn.local = file.path( taxadir.manually.maintained, "groundfish.lifehistory.manually.maintained.csv") 
       
       if (DS == "life.history" ) {
         sps = NULL
