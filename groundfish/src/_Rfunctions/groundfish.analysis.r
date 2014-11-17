@@ -74,12 +74,21 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                           ca = ca[,vars.2.keep]
                       if(p$vessel.correction) {
                             ca$id = ca$mission
+				if(!exists('vessel.correction.fixed',p)) {
                             ca = correct.vessel(ca)
                             ca$totwgt = ca$totwgt * ca$cfvessel
                             ca$totno = ca$totno * ca$cfvessel
-                            print('Totno and Totwgt are adjusted by Conversion Factors')    
-                    }    
-                          ca = aggregate(cbind(totwgt,totno)~mission+setno,data=ca,FUN=sum)
+                            print('Totno and Totwgt are adjusted by Fannings Conversion Factors')
+				}    
+                   if(exists('vessel.correction.fixed',p) & yr %in% 1970:1981) {
+                              ca$totwgt = ca$totwgt * p$vessel.correction.fixed
+                              ca$totno = ca$totno * p$vessel.correction.fixed
+                              print(paste('Totno and Totwgt are adjusted by Conversion Factor of',p$vessel.correction.fixed))
+                           } else {
+                             print('Into Needler Years No Need for Vessel Correction')
+                           }
+                           }
+		        ca = aggregate(cbind(totwgt,totno)~mission+setno,data=ca,FUN=sum)
                           sc = merge(se,ca,by=c('mission','setno'),all.x=T)
                           sc[,c('totwgt','totno')] = na.zero(sc[,c('totwgt','totno')])
                           sc$totno = sc$totno * 1.75 / sc$dist
@@ -112,7 +121,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                             dc$clen = dc$clen * dc$cfvessel
                             print('clen is adjusted by Conversion Factors')    
                     }
-                    stop('not done')    
+                    stop('not done need to complete this command')    
                           dc = aggregate(clen~mission+setno+flen,data=dc,FUN=sum)
                           fl = seq(min(dc$flen),max(dc$flen),by=1)
                           
