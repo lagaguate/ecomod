@@ -13,7 +13,8 @@ find.ecomod.gis = function(
     loc = project.directory("polygons","data"),
     ignorelist=c("archive", "retired"), 
     acceptable.extensions = c( "dat", "csv", "xy", "shp" ),
-    returndata=FALSE ) {
+    returndata=FALSE ,
+    return.one.match=T) {
 
     fs = .Platform$file.sep
 
@@ -59,6 +60,12 @@ fl<-flist
       if (length(i) == 1) {      ## EXACT match
         return(fl[i])
       } else { 
+        if(return.one.match) { added by amc hope it does not make too much of a mess..used if one file name
+              ff = sub("([^.]+)\\.[[:alnum:]]+$", "\\1", basename(flist)) #recursive search to last dot and the remove everything after last dot
+              pn1 = paste("^",pn,"$",sep="")
+              fil = grep(pn1,ff)
+              return(flist[fil])
+          }
         j = !is.na(pmatch( pn, fl ))
         k = agrep( pn, fl, ignore.case=TRUE )  
         l = unique( c(j, k) )     
