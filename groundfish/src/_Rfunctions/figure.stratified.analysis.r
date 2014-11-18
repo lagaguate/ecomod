@@ -19,7 +19,7 @@ figure.stratified.analysis <- function(x,p) {
 		n = intersect(n1,n2)
 		xp = x[,c('yr',n)]
 		names(xp) = c('year','mean','lower','upper')
-xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
+		xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 		xpp = xp[which(xp$year>=time.series.start.year & xp$year<=time.series.end.year),  ]
 
 		ylim=c(min(xpp$lower),max(xpp$upper))
@@ -33,12 +33,19 @@ xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 			polygon(c(xpp$year,rev(xpp$year)),c(xpp$lower,rev(xpp$upper)),col='grey60', border=NA)
 			points(xpp$year,xpp$mean,type='b',lty=1,pch=16,lwd=2)
 
-				if(running.mean){
-		  print(paste(running.mean.length,'Year Running Mean'))
-		  rmean = apply(embed(xpp$mean,running.mean.length),1,mean)
-      		  rmean.yr = xpp$year[running.mean.length:length(xpp$year)]
+		if(running.mean){
+		  print(paste(running.length,'Year Running Mean'))
+		  rmean = apply(embed(xpp$mean,running.length),1,mean)
+      		  rmean.yr = xpp$year[running.length:length(xpp$year)]
 		  lines(rmean.yr,rmean,lty=1,lwd=3,col='salmon')
 		}
+		if(running.median){
+		  print(paste(3,'Year Running Median'))
+		  rmean = smooth(xpp$mean,kind='3RS3R',endrule='Tukey')
+      		  rmean.yr = xpp$year[1:length(xpp$year)]
+		  lines(rmean.yr,rmean,lty=1,lwd=3,col='salmon')
+		}
+
 			if(exists('y.maximum',p) &  exists('show.truncated.numbers',p)) {
 				if(nrow(sll)>0){
 				yym = rep(y.maximum*0.95,nrow(sll))
@@ -54,7 +61,7 @@ xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 		}
 	
 
-	if(add.reference.line) {
+	if(add.reference.lines) {
 			me = xp[which(xp$year>=reference.start.year & xp$year<=reference.end.year), 'mean' ]
 			if(reference.measure=='median')	xref = median(me)	
 			if(reference.measure=='mean')	xref = mean(me)	
@@ -72,8 +79,9 @@ xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 				lines(x=c(reference.start.year,reference.end.year),y=c(lxref,lxref),col='blue',lty=1,lwd=4)
 			}
 		}
-	if(!running.mean)	legend(legend.placement,lty=c(1,1),lwd=c(4,4),col=c('darkgreen','blue'),c('80% reference period','40% reference period'),bty='n',cex=0.8)
-	if(running.mean)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period','3yr Running Mean'),bty='n',cex=0.8)
+	if(!running.mean & !running.median)	legend(legend.placement,lty=c(1,1),lwd=c(4,4),col=c('darkgreen','blue'),c('80% reference period','40% reference period'),bty='n',cex=0.8)
+	if(running.mean)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(running.length,'yr Running Mean',sep="")),bty='n',cex=0.8)
+	if(running.median)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(3,'yr Running Median',sep="")),bty='n',cex=0.8)
 	
   title(figure.title)
 		

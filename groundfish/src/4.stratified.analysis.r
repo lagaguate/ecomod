@@ -20,7 +20,7 @@ p$alpha = 0.05
 
 #p$species = c(10,11,12,13,14,16,23,30,31,40,41,42,43,50,60,200,201,202,203,204,300,320,400,610,640)
 
-Xpaper=T
+Xpaper=F
 if(Xpaper){
 p$years.to.estimate = 1999:2013
 p$strat = c(470:483)
@@ -44,12 +44,12 @@ out = groundfish.analysis(DS='ab.redo',p=p)
 
 
 #figure stratified analysis Note--the values after comments are the other options
-p$add.reference.line = F
+p$add.reference.lines = T
 p$time.series.start.year = 1970
 p$time.series.end.year = 2013
 p$reference.start.year = 1999
 p$reference.end.year = 2013
-
+p$add.primary.line = F # the center estimate for reference point
 p$metric = 'weights' #weights
 p$measure = 'stratified.total' #'stratified.total'
 
@@ -57,7 +57,7 @@ p$reference.measure = 'median' # mean, geomean
 p$file.name = 'winterskate-4vsw.png'
        
 #stock reference lines based on primary measure as above
-  p$add.upper.lower = F
+  p$add.upper.lower = T
         p$upper.reference.line = 0.8
         p$lower.reference.line = 0.4
         
@@ -66,8 +66,11 @@ p$file.name = 'winterskate-4vsw.png'
 	p$show.truncated.numbers = F #if using ymax and want to show the numbers that are cut off as values on figure
 
         p$legend.placement = 'topright'
-        p$running.mean = T
-p$running.mean.length = 3
+        p$running.median = T
+		p$running.length = 3
+		p$running.mean = F #can only have rmedian or rmean
+
+		
 
      ref.out=   figure.stratified.analysis(x=aout,p=p)
 
