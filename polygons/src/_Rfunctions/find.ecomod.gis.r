@@ -60,7 +60,7 @@ fl<-flist
       if (length(i) == 1) {      ## EXACT match
         return(fl[i])
       } else { 
-        if(return.one.match) { added by amc hope it does not make too much of a mess..used if one file name
+        if(return.one.match) {# added by amc hope it does not make too much of a mess..used if one file name
               ff = sub("([^.]+)\\.[[:alnum:]]+$", "\\1", basename(flist)) #recursive search to last dot and the remove everything after last dot
               pn1 = paste("^",pn,"$",sep="")
               fil = grep(pn1,ff)
