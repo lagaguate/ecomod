@@ -38,7 +38,7 @@
       substrate$plon = substrate$plon / 1000  # convert to km
       substrate$plat = substrate$plat / 1000  # convert to km
       proj4.params = "+proj=utm +zone=20 +datum=NAD83"  # original/raw data still in NAD83 geoid
-      substrate= planar2lonlat ( substrate, proj4.params, pass.direct=T ) 
+      substrate= planar2lonlat ( substrate, proj4.params ) 
       substrate= substrate[ ,c("lon", "lat", "grainsize")]
       save( substrate, file=filename, compress=T   )
       return ( filename )

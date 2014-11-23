@@ -23,7 +23,7 @@
       gdem = gdem[ is.finite( gdem$z ) , ]
       gdem = gdem[ which( gdem$z < p$depthrange[2] ) , ] # limit to 3000m depths due to file size
       gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
-      gdem = planar2lonlat( gdem, "utm20", planar.coord.scale="m" )  # plon,plat already in meters
+      gdem = planar2lonlat( gdem, "utm20", planar.coord.scale=1 )  # plon,plat already in meters
       gdem = gdem[, c("lon", "lat", "z") ]
       save( gdem, file=project.directory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
     }

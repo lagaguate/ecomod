@@ -122,9 +122,9 @@
   locs0  = as.matrix( bt[,c("plon", "plat")] )
   M0.domain = inla.nonconvex.hull( locs0, convex=10, resolution=200 )
 
-  cutoff = 10 
-  max.edge = c(5, 80)
-  offset = c(10, 80)
+  cutoff = 8 
+  max.edge = c(8, 80)
+  offset = c(8, 80)
   
   debug=T
   if (debug) {
