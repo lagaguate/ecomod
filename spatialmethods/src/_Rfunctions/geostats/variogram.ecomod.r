@@ -11,7 +11,6 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
 
   if ( xyz=="test") {
     # just for debugging / testing ...
-    require(sp)
     data(meuse)
     xyz = meuse[, c("x", "y", "elev")]
   }
@@ -22,12 +21,13 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
     xyz = try( lonlat2planar( xyz, proj.type=crs ), silent=TRUE )
     xyz = xyz[, c("plon", "plat", nm[3])]
   } 
-    
+   
   names(xyz) =  c("plon", "plat", "z" )
+  drange = sqrt(diff(range(xyz$plon))^2 + diff(range(xyz$plat))^2)
  
   # first pass -- use gstat to obtain fast estimates of variogram parameters to speed up inla
     vEm = variogram( z~1, locations=~plon+plat, data=xyz ) # empirical variogram
-    vMod0 = vgm(psill=0.5, model="Mat", range=mean(drange), nugget=0.5, kappa=2 ) # starting model parameters
+    vMod0 = vgm(psill=0.5, model="Mat", range=drange/10, nugget=0.5, kappa=2 ) # starting model parameters
     vFitgs =  fit.variogram( vEm, vMod0 ) ## gstat's kappa is the Bessel function's "nu" smoothness parameter
       
     vRange = vFitgs$range[2] # 95% of total variance 
@@ -46,7 +46,7 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
     M0 = inla.mesh.2d (
       loc=locs0, # locations of data points
       boundary=M0.domain,
-      max.edge=vRange
+      max.edge=c(vRange/4, vRange)
     )
     
     plot(M0, asp=1 ) # visualise mesh
@@ -68,7 +68,7 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
         effects=list( i=i, xyz ) 
     )
       
-    R <- inla(  z ~ 0 + b0+ f( i, model=S0), 
+    R <- inla(  z ~ 0 + b0+ f( i, model=S0, diagonal=1e-2), 
         data=inla.stack.data(Z), 
         control.compute=list(dic=TRUE),
 #        control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
@@ -82,19 +82,20 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
     # field parameters on user scale
     oo = inla.spde2.result(R, 'i', S0, do.transf=TRUE)
     exp(oo$summary.log.range.nominal)
-    exp(oo$summary.log.variance.nominal)
     exp(oo$summary.log.kappa)
     exp(oo$summary.log.tau)
 
 
     plot(oo$marginals.variance.nominal[[1]], type='l', xlab=expression(sigma[x]), ylab='Density')
-    # abline(v=params[1], col=2)
+    abline(v=exp(oo$summary.log.variance.nominal$mean) )
 
     plot(oo$marginals.kappa[[1]], type='l', xlab=expression(kappa), ylab='Density')
-    # abline(v=params[2], col=2)
+    abline(v=exp(oo$summary.log.kappa$mean) )
 
     plot(oo$marginals.range.nominal[[1]], type='l', xlab='range nominal', ylab='Density')
-    # abline(v=sqrt(8)/params[2], col=2)
+    abline(v=exp(oo$summary.log.range$mean) )
+    # or
+    abline(v=sqrt(8)/exp(oo$summary.log.kappa$mean) )
    
     
     # indices for random field at data locations
@@ -105,12 +106,7 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
 
 
 
-    plot( R$marginals.fixed[[1]], type="l", xlab="Beta" )
-
-
-
-    plot( R$marginals.fixed[["b0_PA"]], type="l", xlab="b0_PA" )
-    plot( R$summary.random[["i"]][,c("ID", "mean")], type="l", xlab="" )
+    plot( R$marginals.fixed[[1]], pch="o", xlab="Beta" )
 
 
     str(R$marginals.hyperpar)
@@ -119,26 +115,12 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
 
 
 
-
-~
-~
-
 # equivalent Random Field representation using geostatsinla
      
       require( geostatsinla)
-
+      uu = SpatialPointsDataFrame( coords=xyz[, 1:2], data=data.frame(z=xyz[,3]))
       fm =  formula( z ~ 1 ) 
-      # rw2 is an ~ GAM
-      # inla.group discretizes the data into smaller number of unique values for 
-      # numerical efficiency and avoiding singular solutions
-      
-      ft = glgm( data=xyz, formula=fm, family="normal",
-        cells=100, shape=2, buffer=100, 
-        priorCI=list(sd = c(0.1, 10), range=c(10, 100)), 
-        # control.compute=list(dic=TRUE, cpo=TRUE),
-        # control.predictor=list(compute=T), # compute marginal distributions for each value of the linear predictor
-        # control.inla=list(int.strategy = "grid", diff.logdens = 4, strategy = "laplace", npoints = 21), # better handle on tails
-        #debug=TRUE, verbose=TRUE,    
+      ft = glgm( data=uu, formula=fm, family="normal", cells=vRange/4, shape=2, 
         control.compute=list(dic=TRUE)
       )
 
@@ -198,18 +180,6 @@ variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
       #   raster (stack) - posterior means of random effects and fitted values on link scale g[lambda(s)] == raster[["random.mean"]]
       #     -- raster[["predict.invlogit"]] == posterior means of lamda(s)
      
-
-
-  }
-
-
-
-
-  if ("gstat" %in% method) {
-    require(gstat)
-  
-  
-  }
 
 
 }
