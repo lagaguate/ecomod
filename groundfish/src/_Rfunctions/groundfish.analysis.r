@@ -121,7 +121,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                             dc$clen = dc$clen * dc$cfvessel
                             print('clen is adjusted by Conversion Factors')    
                     }
-                    stop('not done need to complete this command')    
+                    stop('not done need to complete this option')    
                           dc = aggregate(clen~mission+setno+flen,data=dc,FUN=sum)
                           fl = seq(min(dc$flen),max(dc$flen),by=1)
                           
