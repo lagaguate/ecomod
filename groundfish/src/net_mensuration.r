@@ -1,16 +1,32 @@
 
 library(lubridate)
+
 # this relies upon the gsinf table which is accessible from the groundfish functions
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
-# define a few file locations
-# file path should be altered once I get my own log on
-netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
-nmfunctionsdirectory = file.path(netswd, "net_mensuration")
-netmensuration.files = list.files( nmfunctionsdirectory, full.names=TRUE )
-for (fn in netmensuration.files) source(fn)
 
+# define location of local data files
+netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
+
+# steps required to recreate a local database of all data
+recreate.full.database.locally = FALSE
+if ( recreate.full.database.locally ) {
+  # define these in your Rprofile 
+  # oracle.perley.user ="username"
+  # oracle.perley.password = "password"
+  # oracle.perley.db = "servername"
+  net_mensuration.db( "perley.database.datadump", netswd ) # ODBC data dump .. this step requires definition of password etc
+  net_mensuration.db( "perley.database.merge", netswd )    # perley had two db's merge them together
+  net_mensuration.db( "post.perley.redo",  netswd )        # Assimilate Scanmar files in raw data saves *.set.log files
+  net_mensuration.db( "merge.historical.scanmar.redo",  netswd ) # add all scanmar data together
+  net_mensuration.db( "sanity.checks.redo",  netswd )      # QA/QC of data
+}
+
+# load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
 
+
+
+--- testing / development ---
 
 # Producing a version of master that includes the historical data
 master$year=as.numeric(substring(master$id,4,7))

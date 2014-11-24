@@ -1,4 +1,4 @@
-net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
+net_mensuration.db=function( DS, netswd=getwd() ){
    
   if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
     
@@ -39,7 +39,6 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       load(fn1) 
       load(fn2)
       names(scanmarnew)=tolower(names(scanmarnew))      
-      
       names(scanmar)=tolower(names(scanmar))      #ac
       
       # nm is the dataset which combines the old and new data (merged)
@@ -172,7 +171,6 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
    }
 
    nm = net_mensuration.db( DS="merge.historical.scanmar", netswd=netswd ) 
-
    
    # remove sets where american trawls were used for comparative surveys
    nm = filter.nets("remove.trawls.with.US.nets", nm)
