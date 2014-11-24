@@ -1,5 +1,5 @@
 
-variogram.ecomod( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
+variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84" ) {
   
   # estimate empirical variograms and then model them using a number of different approaches
   # returns empirical variogram and parameter estimates, and optionally the models themselves
