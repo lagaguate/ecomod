@@ -23,7 +23,7 @@
         res= c( 0.01, 0.001)
       }
 
-      names(res) = switch( ,
+      names(res) = switch(distribution ,
         gamma = c("shape", "rate"),
         normal= c("mean", "sd")
       )
