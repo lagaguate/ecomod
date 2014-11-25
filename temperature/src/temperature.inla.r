@@ -274,6 +274,22 @@ Posterior marginals for linear predictor and fitted values computed
     t0$logZ = log(t0$z)
     t0$b0 = 1  # intercepts
 
+  tvar = var(t0$t)
+  
+  conflim = tvar * c(0.1, 0.9 ) # 95% CL of SD
+  
+  estimParamsFromCI( conflim ) 
+   
+  rangeCL = c( 40, 200 ) 
+
+  shape = 2
+  hyper.space = list( 
+    range=list( param=c(  ), prior="loggamma" ) 
+    prec =list( param=c( precPrior$sd ), prior="loggamma" ) )
+
+  formula = ~ + f(space, model="matern2d", nu=shape, hyper=hyper.space )
+
+
   # SPDE components
   # matern representation using mesh M
   S0 = inla.spde2.matern( M0, alpha=2 ) # alpha=2 is exponential correlation function

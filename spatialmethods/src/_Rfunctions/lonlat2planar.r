@@ -7,17 +7,16 @@
     m2km = 1/1000
     
     # first try an internal conversion /lookup for CRS  
-    proj4.params = lookup.projection.params(proj.type)
+    proj4.params = try( CRS( lookup.projection.params(proj.type) ), silent=TRUE )
     
     # if internal lookup does not work then try to directly pass to CRS   
-    if ( length( proj4.params) == 0) proj4.params = CRS( proj.type )
-    
-    if ( ! ("CRS" %in% class( proj4.params)) ) {
+    if ( "try-error" %in% class( proj4.params) ) proj4.params = try( CRS( proj.type ), silent=TRUE )
+    if ( "try-error" %in% class( proj4.params) ) {
       print( proj.type )
-      stop( "Projection not recognised") 
+      warning( "Projection not recognised") 
     }
 
-    y = rgdal::project( cbind(x$lon, x$lat), proj4.params, inv=F ) * m2km
+    y = rgdal::project( cbind(x$lon, x$lat), proj4.params@projargs, inv=F ) * m2km
     
     y = round(y, ndigits )
     colnames(y) = newnames 

@@ -7,19 +7,19 @@
     # when planar.coord.scale=1 .. it means no conversion as it is already in m
     x$plon = x$plon * planar.coord.scale
     x$plat = x$plat * planar.coord.scale  
-       
-    # first try an internal conversion /lookup for CRS  
-    proj4.params = lookup.projection.params(proj.type)
+   
+
+  # first try an internal conversion /lookup for CRS  
+    proj4.params = try( CRS( lookup.projection.params(proj.type) ), silent=TRUE )
     
     # if internal lookup does not work then try to directly pass to CRS   
-    if ( length( proj4.params) == 0) proj4.params = CRS( proj.type )
-    
-    if ( ! ("CRS" %in% class( proj4.params)) ) {
+    if ( "try-error" %in% class( proj4.params) ) proj4.params = try( CRS( proj.type ), silent=TRUE )
+    if ( "try-error" %in% class( proj4.params) ) {
       print( proj.type )
-      stop( "Projection not recognised") 
+      warning( "Projection not recognised") 
     }
 
-    y = rgdal::project( cbind(x$plon, x$plat), proj4.params, inv=T ) 
+    y = rgdal::project( cbind(x$plon, x$plat), proj4.params@projargs, inv=T ) 
     
     colnames(y) = newnames  
     for (i in 1:length( newnames)) {
