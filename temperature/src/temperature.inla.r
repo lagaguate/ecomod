@@ -257,6 +257,17 @@ Posterior marginals for linear predictor and fitted values computed
   
   M0.domain = inla.nonconvex.hull( locs0, convex=10, resolution=120 )
 
+
+  M0 = inla.mesh.2d (
+      loc=locs0, # locations of data points
+      boundary=M0.domain, 
+      max.edge=c( 20, 120 ),  # max size of a triange (in, out)
+      cutoff=20 # min distance allowed
+  )       
+  
+
+
+
   M0 = inla.mesh.2d (
       loc=locs0, # locations of data points
       boundary=M0.domain, 
@@ -276,18 +287,14 @@ Posterior marginals for linear predictor and fitted values computed
 
   tvar = var(t0$t)
   
-  conflim = tvar * c(0.1, 0.9 ) # 95% CL of SD
+  sdCL = tvar * c(0.1, 0.9 ) # 95% CL of SD
+  rangeCL = c( 20, 200 ) 
   
-  estimParamsFromCI( conflim ) 
-   
-  rangeCL = c( 40, 200 ) 
-
-  shape = 2
+  spatsd = estimParamsFromCI( sdCL, pm0=c(0.1, 0.1) ) 
+  spatrange =  estimParamsFromCI( rangeCL, pm0=c(0.1, 0.1) )
   hyper.space = list( 
-    range=list( param=c(  ), prior="loggamma" ) 
-    prec =list( param=c( precPrior$sd ), prior="loggamma" ) )
-
-  formula = ~ + f(space, model="matern2d", nu=shape, hyper=hyper.space )
+    range=list( param=spatrange, prior="loggamma" ), 
+    prec =list( param= spatsd, prior="loggamma" ) )
 
 
   # SPDE components
@@ -313,7 +320,7 @@ Posterior marginals for linear predictor and fitted values computed
 
   R <- inla(
       tC ~ 0 + b0 
-             + f(i, model=S0) 
+             + f(i, model=S0, hyper=hyper.space ) 
              + f(pryr, model='ar1', cyclic=TRUE ) , 
       family='gaussian',  # log transf by default .. (?)
       data=inla.stack.data(Z), 
@@ -661,5 +668,14 @@ cor( R$summary.linear.predictor$mean[idat], R$summary.fitted.values, use="pairwi
       oo = R$marginals.fitted.values[ iimputations$data ]
       inla.hpdmarginal( 0.95, oo[[2]] ) 
       inla.zmarginal( oo[[2]])
+
+
+
+
+      --------
+
+  shape = 2
+
+  formula = ~ + f(space, model="matern2d", nu=shape, hyper=hyper.space )
 
 
