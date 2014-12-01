@@ -116,9 +116,18 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   
   extract =  c("mean", "sd", "mode", "0.5quant", "0.025quant", "0.975quant")
   iRange = exp( oo$summary.log.range.nominal[ extract] ) # or iRange=sqrt(8)/exp(oo$summary.log.kappa$mean) 
-  iVar = exp( oo$summary.log.variance.nominal[extract] )
+  iVar = exp( oo$summary.log.variance.nominal[extract] ) # spatial variance (~ psill)
   iKappa = exp( oo$summary.log.kappa[extract]  )
   iTau = exp(oo$summary.log.tau[extract ] )
+
+  iNuggetmarginals = inla.tmarginal( function(x) {1/x}, R$marginals.hyperpar[["Precision for the Gaussian observations"]] )
+  iNugmode = inla.mmarginal( iNuggetmarginals ) 
+  iNugmean = inla.emarginal( function(x) {x}, iNuggetmarginals ) 
+  iNugSD =  sqrt( inla.emarginal( function(x) {x^2}, iNuggetmarginals ) - iNugmean^2)
+  iNugQuants = inla.qmarginal( c(0.5, 0.025, 0.975), iNuggetmarginals )
+
+  iNugget = data.frame(cbind( iNugmean, iNugSD, iNugmode, iNugQuants[1], iNugQuants[2], iNugQuants[3] ) )
+  names(iNugget) = extract
 
   # indices for random field at data locations
   idat <- inla.stack.index( Z, 'data')$data
@@ -136,17 +145,15 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
     plot( v, type="l", xlab="b0 -- intercept", ylab="Density" )
     
     x11()
-    vn = "Precision for the Gaussian observations"
+    vn = "Precision for the Gaussian observations"  ## i.e, the "nugget" or observation error
     v = R$marginals.hyperpar[[vn]]
-    v = v[order(v[,1]),]
-    plot( v, type="l", xlab=vn, ylab="density" )
-    
-    x11()
-    plot.default( inla.tmarginal( function(x) {1/exp(x)}, v), xlab="Spatial variance component", type="l", ylab="Density" )
+    # v = v[order(v[,1]),]
+    plot.default( iNuggetmarginals, xlab="Non-spatial observation error ('nugget variance')", type="l", ylab="Density" )
+    abline( v=iNugget$mean, lty="dotted" )
 
     x11(); 
-    vn = "marginals.variance.nominal"
-    plot(oo[[vn]][[1]], type='l', xlab=paste( "Spatial SD component", expression(sigma[x])), ylab='Density')
+    vn = "marginals.variance.nominal"  # spatially stuctured variance .. ~ psill
+    plot( oo[[vn]][[1]], type='l', xlab="Spatial error ('partial sill variance')", ylab='Density')
     abline(v=iVar$mean, lty="dotted" )
     
     x11(); 
@@ -168,9 +175,12 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
     levelplot( z~plon+plat, preds, aspect="iso", at=zz )
   }
     
+  inla.summary = rbind( iKappa, iTau, iRange, iVar, iNugget )
+  rownames( inla.summary) = c( "kappa", "tau", "range", "spatial error", "observation error" )
+  colnames( inla.summary) = c( "mean", "sd", "mode", "median", "q0.025", "q0.975" )
+                              
   out = list( vario.empirical=vEm, vario.model=vFitgs, vario.range=vRange, vario.psill=vPsill, vario.nugget=vNugget,
-              kappa0=kappa0, tau0=tau0,
-              iRange=iRange, iVar=iVar, iKappa=iKappa, iTau=iTau, correl=cor.predict         
+              kappa0=kappa0, tau0=tau0, inla.summary=inla.summary, correl=cor.predict         
   ) 
 
   if (return.inla) {
