@@ -257,6 +257,17 @@ Posterior marginals for linear predictor and fitted values computed
   
   M0.domain = inla.nonconvex.hull( locs0, convex=10, resolution=120 )
 
+
+  M0 = inla.mesh.2d (
+      loc=locs0, # locations of data points
+      boundary=M0.domain, 
+      max.edge=c( 20, 120 ),  # max size of a triange (in, out)
+      cutoff=15 # min distance allowed
+  )       
+  
+
+
+
   M0 = inla.mesh.2d (
       loc=locs0, # locations of data points
       boundary=M0.domain, 
@@ -274,9 +285,36 @@ Posterior marginals for linear predictor and fitted values computed
     t0$logZ = log(t0$z)
     t0$b0 = 1  # intercepts
 
+  tvar = var(t0$t)
+  
+  sdCL = tvar * c(0.1, 0.9 ) # 95% CL of SD
+  rangeCL = c( 20, 200 ) 
+  
+  spatsd = estimParamsFromCI( sdCL, pm0=c(0.1, 0.1) ) 
+  spatrange =  estimParamsFromCI( rangeCL, pm0=c(0.1, 0.1) )
+  hyper.space = list( 
+    range=list( param=spatrange, prior="loggamma" ), 
+    prec =list( param= spatsd, prior="loggamma" ) )
+
+
   # SPDE components
   # matern representation using mesh M
   S0 = inla.spde2.matern( M0, alpha=2 ) # alpha=2 is exponential correlation function
+ 
+
+  sigma0 = 1  # SD of the latent field
+  maxdist = sqrt( diff(range( locs0[,1]))^2 +  diff(range( locs0[,2]))^2  )
+  range0 = maxdist / 5  # spatial range 
+  kappa0 = sqrt(8) / range0
+  tau0 = 1/ ( sqrt(4*pi) * kappa0 *sigma0 )
+
+  S0 = inla.spde2.matern( M0, alpha=2, 
+    B.tau =cbind(log(tau0), -1,1 ),     # parameter basis functions
+    B.kappa = cbind( log(kappa0), 0, 1 ), # parameter basis functions
+    theta.prior.mean = c(0,0),    # theta1 controls variance .. vague; theta2 controls range   .. means 0
+    theta.prior.prec = c(0.1, 1)  #  precisions are vague for theta1;  for range .. theta2 prec 1 ==> 95% prior prob that range is smaller than domain size
+
+  ) 
 
   # indices of SPDE 
   # only time and mesh dependence ,, not location! 
@@ -296,84 +334,57 @@ Posterior marginals for linear predictor and fitted values computed
   theta.ar1 = list( theta1=list(param=c(1, 0.1) ), rho=list( param=c( 0.9, 1/0.1 ) ) )  # N( mean=0.9, var=0.1) 
 
   R <- inla(
-      tC ~ 0 + b0 
-             + f(i, model=S0) 
-             + f(pryr, model='ar1', cyclic=TRUE ) , 
+      tC ~ 0 + b0 + f(i, model=S0), 
       family='gaussian',  # log transf by default .. (?)
       data=inla.stack.data(Z), 
    #   control.compute=list(dic=TRUE),
       control.predictor=list(A=inla.stack.A(Z), compute=TRUE),
       verbose=TRUE
   )
-
-    # prediction of the random field: two ways .. with analysis or after analysis
-    # (aside: mesh points are already predicted )
-
-    newlocations = rbind(  c( 330, 4790), c(788, 5080) )
-    Anew = inla.spde.make.A ( mesh=M0, loc=newlocations )  # sparse matrix of the projection coefficients
-
-    # A) simple projection, post-analysis  
-    Anew %*% R$summary.random$i$mean
-
-    # B) or using inla functionality    
-    inla.mesh.project( inla.mesh.projector( M0, loc=newlocations), R$summary.random$i$mean )
-
-    # C) or using inla in a global analysis
-     
-      # simple model so this is not needed but to be consistent:
-      i <- inla.spde.make.index('i', n.spde=S$n.spde )  
-      # i = 1:S$n.spde  # alternatively this
-    
-    Znew = inla.stack( 
-      data = list( B=NA),
-      A = list( Anew,1 ),
-      effects = list( i=i, m=rep(1, nrow(newlocations) ) ),
-      tag="spatialpredictions"
-    )
-    
-    Z = inla.stack( Z, Znew )
-   
-    # refit the same model
-
-
-    ipredictions = inla.stack.index( Z, tag="spatialpredictions")
-    R$summary.linear.predctor[ ipredictions$data ,]
-
    
     # Prediction onto a grid using projections (method A/B) is faster/computationaly more efficient .. method of choice
-    pG = inla.mesh.projector( M, xlim=p$corners$plon, ylim=p$corners$plat, dims=c(p$nplons, p$nplats) )
+    pG = inla.mesh.projector( M0, xlim=p$corners$plon, ylim=p$corners$plat, dims=c(p$nplons, p$nplats) )
     # pG = inla.mesh.projector( M, dims=c(p$nplons, p$nplats) )
     
     Pmean = inla.mesh.project( pG, R$summary.random$i$mean )  # posterior mean
     Psd = inla.mesh.project( pG, R$summary.random$i$s )       # posterior SD
-    image(log(Pmean))
-
     
-    # Prediction of the response variable (B) .. ie. imputation
-    Zimp = inla.stack( 
-      data=list(B=NA), 
-      A=list( Anew, 1 ), # 1 is for the intercept
-      effects=list( i=1:S$n.spde, m=rep(1, nrow(newlocations) ) ), # 1 is for the intercept
-      tag="prediction.response"
-    )
-
-    Z = inla.stack( Z, Zimp )
-    R = inla(  
-      B ~ 0 + m + f(i, model=S), 
-      data=inla.stack.data(Z), 
-      control.predictor=list( A=inla.stack.A(Z), compute = TRUE ) ## new addition here to compute linear predictions but this is CPU expensive
-    )
-
-    iimputations = inla.stack.index( Z, tag="prediction.response")
-    R$summary.fitted.values[ iimputations$data ,]
-    oo = R$marginals.fitted.values[ iimputations$data ]
-    inla.hpdmarginal( 0.95, oo[[2]] ) 
-    inla.zmarginal( oo[[2]])
+    image(log(Pmean))
+   
+    graphics.off()
+    # field parameters on user scale
+    oo = inla.spde2.result(R, 'i', S0, do.transf=TRUE)
+    exp(oo$summary.log.range.nominal)
+    exp(oo$summary.log.kappa)
+    exp(oo$summary.log.tau)
 
 
-    # or more directly:
-    R$summary.fix[1,1] + Anew %*% R$summary.random$i$mean  # for the intercept
-    sqrt( 1^2 + R$summary.fix[1,2]^2 + drop( Anew %*% R$summary.random$i$sd^2 ) ) # for SE 
+    plot(oo$marginals.variance.nominal[[1]], type='l', xlab=expression(sigma[x]), ylab='Density')
+    abline(v=exp(oo$summary.log.variance.nominal$mean) )
+
+    plot(oo$marginals.kappa[[1]], type='l', xlab=expression(kappa), ylab='Density')
+    abline(v=exp(oo$summary.log.kappa$mean) )
+
+    plot(oo$marginals.range.nominal[[1]], type='l', xlab='range nominal', ylab='Density')
+    abline(v=exp(oo$summary.log.range$mean) )
+    # or
+    abline(v=sqrt(8)/exp(oo$summary.log.kappa$mean) )
+   
+    
+    # indices for random field at data locations
+    idat <- inla.stack.index( Z, 'data')$data
+
+    # correlation between the the posterior mean and the response by
+    cor( z, R$summary.linear.predictor$mean[idat])
+
+
+
+    plot( R$marginals.fixed[[1]], pch="o", xlab="Beta" )
+
+
+    str(R$marginals.hyperpar)
+    plot( R$marginals.hyper[[1]], type="l", xlab="" )
+    plot.default( inla.tmarginal( function(x) {1/exp(x)}, R$marginals.hyperpar[[1]]), xlab="", type="l")
 
 
 
@@ -645,5 +656,14 @@ cor( R$summary.linear.predictor$mean[idat], R$summary.fitted.values, use="pairwi
       oo = R$marginals.fitted.values[ iimputations$data ]
       inla.hpdmarginal( 0.95, oo[[2]] ) 
       inla.zmarginal( oo[[2]])
+
+
+
+
+      --------
+
+  shape = 2
+
+  formula = ~ + f(space, model="matern2d", nu=shape, hyper=hyper.space )
 
 

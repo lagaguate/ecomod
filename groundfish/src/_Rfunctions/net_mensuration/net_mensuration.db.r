@@ -150,10 +150,15 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       
       # fix sets that cross midnight and list
       uniqueid = unique(nm$id)
-    
-      print ("The following have sets that cross midnight and require days to be adjusted" )
-      nm$timestamp = timestamp.fix ( nm$id, nm$timestamp, threshold.hrs=2 )
-      
+      for ( uid in  uniqueid ) {
+        print ("The following have sets that cross midnight and require days to be adjusted" )
+        i = which( nm$id == uid)
+        test = timestamp.fix ( nm$timestamp[i], threshold.hrs=2 )
+        if (!is.null(test)) {
+          print (uid)
+          nm$timestamp[i] = test
+        }
+      }
       save(nm,file=fn3,compress=TRUE)
     }
   }
