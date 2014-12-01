@@ -6,6 +6,7 @@ loadfunctions( "groundfish", functionname="load.groundfish.environment.r")
 
 # define location of local data files
 netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
+marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport", "Logs")
 
 # steps required to recreate a local database of all data
 recreate.full.database.locally = FALSE

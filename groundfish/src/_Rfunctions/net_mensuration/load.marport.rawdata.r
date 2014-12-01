@@ -13,9 +13,9 @@ load.marport.rawdata = function( fn, fncfg ) {
   sgp = read.table( paste(fn, "sgp", sep="."), sep=",", as.is=TRUE, header=FALSE )
   dlog = read.table( paste(fn, "log", sep="."), sep=",", as.is=TRUE, header=FALSE )
   
-  names(gps) = c("Vessel", "Cruise", "notsure", "timestamp", "latitude", "longitude" )
-  names(sgp) = c("Vessel", "Cruise", "notsure",  "timestamp", "sensor", "value" )
-  names(dlog) =  c("Vessel", "Cruise", "notsure", "timestamp", "event" )
+  names(gps) = c("Vessel", "Cruise", "set", "timestamp", "latitude", "longitude" )
+  names(sgp) = c("Vessel", "Cruise", "set",  "timestamp", "sensor", "value" )
+  names(dlog) =  c("Vessel", "Cruise", "set", "timestamp", "event" )
 
   sgp = sgp[ , c( "timestamp", "sensor", "value" ) ]
   sgp$sensor = as.character( sgp$sensor)
