@@ -17,19 +17,29 @@ if ( recreate.full.database.locally ) {
   net_mensuration.db( "perley.database.datadump", netswd ) # ODBC data dump .. this step requires definition of password etc
   net_mensuration.db( "perley.database.merge", netswd )    # perley had two db's merge them together
   net_mensuration.db( "post.perley.redo",  netswd )        # Assimilate Scanmar files in raw data saves *.set.log files
+  match.set.from.gpstrack(DS="post.perley.redo", netswd=netswd ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
   net_mensuration.db( "merge.historical.scanmar.redo",  netswd ) # add all scanmar data together
   net_mensuration.db( "sanity.checks.redo",  netswd )      # QA/QC of data
 }
 
+no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
+
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
 
-
+i = which(is.na(master$id))
+t = unique( master$netmensurationfilename[i])
+p = data.frame(id = t)
+write.table(t, file= "missing_id.csv", sep = ",", quote=FALSE, row.names=FALSE, col.names=TRUE)
 
 --- testing / development ---
 
-# Producing a version of master that includes the historical data
+# Adding the variables: year, trip and set to the df master
+master$date=substring(master$timestamp,0,9)  
 master$year=as.numeric(substring(master$id,4,7))
+master$trip=as.numeric(substring(master$id,8,10))
+master$set=as.numeric(substring(master$id,12,14))
+# Producing a version of master that includes the historical data
 modern.data=master[which(master$year %in% 2004:2014) , ]
 
 # Only run to genereate new samples
@@ -44,12 +54,12 @@ allids
     mm = modern.data[test, ]
     
     # Run for one set
-    id = "NED2009027.139"
+    id = "TEM2008830.115"
     mm = master[ which(master$id==id),]
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact.groundfish(mm,  depthproportion=0.9, nbins=c(5,10) , minval.modal=5 ) 
+      bc = bottom.contact.groundfish(mm,  depthproportion=0.5, nbins=c(5,10) , minval.modal=5 ) 
            
 max(bc$filtered.data$depth, na.rm=TRUE)
 sd(bc$filtered.data$depth, na.rm=TRUE)

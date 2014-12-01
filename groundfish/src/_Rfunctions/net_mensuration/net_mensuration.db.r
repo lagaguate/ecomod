@@ -2,7 +2,7 @@ net_mensuration.db=function( DS, netswd=getwd() ){
    
   if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
     
-    # fn1= old data, fn2= new data and fn3= merged data (old and new)
+    # fn1= old data, fn2= new data and fn3= merged data (old and new); test
     fn1= file.path(netswd,"scanmar.perley.rdata")
     fn2= file.path(netswd,"scanmarnew.perley.rdata")
     fn3= file.path(netswd,"scanmar.perley.merged.rdata")
@@ -189,8 +189,36 @@ net_mensuration.db=function( DS, netswd=getwd() ){
    nm$clearance = filter.nets("clearance.range", nm$clearance)
    nm$opening = filter.nets("opening.range", nm$opening)
    nm$depth = filter.nets("depth.range", nm$depth)
+   
+   # Add year, trip and set to master df
+   nm$year=as.numeric(substring(nm$id,4,7))
+   nm$trip=as.numeric(substring(nm$id,8,10))
+   nm$set=as.numeric(substring(nm$id,12,14))
+
+   
+   # Clerical error correction : Convert postive longitude values to negative
+   u = which(nm$longitude > 0)
+   if (length(u)>0) nm$longitude[u] = -nm$longitude[u]
+   
+   
+   # remove extremes in lon/lat
+   u = which(nm$longitude > 0)
+   if (length(u)>0) nm$longitude[u] = NA
+
+   # Remove lat and longs (-4.12) which don't make sense, set them to NA
+   u = which(nm$longitude < -71 & nm$longitude > -55)
+   if (length(u) > 0) nm$longitude[u] = NA
+   
+   
+   u = which(nm$latitude > 90)
+   if (length(u)>0) nm$latitude[u] = NA
+   
+   
+    u = which(nm$latitude < 39 & nm$latitude > 48)
+    if (length(u) > 0) nm$longitude[u] = NA
+ 
+    save( nm, file=fn, compress=TRUE)
   
-   save( nm, file=fn, compress=TRUE)
   }
 
 
@@ -214,6 +242,32 @@ net_mensuration.db=function( DS, netswd=getwd() ){
   }
 
 
+  
+  if(DS %in% c("marport", "marport.redo"))  {
+    basedata=NULL
+    fn=file.path( netswd, paste( "marport", "rdata", sep="." ))
+    if(DS == "marport"){
+      if (file.exists(fn)) load(fn)
+      return(basedata)
+    }
+    
+    filelist = list.files(path=netswd, pattern="set.log", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    
+    # unneeded = grep ("copy", filelist, ignore.case=TRUE)
+    # if (length(unneeded>0)) filelist = filelist[-unneeded]
+    for ( fl in filelist ) {
+      print(fl)
+      j = load.marport.rawdata( fl )  # variable naming conventions in the past
+      if (is.null(j)) next()
+      basedata = rbind( basedata, j)
+    }
+    
+    save(basedata, file=fn, compress= TRUE)
+  }
+  
+  
+
+
 
   if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
     
@@ -223,12 +277,6 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       if (file.exists(fn)) load(fn)
       return(master)
     }
-    
-    pp= net_mensuration.db( DS="post.perley", netswd=netswd ) 
-    
-    pp$uniqueid = pp$id
-    pp$id = NULL
-    pp$time = NULL
      
     nm = net_mensuration.db( DS="perley.database", netswd=netswd ) 
     w = which(!is.finite(nm$cspd))
@@ -238,20 +286,29 @@ net_mensuration.db=function( DS, netswd=getwd() ){
     v.to.drop = c("vesel", "empty", "logtime", "cspd", "fspd", "settype", "dist" )
     for ( v in v.to.drop) nm[,v] = NULL
     nm$gyro=NA  
+    nm$netmensurationfilename = "Oracle instance of Perley DBs"
     
     # here we will add the more modern data series and merge with perley
-    no.matches = match.set.from.gpstrack(DS="post.perley", netswd=netswd )
-    meta = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
-    
+  
+    pp= net_mensuration.db( DS="post.perley", netswd=netswd ) 
+    pp$netmensurationfilename = pp$id
+    pp$uniqueid = pp$id
+    pp$id = NULL
+    pp$time = NULL
+
+    meta = match.set.from.gpstrack(DS="post.perley", netswd=netswd )  # previously saved metadata containing mission id, set no etc from GPS tracks
     pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
     
-    setdiff(names(pp), names(nm))
+    # setdiff(names(pp), names(nm))
+    
     pp$uniqueid=NULL
     pp$ctspeed=NA
     pp=pp[,names(nm)]
+    
     # this is where we add the marport data/2010-2011 data
+    
     master=rbind(nm, pp)
-     
+    
     save(master, file=fn, compress= TRUE)
     
   }

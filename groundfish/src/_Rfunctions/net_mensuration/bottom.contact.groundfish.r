@@ -19,8 +19,7 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, nbins=c(
   O$filtered = 1:nrow(x) # list of rows that will contain data that passes each step of data quality checks
   
   
-
-  ## Preliminary gating: simple range limits (gating) of depths to remove real extremes
+## Preliminary gating: simple range limits (gating) of depths to remove real extremes
   
   # eliminate records with NA for depth  
   i = which(!is.finite(x$depth))
@@ -32,7 +31,8 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, nbins=c(
 
   
 
-  # eliminate a range around the median value 
+
+## Filtering based on median depth
   mediandepth = quantile( x$depth, probs=c(0.5), na.rm=TRUE)
   dmax = mediandepth + 50
   baddata = which( x$depth > dmax   )

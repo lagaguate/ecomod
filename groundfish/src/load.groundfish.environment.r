@@ -1,4 +1,4 @@
-﻿# libraries
+# libraries
   RLibrary( "Hmisc", "date", "chron", "vegan", "fields" )
 
   gs.srcdir   = file.path( project.directory("groundfish"), "src" )
