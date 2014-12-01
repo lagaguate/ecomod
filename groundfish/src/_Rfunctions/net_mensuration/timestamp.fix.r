@@ -1,4 +1,4 @@
-timestamp.fix = function(  id, tstamp, threshold.hrs=2 ) {
+timestamp.fix = function(  tstamp, threshold.hrs=2 ) {
   
   # fix sets that cross midnight
   # test to see if the time range is greater than threshold ... in groundfish 30 min tows (test on 2 hr) 
