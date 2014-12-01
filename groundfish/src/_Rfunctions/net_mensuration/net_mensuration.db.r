@@ -1,8 +1,8 @@
-net_mensuration.db=function( DS, netswd=getwd() ){
+net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
    
   if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
     
-    # fn1= old data, fn2= new data and fn3= merged data (old and new); test
+    # fn1= old data, fn2= new data and fn3= merged data (old and new)
     fn1= file.path(netswd,"scanmar.perley.rdata")
     fn2= file.path(netswd,"scanmarnew.perley.rdata")
     fn3= file.path(netswd,"scanmar.perley.merged.rdata")
@@ -11,15 +11,10 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       # Package RODBC is a platform for interfacing R to database systems
       # Package includes the obdc* commands (access) and sql* functions (read, save, copy, and manipulate data between data frames)
       require(RODBC)
-      connect=odbcConnect( oracle.perley.db, uid=oracle.perley.user, pwd=oracle.perley.password, believeNRows=F)
-      # define these in your Rprofile 
-      # oracle.perley.user ="username"
-      # oracle.perley.password = "password"
-      # oracle.perley.db = "servername"
-
+      connect=odbcConnect( "quoddy", uid="cooka", pwd="f43xy21b", believeNRows=F)
       # sqlquery can be used to return part of a table
-      scanmar = sqlQuery(connect, "select * from  groundfish.perleyp_SCANMAR", as.is=T) 
-      scanmarnew = sqlQuery(connect, "select * from  groundfish.perleyp_NEWSCANMAR", as.is=T) 
+      scanmar = sqlQuery(connect, "select * from   groundfish.perleyp_SCANMAR", as.is=T) 
+      scanmarnew = sqlQuery(connect, "select * from   groundfish.perleyp_NEWSCANMAR", as.is=T) 
       # closing the connection with ODBC
       odbcClose(connect)
       # saving the tables to R memory in zip format 
@@ -39,6 +34,7 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       load(fn1) 
       load(fn2)
       names(scanmarnew)=tolower(names(scanmarnew))      
+      
       names(scanmar)=tolower(names(scanmar))      #ac
       
       # nm is the dataset which combines the old and new data (merged)
@@ -150,15 +146,10 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       
       # fix sets that cross midnight and list
       uniqueid = unique(nm$id)
-      for ( uid in  uniqueid ) {
-        print ("The following have sets that cross midnight and require days to be adjusted" )
-        i = which( nm$id == uid)
-        test = timestamp.fix ( nm$timestamp[i], threshold.hrs=2 )
-        if (!is.null(test)) {
-          print (uid)
-          nm$timestamp[i] = test
-        }
-      }
+    
+      print ("The following have sets that cross midnight and require days to be adjusted" )
+      nm$timestamp = timestamp.fix ( nm$id, nm$timestamp, threshold.hrs=2 )
+      
       save(nm,file=fn3,compress=TRUE)
     }
   }
@@ -176,6 +167,7 @@ net_mensuration.db=function( DS, netswd=getwd() ){
    }
 
    nm = net_mensuration.db( DS="merge.historical.scanmar", netswd=netswd ) 
+
    
    # remove sets where american trawls were used for comparative surveys
    nm = filter.nets("remove.trawls.with.US.nets", nm)
@@ -194,36 +186,8 @@ net_mensuration.db=function( DS, netswd=getwd() ){
    nm$clearance = filter.nets("clearance.range", nm$clearance)
    nm$opening = filter.nets("opening.range", nm$opening)
    nm$depth = filter.nets("depth.range", nm$depth)
-   
-   # Add year, trip and set to master df
-   nm$year=as.numeric(substring(nm$id,4,7))
-   nm$trip=as.numeric(substring(nm$id,8,10))
-   nm$set=as.numeric(substring(nm$id,12,14))
-
-   
-   # Clerical error correction : Convert postive longitude values to negative
-   u = which(nm$longitude > 0)
-   if (length(u)>0) nm$longitude[u] = -nm$longitude[u]
-   
-   
-   # remove extremes in lon/lat
-   u = which(nm$longitude > 0)
-   if (length(u)>0) nm$longitude[u] = NA
-
-   # Remove lat and longs (-4.12) which don't make sense, set them to NA
-   u = which(nm$longitude < -71 & nm$longitude > -55)
-   if (length(u) > 0) nm$longitude[u] = NA
-   
-   
-   u = which(nm$latitude > 90)
-   if (length(u)>0) nm$latitude[u] = NA
-   
-   
-    u = which(nm$latitude < 39 & nm$latitude > 48)
-    if (length(u) > 0) nm$longitude[u] = NA
- 
-    save( nm, file=fn, compress=TRUE)
   
+   save( nm, file=fn, compress=TRUE)
   }
 
 
@@ -247,7 +211,7 @@ net_mensuration.db=function( DS, netswd=getwd() ){
   }
 
 
-  
+
   if(DS %in% c("marport", "marport.redo"))  {
     basedata=NULL
     fn=file.path( netswd, paste( "marport", "rdata", sep="." ))
@@ -256,23 +220,25 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       return(basedata)
     }
     
-    filelist = list.files(path=netswd, pattern="set.log", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    filelist1 = list.files(path=netswd, pattern=".log$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    filelist2 = list.files(path=netswd, pattern=".gps$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    filelist3 = list.files(path=netswd, pattern=".sgp$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+
+    filelist1 = gsub( ".log$", "", filelist1)
+    filelist2 = gsub( ".gps$", "", filelist2)
+    filelist3 = gsub( ".sgp$", "", filelist3)
     
-    # unneeded = grep ("copy", filelist, ignore.case=TRUE)
-    # if (length(unneeded>0)) filelist = filelist[-unneeded]
+    fileroots = unique( c( filelist1, filelist2, filelist3 ) )
+    
     for ( fl in filelist ) {
       print(fl)
-      j = load.marport.rawdata( fl )  # variable naming conventions in the past
+      j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
       if (is.null(j)) next()
       basedata = rbind( basedata, j)
     }
-    
     save(basedata, file=fn, compress= TRUE)
   }
   
-  
-
-
 
   if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
     
@@ -282,6 +248,12 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       if (file.exists(fn)) load(fn)
       return(master)
     }
+    
+    pp= net_mensuration.db( DS="post.perley", netswd=netswd ) 
+    
+    pp$uniqueid = pp$id
+    pp$id = NULL
+    pp$time = NULL
      
     nm = net_mensuration.db( DS="perley.database", netswd=netswd ) 
     w = which(!is.finite(nm$cspd))
@@ -291,29 +263,20 @@ net_mensuration.db=function( DS, netswd=getwd() ){
     v.to.drop = c("vesel", "empty", "logtime", "cspd", "fspd", "settype", "dist" )
     for ( v in v.to.drop) nm[,v] = NULL
     nm$gyro=NA  
-    nm$netmensurationfilename = "Oracle instance of Perley DBs"
     
     # here we will add the more modern data series and merge with perley
-  
-    pp= net_mensuration.db( DS="post.perley", netswd=netswd ) 
-    pp$netmensurationfilename = pp$id
-    pp$uniqueid = pp$id
-    pp$id = NULL
-    pp$time = NULL
-
-    meta = match.set.from.gpstrack(DS="post.perley", netswd=netswd )  # previously saved metadata containing mission id, set no etc from GPS tracks
+    no.matches = match.set.from.gpstrack(DS="post.perley", netswd=netswd )
+    meta = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
+    
     pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
     
-    # setdiff(names(pp), names(nm))
-    
+    setdiff(names(pp), names(nm))
     pp$uniqueid=NULL
     pp$ctspeed=NA
     pp=pp[,names(nm)]
-    
     # this is where we add the marport data/2010-2011 data
-    
     master=rbind(nm, pp)
-    
+     
     save(master, file=fn, compress= TRUE)
     
   }
