@@ -42,8 +42,9 @@ load.marport.rawdata = function( fn, fncfg ) {
   dlog$timestamp = mdy_hms(dlog$timestamp) 
    
   marport$id = fn
-  marport$timestamp = timestamp.fix ( marport$id, marport$timestamp, threshold.hrs=2 )
-   
+  test =  timestamp.fix ( marport$timestamp, threshold.hrs=2 )
+  if (!is.null(test)) marport$timestamp = test
+  
   return(marport)
 }
 

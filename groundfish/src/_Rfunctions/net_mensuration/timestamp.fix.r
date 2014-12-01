@@ -1,9 +1,9 @@
-timestamp.fix = function(  tstamp, threshold.hrs=2 ) {
+timestamp.fix = function( tstamp, threshold.hrs=2 ) {
   
   # fix sets that cross midnight
   # test to see if the time range is greater than threshold ... in groundfish 30 min tows (test on 2 hr) 
   # identify the indices where times are too large and adjust the day values
-  
+  out = NULL
   tocorrect=NULL
   hr2sec = 60*60 
   threshold.seconds = hr2sec * threshold.hrs
@@ -19,6 +19,8 @@ timestamp.fix = function(  tstamp, threshold.hrs=2 ) {
     if ( length(z) > 0 ) {
       day( tstamp[z]) = day( tstamp[z])+1
     }
+    out = tstamp
   }  
-  return( tstamp)
+
+  return( out )
 }
