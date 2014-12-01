@@ -63,7 +63,7 @@ load.scanmar.rawdata = function( fn ) {
   scanmar$timestamp=gsub(":","-",scanmar$timestamp)
   scanmar$timestamp = ymd_hms(scanmar$timestamp) 
   scanmar$id = basename(fn)
-  scanmar$timestamp = timestamp.fix ( scanmar$id, scanmar$timestamp, threshold.hrs=2 )
+  scanmar$timestamp = timestamp.fix ( scanmar$timestamp, threshold.hrs=2 )
    
   return(scanmar)
 }
