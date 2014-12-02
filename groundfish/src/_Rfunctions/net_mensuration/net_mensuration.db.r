@@ -1,3 +1,4 @@
+
 net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
    
   if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
@@ -265,8 +266,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     nm$gyro=NA  
     
     # here we will add the more modern data series and merge with perley
-    no.matches = match.set.from.gpstrack(DS="post.perley", netswd=netswd )
-    meta = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
+    meta = match.set.from.gpstrack(DS="post.perley", netswd=netswd )
     
     pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
     
@@ -279,6 +279,95 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
      
     save(master, file=fn, compress= TRUE)
     
+  }
+
+
+
+if(DS %in% c("bottom.contact", "bottom.contact.redo" )) {
+  
+  fn= file.path(netswd,"gsinf.bottom.contact.rdata")
+  master=NULL
+  if(DS=="bottom.contact"){
+    if (file.exists(fn)) load(fn)
+    return(master)
+  }
+  
+  gsinf = groundfish.db( DS="gsinf" )
+  gsinf$fishingduration = NA
+  gsinf$spoint.datetime = NA
+  gsinf$epoint.datetime = NA
+  gsinf$spoint.sd = NA
+  gsinf$epoint.sd = NA
+  gsinf$epoint.n = NA
+  gsinf$spoint.n = NA
+  
+  master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+  
+  uid = sort( unique( master$id)) 
+  for ( id in uid) {
+    print( id)
+    ii = which( master$id==id )  # rows of master with scanmar/marport data
+    
+    if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
+    
+    gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+  
+    depthproportions = c(0.25, 0.5, 0.75, 0.9 )
+    minval.modal =  5  # can be varied but this works best
+    
+    out = NULL
+    for ( dp in depthproportions ) {
+        res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, minval.modal=minval.modal , plot.data=TRUE)
+        # if (res$fishing.nsol != 6 ) next()
+        tmp = cbind(  dp, mm, res$fishing0.sd,  res$fishing1.sd, sqrt(res$fishing0.sd^2 + res$fishing1.sd^2), as.character(res$fishing0), as.character(res$fishing1), res$fishing0.n, res$fishing1.n )  
+        out = rbind( out, tmp )
+        print (tmp)
+    } 
+    out = data.frame( out)
+    colnames(out) = c("depthprop", "minval.modal", "fishing0.sd", "fishing1.sd", "fishingall.sd", "fishing0", "fishing1", "fishing0.n", "fishing1.n")
+    
+    f0sd = f1sd= f0n = f1n = NA
+    
+    if ( all( !is.finite( as.numeric(out$fishingall.sd) ))) { 
+      # no good solution
+      # test for realistic solutions otherwise pass
+      durations = as.numeric( ymd_hms( out$fishing1 ) - ymd_hms( out$fishing0 ) ) / 60 # in sec .. convert to min
+      good = which ( durations > 15 & durations < 45 )
+      if (length(good) >= 1 ) {
+        ss = mean( ymd_hms( out$fishing0[good]), na.rm=TRUE ) 
+        ee = mean( ymd_hms( out$fishing1[good]), na.rm=TRUE ) 
+        dd = abs( as.numeric( diff( c(ee, ss) ) ))  
+        f0sd = as.numeric( out[good,"fishing0.sd"] )
+        f1sd = as.numeric( out[good,"fishing1.sd"] )
+        f0n = as.numeric( out[good,"fishing0.n"] ) 
+        f1n = as.numeric( out[good,"fishing0.n"] ) 
+      }
+    } else {
+      si = which.min( as.numeric(out[,3]) )
+      ei = which.min( as.numeric(out[,4]) )
+      ss = ymd_hms( out[si,"fishing0"] )
+      ee = ymd_hms( out[ei,"fishing1"] )
+      dd = abs( as.numeric( diff( c(ee, ss) ) ))
+
+      f0sd = as.numeric( out[si,"fishing0.sd"] ) 
+      f1sd = as.numeric( out[ei,"fishing1.sd"] ) 
+      f0n = as.numeric( out[si,"fishing0.n"] ) 
+      fn1 = as.numeric( out[ei,"fishing1.n"] ) 
+      
+    }
+    
+    gsinf$spoint.datetime[gii] = as.character( ss )
+    gsinf$epoint.datetime[gii] = as.character( ee )
+    gsinf$fishingduration[gii] = dd
+    gsinf$spoint.sd[gii] = f0sd
+    gsinf$epoint.sd[gii] = f1sd
+    gsinf$spoint.n[gii] = f0n
+    gsinf$epoint.n[gii] = f1n
+    
+  }
+  
+  save(gsinf, file=fn, compress= TRUE)
+  
   }
 
 }

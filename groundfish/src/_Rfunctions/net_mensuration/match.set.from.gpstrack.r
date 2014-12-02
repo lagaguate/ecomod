@@ -18,7 +18,7 @@ match.set.from.gpstrack=function( DS="post.perley", netswd=netswd ) {
   gf$sdate=with_tz(gf$sdate, "GMT") # Groundfish tables are stored in AST
   # gf$lon.end=-gf$lon.end (temporary fix until we correct gf)
   
-  meta=data.frame(uniqueid=unique(pp$id))
+  meta=data.frame(uniqueid=unique(pp$id), stringsAsFactors=FALSE )
   meta$sdate=NA
   meta$id=NA
   meta$bottom_temperature=NA
@@ -63,11 +63,61 @@ match.set.from.gpstrack=function( DS="post.perley", netswd=netswd ) {
     }
   }
   
-## This is where I continue on
-  # Check if there are any duplicates
-  dupids = meta$id[ which( duplicated( meta$id, incomparables=NA) ) ]
-  dups = meta[ which(meta$id %in% dupids), ]
-  dups = dups[ order(dups$id), ]
+  # fnn2 = "C:/cygwin64/home/mundenj/ecomod/groundfish/R/meta.rdata"
+  # save( meta, file=fnn2)
+  # load (fnn2)
+  
+  # Check for duplicates as some are data errors .. needed to be checked manually and raw data files altered
+  # others are due to bad tows being redone ... so invoke a distance based rule as the correct one in gsinf (good tows only are recorded)
+  dupids = unique( meta$id[ which( duplicated( meta$id, incomparables=NA) ) ] )
+  for ( dups in dupids ) {
+    uu = which(meta$id %in% dups)
+    good = uu[ which.min( meta$min.distance[uu] ) ]
+    notsogood = setdiff( uu, good )    
+    meta$id[notsogood] = NA       
+  }
+  
+  # redo the distance-based match to catch any that did not due to being duplicates above
+  # does not seem to do much but kept for posterity
+  
+  unmatched = which( is.na(meta$id ) )
+  if (length (unmatched) > 0) {
+    for(i in unmatched ){
+      
+      k = meta$uniqueid[i]
+      print(k)
+      
+      j = which(pp$id == k)
+      if(length(j)>0) {
+        ppc=pp[j,]
+        m = which.min(ppc$timestamp)
+        meta$sdate[i] = as.character(ppc$timestamp[m])
+        dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
+        u = which(abs(dif)< dhours  (9)) 
+        
+        ## the next two lines are where things are a little different from above
+        ## the catch all as yet unmatched id's only for further processing
+        current.meta.ids = unique( sort( meta$id) )
+        u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
+        
+        if(length(u)> 1) {
+          gfs=gf[u,]
+          gfs$min.distance.test=NA
+          
+          for(v in 1:nrow (gfs)){
+            distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
+            gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
+          }
+          
+          w = which.min(gfs$min.distance.test)
+          if(gfs$min.distance.test[w]< 1 ){
+            meta$id[i]=gfs$id[w]  # exact match with very high confidence
+            meta$min.distance[i] = gfs$min.distance.test[w]
+          } 
+        }
+      }
+    }
+  }
   
   
   ## now do a more fuzzy match based upon time stamps as there are no matches based upon distance alone
@@ -85,46 +135,16 @@ match.set.from.gpstrack=function( DS="post.perley", netswd=netswd ) {
         dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
         
         u = which( abs(dif)< dhours  (1) )
-        if (length(u) > 0 ) {
-          ids.matched = meta$id[ !is.na(meta$id)]
-          gfs = gf[u,] 
-          gfs = gfs[ -which(gfs$id %in% ids.matched) ,]
-          if (nrow( gfs) == 1 ) meta$id[i]= gfs$id
+        if (length(u) == 1 ) { 
+          current.meta.ids = unique( sort( meta$id) )
+          u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
+          if (length(u) == 1 )   meta$id[i]= gfs$id[u]
         }          
       }
     }
   }    
-  
-  # Re-check for duplicates
-  dupids = meta$id[ which( duplicated( meta$id, incomparables=NA) ) ]
-  dups = meta[ which(meta$id %in% dupids), ]
-  dups = dups[ order(dups$id), ]
-  
-  
-  
-  du = which( duplicated( meta$id, incomparables=NA) )
-  if (length(du)>0) {
-    for (ee in du) {
-      dd = which( meta$id %in% meta$id[ee] )
-      tt = which.min( meta$min.distance[dd] )
-      reject = setdiff( dd, tt )
-      meta$id[reject] = NA
-    }
-  }
-  
-  dupids = meta$id[ which( duplicated( meta$id, incomparables=NA) ) ]
-  dups = meta[ which(meta$id %in% dupids), ]
-  dups = dups[ order(dups$id), ]
-  
-  nomatchids = which( is.na( meta$id) )
-  nomatch = meta[ nomatchids,]
-  nomatch = nomatch[ order(nomatch$uniqueid),]
-  
+ 
+   
   save(meta, file= fn, compress= TRUE)
-  warning("No matches found for (nothing will follow if everything is OK:")
-  print (nomatch)
-  
-  warning(" The following have duplicated matches:")
-  print (dups)
-  
+ 
 }
