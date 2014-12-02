@@ -6,7 +6,8 @@ type=c(1)
 species.code=11
 strat.list<-c(470:495)
 ############################
-
+#loadfunctions("utility",,"na.zero")
+loadfunctions("utility")
 library(RODBC)
 library(plyr)
 library(reshape2)
@@ -30,6 +31,7 @@ options(stringsAsFactors = FALSE)
 #"MISSION" created from other fields for later convenience
 
 survey_list<-read.csv(file=file.path(wd,"survey_list.csv"), head=T, sep=",")
+names(survey_list) = toupper(names(survey_list))
 survey_list$MISSION<-paste(survey_list$VESEL,survey_list$YEAR,sprintf("%03d",survey_list$CRUNO),sep="")
 
 #FOWLER 2014 
@@ -55,6 +57,7 @@ these.missions<-paste(unlist(gsub("(.*)","'\\1'",gstri$MISSION)),sep="",collapse
 #used calculation to convert strat areas into tunits, saves referencing external, static data
 #may need to grant users access to GROUNDFISH.GS_STRATUM
 #renamed "name" to "unitarea" to match Mark's app
+##AMC Question did the original stranal allow for different trawlable units? IE for pre1981 was yankee 36 wingspread used (ie 35 instead of 41)
 tunits_query<-
   paste("SELECT strat, NAME UNITAREA, ROUND(nvl(area,0)/(1.75*(41/6080.2))) tunits 
           FROM 
@@ -62,6 +65,7 @@ tunits_query<-
           WHERE 
           strat IN (",these.strat,")", sep="")
 tunits<-sqlQuery(channel,tunits_query)
+tunits$WTS = tunits$TUNITS/sum(tunits$TUNITS)
 
 #MMM Oct 2014
 #ctd made from joining dataframe gstri to extraction from gshyd
@@ -119,7 +123,8 @@ gsinf_source<-sqlQuery(channel,gsinf_source_query)
 
 stock_all_adj_cat<-merge(gsinf_source, stock_all_raw_cat, all.x=T)
 stock_all_adj_cat<-merge(stock_all_adj_cat,survey_list, all.x=T)
-stock_all_adj_cat$TOTWGT[is.null(stock_all_adj_cat$TOTWGT)] <- 0
+stock_all_adj_cat[which(is.na(stock_all_adj_cat$TOTWGT)),c('SAMPWGT','TOTWGT','TOTNO','CALWT')] <- 0
+stock_all_adj_cat$SIZE_CLASS[which(is.na(stock_all_adj_cat$SIZE_CLASS))] <- 1
 stock_all_adj_cat$RAW_TOTWGT <-stock_all_adj_cat$TOTWGT
 stock_all_adj_cat$TOTWGT <- (stock_all_adj_cat$TOTWGT*1.75)/stock_all_adj_cat$DIST
 stock_all_adj_cat$RAW_TOTNO <-stock_all_adj_cat$TOTNO 
@@ -135,7 +140,7 @@ stock_all_adj_cat$TOTNO <- (stock_all_adj_cat$TOTNO*1.75)/stock_all_adj_cat$DIST
 
 #MMM Oct 2014
 #converted to ANSI join
-stock_all_raw_age_query<-
+stock_all<-
   paste("select mission,setno,size_class,fsex,age,fwt,
           decode(1,1,flen,2,.5+2*floor(flen/2),3,1+3*floor(flen/3),flen) flen,
           lgrp binwidth,lfsexed bysex, clen
@@ -144,8 +149,10 @@ stock_all_raw_age_query<-
             LEFT OUTER JOIN groundfish.gsspec s ON (s.spec=g.spec)
           WHERE MISSION IN (",these.missions,")
           AND G.SPEC=",species.code,"
-        AND age IS NOT NULL", sep="")
-stock_all_raw_age<-sqlQuery(channel,stock_all_raw_age_query)
+        ", sep="")
+stock_all<-sqlQuery(channel,stock_all)
+
+stock_all_raw_age = stock_all
 
 
 stock_all_adj_age<-merge(stock_all_adj_cat, stock_all_raw_age, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T) #merge on particular fields by=c("MISSION", "SETNO","SIZE_CLASS"), 
@@ -154,22 +161,39 @@ stock_all_adj_age$FLEN<-floor(stock_all_adj_age$FLEN/stock_all_adj_age$BINWIDTH)
 #instantiate cage
 stock_all_adj_age$CAGE<-NA
 
+#if sampwgt is 0 or NA and totwgt is not null or 0 then replace sample weigt with total weight #need to see if this is consistent
+iu = which(stock_all_adj_age$SAMPWGT ==0)
+iw = which(is.na(stock_all_adj_age$SAMPWGT))
+ii = which(stock_all_adj_age$TOTWGT>0)
+
+iiu = intersect(ii,iu)
+if(length(iiu)>0) {
+	stock_all_adj_age$SAMPWGT[iiu] = stock_all_adj_age$TOTWGT[iiu]
+}
+
+iiw = intersect(ii,iw)
+if(length(iiw)>0) {
+	stock_all_adj_age$SAMPWGT[iiw] = stock_all_adj_age$TOTWGT[iiw]
+}
+
+ie = which(stock_all_adj_age$SAMPWGT >0)
+io = which(!is.na(stock_all_adj_age$SAMPWGT))
+iy = which(stock_all_adj_age$SAMPWGT==0)
   #if sampwgt > 0, use it to calculate cage
-  stock_all_adj_age_1<-stock_all_adj_age[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT>0,]
-  if (nrow(stock_all_adj_age_1) >0){
-  stock_all_adj_age_1$CAGE<-(stock_all_adj_age_1$RAW_TOTWGT/stock_all_adj_age_1$RAW_TOTWGT)*(1.75/stock_all_adj_age_1$DIST)*stock_all_adj_age_1$CLEN
+  st1<- union(ie,io)
+  if (length(st1) >0){
+  stock_all_adj_age$CAGE[st1]<-stock_all_adj_age$RAW_TOTWGT[st1]/stock_all_adj_age$SAMPWGT[st1]*(1.75/stock_all_adj_age$DIST[st1])*stock_all_adj_age$CLEN[st1]
   }
   #if sampwgt ==0, cage ==0
-  stock_all_adj_age_0<-stock_all_adj_age[!is.na(stock_all_adj_age$SAMPWGT) & stock_all_adj_age$SAMPWGT==0,]
-  if (nrow(stock_all_adj_age_0) >0){
-  stock_all_adj_age_0$CAGE<-0
+  st0 = intersect(io,iy)
+  if (length(st0) >0){
+  stock_all_adj_age$CAGE[st0]<-0
   }
   #if sampwgt is na/null, cage is na/null
-  stock_all_adj_age_NA<-stock_all_adj_age[is.na(stock_all_adj_age$SAMPWGT),]
-  if (nrow(stock_all_adj_age_NA)>0){
-    stock_all_adj_age_NA$CAGE<-NA
+  stNA<-which(is.na(stock_all_adj_age$SAMPWGT))
+  if (length(stNA)>0){
+    stock_all_adj_age$CAGE[stNA]<-NA
   }
-stock_all_adj_age<-rbind(stock_all_adj_age_1,stock_all_adj_age_0,stock_all_adj_age_NA)
 
 #FOWLER 2014
 #Adjust raw counts for subsampling and actual tow distance (relative to standard 1.75 nm tow).
@@ -225,33 +249,70 @@ alk_results<-t(tapply(alk$SETNO  , list(alk$AGE, alk$FLEN), function(x) {sum(x/x
 
 #length by set sheet (not formatted for output)
 lset<-stock_agelen[,c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN","CAGE")]
-#need plyr for here
-groupColumns = c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN")
-dataColumns = c("CAGE")
-lset <- ddply(lset, groupColumns, function(x) colSums(x[dataColumns]))
+li = which(lset$CAGE==0)
+lset$FLEN[li] = unique(lset$FLEN)[1]
 
+lset <- aggregate(CAGE~STRAT+SLAT+SLONG+UNITAREA+MISSION+SETNO+FLEN,data=lset,FUN=sum)
 lset<-lset[with(lset,order(lset$STRAT,lset$MISSION,lset$SETNO,lset$FLEN,lset$SLAT,lset$SLONG,lset$UNITAREA)),]
 lset<-melt(lset, id.vars = c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO","FLEN"))
 lset_results <- dcast(lset, STRAT + SLAT + SLONG + UNITAREA + MISSION + SETNO  ~ FLEN)
   remove<-c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO")
   Set_Totals<-rowSums(lset_results[-match(remove, names(lset_results))], na.rm = T)
   lset_results<-cbind(lset_results,Set_Totals)  
-#length by set values do not match STRANAL - these reults are MISSING data for some sets
+#length by set values do MATCH stranal at least for 4x haddock 1974 AMC
 
 
-results<-list(tunits_results, alk_results,lset_results)
+
+#length mean tab
+
+ll = na.zero(lset_results)
+ll = ll[,c(1,7:(ncol(ll)))]
+llr = aggregate(.~STRAT,data=ll,FUN=mean)
+llr = merge(llr,tunits[,c('STRAT','WTS')])
+length_mean_result <- rbind(llr[,1:(ncol(llr)-1)],c('Total',colSums(llr[,2:(ncol(llr)-1)]*llr$WTS)))
+#length_mean_result isorting is different, but matches Length by set tab
+
+#length sd mean tab
+
+lls <- aggregate(.~STRAT,data=ll,FUN = function(x) sd(x)/sqrt(length(x))) #check to make sure this matches stranal
+llv <- aggregate(.~STRAT,data=ll,FUN = var)
+llv = merge(llv,tunits,by='STRAT')
+lll <- aggregate(.~STRAT,data=ll,FUN = length)
+o = c('Total',numeric(ncol(lls)-1))
+for(i in 2:ncol(lls)) {
+	ip = llv[,i]
+	iw = llv[,'TUNITS']
+	ie = lll[,i]
+o[i] = sqrt(sum(iw/sum(iw)^2*(iw-ie)*(ip/ie)))
+}
+
+length_sd_result <- rbind(lls[,1:(ncol(lls))],o)
+#set totals of length_sd_result  don't match
+
+#length total tab
+
+lo = merge(data.matrix(length_mean_result),tunits[,c('STRAT','TUNITS')],by='STRAT')
+#MMM converted to data matrix - changed "Total" row to NA
+
+lo = cbind(lo$STRAT,lo[,2:(ncol(lo)-1)]*lo$TUNITS)
+length_total_result = rbind(lo,c('Total',colSums(lo[2:ncol(lo)])))
+
+
+#age length weight sheet
+alw<-aggregate(FWT~AGE+FLEN,data=stock_agelen,FUN=mean)
+alw$FWT = alw$FWT / 1000
+alw_result = reshape(alw,idvar='FLEN',timevar='AGE',direction='wide')
+
+results<-list(tunits_results, alk_results,lset_results, length_mean_result, length_sd_result, length_total_result, alw_result)
+
 ##########################################BEWARE!#########################################
 #################################BEYOND HERE BE DRAGONS!##################################
 ##########################################BEWARE!#########################################
 
-#age length weight sheet (not formatted for output)
-alw_query<-
-  paste("select age,flen,avg(fwt)/1000 meanwt from stock_agelen
-    where year=",year," and age is not null
-    and to_number(strat)>=",strat.min," and to_number(strat)<=",strat.max,"
-    group by age,flen
-    order by age,flen",sep="")
-alw<-sqlQuery(channel,alw_query)
+
+
+
+
 
 #lookup table for numbers of sets and area in nm per strata
 xxx1_query<-
