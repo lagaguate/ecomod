@@ -60,7 +60,10 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
     g = gstat(g, id="elev", model=vFitgs) 
     gpredres <- predict( g, preds )
     x11()
-    levelplot( elev.pred ~ plon+plat, gpredres, aspect = "iso", at=zz  )
+    lp = levelplot( elev.pred ~ plon+plat, gpredres, aspect = "iso", at=zz, col.regions=color.code( "seis", zz),
+      contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE)  )
+    plot(lp)
+
   }
 
 # now inla
@@ -97,8 +100,8 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   Z = inla.stack( 
       tag="data",
       data=list( z=z ) ,
-      A=list(A,1),
-      effects=list( i=i, xyz ) 
+      A=list(A, 1 ),
+      effects=list( i=i, xyz )  # b0 is the intercept
   )
  
   R <- inla(  z ~ 0 + b0+ f( i, model=S0, diagonal=1e-2), 
@@ -106,8 +109,7 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
       control.compute=list(dic=TRUE),
       control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
       control.predictor=list(A=inla.stack.A(Z), compute=TRUE),
-#          control.inla=list(h=0.05, strategy="laplace", npoints=21, stencil=7 , strategy='gaussian' ),
-#          verbose=TRUE
+      control.inla=list(strategy="laplace", npoints=21, stencil=7 , strategy='gaussian' ),
       verbose = FALSE
   )
 
@@ -167,17 +169,36 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
     abline(v=iRange$mean, lty="dotted"  ) 
     
     x11()
+    require(lattice)
+    loadfunctions( "utility" )
+
     delta = mean( R$summary.linear.predictor$mean[idat]) -  mean(R$summary.random$i$mean) 
     pG = inla.mesh.projector( M0, xlim=xrange, ylim=yrange, dims=c(nxout, nyout) )
-    out = inla.mesh.project( pG, R$summary.random$i$mean ) # first 
+    out = inla.mesh.project( pG, R$summary.random$i$mean ) # mean
     outdf = as.data.frame.table( out)
     preds$z = outdf[,3] + delta
-    levelplot( z~plon+plat, preds, aspect="iso", at=zz )
+    datarange = range( preds$z, na.rm=TRUE )
+    dr = seq( datarange[1], datarange[2], length.out=150)
+    lp = levelplot( z~plon+plat, preds, aspect="iso", main="Posterior mean", at=dr, col.regions=color.code( "seis", dr) ,
+      contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+    print(lp)
+
+    pG = inla.mesh.projector( M0, xlim=xrange, ylim=yrange, dims=c(nxout, nyout) )
+    out = inla.mesh.project( pG, R$summary.random$i$sd ) # SD
+    outdf = as.data.frame.table( out)
+    preds$z = outdf[,3] 
+    datarange = range( preds$z, na.rm=TRUE )
+    dr = seq( datarange[1], datarange[2], length.out=150)
+    lp = levelplot( z~plon+plat, preds, aspect="iso", main="Posterior SD", at=dr, col.regions=color.code( "seis", dr) ,
+      contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+    print(lp)
+
+
   }
     
   inla.summary = rbind( iKappa, iTau, iRange, iVar, iNugget )
   rownames( inla.summary) = c( "kappa", "tau", "range", "spatial error", "observation error" )
-  colnames( inla.summary) = c( "mean", "sd", "mode", "median", "q0.025", "q0.975" )
+  colnames( inla.summary) = c( "mean", "sd", "mode", "median", "q025", "q975" )
                               
   out = list( vario.empirical=vEm, vario.model=vFitgs, vario.range=vRange, vario.psill=vPsill, vario.nugget=vNugget,
               kappa0=kappa0, tau0=tau0, inla.summary=inla.summary, correl=cor.predict         
