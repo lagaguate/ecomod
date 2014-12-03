@@ -1,4 +1,4 @@
-bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=FALSE ) {
+bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=TRUE ) {
   
   # n.req=30
   
@@ -78,7 +78,7 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
     x$depth[ which(!is.finite(O$filtered))] = NA
     
     if (plot.data) {
-    #  points(depth~ts, x, sub=id, pch="*", col="green")
+    points(depth~ts, x, sub=id, pch="*", col="green")
     }
   
   
@@ -103,13 +103,14 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
     if ( !is.null(h) & (length(i) > nbins[1]) ) {
       # remove first order effect in central area
       bci = which( x$depth > h$mids[min(i)] & x$depth < h$mids[max(i)]  ) 
-      bottom.contact.with.certainty = c( min(bci, na.rm=TRUE): max(bci, na.rm=TRUE) )
-      lmcenter = lm( depth ~ ts, x[bottom.contact.with.certainty,], na.action="na.omit" )
-      x$resids.relative.to.bottom = x$depth - predict( lmcenter, newdata=x )
-      quants = quantile( x$resids.relative.to.bottom[bottom.contact.with.certainty], probs=modal.probs, na.rm=TRUE)
+      
+#      bottom.contact.with.certainty = c( min(bci, na.rm=TRUE): max(bci, na.rm=TRUE) )
+#      lmcenter = lm( depth ~ ts, x[bottom.contact.with.certainty,], na.action="na.omit" )
+#      x$resids.relative.to.bottom = x$depth - predict( lmcenter, newdata=x )
+#      quants = quantile( x$resids.relative.to.bottom[bottom.contact.with.certainty], probs=modal.probs, na.rm=TRUE)
    
-      inrange = which( x$resids.relative.to.bottom > quants[1] & x$resids.relative.to.bottom < quants[2] ) 
-
+      # inrange = which( x$resids.relative.to.bottom > quants[1] & x$resids.relative.to.bottom < quants[2] ) 
+      inrange = which( x$depth > h$mids[min(i)] & x$depth < h$mids[max(i)]  ) 
     # indices of x where the data distribution suggests we have bottom contact
       i0 = min( inrange, na.rm=TRUE ) 
       i1 = max( inrange, na.rm=TRUE )
@@ -159,7 +160,7 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
       bottom.contact.est = c( min(bcest, na.rm=TRUE): max(bcest, na.rm=TRUE) )
     }
     
-    --- fix me here  ---- still neesd to remove some high freq flucuations!
+    ##--- fix me here  ---- still neesd to remove some high freq flucuations!
     
     lmcenter = lm( depth ~ ts, x[bottom.contact.est,], na.action="na.omit" )
     target.sd = max( 0.1, sd(x$depth[bottom.contact.est], na.rm=T ), na.rm=T )   
@@ -394,7 +395,7 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
       }
     }
   
-  } # end if enough data
+   # end if enough data
   
   if (plot.data) {
     legend( "topleft", legend=legendtext, col=legendcol, pch=legendpch )
