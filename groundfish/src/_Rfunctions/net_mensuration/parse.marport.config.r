@@ -14,6 +14,8 @@ parse.marport.config = function( cfgfn ) {
   res$units[ grep("TMP", res$variable) ] ="Temperature: degrees Celcius"
   res$units[ grep("DPT", res$variable) ] ="Depth: meters"
   res$units[ grep("DST", res$variable) ] ="Distance: meters"
+  res$units[ grep("HGT", res$variable) ] ="Clearance: meters"
+  
   return(res)
 
 }

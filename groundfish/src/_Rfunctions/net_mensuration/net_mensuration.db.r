@@ -81,6 +81,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       nm$fspd=as.numeric(nm$fspd)
       nm$cspd= as.numeric(nm$cspd)
       
+      
       # merge groundfish  timestamps and ensure that net mensuration timestamps are correct
       
       nm$id=paste(nm$mission, nm$setno, sep=".")
@@ -187,7 +188,8 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
    nm$clearance = filter.nets("clearance.range", nm$clearance)
    nm$opening = filter.nets("opening.range", nm$opening)
    nm$depth = filter.nets("depth.range", nm$depth)
-  
+   master$date=substring(master$timestamp,0,10) 
+   
    save( nm, file=fn, compress=TRUE)
   }
 
@@ -221,17 +223,26 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       return(basedata)
     }
     
+    # configs
+    filelist4 = list.files(path=netswd, pattern="^config.*.ini$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    cfg = data.frame( configroot = dirname( filelist4 ), fn=filelist4, stringsAsFactors=FALSE )
+    
     filelist1 = list.files(path=netswd, pattern=".log$", full.names=T, recursive=TRUE, ignore.case=TRUE)
     filelist2 = list.files(path=netswd, pattern=".gps$", full.names=T, recursive=TRUE, ignore.case=TRUE)
     filelist3 = list.files(path=netswd, pattern=".sgp$", full.names=T, recursive=TRUE, ignore.case=TRUE)
-
+   
     filelist1 = gsub( ".log$", "", filelist1)
     filelist2 = gsub( ".gps$", "", filelist2)
     filelist3 = gsub( ".sgp$", "", filelist3)
     
     fileroots = unique( c( filelist1, filelist2, filelist3 ) )
+    filelist = data.frame( fileroots=fileroots, configroot = dirname( fileroots ), stringsAsFactors=FALSE )
+    filelist = merge( filelist, cfg, by="configroot", all.x=TRUE, all.y=FALSE )
     
-    for ( fl in filelist ) {
+    no.files = nrow(filelist)
+    for ( ii in 1:no.files ) {
+      fl = filelist$fileroots[ii]
+      sensorconfig = filelist$fn[ii]
       print(fl)
       j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
       if (is.null(j)) next()
@@ -293,14 +304,14 @@ if(DS %in% c("bottom.contact", "bottom.contact.redo" )) {
   }
   
   gsinf = groundfish.db( DS="gsinf" )
-  gsinf$fishingduration = NA
+  gsinf$bottomduration = NA
   gsinf$spoint.datetime = NA
   gsinf$epoint.datetime = NA
   gsinf$spoint.sd = NA
   gsinf$epoint.sd = NA
   gsinf$epoint.n = NA
   gsinf$spoint.n = NA
-  
+   
   master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
   
   uid = sort( unique( master$id)) 
@@ -317,47 +328,48 @@ if(DS %in% c("bottom.contact", "bottom.contact.redo" )) {
     out = NULL
     for ( dp in depthproportions ) {
         res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, plot.data=TRUE)
-        # if (res$fishing.nsol != 6 ) next()
-        tmp = cbind(  res$fishing0.sd,  res$fishing1.sd, sqrt(res$fishing0.sd^2 + res$fishing1.sd^2), as.character(res$fishing0), as.character(res$fishing1), res$fishing0.n, res$fishing1.n, dp )  
+        # if (res$bottom.nsol != 6 ) next()
+        if (is.null(res)) next()
+        tmp = cbind(  res$bottom0.sd,  res$bottom1.sd, sqrt(res$bottom0.sd^2 + res$bottom1.sd^2), as.character(res$bottom0), as.character(res$bottom1), res$bottom0.n, res$bottom1.n, dp )  
         out = rbind( out, tmp )
         print (tmp)
     } 
     out = data.frame( out)
-    colnames(out) = c("fishing0.sd", "fishing1.sd", "fishingall.sd", "fishing0", "fishing1", "fishing0.n", "fishing1.n", "depthproportion" )
+    colnames(out) = c("bottom0.sd", "bottom1.sd", "bottomall.sd", "bottom0", "bottom1", "bottom0.n", "bottom1.n", "depthproportion" )
     
     f0sd = f1sd= f0n = f1n = NA
     
-    if ( all( !is.finite( as.numeric(out$fishingall.sd) ))) { 
+    if ( all( !is.finite( as.numeric(out$bottomall.sd) ))) { 
       # no good solution
       # test for realistic solutions otherwise pass
-      durations = as.numeric( ymd_hms( out$fishing1 ) - ymd_hms( out$fishing0 ) ) / 60 # in sec .. convert to min
+      durations = as.numeric( ymd_hms( out$bottom1 ) - ymd_hms( out$bottom0 ) ) / 60 # in sec .. convert to min
       good = which ( durations > 15 & durations < 45 )
       if (length(good) >= 1 ) {
-        ss = mean( ymd_hms( out$fishing0[good]), na.rm=TRUE ) 
-        ee = mean( ymd_hms( out$fishing1[good]), na.rm=TRUE ) 
+        ss = mean( ymd_hms( out$bottom0[good]), na.rm=TRUE ) 
+        ee = mean( ymd_hms( out$bottom1[good]), na.rm=TRUE ) 
         dd = abs( as.numeric( diff( c(ee, ss) ) ))  
-        f0sd = as.numeric( as.character(out[good,"fishing0.sd"] ))
-        f1sd = as.numeric(  as.character(out[good,"fishing1.sd"] ))
-        f0n = as.numeric( as.character( out[good,"fishing0.n"] )) 
-        f1n = as.numeric( as.character( out[good,"fishing1.n"] )) 
+        f0sd = as.numeric( as.character(out[good,"bottom0.sd"] ))
+        f1sd = as.numeric(  as.character(out[good,"bottom1.sd"] ))
+        f0n = as.numeric( as.character( out[good,"bottom0.n"] )) 
+        f1n = as.numeric( as.character( out[good,"bottom1.n"] )) 
       }
     } else {
-      si = which.min( as.numeric( as.character(out[,"fishing0.sd"]) ))
-      ei = which.min( as.numeric( as.character(out[,"fishing1.sd"]) ))
-      ss = ymd_hms( out[si,"fishing0"] )
-      ee = ymd_hms( out[ei,"fishing1"] )
+      si = which.min( as.numeric( as.character(out[,"bottom0.sd"]) ))
+      ei = which.min( as.numeric( as.character(out[,"bottom1.sd"]) ))
+      ss = ymd_hms( out[si,"bottom0"] )
+      ee = ymd_hms( out[ei,"bottom1"] )
       dd = abs( as.numeric( diff( c(ee, ss) ) ))
 
-      f0sd = as.numeric( as.character( out[si,"fishing0.sd"] ) )
-      f1sd = as.numeric( as.character( out[ei,"fishing1.sd"] ) )
-      f0n = as.numeric( as.character( out[si,"fishing0.n"] ) )
-      fn1 = as.numeric( as.character( out[ei,"fishing1.n"] ) )
+      f0sd = as.numeric( as.character( out[si,"bottom0.sd"] ) )
+      f1sd = as.numeric( as.character( out[ei,"bottom1.sd"] ) )
+      f0n = as.numeric( as.character( out[si,"bottom0.n"] ) )
+      fn1 = as.numeric( as.character( out[ei,"bottom1.n"] ) )
       
     }
     
     gsinf$spoint.datetime[gii] = as.character( ss )
     gsinf$epoint.datetime[gii] = as.character( ee )
-    gsinf$fishingduration[gii] = dd
+    gsinf$bottomduration[gii] = dd
     gsinf$spoint.sd[gii] = f0sd
     gsinf$epoint.sd[gii] = f1sd
     gsinf$spoint.n[gii] = f0n

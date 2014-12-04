@@ -306,8 +306,8 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
     legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
   }
 
-  O$bottom0.mean = as.POSIXct( mean( c(O$linear.method[1], O$modal.method[1],  O$smooth.method[1]), na.rm=TRUE), origin = "1970-01-01" )
-  O$bottom1.mean = as.POSIXct( mean( c(O$linear.method[2], O$modal.method[2],  O$smooth.method[2]), na.rm=TRUE), origin = "1970-01-01" )
+  O$bottom0 = as.POSIXct( mean( c(O$linear.method[1], O$modal.method[1],  O$smooth.method[1]), na.rm=TRUE), origin = "1970-01-01" )
+  O$bottom1 = as.POSIXct( mean( c(O$linear.method[2], O$modal.method[2],  O$smooth.method[2]), na.rm=TRUE), origin = "1970-01-01" )
   O$bottom0.sd = sd( as.numeric( c( O$linear.method[1], O$modal.method[1], O$smooth.method[1] ) ), na.rm=TRUE )
   O$bottom1.sd = sd( as.numeric( c( O$linear.method[2], O$modal.method[2], O$smooth.method[2] ) ), na.rm=TRUE )
   O$bottom0.n = length( which( is.finite( c( as.numeric( c( O$linear.method[1], O$modal.method[1], O$smooth.method[1]) )))) )

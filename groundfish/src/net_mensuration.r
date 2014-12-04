@@ -9,7 +9,8 @@ netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
 # netswd = "~/Downloads"
 # load( "~/Downloads/mm.rdata")
 
-marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport", "Logs")
+marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
+
 
 # steps required to recreate a local database of all data
 recreate.full.database.locally = FALSE
@@ -24,9 +25,12 @@ if ( recreate.full.database.locally ) {
   match.set.from.gpstrack(DS="post.perley.redo", netswd=netswd ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
   net_mensuration.db( "merge.historical.scanmar.redo",  netswd ) # add all scanmar data together
   net_mensuration.db( "sanity.checks.redo",  netswd )      # QA/QC of data
+  net_mensuration.db( "marport.redo",  marportdatadirectory )      # QA/QC of data
+  
 }
 
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
+marport = net_mensuration.db( "marport",  marportdatadirectory )      # QA/QC of data
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
@@ -36,19 +40,25 @@ t = unique( master$netmensurationfilename[i])
 p = data.frame(id = t)
 write.table(t, file= "missing_id.csv", sep = ",", quote=FALSE, row.names=FALSE, col.names=TRUE)
 
+# Saving local copies of historical and modern data
+historical.data=master[which(master$year %in% 1990:1992) , ]
+file="h.data.RData"
+save(historical.data, file="h.data.RData", compress=T)
+modern.data=master[which(master$year %in% 2004:2014) , ]
+file="m.data.RData"
+save(modern.data, file="m.data.RData", compress=T)
+# Load copies for current session
+load("h.data.RData")
+load("m.data.RData")
+
 --- testing / development ---
 
 # Adding the variables: year, trip and set to the df master
-master$date=substring(master$timestamp,0,9)  
-master$year=as.numeric(substring(master$id,4,7))
-master$trip=as.numeric(substring(master$id,8,10))
-master$set=as.numeric(substring(master$id,12,14))
-# Producing a version of master that includes the historical data
-modern.data=master[which(master$year %in% 2004:2014) , ]
+master$date=substring(master$timestamp,0,10)  
 
 # Only run to genereate new samples
 allids=unique(modern.data$id)
-i=sample(1:length(allids),5)
+i=sample(1:length(allids),15)
 allids=allids[i]
 allids
 
@@ -58,12 +68,20 @@ allids
     mm = modern.data[test, ]
     
     # Run for one set
-    id = "TEM2008830.115"
+    # id = "NED2010027.225" fail but plots
+    id = "NED2011025.169"
     mm = master[ which(master$id==id),]
+    
+    # to load/save
+    # fname = "mm.rdata"
+    # save( mm, file=fname, compress=TRUE)
+    # load( fname )
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact.groundfish(mm,  depthproportion=0.5, nbins=c(5,10) , minval.modal=5 ) 
+      bc = bottom.contact.groundfish(mm, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=TRUE) 
+    
+    bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=TRUE )
            
 max(bc$filtered.data$depth, na.rm=TRUE)
 sd(bc$filtered.data$depth, na.rm=TRUE)
