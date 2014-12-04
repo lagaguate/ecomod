@@ -294,7 +294,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
 
 
 
-if(DS %in% c("bottom.contact", "bottom.contact.redo" )) {
+if (DS %in% c("bottom.contact", "bottom.contact.redo" )) {
   
   fn= file.path(netswd,"gsinf.bottom.contact.rdata")
   master=NULL

@@ -25,8 +25,10 @@ if ( recreate.full.database.locally ) {
   match.set.from.gpstrack(DS="post.perley.redo", netswd=netswd ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
   net_mensuration.db( "merge.historical.scanmar.redo",  netswd ) # add all scanmar data together
   net_mensuration.db( "sanity.checks.redo",  netswd )      # QA/QC of data
-  net_mensuration.db( "marport.redo",  marportdatadirectory )      # QA/QC of data
+  net_mensuration.db( "bottom.contact.redo",  netswd )      # determine start/end times and swept area
   
+  # this is separate as scanmar data also exists in duplicate
+  net_mensuration.db( "marport.redo",  marportdatadirectory )      # QA/QC of data
 }
 
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
