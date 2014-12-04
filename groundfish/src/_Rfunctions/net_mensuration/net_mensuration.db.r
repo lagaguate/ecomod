@@ -81,6 +81,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       nm$fspd=as.numeric(nm$fspd)
       nm$cspd= as.numeric(nm$cspd)
       
+      
       # merge groundfish  timestamps and ensure that net mensuration timestamps are correct
       
       nm$id=paste(nm$mission, nm$setno, sep=".")
@@ -188,6 +189,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
    nm$opening = filter.nets("opening.range", nm$opening)
    nm$depth = filter.nets("depth.range", nm$depth)
   
+   
    save( nm, file=fn, compress=TRUE)
   }
 

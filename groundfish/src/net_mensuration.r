@@ -5,8 +5,10 @@ library(lubridate)
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
 # define location of local data files
-netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
+netswd = file.path("C:", "Users", "Mundenj", "Desktop", "Scanmar")
+
 marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport", "Logs")
+
 
 # steps required to recreate a local database of all data
 recreate.full.database.locally = FALSE
@@ -33,15 +35,21 @@ t = unique( master$netmensurationfilename[i])
 p = data.frame(id = t)
 write.table(t, file= "missing_id.csv", sep = ",", quote=FALSE, row.names=FALSE, col.names=TRUE)
 
+# Saving local copies of historical and modern data
+historical.data=master[which(master$year %in% 1990:1992) , ]
+file="h.data.RData"
+save(historical.data, file="h.data.RData", compress=T)
+modern.data=master[which(master$year %in% 2004:2014) , ]
+file="m.data.RData"
+save(modern.data, file="m.data.RData", compress=T)
+# Load copies for current session
+load("h.data.RData")
+load("m.data.RData")
+
 --- testing / development ---
 
 # Adding the variables: year, trip and set to the df master
 master$date=substring(master$timestamp,0,9)  
-master$year=as.numeric(substring(master$id,4,7))
-master$trip=as.numeric(substring(master$id,8,10))
-master$set=as.numeric(substring(master$id,12,14))
-# Producing a version of master that includes the historical data
-modern.data=master[which(master$year %in% 2004:2014) , ]
 
 # Only run to genereate new samples
 allids=unique(modern.data$id)
@@ -55,12 +63,19 @@ allids
     mm = modern.data[test, ]
     
     # Run for one set
-    id = "TEM2008830.115"
+    id = "NED2010027.51"
     mm = master[ which(master$id==id),]
+    
+    # to load/save
+    # fname = "mm.rdata"
+    # save( mm, file=fname, compress=TRUE)
+    # load( fname )
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact.groundfish(mm,  depthproportion=0.5, nbins=c(5,10) , minval.modal=5 ) 
+      bc = bottom.contact.groundfish(mm, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=TRUE) 
+    
+    bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=TRUE )
            
 max(bc$filtered.data$depth, na.rm=TRUE)
 sd(bc$filtered.data$depth, na.rm=TRUE)
