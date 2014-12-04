@@ -313,18 +313,17 @@ if(DS %in% c("bottom.contact", "bottom.contact.redo" )) {
     gii = which( gsinf$id==id )  # row of matching gsinf with tow info
   
     depthproportions = c(0.25, 0.5, 0.75, 0.9 )
-    minval.modal =  5  # can be varied but this works best
     
     out = NULL
     for ( dp in depthproportions ) {
-        res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, minval.modal=minval.modal , plot.data=TRUE)
+        res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, plot.data=TRUE)
         # if (res$fishing.nsol != 6 ) next()
-        tmp = cbind(  dp, mm, res$fishing0.sd,  res$fishing1.sd, sqrt(res$fishing0.sd^2 + res$fishing1.sd^2), as.character(res$fishing0), as.character(res$fishing1), res$fishing0.n, res$fishing1.n )  
+        tmp = cbind(  res$fishing0.sd,  res$fishing1.sd, sqrt(res$fishing0.sd^2 + res$fishing1.sd^2), as.character(res$fishing0), as.character(res$fishing1), res$fishing0.n, res$fishing1.n, dp )  
         out = rbind( out, tmp )
         print (tmp)
     } 
     out = data.frame( out)
-    colnames(out) = c("depthprop", "minval.modal", "fishing0.sd", "fishing1.sd", "fishingall.sd", "fishing0", "fishing1", "fishing0.n", "fishing1.n")
+    colnames(out) = c("fishing0.sd", "fishing1.sd", "fishingall.sd", "fishing0", "fishing1", "fishing0.n", "fishing1.n", "depthproportion" )
     
     f0sd = f1sd= f0n = f1n = NA
     
@@ -337,22 +336,22 @@ if(DS %in% c("bottom.contact", "bottom.contact.redo" )) {
         ss = mean( ymd_hms( out$fishing0[good]), na.rm=TRUE ) 
         ee = mean( ymd_hms( out$fishing1[good]), na.rm=TRUE ) 
         dd = abs( as.numeric( diff( c(ee, ss) ) ))  
-        f0sd = as.numeric( out[good,"fishing0.sd"] )
-        f1sd = as.numeric( out[good,"fishing1.sd"] )
-        f0n = as.numeric( out[good,"fishing0.n"] ) 
-        f1n = as.numeric( out[good,"fishing0.n"] ) 
+        f0sd = as.numeric( as.character(out[good,"fishing0.sd"] ))
+        f1sd = as.numeric(  as.character(out[good,"fishing1.sd"] ))
+        f0n = as.numeric( as.character( out[good,"fishing0.n"] )) 
+        f1n = as.numeric( as.character( out[good,"fishing1.n"] )) 
       }
     } else {
-      si = which.min( as.numeric(out[,3]) )
-      ei = which.min( as.numeric(out[,4]) )
+      si = which.min( as.numeric( as.character(out[,"fishing0.sd"]) ))
+      ei = which.min( as.numeric( as.character(out[,"fishing1.sd"]) ))
       ss = ymd_hms( out[si,"fishing0"] )
       ee = ymd_hms( out[ei,"fishing1"] )
       dd = abs( as.numeric( diff( c(ee, ss) ) ))
 
-      f0sd = as.numeric( out[si,"fishing0.sd"] ) 
-      f1sd = as.numeric( out[ei,"fishing1.sd"] ) 
-      f0n = as.numeric( out[si,"fishing0.n"] ) 
-      fn1 = as.numeric( out[ei,"fishing1.n"] ) 
+      f0sd = as.numeric( as.character( out[si,"fishing0.sd"] ) )
+      f1sd = as.numeric( as.character( out[ei,"fishing1.sd"] ) )
+      f0n = as.numeric( as.character( out[si,"fishing0.n"] ) )
+      fn1 = as.numeric( as.character( out[ei,"fishing1.n"] ) )
       
     }
     
