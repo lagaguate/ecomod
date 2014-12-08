@@ -169,7 +169,6 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
    }
 
    nm = net_mensuration.db( DS="merge.historical.scanmar", netswd=netswd ) 
-
    
    # remove sets where american trawls were used for comparative surveys
    nm = filter.nets("remove.trawls.with.US.nets", nm)
@@ -182,7 +181,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
    nm$ltspeed[i] = NA
    nm$ctspeed[i] = NA
    
-   # gating   
+   # coarse level gating   
    nm$doorspread = filter.nets("doorspread.range", nm$doorspread)
    nm$wingspread = filter.nets("wingspread.range", nm$wingspread)
    nm$clearance = filter.nets("clearance.range", nm$clearance)
@@ -301,93 +300,108 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
   }
 
 
-
-if (DS %in% c("bottom.contact", "bottom.contact.redo" )) {
-  
-  fn= file.path(netswd,"gsinf.bottom.contact.rdata")
-  master=NULL
-  if(DS=="bottom.contact"){
-    if (file.exists(fn)) load(fn)
-    return(master)
-  }
-  
-  gsinf = groundfish.db( DS="gsinf" )
-  gsinf$bottomduration = NA
-  gsinf$spoint.datetime = NA
-  gsinf$epoint.datetime = NA
-  gsinf$spoint.sd = NA
-  gsinf$epoint.sd = NA
-  gsinf$epoint.n = NA
-  gsinf$spoint.n = NA
-   
-  master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
-  
-  uid = sort( unique( master$id)) 
-  for ( id in uid) {
-    print( id)
-    ii = which( master$id==id )  # rows of master with scanmar/marport data
+  if (DS %in% c("bottom.contact", "bottom.contact.redo" )) {
     
-    if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
-    
-    gii = which( gsinf$id==id )  # row of matching gsinf with tow info
-  
-    depthproportions = c(0.25, 0.5, 0.75, 0.9 )
-    
-    out = NULL
-    for ( dp in depthproportions ) {
-        res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, plot.data=TRUE)
-        # if (res$bottom.nsol != 6 ) next()
-        if (is.null(res)) next()
-        tmp = cbind(  res$bottom0.sd,  res$bottom1.sd, sqrt(res$bottom0.sd^2 + res$bottom1.sd^2), as.character(res$bottom0), as.character(res$bottom1), res$bottom0.n, res$bottom1.n, dp )  
-        out = rbind( out, tmp )
-        print (tmp)
-    } 
-    out = data.frame( out)
-    colnames(out) = c("bottom0.sd", "bottom1.sd", "bottomall.sd", "bottom0", "bottom1", "bottom0.n", "bottom1.n", "depthproportion" )
-    
-    f0sd = f1sd= f0n = f1n = NA
-    
-    if ( all( !is.finite( as.numeric(out$bottomall.sd) ))) { 
-      # no good solution
-      # test for realistic solutions otherwise pass
-      durations = as.numeric( ymd_hms( out$bottom1 ) - ymd_hms( out$bottom0 ) ) / 60 # in sec .. convert to min
-      good = which ( durations > 15 & durations < 45 )
-      if (length(good) >= 1 ) {
-        ss = mean( ymd_hms( out$bottom0[good]), na.rm=TRUE ) 
-        ee = mean( ymd_hms( out$bottom1[good]), na.rm=TRUE ) 
-        dd = abs( as.numeric( diff( c(ee, ss) ) ))  
-        f0sd = as.numeric( as.character(out[good,"bottom0.sd"] ))
-        f1sd = as.numeric(  as.character(out[good,"bottom1.sd"] ))
-        f0n = as.numeric( as.character( out[good,"bottom0.n"] )) 
-        f1n = as.numeric( as.character( out[good,"bottom1.n"] )) 
-      }
-    } else {
-      si = which.min( as.numeric( as.character(out[,"bottom0.sd"]) ))
-      ei = which.min( as.numeric( as.character(out[,"bottom1.sd"]) ))
-      ss = ymd_hms( out[si,"bottom0"] )
-      ee = ymd_hms( out[ei,"bottom1"] )
-      dd = abs( as.numeric( diff( c(ee, ss) ) ))
-
-      f0sd = as.numeric( as.character( out[si,"bottom0.sd"] ) )
-      f1sd = as.numeric( as.character( out[ei,"bottom1.sd"] ) )
-      f0n = as.numeric( as.character( out[si,"bottom0.n"] ) )
-      fn1 = as.numeric( as.character( out[ei,"bottom1.n"] ) )
-      
+    fn= file.path(netswd,"gsinf.bottom.contact.rdata")
+    master=NULL
+    if(DS=="bottom.contact"){
+      if (file.exists(fn)) load(fn)
+      return(master)
     }
     
-    gsinf$spoint.datetime[gii] = as.character( ss )
-    gsinf$epoint.datetime[gii] = as.character( ee )
-    gsinf$bottomduration[gii] = dd
-    gsinf$spoint.sd[gii] = f0sd
-    gsinf$epoint.sd[gii] = f1sd
-    gsinf$spoint.n[gii] = f0n
-    gsinf$epoint.n[gii] = f1n
+    gsinf = groundfish.db( DS="gsinf" )
+    gsinf$bottom_duration = NA
+    gsinf$spoint.datetime = as.POSIXct(NA)
+    gsinf$epoint.datetime = as.POSIXct(NA)
+    gsinf$spoint.sd = NA
+    gsinf$epoint.sd = NA
+    gsinf$epoint.n = NA
+    gsinf$spoint.n = NA
+     
+    master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
     
-  }
-  
-  save(gsinf, file=fn, compress= TRUE)
-  
+    uid = sort( unique( master$id)) 
+    for ( id in uid) {
+      print( id)
+      ii = which( master$id==id )  # rows of master with scanmar/marport data
+      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
+      gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+      if (length(gii) != 1) next()  # no match in gsinf
+      
+      # vary the proportion of depth passed onto the bottom contact method as the shape of the tails can cause errors
+      depthproportions = c(0.25, 0.5, 0.75, 0.9 ) 
+      out = NULL
+      alldata = list()
+      for ( dp in depthproportions ) {
+          res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, plot.data=TRUE)
+          if (is.null(res)) next()
+          tmp = cbind(  res$bottom0.sd,  res$bottom1.sd, sqrt(res$bottom0.sd^2 + res$bottom1.sd^2), 
+            as.character(res$bottom0), as.character(res$bottom1), res$bottom0.n, res$bottom1.n, dp )  
+          out = rbind( out, tmp )
+          alldata[dp] = res 
+          print (tmp)
+      } 
+      out = data.frame( out)
+      colnames(out) = c("bottom0.sd", "bottom1.sd", "bottomall.sd", "bottom0", "bottom1", "bottom0.n", "bottom1.n", "depthproportion" )
+      
+      nums = c("bottom0.sd", "bottom1.sd", "bottomall.sd", "bottom0.n", "bottom1.n", "depthproportion" )
+      out = factor2number ( out, nums )
+      out$durations = as.numeric( ymd_hms( out$bottom1 ) - ymd_hms( out$bottom0 ) ) 
+   
+      good = which ( out$durations > 15 & out$durations < 45 ) 
+      if (length(good) ==0 ) next() 
+      out = out[ good,] 
+
+      si = which.min( out[,"bottom0.sd"]) 
+      ss = ymd_hms( out[si,"bottom0"] )
+      
+      ei = which.min( out[,"bottom1.sd"])
+      ee = ymd_hms( out[ei,"bottom1"] )
+
+      gsinf$spoint.datetime[gii] = as.character( ss )
+      gsinf$epoint.datetime[gii] = as.character( ee )
+      gsinf$bottom_duration[gii] = abs( as.numeric( diff( c(ee, ss) ) ))
+      gsinf$spoint.sd[gii] = out[si,"bottom0.sd"]
+      gsinf$epoint.sd[gii] =  out[ei,"bottom1.sd"] 
+      gsinf$spoint.n[gii] = out[si,"bottom0.n"]
+      gsinf$epoint.n[gii] = out[ei,"bottom1.n"] 
+     
+    }
+    save(gsinf, file=fn, compress= TRUE)
   }
 
+  
+
+  if (DS %in% c("sweptarea", "sweptarea.redo" )) {
+    
+    fn= file.path(netswd,"gsinf.sweptarea.rdata")
+    master=NULL
+    if(DS=="sweptarea"){
+      if (file.exists(fn)) load(fn)
+      return(master)
+    }
+   
+    master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    
+    gsinf =  net_mensuration.db( DS="bottom.contact", netswd=netswd )
+    gsinf$sweptarea.mean = NA 
+    gsinf$depth.mean = NA
+    gsinf$depth.sd = NA
+    gsinf$wingspread.mean = NA
+    gsinf$wingspread.sd = NA
+     
+    
+    uid = sort( unique( master$id)) 
+    for ( id in uid) {
+      print( id)
+      ii = which( master$id==id )  # rows of master with scanmar/marport data
+      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
+      gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+      if (length(gii) != 1) next()  # no match in gsinf
+     
+      gsinf[gii,] = estimate.swept.area( gsinf[gii,],  master[ii,] )
+    }
+    save(gsinf, file=fn, compress= TRUE)
+  }
 }
   # either & or | can be used to add conditions
