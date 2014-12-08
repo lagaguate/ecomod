@@ -247,6 +247,14 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
       if (is.null(j)) next()
       basedata = rbind( basedata, j)
+      basedata$mission= paste(basedata$Cruise, basedata$set, sep=".")
+      basedata$mission=toupper(basedata$mission) 
+      unique(basedata$mission)
+      head(basedata)
+      basedata$mission = gsub("_", "", basedata$mission)
+      basedata$mission = gsub("-", "", basedata$mission)
+      unique(basedata$mission)
+      # continue here
     }
     save(basedata, file=fn, compress= TRUE)
   }

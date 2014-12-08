@@ -7,7 +7,8 @@ load.marport.rawdata = function( fnroot, fncfg ) {
     fncfg=sensorconfig
     fnroot=fl
   }
-  # fn="/home/jae/Downloads/net/Alfred\ Needler-Ned_2013_002-045"
+
+# fn="/home/jae/Downloads/net/Alfred\ Needler-Ned_2013_002-045"
   # cfgfn = "/home/jae/Downloads/net/Config_Old.txt"
   
   sensorcodes = as.data.frame( matrix(
