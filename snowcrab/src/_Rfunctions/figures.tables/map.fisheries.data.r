@@ -14,7 +14,7 @@
     
     p$tension = "-T0.5" # 1= harmonic surface
     p$maskres = "-S4k"
-    p$interpres = "-Sb"
+    p$interpres = "-nb"
     outdir = file.path(outdir, paste(p$mapres, p$spatial.domain, sep=".") )
     dir.create( outdir, recursive=T, showWarnings=F  )
 

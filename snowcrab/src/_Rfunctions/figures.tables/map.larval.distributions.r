@@ -11,7 +11,7 @@
     p$block = F
     p$tension = "-T0.75"  # 0.35+ for steep; 0.25 for smooth
     p$maskres = "-S20k"
-    p$interpres = "-Sb"
+    p$interpres = "-nb"
     p$basedir=outdir
 
     variables="n.m3"

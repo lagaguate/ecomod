@@ -246,15 +246,15 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
       if (is.null(j)) next()
       basedata = rbind( basedata, j)
-      basedata$mission= paste(basedata$Cruise, basedata$set, sep=".")
-      basedata$mission=toupper(basedata$mission) 
-      unique(basedata$mission)
-      head(basedata)
-      basedata$mission = gsub("_", "", basedata$mission)
-      basedata$mission = gsub("-", "", basedata$mission)
-      unique(basedata$mission)
-      # continue here
     }
+    basedata$mission= paste(basedata$Cruise, basedata$set, sep=".")
+    basedata$mission=toupper(basedata$mission) 
+    unique(basedata$mission)
+    head(basedata)
+    basedata$mission = gsub("_", "", basedata$mission)
+    basedata$mission = gsub("-", "", basedata$mission)
+    unique(basedata$mission)
+    # continue here
     save(basedata, file=fn, compress= TRUE)
   }
   
@@ -382,16 +382,17 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     }
    
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    uid = sort( unique( master$id)) 
     
     gsinf =  net_mensuration.db( DS="bottom.contact", netswd=netswd )
-    gsinf$sweptarea.mean = NA 
-    gsinf$depth.mean = NA
-    gsinf$depth.sd = NA
-    gsinf$wingspread.mean = NA
-    gsinf$wingspread.sd = NA
-     
     
-    uid = sort( unique( master$id)) 
+    # run once to get variable names and sequence 
+    idtest = uid [ 1 ]
+    gstest = estimate.swept.area( gsinf[ which( gsinf$id==idtest ), ],  master[ which( master$id==idtest ),] )
+    newvars = setdiff( names(gstest), names( gsinf) )
+    for (vn in newvars) gsinf[,vn] = NA
+    gsinf = gsinf[, names(gstest) ] # reorder
+
     for ( id in uid) {
       print( id)
       ii = which( master$id==id )  # rows of master with scanmar/marport data
@@ -404,4 +405,5 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     save(gsinf, file=fn, compress= TRUE)
   }
 }
-  # either & or | can be used to add conditions
+
+

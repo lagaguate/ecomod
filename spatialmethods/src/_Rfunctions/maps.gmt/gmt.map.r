@@ -39,7 +39,7 @@
         if (P$blocktype=="mode") block.prg="blockmode"
         if (P$blocktype=="sum") {
           block.prg = "blockmean"
-          add.flag = "-Sz"  # forces a sum as output
+          add.flag = "-Ss"  # forces a sum as output
         }
         cmd( block.prg, P$region, P$res, indat, add.flag, "-W >", blocked )
         cmd( "surface", P$region, P$res, blocked, P$tension, paste("-G", gmtgrid, sep="") )

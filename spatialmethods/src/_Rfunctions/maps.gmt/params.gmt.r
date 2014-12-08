@@ -7,7 +7,7 @@
 
     params$gmtcol       = "seis"  # "red2green" is an alternate
     params$maskres      = "-S20k"
-    params$interpres    = "-Sn"
+    params$interpres    = "-nn"
     params$tension      = "-T0.75"
     params$bathy.tension = "-T0.75"  # tension parameter for GMT splines-in-tension (1=harmonic surface ... max,min not exceeded)
     params$bathy.maskres  = "-S40k"        # resolution

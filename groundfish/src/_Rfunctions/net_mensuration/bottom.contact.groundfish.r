@@ -51,7 +51,12 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
   dmax = mediandepth + 50
   baddata = which( x$depth > dmax   )
   if (length(baddata) > 0) O$filtered[baddata] = FALSE
-  
+   
+  # force selection of data to be within 30 m of "median data"
+  i = which(x$depth > (mediandepth - 30) )
+  if (length(i) > 0) O$filtered[i] = FALSE
+
+
   if (plot.data) {
     depth.range = range(x$depth[ O$filtered ], na.rm=TRUE)
     plot(depth~ts, x[ O$filtered,], sub=id, ylim=c(depth.range[2],depth.range[1]), pch=20, cex=0.1 )
