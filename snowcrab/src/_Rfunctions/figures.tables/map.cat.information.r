@@ -8,7 +8,7 @@
                "redcrab", "atlanticrockcrab", "toadcrab", "snowcrab")
     p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
     p$maskres = "-S16k"
-    p$interpres = "-Sb"
+    p$interpres = "-nb"
     p$mapres = "2min"
     
 

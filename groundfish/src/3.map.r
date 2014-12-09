@@ -80,7 +80,7 @@ if (map="set") {
 
   params$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
   params$maskres = "-S16k"
-  params$interpres = "-S16k"
+  params$interpres = "-n16k"
   params$do.parallel = F
 
   variables =  variable.list.expand("all")
@@ -97,7 +97,7 @@ if (map="maturity") {
   #load(file.path(R.sc, "maturity.rdata"))
   params$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
   params$maskres = "-S16k"
-  params$interpres = "-S16k"
+  params$interpres = "-n16k"
 
   plottimes=c("annual", "annualsmoothed", "globalaverage")
 

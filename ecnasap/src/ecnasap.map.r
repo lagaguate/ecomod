@@ -21,7 +21,7 @@
     params$gmt.projection.long = "Lambert.conformal.conic.ecnasap2"
     params$spatial.domain    = "ecnasap2"
     params$maskres    = "-S30k"
-    params$interpres  = "-S50k"
+    params$interpres  = "-n50k"
     params$tension    = "-T0.25"
     params$bathy.tension = "-T0.3"  # tension parameter for GMT splines-in-tension 
                                     # 1 = harmonic surface ... max,min not exceeded
@@ -55,7 +55,7 @@
       i = which(set[,variables] > 2)
       set = set[i,]
       params$maskres    = "-S10k"
-      params$interpres  = "-S10k"
+      params$interpres  = "-n10k"
       params$tension    = "-T0.4"
       make.maps ( set, params, variables, plottimes, params$basedir, conversions )
     }

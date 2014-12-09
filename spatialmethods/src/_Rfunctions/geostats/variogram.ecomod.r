@@ -8,23 +8,25 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   require(sp)
   require(gstat)
   require(INLA)
+  require(lattice)
   
   out = NULL
 
-  if ( "test" %in% xyz ) {
-    # just for debugging / testing ...
-    data(meuse)
-    xyz = meuse[, c("x", "y", "elev")]
-    crs="+proj=utm +zone=20 +ellps=WGS84"
-  }
-
+ 
   if ( !grepl( "planar", crs )) { 
     # i.e. if not already planar coords, then  assume it is in lon-lat .. requires some planar coord system
     nm = names(xyz) 
     xyz = try( lonlat2planar( xyz, proj.type=crs ), silent=TRUE )
     xyz = xyz[, c("plon", "plat", nm[3])]
   } 
-   
+  
+ if ( "test" %in% xyz ) {
+    # just for debugging / testing ...
+    data(meuse)
+    xyz = meuse[, c("x", "y", "elev")]
+    crs="+proj=utm +zone=20 +ellps=WGS84"
+  }
+
   names(xyz) =  c("plon", "plat", "z" )
   
   drange = sqrt(diff(range(xyz$plon))^2 + diff(range(xyz$plat))^2)
@@ -63,7 +65,6 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
     lp = levelplot( elev.pred ~ plon+plat, gpredres, aspect = "iso", at=zz, col.regions=color.code( "seis", zz),
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE)  )
     plot(lp)
-
   }
 
 # now inla
@@ -87,7 +88,7 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   S0 = inla.spde2.matern( M0, alpha=2, 
     B.tau = cbind(log(tau0), -1,1 ),     # parameter basis functions
     B.kappa = cbind( log(kappa0), 0, 1 ), # parameter basis functions
-    theta.prior.mean = c(0, 0),    # theta1 controls variance .. vague; theta2 controls range   .. means 0
+    theta.prior.mean = c(0,  0),    # theta1 controls variance .. vague; theta2 controls range   .. means 0
     theta.prior.prec = c(0.1, 1)  #  precisions are vague for theta1;  for range .. theta2 prec 1 ==> 95% prior prob that range is smaller than domain size
   ) 
 
@@ -103,13 +104,13 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
       A=list(A, 1 ),
       effects=list( i=i, xyz )  # b0 is the intercept
   )
- 
+
   R <- inla(  z ~ 0 + b0+ f( i, model=S0, diagonal=1e-2), 
       data=inla.stack.data(Z), 
       control.compute=list(dic=TRUE),
       control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
-      control.predictor=list(A=inla.stack.A(Z), compute=TRUE),
-      control.inla=list(strategy="laplace", npoints=21, stencil=7 , strategy='gaussian' ),
+      control.predictor=list(A=inla.stack.A(Z), compute=TRUE) , 
+      control.inla=list(strategy="laplace", npoints=21, stencil=7 ) ,
       verbose = FALSE
   )
 

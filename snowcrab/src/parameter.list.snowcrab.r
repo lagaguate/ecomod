@@ -9,7 +9,7 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
       "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
     ) )
 
-    p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "polygons", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry" ) )
+    p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "polygons", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
 
     p$gmt.projection.long = "Lambert.conformal.conic.crab"
     # p$spatial.domain = "snowcrab"

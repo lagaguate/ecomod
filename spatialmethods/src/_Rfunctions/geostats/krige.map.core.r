@@ -16,7 +16,7 @@ krige.map.core = function( ip=NULL, p=NULL, init.files=NULL  ) {
 
     p$tension = "-T1"  # 0.35+ for steep; 0.25 for smooth
     p$maskres = "-S1k"  # effectively turns off interpolation
-    p$interpres = "-S1k"
+    p$interpres = "-n1k"
 
     S = get.PS.S.gridded (p, y, v)$S
     mest = variable.recode( S[,"kv"], v, direction="forward" )  # used for generating a colour scale that matches the whole time span

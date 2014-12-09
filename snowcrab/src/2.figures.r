@@ -3,7 +3,7 @@
    
 	
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-   loadfunctions( "plotting.methods") 
+   loadfunctions( "plottingmethods") 
  
    p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
 

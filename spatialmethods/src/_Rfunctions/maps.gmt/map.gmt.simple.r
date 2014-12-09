@@ -48,7 +48,7 @@
         cmd( "grdcontour", grid, gmt$projection, paste( "-C", cpt, sep=""), append, "-A- -S0.2m -W+faint -L-350/-1 >>", psout )
       }
       if ( "colourcontour"  %in% gmt$outputs ) {
-        cmd( "grdimage", grid, gmt$projection, paste( "-C", cpt, sep=""), append, "-Q -Sb/0.5 >>", psout )
+        cmd( "grdimage", grid, gmt$projection, paste( "-C", cpt, sep=""), append, "-Q -nb/0.5 >>", psout )
       } 
       
     cmd( "psmask -C", append, ">>", psout )
