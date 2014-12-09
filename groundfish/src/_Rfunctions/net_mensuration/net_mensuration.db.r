@@ -224,6 +224,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     }
     
     # configs
+    # netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
     filelist4 = list.files(path=netswd, pattern="^config.*.ini$", full.names=T, recursive=TRUE, ignore.case=TRUE)
     cfg = data.frame( configroot = dirname( filelist4 ), fn=filelist4, stringsAsFactors=FALSE )
     
@@ -246,16 +247,15 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       print(fl)
       j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
       if (is.null(j)) next()
+      j$rootname=fl
       basedata = rbind( basedata, j)
-      basedata$mission= paste(basedata$Cruise, basedata$set, sep=".")
-      basedata$mission=toupper(basedata$mission) 
-      unique(basedata$mission)
-      head(basedata)
-      basedata$mission = gsub("_", "", basedata$mission)
-      basedata$mission = gsub("-", "", basedata$mission)
-      unique(basedata$mission)
-      # continue here
     }
+    
+    # Include mission as a variable
+    g=substring(basedata$rootname,54,63)      
+    basedata$mission = paste(g, basedata$set, sep=".")
+    unique(basedata$mission)
+    
     save(basedata, file=fn, compress= TRUE)
   }
   

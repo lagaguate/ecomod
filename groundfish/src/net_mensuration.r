@@ -19,21 +19,23 @@ if ( recreate.full.database.locally ) {
   # oracle.perley.user ="username"
   # oracle.perley.password = "password"
   # oracle.perley.db = "servername"
-  net_mensuration.db( "perley.database.datadump", netswd ) # ODBC data dump .. this step requires definition of password etc
-  net_mensuration.db( "perley.database.merge", netswd )    # perley had two db's merge them together
-  net_mensuration.db( "post.perley.redo",  netswd )        # Assimilate Scanmar files in raw data saves *.set.log files
+  net_mensuration.db( DS="perley.database.datadump", netswd=netswd ) # ODBC data dump .. this step requires definition of password etc
+  net_mensuration.db( DS="perley.database.merge", netswd=netswd )    # perley had two db's merge them together
+  net_mensuration.db( DS="post.perley.redo",  netswd=netswd )        # Assimilate Scanmar files in raw data saves *.set.log files
   match.set.from.gpstrack(DS="post.perley.redo", netswd=netswd ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
-  net_mensuration.db( "merge.historical.scanmar.redo",  netswd ) # add all scanmar data together
-  net_mensuration.db( "sanity.checks.redo",  netswd )      # QA/QC of data
-  net_mensuration.db( "marport.redo",  marportdatadirectory )      # QA/QC of data
-  
+  net_mensuration.db( DS="merge.historical.scanmar.redo",  netswd=netswd ) # add all scanmar data together
+  net_mensuration.db( DS="sanity.checks.redo",  netswd=netswd )      # QA/QC of data
+  net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory )      # QA/QC of data
 }
 
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
-marport = net_mensuration.db( "marport",  marportdatadirectory )      # QA/QC of data
+marport = net_mensuration.db( DS="marport",  marportdatadirectory )      # QA/QC of data
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+
+# Load marport/basedata
+load("C:/Users/mundenj/Desktop/Scanmar/marport.rdata")
 
 i = which(is.na(master$id))
 t = unique( master$netmensurationfilename[i])
