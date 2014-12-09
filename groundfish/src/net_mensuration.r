@@ -29,7 +29,7 @@ if ( recreate.full.database.locally ) {
 }
 
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
-marport = net_mensuration.db( DS="marport",  marportdatadirectory )      # QA/QC of data
+marport = net_mensuration.db( DS="marport",  netswd=marportdatadirectory )      # QA/QC of data
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
