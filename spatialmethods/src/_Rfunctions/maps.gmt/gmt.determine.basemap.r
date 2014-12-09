@@ -1,7 +1,7 @@
 
   gmt.determine.basemap = function(params) {
-
-    # default
+    
+    # make the basemap with bathimetry; "basemap" is defined in the P list
     basemap.location = project.directory("bathymetry", "maps" )
     params$basemap = file.path(basemap.location, "basemap.1min.ps" )
 

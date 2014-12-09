@@ -51,7 +51,9 @@ estimate.swept.area = function( gsi, x ){
   i1 = 2
   while ( i1 < end ) {
     i0 = i1 - 1  # previous index
-    if ( N$longitude[i0] == N$longitude[i1]){}
+    if ( N$longitude[i0] == N$longitude[i1]) {
+      
+    }
 
     j = which( N$longitude)  
   

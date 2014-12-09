@@ -16,10 +16,14 @@
     # run on servers only unless your machine can handle it
 		p = spatial.parameters( type="canada.east", p=p )
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-	}
+  }
 
-	# begin interpolations using GMT 
+  
+  if ( redo.gmt.bin ){
+    cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
+  }
  
+	# begin interpolations using GMT 
   for ( j in c( "canada.east", "SSE" ) ) {
 		p = spatial.parameters( type=j, p=p )
 		bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...

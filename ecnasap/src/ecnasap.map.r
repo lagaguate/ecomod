@@ -16,7 +16,7 @@
     #                    "nafo.5y", "nafo.5ze", "nafo.5zw" )
     params$overlay = c("nafo.2j3kl", "nafo.3no", "nafo.3p", "nafo.4rs", "nafo.4t", 
                        "nafo.4vw", "nafo.4x", "nafo.5y", "nafo.5zew" )
-    params$polygon.options = "-W0.4p/40" 
+    params$polygon.options = "-W0.4p" 
     params$mapres     = "2min"
     params$gmt.projection.long = "Lambert.conformal.conic.ecnasap2"
     params$spatial.domain    = "ecnasap2"
