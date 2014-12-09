@@ -14,9 +14,8 @@
       gmt.data.landmask = file.path(tmpdir, make.random.string(".gmt.data.landmask") )
 
       # make the basemap with bathimetry; "basemap" is defined in the P list
-      bath.inp.bin = gsub(".xyz$", ".bin", P$inp)
-
-      if ( !file.exists(bath.inp.bin) | redo.bin ) cmd( "gmtconvert -bo", P$inp, ">", bath.inp.bin )
+      bath.inp.bin =  p$bathymetry.bin
+      if ( !file.exists(bath.inp.bin) | redo.bin ) cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", bath.inp.bin )
 
       cmd( "blockmedian -bi -bo", bath.inp.bin, P$region, P$res, ">", gmt.clip )
       cmd( "surface -bi", gmt.clip, P$region, P$res, P$bathy.tension, paste("-G", gmt.depths, sep="" ) )

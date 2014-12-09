@@ -16,7 +16,7 @@
 
     params$block = T  # do a block ?
     params$blocktype = "mean"  # do a block mean ?
-    params$polygon.options = "-W0.8p/150"
+    params$polygon.options = "-W0.8p"
     params$coast.options = "-Df -G220 -W0.5p"  # resolution and colour
     params$scale.location = "-D4.75i/0.75i/2.6i/0.16ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
     params$fnt = "18p"
@@ -26,8 +26,9 @@
     params$annot.lon0 = -63.7
     params$annot.lat0 = 47.25
     params$annot.fontsize = 32 # points
-    params$annot.angle = 0
     params$annot.fontno = 0 # try  pstext  -L for possibles .. 0 = helvetica
+    params$annot.fontcol = 0 # try  pstext  -L for possibles .. 0 = helvetica
+    params$annot.angle = 0
     params$annot.justify = "LT"  # justification
     params$annot.text = ""
 

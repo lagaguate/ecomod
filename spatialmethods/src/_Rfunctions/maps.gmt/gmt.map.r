@@ -1,7 +1,6 @@
   gmt.map = function( P, toplot, year, vname, conversions="ps2png" ) {
 
 		tmpdir  = tempdir()
- 
 
     # tmp local GMT files
       cpt   = file.path(tmpdir, make.random.string(".gmt.cpt"))  # palette file
@@ -64,8 +63,9 @@
       cmd( "psscale", colpalette, P$incscale, P$scale.location, gmtappend, ">>", outfile ) # colourscale
       if (P$annot.text=="") P$annot.text = year
       if (as.character( P$annot.text) == "1000" ) P$annot.text = "Mean state"
-      write( paste(P$annot.lon0, P$annot.lat0, P$annot.fontsize, P$annot.angle, P$annot.fontno, P$annot.justify, P$annot.text), file=annotations )
-      cmd( "pstext", annotations, P$region, P$gmtproj, "-O >>", outfile )  # variablename, year
+      write( paste(  P$annot.lon0, P$annot.lat0, P$annot.text, sep=","), file=annotations )
+      fontinfo = paste( "-F", "+f", P$annot.fontsize, ",", "Helvetica", ",", "black", "+j", P$annot.justify, "+a0", sep="" )
+      cmd( "pstext", annotations, P$region, P$gmtproj, fontinfo, "-O >>", outfile )  # variablename, year
       remove.files ( c( cpt, gmtgrid, bin, clip, indat, blocked, annotations ))
           
       if (!is.finite(conversions)) { #assume postscript not needed

@@ -11,6 +11,7 @@
 	
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
+  debug = FALSE
   if (debug) {
     p$do.parallel =F
     p$clusters= c("localhost")
@@ -175,7 +176,6 @@
 
 # create a new lookuptable for data transformations after refreshing set data/ranges
   REPOS = recode.variable.initiate.db ( db="snowcrab" )
-
 
 
 # snow crab found in external databases tapped into for habitat determination

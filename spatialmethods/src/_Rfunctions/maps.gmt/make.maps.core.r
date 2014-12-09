@@ -5,8 +5,11 @@
     varnames = colnames(U)
      
     # the first index is a list that is passed from the calling prog: in this case "ssplt" (if parallel)
-    if (params$do.parallel) id = as.numeric(id)
-    if (!params$do.parallel) id = c(1:length(variables) )
+    if (params$do.parallel) {
+      id = as.numeric(id)
+    } else {
+      id = c(1:length(variables) )
+    }
     
     for (i in id) {
       plotvar = variables[i]
