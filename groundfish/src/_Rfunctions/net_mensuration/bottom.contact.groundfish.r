@@ -85,6 +85,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
     if ( "try-error" %in% class(lmtest) ) next()
     lsumm = summary( lmtest )
     if (lsumm$r.squared > 0.95 ) {
+      # only accept solutions if it produces predictions taht are pretty close to original data 
       res = sp
       x$diff.loess = x$depth - x$depth.loess
       quants = quantile( x$diff.loess, probs=c(0.025, 0.975 ), na.rm=TRUE )
@@ -98,7 +99,9 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
     points(depth~ts, x[ O$filtered, ], pch=20, col="magenta", cex=0.1)
   }
 
- 
+
+
+
   ## -----------------------------------
   ## 3rd and last pass: use a variance based gating 
   # compute SD in the area of interest and compare with a lagged process to 
@@ -160,6 +163,14 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   x$depth[ !O$filtered ] = NA
 
 
+  # Now that data is more or less clean ... 
+  # Remove any linear trend in the depths as this can increase the precision of the the following methods
+
+  depthtrend = lm( depth ~ ts, data=x, weights=depth^2, na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
+  x$depth0 = x$depth  # store original data
+  x$depth = x$depth0 - predict( depthtrend, newdata=x )
+
+
   ##--------------------------------
   # Modal method: gating by looking for modal distribution and estimating sd of the modal group 
   # by removing small frequencies (5 or less) being ignored 
@@ -171,9 +182,10 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
 
   # minval.modal is the min number of counts in a freq bin to be considered non-random (significant) 
   # ..based upon Chi-squared logic any count <= 5 is essentially indistinguishable from random noise
+  
   minval.modal=5 
   nbins0 = 8:6  # range of target nbins>threshold to attempt in order to identify the mode 
-  
+   
   duration = 0
   for ( nbins in nbins0 ) {
     for ( nb in seq( from=200, to=20, by=-2 ) ) {
@@ -219,21 +231,20 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   fun = approxfun( x2$ts, x2$fitted )
   x2$slopes = grad( fun, x2$ts, method="simple" )
   x2$slopes[ nrow(x2) ] = x2$slopes[ nrow(x2)-1 ]  # last element is an NA .. copy the next to last value into it  
-  v2 = inla( slopes ~ f(ts, model="rw2" ) , data=x2 )
-  x2$slopes.smoothed = v2$summary.random$ts[["mean"]] 
 
   # now using (smoothed) first derivative determine inflection points (crossing of the zero line)
-  eps = sd( x2$slopes.smoothed )/10 
   mod0 = 1
   mod1 = nrow(x2) 
   midpoint = trunc( mod1/2 )
+  eps = sd( x2$slopes, na.rm=TRUE ) / 1000  # a small number scaled to SD
+  
   if ( abs( x2$depth[mod0] - mediandepth ) < AOI.mod.sd ) {
     # assuming it is truncated without the left tail ..
     k0 = mod0 
   } else {
     for( k0 in mod0:midpoint)  {
-      if (!is.finite( x2$slopes.smoothed[ k0 ] )) next()
-      if ( x2$slopes.smoothed[ k0 ] <= -eps ) break()
+      if (!is.finite( x2$slopes[ k0 ] )) next()
+      if ( x2$slopes[ k0 ] < -eps ) break()
     }
   }
   if ( abs( x2$depth[mod1] - mediandepth ) < AOI.mod.sd ) {
@@ -241,8 +252,8 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
     k1 = mod1 
   } else {
     for( k1 in mod1:midpoint) {
-      if (!is.finite( x2$slopes.smoothed[ k1 ] )) next()
-      if ( x2$slopes.smoothed[ k1 ] >= eps )  break()
+      if (!is.finite( x2$slopes[ k1 ] )) next()
+      if ( x2$slopes[ k1 ] > eps )  break()
     }
   }
 
