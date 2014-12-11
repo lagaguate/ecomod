@@ -3,7 +3,11 @@
    
 	
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+<<<<<<< HEAD
     
+=======
+ 
+>>>>>>> 6536a3798f52eacc025f632f2601a74401dd743c
    p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
 
 
@@ -68,17 +72,15 @@
   # ------------------------------------------
   # Timeseries: geometric mean carapace width from at-sea observers 
     figure.timeseries.CW( outdir=file.path(p$annual.results,  "timeseries", "survey"), type="observer" )
-     
-   
 
-  
+
   # ------------------------------------------
   # Map: Basemap of the Scotian Shelf used by all other mapping routines
   #   creating a partial postscript file via GMT 
   #   .. only required if changing resolution or spatial extent
     p$inp = ""
 
-    gmt.basemap (p)
+    gmt.basemap (p, redo.bin=TRUE )
 
   # ------------------------------------------
   # Map: Scotian Shelf with CFA lines and labels
@@ -122,15 +124,10 @@
   # ------------------------------------------
   # Map: Spatial representation of maturity patterns of snow crab
     map.maturity( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "maturity"), newyear=T ) 
- 
-
-
-
 
 
   ##########################################################################
   ###############################  Retired figures #########################
-
 
 
   # ------------------------------------------

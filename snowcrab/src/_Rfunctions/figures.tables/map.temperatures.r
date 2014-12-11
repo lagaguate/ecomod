@@ -8,7 +8,7 @@
     p = gmt.resolution(p) # refresh due to change in mapres
 
     p$maskres      = "-S15k"
-    p$interpres    = "-Sb"
+    p$interpres    = "-nb"
     p$tension      = "-T0.4"  # 1= harmonic surface
     make.maps(tx, p, variables=variables, plottimes=plottimes, basedir=outdir, conversions=conversions, init.files=init.files)
   }

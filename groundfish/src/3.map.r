@@ -41,8 +41,11 @@ params$delete.postscript = T
 
 # ----------------------------
 # 2 - redo basemap ?
-if (redo.basemap) gmt.basemap (params)
-
+if (redo.basemap) {
+  # do not redo unless you are really sure you want to do this .. .matching resolutions etc is a pain 
+  params$isobaths_toplot = c( 50, 100, 150, 200, 250, 300, 350, 400 )
+  gmt.basemap (params)
+}
 
 # ----------------------------
 # 3 - obtain isobath coords
@@ -80,7 +83,7 @@ if (map="set") {
 
   params$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
   params$maskres = "-S16k"
-  params$interpres = "-S16k"
+  params$interpres = "-n16k"
   params$do.parallel = F
 
   variables =  variable.list.expand("all")
@@ -97,7 +100,7 @@ if (map="maturity") {
   #load(file.path(R.sc, "maturity.rdata"))
   params$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
   params$maskres = "-S16k"
-  params$interpres = "-S16k"
+  params$interpres = "-n16k"
 
   plottimes=c("annual", "annualsmoothed", "globalaverage")
 

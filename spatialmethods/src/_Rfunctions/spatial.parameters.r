@@ -11,7 +11,7 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
 		p$mapres = "15sec"  # "15sec" is currently the highest resolution
     p$tension = "-T0.4"  # 0.35+ for steep; 0.25 for smooth
     p$maskres = "-S25k"
-    p$interpres = "-S40k"
+    p$interpres = "-n40k"
     p$T.interp.method = "tps"  # tps is thin splate spline with GMT (alt: inverse distance using gstat)
     p$delete.postscript = T
     p$redo.basemap = F

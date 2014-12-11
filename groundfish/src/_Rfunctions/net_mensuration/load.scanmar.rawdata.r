@@ -11,9 +11,10 @@ load.scanmar.rawdata = function( fn ) {
   day = substring( datestring, 9, 10 )
   
   # extract timestamp of "Start Set"
-  line.start = grep("Start Set", header, ignore.case=T  )
-  timestring = header[ line.start]
-  time = substring(timestring, 1, 8)
+  # line.start = grep("Start Set", header, ignore.case=T  )
+    
+  # timestring = header[ line.start]
+  # time = substring(timestring, 1, 8)
   
   if (length(header) < 9 ) return( NULL )
    
@@ -63,8 +64,10 @@ load.scanmar.rawdata = function( fn ) {
   scanmar$timestamp=gsub(":","-",scanmar$timestamp)
   scanmar$timestamp = ymd_hms(scanmar$timestamp) 
   scanmar$id = basename(fn)
-  scanmar$timestamp = timestamp.fix ( scanmar$id, scanmar$timestamp, threshold.hrs=2 )
-   
+  
+  test = timestamp.fix ( scanmar$timestamp, threshold.hrs=2 )
+  if (!is.null(test))  scanmar$timestamp = test
+
   return(scanmar)
 }
 

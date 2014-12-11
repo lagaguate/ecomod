@@ -264,7 +264,7 @@
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
         gsdet = sqlQuery( connect,  paste( 
-        "select i.*, substrImission,4,4) year" , 
+        "select i.*, substr(mission,4,4) year" , 
         "    from groundfish.gsdet i " , 
         "    where substr(mission,4,4)=", YR, ";"
         ) )

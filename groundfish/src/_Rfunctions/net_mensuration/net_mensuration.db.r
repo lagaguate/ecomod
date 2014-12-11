@@ -1,4 +1,5 @@
-net_mensuration.db=function( DS, netswd=getwd() ){
+
+net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE, override.missions=NULL ){
    
   if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
     
@@ -11,15 +12,10 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       # Package RODBC is a platform for interfacing R to database systems
       # Package includes the obdc* commands (access) and sql* functions (read, save, copy, and manipulate data between data frames)
       require(RODBC)
-      connect=odbcConnect( oracle.perley.db, uid=oracle.perley.user, pwd=oracle.perley.password, believeNRows=F)
-      # define these in your Rprofile 
-      # oracle.perley.user ="username"
-      # oracle.perley.password = "password"
-      # oracle.perley.db = "servername"
-
+      connect=odbcConnect( "quoddy", uid="cooka", pwd="f43xy21b", believeNRows=F)
       # sqlquery can be used to return part of a table
-      scanmar = sqlQuery(connect, "select * from  groundfish.perleyp_SCANMAR", as.is=T) 
-      scanmarnew = sqlQuery(connect, "select * from  groundfish.perleyp_NEWSCANMAR", as.is=T) 
+      scanmar = sqlQuery(connect, "select * from   groundfish.perleyp_SCANMAR", as.is=T) 
+      scanmarnew = sqlQuery(connect, "select * from   groundfish.perleyp_NEWSCANMAR", as.is=T) 
       # closing the connection with ODBC
       odbcClose(connect)
       # saving the tables to R memory in zip format 
@@ -39,6 +35,7 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       load(fn1) 
       load(fn2)
       names(scanmarnew)=tolower(names(scanmarnew))      
+      
       names(scanmar)=tolower(names(scanmar))      #ac
       
       # nm is the dataset which combines the old and new data (merged)
@@ -83,6 +80,7 @@ net_mensuration.db=function( DS, netswd=getwd() ){
       nm$year= as.numeric(substring(nm$mission,4,7))
       nm$fspd=as.numeric(nm$fspd)
       nm$cspd= as.numeric(nm$cspd)
+      
       
       # merge groundfish  timestamps and ensure that net mensuration timestamps are correct
       
@@ -183,13 +181,14 @@ net_mensuration.db=function( DS, netswd=getwd() ){
    nm$ltspeed[i] = NA
    nm$ctspeed[i] = NA
    
-   # gating   
+   # coarse level gating   
    nm$doorspread = filter.nets("doorspread.range", nm$doorspread)
    nm$wingspread = filter.nets("wingspread.range", nm$wingspread)
    nm$clearance = filter.nets("clearance.range", nm$clearance)
    nm$opening = filter.nets("opening.range", nm$opening)
    nm$depth = filter.nets("depth.range", nm$depth)
-  
+   master$date=substring(master$timestamp,0,10) 
+   
    save( nm, file=fn, compress=TRUE)
   }
 
@@ -214,6 +213,53 @@ net_mensuration.db=function( DS, netswd=getwd() ){
   }
 
 
+
+  if(DS %in% c("marport", "marport.redo"))  {
+    basedata=NULL
+    fn=file.path( netswd, paste( "marport", "rdata", sep="." ))
+    if(DS == "marport"){
+      if (file.exists(fn)) load(fn)
+      return(basedata)
+    }
+    
+    # configs
+    # netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
+    filelist4 = list.files(path=netswd, pattern="^config.*.ini$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    cfg = data.frame( configroot = dirname( filelist4 ), fn=filelist4, stringsAsFactors=FALSE )
+    
+    filelist1 = list.files(path=netswd, pattern=".log$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    filelist2 = list.files(path=netswd, pattern=".gps$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    filelist3 = list.files(path=netswd, pattern=".sgp$", full.names=T, recursive=TRUE, ignore.case=TRUE)
+   
+    filelist1 = gsub( ".log$", "", filelist1)
+    filelist2 = gsub( ".gps$", "", filelist2)
+    filelist3 = gsub( ".sgp$", "", filelist3)
+    
+    fileroots = unique( c( filelist1, filelist2, filelist3 ) )
+    filelist = data.frame( fileroots=fileroots, configroot = dirname( fileroots ), stringsAsFactors=FALSE )
+    filelist = merge( filelist, cfg, by="configroot", all.x=TRUE, all.y=FALSE )
+    
+    no.files = nrow(filelist)
+    for ( ii in 1:no.files ) {
+      fl = filelist$fileroots[ii]
+      sensorconfig = filelist$fn[ii]
+      print(fl)
+      j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
+      if (is.null(j)) next()
+      j$rootname=fl
+      basedata = rbind( basedata, j)
+    }
+    
+    # Include mission as a variable
+    g=substring(basedata$rootname,54,63)      
+    basedata$mission = paste(g, basedata$set, sep=".")
+    
+    # Include adjusted time as a variable (plus 7 mins or 420 secs)
+    basedata$adjusted.time=(basedata$timestamp) + 420
+    
+    save(basedata, file=fn, compress= TRUE)
+  }
+  
 
   if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
     
@@ -240,8 +286,7 @@ net_mensuration.db=function( DS, netswd=getwd() ){
     nm$gyro=NA  
     
     # here we will add the more modern data series and merge with perley
-    no.matches = match.set.from.gpstrack(DS="post.perley", netswd=netswd )
-    meta = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
+    meta = match.set.from.gpstrack(DS="post.perley", netswd=netswd )
     
     pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
     
@@ -256,5 +301,99 @@ net_mensuration.db=function( DS, netswd=getwd() ){
     
   }
 
+
+  if (DS %in% c("bottom.contact", "bottom.contact.redo" )) {
+    
+    fn= file.path(netswd,"gsinf.bottom.contact.rdata")
+    master=NULL
+    if(DS=="bottom.contact"){
+      if (file.exists(fn)) load(fn)
+      return(master)
+    }
+    
+    gsinf = groundfish.db( DS="gsinf" )
+    gsinf$bottom_duration = NA
+    gsinf$spoint.datetime = as.POSIXct(NA)
+    gsinf$epoint.datetime = as.POSIXct(NA)
+    gsinf$spoint.sd = NA
+    gsinf$epoint.sd = NA
+    gsinf$epoint.n = NA
+    gsinf$spoint.n = NA
+     
+    master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    if (!is.null( override.missions)){
+      user.interaction = TRUE
+      master = master[ which(master$id %in% override.missions ), ]
+    }
+    
+    uid = sort( unique( master$id)) 
+    for ( id in uid) {
+      print( id)
+      ii = which( master$id==id )  # rows of master with scanmar/marport data
+      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
+      gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+      if (length(gii) != 1) next()  # no match in gsinf
+      
+      # vary the proportion of depth passed onto the bottom contact method as the shape of the tails can cause errors
+      out = NULL
+      alldata = list()
+      res = bottom.contact.groundfish ( id=id, master[ii,c("depth", "timestamp")], plot.data=TRUE,  user.interaction=user.interaction )
+
+      ss = ymd_hms( out[si,"bottom0"] )
+      ee = ymd_hms( out[ei,"bottom1"] )
+
+      gsinf$spoint.datetime[gii] = res$bottom0 
+      gsinf$epoint.datetime[gii] = res$bottom1
+      gsinf$bottom_duration[gii] = res$bottom.diff
+      gsinf$spoint.sd[gii] = res$bottom0.sd
+      gsinf$epoint.sd[gii] = res$bottom1.sd
+      gsinf$spoint.n[gii] =  res$bottom0.n
+      gsinf$epoint.n[gii] =  res$bottom1.n
+     
+
+    }
+    
+    if (!is.null( override.missions)) {
+      fn = paste( fn, "manually.determined.rdata", sep="")
+    }
+    
+    save(gsinf, file=fn, compress= TRUE)
+  }
+
+  
+
+  if (DS %in% c("sweptarea", "sweptarea.redo" )) {
+    
+    fn= file.path(netswd,"gsinf.sweptarea.rdata")
+    master=NULL
+    if(DS=="sweptarea"){
+      if (file.exists(fn)) load(fn)
+      return(master)
+    }
+   
+    master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    uid = sort( unique( master$id)) 
+    
+    gsinf =  net_mensuration.db( DS="bottom.contact", netswd=netswd )
+    
+    # run once to get variable names and sequence 
+    idtest = uid [ 1 ]
+    gstest = estimate.swept.area( gsinf[ which( gsinf$id==idtest ), ],  master[ which( master$id==idtest ),] )
+    newvars = setdiff( names(gstest), names( gsinf) )
+    for (vn in newvars) gsinf[,vn] = NA
+    gsinf = gsinf[, names(gstest) ] # reorder
+
+    for ( id in uid) {
+      print( id)
+      ii = which( master$id==id )  # rows of master with scanmar/marport data
+      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
+      gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+      if (length(gii) != 1) next()  # no match in gsinf
+     
+      gsinf[gii,] = estimate.swept.area( gsinf[gii,],  master[ii,] )
+    }
+    save(gsinf, file=fn, compress= TRUE)
+  }
 }
-  # either & or | can be used to add conditions
+
+

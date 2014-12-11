@@ -143,8 +143,7 @@
         variable.list.expand("females.general")
       ),
 
-      scaled.centered =c (), # swtich does not like a null vector
-
+      scaled.centered =c ("dummyvariable"), # swtich does not like a null vector
 
       log.transform = c(
         paste( "totno", variable.list.expand("sp.list"), sep="." ),
@@ -159,7 +158,7 @@
         variable.list.expand("snowcrab.unused"),
         variable.list.expand("snowcrab.bycatch"),
  
-#      "landings", "cpue", "notraps", "effort",
+#        "landings", "cpue", "notraps", "effort",
         "dZ", "ddZ"
       )
     ) # end switch

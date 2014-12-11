@@ -1,373 +1,440 @@
-bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, nbins=c(5,10) , minval.modal=5 ) {
+bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthproportion=0.5,  minval.modal=5, nbins=7, plot.data=FALSE, user.interaction=FALSE ) {
   
-  # n.req=30; nbins=c(5,10)
+  debug = FALSE
+  if (debug) {
+    nbins= 7 # nbins is the number of bins required to get a target mode
+    minval.modal=5 # min number of counts in freq bins to be considered non-random (Chi-squared logic)
+    tdif.min = 15  # min time difference (minutes) .. including tails
+    tdif.max = 50  # min time difference (minutes) .. including tails
+    depthproportion=0.5 # depthproportion controls primary (coarse)gating
+    plot.data=TRUE 
+    user.interaction=FALSE # is you want to try to manually determine end points too
+    x = mm
+  }
+   
+  O = list()  # output list
+  O$id = id
+  O$filtered = rep(TRUE, nrow(x)) # rows that will contain data that passes each step of data quality checks
+  O$linear.method = c(NA, NA)
+  O$smooth.method = c(NA, NA)
+  O$variance.method = c(NA, NA)
+  O$modal.method = c(NA, NA)
+  O$manual.method = c(NA , NA)
   
-  # load in libraries
-  require(numDeriv)
-  require(mgcv)
-  require(INLA)
-  
-  O = list(  comments=NA )  # output list
-  
-  # in case time is not in sequence
-  x = x[order( x$timestamp ) ,]
-  
+  ##--------------------------------
+  # sort in case time is not in sequence
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
+  x = x[order( x$timestamp ) ,]
   x$ts = as.numeric(x$timestamp)  # in seconds 
   x$ts = x$ts - min(x$ts) 
   
-  O$filtered = 1:nrow(x) # list of rows that will contain data that passes each step of data quality checks
   
-  
-
+  ##--------------------------------
   ## Preliminary gating: simple range limits (gating) of depths to remove real extremes
-  
   # eliminate records with NA for depth  
   i = which(!is.finite(x$depth))
-  if (length(i) > 0) O$filtered[i] = NA
+  if (length(i) > 0) O$filtered[i] = FALSE
   
+  ##--------------------------------
   # eliminiate shallow records due to operation at sea level
   i = which(x$depth < 10)
-  if (length(i) > 0) O$filtered[i] = NA
+  if (length(i) > 0) O$filtered[i] = FALSE
+
+  ##--------------------------------
+  ## Filtering based on median depth
+  mediandepth = median( x$depth[ O$filtered ], na.rm=TRUE)
+  x$depth.diff = abs( x$depth - mediandepth )
+  i = which( x$depth.diff > 30 )
+  if (length(i) > 0) O$filtered[i] = FALSE
+
+  ##--------------------------------
+  # eliminiate records that are shallower than a given percentage of the median depth
+  i = which(  x$depth < (depthproportion * mediandepth ) )
+  if (length(i) > 0) O$filtered[i] = FALSE
 
   
+  ##--------------------------------
+  # 1st pass gating is finished ::: save (register them) and continue
+  # plot of data after intial gating of depths
+  x$depth[ !O$filtered ] = NA
 
-  # eliminate a range around the median value 
-  mediandepth = quantile( x$depth, probs=c(0.5), na.rm=TRUE)
-  dmax = mediandepth + 50
-  baddata = which( x$depth > dmax   )
-  if (length(baddata) > 0) O$filtered[baddata] = NA
-  
-  depth.range=range(x$depth[ O$filtered], na.rm=TRUE)
-  plot(depth~ts, x[ O$filtered,], sub=id, ylim=c(depth.range[2],depth.range[1]), pch=20)
-
-  dmin = trunc( depthproportion * mediandepth )
-  baddata = which(  x$depth < dmin  )
-  if (length(baddata) > 0) O$filtered[baddata] = NA
-  
-  x$depth[ which(!is.finite(O$filtered))] = NA
-  
-  O$ndat = nrow(x)
-
-  
-  points(depth~ts, x, sub=id, pch=".", col="orange")
-  
-  if (O$ndat < n.req) {
-    O$comments="Not enough data"
-    return(O)
+  if (plot.data) {
+    ts.range = x$ts[range (which( O$filtered )) ]
+    depth.range = range(x$depth, na.rm=TRUE)
+    plot(depth~ts, x, sub=O$id, ylim=c(depth.range[2],depth.range[1]), xlim=ts.range, pch=20, cex=0.1 )
+    legendtext = NULL
+    legendcol = NULL
+    legendpch = NULL
   }
 
-  
-  # high pass filter 
-  
-  v=inla(depth~f(ts,model="rw2"),data=x )
-  predicted.values = v$summary.random[[1]][["mean"]]
-  dev = x$depth - predicted.values 
-  
-  quants = quantile( dev, probs=c(0.025, 0.975), na.rm=TRUE)
-  bad = which( dev <= quants[1] | dev >= quants[2] )
-  O$filtered[ bad] = NA
-  x$depth[ which(!is.finite(O$filtered))] = NA
  
-  debug=FALSE
-  if (debug) {
-  v=inla(depth~f(ts,model="rw2"),data=x )
-  predicted.values = v$summary.random[[1]][["mean"]]
-  dev = x$depth - predicted.values 
+  ##--------------------------------
+  # 2nd pass -- a high pass filter -- remove high freq variations relative to random normal expectations of iid
+  x$weight = 1 / x$depth.diff^2
+  i = which( x$weight >= Inf)
+  if (length(i)>0) x$weight[i] = max(x$weight[ which( x$weight < Inf) ], na.rm=TRUE )
   
-  quants = quantile( dev, probs=c(0.025, 0.975), na.rm=TRUE)
-  bad = which( dev <= quants[1] | dev >= quants[2] )
-  O$filtered[ bad] = NA
-  x$depth[ which(!is.finite(O$filtered))] = NA
+  res = NA
+  for( sp in seq( 0.35, 0.02, by=-0.01 ) ) {
+    lmod = try( loess( depth~ts, data=x[O$filtered,], weights=x$weight[O$filtered], 
+      span=sp, control=loess.control(surface="direct") ), silent=TRUE )
+    if ( "try-error" %in% class(lmod) ) next()
+    x$depth.loess = NA
+    x$depth.loess[O$filtered] = predict( lmod ) 
+    lmtest = try( lm( depth.loess ~ depth, x[O$filtered,] ), silent=TRUE) 
+    if ( "try-error" %in% class(lmtest) ) next()
+    lsumm = summary( lmtest )
+    if (lsumm$r.squared > 0.95 ) {
+      res = sp
+      x$diff.loess = x$depth - x$depth.loess
+      quants = quantile( x$diff.loess, probs=c(0.025, 0.975 ), na.rm=TRUE )
+      i =  which( x$diff.loess <= quants[1] | x$diff.loess >= quants[2] )
+      if (length(i) > 0) O$filtered[i] = FALSE
+      break()
+    }
+  }
+  
+  if (plot.data) {
+    points(depth~ts, x[ O$filtered, ], pch=20, col="magenta", cex=0.1)
   }
 
+ 
+  ## -----------------------------------
+  ## 3rd and last pass: use a variance based gating 
+  # compute SD in the area of interest and compare with a lagged process to 
+  # start from centre and move left and continue until sd of residuals begins to deviate sustantially
+  # from centre to left 
+ 
+  # keep everything except the 10th percentile and lower  this is very permissive ..
 
-## Variance method: variance based gating using 3SD -- ie ~ 99% of population
-    # compute SD in the area of interest and compare with a lagged process to 
-    # determine first estimate of fishing range based upon SD in depth data
-    # Prefilter to remove any data with extreme deviance from a smooth trend (a high-pass filter)
+  #  Jenna Q's: Does this mean take everything within 90% confidence interval??
+                    # Whats a lagged proccess
+
   
-  variance.method = "off"
-  if (variance.method=="on") {
-      v=inla(depth~f(ts,model="rw2"),data=x )
-      predicted.values = v$summary.random[[1]][["mean"]] + mean(x$depth, na.rm=T)
-      deviance = x$depth - predicted.values
-      
-      quants = quantile( deviance, probs=c(0.025, 0.975), na.rm=TRUE)
-      O$variance.bad = which( deviance <= quants[1] | deviance >= quants[2] )
-      O$variance.good = setdiff( 1:O$ndat, O$variance.bad)
-      
-      target.sd =  max( 0.1, sd (x[O$variance.good], na.rm=T ), na.rm=T ) 
-      
-      # start from centre and move left and continue until sd of residuals begins to deviate sustantially
-      
-      nx2 = trunc( O$ndat/2) # midpoint
-      # from centre to left 
-      left = setdiff( nx2:1, O$variance.bad)
-      for ( j0 in left  ) {
-        if ( sd(( x$depth[ (nx2+10):j0]), na.rm=T) > target.sd ) {
-          j0 = j0 - 1      
-          break()
-        }
-      }
-      
-      # end time .. begin from centre to right 
-      right = setdiff( nx2:O$ndat, O$variance.bad)
-      for ( j1 in right ) {
-        if ( sd(( x$depth[ (nx2-10):j1]), na.rm=T) > target.sd ) {
-          j1 = j1 + 1
-          break()
-        }
-      }
-      
-      if ( (j1-j0) < n.req) {
-        O$comments="not enough data for estimating fishing method 1"
-        return(O)
-      } 
-      
+  AOIvar = which( O$filtered ) 
+  AOIvar.mid = trunc( median(AOIvar ) ) # approximate midpoint
+  AOIvar.min = min( AOIvar )
+  AOIvar.max = max( AOIvar )
+  AOI.sd = sd( x$depth[ O$filtered ] )  ## SD 
+  sd.multiplier = seq( 3, 1, by=-0.2 ) 
+  
+  buffer = 10 # additional points to add to seed initial SD estimates
+
+  duration = 0 
+  for ( sm in sd.multiplier ) {
+    target.sd = AOI.sd * sm
+    for ( j0 in AOIvar.mid:AOIvar.min  ) {#  begin from centre to right 
+      sdtest = sd(( x$depth[ (AOIvar.mid + buffer):j0]), na.rm=T)
+      if ( sdtest  >= target.sd ) break()
+    }
+    for ( j1 in AOIvar.mid: AOIvar.max ) {  #  begin from centre to right
+      sdtest =  sd(( x$depth[ (AOIvar.mid - buffer):j1]), na.rm=T)
+      if ( sdtest >= target.sd ) break()
+    }
+    duration = as.numeric( x$timestamp[j1] - x$timestamp[j0]) 
+    if ( duration > tdif.min & duration < tdif.max ) {
       O$variance.method = c( x$timestamp[j0], x$timestamp[j1] )
       O$variance.method.indices = which( x$timestamp >= O$variance.method[1] &  x$timestamp <= O$variance.method[2] )
-      
+      break()
+    }  
   }
-  
+    if (plot.data & all(is.finite(O$variance.method))  ) {
+      mcol = "gray"
+      points( depth~ts, x[ O$variance.method.indices, ], pch=20, col=mcol, cex=0.2)
+      abline (v=x$ts[min(O$variance.method.indices)], col=mcol, lty="dotted")
+      abline (v=x$ts[max(O$variance.method.indices)], col=mcol, lty="dotted")
+      legendtext = c( legendtext, paste( "variance:   ", round( duration, 2) ) )
+      legendcol = c( legendcol, mcol)
+      legendpch =c( legendpch, 20 ) 
+    }
 
 
-## Modal method: gating by looking for modal distribution and estimating sd of the modal group 
+  # -------------------------------
+  # record variance-based gating rejections
+  i = setdiff( 1:nrow(x) , O$variance.method.indices )
+  if (length(i) > 0) O$filtered[i] = FALSE
+
+
+  ## ------------------------------
+  ## Gating complete .. finalise data before starting time stamps for bottom contact
+  x$depth[ !O$filtered ] = NA
+
+
+  ##--------------------------------
+  # Modal method: gating by looking for modal distribution and estimating sd of the modal group 
   # by removing small frequencies (5 or less) being ignored 
   # breaks defines how many columns you want in your histogram
   # expectation from uniform random is 1/2 of the threshold for testing that the freqeuncy belongs to the mode
   # ensure that high pass-filter-based rejections and simple gated filters are used
 
-  # minval.modal = 5 # assuming a chi-square approach where any count <= 5 is essentially indistinguishable from a random number
-  nbreaks =  seq( from=250, to=20, by=-2 )
-  h = NULL
-  for ( nb in nbreaks) {
-    h = hist( x$depth[ na.omit(O$filtered) ], breaks=nb, plot=FALSE)  
-    minval = min(h$counts[h$counts>0]) # chi-squared logic
-    i = which(h$counts > minval.modal )
-    if (length (i) > nbins[1]  & length (i) < nbins[2] )  break() # target number of good bins
-  }
-  
-  if (is.null(h)) {
-    O$comments = "No model solution found"
-    return(O)
-  }
-      
-    
-  O$modal.method.filtered.indices = which( x$depth > h$mids[min(i)] & x$depth < h$mids[max(i)]  ) 
-  
-  # indices of x where the data distribution suggests we have bottom contact
-  i0 = min( O$modal.method.filtered.indices ) 
-  i1 = max( O$modal.method.filtered.indices )
-  
-  # points(depth~ts, x[O$modal.method.filtered.indices,], col="green", pch=20)
-  
-  if (length( i0:i1 ) < n.req) {
-    O$comments="Not enough depth data near the median"
-    return(O)  # no data 
-  }
-  
-  # Do some rough filtering to remove sets wihout sufficient data
- 
-  if (length( which(is.finite(x$depth) ) )< n.req) {
-    O$comments="Not enough depth data"
-    return(O)  # no data 
-  }
- 
-  
-  O$modal.method = c( x$timestamp[i0], x$timestamp[i1] )
-  O$modal.method.indices = which( x$timestamp >= O$modal.method[1] &  x$timestamp <= O$modal.method[2] )
-  
-  badlist = setdiff( 1:nrow(x), O$modal.method.filtered.indices)
-  O$filtered[ badlist ] = NA  
+  # Determine area of interest (AOImod) -- most likely area of bottom contact
 
-  points(x$ts[O$modal.method.indices],  x$depth[O$modal.method.indices], col="red", pch=20)       
-  tdiffmodal = round(as.numeric(diff(O$modal.method) ),2)
-  abline (v=x$ts[min(O$modal.method.indices)], col="red")
-  abline (v=x$ts[max(O$modal.method.indices)], col="red")
-
+  # minval.modal is the min number of counts in a freq bin to be considered non-random (significant) 
+  # ..based upon Chi-squared logic any count <= 5 is essentially indistinguishable from random noise
+  minval.modal=5 
+  nbins0 = 10:5  # range of target nbins>threshold to attempt in order to identify the mode 
   
-  if ( (i1-i0) < n.req) {
-    O$comments="not enough data for estimating fishing method 1"
-    return(O)
-  } 
-  
-  
-  
-  
-## Smooth method: smooth data to remove local trends and compute a detrended residual using INLA
-    # Calculate smooth ..remove high frequency varaitions
-    
-    # tails  = c( 1:(min(O$filtered, na.rm=T)-1), (max(O$filtered, na.rm=T) +1):O$ndat)
-    tokeep = unique( c( O$filtered) )
-    todrop = setdiff( 1:nrow(x) , tokeep)
-
-    xcopy = x
-    xcopy$depth[todrop] = NA
-    xcopy$ts2 =xcopy$ts
-
-    v = inla( depth ~ ts2 + f(ts,model="rw2"), data=xcopy )
-    
-    O$depths.predicted = v$summary.random[[1]][["mean"]]   
-    
-    fun = approxfun( x$ts, O$depths.predicted )
-    
-    # first, recenter the smooths 
-    slopes = grad( fun, x$ts, method="simple" )
-
-    
-    # looking for modal distribution and estimating sd of the modal group of slopes
-    quants.slopes = quantile( slopes, probs=c(0.1, 0.9), na.rm=TRUE)
-    slopes[ slopes < quants.slopes[1]] = NA
-    slopes[ slopes > quants.slopes[2]] = NA
-
-    # now using (smoothed) first derivative determine inflection points (crossing of the zero line)
-    nd = length(slopes) 
-
-    k0=NA
-    for( k0 in min(O$filtered, na.rm=T):nd) {
-      if (!is.finite( slopes[ k0 ] )) next()
-      if (slopes[ k0 ] < 0) {
-        k0 = k0 - 1
-        break()
+  duration = 0
+  for ( nbins in nbins0 ) {
+    for ( nb0 in seq( from=300, to=10, by=-1 ) ) {
+      h0 = hist( x$depth[ O$filtered ], breaks=nb0, plot=FALSE)  
+      j0 = which(h0$counts >= minval.modal)  
+      if (length (j0) <= nbins) {
+        nb0 = nb0+1  
+        break() # target number of good bins
       }
     }
-    
-    k1 = NA
-    for( k1 in max(O$filtered, na.rm=T):1) {
-      if (!is.finite( slopes[ k1 ] )) next()
-      if (slopes[ k1 ] > 0) {
-        k1 = k1 +1
-        break()
+    for ( nb1 in seq( from=10, to=300, by=1 ) ) { # do it from the other direction
+      h1 = hist( x$depth[ O$filtered ], breaks=nb1, plot=FALSE)  
+      j1 = which(h1$counts >= minval.modal) 
+      if (length (j1) >= nbins ) {
+        nb1 = nb1 - 1
+        break() # target number of good bins
       }
     }
-    
-    O$smooth.method =  c( x$timestamp[k0], x$timestamp[k1] )
-    O$smooth.method.indices = which( x$timestamp >= O$smooth.method[1] &  x$timestamp <= O$smooth.method[2] ) 
-
-    points(x$ts[O$smooth.method.indices],  x$depth[O$smooth.method.indices], col="blue", pch=24)   
-    tdiffsmooth = round(as.numeric(diff(O$smooth.method)),2)
-    abline (v=x$ts[min(O$smooth.method.indices)], col="blue")
-    abline (v=x$ts[max(O$smooth.method.indices)], col="blue")
-
-    if ( (k1-k0) < n.req) {
-      O$comments="not enough data for estimating smooth method"
-    } 
-  
-  
-  
-  
-  
-## Linear method: looking at the intersection of three lines (up, bot and down)
-  
-    if(!is.na(O$comments)){
-      return(O)  # no data 
+    if ( length(j0) <= nbins | length(j1) >= nbins ) {
+      # redo hist with median value of the nbreaks as we have a potential solution
+      nb = trunc( mean( nb0, nb1, na.rm=TRUE) ) 
+      h = hist( x$depth[ O$filtered ], breaks=nb, plot=FALSE)  
+      i = which(h$counts > minval.modal )  
+      AOImod = which( x$depth > h$mids[min(i)] & x$depth < h$mids[max(i)]  ) 
+      i0 = min( AOImod ) 
+      i1 = max( AOImod )
+      duration = as.numeric( x$timestamp[i1] - x$timestamp[i0]) 
+      if ( duration > tdif.min & duration < tdif.max ) {
+        # Do some rough filtering to remove sets without sufficient data
+        O$modal.method = c( x$timestamp[i0], x$timestamp[i1] )
+        O$modal.method.indices = which( x$timestamp >= O$modal.method[1] &  x$timestamp <= O$modal.method[2] )
+        break()
+      } 
     }
-
-    
-    # ID best model based upon distance of the start/end depth to the median depth of the bottom track
-    meddepth = median(x$depth[O$filtered], na.rm=TRUE)  # current.best.estimate.of.depth
-    dev.smooth =  meddepth - ( x$depth[min(O$smooth.method.indices)]+ x$depth[max(O$smooth.method.indices)] )/2
-    dev.modal =  meddepth - ( x$depth[min(O$modal.method.indices)]+ x$depth[max(O$modal.method.indices)] )/2
-    dev.blend = (dev.smooth + dev.modal) / 2
-  
-    results = c( dev.smooth, dev.modal, dev.blend) 
-    best = which.min( results)
-
-    # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
-    
-    fishing = switch( best,
-      range(O$smooth.method.indices),
-      range(O$modal.method.indices),
-      trunc( c( mean( c( min(O$smooth.method.indices), min(O$modal.method.indices ))), 
-            mean( c( max(O$smooth.method.indices ), max(O$modal.method.indices))) ) )
-    )
-
-  
-    bot = fishing[1]: fishing[2]  # blended estiamte of fishing events
-    down = 1:( fishing[1] - 1) 
-    up = ( fishing[2] + 1):O$ndat
-
-    # data checks
-  
-    if( length( which( is.finite( x$depth[bot] ))) < n.req ){
-      O$comments="Not enough depth data in linear method"
-      return(O)  # no data 
+  }
+    if (plot.data & all(is.finite(O$modal.method)) ) {
+      mcol = "red" # colour for plotting
+      points( depth~ts, x[O$modal.method.indices,], col=mcol, pch=20, cex=0.2)       
+      abline (v=x$ts[min(O$modal.method.indices)], col=mcol, lty="dashed")
+      abline (v=x$ts[max(O$modal.method.indices)], col=mcol, lty="dashed")
+      legendtext = c( legendtext, paste( "modal:   ", round( duration, 2) ) )
+      legendcol = c( legendcol, mcol)
+      legendpch =c( legendpch, 20) 
     }
-    
-    if( length( which( is.finite( x$depth[up] ))) < 5 ){
-      O$comments="Not enough depth data in linear method for up direction"
-      return(O)  # no data 
-    }
-    if(length( which( is.finite( x$depth[down] ))) < 5 ){
-      O$comments="Not enough depth data in linear method for down direction"
-      return(O)  # no data 
-    }
-
-    # as above return tails to the filtered data
-
-    tails  = c( 1:(min(O$filtered, na.rm=T)-1), (max(O$filtered, na.rm=T) +1):O$ndat)
-    tokeep = unique( c( tails, O$filtered) )
-    todrop = setdiff( 1:nrow(x) , tokeep)
-    
-    xcopy = x
-    xcopy$depth[todrop] = NA
 
    
-    # compute linear models for each section
-    botlm=  lm(depth~ts, xcopy[bot, ], na.action = "na.exclude")
-    downlm= lm(depth~ts, xcopy[down, ], na.action = "na.exclude")
-    uplm=   lm(depth~ts, xcopy[up, ], na.action = "na.exclude")
-    
-    # compute weights
-    wbot = 1/(rstandard(botlm))^2
-    wdown = 1/(rstandard(downlm))^2
-    wup = 1/(rstandard(uplm))^2
+  ## ---------------------------- 
+  ## Smooth method: smooth data to remove local trends and compute first derivatives
+  x2 = x[ O$filtered, ]  # copy and subset to simplify
+  v = inla( depth ~ f(ts, model="rw2" ) , data=x2 )
+  x2$fitted = v$summary.random$ts[["mean"]]  # posterior means .. removes some high freq noise
   
-    # removing infinite value due to division by small number
-    wbot[which(!is.finite(wbot))] = max(wbot, na.rm=TRUE)
-    wdown[which(!is.finite(wdown))] = max(wdown, na.rm=TRUE)
-    wup[which(!is.finite(wup))] = max(wup, na.rm=TRUE)
-    
-    botlm2= lm(depth~ts, xcopy[bot, ], na.action = "na.exclude", weights = wbot)
-    
-    downlm2= lm(depth~ts, xcopy[down, ], na.action = "na.exclude", weights = wdown)
-    uplm2= lm(depth~ts, xcopy[up, ], na.action = "na.exclude", weights = wup)
-    
-    # find where the sections intersect
-    cm <- rbind(coef(botlm2),coef(downlm2)) # Coefficient matrix
-    i1=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
-    ri1 = max(which(x$ts <i1[1]))
-    
-    cm <- rbind(coef(botlm2),coef(uplm2)) # Coefficient matrix
-    i2=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
-    ri2 = min(which(x$ts >i2[1]))
+  AOI.mod.sd = sd( x2$depth, na.rm=TRUE) 
+  fun = approxfun( x2$ts, x2$fitted )
+  x2$slopes = NA
+  x2$slopes = grad( fun, x2$ts, method="simple" )
+  x2$slopes[ nrow(x2) ] = x2$slopes[ nrow(x2)-1 ]  # last element is an NA .. copy the next to last value into it  
+  # using the same strategy as in primary gating 
+  for( sp in seq( 0.24, 0.02, by=-0.02 ) ) {
+    lmod = try( loess( slopes~ts, data=x2,  
+      span=sp, control=loess.control(surface="direct") ), silent=TRUE )
+    if ( "try-error" %in% class(lmod) ) next()
+    x2$slopes.loess = NA
+    x2$slopes.loess = predict( lmod ) 
+    lmtest = try( lm( slopes.loess ~ slopes, x2 ), silent=TRUE) 
+    if ( "try-error" %in% class(lmtest) ) next()
+    lsumm = summary( lmtest )
+    if (lsumm$r.squared > 0.5 ) {  # cannot be too extrmeme here as it is already highly noisy
+      x2$slopes = x2$slopes.loess  # use the smoothed version if possible
+      print(sp)
+      break()
+    }
+  }
+ 
+  # now using (smoothed) first derivative determine inflection points (crossing of the zero line)
+  mod0 = 1
+  mod1 = nrow(x2) 
+  midpoint = trunc( mod1/2 )
+  if ( abs( x$depth[mod0] - mediandepth ) < AOI.mod.sd ) {
+    # assuming it is truncated without the left tail ..
+    k0 = mod0 
+  } else {
+    for( k0 in mod0:midpoint)  {
+      if (!is.finite( x2$slopes[ k0 ] )) next()
+      if ( x2$slopes[ k0 ] <= 0) break()
+    }
+  }
+  if ( abs( x2$depth[mod1] - mediandepth ) < AOI.mod.sd ) {
+    # assuming it is truncated without the right tail ..
+    k1 = mod1 
+  } else {
+    for( k1 in mod1:midpoint) {
+      if (!is.finite( x2$slopes[ k1 ] )) next()
+      if ( x2$slopes[ k1 ] >= 0)  break()
+    }
+  }
+
+  duration = as.numeric( x2$timestamp[k1] - x2$timestamp[k0]) 
+  if ( duration > tdif.min & duration < tdif.max ) {
+    O$smooth.method =  c( x2$timestamp[k0], x2$timestamp[k1] )  
+    O$smooth.method.indices = which( x$timestamp >= O$smooth.method[1] &  x$timestamp <= O$smooth.method[2] ) 
+  } 
   
+    if (plot.data & all(is.finite(O$smooth.method)) ) {
+      mcol = "blue"
+      points( depth~ts, x[O$smooth.method.indices,], col=mcol, pch=20, cex=0.2)   
+      abline (v=x$ts[min(O$smooth.method.indices)], col=mcol, lty="dashed")
+      abline (v=x$ts[max(O$smooth.method.indices)], col=mcol, lty="dashed")
+      legendtext = c(legendtext, paste( "smooth:   ", round(duration, 2)) )
+      legendcol = c( legendcol, mcol)
+      legendpch =c( legendpch, 20) 
+    }
+ 
 
-    O$linear.method =  c( x$timestamp[ri1], x$timestamp[ri2] )
-    O$linear.method.indices = which( x$timestamp >= O$linear.method[1] &  x$timestamp <= O$linear.method[2] ) 
 
+  ## ---------------------------
+  ## Linear method: looking at the intersection of three lines (up, bot and down)
+  
+  if (length( which( is.finite( c( O$smooth.method, O$modal.method)) )) > 2 ) {  
+    ## at least one solution required to continue  (2 means a valid start and end)
+   # ID best model based upon distance of the medians to 
+    dev.smooth   = median( x$depth[O$smooth.method.indices], na.rm=TRUE) 
+    dev.modal    = median( x$depth[O$modal.method.indices], na.rm=TRUE )
+    dev.blend    = mean( c(dev.smooth, dev.modal) , na.rm=TRUE) 
+  
+    results = c( dev.smooth, dev.modal, dev.blend ) 
+    method = order( results) 
+    
+    res = rbind( 
+      range(O$smooth.method.indices),
+      range(O$modal.method.indices),
+      trunc( c(mean( c( min(O$smooth.method.indices), min(O$modal.method.indices ) )), 
+               mean( c( max(O$smooth.method.indices ), max(O$modal.method.indices) ))))
+    )
 
-    # done .. now some plots
+    for ( m in method ) {
+      if (!is.finite(m)) next()
+      # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
+      fishing = res[ m,] 
+      mod0 = min( which( O$filtered ) )
+      mod1 = max( which( O$filtered ) )
+      bot = fishing[1]: fishing[2]  # blended estimate of fishing events
+      down = mod0:( fishing[1] - 1) 
+      up = ( fishing[2] + 1): mod1 
+      #  compute linear models for each section
+      botlm2 = lm(depth~ts, x[bot, ], na.action = "na.exclude")
+      #  right tail
+      if (( length( which( is.finite( x$depth[bot] ))) > 10) & (length( which( is.finite(x$depth[up]))) > 5 )) {
+        uplm2 = lm(depth~ts, x[up, ], na.action = "na.exclude")
+        cm <- rbind(coef(botlm2),coef(uplm2)) # Coefficient matrix
+        i2=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
+        ri2 = min( which(x$ts >i2[1]) )
+      } else {
+        ri2 = mod1
+      }
+    
+      # left tail
+      if (( length( which( is.finite( x$depth[bot] ))) > 10) & ( length( which( is.finite( x$depth[down]))) > 5 )) {
+        downlm2 =lm(depth~ts, x[down, ], na.action = "na.exclude")
+        # find where the sections intersect
+        cm <- rbind(coef(botlm2),coef(downlm2)) # Coefficient matrix
+        i1=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
+        ri1 = max(which(x$ts <i1[1]))
+      } else {
+        ri1 = mod0
+      }
+    
+      duration = as.numeric( x$timestamp[ri2] - x$timestamp[ri1]) 
+      if ( duration > tdif.min & duration < tdif.max ) {
+        O$linear.method =  c( x$timestamp[ri1], x$timestamp[ri2] )
+        O$linear.method.indices = which( x$timestamp >= O$linear.method[1] &  x$timestamp <= O$linear.method[2] ) 
+      } 
+    } # end if enough data
+  }
 
-    points(x$ts[O$linear.method.indices],  x$depth[O$linear.method.indices], col="green", pch=22)      
-    tdifflinear = round(as.numeric(diff(O$linear.method)),2)
-    abline (v=x$ts[min(O$linear.method.indices)], col="green")
-    abline (v=x$ts[max(O$linear.method.indices)], col="green")
+    if (plot.data  & all(is.finite(O$linear.method)) ) {
+        mcol ="green"
+        points( depth~ts, x[O$linear.method.indices,], col=mcol, pch=20, cex=0.2)      
+        abline (v=x$ts[min(O$linear.method.indices)], col=mcol)
+        abline (v=x$ts[max(O$linear.method.indices)], col=mcol)
+        legendtext = c( legendtext, paste( "linear: ", round( duration, 2) ) )
+        legendcol = c( legendcol, mcol)
+        legendpch =c( legendpch, 20) 
+        #abline (reg=botlm2, col="gray")      
+        #abline (reg=uplm2, col="gray")      
+        #abline (reg=downlm2, col="gray")      
+    }
 
-    legendtext = c(paste( "modal:   ", tdiffmodal),
-                   paste( "linear:   ", tdifflinear),
-                   paste( "smooth: ", tdiffsmooth) )
-               
-    legend( "topleft", legend=legendtext, col=c("red", "green", "blue"), pch=c(20,22,24) )
-    #abline (reg=botlm2, col="gray")      
-    #abline (reg=uplm2, col="gray")      
-    #abline (reg=downlm2, col="gray")      
+   
+  if ( user.interaction  ) { 
+    print( "Click with mouse on start and stop locations now.")          
+    useridentified = locator( n=2, type="o", col="cyan")
+    u.ts0 = which.min( abs(x$ts-useridentified$x[1] ))
+    u.ts1 = which.min( abs(x$ts-useridentified$x[2] ))
+    O$manual.method = c( x$timestamp[u.ts0], x$timestamp[ u.ts1 ]  )
+    O$manual.method.indices = which( x$timestamp >= O$manual.method[1] &  x$timestamp <= O$manual.method[2] ) 
+    tdif = abs( as.numeric(diff(O$manual.method)) )
+    tdifflinear = round( tdif, 2)
+    legendtext = c( legendtext, paste( "manual: ", tdifflinear  ) ) 
+    legendcol = c( legendcol, "cyan")
+    legendpch =c( legendpch, 20) 
+  }
+  
+  if (plot.data) {
+    legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
+  }
+  
+  if ( user.interaction  ) { 
+    outdir = getwd()
+    dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
+  }
 
-O$filtered.data = x
+  methods = c("manual.method", "smooth.method", "modal.method", "linear.method" )
+  standard =  which( methods=="manual.method")
+  direct = which( methods!="manual.method")
+
+  tmp = as.data.frame(O[methods], stringsAsFactors=FALSE )
+  tmp = as.data.frame( t(tmp), stringsAsFactors=FALSE  )
+  colnames(tmp) =c("start", "end" )
+  tmp$start = ymd_hms( tmp$start)
+  tmp$end = ymd_hms( tmp$end)
+  
+  means = as.data.frame( cbind( as.POSIXct( mean( tmp[ direct, "start" ], na.rm=TRUE ), origin = "1970-01-01" ), 
+                 as.POSIXct( mean( tmp[ direct, "end" ], na.rm=TRUE ), origin = "1970-01-01")   ) , stringsAsFactors=FALSE )
+
+  rownames( means) = "means"
+  colnames(means) = c("start", "end" )
+  means$start = as.POSIXct( means$start, origin = "1970-01-01" )  # means only of direct methods
+  means$end = as.POSIXct( means$end, origin = "1970-01-01" )
+
+  if ( all(is.na( tmp[ standard, c("start", "end")] ) ) ) {
+    # no manual standard .. use mean as the standard
+    O$bottom0 = means$start
+    O$bottom1 = means$end
+    O$bottom0.sd = sd(  tmp[ direct, "start" ], na.rm=TRUE ) # in secconds
+    O$bottom1.sd = sd(  tmp[ direct, "end" ], na.rm=TRUE )
+    O$bottom0.n = length( which( is.finite( tmp[ direct, "start" ] )) )
+    O$bottom1.n = length( which( is.finite( tmp[ direct, "end" ] )) )
+    O$bottom.diff = O$bottom1 - O$bottom0
+  } else {
+    # over-ride all data and use the manually determined results
+    O$bottom0 = tmp[ standard, "start" ]
+    O$bottom1 = tmp[ standard, "end" ]
+    O$bottom0.sd = -1
+    O$bottom1.sd = -1
+    O$bottom0.n = -1
+    O$bottom1.n = -1
+    O$bottom.diff = O$bottom1 - O$bottom0
+  }
+ 
+  tmp = rbind( tmp, means)
+  tmp$diff = tmp$end - tmp$start
+  tmp$start.bias = tmp$start - O$bottom0
+  tmp$end.bias   = tmp$end - O$bottom1
+
+  O$summary = tmp
+  
+  print( O$summary)
+
   return( O )
 
-  
 }
 
 

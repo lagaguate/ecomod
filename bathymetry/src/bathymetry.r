@@ -1,40 +1,60 @@
 # -------------------------------------------------------------------------------------
 # Bathymetry data
   
-  
   p=list()
   p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "bathymetry" ) )
   p$libs = RLibrary( "chron", "rgdal", "lattice", "parallel" )
- 
   p$isobaths = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 800, 1000 )
-	
+	p$redo.bathymetry.rawdata = FALSE
+  p$redo.gmt.intermediary.files = FALSE
+  p$redo.isobaths=FALSE
+ 
 
-	if ( bathymetry.rawdata.redo ) { 
+	if ( p$redo.bathymetry.rawdata ) { 
 		# glue all data sources (spherical coords) 
     # ... right now this is about 17 GB in size when expanded .... SLOW .... 
     # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
     # run on servers only unless your machine can handle it
 		p = spatial.parameters( type="canada.east", p=p )
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-	}
+  }
 
-	# begin interpolations using GMT 
  
   for ( j in c( "canada.east", "SSE" ) ) {
-		p = spatial.parameters( type=j, p=p )
-		bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
+		
+    p = spatial.parameters( type=j, p=p )
+		
+    bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
 		bathymetry.db ( p, DS="Z.redo" )
 		bathymetry.db ( p, DS="dZ.redo" )
 		bathymetry.db ( p, DS="ddZ.redo" )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
     bathymetry.db ( p, DS="complete.redo" ) # glue all together 
-		p = make.list( list( depths=p$isobaths ), Y=p )
-    p$clusters = rep( "localhost", 2 )  # too many clusters will overload the system ... data files are large ~(11GB RAM required to block) and can be deleted in the temporary drives 
-    parallel.run( isobath.db,  p=p, DS="redo" ) 	
-	
-    # isobath.db( p=p, depths=depths, DS="redo" ) 
-	}
+		
+    if (p$redo.isobaths) {
+      # too many clusters will overload the system ... data files are large 
+      # ~(11GB RAM required to block) and can be deleted in the temporary drives 
+      p = make.list( list( depths=p$isobaths ), Y=p )
+      p$clusters = rep( "localhost", 2 )  
+      parallel.run( isobath.db,  p=p, DS="redo" ) 	
+      # or in single processor mode:
+      # isobath.db( p=p, depths=depths, DS="redo" ) 
+    }
 
+    if ( p$redo.gmt.intermediary.files ){
+      # data files that assist in mapping using gmt
+      if ( !file.exists( p$bathymetry.xyz )) {
+        cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
+      }
+      # check if we need the following?
+      p= spatial.parameters( type="SSE", p=p )
+      p$isobaths_toplot = c( 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500 ) ## in GMT
+      p = params.gmt(p)
+      p$mapres = "2min" #internal resolution for snow crab  
+      p$gmt.projection.long = "Lambert.conformal.conic"
+      gmt.basemap(p)
+    }
+	}
 
  
   # "snowcrab" subsets do exist but are simple subsets of SSE 
@@ -46,8 +66,7 @@
  
 
 
-
-## a few maps:
+  ## a few maps:
  
   p = spatial.parameters( type="SSE" )
   x = bathymetry.db ( p, DS="baseline" )
