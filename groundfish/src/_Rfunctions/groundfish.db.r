@@ -436,7 +436,6 @@
         "    and YEAR=", YR, ";"
         ) )
         names(gshyd) =  tolower( names(gshyd) )
-            
         if(all(is.na(gshyd$mission))) {
         	#if gshyd is not loaded and the odf files are obtained AMC
 		        fy <- file.path(project.directory("temperature"), "data", "archive", "ctd",YR)
