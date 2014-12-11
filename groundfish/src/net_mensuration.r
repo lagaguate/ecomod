@@ -9,6 +9,7 @@ netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
 # netswd = "~/Downloads"
 # load( "~/Downloads/mm.rdata")
 
+netswd = marportdatadirectory
 marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
 
 
@@ -29,13 +30,15 @@ if ( recreate.full.database.locally ) {
 }
 
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
+
+# load marport data
 marport = net_mensuration.db( DS="marport",  netswd=marportdatadirectory )      # QA/QC of data
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
 
 # Load marport/basedata
-load("C:/Users/mundenj/Desktop/Scanmar/marport.rdata")
+load("C:/Users/mundenj/Desktop/Marport/marport.rdata")
 
 i = which(is.na(master$id))
 t = unique( master$netmensurationfilename[i])
@@ -103,6 +106,18 @@ plot(depth~timestamp, rawdata)
 plot(depth~timestamp, rawdata, ylim=c(250,0))
 
 points(x$timestamp[bc$variance.method.indices],  x$depth[bc$variance.method.indices], col="violet", pch=19)
+
+
+
+
+# Only run to genereate new samples
+loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
+allids=unique(modern.data$id)
+
+i=sample(1:length(allids),5)
+mission.list=allids[i]
+mission.list
+net_mensuration.db( DS="bottom.contact.redo", netswd=netswd, user.interaction=TRUE, override.missions=mission.list  )
 
 
 

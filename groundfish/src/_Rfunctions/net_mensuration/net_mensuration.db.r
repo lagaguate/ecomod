@@ -1,5 +1,5 @@
 
-net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
+net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE, override.missions=NULL ){
    
   if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
     
@@ -253,7 +253,9 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     # Include mission as a variable
     g=substring(basedata$rootname,54,63)      
     basedata$mission = paste(g, basedata$set, sep=".")
-    unique(basedata$mission)
+    
+    # Include adjusted time as a variable (plus 7 mins or 420 secs)
+    basedata$adjusted.time=(basedata$timestamp) + 420
     
     save(basedata, file=fn, compress= TRUE)
   }
@@ -319,6 +321,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     gsinf$spoint.n = NA
      
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    if (!is.null( override.missions)) master = master[ which(master$id %in% override.missions ), ]
     
     uid = sort( unique( master$id)) 
     for ( id in uid) {
@@ -329,17 +332,19 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       if (length(gii) != 1) next()  # no match in gsinf
       
       # vary the proportion of depth passed onto the bottom contact method as the shape of the tails can cause errors
-      depthproportions = c(0.25, 0.5, 0.75, 0.9 ) 
+      depthproportions = c(0.5 ) 
       out = NULL
       alldata = list()
       for ( dp in depthproportions ) {
-          res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, plot.data=TRUE)
+        
+        res = bottom.contact.groundfish ( id=id, master[ii,c("depth", "timestamp")], depthproportion=dp, plot.data=TRUE, user.interaction=user.interaction)
           if (is.null(res)) next()
           tmp = cbind(  res$bottom0.sd,  res$bottom1.sd, sqrt(res$bottom0.sd^2 + res$bottom1.sd^2), 
             as.character(res$bottom0), as.character(res$bottom1), res$bottom0.n, res$bottom1.n, dp )  
           out = rbind( out, tmp )
           alldata[dp] = res 
           print (tmp)
+    
       } 
       out = data.frame( out)
       colnames(out) = c("bottom0.sd", "bottom1.sd", "bottomall.sd", "bottom0", "bottom1", "bottom0.n", "bottom1.n", "depthproportion" )
@@ -367,6 +372,11 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       gsinf$epoint.n[gii] = out[ei,"bottom1.n"] 
      
     }
+    
+    if (!is.null( override.missions)) {
+      fn = paste( fn, "manually.determined.rdata", sep="")
+    }
+    
     save(gsinf, file=fn, compress= TRUE)
   }
 
