@@ -211,18 +211,19 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
 
    
   ## ---------------------------- 
-  ## Smooth method: smooth data to remove local trends and compute first derivatives
+  ## Smooth method: smooth data to remove local trends and compute first derivatives and smooth again
   x2 = x[ O$filtered, ]  # copy and subset to simplify
-  v = inla( depth ~ f(ts, model="rw2" ) , data=x2 )
+  v = inla( depth ~  f(ts, model="rw2" ) , data=x2 )
   x2$fitted = v$summary.random$ts[["mean"]]  # posterior means .. removes some high freq noise
-  
   AOI.mod.sd = sd( x2$depth, na.rm=TRUE) 
   fun = approxfun( x2$ts, x2$fitted )
-  x2$slopes = NA
   x2$slopes = grad( fun, x2$ts, method="simple" )
   x2$slopes[ nrow(x2) ] = x2$slopes[ nrow(x2)-1 ]  # last element is an NA .. copy the next to last value into it  
- 
+  v2 = inla( slopes ~ f(ts, model="rw2" ) , data=x2 )
+  x2$slopes.smoothed = v2$summary.random$ts[["mean"]] 
+
   # now using (smoothed) first derivative determine inflection points (crossing of the zero line)
+  eps = sd( x2$slopes.smoothed )/10 
   mod0 = 1
   mod1 = nrow(x2) 
   midpoint = trunc( mod1/2 )
@@ -231,8 +232,8 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
     k0 = mod0 
   } else {
     for( k0 in mod0:midpoint)  {
-      if (!is.finite( x2$slopes[ k0 ] )) next()
-      if ( x2$slopes[ k0 ] <= 0) break()
+      if (!is.finite( x2$slopes.smoothed[ k0 ] )) next()
+      if ( x2$slopes.smoothed[ k0 ] <= -eps ) break()
     }
   }
   if ( abs( x2$depth[mod1] - mediandepth ) < AOI.mod.sd ) {
@@ -240,8 +241,8 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
     k1 = mod1 
   } else {
     for( k1 in mod1:midpoint) {
-      if (!is.finite( x2$slopes[ k1 ] )) next()
-      if ( x2$slopes[ k1 ] >= 0)  break()
+      if (!is.finite( x2$slopes.smoothed[ k1 ] )) next()
+      if ( x2$slopes.smoothed[ k1 ] >= eps )  break()
     }
   }
 
@@ -270,23 +271,21 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
     ## at least one solution required to continue  (2 means a valid start and end)
      # ID best model based upon time .. furthest up a tail is best 
   
-    methodleft = order( O$smooth.method[1], O$modal.method[1] )  
-    methodright = order( O$smooth.method[2], O$modal.method[2] )  
-    
     res = rbind( 
       range(O$smooth.method.indices),
       range(O$modal.method.indices)
     )
+    left = median(res[,1], na.rm=TRUE)
+    right = median( res[,2], na.rm=TRUE) 
 
     for ( m in method ) {
       if (!is.finite(m)) next()
       # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
-      fishing = res[ m,] 
       mod0 = min( which( O$filtered ) )
       mod1 = max( which( O$filtered ) )
-      bot = fishing[1]: fishing[2]  # blended estimate of fishing events
-      down = mod0:( fishing[1] - 1) 
-      up = ( fishing[2] + 1): mod1 
+      bot = left:right  # blended estimate of fishing events
+      down = mod0:left 
+      up =  right:mod1 
       #  compute linear models for each section
       botlm2 = lm(depth~ts, x[bot, ], na.action = "na.exclude")
       #  right tail

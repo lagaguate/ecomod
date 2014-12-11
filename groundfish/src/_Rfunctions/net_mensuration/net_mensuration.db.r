@@ -338,7 +338,6 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       out = NULL
       alldata = list()
       res = bottom.contact.groundfish ( id=id, master[ii,c("depth", "timestamp")], plot.data=TRUE,  user.interaction=user.interaction )
-
       gsinf$spoint.datetime[gii] = res$bottom0 
       gsinf$epoint.datetime[gii] = res$bottom1
       gsinf$bottom_duration[gii] = res$bottom.diff
@@ -346,12 +345,12 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       gsinf$epoint.sd[gii] = res$bottom1.sd
       gsinf$spoint.n[gii] =  res$bottom0.n
       gsinf$epoint.n[gii] =  res$bottom1.n
-     
-
     }
     
     if (!is.null( override.missions)) {
       fn = paste( fn, "manually.determined.rdata", sep="")
+      print( "Saving to an alternate location as this is being manually handled:" )
+      print( fn)
     }
     
     save(gsinf, file=fn, compress= TRUE)

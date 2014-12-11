@@ -166,7 +166,7 @@
           if (length( Mi) == 0 ) next()
           M = miniRAW[ Mi, ]
           
-          res = bottom.contact( M, settimestamp=rid$setChron[i], setdepth=rid$setZx[i] )
+          res = bottom.contact.snowcrab( M, settimestamp=rid$setChron[i], setdepth=rid$setZx[i] )
           
           miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
         }
