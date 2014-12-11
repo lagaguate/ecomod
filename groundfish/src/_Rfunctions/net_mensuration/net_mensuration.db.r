@@ -339,9 +339,6 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       alldata = list()
       res = bottom.contact.groundfish ( id=id, master[ii,c("depth", "timestamp")], plot.data=TRUE,  user.interaction=user.interaction )
 
-      ss = ymd_hms( out[si,"bottom0"] )
-      ee = ymd_hms( out[ei,"bottom1"] )
-
       gsinf$spoint.datetime[gii] = res$bottom0 
       gsinf$epoint.datetime[gii] = res$bottom1
       gsinf$bottom_duration[gii] = res$bottom.diff
