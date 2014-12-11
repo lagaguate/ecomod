@@ -1,6 +1,5 @@
 
 parse.odf.file = function( fn ) {
-
   dta = readLines(fn )
   nheaderlines = grep( "-- DATA --", dta, fixed=T, useBytes=TRUE )
   header = dta[1: nheaderlines]
@@ -45,8 +44,8 @@ parse.odf.file = function( fn ) {
     
   vnames = paste( params$pname, params$units, params$nullvalue, sep="_" )
   names( Y) = vnames
-  Y <- Y[,-(grep("lat",names(Y)))]
-  Y <- Y[,-(grep("lon",names(Y)))]
+  if(any(names(Y)=='lat')) Y <- Y[,-(grep("lat",names(Y)))]
+  if(any(names(Y)=='lon')) Y <- Y[,-(grep("lon",names(Y)))]
   Y$depth <- pressure2Depth(Y[,grep('pressure',names(Y))],lat=lat)
   Y$mission <- mis
   Y$setno <- set
