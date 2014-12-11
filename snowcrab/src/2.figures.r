@@ -3,13 +3,12 @@
    
 	
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-   loadfunctions( "plotting.methods") 
- 
+    
    p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
 
 
    p$clusters = rep("localhost", 24 )
-   p$clusters = rep("localhost", 8 )
+   p$clusters = rep("localhost", 7 )
 
 
 

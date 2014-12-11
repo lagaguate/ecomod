@@ -48,7 +48,7 @@
     
    dev.off()
    cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
-    #table.view( l )
+    table.view( l )
    return( fn )
   }
 

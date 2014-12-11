@@ -26,8 +26,9 @@
     
     dir.create( outdir, recursive=T, showWarnings=F  )
     fn = file.path( outdir, paste( outfile, "png", sep="." ) )
-    Cairo( file=fn, type="png", bg="white", , pointsize=30, units="in", width=6, height=4, dpi=300 )
-      m=1; plot( uyrs, k[,m],  type="b", ylab="Catch rate (kg/trap)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
+    #Cairo( file=fn, type="png", bg="white", , pointsize=30, units="in", width=6, height=4, dpi=300 )
+     png( file=fn,units='in', width=15,height=12,pointsize=18, res=300,type='cairo')
+       m=1; plot( uyrs, k[,m],  type="b", ylab="Catch rate (kg/trap)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
       m=2; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
       m=3; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
       axis( 1 )

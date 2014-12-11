@@ -19,8 +19,9 @@
     
     dir.create( outdir, recursive=T, showWarnings=F )
     fn = file.path( outdir, paste(outfile,"png",sep="." ) )
-    Cairo( file=fn, type="png", bg="white",, pointsize=30, units="in", width=6, height=4, dpi=300  )
-
+   # Cairo( file=fn, type="png", bg="white",, pointsize=30, units="in", width=6, height=4, dpi=300  )
+    png( file=fn,units='in', width=15,height=12,pointsize=18, res=300,type='cairo')
+ 
     if (type=="bar") {
       e[is.na(e)] = 0
       formed.data = t(as.matrix(e))
@@ -46,7 +47,7 @@
     }
     dev.off()
     cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
-    table.view( e)
+    #table.view( e)
     return( fn )
   }
 

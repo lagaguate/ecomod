@@ -7,8 +7,7 @@ p$years.to.estimate = c(1970:2013)
 p$species = 204
 p$vessel.correction = F
 p$vessel.correction.fixed = 1.2
-p$length.based = F
-p$length.grouping = 1
+p$length.based = T
 p$size.class= c(30,60)
 p$by.sex = F
 
