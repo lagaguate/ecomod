@@ -329,33 +329,11 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       if (length(gii) != 1) next()  # no match in gsinf
       
       # vary the proportion of depth passed onto the bottom contact method as the shape of the tails can cause errors
-      depthproportions = c(0.25, 0.5, 0.75, 0.9 ) 
       out = NULL
       alldata = list()
-      for ( dp in depthproportions ) {
-          res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], depthproportion=dp, plot.data=TRUE)
-          if (is.null(res)) next()
-          tmp = cbind(  res$bottom0.sd,  res$bottom1.sd, sqrt(res$bottom0.sd^2 + res$bottom1.sd^2), 
-            as.character(res$bottom0), as.character(res$bottom1), res$bottom0.n, res$bottom1.n, dp )  
-          out = rbind( out, tmp )
-          alldata[dp] = res 
-          print (tmp)
-      } 
-      out = data.frame( out)
-      colnames(out) = c("bottom0.sd", "bottom1.sd", "bottomall.sd", "bottom0", "bottom1", "bottom0.n", "bottom1.n", "depthproportion" )
-      
-      nums = c("bottom0.sd", "bottom1.sd", "bottomall.sd", "bottom0.n", "bottom1.n", "depthproportion" )
-      out = factor2number ( out, nums )
-      out$durations = as.numeric( ymd_hms( out$bottom1 ) - ymd_hms( out$bottom0 ) ) 
-   
-      good = which ( out$durations > 15 & out$durations < 45 ) 
-      if (length(good) ==0 ) next() 
-      out = out[ good,] 
-
-      si = which.min( out[,"bottom0.sd"]) 
+      res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], plot.data=TRUE)
+     
       ss = ymd_hms( out[si,"bottom0"] )
-      
-      ei = which.min( out[,"bottom1.sd"])
       ee = ymd_hms( out[ei,"bottom1"] )
 
       gsinf$spoint.datetime[gii] = as.character( ss )

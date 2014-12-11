@@ -41,8 +41,11 @@ params$delete.postscript = T
 
 # ----------------------------
 # 2 - redo basemap ?
-if (redo.basemap) gmt.basemap (params)
-
+if (redo.basemap) {
+  # do not redo unless you are really sure you want to do this .. .matching resolutions etc is a pain 
+  params$isobaths_toplot = c( 50, 100, 150, 200, 250, 300, 350, 400 )
+  gmt.basemap (params)
+}
 
 # ----------------------------
 # 3 - obtain isobath coords

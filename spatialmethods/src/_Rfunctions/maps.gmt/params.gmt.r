@@ -1,7 +1,7 @@
 
   params.gmt = function(params=NULL) {
 
-    params = NULL
+    if( is.null(params)) params=list()
 
     # default gmt-related parameters
 
@@ -12,7 +12,7 @@
     params$bathy.tension = "-T0.75"  # tension parameter for GMT splines-in-tension (1=harmonic surface ... max,min not exceeded)
     params$bathy.maskres  = "-S40k"        # resolution
     params$bathy.zrange = "-Sa-1/NaN -Sb-501/NaN" # show 0 to 800 m depth range
-    params$bathy.contour= "-C100 -S4 -W0.25p/40" # contour lines every 100m with lines of various thinknesses
+    params$bathy.contour= "-C100 -S4 -W0.25p" # contour lines every 100m with lines of various thinknesses
 
     params$block = T  # do a block ?
     params$blocktype = "mean"  # do a block mean ?

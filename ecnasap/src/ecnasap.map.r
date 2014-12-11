@@ -29,8 +29,7 @@
                                     # 0.25 = ssmooth fields
     params$bathy.res    = "-I2m"    # resolution  
     params$bathy.zrange = "-Sa1001/NaN -Sb1/NaN" # show 0 to 800 m depth range
-    # params$bathy.contour= "-C100 -W0.5p/80" # contour lines every 100m with lines of various t
-    params$bathy.contour= "-C200 -S1m -W0.2p/140" 
+    params$bathy.contour= "-C200 -S1m -W0.2p" 
     params$annot.lon0 = -55
     params$annot.lat0 =  60
       
