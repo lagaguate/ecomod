@@ -1,11 +1,11 @@
-bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthproportion=0.5,  minval.modal=5, nbins=7, plot.data=FALSE, user.interaction=FALSE ) {
+bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthproportion=0.5,  minval.modal=5, nbins=7, plot.data=FALSE, user.interaction=FALSE ) {
   
   debug = FALSE
   if (debug) {
     nbins= 7 # nbins is the number of bins required to get a target mode
     minval.modal=5 # min number of counts in freq bins to be considered non-random (Chi-squared logic)
     tdif.min = 15  # min time difference (minutes) .. including tails
-    tdif.max = 50  # min time difference (minutes) .. including tails
+    tdif.max = 40  # min time difference (minutes) .. including tails
     depthproportion=0.5 # depthproportion controls primary (coarse)gating
     plot.data=TRUE 
     user.interaction=FALSE # is you want to try to manually determine end points too
@@ -85,6 +85,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthpropo
     if ( "try-error" %in% class(lmtest) ) next()
     lsumm = summary( lmtest )
     if (lsumm$r.squared > 0.95 ) {
+      # only accept solutions if it produces predictions taht are pretty close to original data 
       res = sp
       x$diff.loess = x$depth - x$depth.loess
       quants = quantile( x$diff.loess, probs=c(0.025, 0.975 ), na.rm=TRUE )
@@ -98,7 +99,9 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthpropo
     points(depth~ts, x[ O$filtered, ], pch=20, col="magenta", cex=0.1)
   }
 
- 
+
+
+
   ## -----------------------------------
   ## 3rd and last pass: use a variance based gating 
   # compute SD in the area of interest and compare with a lagged process to 
@@ -160,6 +163,14 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthpropo
   x$depth[ !O$filtered ] = NA
 
 
+  # Now that data is more or less clean ... 
+  # Remove any linear trend in the depths as this can increase the precision of the the following methods
+
+  depthtrend = lm( depth ~ ts, data=x, weights=depth^2, na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
+  x$depth0 = x$depth  # store original data
+  x$depth = x$depth0 - predict( depthtrend, newdata=x )
+
+
   ##--------------------------------
   # Modal method: gating by looking for modal distribution and estimating sd of the modal group 
   # by removing small frequencies (5 or less) being ignored 
@@ -171,42 +182,33 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthpropo
 
   # minval.modal is the min number of counts in a freq bin to be considered non-random (significant) 
   # ..based upon Chi-squared logic any count <= 5 is essentially indistinguishable from random noise
-  minval.modal=5 
-  nbins0 = 10:5  # range of target nbins>threshold to attempt in order to identify the mode 
   
+  minval.modal=5 
+  nbins0 = 8:6  # range of target nbins>threshold to attempt in order to identify the mode 
+   
   duration = 0
   for ( nbins in nbins0 ) {
-    for ( nb0 in seq( from=300, to=10, by=-1 ) ) {
-      h0 = hist( x$depth[ O$filtered ], breaks=nb0, plot=FALSE)  
-      j0 = which(h0$counts >= minval.modal)  
-      if (length (j0) <= nbins) {
-        nb0 = nb0+1  
-        break() # target number of good bins
-      }
-    }
-    for ( nb1 in seq( from=10, to=300, by=1 ) ) { # do it from the other direction
-      h1 = hist( x$depth[ O$filtered ], breaks=nb1, plot=FALSE)  
-      j1 = which(h1$counts >= minval.modal) 
-      if (length (j1) >= nbins ) {
-        nb1 = nb1 - 1
-        break() # target number of good bins
-      }
-    }
-    if ( length(j0) <= nbins | length(j1) >= nbins ) {
-      # redo hist with median value of the nbreaks as we have a potential solution
-      nb = trunc( mean( nb0, nb1, na.rm=TRUE) ) 
+    for ( nb in seq( from=200, to=20, by=-2 ) ) {
       h = hist( x$depth[ O$filtered ], breaks=nb, plot=FALSE)  
-      i = which(h$counts > minval.modal )  
+      i = which(h$density > 0.1 )   
+      if (length (i) <= nbins) {
+        nb = nb+1  
+        break() # target number of good bins
+      }
+    }
+    if ( length(j0) <= nbins ) {
       AOImod = which( x$depth > h$mids[min(i)] & x$depth < h$mids[max(i)]  ) 
-      i0 = min( AOImod ) 
-      i1 = max( AOImod )
-      duration = as.numeric( x$timestamp[i1] - x$timestamp[i0]) 
-      if ( duration > tdif.min & duration < tdif.max ) {
-        # Do some rough filtering to remove sets without sufficient data
-        O$modal.method = c( x$timestamp[i0], x$timestamp[i1] )
-        O$modal.method.indices = which( x$timestamp >= O$modal.method[1] &  x$timestamp <= O$modal.method[2] )
-        break()
-      } 
+      if (length(AOImod)>0 & all(is.finite( AOImod ) ) ) {
+        i0 = min( AOImod ) 
+        i1 = max( AOImod )
+        duration = as.numeric( x$timestamp[i1] - x$timestamp[i0]) 
+        if ( duration > tdif.min & duration < tdif.max ) {
+          # Do some rough filtering to remove sets without sufficient data
+          O$modal.method = c( x$timestamp[i0], x$timestamp[i1] )
+          O$modal.method.indices = which( x$timestamp >= O$modal.method[1] &  x$timestamp <= O$modal.method[2] )
+          break()
+        } 
+      }
     }
   }
     if (plot.data & all(is.finite(O$modal.method)) ) {
@@ -221,44 +223,28 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthpropo
 
    
   ## ---------------------------- 
-  ## Smooth method: smooth data to remove local trends and compute first derivatives
+  ## Smooth method: smooth data to remove local trends and compute first derivatives and smooth again
   x2 = x[ O$filtered, ]  # copy and subset to simplify
-  v = inla( depth ~ f(ts, model="rw2" ) , data=x2 )
+  v = inla( depth ~  f(ts, model="rw2" ) , data=x2 )
   x2$fitted = v$summary.random$ts[["mean"]]  # posterior means .. removes some high freq noise
-  
   AOI.mod.sd = sd( x2$depth, na.rm=TRUE) 
   fun = approxfun( x2$ts, x2$fitted )
-  x2$slopes = NA
   x2$slopes = grad( fun, x2$ts, method="simple" )
   x2$slopes[ nrow(x2) ] = x2$slopes[ nrow(x2)-1 ]  # last element is an NA .. copy the next to last value into it  
-  # using the same strategy as in primary gating 
-  for( sp in seq( 0.24, 0.02, by=-0.02 ) ) {
-    lmod = try( loess( slopes~ts, data=x2,  
-      span=sp, control=loess.control(surface="direct") ), silent=TRUE )
-    if ( "try-error" %in% class(lmod) ) next()
-    x2$slopes.loess = NA
-    x2$slopes.loess = predict( lmod ) 
-    lmtest = try( lm( slopes.loess ~ slopes, x2 ), silent=TRUE) 
-    if ( "try-error" %in% class(lmtest) ) next()
-    lsumm = summary( lmtest )
-    if (lsumm$r.squared > 0.5 ) {  # cannot be too extrmeme here as it is already highly noisy
-      x2$slopes = x2$slopes.loess  # use the smoothed version if possible
-      print(sp)
-      break()
-    }
-  }
- 
+
   # now using (smoothed) first derivative determine inflection points (crossing of the zero line)
   mod0 = 1
   mod1 = nrow(x2) 
   midpoint = trunc( mod1/2 )
-  if ( abs( x$depth[mod0] - mediandepth ) < AOI.mod.sd ) {
+  eps = sd( x2$slopes, na.rm=TRUE ) / 1000  # a small number scaled to SD
+  
+  if ( abs( x2$depth[mod0] - mediandepth ) < AOI.mod.sd ) {
     # assuming it is truncated without the left tail ..
     k0 = mod0 
   } else {
     for( k0 in mod0:midpoint)  {
       if (!is.finite( x2$slopes[ k0 ] )) next()
-      if ( x2$slopes[ k0 ] <= 0) break()
+      if ( x2$slopes[ k0 ] < -eps ) break()
     }
   }
   if ( abs( x2$depth[mod1] - mediandepth ) < AOI.mod.sd ) {
@@ -267,7 +253,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthpropo
   } else {
     for( k1 in mod1:midpoint) {
       if (!is.finite( x2$slopes[ k1 ] )) next()
-      if ( x2$slopes[ k1 ] >= 0)  break()
+      if ( x2$slopes[ k1 ] > eps )  break()
     }
   }
 
@@ -294,30 +280,23 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthpropo
   
   if (length( which( is.finite( c( O$smooth.method, O$modal.method)) )) > 2 ) {  
     ## at least one solution required to continue  (2 means a valid start and end)
-   # ID best model based upon distance of the medians to 
-    dev.smooth   = median( x$depth[O$smooth.method.indices], na.rm=TRUE) 
-    dev.modal    = median( x$depth[O$modal.method.indices], na.rm=TRUE )
-    dev.blend    = mean( c(dev.smooth, dev.modal) , na.rm=TRUE) 
+     # ID best model based upon time .. furthest up a tail is best 
   
-    results = c( dev.smooth, dev.modal, dev.blend ) 
-    method = order( results) 
-    
     res = rbind( 
       range(O$smooth.method.indices),
-      range(O$modal.method.indices),
-      trunc( c(mean( c( min(O$smooth.method.indices), min(O$modal.method.indices ) )), 
-               mean( c( max(O$smooth.method.indices ), max(O$modal.method.indices) ))))
+      range(O$modal.method.indices)
     )
+    left = median(res[,1], na.rm=TRUE)
+    right = median( res[,2], na.rm=TRUE) 
 
     for ( m in method ) {
       if (!is.finite(m)) next()
       # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
-      fishing = res[ m,] 
       mod0 = min( which( O$filtered ) )
       mod1 = max( which( O$filtered ) )
-      bot = fishing[1]: fishing[2]  # blended estimate of fishing events
-      down = mod0:( fishing[1] - 1) 
-      up = ( fishing[2] + 1): mod1 
+      bot = left:right  # blended estimate of fishing events
+      down = mod0:left 
+      up =  right:mod1 
       #  compute linear models for each section
       botlm2 = lm(depth~ts, x[bot, ], na.action = "na.exclude")
       #  right tail
