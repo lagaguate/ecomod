@@ -4,7 +4,7 @@
 p$strat=443:467
 p$series =c('summer')# p$series =c('4vswcod');p$series =c('georges')
 p$years.to.estimate = c(1970:2013)
-p$species = 204
+p$species = 11
 p$vessel.correction = F
 p$vessel.correction.fixed = 1.2
 p$length.based = T

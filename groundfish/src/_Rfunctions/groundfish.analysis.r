@@ -74,7 +74,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                           ca = ca[,vars.2.keep]
                         }
         if(p$length.based){
-          browser()
+        
                   dp = de[which(de$spec==v0),]
                   ids = paste(se$mission,se$setno,sep="~")
                   dp$ids = paste(dp$mission,dp$setno,sep="~")
@@ -87,9 +87,19 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   ab = coef(fit)
                   dp$fwt[io] = ab[1]*dp$flen[io]^ab[2]
                   }
-                  
+                  dp$pb = dp$fwt * dp$clen
+                  dp$pb1 = dp$fwt * dp$clen2
+                  dpp = aggregate(cbind(clen,clen2,pb,pb1)~mission+setno+size_class,data=dp,FUN=sum)
                   #stop need to finish from here proportion of numbers and weights in the sizeclass
-
+                  dpp$pn = dpp$clen2/dpp$clen
+                  dpp$pw = dpp$pb1/dpp$pb
+                  dpp = dpp[,c('mission','setno','size_class','pn','pw')]
+                  ca1 = merge(ca,dpp,by=c('mission','setno','size_class'))
+                  ca1$totwgt = ca1$totwgt * ca1$pw
+                  ca1$totno = ca1$totno * ca1$pn
+                  vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
+                  ca1 = ca1[,vars.2.keep]
+                    browser()
               }
                       if(p$vessel.correction) {
                             ca$id = ca$mission
