@@ -1,4 +1,4 @@
-bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.modal=5, nbins=7, plot.data=TRUE ) {
+bottom.contact.groundfish = function(id, x, n.req=30,  depthproportion=0.5, minval.modal=5, nbins=7, plot.data=TRUE, user.interaction=FALSE ) {
   
   debug = FALSE
   if (debug) {
@@ -7,6 +7,7 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
     depthproportion=0.5 # depthproportion controls primary (coarse)gating
     minval.modal=5 # minval.modal is the min number of counts in a freq bin to be considered non-random (significant)
     plot.data=TRUE
+    user.interaction=FALSE 
     x = mm
   }
   
@@ -53,7 +54,7 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
   if (length(baddata) > 0) O$filtered[baddata] = FALSE
    
   # force selection of data to be within 30 m of "median data"
-  i = which(x$depth > (mediandepth - 30) )
+  i = which( x$depth < (mediandepth - 30) )
   if (length(i) > 0) O$filtered[i] = FALSE
 
 
@@ -97,6 +98,8 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
   # from centre to left 
  
   # keep everything except the 10th percentile and lower  this is very permissive ..
+      #  Jenna Q's: Does this mean take everything within 90% confidence interval??
+                    # Whats a lagged proccess
   depththreshold = quantile( x$depth[O$filtered], probs= 0.1, na.rm=TRUE )
   AOIvar = which( x$depth > depththreshold ) 
   target.sd = 2 * sd( x$depth[min(AOIvar):max(AOIvar)], na.rm=TRUE )  ## 2 *SD  ~ 95CI
@@ -121,7 +124,7 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
       tdiffvariance = round(tdif,2)
       abline (v=x$ts[min(O$variance.method.indices)], col="gray")
       abline (v=x$ts[max(O$variance.method.indices)], col="gray")
-      legendtext = c( legendtext, paste( "variance:   ", tdiffvariance) )
+      legendtext = c( legendtext, paste( "variance:   ", tdiffvariance ) )
       legendcol = c( legendcol, "gray")
       legendpch =c( legendpch, 19 ) 
       points(depth~ts, x[ O$variance.method.indices, ], sub=id, pch=20, col="gray", cex=0.2)
@@ -307,16 +310,45 @@ bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.m
     }
   } # end if enough data
   
-  if (plot.data) {
-    legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
-  }
-
   O$bottom0 = as.POSIXct( mean( c(O$linear.method[1], O$modal.method[1],  O$smooth.method[1]), na.rm=TRUE), origin = "1970-01-01" )
   O$bottom1 = as.POSIXct( mean( c(O$linear.method[2], O$modal.method[2],  O$smooth.method[2]), na.rm=TRUE), origin = "1970-01-01" )
   O$bottom0.sd = sd( as.numeric( c( O$linear.method[1], O$modal.method[1], O$smooth.method[1] ) ), na.rm=TRUE )
   O$bottom1.sd = sd( as.numeric( c( O$linear.method[2], O$modal.method[2], O$smooth.method[2] ) ), na.rm=TRUE )
   O$bottom0.n = length( which( is.finite( c( as.numeric( c( O$linear.method[1], O$modal.method[1], O$smooth.method[1]) )))) )
   O$bottom1.n = length( which( is.finite( c( as.numeric( c( O$linear.method[2], O$modal.method[2], O$smooth.method[2] ) )))) )
+  
+  u.ts = u.depth = NULL
+  O$manual.method = NA
+  O$manual.method.indices = NA
+  O$error0 = NA
+  O$error1 = NA
+  
+  if ( user.interaction  ) { 
+    print( "Click with mouse on start and stop locations now.")          
+    useridentified = locator( n=2, type="o", col="cyan")
+    u.ts0 = which.min( abs(x$ts-useridentified$x[1] ))
+    u.ts1 = which.min( abs(x$ts-useridentified$x[2] ))
+    O$manual.method = c( x$timestamp[u.ts0], x$timestamp[ u.ts1 ]  )
+    O$manual.method.indices = which( x$timestamp >= O$manual.method[1] &  x$timestamp <= O$manual.method[2] ) 
+    O$error0 = O$manual.method[1] - O$bottom0
+    O$error1 = O$manual.method[2] - O$bottom1
+    tdif = abs( as.numeric(diff(O$manual.method)) )
+    tdifflinear = round( tdif, 2)
+    legendtext = c( legendtext, paste( "manual: ", tdifflinear, "(bias [sec] :", as.numeric(round(O$error0, 2)), ":", as.numeric(round(O$error1, 2)), ")" ) ) 
+    legendcol = c( legendcol, "cyan")
+    legendpch =c( legendpch, 20) 
+  }
+  
+  
+  if (plot.data) {
+    legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
+  }
+  
+  if ( user.interaction  ) { 
+    outdir = getwd()
+    dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
+  }
+  
   return( O )
 }
 
