@@ -75,7 +75,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   if (length(i)>0) x$weight[i] = max(x$weight[ which( x$weight < Inf) ], na.rm=TRUE )
   
   res = NA
-  for( sp in seq( 0.35, 0.02, by=-0.01 ) ) {
+  for( sp in seq( 0.34, 0.02, by=-0.02 ) ) {
     lmod = try( loess( depth~ts, data=x[O$filtered,], weights=x$weight[O$filtered], 
       span=sp, control=loess.control(surface="direct") ), silent=TRUE )
     if ( "try-error" %in% class(lmod) ) next()
@@ -88,7 +88,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
       # only accept solutions if it produces predictions taht are pretty close to original data 
       res = sp
       x$diff.loess = x$depth - x$depth.loess
-      quants = quantile( x$diff.loess, probs=c(0.025, 0.975 ), na.rm=TRUE )
+      quants = quantile( x$diff.loess, probs=c(0.05, 0.95 ), na.rm=TRUE )
       i =  which( x$diff.loess <= quants[1] | x$diff.loess >= quants[2] )
       if (length(i) > 0) O$filtered[i] = FALSE
       break()
@@ -166,9 +166,8 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   # Now that data is more or less clean ... 
   # Remove any linear trend in the depths as this can increase the precision of the the following methods
 
-  depthtrend = lm( depth ~ ts, data=x, weights=depth^2, na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
-  x$depth0 = x$depth  # store original data
-  x$depth = x$depth0 - predict( depthtrend, newdata=x )
+  depthtrend = lm( depth ~ ts, data=x[O$filtered, ], weights=depth^2, na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
+  x$depth.residual = x$depth - predict( depthtrend, newdata=x ) + median( x$depth[O$filtered], na.rm=TRUE )
 
 
   ##--------------------------------
@@ -189,7 +188,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   duration = 0
   for ( nbins in nbins0 ) {
     for ( nb in seq( from=200, to=20, by=-2 ) ) {
-      h = hist( x$depth[ O$filtered ], breaks=nb, plot=FALSE)  
+      h = hist( x$depth.residual[ O$filtered ], breaks=nb, plot=FALSE)  
       i = which(h$density > 0.1 )   
       if (length (i) <= nbins) {
         nb = nb+1  
@@ -197,7 +196,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
       }
     }
     if ( length(j0) <= nbins ) {
-      AOImod = which( x$depth > h$mids[min(i)] & x$depth < h$mids[max(i)]  ) 
+      AOImod = which( x$depth.residual > h$mids[min(i)] & x$depth.residual < h$mids[max(i)]  ) 
       if (length(AOImod)>0 & all(is.finite( AOImod ) ) ) {
         i0 = min( AOImod ) 
         i1 = max( AOImod )
@@ -225,9 +224,9 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   ## ---------------------------- 
   ## Smooth method: smooth data to remove local trends and compute first derivatives and smooth again
   x2 = x[ O$filtered, ]  # copy and subset to simplify
-  v = inla( depth ~  f(ts, model="rw2" ) , data=x2 )
+  v = inla( depth.residual ~  f(ts, model="rw2" ) , data=x2 )
   x2$fitted = v$summary.random$ts[["mean"]]  # posterior means .. removes some high freq noise
-  AOI.mod.sd = sd( x2$depth, na.rm=TRUE) 
+  AOI.mod.sd = sd( x2$depth.residual, na.rm=TRUE) 
   fun = approxfun( x2$ts, x2$fitted )
   x2$slopes = grad( fun, x2$ts, method="simple" )
   x2$slopes[ nrow(x2) ] = x2$slopes[ nrow(x2)-1 ]  # last element is an NA .. copy the next to last value into it  
@@ -238,7 +237,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   midpoint = trunc( mod1/2 )
   eps = sd( x2$slopes, na.rm=TRUE ) / 1000  # a small number scaled to SD
   
-  if ( abs( x2$depth[mod0] - mediandepth ) < AOI.mod.sd ) {
+  if ( abs( x2$depth.residual[mod0] - mediandepth ) < AOI.mod.sd ) {
     # assuming it is truncated without the left tail ..
     k0 = mod0 
   } else {
@@ -247,7 +246,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
       if ( x2$slopes[ k0 ] < -eps ) break()
     }
   }
-  if ( abs( x2$depth[mod1] - mediandepth ) < AOI.mod.sd ) {
+  if ( abs( x2$depth.residual[mod1] - mediandepth ) < AOI.mod.sd ) {
     # assuming it is truncated without the right tail ..
     k1 = mod1 
   } else {
@@ -278,7 +277,6 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
   ## ---------------------------
   ## Linear method: looking at the intersection of three lines (up, bot and down)
   
-  if (length( which( is.finite( c( O$smooth.method, O$modal.method)) )) > 2 ) {  
     ## at least one solution required to continue  (2 means a valid start and end)
      # ID best model based upon time .. furthest up a tail is best 
   
@@ -286,47 +284,46 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=40, depthpropo
       range(O$smooth.method.indices),
       range(O$modal.method.indices)
     )
+    oo = which( !is.finite(res))
+    if (length(oo)>0) res[oo] = NA
+
     left = median(res[,1], na.rm=TRUE)
     right = median( res[,2], na.rm=TRUE) 
 
-    for ( m in method ) {
-      if (!is.finite(m)) next()
-      # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
-      mod0 = min( which( O$filtered ) )
-      mod1 = max( which( O$filtered ) )
-      bot = left:right  # blended estimate of fishing events
-      down = mod0:left 
-      up =  right:mod1 
-      #  compute linear models for each section
-      botlm2 = lm(depth~ts, x[bot, ], na.action = "na.exclude")
-      #  right tail
-      if (( length( which( is.finite( x$depth[bot] ))) > 10) & (length( which( is.finite(x$depth[up]))) > 5 )) {
-        uplm2 = lm(depth~ts, x[up, ], na.action = "na.exclude")
-        cm <- rbind(coef(botlm2),coef(uplm2)) # Coefficient matrix
-        i2=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
-        ri2 = min( which(x$ts >i2[1]) )
-      } else {
-        ri2 = mod1
-      }
-    
-      # left tail
-      if (( length( which( is.finite( x$depth[bot] ))) > 10) & ( length( which( is.finite( x$depth[down]))) > 5 )) {
-        downlm2 =lm(depth~ts, x[down, ], na.action = "na.exclude")
-        # find where the sections intersect
-        cm <- rbind(coef(botlm2),coef(downlm2)) # Coefficient matrix
-        i1=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
-        ri1 = max(which(x$ts <i1[1]))
-      } else {
-        ri1 = mod0
-      }
-    
-      duration = as.numeric( x$timestamp[ri2] - x$timestamp[ri1]) 
-      if ( duration > tdif.min & duration < tdif.max ) {
-        O$linear.method =  c( x$timestamp[ri1], x$timestamp[ri2] )
-        O$linear.method.indices = which( x$timestamp >= O$linear.method[1] &  x$timestamp <= O$linear.method[2] ) 
-      } 
-    } # end if enough data
-  }
+    # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
+    mod0 = min( which( O$filtered ) )
+    mod1 = max( which( O$filtered ) )
+    bot = left:right  # blended estimate of fishing events
+    down = mod0:left 
+    up =  right:mod1 
+    #  compute linear models for each section
+    botlm2 = lm(depth.residual~ts, x[bot, ], na.action = "na.exclude")
+    #  right tail
+    if (( length( which( is.finite( x$depth.residual[bot] ))) > 10) & (length( which( is.finite(x$depth.residual[up]))) > 5 )) {
+      uplm2 = lm(depth.residual~ts, x[up, ], na.action = "na.exclude")
+      cm <- rbind(coef(botlm2),coef(uplm2)) # Coefficient matrix
+      i2=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
+      ri2 = min( which(x$ts >i2[1]) )
+    } else {
+      ri2 = mod1
+    }
+  
+    # left tail
+    if (( length( which( is.finite( x$depth.residual[bot] ))) > 10) & ( length( which( is.finite( x$depth.residual[down]))) > 5 )) {
+      downlm2 =lm(depth.residual~ts, x[down, ], na.action = "na.exclude")
+      # find where the sections intersect
+      cm <- rbind(coef(botlm2),coef(downlm2)) # Coefficient matrix
+      i1=c(-solve(cbind(cm[,2],-1)) %*% cm[,1])
+      ri1 = max(which(x$ts <i1[1]))
+    } else {
+      ri1 = mod0
+    }
+  
+    duration = as.numeric( x$timestamp[ri2] - x$timestamp[ri1]) 
+    if ( duration > tdif.min & duration < tdif.max ) {
+      O$linear.method =  c( x$timestamp[ri1], x$timestamp[ri2] )
+      O$linear.method.indices = which( x$timestamp >= O$linear.method[1] &  x$timestamp <= O$linear.method[2] ) 
+    } 
 
     if (plot.data  & all(is.finite(O$linear.method)) ) {
         mcol ="green"

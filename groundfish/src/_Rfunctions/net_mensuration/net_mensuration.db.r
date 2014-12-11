@@ -319,7 +319,17 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     gsinf$epoint.sd = NA
     gsinf$epoint.n = NA
     gsinf$spoint.n = NA
-     
+    
+    debug = FALSE
+    if(debug) {
+      RLibrary( "lubridate", "INLA", "numDeriv" )
+      loadfunctions( "groundfish" )
+      load( "~/Downloads/m.data.RData" ) # local copy of master data .. modern time period
+      master = modern.data
+      rm (modern.data)
+      mm =  master[ii,c("depth", "timestamp")]
+    }
+
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
     if (!is.null( override.missions)){
       user.interaction = TRUE
@@ -334,10 +344,8 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       gii = which( gsinf$id==id )  # row of matching gsinf with tow info
       if (length(gii) != 1) next()  # no match in gsinf
       
-      # vary the proportion of depth passed onto the bottom contact method as the shape of the tails can cause errors
-      out = NULL
-      alldata = list()
       res = bottom.contact.groundfish ( id=id, master[ii,c("depth", "timestamp")], plot.data=TRUE,  user.interaction=user.interaction )
+      
       gsinf$spoint.datetime[gii] = res$bottom0 
       gsinf$epoint.datetime[gii] = res$bottom1
       gsinf$bottom_duration[gii] = res$bottom.diff
