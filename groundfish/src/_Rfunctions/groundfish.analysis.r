@@ -72,9 +72,28 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
         if(!p$length.based) {
                           vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
                           ca = ca[,vars.2.keep]
+                        }
+        if(p$length.based){
+          browser()
+                  dp = de[which(de$spec==v0),]
+                  ids = paste(se$mission,se$setno,sep="~")
+                  dp$ids = paste(dp$mission,dp$setno,sep="~")
+                  dp = dp[which(dp$ids %in% ids),]
+                  flf = p$size.class[1]:p$size.class[2]
+                  dp$clen2 = ifelse(dp$flen %in% flf,dp$clen,0)
+                if(any(!is.finite(dp$fwt))) {
+                  io = which(!is.finite(dp$fwt))
+                  fit = nls(fwt~a*flen^b,de[which(de$spec==v0 & is.finite(de$fwt)),],start=list(a=0.001,b=3.3))
+                  ab = coef(fit)
+                  dp$fwt[io] = ab[1]*dp$flen[io]^ab[2]
+                  }
+                  
+                  #stop need to finish from here proportion of numbers and weights in the sizeclass
+
+              }
                       if(p$vessel.correction) {
                             ca$id = ca$mission
-				if(!exists('vessel.correction.fixed',p)) {
+                  if(!exists('vessel.correction.fixed',p)) {
                             ca = correct.vessel(ca)
                             ca$totwgt = ca$totwgt * ca$cfvessel
                             ca$totno = ca$totno * ca$cfvessel
@@ -108,43 +127,6 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                 out[mp,] = c(yr,v,ssW[[1]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
                 ssN[[1]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao)   
               }
- if(p$length.based) {
-                        vars.2.keep =c('mission','setno','sampwgt','totwgt','totno','size_class','spec')
-                          ca = ca[,vars.2.keep]
-                        vars.2.keep =c('mission','setno','flen','clen','size_class','spec')
-                          de = de[,vars.2.keep]
-                          dc = merge(ca,de,by=c('mission','setno','spec','size_class'))
-                          dc$clen = dc$clen * dc$totwgt / dc$sampwgt
-                  if(p$vessel.correction) {
-                            dc$id = dc$mission
-                            dc = correct.vessel(dc)
-                            dc$clen = dc$clen * dc$cfvessel
-                            print('clen is adjusted by Conversion Factors')    
-                    }
-                    stop('not done need to complete this option')    
-                          dc = aggregate(clen~mission+setno+flen,data=dc,FUN=sum)
-                          fl = seq(min(dc$flen),max(dc$flen),by=1)
-                          
-                          sc = merge(se,ca,by=c('mission','setno'),all.x=T)
-                          sc[,c('totwgt','totno')] = na.zero(sc[,c('totwgt','totno')])
-                          sc$totno = sc$totno * 1.75 / sc$dist
-                          sc$totwgt = sc$totwgt * 1.75 / sc$dist      
-                          io = which(stra$strat %in% unique(sc$strat))
-                          st = stra[io,c('strat','NH')]
-                          st = Prepare.strata.file(st)
-                          sc = Prepare.strata.data(sc)
-
-                  sW = Stratify(sc,st,sc$totwgt)        
-                  sN = Stratify(sc,st,sc$totno)
-                  ssW = summary(sW)
-                  ssN = summary(sN) 
-                  bsW = summary(boot.strata(sW,method='BWR',nresamp=1000),ci.method='BC')
-                  bsN = summary(boot.strata(sN,method='BWR',nresamp=1000),ci.method='BC')       
-                  nt  = sum(sW$Nh)/1000
-                out[iip,] = c(yr,v,ssW[[1]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
-                ssN[[1]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao)   
-              }
-           }
               lle = 'all'
               if(p$length.based) lle = 'by.length'
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
@@ -164,7 +146,6 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
         det = det[ii,]
         m=0
       out = data.frame(sex = NA,yr = NA, species = NA, alpha=NA,N.Measured=NA,N.Outside.of.Polygon=NA,a=NA,b=NA,a.lower=NA,      a.upper=NA,b.lower=NA,b.upper=NA)
-
   for(iip in ip) {
        v0 = v = p$runs[iip,"v"]
             yr = p$runs[iip,"yrs"]
@@ -188,6 +169,6 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
            out[m,] = ab.nls(ds=ds,p=p)
         } 
       }
-  return(out)
+   return(out)
   }    
 }
