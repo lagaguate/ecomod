@@ -9,6 +9,7 @@ netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
 # netswd = "~/Downloads"
 # load( "~/Downloads/mm.rdata")
 
+netswd = marportdatadirectory
 marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
 
 
@@ -19,23 +20,25 @@ if ( recreate.full.database.locally ) {
   # oracle.perley.user ="username"
   # oracle.perley.password = "password"
   # oracle.perley.db = "servername"
-  net_mensuration.db( "perley.database.datadump", netswd ) # ODBC data dump .. this step requires definition of password etc
-  net_mensuration.db( "perley.database.merge", netswd )    # perley had two db's merge them together
-  net_mensuration.db( "post.perley.redo",  netswd )        # Assimilate Scanmar files in raw data saves *.set.log files
+  net_mensuration.db( DS="perley.database.datadump", netswd=netswd ) # ODBC data dump .. this step requires definition of password etc
+  net_mensuration.db( DS="perley.database.merge", netswd=netswd )    # perley had two db's merge them together
+  net_mensuration.db( DS="post.perley.redo",  netswd=netswd )        # Assimilate Scanmar files in raw data saves *.set.log files
   match.set.from.gpstrack(DS="post.perley.redo", netswd=netswd ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
-  net_mensuration.db( "merge.historical.scanmar.redo",  netswd ) # add all scanmar data together
-  net_mensuration.db( "sanity.checks.redo",  netswd )      # QA/QC of data
-  net_mensuration.db( "bottom.contact.redo",  netswd )      # determine start/end times and swept area
-  
-  # this is separate as scanmar data also exists in duplicate
-  net_mensuration.db( "marport.redo",  marportdatadirectory )      # QA/QC of data
+  net_mensuration.db( DS="merge.historical.scanmar.redo",  netswd=netswd ) # add all scanmar data together
+  net_mensuration.db( DS="sanity.checks.redo",  netswd=netswd )      # QA/QC of data
+  net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory )      # QA/QC of data
 }
 
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
-marport = net_mensuration.db( "marport",  marportdatadirectory )      # QA/QC of data
+
+# load marport data
+marport = net_mensuration.db( DS="marport",  netswd=marportdatadirectory )      # QA/QC of data
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+
+# Load marport/basedata
+load("C:/Users/mundenj/Desktop/Marport/marport.rdata")
 
 i = which(is.na(master$id))
 t = unique( master$netmensurationfilename[i])
@@ -103,6 +106,18 @@ plot(depth~timestamp, rawdata)
 plot(depth~timestamp, rawdata, ylim=c(250,0))
 
 points(x$timestamp[bc$variance.method.indices],  x$depth[bc$variance.method.indices], col="violet", pch=19)
+
+
+
+
+# Only run to genereate new samples
+loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
+allids=unique(modern.data$id)
+
+i=sample(1:length(allids),5)
+mission.list=allids[i]
+mission.list
+net_mensuration.db( DS="bottom.contact.redo", netswd=netswd, user.interaction=TRUE, override.missions=mission.list  )
 
 
 

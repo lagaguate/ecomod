@@ -1,5 +1,5 @@
 
-net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
+net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE, override.missions=NULL ){
    
   if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
     
@@ -223,6 +223,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     }
     
     # configs
+    # netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
     filelist4 = list.files(path=netswd, pattern="^config.*.ini$", full.names=T, recursive=TRUE, ignore.case=TRUE)
     cfg = data.frame( configroot = dirname( filelist4 ), fn=filelist4, stringsAsFactors=FALSE )
     
@@ -245,16 +246,17 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       print(fl)
       j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
       if (is.null(j)) next()
+      j$rootname=fl
       basedata = rbind( basedata, j)
     }
-    basedata$mission= paste(basedata$Cruise, basedata$set, sep=".")
-    basedata$mission=toupper(basedata$mission) 
-    unique(basedata$mission)
-    head(basedata)
-    basedata$mission = gsub("_", "", basedata$mission)
-    basedata$mission = gsub("-", "", basedata$mission)
-    unique(basedata$mission)
-    # continue here
+    
+    # Include mission as a variable
+    g=substring(basedata$rootname,54,63)      
+    basedata$mission = paste(g, basedata$set, sep=".")
+    
+    # Include adjusted time as a variable (plus 7 mins or 420 secs)
+    basedata$adjusted.time=(basedata$timestamp) + 420
+    
     save(basedata, file=fn, compress= TRUE)
   }
   
@@ -319,6 +321,10 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
     gsinf$spoint.n = NA
      
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    if (!is.null( override.missions)){
+      user.interaction = TRUE
+      master = master[ which(master$id %in% override.missions ), ]
+    }
     
     uid = sort( unique( master$id)) 
     for ( id in uid) {
@@ -331,20 +337,26 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd() ){
       # vary the proportion of depth passed onto the bottom contact method as the shape of the tails can cause errors
       out = NULL
       alldata = list()
-      res = bottom.contact.groundfish ( master[ii,c("depth", "timestamp")], plot.data=TRUE)
-     
+      res = bottom.contact.groundfish ( id=id, master[ii,c("depth", "timestamp")], plot.data=TRUE,  user.interaction=user.interaction )
+
       ss = ymd_hms( out[si,"bottom0"] )
       ee = ymd_hms( out[ei,"bottom1"] )
 
-      gsinf$spoint.datetime[gii] = as.character( ss )
-      gsinf$epoint.datetime[gii] = as.character( ee )
-      gsinf$bottom_duration[gii] = abs( as.numeric( diff( c(ee, ss) ) ))
-      gsinf$spoint.sd[gii] = out[si,"bottom0.sd"]
-      gsinf$epoint.sd[gii] =  out[ei,"bottom1.sd"] 
-      gsinf$spoint.n[gii] = out[si,"bottom0.n"]
-      gsinf$epoint.n[gii] = out[ei,"bottom1.n"] 
+      gsinf$spoint.datetime[gii] = res$bottom0 
+      gsinf$epoint.datetime[gii] = res$bottom1
+      gsinf$bottom_duration[gii] = res$bottom.diff
+      gsinf$spoint.sd[gii] = res$bottom0.sd
+      gsinf$epoint.sd[gii] = res$bottom1.sd
+      gsinf$spoint.n[gii] =  res$bottom0.n
+      gsinf$epoint.n[gii] =  res$bottom1.n
      
+
     }
+    
+    if (!is.null( override.missions)) {
+      fn = paste( fn, "manually.determined.rdata", sep="")
+    }
+    
     save(gsinf, file=fn, compress= TRUE)
   }
 

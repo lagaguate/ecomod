@@ -1,25 +1,25 @@
-bottom.contact.groundfish = function(x, tdif.min=15, tdif.max=50, depthproportion=0.5, nbins=7, plot.data=TRUE ) {
+bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=50, depthproportion=0.5,  minval.modal=5, nbins=7, plot.data=FALSE, user.interaction=FALSE ) {
   
   debug = FALSE
   if (debug) {
     nbins= 7 # nbins is the number of bins required to get a target mode
+    minval.modal=5 # min number of counts in freq bins to be considered non-random (Chi-squared logic)
     tdif.min = 15  # min time difference (minutes) .. including tails
     tdif.max = 50  # min time difference (minutes) .. including tails
     depthproportion=0.5 # depthproportion controls primary (coarse)gating
-    plot.data=TRUE
+    plot.data=TRUE 
+    user.interaction=FALSE # is you want to try to manually determine end points too
     x = mm
   }
-  
    
   O = list()  # output list
-  O$id = unique( x$id)
+  O$id = id
   O$filtered = rep(TRUE, nrow(x)) # rows that will contain data that passes each step of data quality checks
   O$linear.method = c(NA, NA)
   O$smooth.method = c(NA, NA)
   O$variance.method = c(NA, NA)
   O$modal.method = c(NA, NA)
   O$manual.method = c(NA , NA)
-
   
   ##--------------------------------
   # sort in case time is not in sequence
@@ -106,6 +106,10 @@ bottom.contact.groundfish = function(x, tdif.min=15, tdif.max=50, depthproportio
   # from centre to left 
  
   # keep everything except the 10th percentile and lower  this is very permissive ..
+
+  #  Jenna Q's: Does this mean take everything within 90% confidence interval??
+                    # Whats a lagged proccess
+
   
   AOIvar = which( O$filtered ) 
   AOIvar.mid = trunc( median(AOIvar ) ) # approximate midpoint
@@ -357,17 +361,78 @@ bottom.contact.groundfish = function(x, tdif.min=15, tdif.max=50, depthproportio
         #abline (reg=uplm2, col="gray")      
         #abline (reg=downlm2, col="gray")      
     }
- 
+
+   
+  if ( user.interaction  ) { 
+    print( "Click with mouse on start and stop locations now.")          
+    useridentified = locator( n=2, type="o", col="cyan")
+    u.ts0 = which.min( abs(x$ts-useridentified$x[1] ))
+    u.ts1 = which.min( abs(x$ts-useridentified$x[2] ))
+    O$manual.method = c( x$timestamp[u.ts0], x$timestamp[ u.ts1 ]  )
+    O$manual.method.indices = which( x$timestamp >= O$manual.method[1] &  x$timestamp <= O$manual.method[2] ) 
+    tdif = abs( as.numeric(diff(O$manual.method)) )
+    tdifflinear = round( tdif, 2)
+    legendtext = c( legendtext, paste( "manual: ", tdifflinear  ) ) 
+    legendcol = c( legendcol, "cyan")
+    legendpch =c( legendpch, 20) 
+  }
+  
   if (plot.data) {
     legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
   }
+  
+  if ( user.interaction  ) { 
+    outdir = getwd()
+    dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
+  }
 
-  O$bottom0 = as.POSIXct( mean( c(O$linear.method[1], O$modal.method[1],  O$smooth.method[1]), na.rm=TRUE), origin = "1970-01-01" )
-  O$bottom1 = as.POSIXct( mean( c(O$linear.method[2], O$modal.method[2],  O$smooth.method[2]), na.rm=TRUE), origin = "1970-01-01" )
-  O$bottom0.sd = sd( as.numeric( c( O$linear.method[1], O$modal.method[1], O$smooth.method[1] ) ), na.rm=TRUE )
-  O$bottom1.sd = sd( as.numeric( c( O$linear.method[2], O$modal.method[2], O$smooth.method[2] ) ), na.rm=TRUE )
-  O$bottom0.n = length( which( is.finite( c( as.numeric( c( O$linear.method[1], O$modal.method[1], O$smooth.method[1]) )))) )
-  O$bottom1.n = length( which( is.finite( c( as.numeric( c( O$linear.method[2], O$modal.method[2], O$smooth.method[2] ) )))) )
+  methods = c("manual.method", "smooth.method", "modal.method", "linear.method" )
+  standard =  which( methods=="manual.method")
+  direct = which( methods!="manual.method")
+
+  tmp = as.data.frame(O[methods], stringsAsFactors=FALSE )
+  tmp = as.data.frame( t(tmp), stringsAsFactors=FALSE  )
+  colnames(tmp) =c("start", "end" )
+  tmp$start = ymd_hms( tmp$start)
+  tmp$end = ymd_hms( tmp$end)
+  
+  means = as.data.frame( cbind( as.POSIXct( mean( tmp[ direct, "start" ], na.rm=TRUE ), origin = "1970-01-01" ), 
+                 as.POSIXct( mean( tmp[ direct, "end" ], na.rm=TRUE ), origin = "1970-01-01")   ) , stringsAsFactors=FALSE )
+
+  rownames( means) = "means"
+  colnames(means) = c("start", "end" )
+  means$start = as.POSIXct( means$start, origin = "1970-01-01" )  # means only of direct methods
+  means$end = as.POSIXct( means$end, origin = "1970-01-01" )
+
+  if ( all(is.na( tmp[ standard, c("start", "end")] ) ) ) {
+    # no manual standard .. use mean as the standard
+    O$bottom0 = means$start
+    O$bottom1 = means$end
+    O$bottom0.sd = sd(  tmp[ direct, "start" ], na.rm=TRUE ) # in secconds
+    O$bottom1.sd = sd(  tmp[ direct, "end" ], na.rm=TRUE )
+    O$bottom0.n = length( which( is.finite( tmp[ direct, "start" ] )) )
+    O$bottom1.n = length( which( is.finite( tmp[ direct, "end" ] )) )
+    O$bottom.diff = O$bottom1 - O$bottom0
+  } else {
+    # over-ride all data and use the manually determined results
+    O$bottom0 = tmp[ standard, "start" ]
+    O$bottom1 = tmp[ standard, "end" ]
+    O$bottom0.sd = -1
+    O$bottom1.sd = -1
+    O$bottom0.n = -1
+    O$bottom1.n = -1
+    O$bottom.diff = O$bottom1 - O$bottom0
+  }
+ 
+  tmp = rbind( tmp, means)
+  tmp$diff = tmp$end - tmp$start
+  tmp$start.bias = tmp$start - O$bottom0
+  tmp$end.bias   = tmp$end - O$bottom1
+
+  O$summary = tmp
+  
+  print( O$summary)
+
   return( O )
 
 }
