@@ -7,10 +7,10 @@ loadfunctions( "groundfish", functionname="load.groundfish.environment.r")
 # define location of local data files
 netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
 # netswd = "~/Downloads"
-# load( "~/Downloads/mm.rdata")
+# load( "~/Downloads/m.data.RData")
 
-netswd = marportdatadirectory
 marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
+# netswd = marportdatadirectory
 
 
 # steps required to recreate a local database of all data
@@ -117,7 +117,7 @@ allids=unique(modern.data$id)
 i=sample(1:length(allids),5)
 mission.list=allids[i]
 mission.list
-net_mensuration.db( DS="bottom.contact.redo", netswd=netswd, user.interaction=TRUE, override.missions=mission.list  )
+net_mensuration.db( DS="bottom.contact.redo", netswd=netswd, user.interaction=FALSE, override.missions=mission.list  )
 
 
 
