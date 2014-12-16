@@ -15,7 +15,7 @@
     p$basedir=outdir
 
     variables="n.m3"
-    make.maps(set=xyz, p, variables, plottimes="annual", p$basedir, conversions=conversions, init.files=init.files )
+    gmt.map.variables(set=xyz, p, variables, plottimes="annual", p$basedir, conversions=conversions, init.files=init.files )
   }
 
 

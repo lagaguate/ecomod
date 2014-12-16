@@ -28,7 +28,7 @@
    
   
   setwd( dirname( gmt$out ) )
-  map.gmt.simple(gmt)
+  gmt.map.simple(gmt)
   cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -Tg -S" ) 
   
 #  cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -TG -Qg2 -S" ) 
@@ -75,7 +75,7 @@
   hist( gmt$dat[,3]) # log scale ssems to work best: -3 to 2
  
 
-  map.gmt.simple(gmt)
+  gmt.map.simple(gmt)
   
    
    setwd( dirname( gmt$out ) ) # ps2raster has difficulties with different directories
@@ -125,7 +125,7 @@
   gmt$annot.text = "Fishable biomass SD (log10; kg/km2)"
   gmt$scale.location = "-D4.25i/0.75i/0.75i/0.075ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
   
-  map.gmt.simple(gmt)
+  gmt.map.simple(gmt)
     
   setwd( dirname( gmt$out ) ) # ps2raster has difficulties with different directories
 #  cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -TG -Qg2 -S" ) 

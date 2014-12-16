@@ -13,7 +13,7 @@
       
       outdir = file.path( outdir, paste( p$mapres, p$spatial.domain, sep=".") )
            
-      make.maps( set, p=p, variables=variables, plottimes=p$plottimes, 
+      gmt.map.variables( set, p=p, variables=variables, plottimes=p$plottimes, 
         basedir=outdir, conversions=p$conversions, init.files=p$init.files )
     }
     

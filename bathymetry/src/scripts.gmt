@@ -7,7 +7,7 @@ region=" -R-72/-52/40/50"
 # projection="-JU-20/8i"  # Universal Transverse Mercator Cylindrical (conformal)
 projection="-JQ-62/8i"  # Cylindrical equidistant (Plate Carre)
 resolution="-I0.25m"
-out="/home/jae/ecomod/bathymetry/ss.highres.ps"
+out="/home/jae/ecomod/bathymetry/maps/ss.highres.ps"
 in="/home/jae/ecomod/bathymetry/data/bathymetry.canada.east.xyz"
 
 d1="/tmp/isobaths.bin"
@@ -68,7 +68,7 @@ geotifcp -4 "+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=-62 +ellps=WGS84" -c lzw ss.bat
 region=" -R-68/-58/42.5/47.5"    
 resolution="-I10m"
 out="nwa.ps"
-in="~data/bathymetry/scotianshelf.acon.xyz"
+in="~/ecomod/bathymetry/data/scotianshelf.acon.xyz"
 d1="/tmp/isobaths.bin"
 d2="/tmp/isobaths_clipped.bin"
 grd="/tmp/isobaths.grd"

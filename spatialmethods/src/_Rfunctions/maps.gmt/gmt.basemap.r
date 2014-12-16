@@ -1,5 +1,5 @@
   gmt.basemap = function( P ) {
-    
+      
     if(! exists("isobaths_toplot", P)) P$isobaths_toplot = seq(0, 500, 100 )
 
      P = gmt.resolution(P)

@@ -10,7 +10,7 @@
     p$maskres      = "-S15k"
     p$interpres    = "-nb"
     p$tension      = "-T0.4"  # 1= harmonic surface
-    make.maps(tx, p, variables=variables, plottimes=plottimes, basedir=outdir, conversions=conversions, init.files=init.files)
+    gmt.map.variables(tx, p, variables=variables, plottimes=plottimes, basedir=outdir, conversions=conversions, init.files=init.files)
   }
 
 

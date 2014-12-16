@@ -20,11 +20,11 @@
 
     variables = c("landings", "effort")
     p$blocktype="sum"
-    make.maps( x, p, variables, p$plottimes, outdir, p$conversions, init.files=p$init.files)
+    gmt.map.variables ( x, p, variables, p$plottimes, outdir, p$conversions, init.files=p$init.files)
 
     variables = c("cpue")
     p$blocktype="mean"
-    make.maps( x, p, variables, p$plottimes, outdir, p$conversions, init.files=p$init.files)
+    gmt.map.variables( x, p, variables, p$plottimes, outdir, p$conversions, init.files=p$init.files)
     return( "Done" )
   }
 

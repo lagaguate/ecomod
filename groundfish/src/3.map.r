@@ -21,7 +21,6 @@ conversions = c("ps2png", "ps2pdf")
 
 params = NULL
 params = list()
-params = params.gmt() # default settings
 
 params$overlay = ""
   #    choose from:
@@ -32,11 +31,9 @@ params$overlay = ""
 params$mapres = "2min"
 params$gmt.projection.long = "Lambert.conformal.conic"
 params$spatial.domain = "4vwx"
+params = params.gmt( params ) # default settings
+
 params$delete.postscript = T
-
-
-
-
 
 
 # ----------------------------
@@ -88,7 +85,7 @@ if (map="set") {
 
   variables =  variable.list.expand("all")
   outdir = paste(dirbase, params$mapres, params$spatial.domain, season, sep=".")
-  make.maps( set, params, variables, plottimes, outdir, conversions, init.files=init.files, db="groundfish" )
+  gmt.map.variables( set, params, variables, plottimes, outdir, conversions, init.files=init.files, db="groundfish" )
 
 }
 
@@ -113,7 +110,7 @@ if (map="maturity") {
     basedir = "maturity"
     outdir = file.path( basedir, paste("sex",sex,sep=""),
                         paste(params$mapres, params$spatial.domain, sep=".") )
-    make.maps( x, params, variables, plottimes=plottimes, outdir, conversions, init.files=init.files, db="groundfish")
+    gmt.map.variables ( x, params, variables, plottimes=plottimes, outdir, conversions, init.files=init.files, db="groundfish")
   }
 }
 

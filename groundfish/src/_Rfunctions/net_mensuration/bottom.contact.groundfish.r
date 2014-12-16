@@ -135,7 +135,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=45, depthpropo
   qnts = quantile( kk[aoi], probs=c(0.025, 0.975), na.rm=TRUE ) 
   i = which(kk > qnts[2]  | kk < qnts[1] )
   if (length(i) > 0) O$filtered[i] = FALSE
-  x$depth.smoothed[ !O$filtered] = NA
+  x$depth.smoothed[ !O$filtered] = NA  # i.e. sequential deletion of depths
 
   
   x$sm.loess[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=0.9, method="loess"  )
@@ -154,7 +154,8 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=45, depthpropo
   qnts = quantile( kk[aoi], probs=c(0.025, 0.975), na.rm=TRUE ) 
   i = which(kk > qnts[2]  | kk < qnts[1] )
   if (length(i) > 0) O$filtered[i] = FALSE
-
+  x$depth.smoothed[ !O$filtered] = NA
+ 
 
   # finalize solutions based upon priority of reliability
   x$depth[ !O$filtered ] = NA
@@ -261,7 +262,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=45, depthpropo
   fun = approxfun( x2$ts, x2$depth.smoothed )
   x2$slopes = grad( fun, x2$ts, method="simple" )
   x2$slopes[ nrow(x2) ] = x2$slopes[ nrow(x2)-1 ]  # last element is an NA .. copy the next to last value into it  
-  x2$slopes.smoothed = interpolate.xy.robust( x2[, c("ts", "slopes")], target.r2=0.9, probs=c(0.025,0.975), method="loess" )
+  x2$slopes.smoothed = interpolate.xy.robust( x2[, c("ts", "slopes")], target.r2=0.9, probs=c(0.025,0.975), method="smooth.spline" )
 
   # now using (smoothed) first derivative determine inflection points (crossing of the zero line)
   eps = quantile( x2$slopes.smoothed, probs=c(0.1, 0.9), na.rm=TRUE ) # ie. what is greater than normal magnitudes of slope fluctuations 
@@ -456,7 +457,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=45, depthpropo
   O$signal2noise = (O$aoi.n - O$noise.n) / O$aoi.n  # not really signal to noise but rather  % informations 
   
   #x11(); plot( slopes ~ ts, x2 )
-  lines( depth.smoothed ~ ts, x2 )
+  lines( depth.smoothed ~ ts, x2, col="brown" )
   points( depth0~ts, x[!O$filtered,], col="red", cex=0.7 )  
   print( O$summary)
 

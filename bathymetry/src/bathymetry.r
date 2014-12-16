@@ -16,13 +16,28 @@
     # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
     # run on servers only unless your machine can handle it
 		p = spatial.parameters( type="canada.east", p=p )
+    p = gmt.parameters(p)
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+  
   }
+
+  if ( p$redo.gmt.intermediary.files ){
+    # data files that assist in mapping using gmt
+    # use only the large data set "canada.east"
+    # .. no need to subset yet though it would speed things up this is not done very frequently
+  	p = spatial.parameters( type="canada.east", p=p )  
+    p = gmt.parameters(p)
+	    
+    if ( !file.exists( p$bathymetry.xyz )) {
+        cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
+    }
+   }
 
  
   for ( j in c( "canada.east", "SSE" ) ) {
 		
     p = spatial.parameters( type=j, p=p )
+    p = gmt.parameters(p)
 		
     bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
 		bathymetry.db ( p, DS="Z.redo" )
@@ -41,19 +56,11 @@
       # isobath.db( p=p, depths=depths, DS="redo" ) 
     }
 
-    if ( p$redo.gmt.intermediary.files ){
-      # data files that assist in mapping using gmt
-      if ( !file.exists( p$bathymetry.xyz )) {
-        cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
-      }
-      # check if we need the following?
-      p= spatial.parameters( type="SSE", p=p )
+    if (p$redo.basemap.gmt ) {
       p$isobaths_toplot = c( 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500 ) ## in GMT
-      p = params.gmt(p)
-      p$mapres = "2min" #internal resolution for snow crab  
-      p$gmt.projection.long = "Lambert.conformal.conic"
       gmt.basemap(p)
     }
+
 	}
 
  

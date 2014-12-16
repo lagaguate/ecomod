@@ -1,5 +1,5 @@
  
-  make.maps.core = function( id=NULL, U, params, variables, plottimes, basedir, conversions, delta, init.files, db ) {
+  gmt.map.variables.core = function( id=NULL, U, params, variables, plottimes, basedir, conversions, delta, init.files, db ) {
    
     if (!is.null( init.files ) )  for (ii in init.files) source(ii) 
     varnames = colnames(U)

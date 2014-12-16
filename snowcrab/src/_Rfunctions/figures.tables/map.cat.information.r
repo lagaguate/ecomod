@@ -11,7 +11,6 @@
     p$interpres = "-nb"
     p$mapres = "2min"
     
-
     p = gmt.resolution(p) # refresh due to change in mapres
     
     for (sp in species) {
@@ -24,7 +23,7 @@
         sset$totno = log10( sset$totno )  ###### ---------------------- log transform done here as "totno" is not part of the snowcrab recoed db
         # must  sum the catches or numbers by set/trip (across species) before plotting
         # incase multiple species are selected
-        make.maps( sset, p, variables=variables, plottimes=p$plottimes, basedir=basedir, conversions=p$conversions, init.files=p$init.files )
+        gmt.map.variables( sset, p, variables=variables, plottimes=p$plottimes, basedir=basedir, conversions=p$conversions, init.files=p$init.files )
        }
     }
     return( "Done" )

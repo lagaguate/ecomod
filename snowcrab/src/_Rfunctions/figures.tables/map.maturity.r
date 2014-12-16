@@ -15,7 +15,7 @@
       basedir = "maturity"
       outdir = file.path( basedir, paste("sex",sex,sep=""),
                           paste(p$mapres, p$spatial.domain, sep=".") )
-      make.maps( x, p, variables, plottimes=p$plottimes, outdir, p$conversions, init.files=p$init.files )
+      gmt.map.variables( x, p, variables, plottimes=p$plottimes, outdir, p$conversions, init.files=p$init.files )
     }
   }
 

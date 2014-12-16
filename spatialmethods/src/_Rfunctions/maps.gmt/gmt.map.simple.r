@@ -1,6 +1,6 @@
 
  
-  map.gmt.simple = function( gmt ) {
+  gmt.map.simple = function( gmt ) {
 
     dir.create ( dirname(gmt$out), recursive=T, showWarnings=F )
     
