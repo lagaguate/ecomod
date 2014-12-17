@@ -7,6 +7,7 @@ species.code=11
 strat.list<-c(470:495)
 ############################
 #loadfunctions("utility",,"na.zero")
+options(stringsAsFactors = FALSE) 
 loadfunctions("utility")
 library(RODBC)
 library(plyr)
@@ -290,7 +291,7 @@ length_sd_result <- rbind(lls[,1:(ncol(lls))],o)
 #set totals of length_sd_result  don't match
 
 #length total tab
-
+#lo = merge(length_mean_result,tunits[,c('STRAT','TUNITS')],by='STRAT')
 lo = merge(data.matrix(length_mean_result),tunits[,c('STRAT','TUNITS')],by='STRAT')
 #MMM converted to data matrix - changed "Total" row to NA
 
