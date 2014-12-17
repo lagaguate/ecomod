@@ -1,4 +1,3 @@
-
  
   isobath.db = function( ip=NULL, p=NULL, depths=NULL, DS="" ) {
 
@@ -18,15 +17,10 @@
       } 
 
 			if ( DS != "redo" ) return( NULL)
-  
-
-			p$mapres = "-I10s" 
-			p$gmtproj = "-JM6i"
-			p$bathy.tension = "-T0.75"
-			p$bathy.zrange="-Sa1010/NaN -Sb1/NaN"
       
+      #overrides to defaults
+			p$bathy.zrange="-Sa1010/NaN -Sb1/NaN"
 			tmpdir =  tempdir()
-
 
 			# ip is the first parameter passed in the parallel mode
       if (is.null(ip)) ip = 1:p$nruns
@@ -60,11 +54,11 @@
               paste("-L",d-1,"/",d+1,sep="") ) # override default
 
 					# cmd( "gmtconvert -bo", inp, ">", gmt.bin )
-            cmd( "blockmedian -bi3 -bo", p$bathymetry.bin, p$region, p$mapres , ">", gmt.clip )
-            cmd( "surface -bi3", gmt.clip, p$region, p$mapres , p$bathy.tension, paste("-G", gmt.depths, sep="" ))
+            cmd( "blockmedian -bi3 -bo", p$bathymetry.bin, p$region, p$res.isobaths , ">", gmt.clip )
+            cmd( "surface -bi3", gmt.clip, p$region, p$res.isobaths , p$bathy.tension, paste("-G", gmt.depths, sep="" ))
             
             cmd( "grdclip", gmt.depths, p$bathy.zrange, paste("-G", gmt.depth.mask, sep="") )
-            cmd( "grdlandmask", p$region, p$mapres , "-N1/NaN/NaN/NaN/NaN -Dif", paste("-G", gmt.data.landmask, sep=""))
+            cmd( "grdlandmask", p$region, p$res.isobaths , "-N1/NaN/NaN/NaN/NaN -Dif", paste("-G", gmt.data.landmask, sep=""))
             cmd( "grdmath", gmt.data.landmask, gmt.depth.mask, "MUL =", bathy.masked)
 
             cmd( "grdcontour", bathy.masked, p$gmtproj, bathy.contour, ">", basemap )
@@ -99,7 +93,5 @@
       
       return(fn)
     }
-
-      
 
 

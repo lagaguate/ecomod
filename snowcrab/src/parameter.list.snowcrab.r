@@ -11,12 +11,12 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
 
     p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "polygons", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
 
-    p$gmt.projection.long = "Lambert.conformal.conic.crab"
-    # p$spatial.domain = "snowcrab"
     p$annual.results = file.path( project.directory("snowcrab"), "assessments", current.assessment.year ) # output location for year-specific results
-   
-    p = spatial.parameters( p, "snowcrab" ) # region and lon/lats, projections 
-    p = spatial.parameters( p, "gmt" ) 
+    
+    p$spatial.domain = "snowcrab"
+    p = spatial.parameters( p ) # region and lon/lats, projections 
+    p = gmt.parameters( p ) 
+
 
     p$annot.cex=2
 
@@ -64,8 +64,6 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
       # default figure generation (from maps)
       p$conversions=c("ps2png")
     }
-
-
 
   return (p)
 }

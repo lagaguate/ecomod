@@ -3,15 +3,13 @@
 spatial.parameters = function( p=NULL, type="SSE" ) {
 
   if (is.null(p)) p=list()
-
-  p$spatial.domain = type
- 
-  if (type %in% c("SSE", "snowcrab") ) {
-
+  
+  if ( ! exists("spatial.domain", p) ) p$spatial.domain = type
+   
+  if ( p$spatial.domain %in% c("SSE", "snowcrab") ) {
     # source raw data for bathymetry:
-		p$bathymetry.xyz = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
-		p$bathymetry.bin = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.bin" )
-    
+		p$bathymetry.xyz = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
+		p$bathymetry.bin = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "utm20"
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
@@ -32,12 +30,10 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
   }
 
 
-  if (type=="canada.east") {
-	
+  if ( p$spatial.domain=="canada.east") {
 		# source raw data for bathymetry:
-		p$bathymetry.xyz = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
-		p$bathymetry.bin = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.bin" )
-  
+		p$bathymetry.xyz = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
+		p$bathymetry.bin = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
@@ -57,7 +53,6 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
     p$nplons = length(p$plons)
     p$nplats = length(p$plats)
   }
-
 
   return(p)
 }

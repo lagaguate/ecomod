@@ -2,7 +2,6 @@
   # map the data
 
   source(file.path(ecnasapdir, "ecnasap.functions.r"))
-
   
     #   plottimes = c("ecnasap.contrast", "five", "nao", "globalaverage")
     #   conversions = c("ps2png", "ps2pdf")

@@ -1,5 +1,5 @@
 
-  subselect.xy2grid = function(xy=NULL, area="cfaall", resolution=NULL, DS="file", loc="grids", fname="cfa.grid" ) {
+  subselect.xy2grid = function(xy=NULL, area="cfaall", DS="file", loc="grids", fname="cfa.grid" ) {
     fname = file.path(loc, paste(fname, area, "rdata", sep="."))
     if (DS=="redo") {
       inside = filter.region.polygon(xy, area)

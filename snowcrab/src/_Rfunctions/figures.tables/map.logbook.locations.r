@@ -9,13 +9,9 @@
     x = x[ is.finite( rowSums(x) ) ,]
     
     if ( map.method=="GMT" ) {
- 
-      p$mapres = "1min"
-      p = gmt.resolution(p) # refresh due to change in mapres
       p$psxyoptions = "-Sc0.1c -G20"  # Sc = circle with size x cm, G is color/grayscale
       p$basedir =  basedir
-      if (p$redo.basemap) gmt.basemap (p)
-
+      
       for (y in years) {
         ii =  which(x$yr==y)
         if ( length(ii)  < 10 ) next()

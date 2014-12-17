@@ -16,7 +16,7 @@
     # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
     # run on servers only unless your machine can handle it
 		p = spatial.parameters( type="canada.east", p=p )
-    p = gmt.parameters(p)
+    p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
 		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
   
   }
@@ -26,41 +26,39 @@
     # use only the large data set "canada.east"
     # .. no need to subset yet though it would speed things up this is not done very frequently
   	p = spatial.parameters( type="canada.east", p=p )  
-    p = gmt.parameters(p)
-	    
-    if ( !file.exists( p$bathymetry.xyz )) {
+    p = gmt.parameters(p)  # location of XYZ data files
+	     
+    if ( !file.exists( p$bathymetry.bin )) {
+      # a GMT binary file of bathymetry required for generating GMT Postscript maps ("basemap.ps") to which are added data as overlays
+      # currently, only the "canada.east" domain is all that is required/available
         cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
     }
-   }
+  }
 
  
   for ( j in c( "canada.east", "SSE" ) ) {
-		
     p = spatial.parameters( type=j, p=p )
     p = gmt.parameters(p)
-		
     bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
 		bathymetry.db ( p, DS="Z.redo" )
 		bathymetry.db ( p, DS="dZ.redo" )
 		bathymetry.db ( p, DS="ddZ.redo" )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
     bathymetry.db ( p, DS="complete.redo" ) # glue all together 
-		
     if (p$redo.isobaths) {
-      # too many clusters will overload the system ... data files are large 
-      # ~(11GB RAM required to block) and can be deleted in the temporary drives 
+      # too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
+      # and can create deleted/overwritten files in the temporary drives 
       p = make.list( list( depths=p$isobaths ), Y=p )
       p$clusters = rep( "localhost", 2 )  
       parallel.run( isobath.db,  p=p, DS="redo" ) 	
-      # or in single processor mode:
+      # or in single processor mode: slower but safer
       # isobath.db( p=p, depths=depths, DS="redo" ) 
     }
-
     if (p$redo.basemap.gmt ) {
-      p$isobaths_toplot = c( 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500 ) ## in GMT
+      # p = spatial.parameters( type="SSE", p=p )
+      p$isobaths_toplot = c( 50, 150, 250, 350, 450 ) ## in GMT
       gmt.basemap(p)
     }
-
 	}
 
  
@@ -73,8 +71,8 @@
  
 
 
+
   ## a few maps:
- 
   p = spatial.parameters( type="SSE" )
   x = bathymetry.db ( p, DS="baseline" )
   

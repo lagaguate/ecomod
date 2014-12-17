@@ -1,15 +1,11 @@
    
   # Figures obtained after completion of data assimilation and processing up to the end of "1.snowcrab.r"
-   
 	
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-<<<<<<< HEAD
     
-=======
- 
->>>>>>> 6536a3798f52eacc025f632f2601a74401dd743c
-   p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
-
+   # Think this is fixed now .. ?
+   # p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
+   p$do.parallel = TRUE  # mapping in parallel is broken .. must fix ::TODO
 
    p$clusters = rep("localhost", 24 )
    p$clusters = rep("localhost", 7 )
@@ -78,13 +74,12 @@
   # Map: Basemap of the Scotian Shelf used by all other mapping routines
   #   creating a partial postscript file via GMT 
   #   .. only required if changing resolution or spatial extent
-    p$inp = ""
+    gmt.basemap (p)
 
-    gmt.basemap (p, redo.bin=TRUE )
 
-  # ------------------------------------------
-  # Map: Scotian Shelf with CFA lines and labels
-  #   this is the basemap from map.r which is then post-labelled in sodipodi
+    # ------------------------------------------
+  # Map: Scotian Shelf with CFA lines and labels  .. using gmt
+  # this is the basemap from map.r which is then post-labelled in sodipodi
     p$outdir = file.path(p$annual.results,"figures")
     p$outfile.basename = file.path(p$outdir, "map.CFAs")
     p$basemap = file.path( project.directory("snowcrab"), "R", p$basemap)
