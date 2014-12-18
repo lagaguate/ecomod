@@ -25,7 +25,8 @@
 
   # ------------------
   # too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
-  # and can create deleted/overwritten files in the temporary drives 
+  # for the high resolution maps .. the temporary files can be created deleted/overwritten files 
+  # in the temporary drives 
   redo.isobaths = FALSE
   if (redo.isobaths) {
     area = c( "snowcrab", "SSE", "ecnasap", "canada.east" ) 
@@ -33,8 +34,10 @@
       p$spatial.domain = sp
       p = spatial.parameters( p=p )
       p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
+      # override defaults in gmt.parameters as additional ones are used by other systems including lattice
+      p$isobaths = c( 0, seq(50, 450, by=50), seq( 500, 1000, by=100 )  ) #override defaults 
       p = make.list( list( depths=p$isobaths ), Y=p )
-      p$clusters = rep( "localhost", 2 )  
+      p$clusters = rep( "localhost", 1 )  
       #isobath.db( p=p, DS="redo" ) 
       parallel.run( isobath.db,  p=p, DS="redo" ) 	
     }
@@ -49,6 +52,9 @@
     for (sp in area) {
       p$spatial.domain = sp
       p = spatial.parameters( p=p )
+      p = gmt.parameters(p)  # interpolation parameters ... currently using GMT's isobaths whcih are specified in gmt.parameters
+      # or if you want to override the isobaths plotted define them here (but make sure they were created in the previous step)
+      # p$isobaths = c( seq(50, 450, by=100)  )
       gmt.basemap(p)
     }
   }
@@ -57,17 +63,18 @@
   # ------------------
   # prepare finalised bathymetry data for use in ecomod
   complete.bathymetry.db = FALSE
-  areas = c( "canada.east", "SSE" ) 
+  areas = c( "canada.east", "SSE" ) # only two are currently used  
   for ( sp in areas ) {
     p = spatial.parameters( type=sp, p=p )
     p = gmt.parameters(p)
-    bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
+    bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT's math functions ...
 		bathymetry.db ( p, DS="Z.redo" )
 		bathymetry.db ( p, DS="dZ.redo" )
 		bathymetry.db ( p, DS="ddZ.redo" )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
     bathymetry.db ( p, DS="complete.redo" ) # glue all together 
-	}
+	
+  }
 
  
   # ------------------
@@ -82,7 +89,7 @@
 
 
   # ------------------
-  ## a few lattice-based maps:
+  ## a few lattice-based maps: for SSE only right now
   p = spatial.parameters( type="SSE" )
   x = bathymetry.db ( p, DS="baseline" )
   
@@ -98,13 +105,15 @@
 	
 	x$z =log( x$z )
   
+  outdir = file.path(project.directory("bathymetry","maps"), p$spatial.domain) 
+
   dr = quantile( x$z, probs=c(0.005, 0.995))
   datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "depth"
   annot = "ln ( Depth; m )"
   map( xyz=x[,c("plon", "plat", "z")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry", "maps"), at=datarange , col.regions=cols )
+    fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
   
   
   x = bathymetry.db ( p, DS="dZ.planar" )
@@ -115,7 +124,7 @@
   outfn = "slope"
   annot = "ln ( Slope; m/m )"
   map( xyz=x[ ,c("plon", "plat", "dZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry","maps"), at=datarange , col.regions=cols )
+    fn=outfn, loc=outdir, at=datarange , col.regions=cols , spatial.domain=p$spatial.domain )
 
  
   x = bathymetry.db ( p, DS="ddZ.planar" )
@@ -126,7 +135,7 @@
   outfn = "curvature"
   annot = "ln ( Curvature; m/m/m )"
   map( xyz=x[,c("plon", "plat", "ddZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry", "maps"), at=datarange , col.regions=cols )
+    fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
 
 
 

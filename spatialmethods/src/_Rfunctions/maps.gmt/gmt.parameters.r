@@ -1,16 +1,17 @@
 
   gmt.parameters = function(p=NULL) {
 
-    print( "Parameterisations for GMT ver 5.X.X " )
+    # print( "Parameterisations for GMT ver 5.X.X " )
     
     if( is.null(p)) p=list()
 
     # default gmt-related parameters for Maritimes region of Canada
     p$gmtcol       = "seis"  # "red2green" is an alternate
-    p$maskres      = "-S25k"
-    p$interpres    = "-n40k"
+
+    # interpolation setttings 
+    p$maskres      = "-S25k" # to define area of influence to  accept after interpolation
+    p$interpres    = "-n40k" #  to define area of influence for interpolation
     p$tension      = "-T0.4"  # 0.35+ for steep; 0.25 for smooth .. tension interpolation parameter
-    
     p$bathy.tension = "-T0.75"  # tension parameter for GMT splines-in-tension (1=harmonic surface ... max,min not exceeded)
     p$bathy.maskres  = "-S40k"        # resolution
     p$bathy.contour= "-C100 -S4 -W0.25p" # contour lines every 100m with lines of various thinknesses
@@ -18,6 +19,7 @@
     p$block = T  # do a block ?
     p$blocktype = "mean"  # do a block mean ?
 
+    # postscript generation options
     p$polygon.options = "-W0.8p"
     p$coast.options = "-Df -G220 -W0.5p"  # -Df = full resolution and colour/thickness
     p$scale.location = "-D4.75i/0.75i/2.6i/0.16ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
@@ -41,7 +43,6 @@
     basemap.location = project.directory("bathymetry", "maps" )
     p$basemap = file.path(basemap.location, "basemap.default.ps" )  # default
 
- 
     if ( exists( "spatial.domain", p) ) {
       
       if ( p$spatial.domain == "snowcrab" ) {
@@ -73,10 +74,10 @@
         # 2min grids
         p$res = "-I2m"  
         p$res.isobaths = "-I30s"
-        p$isobaths = c( 100, 200, 300, 400, 500 ) ## in GMT
-        p$bathy.zrange = "-Sa510/NaN -Sb1/NaN"
+        p$isobaths = c(  200, 400, 600, 800 ) ## in GMT
+        p$bathy.zrange = "-Sa1010/NaN -Sb1/NaN"
         p$basemap = file.path(basemap.location, "basemap.ecnasap.ps")
-        p$annot = "-B10neSW"
+        p$annot = "-B5neSW"
         if( p$spatial.domain == "ecnasap" ) {
           p$gmtproj = "-JL-55/50/40/60/6.5i"
           p$region = "-R-72/-40/36.5/67.5"
@@ -92,7 +93,7 @@
         p$res = "-I10m"
         p$res.bathy = "-I15s"  # for bathymetry ... high res preferred
         p$res.isobaths = "-I15s"  # isobaths to match bathy
-        p$isobaths = c( 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 ) ## in GMT
+        p$isobaths = c(  200, 400, 600, 800 ) ## in GMT
         p$bathy.zrange = "-Sa1010/NaN -Sb1/NaN"
         p$basemap = file.path(basemap.location, "basemap.canada.east.ps")
         p$annot = "-B10neSW"
