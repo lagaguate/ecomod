@@ -3,7 +3,7 @@
 
     substrate = substrate.db( p, DS="lonlat.grid")
           
-    M.SS = subselect.xy2grid (area="cfaall", resolution=mapres, DS="file", loc="grids", fname="mask.cfa")
+    M.SS = subselect.xy2grid (area="cfaall", DS="file", loc="grids", fname="mask.cfa")
     # screen out the Bay of Fundy (4X) area
     M.4X = get.boxes ( area="4X", DS="file", fname=file.path(project.directory("snowcrab"), "snowcrab", "R", "grids", "mask.4X.rdata" ) )
     M.SS = M.SS * M.4X

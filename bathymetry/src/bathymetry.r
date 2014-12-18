@@ -4,66 +4,80 @@
   p=list()
   p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "bathymetry" ) )
   p$libs = RLibrary( "chron", "rgdal", "lattice", "parallel" )
-  p$isobaths = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 800, 1000 )
-	p$redo.bathymetry.rawdata = FALSE
-  p$redo.gmt.intermediary.files = FALSE
-  p$redo.isobaths=FALSE
- 
 
-	if ( p$redo.bathymetry.rawdata ) { 
-		# glue all data sources (spherical coords) 
-    # ... right now this is about 17 GB in size when expanded .... SLOW .... 
-    # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
-    # run on servers only unless your machine can handle it
-		p = spatial.parameters( type="canada.east", p=p )
-    p = gmt.parameters(p)
-		bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
   
-  }
-
-  if ( p$redo.gmt.intermediary.files ){
-    # data files that assist in mapping using gmt
-    # use only the large data set "canada.east"
-    # .. no need to subset yet though it would speed things up this is not done very frequently
-  	p = spatial.parameters( type="canada.east", p=p )  
-    p = gmt.parameters(p)
-	    
-    if ( !file.exists( p$bathymetry.xyz )) {
+  # ------------------
+  # glue all data sources (spherical coords) 
+  # ... right now this is about 17 GB in size when expanded .... SLOW .... 
+  # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
+  # run on servers only unless your machine can handle it
+  redo.bathymetry.rawdata = FALSE
+  if ( redo.bathymetry.rawdata ) { 
+		p = spatial.parameters( type="canada.east", p=p )
+    p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
+    bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+    if ( !file.exists( p$bathymetry.bin )) {
+      # a GMT binary file of bathymetry .. currently, only the "canada.east" domain is all that is required/available
         cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
     }
-   }
+  }
 
- 
-  for ( j in c( "canada.east", "SSE" ) ) {
-		
-    p = spatial.parameters( type=j, p=p )
+
+  # ------------------
+  # too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
+  # for the high resolution maps .. the temporary files can be created deleted/overwritten files 
+  # in the temporary drives 
+  redo.isobaths = FALSE
+  if (redo.isobaths) {
+    area = c( "snowcrab", "SSE", "ecnasap", "canada.east" ) 
+    for (sp in area) {
+      p$spatial.domain = sp
+      p = spatial.parameters( p=p )
+      p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
+      # override defaults in gmt.parameters as additional ones are used by other systems including lattice
+      p$isobaths = c( 0, seq(50, 450, by=50), seq( 500, 1000, by=100 )  ) #override defaults 
+      p = make.list( list( depths=p$isobaths ), Y=p )
+      p$clusters = rep( "localhost", 1 )  
+      #isobath.db( p=p, DS="redo" ) 
+      parallel.run( isobath.db,  p=p, DS="redo" ) 	
+    }
+  }
+
+
+  # ------------------
+  # intermediary base maps with location definitions, annotations and isobaths ... to speed up PS map production .. only for GMT maps
+  redo.basemap.gmt = FALSE  
+  if ( redo.basemap.gmt ) {
+    area = c( "snowcrab", "SSE", "ecnasap", "canada.east" ) 
+    for (sp in area) {
+      p$spatial.domain = sp
+      p = spatial.parameters( p=p )
+      p = gmt.parameters(p)  # interpolation parameters ... currently using GMT's isobaths whcih are specified in gmt.parameters
+      # or if you want to override the isobaths plotted define them here (but make sure they were created in the previous step)
+      # p$isobaths = c( seq(50, 450, by=100)  )
+      gmt.basemap(p)
+    }
+  }
+
+  
+  # ------------------
+  # prepare finalised bathymetry data for use in ecomod
+  complete.bathymetry.db = FALSE
+  areas = c( "canada.east", "SSE" ) # only two are currently used  
+  for ( sp in areas ) {
+    p = spatial.parameters( type=sp, p=p )
     p = gmt.parameters(p)
-		
-    bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT...
+    bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT's math functions ...
 		bathymetry.db ( p, DS="Z.redo" )
 		bathymetry.db ( p, DS="dZ.redo" )
 		bathymetry.db ( p, DS="ddZ.redo" )
     bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
     bathymetry.db ( p, DS="complete.redo" ) # glue all together 
-		
-    if (p$redo.isobaths) {
-      # too many clusters will overload the system ... data files are large 
-      # ~(11GB RAM required to block) and can be deleted in the temporary drives 
-      p = make.list( list( depths=p$isobaths ), Y=p )
-      p$clusters = rep( "localhost", 2 )  
-      parallel.run( isobath.db,  p=p, DS="redo" ) 	
-      # or in single processor mode:
-      # isobath.db( p=p, depths=depths, DS="redo" ) 
-    }
-
-    if (p$redo.basemap.gmt ) {
-      p$isobaths_toplot = c( 0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500 ) ## in GMT
-      gmt.basemap(p)
-    }
-
-	}
+	
+  }
 
  
+  # ------------------
   # "snowcrab" subsets do exist but are simple subsets of SSE 
   # so only the lookuptable below is all that is important as far as bathymetry is concerned
   # both share the same initial domains + resolutions
@@ -73,8 +87,9 @@
  
 
 
-  ## a few maps:
- 
+
+  # ------------------
+  ## a few lattice-based maps: for SSE only right now
   p = spatial.parameters( type="SSE" )
   x = bathymetry.db ( p, DS="baseline" )
   
@@ -90,15 +105,16 @@
 	
 	x$z =log( x$z )
   
+  outdir = file.path(project.directory("bathymetry","maps"), p$spatial.domain) 
+
   dr = quantile( x$z, probs=c(0.005, 0.995))
   datarange = seq(dr[1], dr[2], length.out=100)
   cols = color.code( "blue.black", datarange )
   outfn = "depth"
   annot = "ln ( Depth; m )"
   map( xyz=x[,c("plon", "plat", "z")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry", "maps"), at=datarange , col.regions=cols )
+    fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
   
-
   
   x = bathymetry.db ( p, DS="dZ.planar" )
 	if (snowcrab.area) x = x[sc,]
@@ -108,9 +124,8 @@
   outfn = "slope"
   annot = "ln ( Slope; m/m )"
   map( xyz=x[ ,c("plon", "plat", "dZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry","maps"), at=datarange , col.regions=cols )
+    fn=outfn, loc=outdir, at=datarange , col.regions=cols , spatial.domain=p$spatial.domain )
 
-  
  
   x = bathymetry.db ( p, DS="ddZ.planar" )
 	if (snowcrab.area) x = x[sc,]
@@ -120,11 +135,15 @@
   outfn = "curvature"
   annot = "ln ( Curvature; m/m/m )"
   map( xyz=x[,c("plon", "plat", "ddZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=project.directory("bathymetry", "maps"), at=datarange , col.regions=cols )
+    fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
 
 
 
-# geostats for area of interest
+  # ------------------------------- 
+  # testing ::: methods
+
+  # geostats for area of interest
+  
   p=list()
   p$init.files = loadfunctions( c( "spatialmethods", "utility",  "bathymetry", "polygons" ) )
   p$libs = RLibrary( "chron", "rgdal", "lattice", "INLA"  )

@@ -17,7 +17,6 @@
     toplot = toplot[ is.finite(toplot$lon0 + toplot$lat0 + toplot$lon1 + toplot$lat1) ,]
     toplot = toplot[, c("lon0", "lat0", "lon1", "lat1")]
 
-    p$mapres = "2min"
     p$arrow = "-Svs0.01c/0.05c/0.03c -G50/50/250"
 
     p$basedir = outdir

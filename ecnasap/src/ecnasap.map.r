@@ -2,7 +2,6 @@
   # map the data
 
   source(file.path(ecnasapdir, "ecnasap.functions.r"))
-
   
     #   plottimes = c("ecnasap.contrast", "five", "nao", "globalaverage")
     #   conversions = c("ps2png", "ps2pdf")
@@ -11,9 +10,6 @@
     params = NULL
     params = list()
     params$spatial.domain    = "ecnasap2"
-    params$mapres     = "2min"
-    params$gmt.projection.long = "Lambert.conformal.conic.ecnasap2"
-    
     params = gmt.parameters( params ) # default settting here
     
     # params$overlay = c("nafo.2j", "nafo.3k", "nafo.3l", "nafo.3n", "nafo.3o", "nafo.3p", 

@@ -9,13 +9,10 @@
     p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
     p$maskres = "-S16k"
     p$interpres = "-nb"
-    p$mapres = "2min"
-    
-    p = gmt.resolution(p) # refresh due to change in mapres
-    
+  
     for (sp in species) {
       outvars = c("trip", "set", "yr", "lon", "lat", "totmass", "totno", "sa")
-      basedir = file.path( outdir, paste(p$mapres, p$spatial.domain, sep="."), sp )
+      basedir = file.path( outdir, p$spatial.domain, sp )
       sset = bcat[ taxonomy.filter.taxa (bcat$spec, taxafilter=sp, outtype="groundfishcodes" ), outvars]
       if (dim(sset)[1] > 1) {
         variables = c("totno")

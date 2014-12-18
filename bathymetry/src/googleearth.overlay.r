@@ -14,7 +14,7 @@
   gmt$out = file.path(project.directory("bathymetry"), "ss.bathymetry.colour.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour", "bathymetry.redo" )
   gmt$region=" -R-72/-52/40/50"    
-  gmt$projection="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+  gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
   gmt$inp = file.path(project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
   gmt$tension ="-T0.35"
@@ -50,7 +50,7 @@
   gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour" )
   gmt$region=" -R-72/-52/40/50"    
-  gmt$projection="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+  gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
   gmt$inp = NULL 
   gmt$tension ="-T1"
@@ -102,7 +102,7 @@
   gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour" )
   gmt$region=" -R-72/-52/40/50"    
-  gmt$projection="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+  gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
   gmt$inp = NULL 
   gmt$tension ="-T1"
