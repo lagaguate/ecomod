@@ -4,12 +4,10 @@
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
     if (exists( "libs", p)) RLibrary( p$libs ) 
 
-    if (p$spatial.domain == "snowcrab" )  p = spatial.parameters( type="SSE", p=p )
-  
       if ( DS == "" ) {
         out = NULL
         for (d in depths) {
-          fn = file.path( project.directory("bathymetry"), "isobaths", paste( p$spatial.domain, "isobath", d, "rdata", sep=".") )
+          fn = file.path( project.directory("bathymetry"), "isobaths", p$spatial.domain, paste( "isobath", d, "rdata", sep=".") )
           if (file.exists(fn) ) load( fn)
           out = rbind( out, isobath )
         }
@@ -17,9 +15,6 @@
       } 
 
 			if ( DS != "redo" ) return( NULL)
-      
-      #overrides to defaults
-			p$bathy.zrange="-Sa1010/NaN -Sb1/NaN"
 			tmpdir =  tempdir()
 
 			# ip is the first parameter passed in the parallel mode
@@ -28,7 +23,7 @@
 
 				d = p$runs[ id, "depths" ]
         
-				fn = file.path( project.directory("bathymetry"), "isobaths", paste( p$spatial.domain, "isobath", d, "rdata", sep=".") )
+				fn = file.path( project.directory("bathymetry"), "isobaths", p$spatial.domain, paste( "isobath", d, "rdata", sep=".") )
         ib = NULL
         
 				print (fn)

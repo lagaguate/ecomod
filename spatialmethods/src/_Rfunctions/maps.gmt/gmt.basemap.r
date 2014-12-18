@@ -1,11 +1,10 @@
   
 gmt.basemap = function( p ) {
   # create the initial layer to which are added GMT's postscript layers
-  if(! exists("isobaths_toplot", p)) p$isobaths_toplot = seq(0, 500, 100 )
-     p = gmt.parameters(p)  # get defaults ..
+  if(! exists("isobaths", p)) stop( "Please define p$isobaths in gmt.parameters")
      # override defaults:
-     p$psxy.options = "-W0.001p -Sp0.005p -Glightslategray"  # -Sp == point
  		 tmpdir  = tempdir()
+     p$psxy.options = "-W0.001p -Sp0.005p -Glightslategray"  # -Sp == point
      ps.new  = "-K > "  # start a new PS and continue
      ps.append = "-O -K >> "  # add to prexisting PS and continue
      ps.finalize = "-O >> "
@@ -16,8 +15,9 @@ gmt.basemap = function( p ) {
      gmt.depths = file.path(tmpdir, make.random.string(".gmt.depths") )
      gmt.depth.mask = file.path(tmpdir, make.random.string(".gmt.depth.mask") )
      gmt.data.landmask = file.path(tmpdir, make.random.string(".gmt.data.landmask") )
+     
      cmd( "gmt psbasemap", p$region, p$gmtproj, p$annot, ps.new, p$basemap )
-     for (d in p$isobaths_toplot ){
+     for (d in p$isobaths ){
        isob = NULL
        isob = isobath.db( p=p, depths=d )
        # isob$symbol =
@@ -31,7 +31,6 @@ gmt.basemap = function( p ) {
      dummy.annot.options = "-N -F+f12p,Helvetica,black+cTL"
      write( dummy.annotation, file=gmt.annotfile )
      cmd( "gmt pstext", gmt.annotfile, dummy.annot.options, p$region, p$gmtproj, ps.finalize, p$basemap )  
-
   }
 
 
