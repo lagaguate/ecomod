@@ -179,7 +179,6 @@
       }
 
 
-
       if  (is.null ( setxi ) ) return (NULL) # no matching data -- break
       
       setx = set[ setxi , ] # matching trip/set/station  

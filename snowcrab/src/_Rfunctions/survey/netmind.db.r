@@ -54,7 +54,7 @@
       #
 
       if (any( Y < 2004) ) {
-        print( "Net metrics and bottom contact stats (distace towed) were processed manually by Gulf Region until 2004 ")
+        print( "Net metrics and bottom contact stats (distance towed) were processed manually by Gulf Region until 2004 ")
         print( "and now stored in 'SNTOWS'. This is therefore redundant for historical data and only fills in time of ") 
         print( "bottom contact, etc for the sake of completeness" )
       }

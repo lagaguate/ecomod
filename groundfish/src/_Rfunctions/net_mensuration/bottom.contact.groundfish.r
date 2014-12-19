@@ -216,7 +216,7 @@ bottom.contact.groundfish = function(id, x, tdif.min=15, tdif.max=45, depthpropo
   for ( nbins in nbins0 ) {
     for ( nb in seq( from=200, to=20, by=-2 ) ) {
       h = hist( x$depth.residual[ aoi ], breaks=nb, plot=FALSE)  
-      i = which(h$density > 0.05 )   
+      i = which(h$density > 1/length(aoi)/nb )   
       if (length (i) <= nbins) {
         aoi.mod = which( x$depth.residual > h$mids[min(i)] & x$depth.residual < h$mids[max(i)]  ) 
         if (length(aoi.mod)>0 & all(is.finite( aoi.mod ) ) ) {
