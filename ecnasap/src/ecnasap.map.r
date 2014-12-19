@@ -2,7 +2,6 @@
   # map the data
 
   source(file.path(ecnasapdir, "ecnasap.functions.r"))
-
   
     #   plottimes = c("ecnasap.contrast", "five", "nao", "globalaverage")
     #   conversions = c("ps2png", "ps2pdf")
@@ -10,16 +9,15 @@
     
     params = NULL
     params = list()
-    params = params.gmt() # default settting here
+    params$spatial.domain    = "ecnasap2"
+    params = gmt.parameters( params ) # default settting here
+    
     # params$overlay = c("nafo.2j", "nafo.3k", "nafo.3l", "nafo.3n", "nafo.3o", "nafo.3p", 
     #                    "nafo.4r", "nafo.4s", "nafo.4t", "nafo.4v", "nafo.4w", "nafo.4x", 
     #                    "nafo.5y", "nafo.5ze", "nafo.5zw" )
     params$overlay = c("nafo.2j3kl", "nafo.3no", "nafo.3p", "nafo.4rs", "nafo.4t", 
                        "nafo.4vw", "nafo.4x", "nafo.5y", "nafo.5zew" )
     params$polygon.options = "-W0.4p" 
-    params$mapres     = "2min"
-    params$gmt.projection.long = "Lambert.conformal.conic.ecnasap2"
-    params$spatial.domain    = "ecnasap2"
     params$maskres    = "-S30k"
     params$interpres  = "-n50k"
     params$tension    = "-T0.25"
@@ -44,7 +42,7 @@
                      "prey", "ntaxa", "ngrd" )
       # variables = c( "amPlaice", "atSpinyLumpsucker", "loScuplin", "noSandlance", 
       #                "spDogfish", "thSkate", "wiFlounder", "yeFlounder", "cod" )
-      make.maps ( set, params, variables, plottimes, params$basedir, conversions)
+      gmt.map.variables ( set, params, variables, plottimes, params$basedir, conversions)
     }
     
     if (map="ntaxa") {
@@ -56,7 +54,7 @@
       params$maskres    = "-S10k"
       params$interpres  = "-n10k"
       params$tension    = "-T0.4"
-      make.maps ( set, params, variables, plottimes, params$basedir, conversions )
+      gmt.map.variables ( set, params, variables, plottimes, params$basedir, conversions )
     }
 
     if (clean.ps) {

@@ -60,11 +60,10 @@
       rlons = range(p$lons)
       rlats = range(p$lats)
       p$region = paste("-R", rlons[1], "/", rlons[2], "/", rlats[1], "/", rlats[2], sep="")
-      p$T.interp.method = "tps"
 
 			names.sub = colnames( substrate )
       grainsize.range = range( substrate$grainsize, na.rm=T )
-      substrate = interpol.grid(xyz=substrate, params=p, getdata=T, method=p$T.interp.method )
+      substrate = interpol.grid(xyz=substrate, params=p, getdata=T, method="tps" )
       colnames( substrate ) = names.sub  # the above function renames the 3rd var to z   
       # interpolation can bring in data larger or smaller than realistic
       substrate$grainsize[ which( ( substrate$grainsize < grainsize.range[1] )) ] = grainsize.range[1] 

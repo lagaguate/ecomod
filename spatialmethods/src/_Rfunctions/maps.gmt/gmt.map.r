@@ -1,5 +1,5 @@
   gmt.map = function( P, toplot, year, vname, conversions="ps2png" ) {
-
+    # low level interaction with GMT to construct maps for a single variable 
 		tmpdir  = tempdir()
 
     # tmp local GMT files

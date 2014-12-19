@@ -135,8 +135,7 @@
   p$interp.method ="tps"
   # p$interp.method ="inv.dist.gstat"
 
-  p$ofname = paste("B", p$interp.method, p$mapres, p$tension, p$maskres, p$interpres,
-       "rdata", sep=".")
+  p$ofname = paste("B", p$interp.method, p$tension, p$maskres, p$interpres, "rdata", sep=".")
   K = interpolated.estimates ( list (
         outfile = file.path( project.directory("snowcrab"), "R", p$ofname),
        make.biomass.grids = T,

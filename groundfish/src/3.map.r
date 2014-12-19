@@ -21,7 +21,6 @@ conversions = c("ps2png", "ps2pdf")
 
 params = NULL
 params = list()
-params = params.gmt() # default settings
 
 params$overlay = ""
   #    choose from:
@@ -29,14 +28,10 @@ params$overlay = ""
   #      "cfa24a", "cfa24b", "cfa24c", "cfa24d", "cfa24e", "cfa23a", "cfa23b", "cfa23c", "cfa23d",
   #      "cfa22inner", "cfa22outer", "cfa20inner", "cfa20outer", "cfaslope" )
 
-params$mapres = "2min"
-params$gmt.projection.long = "Lambert.conformal.conic"
 params$spatial.domain = "4vwx"
+params = gmt.parameters( params ) # default settings
+
 params$delete.postscript = T
-
-
-
-
 
 
 # ----------------------------
@@ -87,8 +82,8 @@ if (map="set") {
   params$do.parallel = F
 
   variables =  variable.list.expand("all")
-  outdir = paste(dirbase, params$mapres, params$spatial.domain, season, sep=".")
-  make.maps( set, params, variables, plottimes, outdir, conversions, init.files=init.files, db="groundfish" )
+  outdir = paste(dirbase, params$spatial.domain, season, sep=".")
+  gmt.map.variables( set, params, variables, plottimes, outdir, conversions, init.files=init.files, db="groundfish" )
 
 }
 
@@ -107,13 +102,11 @@ if (map="maturity") {
   for (sex in unique(maturity$sex)) {
     x = maturity[ which(maturity$sex==sex) ,]
     x$sa =  1
-
     variables = c("cw50")
     x = x[ is.finite(rowSums(x[, c("yr", "lon", "lat")])), ]
     basedir = "maturity"
-    outdir = file.path( basedir, paste("sex",sex,sep=""),
-                        paste(params$mapres, params$spatial.domain, sep=".") )
-    make.maps( x, params, variables, plottimes=plottimes, outdir, conversions, init.files=init.files, db="groundfish")
+    outdir = file.path( basedir, paste("sex",sex,sep=""), params$spatial.domain )
+    gmt.map.variables ( x, params, variables, plottimes=plottimes, outdir, conversions, init.files=init.files, db="groundfish")
   }
 }
 

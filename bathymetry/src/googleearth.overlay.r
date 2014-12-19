@@ -14,7 +14,7 @@
   gmt$out = file.path(project.directory("bathymetry"), "ss.bathymetry.colour.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour", "bathymetry.redo" )
   gmt$region=" -R-72/-52/40/50"    
-  gmt$projection="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+  gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
   gmt$inp = file.path(project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
   gmt$tension ="-T0.35"
@@ -28,7 +28,7 @@
    
   
   setwd( dirname( gmt$out ) )
-  map.gmt.simple(gmt)
+  gmt.map.simple(gmt)
   cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -Tg -S" ) 
   
 #  cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -TG -Qg2 -S" ) 
@@ -50,7 +50,7 @@
   gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour" )
   gmt$region=" -R-72/-52/40/50"    
-  gmt$projection="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+  gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
   gmt$inp = NULL 
   gmt$tension ="-T1"
@@ -75,7 +75,7 @@
   hist( gmt$dat[,3]) # log scale ssems to work best: -3 to 2
  
 
-  map.gmt.simple(gmt)
+  gmt.map.simple(gmt)
   
    
    setwd( dirname( gmt$out ) ) # ps2raster has difficulties with different directories
@@ -102,7 +102,7 @@
   gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour" )
   gmt$region=" -R-72/-52/40/50"    
-  gmt$projection="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+  gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
   gmt$inp = NULL 
   gmt$tension ="-T1"
@@ -125,7 +125,7 @@
   gmt$annot.text = "Fishable biomass SD (log10; kg/km2)"
   gmt$scale.location = "-D4.25i/0.75i/0.75i/0.075ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
   
-  map.gmt.simple(gmt)
+  gmt.map.simple(gmt)
     
   setwd( dirname( gmt$out ) ) # ps2raster has difficulties with different directories
 #  cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -TG -Qg2 -S" ) 

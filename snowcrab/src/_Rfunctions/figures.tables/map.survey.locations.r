@@ -8,12 +8,10 @@
       
       set = set[, c("yr", "lon", "lat")]
       set = set[ is.finite( rowSums(set) ) ,]
-
+ 
       p$psxyoptions = "-Sc0.1c -G20"  # Sc = circle with size 0.1cm, G is color/grayscale
       p$basedir = basedir
-      p$mapres = "1min"
-      p = gmt.resolution(p) # refresh due to change in mapres
-      
+     
       for (y in years) {
         toplot = set[ which(set$yr==y), c("lon", "lat")]
         p$outfile.basename = file.path(p$basedir, paste("survey.locations", y, sep=".") )

@@ -4,16 +4,12 @@
     variables = variable.list.expand("all.data")
 
     if (method =="gmt") {
-      p$mapres = "2min"
+      # overrides to defaults
       p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
       p$maskres = "-S16k"
       p$interpres = "-nb"
-      
-      p = gmt.resolution(p) # refresh due to change in mapres
-      
       outdir = file.path( outdir, paste( p$mapres, p$spatial.domain, sep=".") )
-           
-      make.maps( set, p=p, variables=variables, plottimes=p$plottimes, 
+      gmt.map.variables( set, p=p, variables=variables, plottimes=p$plottimes, 
         basedir=outdir, conversions=p$conversions, init.files=p$init.files )
     }
     

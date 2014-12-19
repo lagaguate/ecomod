@@ -1,6 +1,6 @@
 
  
-  map.gmt.simple = function( gmt ) {
+  gmt.map.simple = function( gmt ) {
 
     dir.create ( dirname(gmt$out), recursive=T, showWarnings=F )
     
@@ -41,20 +41,20 @@
     cmd( "surface", gmt$region, gmt$resolution, block, gmt$tension, paste("-G", grid, sep="") )
 
     # begin mapping
-    cmd( "psbasemap", gmt$region, gmt$projection, "-Bnesw -K >", psout )
-    cmd( "psmask ",  gmt$region, gmt$projection, gmt$resolution, block, append, "-S10K >>", psout ) # define which grids are reliable/not reliable
+    cmd( "psbasemap", gmt$region, gmt$gmtproj, "-Bnesw -K >", psout )
+    cmd( "psmask ",  gmt$region, gmt$gmtproj, gmt$resolution, block, append, "-S10K >>", psout ) # define which grids are reliable/not reliable
 
       if ( "linecontour" %in% gmt$outputs ) {
-        cmd( "grdcontour", grid, gmt$projection, paste( "-C", cpt, sep=""), append, "-A- -S0.2m -W+faint -L-350/-1 >>", psout )
+        cmd( "grdcontour", grid, gmt$gmtproj, paste( "-C", cpt, sep=""), append, "-A- -S0.2m -W+faint -L-350/-1 >>", psout )
       }
       if ( "colourcontour"  %in% gmt$outputs ) {
-        cmd( "grdimage", grid, gmt$projection, paste( "-C", cpt, sep=""), append, "-Q -nb/0.5 >>", psout )
+        cmd( "grdimage", grid, gmt$gmtproj, paste( "-C", cpt, sep=""), append, "-Q -nb/0.5 >>", psout )
       } 
       
     cmd( "psmask -C", append, ">>", psout )
 
     if ( "coastline" %in% gmt$outputs ) {
-      cmd( "pscoast", gmt$region, gmt$projection, append, "-Di -W0.1p >>", psout )
+      cmd( "pscoast", gmt$region, gmt$gmtproj, append, "-Df -W0.1p >>", psout )
     }
     
     if ( "colourscale" %in% gmt$outputs ) {
@@ -64,13 +64,14 @@
     if ( "annotation" %in% gmt$outputs ) {
       annotation = paste( gmt$annot.base, gmt$annot.text )
       write( annotation, file=annot )
-      cmd( "pstext", annot, gmt$region, gmt$projection, append, ">>", psout )  # variablename, year
+      cmd( "pstext", annot, gmt$region, gmt$gmtproj, append, ">>", psout )  # variablename, year
     }
-  
-    # FINISH WITH A BLANK ANNOTATION  
-    annotation = "-63.7 47.25 6 0 Helvetica LT . " 
-    write( annotation, file=annot )
-    cmd( "pstext", annot, gmt$region, gmt$projection,  "-O >>", psout )  
+   
+     # finalize with  dummy text
+     dummy.annotation = " " 
+     dummy.annot.options = "-N -F+f12p,Helvetica,black+cTL"
+     write( dummy.annotation, file=annot )
+     cmd( "gmt pstext", annot, dummy.annot.options, gmt$region, gmt$gmtproj, "-O >>", psout )  
      
     for (i in  c( cpt, grid, bin, clip, block, annot )) {
       rm(i)

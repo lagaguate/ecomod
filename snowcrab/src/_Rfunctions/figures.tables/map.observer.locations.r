@@ -10,8 +10,7 @@
     odb = odb[ is.finite( rowSums(odb) ) ,]
 
     if ( map.method=="GMT" ) {
-      p$mapres = "1min"
-      p = gmt.resolution(p) # refresh due to change in mapres
+      
       p$psxyoptions = "-Sc0.1c -G20"  # Sc = circle with size 0.1cm, G is color/grayscale
       p$basedir =  basedir
        
