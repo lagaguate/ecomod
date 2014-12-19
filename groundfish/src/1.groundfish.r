@@ -8,7 +8,7 @@
   p = list()
 
 	p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
-  p$libs = RLibrary( c( "chron", "parallel" )  )
+  p$libs = RLibrary( c( "chron", "parallel" ,"sp")  )
 
 # not too many as it has high memory requirements
 # clusters=c("tethys", "tethys", "io", "io", "io" )
@@ -35,7 +35,7 @@
 # primary data sets
 # these should be run on a windows machine: NULL values get mangled for some reason
   
-  odbc.data.yrs=1970:2013
+  odbc.data.yrs=1970:2014
     #  <<<<< ---- DATA YEAR can be a single year update too 
     # --- for import of data year only
   
@@ -43,8 +43,7 @@
  
 
 
-  groundfish.db( DS="gscat.redo" )
-  
+   
   refresh.bio.species.codes = F
   if (refresh.bio.species.codes ) {
     # the folowing is copied from taxaonomy/src/taxonomy.r
@@ -57,6 +56,8 @@
     taxonomy.db( "complete.redo" )
     taxonomy.db( "parsimonious.redo" ) 
   }
+groundfish.db( DS="gscat.redo" )
+ 
 
   groundfish.db( DS="gsdet.redo" )
   groundfish.db( DS="gsinf.redo" )
@@ -78,7 +79,7 @@
 *******************
 
 
-  groundfish.db( "det.base.redo", r2crit=0.75 ) # ~ 10 min 
+  groundfish.db( "det.base.redo")#, r2crit=0.75 ) # ~ 10 min 
   groundfish.db( "cat.redo" )  # add correction factors, and express per unit area
   groundfish.db( "det.redo" ) # ~ 10 min on io
 

@@ -30,8 +30,10 @@ figure.stratified.analysis <- function(x,p) {
 		}		
 		
 			plot(xpp$year,xpp$mean,type='n',xlab='Year',ylab = paste(lev,mt,sep=" "),ylim=ylim)
-			polygon(c(xpp$year,rev(xpp$year)),c(xpp$lower,rev(xpp$upper)),col='grey60', border=NA)
-			points(xpp$year,xpp$mean,type='b',lty=1,pch=16,lwd=2)
+		if(error.polygon)	polygon(c(xpp$year,rev(xpp$year)),c(xpp$lower,rev(xpp$upper)),col='grey60', border=NA)
+		if(error.bars)  	arrows(x0=xpp$year,x1 = xpp$year, y0 = xpp$upper, y1 = xpp$lower, lwd=1, angle=90, length= 0)
+				
+		points(xpp$year,xpp$mean,type='b',lty=1,pch=16,lwd=2)
 
 		if(running.mean){
 		  print(paste(running.length,'Year Running Mean'))
