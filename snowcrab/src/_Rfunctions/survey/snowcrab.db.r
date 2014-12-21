@@ -191,13 +191,15 @@
       if (length( i.na) > 0 ) {
         set$stime[i.na] = "12:00:00"  # set to noon by default if there are any more na's due to the merge
       }
-
-      # "chron" is the best estimate of sampling time 
-      # sdate does not seem to be reliable and so we use minilog data where possible in the recent period
-      # and then records from the stime and trip id where minilog data are absent 
-      set$chron = tripcode.to.chron( set$trip, set$stime )  
       
-      set$stime = NULL 
+      # "chron" is the best estimate of sampling time 
+      # sdate (POSIXct, ADT) does not seem to be reliable 
+      # and so we use minilog data where possible in the recent period
+      # and then records from the stime and trip id where minilog data are absent 
+      set$chron = tripcode.to.chron( set$trip, set$stime )  # using chron .. deprecated 
+      set$timestamp = tripcode.to.timestamp( set$trip, set$stime )  # using lubridate/POSIXct
+
+      set$stime = NULL ### --need to check timezone!!! TODO ....
       
       i = which(is.na(set$chron))
       if (length(i)>0) set$chron[i] = tripcode.to.chron( set$trip[i], "12:00:00" )
@@ -243,7 +245,6 @@
       det$mat[ i.mat ] = mature
       det$mat[ i.imm ] = immature
       det$mat[ i.other ] = mat.unknown
-
  
       i.male = which( det$sex == 1 )
       i.female = which( det$sex == 2 )
@@ -252,21 +253,18 @@
       det$sex [ i.male ] = male  # male defined as a gloabl parameter
       det$sex [ i.female ] = female  # female defined as a gloabl parameter
       det$sex [ i.other ] = sex.unknown  # sex codes defined as a gloabl parameter
-      
 
       det$cw [ which(det$cw<5 | det$cw>185 ) ] = NA  # a few zero-values
       det$chela [ which(det$chela < 1 | det$chela > 50  )] = NA # remove 0's and unreliably small values
       det$abdomen [ which(det$abdomen < 1 | det$abdomen > 66 ) ] = NA # remove 0's and unreliably small values
       det$mass  [ which( det$mass < 1 | det$mass > 1500  )]= NA # remove 0's and unreliably small /large values
    
-
       # indeterminate sex based upon measurements taken
       iii = which( is.finite( det$abdomen ) & det$sex==male )
       det$sex[iii] = sex.unknown
 
       iii = which( is.finite( det$chela ) & det$sex==female )
       det$sex[iii] = sex.unknown
-
 
       # assume a reading error of +/- 0.25 mm and +/- 0.25 g
       # changes in reading resolution occurs over time
@@ -284,7 +282,6 @@
       det$cw  [ unreliable ]= NA # remove as these cw were used to create the above unreliable masses
       
       det = predictmaturity (det, method="logistic.regression")
-      
       
       primiparous = filter.class( det, "primiparous")
       multiparous = filter.class( det, "multiparous")
@@ -317,7 +314,6 @@
         load(fn)
         return(cat)
       }     
-
 
 			# two steps:: bycatch from the cat tables (missing snow crab) 
       # and determine totals from the snow crab det tables
@@ -609,6 +605,8 @@
   }
 
 
+    # ---------------------------
+
     if ( DS %in% c("set.merge.cat","set.merge.cat.redo") ) {
 
       fn = file.path( project.directory("snowcrab"), "R", "set.cat.rdata")
@@ -648,7 +646,6 @@
 
 
     # --------------------------------
-
     
   
     if (DS=="set.minilog.seabird") {
@@ -726,7 +723,6 @@
       nm = netmind.db( DS="stats" )
       nm = nm[,  c("netmind_uid", "distance", "spread", "spread_sd", "surfacearea", "vel", "vel_sd", "netmind_n", "slon", "slat" ) ]
       set = merge( set, nm, by =c("netmind_uid"), all.x=TRUE, all.y=FALSE )
-
 
       set = set[ order( set$yr, set$station, set$t0, set$chron) , ]
       set$dt = minutes(set$dt) + seconds(set$dt)/60  # convert to decimal minutes
