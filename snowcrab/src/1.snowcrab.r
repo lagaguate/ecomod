@@ -69,6 +69,9 @@
      
 
     # The following requires "setInitial"
+    if(esnoar2netmind.conversion){
+      netmind.db(DS='esnoar2netmind.conversion',Y=2014:p$current.assessment.year)
+    }
 
     seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012;
     minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?

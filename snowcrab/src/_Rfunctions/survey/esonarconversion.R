@@ -6,17 +6,16 @@
 esonar2netmind = function(fn = NULL){
   
   nfn = gsub("netmind", "esonar", fn, ignore.case = T)
-  if (!file.exists(dirname(nfn))) {
-  	 dir.create(dirname(nfn), recursive = T) 
+  if (!file.exists(dirname(nfn)))  dir.create(dirname(nfn), recursive = T) 
     
     file.copy(fn,  nfn, overwrite = T)
     ew = read.csv(fn, nrows = 1, colClasses = c("character"),header=F)
+    print(fn)
     if(!grepl('FileName',ew[1])) {
-    
-    esonar = read.csv(fn, skip = 16, colClasses = c("character"))
+       esonar = read.csv(fn, skip = 8, colClasses = c("character"))
     colnames(esonar) = c("CPUDateTime","GPSDate","GPSTime","Latitude","Longitude","Speed","Heading","Validity","TransducerName","SensorName","SensorValue","ErrorCode","Hydrophone","SignalStrength")
     
-    
+   
     #Format time
     esonar$GPSTime = as.numeric(esonar$GPSTime)
     esonar$GPSTime = sprintf("%06d", esonar$GPSTime)
@@ -63,7 +62,7 @@ esonar2netmind = function(fn = NULL){
     colnames(esonar) = c("Date","Time","Latitude","Longitude","Speed","Primary","Secondary","DoorSpread","Depth", "Temperature" )
     
     sink(fn ) 
-    
+      
     cat(l1, "\n") 
     cat(l2, "\n") 
     cat(l3, "\n") 
@@ -71,7 +70,8 @@ esonar2netmind = function(fn = NULL){
     cat(l5, "\n") 
     write.table(esonar, quote = F, row.names = F, sep = "\t") 
     sink() 
-  	}
+  
+
   }
 }
 
