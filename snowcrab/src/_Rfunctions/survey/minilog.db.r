@@ -71,7 +71,7 @@
       }
       filelist = filelist[ which( !is.na( filelist[,1] ) ) , ]
 
-      set = snowcrab.db( DS="setInitial" ) 
+      set = snowcrab.db( DS="setInitial" )  # set$chron is in ADT 
     
       for ( yr in Y ) {
         print(yr)
@@ -91,7 +91,7 @@
           basedata = rbind( basedata, j$basedata)
         }
         
-        # now do a last pass for the "backups" ....
+        # now do a last pass for the "backups" .... 
         # incomplete ....
         add.backup.minilogs=FALSE
         if (add.backup.minilogs) {
@@ -167,8 +167,7 @@
           M = miniRAW[ Mi, ]
           
           res = bottom.contact.snowcrab( M, settimestamp=rid$setChron[i], setdepth=rid$setZx[i] )
-          
-          miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
+          miniStats = rbind(miniStats, cbind( minilog_uid=id, res$res ) )
         }
         
         miniStats$minilog_uid =  as.character(miniStats$minilog_uid)
