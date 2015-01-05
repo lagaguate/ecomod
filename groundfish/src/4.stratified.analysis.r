@@ -1,13 +1,13 @@
  p = list()
  p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
-p$strat=443:467
+p$strat=470:495
 p$series =c('summer')# p$series =c('4vswcod');p$series =c('georges')
-p$years.to.estimate = c(1970:2013)
-p$species = 11
+p$years.to.estimate = c(1970:2014)
+p$species = 12
 p$vessel.correction = F
 p$vessel.correction.fixed = 1.2
-p$length.based = T
+p$length.based = F
 p$size.class= c(30,60)
 p$by.sex = F
 
@@ -36,6 +36,11 @@ p$runs = p$runs[order(p$runs$v),]
 
 aout= groundfish.analysis(DS='stratified.estimates.redo',p=p)
 
+#habitat associations
+p$strata.files.return =T
+p$plot.name = 'white.hake.4vw.habitat.associations.pdf'
+aout= groundfish.analysis(DS='stratified.estimates.redo',p=p)
+figure.habitat.associations(aout,p=p)
 
 #redo a's and b's
 p$alpha = 0.05
