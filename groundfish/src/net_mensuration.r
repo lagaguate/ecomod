@@ -84,9 +84,8 @@ allids
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact.groundfish(mm, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=TRUE) 
+      bc = bottom.contact(id, mm, n.req=30,  depthproportion=0.5, tdif.min=15, tdif.max=45, plot.data=TRUE) 
     
-    bottom.contact.groundfish = function(x, n.req=30,  depthproportion=0.5, minval.modal=5, plot.data=TRUE )
            
 max(bc$filtered.data$depth, na.rm=TRUE)
 sd(bc$filtered.data$depth, na.rm=TRUE)
