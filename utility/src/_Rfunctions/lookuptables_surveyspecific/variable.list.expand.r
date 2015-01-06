@@ -132,7 +132,8 @@
         variable.list.expand("snowcrab.unused"),
         variable.list.expand("snowcrab.bycatch"),
         variable.list.expand("snowcrab.indicators"),
-        variable.list.expand("snowcrab.cw")
+        variable.list.expand("snowcrab.cw"),
+         "landings", "cpue",  "effort"
       ),
      
       all.to.model = c( 
@@ -157,9 +158,7 @@
         variable.list.expand("snowcrab.general"),
         variable.list.expand("snowcrab.unused"),
         variable.list.expand("snowcrab.bycatch"),
- 
-#        "landings", "cpue", "notraps", "effort",
-        "dZ", "ddZ"
+        "landings", "dZ", "ddZ"
       )
     ) # end switch
     

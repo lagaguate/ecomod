@@ -4,13 +4,14 @@
     
     REPOS = NULL
   
-    dataset.names = names( tl$set)
+    dataset.names = c(names( tl$set),names(tl$logs))
 
     for (si in 1:length(tl$sn)) {
       transform = offset = scaling =NA
       varname = tl$sn[si]
       if (! varname %in% dataset.names ) next()
-      x = tl$set[, varname]
+      if(varname %in% names(tl$set))  x = tl$set[, varname]
+      if(varname %in% names(tl$logs)) x = tl$logs[, varname]
       if (varname %in% tl$log.transform) {
         transform="log10"
         offset = offset.determine(x)
