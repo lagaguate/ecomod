@@ -151,7 +151,8 @@
           if (length( Mi) == 0 ) next()
           M = sbRAW[ Mi, ]
           
-          res = bottom.contact.snowcrab( M , settimestamp=rid$setChron[i], setdepth=rid$setZx[i] )
+          M$timestamp = as.POSIXct( M$chron, tz="ADT" )
+          res = bottom.contact( id=id, x=M , settimestamp=rid$setChron[i], setdepth=rid$setZx[i], tdif.min=3, tdif.max=15 )
           sbStats = rbind( sbStats, cbind( seabird_uid=id, res$res ) )
         }
         sbStats$seabird_uid =  as.character(sbStats$seabird_uid)
