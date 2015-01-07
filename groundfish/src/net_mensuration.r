@@ -1,4 +1,5 @@
 
+
 RLibrary( "lubridate", "INLA", "numDeriv" )
 
 # this relies upon the gsinf table which is accessible from the groundfish functions
@@ -75,6 +76,7 @@ allids
     # Run for one set
     # id = "NED2010027.225" fail but plots
     id = "NED2011025.169"
+    id =  "NED2009027.108"
     mm = master[ which(master$id==id),]
     
     # to load/save
@@ -84,7 +86,7 @@ allids
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact(id, mm, n.req=30,  depthproportion=0.5, tdif.min=15, tdif.max=45, plot.data=TRUE) 
+      bc = bottom.contact(id, mm, depthproportion=0.5, tdif.min=15, tdif.max=45, eps.depth=1, sd.multiplier=seq( 3, 1, by=-0.1),smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
     
            
 max(bc$filtered.data$depth, na.rm=TRUE)
@@ -105,8 +107,6 @@ plot(depth~timestamp, rawdata)
 plot(depth~timestamp, rawdata, ylim=c(250,0))
 
 points(x$timestamp[bc$variance.method.indices],  x$depth[bc$variance.method.indices], col="violet", pch=19)
-
-
 
 
 # Only run to genereate new samples

@@ -1,4 +1,4 @@
-  bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, 
+  bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=1, 
         filter.quants=c(0.025, 0.975), sd.multiplier=seq( 2, 1, by=-0.1 ), 
         plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9) ) {
   
@@ -12,6 +12,7 @@
     depthproportion=0.5 # depthproportion controls primary (coarse)gating
     plot.data=TRUE 
     smoothing = 0.9
+    eps.depth=1  # for noise filtering  .. ignore variations less than this threshold
     filter.quants=c(0.025, 0.975)
     sd.multiplier=seq( 2, 1, by=-0.1 )
     settimestamp=NULL
@@ -85,7 +86,7 @@
   }
 
   res = NULL
-  res = bottom.contact.filter.noise ( x, O$good, tdif.min, tdif.max, 
+  res = bottom.contact.filter.noise ( x, O$good, tdif.min, tdif.max, eps.depth=eps.depth,
     smoothing = smoothing, filter.quants=filter.quants, sd.multiplier=sd.multiplier )
   
   x$depth.smoothed = res$depth.smoothed
@@ -230,32 +231,25 @@
     dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
   }
 
-  methods = c("manual.method", "smooth.method", "modal.method", "linear.method" )
+  O$means = c(NA, NA )
+  methods = c("manual.method", "variance.method", "smooth.method", "modal.method", "linear.method", "means" )
   standard =  which( methods=="manual.method")
-  direct = which( methods!="manual.method")
+  direct = which( methods %in%  c("smooth.method", "modal.method", "linear.method", "means" ) )
 
   tmp = as.data.frame(O[methods], stringsAsFactors=FALSE )
   tmp = as.data.frame( t(tmp), stringsAsFactors=FALSE  )
   colnames(tmp) =c("start", "end" )
-  tmp$start = ymd_hms( tmp$start)
-  tmp$end = ymd_hms( tmp$end)
-  
-  means = as.data.frame( cbind( 
-      as.POSIXct( mean( tmp[ direct, "start" ], na.rm=TRUE ) ), 
-      as.POSIXct( mean( tmp[ direct, "end" ] , na.rm=TRUE)) ), stringsAsFactors=FALSE )
+  tmp[,"start"]  = as.POSIXct( tmp[,"start"], origin= "1970-01-01" )
+  tmp[,"end"]    = as.POSIXct( tmp[,"end"], origin= "1970-01-01"  )
+  tmp["means", "start"] = as.POSIXct( mean( tmp[ direct, "start" ], na.rm=TRUE ) , origin= "1970-01-01" )
+  tmp["means", "end"] = as.POSIXct( mean( tmp[ direct, "end" ], na.rm=TRUE ) , origin= "1970-01-01" )
 
-  rownames( means) = "means"
-  colnames(means) = c("start", "end" )
-  means$start = as.POSIXct( means$start, origin = "1970-01-01", tz="ADT" )  # means only of direct methods
-  means$end = as.POSIXct( means$end, origin = "1970-01-01", tz="ADT" )
-
-
-  if ( all(is.na( tmp[ standard, c("start", "end")] ) ) ) {
+  if ( any (is.na( tmp[ standard, c("start", "end")] ) ) ) {
     # no manual standard .. use mean as the standard
-    O$bottom0 = means$start
-    O$bottom1 = means$end
-    O$bottom0.sd = sd(  tmp[ direct, "start" ], na.rm=TRUE ) # in secconds
-    O$bottom1.sd = sd(  tmp[ direct, "end" ], na.rm=TRUE )
+    O$bottom0 = tmp["means", "start"]
+    O$bottom1 = tmp["means", "end" ]
+    O$bottom0.sd = sd(  ( tmp[ direct, "start" ]), na.rm=TRUE ) # in secconds
+    O$bottom1.sd = sd(  ( tmp[ direct, "end" ]), na.rm=TRUE )
     O$bottom0.n = length( which( is.finite( tmp[ direct, "start" ] )) )
     O$bottom1.n = length( which( is.finite( tmp[ direct, "end" ] )) )
     O$bottom.diff = O$bottom1 - O$bottom0
@@ -269,23 +263,22 @@
     O$bottom1.n = -1
     O$bottom.diff = O$bottom1 - O$bottom0
   }
- 
-  tmp = rbind( tmp, means)
+
   tmp$diff = difftime( tmp$end, tmp$start, units="secs" )
   tmp$start.bias =  difftime( tmp$start,  O$bottom0, units="secs" )
   tmp$end.bias   = difftime( tmp$end,  O$bottom1, units="secs" )
-
 
   O$summary = tmp
 
   # finalised data which have been filtered 
   fin.all = which( x$timestamp > O$bottom0 & x$timestamp < O$bottom1 )  
-  fin.good = intersect( fin.all, which(is.finite( x$good) ) )
+  if (length( fin.all ) == 0 ) fin.all = min( which( O$good)) : max( which( O$good) )
+  fin.good = intersect( fin.all, which( O$good)  )
   fin0 = min( fin.all, na.rm=TRUE)
   fin1 = max( fin.all, na.rm=TRUE)
 
   O$depth.mean = mean( x$depth[ fin.good ] )
-  O$depth.sd = sd(  x$depth[ fin.good ] )
+  O$depth.sd = sd( x$depth[ fin.good ] )
   O$depth.n = length( fin.good )
   O$depth.n.bad = length( fin.all) - O$depth.n
   O$depth.smoothed.mean =  mean( x$depth.smoothed[ fin0:fin1 ] )
@@ -295,7 +288,7 @@
   O$depth.smoothed = x$depth.smoothed
   O$ts = x$ts
   O$timestamp = x$timestamp
-  O$signal2noise = O$depth.n / length(fin.all )  # not really signal to noise but rather  % informations 
+  O$signal2noise = O$depth.n / length( fin.all )  # not really signal to noise but rather  % informations 
 
   O$bottom.contact = rep( FALSE, nrow(x) )
   O$bottom.contact[ fin.all ] = TRUE
@@ -312,8 +305,8 @@
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
   
   #x11(); plot( slopes ~ ts, x2 )
-  lines( depth.smoothed ~ ts, x2, col="brown" )
-  points( depth0~ts, x[!O$good,], col="red", cex=0.7 )  
+  lines( depth.smoothed ~ ts, x, col="brown" )
+  # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
   print( O$summary)
 
   O$good = NULL

@@ -26,8 +26,8 @@ modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
   for ( Zub in Z.peak:length(Zh$counts) ) if ( Zh$counts[ Zub ] < Zh.threshold ) break() # left
 
   # adjust locations
-  Zlb = Zlb + 1 
-  Zub = Zub - 1
+  #Zlb = Zlb + 1 
+  #Zub = Zub - 1
 
   Z.mode.group.i = Zlb:(Zub+1) 
   Z.mode.group = range( Zh$breaks[ Z.mode.group.i ])
