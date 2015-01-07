@@ -1,5 +1,5 @@
 interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2" ) {
-  # simple interpoaltion methods
+  # simple interpolation methods
   # target.r2 == target prediction R^2
 
 
@@ -16,16 +16,6 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
   
   z$p= NA
   z$noise = FALSE
-
-  lmtest = function( p, y ){
-    out = NA
-    tlm = try( lm( p ~ y ), silent=TRUE) 
-    if ( !"try-error" %in% class(tlm) ) {
-      lsumm = summary( tlm )
-      out = lsumm$r.squared 
-    }
-    return(out)
-  }
    
   if (method =="sequential.linear") { 
     # check adjacent values and reject if differences are greater than a given range of quantiles (95%)
@@ -62,7 +52,7 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
       loess.mod = try( loess( y ~ x, data=z, span=sp, control=loess.control(surface="direct") ), silent=TRUE )
       if ( "try-error" %in% class(loess.mod) ) next()
       z$p = predict( loess.mod, newdata=z ) 
-      rsq = lmtest( z$p, z$y )
+      rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
       if (!is.na(rsq)){
         if (rsq > target.r2 ) break()
       }
@@ -73,28 +63,30 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
   if (method == "inla") {
     require(INLA)
     nn = diff( z$x)
-    dd = abs(diff( range( nn[abs(nn)>0], na.rm=TRUE )) )
+    dd = median( nn[abs(nn)>0], na.rm=TRUE )
     z$xiid = z$x = jitter( z$x, amount=dd / 100 ) # add noise as inla seems unhappy with duplicates in x?
     rsq = 0
     nw = length( which(is.finite( z$y)))
     nw0 = nw + 1
     while ( nw != nw0 ) {
-      v = inla( y ~ f(xiid, model="iid") + f(x, model=inla.model ), data=z )
-      z$p = v$summary.random$x[["mean"]] 
-      z$p = z$p + mean(z$y-z$p, na.rm=TRUE)
-      rsq = lmtest( z$p, z$y )
-      if (!is.na(rsq)){
-        if (rsq > target.r2) break()
+      v = try( inla( y ~ f(xiid, model="iid") + f(x, model=inla.model, diagonal=.001 ), data=z, control.inla=list(h=0.02) ), silent=TRUE )
+      if (!( "try-error" %in% class(v) ) ) {
+        z$p = v$summary.random$x[["mean"]] 
+        z$p = z$p + mean(z$y-z$p, na.rm=TRUE)
+        rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
+        if (!is.na(rsq)){
+          if (rsq > target.r2) break()
+        }
+        # drop a few extreme data points and redo
+        iid = v$summary.random$xiid[["mean"]]
+        qiid = quantile( iid, probs=probs, na.rm=TRUE )
+        i = which( iid > qiid[2] | iid < qiid[1] ) 
+        if (length( i) > 0 ) {
+          z$y[i] = z$p[i]
+        } 
+        nw0 = nw
+        nw = length( which(is.finite( z$y))) # to check for convergence
       }
-      # drop a few extreme data points and redo
-      iid = v$summary.random$xiid[["mean"]]
-      qiid = quantile( iid, probs=probs, na.rm=TRUE )
-      i = which( iid > qiid[2] | iid < qiid[1] ) 
-      if (length( i) > 0 ) {
-        z$y[i] = z$p[i]
-      } 
-      nw0 = nw
-      nw = length( which(is.finite( z$y))) # to check for convergence 
     }
   }
  
@@ -113,16 +105,27 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
   }
 
   if (method=="smooth.spline") {
-    # similar to inla .. duplicated x is problematic for smooth.spline ... add small noise   
+    # similar to inla .. duplicated x is problematic for smooth.spline ... add small noise  as are not finite values  
+      oo = which( !is.finite( z$y ))
+      if ( length(oo) > 0 ) {
+        bb = approx( x=z$x[-oo], y=z$y[-oo], xout=z$x )
+        z$y[oo] = bb$y[oo]
+      }
     nn = diff( z$x)
-    dd = abs(diff( range( nn[abs(nn)>0], na.rm=TRUE )) )
-    z$x = jitter( z$x, amount=dd / 100 ) # add noise as inla seems unhappy with duplicates in x?
+    dd = median( nn[abs(nn)>0], na.rm=TRUE )
+    z$x = jitter( z$x, amount=dd / 20) # add noise as inla seems unhappy with duplicates in x?
     rsq = 0
     nw = length( which(is.finite( z$y)))
     nw0 = nw + 1
     while ( nw != nw0 ) {
-      z$p = smooth.spline( x=z$x, y=z$y, keep.data=FALSE)$y
-      rsq = lmtest( z$p, z$y )
+      uu = smooth.spline( x=z$x, y=z$y, keep.data=FALSE, control.spar=list(tol=dd / 20) )
+      if ( length(uu$x) != nrow(z)  ) {
+        vv = approx( x=uu$x, y=uu$y, xout=z$x ) 
+        z$p = vv$y
+      } else {
+        z$p = uu$y 
+      }
+      rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
       if (!is.na(rsq)){
         if (rsq > target.r2) break()
       }
