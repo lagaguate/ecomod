@@ -331,11 +331,12 @@
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
   
-  #x11(); plot( slopes ~ ts, x2 )
-  lines( depth.smoothed ~ ts, x, col="brown" )
-  # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
+  if (plot.data) {
+    #x11(); plot( slopes ~ ts, x2 )
+    lines( depth.smoothed ~ ts, x, col="brown" )
+    # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
+  }
   print( O$summary)
-
   O$good = NULL
   
   return( O )
