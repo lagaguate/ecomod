@@ -28,6 +28,7 @@
   O$linear.method = c(NA, NA)
   O$smooth.method = c(NA, NA)
   O$modal.method = c(NA, NA)
+  O$intersect.method = c(NA, NA) 
   O$manual.method = c(NA , NA)
   O$summary = NA
   O$res = data.frame (cbind(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA ) )
@@ -178,7 +179,7 @@
   ## ---------------------------- 
   ## Intersect method: looking at the intersection of a perpendicular line onto the trajectory of the profile
 
- # O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth.smoothed", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
+  O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
 
       if ( all(is.finite(O$intersect.method) ) ) {
         O$intersect.method.indices = which( x$timestamp >= O$intersect.method[1] &  x$timestamp <= O$intersect.method[2] ) # x correct

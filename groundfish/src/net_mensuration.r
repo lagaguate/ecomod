@@ -75,8 +75,13 @@ allids
     
     # Run for one set
     # id = "NED2010027.225" fail but plots
-    id = "NED2011025.169"
     id =  "NED2009027.108"
+    id =  "NED2011002.74"
+    id = "NED2010027.189"
+    id = "TEM2008830.141"
+    id = "TEL2007745.23" 
+    id = "TEL2004530.16"
+    
     mm = master[ which(master$id==id),]
     
     # to load/save
@@ -86,7 +91,7 @@ allids
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact(id, mm, depthproportion=0.5, tdif.min=15, tdif.max=45, eps.depth=1, sd.multiplier=seq( 3, 1, by=-0.1),smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
+      bc = bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=3, sd.multiplier=seq( 3, 1, by=-0.1),smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
     
            
 max(bc$filtered.data$depth, na.rm=TRUE)
