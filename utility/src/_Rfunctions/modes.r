@@ -1,6 +1,6 @@
 
 modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
-  
+  # find the largest mode 
   debug = FALSE
   if (debug) {
     # construct something that looks like a profile 
@@ -15,19 +15,21 @@ modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
   
   # simple determination from histogram
   N = length(Z) 
-  nb = trunc(N/5)
-  Zh = hist( Z, breaks=nb, plot =FALSE)
+  nb = trunc(N/4)
+  Zh = hist( Z, breaks=min(100, nb), plot =FALSE)
+  Zh.max = max( Zh$counts )
   Zh.min = min( Zh$counts[ Zh$counts>0 ] )
-  Zh.threshold = density.factor * Zh.min  # heuristically density.factor=5 seems to work well ... ~ chi-squared argument for  nonrandom frequencies
+  Zh.rare.data = Zh$counts[ Zh$counts > 0 & Zh$counts < median(Zh$counts) ]
+  Zh.med = median( Zh.rare.data )  ## "random" low number count ~ EPS ... density factor X EPS == significantly large number 
   
+  Zh.threshold = Zh.med * density.factor
+
   Z.peak = which.max(Zh$counts)
   Z.mode = Zh$mids[ Z.peak ]
   for ( Zlb in Z.peak:1) if ( Zh$counts[ Zlb ] < Zh.threshold ) break() # left
   for ( Zub in Z.peak:length(Zh$counts) ) if ( Zh$counts[ Zub ] < Zh.threshold ) break() # left
-
-  # adjust locations
-  #Zlb = Zlb + 1 
-  #Zub = Zub - 1
+  Zlb = max( 1, Zlb - 1, na.rm=TRUE )
+  Zub = min( length(Zh$counts), Zub + 1, na.rm=TRUE )
 
   Z.mode.group.i = Zlb:(Zub+1) 
   Z.mode.group = range( Zh$breaks[ Z.mode.group.i ])
@@ -36,7 +38,7 @@ modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
 
   # kernel density based approach
   require(numDeriv)
-  u = density(Z,  kernel="gaussian", bw=kernal.bw.method )
+  u = density(Z, kernel="gaussian", bw=kernal.bw.method )
   dZ  = numDeriv::grad( approxfun( u$x, u$y ), u$x, method="simple" )
   dZ[ length(dZ) ] = dZ[ length(dZ)-1 ]
   ddZ = numDeriv::grad( approxfun( u$x, dZ ), u$x, method="simple" )     
@@ -62,16 +64,32 @@ modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
   kd.sd = sd(Z[Z>=inflection.y[1] & Z<=inflection.y[2] ] )
 
   res = rbind(res,  cbind( mode=kd.mode, sd=kd.sd, lb=inflection.y[1], ub=inflection.y[2] ))
+ 
+
+  ## hybrid approach using smoothed kernal density rather than counts
+  u.max = max( u$y )
+  u.min = min( u$y[ u$y>0 ] )
+  u.rare.data = u$y[ u$y > 0 & u$y < median(u$y ) ]
+  u.med = median( u.rare.data  )  ## "random" low number ~ EPS ... density factor X EPS == significantly large number 
+   
+  u.threshold = u.med * density.factor
+
+  Zu.peak = which.max(u$y)
+  Zu.mode = u$x[ Zu.peak ]
+  for ( Zulb in Zu.peak:1) if ( u$y[ Zulb ] < u.threshold ) break() # left
+  for ( Zuub in Zu.peak:length(u$y) ) if ( u$y[ Zuub ] < u.threshold ) break() # left
+ 
+  Zulb = max( 1, Zulb - 1, na.rm=TRUE )
+  Zuub = min( length(u$y), Zuub + 1, na.rm=TRUE )
+
+
+  Zu.mode.group.i = Zulb:(Zuub+1) 
+  Zu.mode.group = range( u$x[ Zu.mode.group.i ])
+  Zu.mode.sd = sd( u$y[ Zulb:Zuub ] , na.rm=TRUE )  ## SD 
   
-  # use the simple histogram method to verify the kernel density method 
-  # and use the latter unless it deviates too much from the hsimple method
-  if ( abs(res[2,"mode"] - res[1, "mode"] > res[1, "sd"] ) ) {
-    optimal = 1  # too strong a difference ... assume simple is better
-  } else {
-    optimal = 2 # kerneldensity
-  }
-  res = rbind( res, res[optimal,] )
-  rownames(res) = c("simple", "kerneldensity", "optimal")
+  res = rbind( res, cbind( mode=Zu.mode, sd=Zu.mode.sd, lb=Zu.mode.group[1], ub=Zu.mode.group[2] ))
+
+  rownames(res) = c("simple", "kerneldensity", "hybrid")
 
   return(res)
 

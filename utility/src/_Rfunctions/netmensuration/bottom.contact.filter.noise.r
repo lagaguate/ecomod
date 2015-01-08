@@ -58,7 +58,7 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
   if (length(OinRange.indices.not)>0) good[ OinRange.indices.not ] = FALSE
 
   ## ------------------------------
-  #  filter data using some robust mthods that look for small-scaled noise and flag them
+  #  filter data using some robust methods that look for small-scaled noise and flag them
   
   x$depth[ !good] = NA
   x$depth.smoothed = x$depth

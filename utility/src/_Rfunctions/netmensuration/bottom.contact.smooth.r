@@ -9,13 +9,13 @@ bottom.contact.smooth = function( sm, tdif.min, tdif.max, target.r2=0.9, filter.
   N = nrow(sm)
 
   sm$dZ = grad( approxfun( sm$ts, sm$Z ), sm$ts, method="simple" )
-  sm$dZ[N] = sm$dZ[ N-1 ]    
+  ii = which( !is.finite( sm$dZ ) )
+  sm$dZ[ii] = sm$dZ[ min(ii)-1 ]    
   # last element(s) are NA's .. copy the next to last value into it
   # Too noisy to use 2nd derivative ///
   # sm$ddZ = grad( approxfun( sm$ts, sm$dZ ), sm$ts, method="simple" )
   # sm$ddZ[N] = sm$ddZ[ N-1 ]    
   
-  ii = which(is.na( sm$dZ) ) 
   sm$dZ.smoothed.spline = interpolate.xy.robust( sm[, c("ts", "dZ")], target.r2=target.r2, probs=filter.quants, method="smooth.spline" )
   sm$dZ.smoothed.loess  = interpolate.xy.robust( sm[, c("ts", "dZ")],  target.r2=target.r2, method="loess"  )
    
