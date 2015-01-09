@@ -1,5 +1,5 @@
 
-modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
+modes = function( Z, density.factor=5, kernal.bw.method="sj"  ) {
   # find the largest mode 
   debug = FALSE
   if (debug) {
@@ -19,7 +19,7 @@ modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
   Zh = hist( Z, breaks=min(100, nb), plot =FALSE)
   Zh.max = max( Zh$counts )
   Zh.min = min( Zh$counts[ Zh$counts>0 ] )
-  Zh.rare.data = Zh$counts[ Zh$counts > 0 & Zh$counts < median(Zh$counts) ]
+  Zh.rare.data = min(1, Zh$counts[ Zh$counts > 0 & Zh$counts < median(Zh$counts) ], na.rm=TRUE )
   Zh.med = median( Zh.rare.data )  ## "random" low number count ~ EPS ... density factor X EPS == significantly large number 
   
   Zh.threshold = Zh.med * density.factor
@@ -36,9 +36,17 @@ modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
   Z.mode.sd = sd( Z[ Zlb:Zub ] , na.rm=TRUE )  ## SD 
   res = data.frame( cbind( mode=Z.mode, sd=Z.mode.sd, lb=Z.mode.group[1], ub=Z.mode.group[2] ))
 
+
   # kernel density based approach
   require(numDeriv)
-  u = density(Z, kernel="gaussian", bw=kernal.bw.method )
+
+  u = try( density(Z, kernel="gaussian", bw=kernal.bw.method ) )
+  
+  if ("try-error" %in% class(u) )  {
+    rownames(res) = c("simple")
+    return(res)
+  }
+
   dZ  = numDeriv::grad( approxfun( u$x, u$y ), u$x, method="simple" )
   dZ[ length(dZ) ] = dZ[ length(dZ)-1 ]
   ddZ = numDeriv::grad( approxfun( u$x, dZ ), u$x, method="simple" )     
@@ -64,12 +72,12 @@ modes = function( Z, density.factor=5, kernal.bw.method="SJ-ste"  ) {
   kd.sd = sd(Z[Z>=inflection.y[1] & Z<=inflection.y[2] ] )
 
   res = rbind(res,  cbind( mode=kd.mode, sd=kd.sd, lb=inflection.y[1], ub=inflection.y[2] ))
- 
+
 
   ## hybrid approach using smoothed kernal density rather than counts
   u.max = max( u$y )
   u.min = min( u$y[ u$y>0 ] )
-  u.rare.data = u$y[ u$y > 0 & u$y < median(u$y ) ]
+  u.rare.data = min( 1/N,  u$y[ u$y > 0 & u$y < median(u$y ) ] , na.rm=TRUE )
   u.med = median( u.rare.data  )  ## "random" low number ~ EPS ... density factor X EPS == significantly large number 
    
   u.threshold = u.med * density.factor

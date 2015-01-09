@@ -167,7 +167,7 @@
           M = miniRAW[ Mi, ]
           
           M$timestamp = as.POSIXct( M$chron, tz="ADT" )
-          res = bottom.contact( id=id, x=M, settimestamp=rid$setChron[i], setdepth=rid$setZx[i], tdif.min=3, tdif.max=15 )
+          res = bottom.contact( id=id, x=M, settimestamp=rid$setChron[i], setdepth=rid$setZx[i], tdif.min=3, tdif.max=15, eps.depth=2 )
           miniStats = rbind(miniStats, cbind( minilog_uid=id, res$res ) )
         }
         
