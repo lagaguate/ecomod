@@ -117,8 +117,11 @@
   # Now that data is more or less clean ... 
   # create a variable with any linear trend in the depths removed as this can increase the precision of some of 
   # the following methods
-  
-  depthtrend.smoothed = lm( depth.smoothed ~ ts, data=x, weights=depth^2, na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
+  ib = range( which(O$good) )
+  ib.n = ib[2] - ib[1] # this is the length from variance gating ... trim 1/3 from left and right
+  ib.buf = trunc( ib.n / 5 )
+  ib.guess = ( ib[1] + ib.buf) : ( ib[2] - ib.buf )
+  depthtrend.smoothed = lm( depth.smoothed ~ ts, data=x[ib.guess,], na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
   x$depth.residual = x$depth.smoothed - predict( depthtrend.smoothed, newdata=x ) + median( x$depth.smoothed, na.rm=TRUE )
 
   
@@ -132,14 +135,13 @@
   sm0=x[aoi, ]  # used for methods that require only data from the area of interest 
 
 
-
   ##--------------------------------
   # Modal method: gating by looking for modal distribution and estimating sd of the modal group in the data 
   # first by removing small densities ( 1/(length(i)/nb)  ) and by varying the number of breaks in the histogram
   # until a target number of breaks, nbins with valid data are found
   # use the depth.residual as smoothed one has insufficient variation
 
-  O$modal.method = bottom.contact.modal( sm=sm0[, c("depth.residual", "timestamp", "ts" ) ], tdif.min=tdif.min, tdif.max=tdif.max, density.factor=5, kernal.bw.method="SJ-ste" ) 
+  O$modal.method = bottom.contact.modal( sm=sm0[, c("depth.residual", "timestamp", "ts" ) ], tdif.min=tdif.min, tdif.max=tdif.max, density.factor=5, kernal.bw.method="SJ" ) 
       
       if (all(is.finite( O$modal.method) ) ) {
         O$modal.method.indices = which( x$timestamp >= O$modal.method[1] &  x$timestamp <= O$modal.method[2] )
