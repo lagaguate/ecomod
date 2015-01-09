@@ -152,7 +152,7 @@
         rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
         rid = rid[ rid$yr== yr ,] 
-        
+         
         if (nrow(rid) == 0 ) next()
         
         for ( i in 1:nrow(rid)  ) {
@@ -167,7 +167,26 @@
           M = miniRAW[ Mi, ]
           
           M$timestamp = as.POSIXct( M$chron, tz="ADT" )
-          res = bottom.contact( id=id, x=M, settimestamp=rid$setChron[i], setdepth=rid$setZx[i], tdif.min=3, tdif.max=15, eps.depth=2 )
+          settimestamp= as.POSIXct( rid$setChron[i] , tz="ADT" )
+
+          res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
+              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=30, depthproportion=0.5 )
+
+          if (FALSE) {
+            # to visualize
+            res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
+              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=30, depthproportion=0.5, plot.data=TRUE )
+          }
+
+#          if (all (is.finite( res$smooth.method) ) ) {
+            ## --- NOTE modal seems to work best ... but 
+            # no single best method .. use the default which is the mean of all methods
+            ##  likely due to greater precision and data density relative to minilog
+#            res$res$t0 = res$smooth.method[1]
+#            res$res$t0 = res$smooth.method[2]
+#            res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
+#          }
+          
           miniStats = rbind(miniStats, cbind( minilog_uid=id, res$res ) )
         }
         

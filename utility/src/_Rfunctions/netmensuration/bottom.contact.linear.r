@@ -7,6 +7,8 @@ bottom.contact.linear = function( sm, left, right, tdif.min, tdif.max )  {
   # use only the subset with data for this step
   names( sm) = c("Z", "timestamp", "ts" ) # Z is used to abstract the variable name such that any variable can be passed
 
+  if ( any( !is.finite( c(left, right) ) ) ) return(res)
+
   # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
   N = nrow(sm)
   buf = 2
