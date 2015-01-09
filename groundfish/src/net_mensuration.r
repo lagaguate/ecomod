@@ -1,6 +1,6 @@
 
 
-RLibrary( "lubridate", "INLA", "numDeriv" )
+RLibrary("INLA", "numDeriv" )
 
 # this relies upon the gsinf table which is accessible from the groundfish functions
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 

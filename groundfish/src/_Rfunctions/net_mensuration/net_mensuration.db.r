@@ -322,7 +322,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     
     debug = FALSE
     if(debug) {
-      RLibrary( "lubridate", "INLA", "numDeriv" )
+      RLibrary( "INLA", "numDeriv" )
       loadfunctions( "groundfish" )
       load( "~/Downloads/m.data.RData" ) # local copy of master data .. modern time period
       master = modern.data

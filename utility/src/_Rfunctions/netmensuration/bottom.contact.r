@@ -2,7 +2,7 @@
         filter.quants=c(0.025, 0.975), sd.multiplier=seq( 2, 1, by=-0.1 ), 
         plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9) ) {
   
-  require(lubridate) 
+  #require(lubridate) 
   require( numDeriv ) 
 
   debug = FALSE
