@@ -12,7 +12,7 @@ find.ecomod.gis = function(
     polyname, 
     loc = project.directory("polygons","data"),
     ignorelist=c("archive", "retired"), 
-    acceptable.extensions = c( "dat", "csv", "xy", "shp" ),
+    acceptable.extensions = c( "dat", "csv", "xy", "shp","ll" ),
     returndata=FALSE ,
     return.one.match=T) {
 
