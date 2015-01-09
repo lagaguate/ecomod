@@ -15,8 +15,8 @@ modes = function( Z, density.factor=5, kernal.bw.method="sj"  ) {
   
   # simple determination from histogram
   N = length(Z) 
-  nb = trunc(N/4)
-  Zh = hist( Z, breaks=min(100, nb), plot =FALSE)
+  nb = min( 50, trunc(N/4) )
+  Zh = hist( Z, breaks=nb, plot =FALSE)
   Zh.max = max( Zh$counts )
   Zh.min = min( Zh$counts[ Zh$counts>0 ] )
   Zh.rare.data = min(1, Zh$counts[ Zh$counts > 0 & Zh$counts < median(Zh$counts) ], na.rm=TRUE )
@@ -28,8 +28,8 @@ modes = function( Z, density.factor=5, kernal.bw.method="sj"  ) {
   Z.mode = Zh$mids[ Z.peak ]
   for ( Zlb in Z.peak:1) if ( Zh$counts[ Zlb ] < Zh.threshold ) break() # left
   for ( Zub in Z.peak:length(Zh$counts) ) if ( Zh$counts[ Zub ] < Zh.threshold ) break() # left
-  Zlb = max( 1, Zlb - 1, na.rm=TRUE )
-  Zub = min( length(Zh$counts), Zub + 1, na.rm=TRUE )
+  Zlb = max( 1, Zlb , na.rm=TRUE )
+  Zub = min( length(Zh$counts), Zub, na.rm=TRUE )
 
   Z.mode.group.i = Zlb:(Zub+1) 
   Z.mode.group = range( Zh$breaks[ Z.mode.group.i ])
@@ -40,7 +40,7 @@ modes = function( Z, density.factor=5, kernal.bw.method="sj"  ) {
   # kernel density based approach
   require(numDeriv)
 
-  u = try( density(Z, kernel="gaussian", bw=kernal.bw.method ) )
+  u = try( density(Z, kernel="gaussian", bw=kernal.bw.method ) , silent = TRUE )
   
   if ("try-error" %in% class(u) )  {
     rownames(res) = c("simple")
