@@ -70,9 +70,7 @@ allids
 
   # Run for many sets
   for (id in allids){
-    test = which(modern.data$id==id)
-    mm = modern.data[test, ]
-    
+      
     # Run for one set
     # id = "NED2010027.225" fail but plots
     id =  "NED2009027.108"
@@ -81,8 +79,15 @@ allids
     id = "TEM2008830.141"
     id = "TEL2007745.23" 
     id = "TEL2004530.16"
-    
-    mm = master[ which(master$id==id),]
+      id = "TEL2004530.19
+          id = "NED2012002.60"
+          id = "NED2009027.49"
+          id = "NED2009027.82"
+          id = "TED2009027.161"
+          id = "TEL2005633.92"
+
+    mm = modern.data[ which(modern.data$id==id) , ]
+   # mm = master[ which(master$id==id),]
     
     # to load/save
     # fname = "mm.rdata"
@@ -91,7 +96,7 @@ allids
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=3, sd.multiplier=seq( 3, 1, by=-0.1),smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
+      bc = bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=3, sd.multiplier=3, depth.min=10, depth.range=30,  smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
     
            
 max(bc$filtered.data$depth, na.rm=TRUE)

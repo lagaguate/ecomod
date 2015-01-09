@@ -352,7 +352,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       # TEM2007685.34 -- 0.8979592 
       #
       res = bottom.contact ( id=id, master[ii,c("depth", "timestamp")], tdif.min=15, tdif.max=45,
-                            filter.quants=c(0.025, 0.975), sd.multiplier=seq( 3, 1, by=-0.1 ), 
+                            filter.quants=c(0.025, 0.975), sd.multiplier=3, 
                             plot.data=TRUE,  user.interaction=user.interaction )
       
       gsinf$spoint.datetime[gii] = res$bottom0 
