@@ -7,11 +7,14 @@ bottom.contact.linear = function( sm, left, right, tdif.min, tdif.max )  {
   # use only the subset with data for this step
   names( sm) = c("Z", "timestamp", "ts" ) # Z is used to abstract the variable name such that any variable can be passed
 
+  if ( any( !is.finite( c(left, right) ) ) ) return(res)
+
   # find the row numbers which corresponds to each part of the curve, decent, bottom and ascent
   N = nrow(sm)
-  bot = left:right  # blended estimate of fishing events
-  down = 1:left 
-  up =  right:N
+  buf = 2
+  bot = (left+buf):(right-buf)  # blended estimate of fishing events
+  down = 1:(left-buf) 
+  up =  (right+buf):N
 
   #  compute linear models for each section
   botlm2 = lm( Z ~ ts, sm[bot, ], na.action = "na.exclude")

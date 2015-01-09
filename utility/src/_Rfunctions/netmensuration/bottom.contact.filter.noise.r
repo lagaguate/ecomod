@@ -1,12 +1,13 @@
  
 bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1,  
-      smoothing = 0.9, filter.quants=c(0.025, 0.975), sd.multiplier=seq( 2, 1, by=-0.1 ) ) {
+      smoothing = 0.9, filter.quants=c(0.025, 0.975), sd.multiplier=3 ) {
 
   ##--------------------------------
   # First, a simple high pass filter to remove noisy data (very large extreme fluctuations)
   # Then, truncation of data based upon variance of central region to permit use of more fine-scale methods 
   # to determine anomlaous data
   OinRange = c(NA, NA)
+  OinRange.indices = NA
 
   fr = range( which(good) )
   aoi = fr[1]:fr[2]
@@ -23,19 +24,33 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
   # compute SD in the area of interest and compare with a lagged process to 
   # start from centre and move left and continue until sd of residuals begins to deviate sustantially
   # from centre to left 
-  
+ 
   aoi.range = range( which( good )  )
-  aoi.mid = trunc( mean( aoi.range ) ) # approximate midpoint
   aoi.min = aoi.range[1]
   aoi.max = aoi.range[2]
   aoi = aoi.min:aoi.max
-  
+
+  # determine approximate midpoint of the bottom track
+  depths.threshold = mean( x$depth[aoi], na.rm=TRUE ) ## some deep value to initiate search for modal depth
+  aoi.depths = x$depth[aoi]
+  depths = modes( aoi.depths [ which( aoi.depths > depths.threshold )]  )
+  oo = which( x$depth > depths["simple", "lb"] & x$depth < depths["simple", "ub"] )
+  if (length(oo)> 10 ) {
+    bot.range = range( oo) ## first pass (fast/rough) estimate of likely range of bottom indices
+    aoi.mid = trunc( mean( range( oo)) ) 
+  } else {
+    aoi.mid = trunc( mean( aoi.range ) ) # approximate midpoint
+  }
+
   aoi.sd = sd( x$depth[ aoi ], na.rm=TRUE )  ## SD 
   buffer = trunc(length(aoi)/10) # additional points to add beyond midpoint to seed initial SD estimates
   duration = 0 
   
-  for ( sm in sd.multiplier ) {
-    target.sd = aoi.sd * sm
+  target.sd = aoi.sd * sd.multiplier
+  Ndata0 = length(aoi)
+  Ndata = 0 
+  
+  while (Ndata < Ndata0 ) {
     for ( j0 in aoi.mid:aoi.min  ) {#  begin from centre to right 
       sdtest = sd(( x$depth[ (aoi.mid + buffer):j0]), na.rm=T)
       if ( is.na(sdtest) ) next()
@@ -51,11 +66,12 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
       OinRange = c( x$timestamp[j0], x$timestamp[j1] )
       OinRange.indices = which( x$timestamp >= OinRange[1] &  x$timestamp <= OinRange[2] )
       OinRange.indices.not = which( x$timestamp < OinRange[1] |  x$timestamp > OinRange[2] )
+      if (length(OinRange.indices.not)>0) good[ OinRange.indices.not ] = FALSE
       break()
     }  
+    Ndata = length(unique( c( aoi.mid:j1, j0:aoi.mid) ) )
   }
 
-  if (length(OinRange.indices.not)>0) good[ OinRange.indices.not ] = FALSE
 
   ## ------------------------------
   #  filter data using some robust methods that look for small-scaled noise and flag them

@@ -1,5 +1,5 @@
-  bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=1, 
-        filter.quants=c(0.025, 0.975), sd.multiplier=seq( 2, 1, by=-0.1 ), 
+  bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=2, 
+        filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=10, depth.range=30, 
         plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9) ) {
   
   #require(lubridate) 
@@ -14,7 +14,7 @@
     smoothing = 0.9
     eps.depth=1  # for noise filtering  .. ignore variations less than this threshold
     filter.quants=c(0.025, 0.975)
-    sd.multiplier=seq( 2, 1, by=-0.1 )
+    sd.multiplier=3
     settimestamp=NULL
     setdepth=NULL
     settimelimits=c(-5, 9)
@@ -28,6 +28,7 @@
   O$linear.method = c(NA, NA)
   O$smooth.method = c(NA, NA)
   O$modal.method = c(NA, NA)
+  O$intersect.method = c(NA, NA) 
   O$manual.method = c(NA , NA)
   O$summary = NA
   O$res = data.frame (cbind(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA ) )
@@ -38,22 +39,20 @@
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
-
-
-  ##--------------------------------
-  # basic depth gating 
-  O$good = bottom.contact.gating ( Z=x$depth, good=O$good)
-  x$depth[ !O$good ] = NA
-
+ 
   if (plot.data) {
-    ts.range = x$ts[range (which( O$good )) ]
-    depth.range = range(x$depth, na.rm=TRUE)
-    plot(depth~ts, x, ylim=c(depth.range[2],depth.range[1]), xlim=ts.range, pch=20, cex=0.1 )
+    drange = c( quantile( x$depth, 0.05, na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), pch=20, cex=0.1, col="lightgray" )
     legendtext = NULL
     legendcol = NULL
     legendpch = NULL
   }
 
+
+  ##--------------------------------
+  # basic depth gating 
+  O$good = bottom.contact.gating ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
+  x$depth[ !O$good ] = NA
 
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
@@ -72,7 +71,6 @@
     # to ensure tails are well defined
     # 5 min prior to settimestamp some data seem to have desynchronized times (drift?)
     # AND 9 MINUTES AFTER settimestamp (some are really this long)
-    settimestamp = as.POSIXct(settimestamp, tz="ADT")
     O$res$t0=settimestamp
     timelimits =  settimestamp + minutes( settimelimits )
     jj = which( x$timestamp > timelimits[1] & x$timestamp < timelimits[2] ) 
@@ -84,6 +82,12 @@
       O$good[ bad ] = FALSE
     }
   }
+
+    if (plot.data) {
+      mcol = "steelblue"
+      points( depth~ts, x[good,], pch=20, col=mcol, cex=0.2)
+    }
+
 
   res = NULL
   res = bottom.contact.filter.noise ( x, O$good, tdif.min, tdif.max, eps.depth=eps.depth,
@@ -116,8 +120,11 @@
   # Now that data is more or less clean ... 
   # create a variable with any linear trend in the depths removed as this can increase the precision of some of 
   # the following methods
-  
-  depthtrend.smoothed = lm( depth.smoothed ~ ts, data=x, weights=depth^2, na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
+  ib = range( which(O$good) )
+  ib.n = ib[2] - ib[1] # this is the length from variance gating ... trim 1/3 from left and right
+  ib.buf = trunc( ib.n / 5 )
+  ib.guess = ( ib[1] + ib.buf) : ( ib[2] - ib.buf )
+  depthtrend.smoothed = lm( depth.smoothed ~ ts, data=x[ib.guess,], na.action="na.omit")  # deeper weights have higher influence (reduce influence of tails )
   x$depth.residual = x$depth.smoothed - predict( depthtrend.smoothed, newdata=x ) + median( x$depth.smoothed, na.rm=TRUE )
 
   
@@ -131,14 +138,13 @@
   sm0=x[aoi, ]  # used for methods that require only data from the area of interest 
 
 
-
   ##--------------------------------
   # Modal method: gating by looking for modal distribution and estimating sd of the modal group in the data 
   # first by removing small densities ( 1/(length(i)/nb)  ) and by varying the number of breaks in the histogram
   # until a target number of breaks, nbins with valid data are found
   # use the depth.residual as smoothed one has insufficient variation
 
-  O$modal.method = bottom.contact.modal( sm=sm0[, c("depth.residual", "timestamp", "ts" ) ], tdif.min=tdif.min, tdif.max=tdif.max, density.factor=5, kernal.bw.method="SJ-ste" ) 
+  O$modal.method = bottom.contact.modal( sm=sm0[, c("depth.residual", "timestamp", "ts" ) ], tdif.min=tdif.min, tdif.max=tdif.max, density.factor=5, kernal.bw.method="SJ" ) 
       
       if (all(is.finite( O$modal.method) ) ) {
         O$modal.method.indices = which( x$timestamp >= O$modal.method[1] &  x$timestamp <= O$modal.method[2] )
@@ -178,7 +184,7 @@
   ## ---------------------------- 
   ## Intersect method: looking at the intersection of a perpendicular line onto the trajectory of the profile
 
- # O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth.smoothed", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
+  O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
 
       if ( all(is.finite(O$intersect.method) ) ) {
         O$intersect.method.indices = which( x$timestamp >= O$intersect.method[1] &  x$timestamp <= O$intersect.method[2] ) # x correct
@@ -214,7 +220,6 @@
     left = trunc(median(res[,1], na.rm=TRUE)) - min(aoi) + 1
     right = trunc( median( res[,2], na.rm=TRUE)) - min(aoi) + 1
 
-    
     O$linear.method = bottom.contact.linear( sm=sm0[, c("depth.residual", "timestamp", "ts" )], 
       left=left, right=right, tdif.min=tdif.min, tdif.max=tdif.max ) 
  
@@ -249,7 +254,7 @@
   }
   
   if (plot.data) {
-    legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
+    if ( !( is.null( legendtext)))  legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
   }
   
   if ( user.interaction  ) { 
@@ -330,11 +335,12 @@
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
   
-  #x11(); plot( slopes ~ ts, x2 )
-  lines( depth.smoothed ~ ts, x, col="brown" )
-  # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
+  if (plot.data) {
+    #x11(); plot( slopes ~ ts, x2 )
+    lines( depth.smoothed ~ ts, x, col="brown" )
+    # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
+  }
   print( O$summary)
-
   O$good = NULL
   
   return( O )

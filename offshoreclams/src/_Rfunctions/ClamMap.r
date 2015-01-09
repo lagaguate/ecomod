@@ -20,8 +20,7 @@ wd<-file.path(project.directory('polygons'),'data')
   if(area=='WSS')		{ ylim=c(41, 44); 	 xlim=c(-67,    -64)		}
   if(area=='BANQ')  { ylim=c(44, 45.25); xlim=c(-60.083, -57) }
  #MMM Sept 2014 - modified path for ecomod  
- # if(res=='high')land <- read.table("common/data/spatial/bathymetry/martimesHIGH.ll", header=T)
- if(res=='high')land <- read.table(file.path(wd,"martimesHIGH.ll"), header=T)
+ if(res=='high')land <- read.table(find.ecomod.gis("martimesHIGH.ll"), header=T)
   attr(land, "projection") <- "LL"
   
   plotMap(land, col='wheat', xlim=xlim, ylim=ylim)
@@ -74,13 +73,13 @@ wd<-file.path(project.directory('polygons'),'data')
   if(isobath[1]=='quick'){
     bathcol <- rep(bathcol, length = 4)
     if (as.numeric(xlim[2]) < -50.){        ## Scotian Shelf
-      d50.ll<- read.table(file.path(wd,"d50.ll"), header=T)
+      d50.ll<- read.table(find.ecomod.gis("d50.ll"), header=T)
       d50.ll<-na.omit(d50.ll)
-      d100.ll<- read.table(file.path(wd,"d100.ll"), header=T)
+      d100.ll<- read.table(find.ecomod.gis("d100.ll"), header=T)
       d100.ll<-na.omit(d100.ll)
-      d150.ll<- read.table(file.path(wd,"d150.ll"), header=T)
+      d150.ll<- read.table(find.ecomod.gis("d150.ll"), header=T)
       d150.ll<-na.omit(d150.ll)
-      d200.ll<- read.table(file.path(wd,"d200.ll"), header=T)
+      d200.ll<- read.table(find.ecomod.gis("d200.ll"), header=T)
       d200.ll<-na.omit(d200.ll)
       
       
@@ -95,11 +94,11 @@ wd<-file.path(project.directory('polygons'),'data')
       addLines(d150.ll, col=bathcol[3])
       addLines(d200.ll, col=bathcol[4])
     }else{     
-      chs50.ll<- read.table(file.path(wd,"CHS50.ll"), header=T)
+      chs50.ll<- read.table(find.ecomod.gis("CHS50.ll"), header=T)
       chs50.ll<-na.omit(chs50.ll)
-      chs100.ll<- read.table(file.path(wd,"CHS100.ll"), header=T)
+      chs100.ll<- read.table(find.ecomod.gis("CHS100.ll"), header=T)
       chs100.ll<-na.omit(chs100.ll)
-      chs200.ll<- read.table(file.path(wd,"CHS200.ll"), header=T)
+      chs200.ll<- read.table(find.ecomod.gis("CHS200.ll"), header=T)
       chs200.ll<-na.omit(chs200.ll)
       
       attr(chs50.ll,"projection") <- "LL"
@@ -116,7 +115,7 @@ wd<-file.path(project.directory('polygons'),'data')
   if(!is.null(nafo)){
     
     
-    nafo.xy <- read.csv(file.path(wd,"nafo.csv"))
+    nafo.xy <- read.csv(find.ecomod.gis("nafo.csv"), header=T)
     if(nafo=='all')nafo <- unique(nafo.xy$label)
     nafo.dat <- calcCentroid(subset(nafo.xy, label%in%nafo))
     nafo.dat$label <- unique(nafo.xy$label)
@@ -128,7 +127,7 @@ wd<-file.path(project.directory('polygons'),'data')
   # Bank Names
   if(banks){
     
-    bankNames.xy <- read.csv(file.path(wd,"bankNames.csv"))
+    bankNames.xy <- read.csv(find.ecomod.gis("bankNames.csv"))
     addLabels(bankNames.xy, col=rgb(0.5,0.5,0.5,0.85), cex=2)
   }
   
