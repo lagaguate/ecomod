@@ -11,7 +11,7 @@ bottom.contact.gating = function( Z, good, depth.min=10, depth.range=30, depthpr
   i = which(Z< depth.min )
   if (length(i) > 0) good[i] = FALSE
 
-  # iz = 1:length(Z)
+  # iz = x$ts
   # plot( Z~iz, pch=20) 
   # points( Z[good] ~ iz[good] , pch=20, col="blue" )
 
@@ -37,7 +37,6 @@ bottom.contact.gating = function( Z, good, depth.min=10, depth.range=30, depthpr
   if (length(i) > 0) good[i] = FALSE
   # points( Z[good] ~ iz[good] , pch=20, col="cyan" )
 
- 
   return(good)
 
 }

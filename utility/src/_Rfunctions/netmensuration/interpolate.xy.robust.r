@@ -20,28 +20,24 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
   if (method =="sequential.linear") { 
     # check adjacent values and reject if differences are greater than a given range of quantiles (95%)
       lg = 1 # lag 
-      nw0 = 2  
-      nw = nw0-1  # staring with a dummy value
-      while ( nw > 0 ) {
+      nw0 = length( which(z$noise) )
+      nw = nw0 + 1  # staring with a dummy value
+      while ( nw != nw0 ) {
         z$ydiff = c( diff( z$y, lag=lg ) , rep(NA,lg ))  # padding with NA's 
         yquants = quantile( z$ydiff, probs=probs, na.rm=T) 
         i = which( z$ydiff < yquants[1] | z$ydiff > yquants[2]) 
         suspect.noise =  c(i, i+lg )
-        noise = suspect.noise[ duplicated(suspect.noise, incomparables=c(1, nz, NA)) ] # exclude terminal points
+        n = suspect.noise[ duplicated(suspect.noise, incomparables=c(1, nz, NA)) ] # exclude terminal points
+        z$noise[ n ] = TRUE
+        z$y[n] = NA  
+        ii = which(is.na( z$y))
+        if (length(ii)>0) z$y[ii ] = approx( x=z$x, y=z$y, xout=z$x[ii], method="linear", rule=2 )$y
         nw0 = nw
-        nw = length( noise )
-        if (nw0==nw) break()  # converged upon a solution
-        if (nw >0 ) {
-          # temporarily interpolate data to permit recursion
-          z$noise[noise] = TRUE
-          z$y[noise ] = NA  
-          ii = which(is.na( z$y))
-          if (length(ii)>0) z$y[ii ] = approx( x=z$x, y=z$y, xout=z$x[ii], method="linear", rule=2 )$y
-        } 
+        nw = length( which(z$noise ) )
       }
     z$p[ !z$noise ] = z$y[ !z$noise ]
-    z$y[noise] = NA
-    z$p[noise] = approx( x=z$x, y=z$y, xout=z$x[noise], method="linear", rule=2 )$y
+    z$y[n] = NA
+    z$p[n] = approx( x=z$x, y=z$y, xout=z$x[n], method="linear", rule=2 )$y
   }
 
 
