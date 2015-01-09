@@ -152,9 +152,14 @@
           M = sbRAW[ Mi, ]
           
           M$timestamp = as.POSIXct( M$chron, tz="ADT" )
-          res = bottom.contact( id=id, x=M , settimestamp=rid$setChron[i], setdepth=rid$setZx[i], tdif.min=3, tdif.max=15 )
+          res = bottom.contact( id=id, x=M , settimestamp=rid$setChron[i], setdepth=rid$setZx[i], tdif.min=3, tdif.max=15, eps.depth=2 )
+          
+## --- NOTE ... modal(2) and smooth (1)  seem to work best ... focus upon these methods with seabird data
+          
           sbStats = rbind( sbStats, cbind( seabird_uid=id, res$res ) )
         }
+
+
         sbStats$seabird_uid =  as.character(sbStats$seabird_uid)
         sbdt = sbStats$dt
         sbStats$dt = NA

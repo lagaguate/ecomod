@@ -13,7 +13,7 @@ bottom.contact.gating = function( Z, good, depth.min=10, depth.range=30, depthpr
 
   ## -----
   mediandepth = median( Z[ good ], na.rm=TRUE)
-  Zh = hist( Z[ good ],breaks=trunc(length(good)/4), plot =FALSE)
+  Zh = hist( Z[ good ], breaks=trunc(length(good)/3), plot =FALSE)
   modedepth = Zh$mids[ which.max( Zh$counts ) ]
   depth.bottom = max( mediandepth, modedepth, na.rm=TRUE)
 
