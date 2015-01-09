@@ -4,7 +4,8 @@
       
     minilog.dir = project.directory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
-   
+    years.with.sets.combined = 2014 #the years where minilog not downloaded after each tow
+
     if (!is.null(Y)) {
       iY = which( Y>=1999 )  # no historical data prior to 1999
       if (length(iY)==0) return ("No data for specified years")
@@ -61,9 +62,16 @@
         backups = dirlist[ oo ]
         dirlist = dirlist[-oo]
       }
+    #  ii = NULL
+    #  for(y in years.sets.combined) {
+    #      io = grep(y,dirlist)
+    #      ii = c(ii,io)
+    #      }
+
 
       nfiles = length(dirlist)
       filelist = matrix( NA, ncol=3, nrow=nfiles) 
+     
       for (f in 1:nfiles) {
         yr = minilogDate( fnMini=dirlist[f] ) 
         if (is.null(yr) ) next()
@@ -85,7 +93,8 @@
         metadata = NULL
 
         for (f in 1:length(fs)) {
-          j = load.minilog.rawdata( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
+          if(!yr %in% years.with.sets.combined) j = load.minilog.rawdata( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
+          if(yr %in% years.with.sets.combined) j = load.minilog.rawdata.one.file.per.day( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
           if (is.null(j)) next() 
           metadata = rbind( metadata, j$metadata)
           basedata = rbind( basedata, j$basedata)
