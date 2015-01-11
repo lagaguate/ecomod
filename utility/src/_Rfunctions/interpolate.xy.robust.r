@@ -1,6 +1,17 @@
-interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2" ) {
+interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
   # simple interpolation methods
   # target.r2 == target prediction R^2
+
+  if (FALSE) {
+    x=seq(-5,5,by=0.1)
+    y=sin(x) + runif(length(x))^2
+    xy = data.frame( x=x, y=y )
+    target.r2=0.9
+    probs=c(0.025, 0.975)
+    loess.spans=seq( 0.2, 0.01, by=-0.01 )
+    inla.model="rw2"
+    smoothing.kernel=kernel( "modified.daniell", c(2,1)) 
+  }
 
 
   if (ncol(xy) ==1 ) {
@@ -41,7 +52,6 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
   }
 
 
-
   if (method == "loess" ) {
     for( sp in loess.spans ) {
       # ID a good span where loess solution ~ real data
@@ -65,7 +75,7 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
     nw = length( which(is.finite( z$y)))
     nw0 = nw + 1
     while ( nw != nw0 ) {
-      v = try( inla( y ~ f(xiid, model="iid") + f(x, model=inla.model, diagonal=.01 ), data=z, control.inla=list(h=0.05) ), silent=TRUE )
+      v = try( inla( y ~ f(xiid, model="iid", diagonal=0.01) + f(x, model=inla.model, diagonal=.01 ), data=z, control.inla=list(h=0.01) ), silent=TRUE )
       if (!( "try-error" %in% class(v) ) ) {
         z$p = v$summary.random$x[["mean"]] 
         z$p = z$p + mean(z$y-z$p, na.rm=TRUE)
@@ -88,7 +98,39 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
  
 
   if (method=="kernel.density") {
-  
+    # default method is kernel( "modified.daniell", c(2,1)), 
+    # a 2X smoothing kernel: 2 adjacent values and then 1 adjacent on the smoothed series .. i.e. a high-pass filter
+    nd = length(smoothing.kernel$coef) - 1 # data points will be trimmed from tails so need to recenter:
+    
+    # test in case x increments are not uniform
+    vv = unique( diff( z$x ) )
+    xr = min(vv[vv>0])  
+    uu = unique( round( vv, abs(log10(xr))))
+    if (length(uu) > 1 ) {
+      # interpolate missing/skipped data before smoothing
+      ifunc = approxfun( x= z$x, y=z$y, method="linear", rule=2 )
+      r0 = range( z$x, na.rm=TRUE )
+      fx = seq( r0[1], r0[2], by= min(u) ) 
+      fy = ifunc( fx)
+    } else if (length(uu) ==1 ) {
+      fx = z$x
+      fy = z$y
+    }
+    fn = length( fx)
+    si = (nd+1):(fn-nd)
+    fp = rep( NA, fn)
+    fp[si] = kernapply( as.vector(z$y), smoothing.kernel )
+    pfunc = approxfun( x=fx, y=fp, method="linear", rule=2)
+    z$p = pfunc( z$x)
+    # plot( p ~ x, z, type="l" )
+
+    # constrain range of predicted data to the input data range
+    TR =  quantile( z$y, probs=probs, na.rm=TRUE  )
+    toolow = which( z$p < TR[1] )
+    if ( length(toolow) > 0 )  z$p[toolow] = TR[1]
+    toohigh = which( z$p > TR[2] )
+    if ( length(toohigh) > 0 ) z$p[toohigh] = TR[2]
+    # lines( y ~ x, z, col="green" )
   }
  
   if (method=="tukey" ) {
@@ -97,7 +139,9 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
 
 
   if (method=="gam") {
-  
+    require(mgcv)
+    gmod = gam( y ~ s(x) , data=z)  
+    z$p = predict( gmod, z, type="response" )
   }
 
   if (method=="smooth.spline") {
