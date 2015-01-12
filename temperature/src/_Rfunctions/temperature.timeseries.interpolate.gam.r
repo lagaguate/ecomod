@@ -27,8 +27,6 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
 
   mf = formula(mf)
   
-  out = NULL
-  
   for ( dm in p$dist.km ) { 
       drange = c(-1,1) * dm
       plon0 = g$plon + drange
@@ -83,12 +81,16 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
         
         if ( ! "try-error" %in% class(tsmodel) ) {
           out = try( predict( tsmodel, newdata=z, type="response", se.fit=T ) ) 
-          if ( ! "try-error" %in% class( out ) ) break()  # candidate predictions found exit inner loop (dm)
+          if ( ! "try-error" %in% class( out ) ) {
+            z$fit = out$fit
+            z$se = out$se.fit
+            break()  # candidate predictions found exit inner loop (dm)
+          }
         }
       }
     } # end for dm loop						
  
-    return(out)
+    return(z)
 
 }
 
