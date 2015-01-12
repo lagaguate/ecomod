@@ -354,15 +354,20 @@
       dir.create( loc.gridded, recursive=T, showWarnings=F )
       
       if (DS == "bottom.gridded.all" ) {
-        fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
-        O = NULL
         if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
-        for (y in yr) {
-          print (y) 
-          On = hydro.db(p=p, DS="bottom.gridded", yr=y) 
-					if ( is.null( On) ) next()
-					O = rbind( O, On )
+        O = NULL
+        fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
+        if (file.exists(fn)) { 
+          load (fn) 
+        } else {
+          for (y in p$tyears ) {
+            On = hydro.db(p=p, DS="bottom.gridded", yr=y) 
+            if ( is.null( On) ) next()
+            O = rbind( O, On )
+          }
+          save( O, file=fn, compress=TRUE )
         }
+        O = O[ which( O$yr %in% yr) , ]
         return(O)
       }
 

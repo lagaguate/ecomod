@@ -1,5 +1,5 @@
  
-temperature.timeseries.interpolate.gam = function(p, g, z ) {
+temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
 
   # harmonic method explanation:
   # old method use 1 harmonic ... forcing sinusoid as a seasonal component
@@ -26,7 +26,10 @@ temperature.timeseries.interpolate.gam = function(p, g, z ) {
   )
 
   mf = formula(mf)
-    for ( dm in p$dist.km ) { 
+  
+  out = NULL
+  
+  for ( dm in p$dist.km ) { 
       drange = c(-1,1) * dm
       plon0 = g$plon + drange
       plat0 = g$plat + drange
@@ -36,7 +39,7 @@ temperature.timeseries.interpolate.gam = function(p, g, z ) {
         x = B[i,] # faster to reduce the size of B here
         # remove potentially noisy/erroneous data --- they are highly influential when there is little data 
         xt = quantile( x$t, probs=c(0.005, 0.995) )
-        xi = which( x$t >= bt[1] & x$t <= bt[2] ) 
+        xi = which( x$t >= xt[1] & x$t <= xt[2] ) 
         
         if (length(xi) < p$nMin.tbot ) next()
         x = x[xi, ] 
