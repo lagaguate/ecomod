@@ -85,7 +85,7 @@
 
     if (plot.data) {
       mcol = "steelblue"
-      points( depth~ts, x[good,], pch=20, col=mcol, cex=0.2)
+      points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
     }
 
 
