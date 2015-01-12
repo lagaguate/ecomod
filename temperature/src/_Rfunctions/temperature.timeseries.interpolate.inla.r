@@ -1,27 +1,30 @@
  
-temperature.timeseries.interpolate.inla = function(p, g, z ) {
+temperature.timeseries.interpolate.inla = function(p, B, g, z ) {
 
+#    ----  not finished .. 
+  
   # clean data first
   mf = " tC ~ 0 + b0
           + f( z, model='rw1')
           + f( yr, model='ar1', param=c(1,0.0001))
           + f( pryr, model='ar1', cyclic=TRUE, param=c(1,0.0001) ) "
-
   
-    R <- try( inla( mf, family='gaussian', data=t0, 
+
+
+    R <- try( inla( mf, family='gaussian', data=z, 
         control.compute=list(dic=TRUE),
         control.predictor=list( compute=TRUE),
         verbose=TRUE
     ) )
  
-    ----  not finished .. 
 
  
     summary(R)
     plot(R)
     # plot( t ~ ti, t0 )
+    
+    dm = 2 # km ... ie 5km X 5km  =25 km^2 total 
 
-    for ( dm in p$dist.km ) { 
       drange = c(-1,1) * dm
       plon0 = g$plon + drange
       plat0 = g$plat + drange
@@ -31,7 +34,7 @@ temperature.timeseries.interpolate.inla = function(p, g, z ) {
         x = B[i,] # faster to reduce the size of B here
         # remove potentially noisy/erroneous data --- they are highly influential when there is little data 
         xt = quantile( x$t, probs=c(0.005, 0.995) )
-        xi = which( x$t >= bt[1] & x$t <= bt[2] ) 
+        xi = which( x$t >= xt[1] & x$t <= xt[2] ) 
         
         if (length(xi) < p$nMin.tbot ) next()
         x = x[xi, ] 
@@ -78,7 +81,6 @@ temperature.timeseries.interpolate.inla = function(p, g, z ) {
           if ( ! "try-error" %in% class( out ) ) break()  # candidate predictions found exit inner loop (dm)
         }
       }
-    } # end for dm loop						
  
     return(out)
 
