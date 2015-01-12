@@ -162,23 +162,35 @@
             res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
               tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=25, depthproportion=0.6, plot.data=TRUE )
           }
-
+print(id)
           if (all (is.finite( res$smooth.method) ) ) {
             ## --- NOTE smooth (1)  seem to work best ... focus upon these methods with seabird data ... 
             ##  likely due to greater precision and data density relative to minilog
             res$res$t0 = res$smooth.method[1]
             res$res$t0 = res$smooth.method[2]
             res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
+          } else if(any(is.na(res$res))) {
+               ir = which(is.na(res$res))
+              res$res[ir] <- NA
+            } else if (all (!is.finite( res$smooth.method) ) & all(res$res[,c('t0','t1','dt')]>0) ) {
+            ## --- NOTE smooth (1)  seem to work best ... focus upon these methods with seabird data ... 
+            ##  likely due to greater precision and data density relative to minilog
+            res$res$t0 = as.POSIXct(res$res$t0,origin='1970-01-01')
+            res$res$t1 = as.POSIXct(res$res$t1,origin='1970-01-01')
+            res$res$dt = res$res$t1 -  res$res$t0
+            res$res$t1 = as.numeric(res$res$t1)
           }
+
           sbStats = rbind( sbStats, cbind( seabird_uid=id, res$res ) )
         }
 
         sbStats$seabird_uid =  as.character(sbStats$seabird_uid)
 
         sbdt = sbStats$dt
-        sbStats$dt = NA
-        i = which(!is.na( sbdt ) )
-        if (length(i) >0 ) sbStats$dt[i] = times( sbdt[i] )
+        #sbStats$dt = NA
+        #i = which(!is.na( sbdt ) )
+
+        #if (length(i) >0 ) sbStats$dt[i] = times( sbdt[i] ) turned off to see if it matter AMC
 
         save( sbStats, file=fn, compress=TRUE) 
 

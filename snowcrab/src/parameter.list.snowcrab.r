@@ -6,7 +6,7 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
     p$current.assessment.year = current.assessment.year 
 
     p$libs = RLibrary ( c( 
-      "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
+     "lubridate", "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
     ) )
 
     p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "polygons", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
