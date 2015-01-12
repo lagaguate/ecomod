@@ -233,7 +233,7 @@ OMSFished <- function(fig.num, BBData, Sel.Bank){
   mtext("One Minute Squares Fished", side = 2, line = 3.5)
   ## Add text below Figure
   text.1 = paste("Figure ", as.character(fig.num),
-                 ". Number of one minute squares fished by the offshore clam",
+                 ". Number of one minute squares fished by the offshore clam ",
                  "fishery by year ", sep = "")
   text.2 = paste("on ", bank.txt, ".", sep = "")
   op2 <- par(xpd = NA)  ## no clipping region
@@ -403,8 +403,8 @@ MapLogData <- function(fig.num, log.data, Sel.Bank){
                   ". Map of fishing locations for the Offshore Clam fishery",
                   " for the last three years", sep = "")
   text.2 <- paste("on ", bank.txt, ".  Years are plotted in order ",
-                  as.character(max.data.year)," is red,",
-                  as.character(max.data.year - 1), "is green and ",
+                  as.character(max.data.year)," is red, ",
+                  as.character(max.data.year - 1), " is green and ",
                   as.character(max.data.year - 2), sep = "")
   text.3 <- "is yellow, with previous years covering recent years."
   mtext(text.1, side = 1, line = 1, adj = 0, outer = TRUE)
