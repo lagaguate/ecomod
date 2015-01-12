@@ -58,7 +58,7 @@
         xS = setS[pp,]
         mi = minilog[which(minilog$chron1>=xS$chron - (minute*10) & minilog$chron1<=xS$chron + (minute*20) ),] #three minutes before the start of the tow and 15 min after from setinfo
         mi$minilog_uid = xS$minilog_uid = paste('minilog',tripid,xS$station,xS$set,sep=".")
-        xS = data.frame(minilog_uid = xS$minilog_uid,yr=xS$yr,timestamp = xS$chron,trip=xS$trip,set=xS$set,station=xS$station,studyid=sprintf("ep%03d",xS$station),setZx=xS$Zx,setChron=as.numeric(xS$chron),error= NA,filename=filename2,headerall=headerall,stringsAsFactors=FALSE)
+        xS = data.frame(minilog_uid = xS$minilog_uid,yr=xS$yr,timestamp = xS$chron,trip=xS$trip,set=xS$set,station=xS$station,studyid=sprintf("ep%03d",xS$station),setZx=xS$Zx,setChron=xS$chron,error= NA,filename=filename2,headerall=headerall,stringsAsFactors=FALSE)
         mi = data.frame(mdate=mi$mdate,mtime=mi$mtime,temperature=mi$temperature,depth=mi$depth,chron=mi$chron,minilog_uid = mi$minilog_uid,stringsAsFactors=FALSE)
         metadata = rbind(metadata,xS )
         basedata = rbind(basedata,mi)       

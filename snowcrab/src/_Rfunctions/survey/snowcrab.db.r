@@ -155,6 +155,11 @@
         i = which(set$trip=="S21092007" & set$set==12)
         if (length(i)==1) set$towquality[i] = 1
       }
+      dbug.2009 = T 
+      if(dbug.2009) {
+        i = which(set$trip =='S05092009' & set$set == 9 & set$station==189)
+        set$stime[i] <- 1532
+      }
 
 
       set = set[,setvars]
@@ -677,10 +682,10 @@
 
       # use seabird data as the standard, replace with minilog data where missing
       ii = which(!is.finite( set$t0) )
-      if (length(ii) > 0 )  set$t0[ ii] = set$t0.ml[ii]
+      if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin='1970-01-01')
  
       ii = which(!is.finite( set$t1) )
-      if (length(ii) > 0 )  set$t1[ ii] = set$t1.ml[ii]
+      if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t0.ml[ii],origin='1970-01-01')
       
       ii = which(!is.finite( set$z) )
       if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]

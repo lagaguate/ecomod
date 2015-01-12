@@ -177,10 +177,19 @@
           
           M$timestamp = as.POSIXct( M$chron, tz="ADT" )
           settimestamp= as.POSIXct( rid$setChron[i] , tz="ADT" )
+print(id)
 
+  if(length(M$depth[!is.na(M$depth)])>15) {
           res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
               tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=30, depthproportion=0.5 )
-
+} 
+ if(length(M$depth[!is.na(M$depth)])==0) {
+  res=list()
+  #res$res = data.frame(yr=yr,timestamp = settimestamp, trip = sso.trip, set = sso.set, station = sso.station, studyid = rid[i,'studyid'], setZx = rid[i,'setZx'], setChron = rid[i,'setChron'],error = rid[i, 'error'], filename = rid[i,'filename'],
+  # headerall = rid[i,'headerall'] , z = NA, t =  NA, zsd =NA, tsd =NA, n = NA,t0 =NA , t1=NA, dt =NA)
+  res$res = data.frame(z = NA, t =  NA, zsd =NA, tsd =NA, n = NA,t0 =NA , t1=NA, dt =NA)
+  #todo tie in the seabird data bottom contact to get secondary temperature data}
+}
           if (FALSE) {
             # to visualize
             res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
@@ -195,8 +204,7 @@
 #            res$res$t0 = res$smooth.method[2]
 #            res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
 #          }
-          
-          miniStats = rbind(miniStats, cbind( minilog_uid=id, res$res ) )
+         miniStats = rbind(miniStats, cbind( minilog_uid=id, res$res ) )
         }
         
         miniStats$minilog_uid =  as.character(miniStats$minilog_uid)
