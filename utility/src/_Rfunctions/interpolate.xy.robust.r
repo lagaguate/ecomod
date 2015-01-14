@@ -68,8 +68,8 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
 
   if (method == "inla") {
     require(INLA)
-    nn = diff( z$x)
-    dd = median( nn[abs(nn)>0], na.rm=TRUE )
+    nn = abs( diff( z$x) )
+    dd = median( nn[nn>0], na.rm=TRUE )
     z$xiid = z$x = jitter( z$x, amount=dd / 20 ) # add noise as inla seems unhappy with duplicates in x?
     rsq = 0
     nw = length( which(is.finite( z$y)))
@@ -146,8 +146,8 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
 
   if (method=="smooth.spline") {
     # similar to inla .. duplicated x is problematic for smooth.spline ... add small noise   
-    nn = diff( z$x)
-    dd = median( nn[abs(nn)>0], na.rm=TRUE )
+    nn = abs( diff( z$x) )
+    dd = median( nn[nn>0], na.rm=TRUE )
     z$x = jitter( z$x, amount=dd / 20) # add noise as inla seems unhappy with duplicates in x?
     rsq = 0
     nw = length( which(is.finite( z$y)))

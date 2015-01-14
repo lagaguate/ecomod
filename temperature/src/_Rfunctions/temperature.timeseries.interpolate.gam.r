@@ -44,6 +44,8 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
         
         x$w = 1 / (( g$plon - x$plon)**2 + (g$plat - x$plat)**2 )# weight data in space: inverse distance squared
         x$w[ which( x$w < 1e-3 ) ] = 1e-3
+        x$w[ which( x$w > 1 ) ] = 1
+
         x=x[,c("t", "w", "yr", "weekno" )]
 
         # data transformations and creation of new variables where required for raw data 

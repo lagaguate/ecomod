@@ -20,15 +20,21 @@
 
       if ( p$tsmethod %in% c("annual", "seasonal.basic", "seasonal.smoothed", "harmonics.1", "harmonics.2", "harmonics.3" ) ) {
         res = temperature.timeseries.interpolate.gam( p=p, B=B, g=g, z=z ) 
-      
       }
+      
       if (p$tsmethod %in% c("inla.ts.simple" ) ) {
         res = temperature.timeseries.interpolate.inla( p=p, B=B, g=g, z=z ) 
       }
 
+      if ( is.null( res) ) next()
+      tbot <- attach.big.matrix( p$tbot.desc )
+      tbot.se <- attach.big.matrix( p$tbot.se.desc )
+      tbot[ mm,] <- res$fit
+      tbot.se[mm,] <- res$se
+          
       if (FALSE) {
         #debugging ..
-        dm = 25
+        dm = 30
         drange = c(-1,1) * dm
         plon0 = g$plon + drange
         plat0 = g$plat + drange
@@ -38,15 +44,8 @@
         z$tiyr = z$yr + z$weekno/52
         plot( t~tiyr, x, pch=20 )
         lines( res$fit~ tiyr, z, col="green" )
-
       }
 
-
-      if ( is.null( res) ) next()
-      tbot <- attach.big.matrix( p$tbot.desc )
-      tbot.se <- attach.big.matrix( p$tbot.se.desc )
-      tbot[ mm,] <- res$fit
-      tbot.se[mm,] <- res$se
     } # end each point
   }
 
