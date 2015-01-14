@@ -27,7 +27,7 @@
 
     # min number of data points req 
     # before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
-    p$nMin.tbot = p$ny*3 
+    p$nMin.tbot = p$ny*2 
     
     # "manhattan" (~radius) distances to extend search for data 
     # (for timeseries interpolation and spatial interpolations)

@@ -25,9 +25,11 @@ bottom.contact.smooth = function( sm, tdif.min, tdif.max, target.r2=0.9, filter.
 
   for (v in 1:length(vrs)) {
     u = cor(  sm[,vrs[v] ], sm[, "dZ"], use="pairwise.complete.obs" )
+    if (u>0.999) u = 0
     cors[ v, "corel"]  = u 
   }
-  best = cors[ which.max( cors$corel ), "vrs" ]
+
+  best = cors[  which.max( cors$corel), "vrs" ]
   sm$dZ.smoothed =  sm[,best] 
 
   dZ.modes = modes( sm$dZ.smoothed )

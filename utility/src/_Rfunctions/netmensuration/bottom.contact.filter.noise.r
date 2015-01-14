@@ -1,5 +1,5 @@
  
-bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1,  
+bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3,  
       smoothing = 0.9, filter.quants=c(0.025, 0.975), sd.multiplier=3 ) {
 
   ##--------------------------------
@@ -11,6 +11,7 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
 
   fr = range( which(good) )
   aoi = fr[1]:fr[2]
+   
   x$sm.seq = NA
   x$sm.seq[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth")],  probs=filter.quants, method="sequential.linear" )
   i = which( x$sm.seq != x$depth )
@@ -35,12 +36,13 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
   aoi.depths = x$depth[aoi]
   depths = modes( aoi.depths [ which( aoi.depths > depths.threshold )]  )
   oo = which( x$depth > depths["simple", "lb"] & x$depth < depths["simple", "ub"] )
+  
+  aoi.mid = trunc( mean( aoi.range ) ) # approximate midpoint
   if (length(oo)> 10 ) {
     bot.range = range( oo) ## first pass (fast/rough) estimate of likely range of bottom indices
     aoi.mid = trunc( mean( range( oo)) ) 
-  } else {
-    aoi.mid = trunc( mean( aoi.range ) ) # approximate midpoint
-  }
+  } 
+    
 
   aoi.sd = sd( x$depth[ aoi ], na.rm=TRUE )  ## SD 
   buffer = trunc(length(aoi)/10) # additional points to add beyond midpoint to seed initial SD estimates
@@ -83,12 +85,12 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
   x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla"  )
   kk = x$depth - x$sm.inla
   qnts = quantile( kk[aoi], probs=filter.quants, na.rm=TRUE ) 
-  qnts[1] = min( qnts[1], - eps.depth )  # hard code 1 m fluctuation as being insignificant error
+  qnts[1] = min( qnts[1], - eps.depth )  # eps m fluctuation as being insignificant error
   qnts[2] = max( qnts[2],   eps.depth )
   i = which(kk > qnts[2]  | kk < qnts[1] )
   if (length(i) > 0) good[i] = FALSE
   x$depth.smoothed[ !good] = NA  # i.e. sequential deletion of depths
-
+  
   
   x$sm.loess[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, method="loess"  )
   kk = x$depth - x$sm.loess
@@ -98,15 +100,24 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
   i = which(kk > qnts[2]  | kk < qnts[1] )
   if (length(i) > 0) good[i] = FALSE
   x$depth.smoothed[ !good] = NA
- 
+  
+  # update with bad data removed .. first with sequential method again to id strong discontinuities and then re-smooth
+  x$sm.seq = NA
+  x$sm.seq[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  probs=filter.quants, method="sequential.linear" )
+  i = which( x$sm.seq != x$depth.smoothed )
+  if (length(i) > 0) good[i] = FALSE
+  x$depth.smoothed[ !good] = NA
+  
+  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla"  )
+  x$sm.loess[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, method="loess"  )
+  
 
-  # input to smoooth.spline must not have NA's .. use inla's predictions
   vrs = c( "sm.loess", "sm.inla")
   cors = data.frame( vrs=vrs, stringsAsFactors=FALSE )
   cors$corel = 0
   for (v in 1:length(vrs)) {
     u = cor(  x[ good, vrs[v] ], x[ good, "depth"], use="pairwise.complete.obs" )
-    if ( u > 0.9999 ) u=0 # a degenerate solution ... 
+    if ( u > 0.999 ) u=0 # a degenerate solution ... 
     cors[ v, "corel"]  = u 
   }
   best = cors[ which.max( cors$corel ), "vrs" ]
@@ -118,22 +129,22 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=1
   i = which(kk > qnts[2]  | kk < qnts[1] )
   if (length(i) > 0) good[i] = FALSE
   x$depth.smoothed[ !good] = NA
- 
+  x$depth[ !good] = NA
+  
 
   # finalize solutions based upon priority of reliability
-  x$depth[ !good ] = NA
   vrs = c( "sm.spline", "sm.loess", "sm.inla")
   cors = data.frame( vrs=vrs, stringsAsFactors=FALSE )
   cors$corel = 0
   for (v in 1:length(vrs)) {
     u = cor(  x[ good, vrs[v] ], x[ good, "depth"], use="pairwise.complete.obs" )
-    if ( u > 0.9999 ) u=0 # a degenerate solution ... 
+    if ( u > 0.999 ) u=0 # a degenerate solution ... 
     cors[ v, "corel"]  = u 
   }
   best = cors[ which.max( cors$corel ), "vrs" ]
   x$depth.smoothed = x[,best] 
   if (all(is.na( x$depth.smoothed[aoi]) ) )  x$depth.smoothed = x$depth # give up
-  
+
   return( list( depth.smoothed=x$depth.smoothed, good=good, variance.method=OinRange, variance.method.indices=OinRange.indices ) )
 
 }

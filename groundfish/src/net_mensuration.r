@@ -96,7 +96,7 @@ allids
     
     # Ran in both cases
       bc = NULL
-      bc = bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=3, sd.multiplier=3, depth.min=10, depth.range=30,  smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
+      bc = bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=3, sd.multiplier=4, depth.min=10, depth.range=40, smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
     
            
 max(bc$filtered.data$depth, na.rm=TRUE)

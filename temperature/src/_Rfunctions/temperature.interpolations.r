@@ -50,7 +50,7 @@
       p$tbot.se.desc = describe(tbot.se)
      	    
       B = hydro.db( p=p, DS="bottom.gridded.all"  )
-      B = B[, c("plon", "plat", "yr", "weekno", "t") ]
+  #   B = B[, c("plon", "plat", "yr", "weekno", "t") ]
 
       # globally remove all unrealistic data
       TR = range(B$t, na.rm=TRUE ) 
@@ -69,6 +69,7 @@
       tbot <- attach.big.matrix( p$tbot.desc )
 			tbot.se <- attach.big.matrix( p$tbot.se.desc )
 
+      # interpolations complete ... now write time slices to disk 
 			for ( r in 1:length(p$tyears) ) {
 				yt = p$tyears[r]
 				fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )

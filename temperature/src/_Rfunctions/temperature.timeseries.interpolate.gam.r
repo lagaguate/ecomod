@@ -27,8 +27,6 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
 
   mf = formula(mf)
   
-  out = NULL
-  
   for ( dm in p$dist.km ) { 
       drange = c(-1,1) * dm
       plon0 = g$plon + drange
@@ -46,6 +44,8 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
         
         x$w = 1 / (( g$plon - x$plon)**2 + (g$plat - x$plat)**2 )# weight data in space: inverse distance squared
         x$w[ which( x$w < 1e-3 ) ] = 1e-3
+        x$w[ which( x$w > 1 ) ] = 1
+
         x=x[,c("t", "w", "yr", "weekno" )]
 
         # data transformations and creation of new variables where required for raw data 
@@ -83,12 +83,16 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
         
         if ( ! "try-error" %in% class(tsmodel) ) {
           out = try( predict( tsmodel, newdata=z, type="response", se.fit=T ) ) 
-          if ( ! "try-error" %in% class( out ) ) break()  # candidate predictions found exit inner loop (dm)
+          if ( ! "try-error" %in% class( out ) ) {
+            z$fit = out$fit
+            z$se = out$se.fit
+            break()  # candidate predictions found exit inner loop (dm)
+          }
         }
       }
     } # end for dm loop						
  
-    return(out)
+    return(z)
 
 }
 
