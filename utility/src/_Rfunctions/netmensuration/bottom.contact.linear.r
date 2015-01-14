@@ -15,7 +15,7 @@ bottom.contact.linear = function( sm, left, right, tdif.min, tdif.max )  {
   bot = (left+buf):(right-buf)  # blended estimate of fishing events
   down = 1:(left-buf) 
   up =  (right+buf):N
-
+ if(any(down<0)) down = 1:(1+buf)
   #  compute linear models for each section
   botlm2 = lm( Z ~ ts, sm[bot, ], na.action = "na.exclude")
   #  right tail

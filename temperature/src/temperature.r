@@ -16,8 +16,8 @@
 		
  
     # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    p$tyears = c(1950:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    newyear = c( 2013)
+    p$tyears = c(1950:2014)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+    newyear = c( 2014)
 
     p$wtimes = 1:52 
     p$nw = length(p$wtimes)
@@ -109,7 +109,7 @@
       # 1950-2013, SSE took ~ 35 hrs on laptop (shared RAM, 24 CPU; 1950-2013 run April 2014 ) ... 17 GB req of shared memory
       # this is parallelized ... the call is internal to this 
       p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
-      temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) #amc set up at 
+      temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) #amc set up at 20:12 Jan 13
   
 
       # ----------------

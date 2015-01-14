@@ -155,12 +155,12 @@
           settimestamp= as.POSIXct( rid$setChron[i] , tz="ADT" )
 
           res = bottom.contact( id=id, x=M , settimestamp=settimestamp, setdepth=rid$setZx[i], 
-            tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=25, depthproportion=0.6 )
+            tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=20, depthproportion=0.6 )
           
           if (FALSE) {
             # to visualize
             res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
-              tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=25, depthproportion=0.6, plot.data=TRUE )
+              tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=20, depthproportion=0.6, plot.data=TRUE )
           }
 print(id)
           if (all (is.finite( res$smooth.method) ) ) {
