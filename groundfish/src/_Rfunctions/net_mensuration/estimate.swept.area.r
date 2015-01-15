@@ -1,5 +1,7 @@
-estimate.swept.area = function( gsi, x ){
- 
+estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE  ){
+
+  if (getnames) return( c("names, of variables") )
+  
   n.req = 30
 
   gsi$sweptarea.mean = NA
@@ -9,12 +11,6 @@ estimate.swept.area = function( gsi, x ){
   gsi$wingspread.sd = NA
   
 
-  debug = FALSE
-  if (debug) {
-    gsi = gsinf[gii,]
-    x = master[ii,] 
-  }
-  
   x = x[order( x$timestamp ) ,]
   
   ##--------------------------------
@@ -22,7 +18,7 @@ estimate.swept.area = function( gsi, x ){
   x$ts = as.numeric(x$timestamp)  # in seconds 
   x$ts = x$ts - min(x$ts) 
   
-  bc = which( x$timestamp >=gsi$spoint.datetime & x$timestamp <= gsi$epoint.datetime ) 
+  bc = which( x$timestamp >=gsi$bc0.datetime & x$timestamp <= gsi$bc1.datetime ) 
   i0 = min(bc)
   i1 = max(bc)
   
@@ -31,17 +27,28 @@ estimate.swept.area = function( gsi, x ){
     points(latitude~longitude, data=x[bc,], pch=20, cex=.1, col="orange")
   }
 
-  # i1 gives the approximate time of net lift-off from bottom
-  # this is not good enough as there is a potential backdrift period before net lift off
-  # this means distance trawled calculations must use the geo-positioning of the boat
-  # at maximum tension and not the position at net movemnent up
-  # (otherwise, this would introduce a net bias towards smaller swept areas).
-  pos = c( "longitude", "latitude" )
-  distance.from.start = as.vector( geodist(point=x[i0, pos], locations=x[i0:i1, pos], method="great.circle") ) #  in km ..fater but low res
-  end = which.max( distance.from.start)
-  if( end < n.req ) return( gsi)
-  N = x[ 1:end , ]
- 
+  nupos = sqrt( length( unique( x$longitude)) ^2  + length(unique(x$latitude))^2)
+  if (nupos < 30) { 
+    method = "interpolated.using.velocity" # older data
+  } else {
+    method = "direct"  # higher resolution GPS data
+  }
+  
+  if (method=="interpolated.using.velocity") {
+    ## obtain ship velocity 
+    # estim distance from vel * duration
+    # incremental distance from incremental time
+    # integrate
+  }
+
+  
+  if (method=="direct") {
+    # use direct GPS position to estimate diff in 
+    # incremental distance from incremental time
+    # integrate
+  }
+
+
   # integrate area:: piece-wise integration is used as there is curvature of the fishing track 
   # PROBLEM: the GPS resolution is very poor requiring that data be discretized
  
