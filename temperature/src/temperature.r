@@ -13,7 +13,6 @@
     p = list()
     p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory" ) )
     p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature" ) ) 
-		
  
     # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$tyears = c(1950:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -41,7 +40,6 @@
     # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
     p$use.bigmemory.file.backing = FALSE  
     # p$use.bigmemory.file.backing = TRUE  # file-backing is slower but can use all cpu's in a distributed cluster
-
 
 
     # ------------------------------

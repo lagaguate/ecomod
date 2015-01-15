@@ -53,9 +53,16 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
           x$tiyr =  x$yr + x$weekno/52
           x$cos.w  = cos( x$tiyr )
           x$sin.w  = sin( x$tiyr )
+         
+          years.with.data = unique( x$yr)
+          no.years = which( !( z$yr %in% years.with.data) )
+          # z$tiyr0 = z$yr + z$weekno/52 
+          z$yr[ no.years ] = median( years.with.data) 
+            # alter years to be within model range
           z$tiyr = z$yr + z$weekno/52 
           z$cos.w  = cos( z$tiyr )
           z$sin.w  = sin( z$tiyr )
+          
           # compute additional harmonics only if required (to try to speed things up a bit)
           if ( p$tsmethod %in% c( "harmonics.2", "harmonics.3"  ) ) {
             x$cos.w2 = cos( 2*x$tiyr )
@@ -85,7 +92,7 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
           out = try( predict( tsmodel, newdata=z, type="response", se.fit=T ) ) 
           if ( ! "try-error" %in% class( out ) ) {
             z$fit = out$fit
-            z$se = out$se.fit
+            z$se = out$se.fit 
             break()  # candidate predictions found exit inner loop (dm)
           }
         }
