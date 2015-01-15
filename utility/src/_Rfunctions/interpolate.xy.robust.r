@@ -75,10 +75,10 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
     nw = length( which(is.finite( z$y)))
     nw0 = nw + 1
     while ( nw != nw0 ) {
-      v = try( inla( y ~ f(xiid, model="iid", diagonal=0.01) + f(x, model=inla.model, diagonal=.01 ), data=z, control.inla=list(h=0.01) ), silent=TRUE )
+      v = try( inla( y ~ f(xiid, model="iid", diagonal=0.01) + f(x, model=inla.model, diagonal=.01 ), data=z, 
+                    control.inla=list(h=0.01), control.predictor=list( compute=TRUE) ), silent=TRUE )
       if (!( "try-error" %in% class(v) ) ) {
-        z$p = v$summary.random$x[["mean"]] 
-        z$p = z$p + mean(z$y-z$p, na.rm=TRUE)
+        z$p = v$summary.fitted.values$mean 
         rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
         if (!is.na(rsq)){
           if (rsq > target.r2) break()

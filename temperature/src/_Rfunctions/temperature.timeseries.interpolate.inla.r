@@ -58,7 +58,7 @@ temperature.timeseries.interpolate.inla = function(p, B, g, z ) {
     tsmodel = try( inla( mf, family='gaussian', data=x, 
 #                        control.inla=list(h=0.01) , 
 #                        control.compute=list(dic=FALSE), 
-                        control.predictor=list( compute=FALSE )), silent=TRUE )
+                        control.predictor=list( compute=TRUE)), silent=TRUE )
 
   
     if ( ! "try-error" %in% class(tsmodel) ) {
