@@ -106,6 +106,14 @@
         j1 = which.min( abs( seabird$chron - (set$chron[iset] + 12 * minute) )) 
       }
 
+      if(j0==j1){ #skip some entries and then re calculate
+        j1=j1+20
+          while ( j1 < nrow(seabird) ) {
+        if (seabird$pressure[j1] <= surface ) break() 
+        j1 = j1 + 1
+      }
+      }
+
       o = j0:j1
       error = "" #dummy value
 
