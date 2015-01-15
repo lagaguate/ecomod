@@ -28,6 +28,9 @@ if ( recreate.full.database.locally ) {
   net_mensuration.db( DS="merge.historical.scanmar.redo",  netswd=netswd ) # add all scanmar data together
   net_mensuration.db( DS="sanity.checks.redo",  netswd=netswd )      # QA/QC of data
   net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory )      # QA/QC of data
+  net_mensuration.db( DS="bottom.contact.redo",  netswd=marportdatadirectory )  # bring in estimates of bottom contact times from scanmar
+  net_mensuration.db( DS="sweptarea.redo",  netswd=marportdatadirectory )  
+  
 }
 
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
@@ -58,45 +61,49 @@ load("h.data.RData")
 load("m.data.RData")
 
 --- testing / development ---
+allids=unique(master$id)
+i=sample(1:length(allids),15)
+allids=allids[i]
+allids
+  id="NED2013028.115"
+  mm = master[ which(master$id==id) , ]
+  plot(wingspread~timestamp, mm, col="blue") 
+  plot(doorspread~timestamp, mm) 
+  
+  
+  
+  
+# how many unique sets were in 2013/2014
+test=master[which(master$year == 2013) , ]  
+length(unique(test$id))  
+# 122 sets in 2014
+# 248 sets in 2013
+122+248
 
 # Adding the variables: year, trip and set to the df master
 master$date=substring(master$timestamp,0,10)  
 
 # Only run to genereate new samples
-allids=unique(modern.data$id)
+allids=unique(modern.data.2006$id)
 i=sample(1:length(allids),15)
 allids=allids[i]
 allids
 
+modern.data.2004=modern.data[which(modern.data$year ==2004) , ]
+modern.data.2005=modern.data[which(modern.data$year ==2005) , ]
+modern.data.2006=modern.data[which(modern.data$year ==2006) , ]
+
+
+
+
   # Run for many sets
   for (id in allids){
-      
-    # Run for one set
-    # id = "NED2010027.225" fail but plots
-    id =  "NED2009027.108"
-    id =  "NED2011002.74"
-    id = "NED2010027.189"
-    id = "TEM2008830.141"
-    id = "TEL2007745.23" 
-    id = "TEL2004530.16"
-      id = "TEL2004530.19"
-          id = "NED2012002.60"
-          id = "NED2009027.49"
-          id = "NED2009027.82"
-          id = "TED2009027.161"
-          id = "TEL2005633.92"
-
+    
+    id = "TEL2006614.89" "NED2006030.64" "TEL2006614.49" "NED2006030.63"
     mm = modern.data[ which(modern.data$id==id) , ]
    # mm = master[ which(master$id==id),]
-    
-    # to load/save
-    # fname = "mm.rdata"
-    # save( mm, file=fname, compress=TRUE)
-    # load( fname )
-    
-    # Ran in both cases
       bc = NULL
-      bc = bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=3, sd.multiplier=4, depth.min=10, depth.range=40, smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
+      bc = bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=3, sd.multiplier=4, depth.min=10, depth.range=50, smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE) 
     
            
 max(bc$filtered.data$depth, na.rm=TRUE)

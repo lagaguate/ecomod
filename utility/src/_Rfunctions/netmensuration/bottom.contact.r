@@ -184,7 +184,9 @@
   ## ---------------------------- 
   ## Intersect method: looking at the intersection of a perpendicular line onto the trajectory of the profile
 
-  O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
+#  O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
+# turn off .. not working reliably
+O$intersect.method = NA
 
       if ( all(is.finite(O$intersect.method) ) ) {
         O$intersect.method.indices = which( x$timestamp >= O$intersect.method[1] &  x$timestamp <= O$intersect.method[2] ) # x correct
@@ -265,7 +267,7 @@
   O$means = c(NA, NA )
   methods = c("manual.method", "variance.method", "smooth.method", "modal.method", "linear.method", "means" )
   standard =  which( methods=="manual.method")
-  direct = which( methods %in%  c("smooth.method", "modal.method", "linear.method", "means" ) )
+  direct = which( methods %in%  c("smooth.method", "modal.method", "linear.method" ) )
 
   tmp = as.data.frame(O[methods], stringsAsFactors=FALSE )
   tmp = as.data.frame( t(tmp), stringsAsFactors=FALSE  )
