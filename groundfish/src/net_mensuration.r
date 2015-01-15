@@ -28,8 +28,8 @@ if ( recreate.full.database.locally ) {
   net_mensuration.db( DS="merge.historical.scanmar.redo",  netswd=netswd ) # add all scanmar data together
   net_mensuration.db( DS="sanity.checks.redo",  netswd=netswd )      # QA/QC of data
   net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory )      # QA/QC of data
-  net_mensuration.db( DS="bottom.contact.redo",  netswd=marportdatadirectory )  # bring in estimates of bottom contact times from scanmar
-  net_mensuration.db( DS="sweptarea.redo",  netswd=marportdatadirectory )  
+  net_mensuration.db( DS="bottom.contact.redo",  netswd=netswd )  # bring in estimates of bottom contact times from scanmar
+  net_mensuration.db( DS="sweptarea.redo",  netswd=netswd )  
   
 }
 

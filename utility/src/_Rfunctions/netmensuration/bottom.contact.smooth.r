@@ -40,7 +40,7 @@ bottom.contact.smooth = function( sm, tdif.min, tdif.max, target.r2=0.9, filter.
 
   mm = trunc( N/2 )
   mmed = median( sm$Z, na.rm=TRUE )
-  mmsd = sd( sm$Z, na.rm=TRUE )  ## SD 
+  mmsd = 2 * sd( sm$Z, na.rm=TRUE )  ## SD 
   
   # left side
   if ( abs( sm$Z[1] - mmed ) < mmsd ) {

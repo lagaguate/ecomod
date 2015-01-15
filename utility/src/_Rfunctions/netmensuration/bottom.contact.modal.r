@@ -26,12 +26,12 @@ bottom.contact.modal = function( sm, tdif.min, tdif.max, density.factor=5, kerna
  
   i.mod = which( sm$Z > Zmodes["simple", "lb"] & sm$Z < Zmodes["simple", "ub"]   ) 
   if (length(i.mod) > 0 ) {
-    if ( abs( sm$Z[1] - Zmodes[ "simple", "mode" ] ) < Zmodes[ "simple", "sd" ] ) {
+    if ( abs( sm$Z[1] - Zmodes[ "simple", "mode" ] ) < 2 * Zmodes[ "simple", "sd" ] ) {
       r0 = 1 # nothing to do .. assuming it is truncated without the left tail ..
     } else {
       r0 = min( i.mod ) 
     }
-    if ( abs( sm$Z[N] - Zmodes[ "simple", "mode" ] ) <  Zmodes[ "simple", "sd" ] ) {
+    if ( abs( sm$Z[N] - Zmodes[ "simple", "mode" ] ) <  2 * Zmodes[ "simple", "sd" ] ) {
       r1 = N # nothing to do ... assuming it is truncated without the right tail ..
     } else {
       r1 = max( i.mod )

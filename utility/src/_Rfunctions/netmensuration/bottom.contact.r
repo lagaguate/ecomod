@@ -261,10 +261,6 @@
     if ( !( is.null( legendtext)))  legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
   }
   
-  if ( user.interaction  ) { 
-    outdir = getwd()
-    dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
-  }
 
   O$means = c(NA, NA )
   methods = c("manual.method", "variance.method", "smooth.method", "modal.method", "linear.method", "means" )
@@ -343,7 +339,10 @@
     #x11(); plot( slopes ~ ts, x2 )
     lines( depth.smoothed ~ ts, x, col="brown" )
     # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
+    outdir = getwd()
+    dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
   }
+
   print( O$summary)
   O$good = NULL
   
