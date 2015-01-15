@@ -50,9 +50,9 @@ temperature.timeseries.interpolate.inla = function(p, B, g, z ) {
     mf = formula( t ~ 0 + b0 
 #                 + f( yr, model='ar1', diagonal=0.05) 
                  + f( tiyr, model='ar1',  diagonal=0.01)
-#                 + f( pryr, model='ar1', cyclic=TRUE, diagonal=0.05 ) 
-                 + f( cos.w, model='ar1',  diagonal=0.01)
-                 + f( sin.w, model='ar1',  diagonal=0.01)
+                 + f( pryr, model='ar1', cyclic=TRUE, diagonal=0.05 ) 
+#                 + f( cos.w, model='ar1',  diagonal=0.01)
+#                 + f( sin.w, model='ar1',  diagonal=0.01)
     )
 
     tsmodel = try( inla( mf, family='gaussian', data=x, 
