@@ -164,9 +164,9 @@
       dbug.2014 = T
       if(dbug.2014) {
         i = which(set$trip == 'S26112014' &set$set==7)
-        set$station = 212
+        set$station[i] = 212
         i = which(set$trip == 'S07102014' &set$set==13)
-        set$stime = 2146
+        set$stime[i] = 2146
       }
 
       
