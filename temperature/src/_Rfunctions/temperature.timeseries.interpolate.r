@@ -41,9 +41,9 @@
         i = which( B$plon > plon0[1] & B$plon < plon0[2] & B$plat > plat0[1] & B$plat < plat0[2] )
         x = B[i,] 
         x$tiyr =  x$yr + x$weekno/52
-        z$tiyr = z$yr + z$weekno/52
-        plot( t~tiyr, x, pch=20 )
-        lines( res$fit~ tiyr, z, col="green" )
+        res$tiyr = res$yr + res$weekno/52
+        plot( t~tiyr, x, xlim=range(res$tiyr), pch=20 )
+        lines( fit~ tiyr, res, col="green" )
       }
 
     } # end each point
