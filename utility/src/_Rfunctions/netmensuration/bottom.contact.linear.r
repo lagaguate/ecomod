@@ -15,11 +15,13 @@ bottom.contact.linear = function( sm, left, right, tdif.min, tdif.max )  {
   bot = (left+buf):(right-buf)  # blended estimate of fishing events
   down = 1:(left-buf) 
   up =  (right+buf):N
- if(any(down<0)) down = 1:(1+buf)
+ 
+  if(any(down<0)) down = 1:(1+buf)
   #  compute linear models for each section
   botlm2 = lm( Z ~ ts, sm[bot, ], na.action = "na.exclude")
   #  right tail
   ri2 = N
+ 
   if (( length( which( is.finite( sm$Z[bot] ))) > 10) & (length( which( is.finite(sm$Z[up]))) > 5 )) {
     uplm2 = lm( Z ~ ts, sm[up, ], na.action = "na.exclude")
     cm <- rbind(coef(botlm2),coef(uplm2)) # Coefficient matrix
