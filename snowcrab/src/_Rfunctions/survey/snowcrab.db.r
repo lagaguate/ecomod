@@ -161,7 +161,15 @@
         set$stime[i] <- 1532
       }
 
+      dbug.2014 = T
+      if(dbug.2014) {
+        i = which(set$trip == 'S26112014' &set$set==7)
+        set$station = 212
+        i = which(set$trip == 'S07102014' &set$set==13)
+        set$stime = 2146
+      }
 
+      
       set = set[,setvars]
       set$sa[ which(set$sa==0) ] = NA
       set$sa = set$sa / 10^6    # convert to km2 ... sa was stored as m2
