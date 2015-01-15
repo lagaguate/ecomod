@@ -24,12 +24,6 @@
   O = list()  # output list
   O$id = id
   O$good = rep(TRUE, nrow(x)) # rows that will contain data that passes each step of data quality checks
-  O$variance.method = c(NA, NA)
-  O$linear.method = c(NA, NA)
-  O$smooth.method = c(NA, NA)
-  O$modal.method = c(NA, NA)
-  O$intersect.method = c(NA, NA) 
-  O$manual.method = c(NA , NA)
   O$summary = NA
   O$res = data.frame (cbind(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA ) )
 
@@ -95,6 +89,8 @@
   
   x$depth.smoothed = res$depth.smoothed
   O$good = res$good
+  
+  O$variance.method = c(NA, NA)
   O$variance.method = res$variance.method
   O$variance.method.indices  = res$variance.method.indices
 
@@ -144,6 +140,7 @@
   # until a target number of breaks, nbins with valid data are found
   # use the depth.residual as smoothed one has insufficient variation
 
+  O$modal.method = c(NA, NA)
   O$modal.method = bottom.contact.modal( sm=sm0[, c("depth.residual", "timestamp", "ts" ) ], tdif.min=tdif.min, tdif.max=tdif.max, density.factor=5, kernal.bw.method="SJ" ) 
       
       if (all(is.finite( O$modal.method) ) ) {
@@ -166,6 +163,7 @@
   ## Smooth method: using smoothed data (slopes are too unstable with raw data), 
   ## compute first derivatives to determine when the slopes inflect 
 
+  O$smooth.method = c(NA, NA)
   O$smooth.method = bottom.contact.smooth( sm=sm0[, c("depth.smoothed", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max, target.r2=smoothing, filter.quants=filter.quants ) 
 
       if ( all(is.finite(O$smooth.method) ) ) {
@@ -181,13 +179,15 @@
           legendpch =c( legendpch, 20) 
         }
       }
+  
+  
   ## ---------------------------- 
   ## Intersect method: looking at the intersection of a perpendicular line onto the trajectory of the profile
-
-#  O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
-# turn off .. not working reliably
-O$intersect.method = NA
-
+  working = FALSE  
+  if ( working) {
+    # turn off .. not working reliably
+    O$intersect.method = c(NA, NA) 
+    O$intersect.method = bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ) 
       if ( all(is.finite(O$intersect.method) ) ) {
         O$intersect.method.indices = which( x$timestamp >= O$intersect.method[1] &  x$timestamp <= O$intersect.method[2] ) # x correct
         if (plot.data) {
@@ -201,7 +201,7 @@ O$intersect.method = NA
           legendpch =c( legendpch, 20) 
         }
       }
-
+  }
 
   ## ---------------------------
   ## Linear method: looking at the intersection of three lines (up, bot and down)
@@ -214,7 +214,7 @@ O$intersect.method = NA
 
     if ( length(O$smooth.method.indices) > 0) rsmooth = range(O$smooth.method.indices)
     if ( length(O$modal.method.indices) > 0) rmodal = range(O$modal.method.indices)
-    if ( length(O$intersect.method.indices) > 0) rintersect = range(O$intersect.method.indices)
+    # if ( length(O$intersect.method.indices) > 0) rintersect = range(O$intersect.method.indices)
 
     res = NULL
     res = rbind( rsmooth, rmodal, rintersect )
@@ -222,6 +222,7 @@ O$intersect.method = NA
     left = trunc(median(res[,1], na.rm=TRUE)) - min(aoi) + 1
     right = trunc( median( res[,2], na.rm=TRUE)) - min(aoi) + 1
 
+    O$linear.method = c(NA, NA)
     O$linear.method = bottom.contact.linear( sm=sm0[, c("depth.residual", "timestamp", "ts" )], 
       left=left, right=right, tdif.min=tdif.min, tdif.max=tdif.max ) 
  
@@ -241,6 +242,7 @@ O$intersect.method = NA
     }
      
    
+  O$manual.method = c(NA , NA)
   if ( user.interaction  ) { 
     print( "Click with mouse on start and stop locations now.")          
     useridentified = locator( n=2, type="o", col="cyan")
