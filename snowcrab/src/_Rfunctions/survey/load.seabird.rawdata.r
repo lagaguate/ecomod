@@ -82,7 +82,7 @@
      
       # find sets by running until some threshold depth is found, stating with set$chron 
       istart = which.min( abs(seabird$chron - set$chron[iset] ))
-      
+   
       j0 = istart
       while ( j0 > 1 ) {
         if (seabird$pressure[j0] <= surface ) break() 
@@ -124,7 +124,7 @@
       }
 
       zmaxi = which.max( as.numeric( seabird$pressure[o] ) )
-      if (length(zmaxi)==0) zmaxi = which.min( as.numeric( seabird$temperature[o]) )
+      if (length(zmaxi)==0) stop('need depth data use esonar') #zmaxi = which.min( as.numeric( seabird$temperature[o]) ) #should use esonar depth if no depth in seabird dont do this step ever
       if (length(zmaxi)==0) zmaxi = floor( length(o) / 2 )  # take midpoint
      
       tstamp = seabird$chron[o[zmaxi]] 
