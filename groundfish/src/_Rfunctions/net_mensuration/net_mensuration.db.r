@@ -304,7 +304,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
 
   if (DS %in% c("bottom.contact", "bottom.contact.redo" )) {
     
-    fn= file.path(netswd,"gsinf.bottom.contact.rdata")
+    fn= file.path(netswd,"gsinf.bottom.contact.rdata" )
     master=NULL
     if(DS=="bottom.contact"){
       if (file.exists(fn)) load(fn)
@@ -313,24 +313,15 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     
     gsinf = groundfish.db( DS="gsinf" )
     gsinf$bottom_duration = NA
-    gsinf$spoint.datetime = as.POSIXct(NA)
-    gsinf$epoint.datetime = as.POSIXct(NA)
-    gsinf$spoint.sd = NA
-    gsinf$epoint.sd = NA
-    gsinf$epoint.n = NA
-    gsinf$spoint.n = NA
+    gsinf$bc0.datetime = as.POSIXct(NA)
+    gsinf$bc1.datetime = as.POSIXct(NA)
+    gsinf$bc0.sd = NA
+    gsinf$bc1.sd = NA
+    gsinf$bc0.n = NA
+    gsinf$bc1.n = NA
     
-    debug = FALSE
-    if(debug) {
-      RLibrary( "INLA", "numDeriv" )
-      loadfunctions( "groundfish" )
-      load( "~/Downloads/m.data.RData" ) # local copy of master data .. modern time period
-      master = modern.data
-      rm (modern.data)
-      mm =  master[ii,c("depth", "timestamp")]
-    }
-
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    master = master[which(master$year >= 2004) ,  ]
     if (!is.null( override.missions)){
       user.interaction = TRUE
       master = master[ which(master$id %in% override.missions ), ]
@@ -344,24 +335,21 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       gii = which( gsinf$id==id )  # row of matching gsinf with tow info
       if (length(gii) != 1) next()  # no match in gsinf
      
-
-      # TEL2007745.107 -- s:n = 0.852
-      # "TEM2008830.38" -- 0.9 
-      # NED2014002.30 -- 0.88
-      # TEL2004530.20 -- 0.92
-      # TEM2007685.34 -- 0.8979592 
-      #
-      res = bottom.contact ( id=id, master[ii,c("depth", "timestamp")], tdif.min=15, tdif.max=45,
-                            filter.quants=c(0.025, 0.975), sd.multiplier=3, 
-                            plot.data=TRUE,  user.interaction=user.interaction )
+      mm = master[ which(master$id==id) , c("depth", "timestamp") ]
+      bc = NULL
+      bc = try( bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=4, sd.multiplier=5, 
+                          depth.min=10, depth.range=20, smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE), silent=TRUE)
+      if ("try-error" %in% class(bc) ) next()
       
-      gsinf$spoint.datetime[gii] = res$bottom0 
-      gsinf$epoint.datetime[gii] = res$bottom1
-      gsinf$bottom_duration[gii] = res$bottom.diff
-      gsinf$spoint.sd[gii] = res$bottom0.sd
-      gsinf$epoint.sd[gii] = res$bottom1.sd
-      gsinf$spoint.n[gii] =  res$bottom0.n
-      gsinf$epoint.n[gii] =  res$bottom1.n
+      gsinf$bc0.datetime[gii] = bc$bottom0 
+      gsinf$bc1.datetime[gii] = bc$bottom1
+      gsinf$bottom_duration[gii] = bc$bottom.diff
+      gsinf$bc0.sd[gii] = bc$bottom0.sd
+      gsinf$bc1.sd[gii] = bc$bottom1.sd
+      gsinf$bc0.n[gii] =  bc$bottom0.n
+      gsinf$bc1.n[gii] =  bc$bottom1.n
+      
+      if ( !is.finite( gsinf$bottom_depth[gii]))  gsinf$bottom_depth[gii] = bc$depth.mean
     }
     
     if (!is.null( override.missions)) {
@@ -369,7 +357,6 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       print( "Saving to an alternate location as this is being manually handled:" )
       print( fn)
     }
-    
     save(gsinf, file=fn, compress= TRUE)
   }
 
@@ -385,14 +372,16 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     }
    
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    master = master[which(master$year >= 2004) ,  ]
+    
     uid = sort( unique( master$id)) 
     
     gsinf =  net_mensuration.db( DS="bottom.contact", netswd=netswd )
     
-    # run once to get variable names and sequence 
+    # get variable names and sequence of var's
     idtest = uid [ 1 ]
-    gstest = estimate.swept.area( gsinf[ which( gsinf$id==idtest ), ],  master[ which( master$id==idtest ),] )
-    newvars = setdiff( names(gstest), names( gsinf) )
+    gstest = estimate.swept.area( getnames=TRUE )
+    newvars = setdiff( gstest, names( gsinf) )
     for (vn in newvars) gsinf[,vn] = NA
     gsinf = gsinf[, names(gstest) ] # reorder
 
@@ -402,8 +391,8 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
       gii = which( gsinf$id==id )  # row of matching gsinf with tow info
       if (length(gii) != 1) next()  # no match in gsinf
-     
-      gsinf[gii,] = estimate.swept.area( gsinf[gii,],  master[ii,] )
+      sa = estimate.swept.area( gsinf[gii,],  master[ii,] )
+      gsinf[gii,] # = sa$surfacearea ... etc
     }
     save(gsinf, file=fn, compress= TRUE)
   }
