@@ -153,21 +153,28 @@
           
           M$timestamp = as.POSIXct( M$chron, tz="ADT" )
           settimestamp= as.POSIXct( rid$setChron[i] , tz="ADT" )
-
+print(id)
+#if(grepl('S30092013',id)) browser()
           res = bottom.contact( id=id, x=M , settimestamp=settimestamp, setdepth=rid$setZx[i], 
-            tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=20, depthproportion=0.6 )
+            tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 )
           
           if (FALSE) {
             # to visualize
             res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
-              tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=20, depthproportion=0.6, plot.data=TRUE )
+              tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6, plot.data=TRUE )
           }
-print(id)
+
+
           if (all (is.finite( res$smooth.method) ) ) {
             ## --- NOTE smooth (1)  seem to work best ... focus upon these methods with seabird data ... 
             ##  likely due to greater precision and data density relative to minilog
+<<<<<<< HEAD
             res$res$t0 = res$smooth.method[1]
             res$res$t1 = res$smooth.method[2]
+=======
+            res$res$t0 = as.POSIXct(res$smooth.method[1],origin='1970-01-01')
+            res$res$t1 = as.POSIXct(res$smooth.method[2],origin='1970-01-01')
+>>>>>>> develop
             res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
           } else if(any(is.na(res$res))) {
                ir = which(is.na(res$res))
@@ -178,7 +185,7 @@ print(id)
             res$res$t0 = as.POSIXct(res$res$t0,origin='1970-01-01')
             res$res$t1 = as.POSIXct(res$res$t1,origin='1970-01-01')
             res$res$dt = res$res$t1 -  res$res$t0
-            res$res$t1 = as.numeric(res$res$t1)
+            #res$res$t1 = as.numeric(res$res$t1)
           }
 
           sbStats = rbind( sbStats, cbind( seabird_uid=id, res$res ) )
