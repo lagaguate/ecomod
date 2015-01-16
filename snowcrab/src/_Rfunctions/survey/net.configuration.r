@@ -4,7 +4,7 @@
     # N is netmind data 
     # t0 is current best estimate of start and end time 
     # tchron is .. ?
-
+    if(length(t0)>1) {t0 = NULL}
     # create default output should the following fail
     out = data.frame(slon=NA, slat=NA, distance=NA, spread=NA, spread_sd=NA, 
       surfacearea=NA, vel=NA, vel_sd=NA, netmind_n=NA, t0=NA, t1=NA, dt=NA, yr=NA )
@@ -22,25 +22,26 @@
       tchron =NULL
     }
 
-    if (!is.null(t0) & !is.null(tchron) ) {
-      t0 = c( tchron, t0 )
+    if (!is.null(t0) & !is.null(tchron)  ) {
+     t0_multiple = t0 = c( as.POSIXct(tchron), t0 )
       tchron =NULL
     }
 
     if ( any( is.null( c(t0, t1 ) ) ) ) {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 
+     
       N$timestamp =  as.POSIXct( N$chron , tz="ADT" )
       m = N[, c("timestamp", "depth") ]
       
       settimestamp= as.POSIXct( tchron , tz="ADT" )
 
       res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
-        tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=30, depthproportion=0.5 )
+        tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
 
       if (FALSE) {
         # to visualize
         res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
-          tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=30, depthproportion=0.5, plot.data=TRUE )
+          tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
       }
 
 #          if (all (is.finite( res$smooth.method) ) ) {
@@ -99,13 +100,18 @@
       }
     }
 
-    if (!is.null( t0_multiple ) ) { # two estimates of t0
+    if (!is.null( t1) )    t1 = as.POSIXct(t1,origin='1970-01-01')
+    
+    if (!is.null( t0_multiple ) & !any(is.na(t0_multiple) )) { # two estimates of t0
       timediff = abs( as.numeric( t0_multiple[1] - t0_multiple[2] ))
-      if (timediff > 20/60/60/24 ) { # more than XX seconds
+      
+      if (timediff > 20 ) { # more than XX seconds
         # check bounds
         if (!is.null( t1) ) {
+   
           dts =  abs( as.numeric( t1 - t0_multiple ))
-          igood = which( dts > 5/60/24 &  dts < 7/60/24 )
+          if(all(is.chron(dts))) igood = which( dts > 5/60/24 &  dts < 7/60/24 )
+          if(any(!is.chron(dts))) igood = which( dts > 300 &  dts < 420 )
           if (length(igood)==0 ) t0=mean(t0_multiple) # both not good, take mean
           if (length(igood)==1 ) t0=t0_multiple[igood]
           if (length(igood)==2 ) t0=min( t0_multiple )  # both good, no info which is best .. take the longer tow to be conservative
@@ -114,7 +120,7 @@
         t0 = min( t0_multiple ) # this is to be more conservative in SA estimates ... better to be wrong by estimating too large a SA
       }
     }
-
+if(length(t0)>1) t0 = NA
     out$t0 = t0
     out$t1 = t1
 
@@ -124,7 +130,8 @@
     }
 
     out$dt = t1 - t0
-    out$yr = as.numeric( as.character( years( out$t0) ))
+if(!is.na(out$t0))    out$yr = as.numeric( as.character( years( out$t0) ))
+if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
 
     itime =  which( N$chron >= t0  &  N$chron <= t1 )
     if ( length( itime) < n.req ) problem = T
@@ -136,10 +143,11 @@
       return(out) 
     }
 
-    # end ERROR checks
+    # eOR checks
 
       N = N[ itime, ]
-
+if(nrow(N)>1) {
+  
       # t1 gives the approximate time of net lift-off from bottom
       # this is not good enough as there is a potential backdrift period before net lift off
       # this means distance trawled calculations must use the geo-positioning of the boat
@@ -196,7 +204,7 @@
      spread_sd = sd(n$doorspread.predicted, na.rm=T )/1000
      if(!is.na(spread_sd) & spread_sd!=0) out$spread_sd = spread_sd #if just using the mean from above do not over write spread_sd
      out$distance=n$distances[end]
-
+   }
 	}
     return (out)
   }

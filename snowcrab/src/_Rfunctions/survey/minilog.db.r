@@ -181,7 +181,7 @@ print(id)
 
   if(length(M$depth[!is.na(M$depth)])>15) {
           res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
-              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=30, depthproportion=0.5 )
+              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
 } 
  if(length(M$depth[!is.na(M$depth)])==0) {
   res=list()
@@ -193,7 +193,7 @@ print(id)
           if (FALSE) {
             # to visualize
             res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
-              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=30, depthproportion=0.5, plot.data=TRUE )
+              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
           }
 
 #          if (all (is.finite( res$smooth.method) ) ) {

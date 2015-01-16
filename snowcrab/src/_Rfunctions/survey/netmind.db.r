@@ -155,11 +155,12 @@
         if ( nii== 0 ) next()
 
         rid = set[ ii,] 
-        
+       
         Stats = NULL
 
         for ( i in 1:nii  ){ 
           id = rid$netmind_uid[i]
+          print(rid[i,])
           N = basedata[ basedata$netmind_uid==id,]
           if (nrow(N) == 0 ) next()
           l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i] )

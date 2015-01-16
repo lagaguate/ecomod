@@ -1,5 +1,5 @@
   bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=2, 
-        filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=10, depth.range=30, 
+        filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=10, depth.range=c(-30,30), 
         plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9) ) {
   
   #require(lubridate) 
@@ -32,8 +32,32 @@
   O$manual.method = c(NA , NA)
   O$summary = NA
   O$res = data.frame (cbind(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA ) )
+  O$variance.method.indices  = NA
+  O$modal.method = NA
+  O$smooth.method.indices = NA
+  O$bottom0 = NA
+    O$bottom1 = NA
+    O$bottom0.sd = NA
+    O$bottom1.sd = NA
+    O$bottom0.n = NA
+    O$bottom1.n = NA
+    O$bottom.diff = NA
+O$summary = NA
+O$depth.mean = NA
+  O$depth.sd = NA
+  O$depth.n = NA
+  O$depth.n.bad = NA
+  O$depth.smoothed.mean = NA
+  O$depth.smoothed.sd = NA
+  O$depth.goodvalues = NA
+  O$depth.filtered = NA
+  O$depth.smoothed = NA
+  O$ts = NA
+  O$timestamp = NA
+  O$signal2noise = NA # not really signal to noise but rather  % informations 
+  O$bottom.contact = NA
+ 
 
-  
   ##--------------------------------
   # sort in case time is not in sequence
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
@@ -50,7 +74,8 @@
 
 
   ##--------------------------------
-  # basic depth gating 
+  # basic depth gating
+  if(any(x$depth>depth.min)) { 
   O$good = bottom.contact.gating ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
   x$depth[ !O$good ] = NA
 
@@ -344,7 +369,7 @@ O$intersect.method = NA
   }
   print( O$summary)
   O$good = NULL
-  
+}  
   return( O )
 
 }

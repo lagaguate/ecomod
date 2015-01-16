@@ -1,5 +1,5 @@
 
-bottom.contact.gating = function( Z, good, depth.min=10, depth.range=30, depthproportion=0.5) {
+bottom.contact.gating = function( Z, good, depth.min=10, depth.range=c(-30,30), depthproportion=0.5) {
   
   ## Preliminary gating: simple range limits (gating) of depths to remove real extremes
   # eliminate records with NA for depth  
@@ -32,8 +32,8 @@ bottom.contact.gating = function( Z, good, depth.min=10, depth.range=30, depthpr
   ##--------------------------------
   ## Filtering based on median depth
 
-  depth.diff = abs( Z - depth.bottom )
-  i = which( depth.diff > depth.range )
+  depth.diff =  Z - depth.bottom 
+  i = which( depth.diff < depth.range[1] | depth.diff> depth.range[2])
   if (length(i) > 0) good[i] = FALSE
   # points( Z[good] ~ iz[good] , pch=20, col="cyan" )
 
