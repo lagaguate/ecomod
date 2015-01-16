@@ -154,7 +154,7 @@
           M$timestamp = as.POSIXct( M$chron, tz="ADT" )
           settimestamp= as.POSIXct( rid$setChron[i] , tz="ADT" )
 print(id)
-if(grepl('S30092013',id)) browser()
+#if(grepl('S30092013',id)) browser()
           res = bottom.contact( id=id, x=M , settimestamp=settimestamp, setdepth=rid$setZx[i], 
             tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 )
           
