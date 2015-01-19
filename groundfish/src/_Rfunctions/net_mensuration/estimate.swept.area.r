@@ -10,6 +10,16 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE  ){
   gsi$wingspread.mean = NA
   gsi$wingspread.sd = NA
   
+if (FALSE){
+ 
+u=which(modern.data$id== "NED2009027.108")
+t0 = 500
+t1 = 41500
+
+
+}
+
+
 
   x = x[order( x$timestamp ) ,]
   
@@ -39,6 +49,23 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE  ){
     # estim distance from vel * duration
     # incremental distance from incremental time
     # integrate
+	loadfunctions( "groundfish")
+	
+	gsinf = groundfish.db( DS="gsinf.odbc" ) # loading raw data from Oracle data dump
+	 # fix lon/lat
+	  gsinf$lat = gsinf$slat/100
+      gsinf$lon = gsinf$slong/100
+      if (mean(gsinf$lon,na.rm=T) >0 ) gsinf$lon = - gsinf$lon  # make sure form is correct
+      gsinf = convert.degmin2degdec(gsinf)
+      
+	  
+	  gsinf$cftow = 1.75/gsinf$dist  # not used
+      ft2m = 0.3048
+      m2km = 1/1000
+      nmi2mi = 1.1507794
+      mi2ft = 5280
+      gsinf$sakm2 = (41 * ft2m * m2km ) * ( gsinf$dist * nmi2mi * mi2ft * ft2m * m2km )  # surface area sampled in km^2
+	
   }
 
   
@@ -46,35 +73,9 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE  ){
     # use direct GPS position to estimate diff in 
     # incremental distance from incremental time
     # integrate
+    # but first filter data
   }
 
-
-  # integrate area:: piece-wise integration is used as there is curvature of the fishing track 
-  # PROBLEM: the GPS resolution is very poor requiring that data be discretized
- 
-  O = NULL
-
-  i0 = 1
-  i1 = 2
-  while ( i1 < end ) {
-    i0 = i1 - 1  # previous index
-    if ( N$longitude[i0] == N$longitude[i1]) {
-      
-    }
-
-    j = which( N$longitude)  
-  
-  }
-  
-  ulon = unique( N$longitude ) 
-  ulat = unique( N$latitude )
-
-  
-  if (length(ulon) > length(ulat)) {
-    
-  } else {
-  
-  }
 
   dh =  rep(0, end-1)
   for( ii in 1:(end-1) ) dh[ii] = geodist( point=x[ii,pos], locations=x[ii+1,pos], method="vincenty" ) # km .. slower but high res

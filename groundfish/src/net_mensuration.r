@@ -99,7 +99,7 @@ modern.data.2006=modern.data[which(modern.data$year ==2006) , ]
   # Run for many sets
   for (id in allids){
     
-    id = "TEL2006614.89" "NED2006030.64" "TEL2006614.49" "NED2006030.63"
+    id = "NED2006030.73" 
     mm = modern.data[ which(modern.data$id==id) , ]
    # mm = master[ which(master$id==id),]
       bc = NULL
