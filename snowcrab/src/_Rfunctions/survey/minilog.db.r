@@ -161,7 +161,7 @@
         rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
         rid = rid[ rid$yr== yr ,] 
-         
+        #rid = rid[grepl('S19092004',rid$minilog_uid),] 
         if (nrow(rid) == 0 ) next()
         
         for ( i in 1:nrow(rid)  ) {
