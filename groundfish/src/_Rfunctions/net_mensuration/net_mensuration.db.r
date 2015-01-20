@@ -339,7 +339,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
 
       bc = NULL
       bc = try( bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=4, sd.multiplier=5, 
-                          depth.min=10, depth.range=20, smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE), silent=TRUE)
+                          depth.min=10, depth.range=c(-40, 30), smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE), silent=TRUE)
       if ("try-error" %in% class(bc) ) next()
       
       gsinf$bc0.datetime[gii] = bc$bottom0 
