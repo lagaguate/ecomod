@@ -118,6 +118,10 @@
         sb.meta = seabird.db( DS="metadata", Y=Y )
 
         res = merge( sb.meta, sb.stat,  by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
+        
+        if(any(duplicated(res[,c('trip','set')]))) {
+            res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
+          }
         return (res)
 
       }
@@ -139,7 +143,8 @@
         rid = rid[ rid$yr== yr ,] 
  
         if (nrow(rid) == 0 ) next()
-    
+        #prune down the rids to only a subset
+        #rid = rid[grepl('S30092013',rid$seabird_uid),]
         for ( i in 1:nrow(rid) ) {
      
           id = rid$seabird_uid[i]
@@ -154,7 +159,7 @@
           M$timestamp = as.POSIXct( M$chron, tz="ADT" )
           settimestamp= as.POSIXct( rid$setChron[i] , tz="ADT" )
 print(id)
-#if(grepl('S30092013',id)) browser()
+
           res = bottom.contact( id=id, x=M , settimestamp=settimestamp, setdepth=rid$setZx[i], 
             tdif.min=3, tdif.max=9, eps.depth=2, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 )
           
@@ -188,16 +193,19 @@ print(id)
             #res$res$t1 = as.numeric(res$res$t1)
           }
 
+           res$res$t0 = as.character(res$res$t0) 
+           res$res$t1 = as.character(res$res$t1) 
+           res$res$dt = as.character(res$res$dt) 
           sbStats = rbind( sbStats, cbind( seabird_uid=id, res$res ) )
         }
 
         sbStats$seabird_uid =  as.character(sbStats$seabird_uid)
 
-        sbdt = sbStats$dt
+        #sbdt = sbStats$dt
         #sbStats$dt = NA
         #i = which(!is.na( sbdt ) )
 
-        #if (length(i) >0 ) sbStats$dt[i] = times( sbdt[i] ) turned off to see if it matter AMC
+        #if (length(i) >0 ) sbStats$dt[i] = times( sbdt[i] ) 
 
         save( sbStats, file=fn, compress=TRUE) 
 

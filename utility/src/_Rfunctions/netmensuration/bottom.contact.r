@@ -50,7 +50,8 @@ O$depth.mean = NA
   O$timestamp = NA
   O$signal2noise = NA # not really signal to noise but rather  % informations 
   O$bottom.contact = NA
- 
+ if(grepl('minilog.S20052000.10.NA.NA.NA.13',id)) return(O)
+if(grepl('minilog.S19092004.8.389.NA.NA.321',id)) return(O)
 
   ##--------------------------------
   # sort in case time is not in sequence
@@ -92,6 +93,7 @@ O$depth.mean = NA
     # AND 9 MINUTES AFTER settimestamp (some are really this long)
     O$res$t0=settimestamp
     timelimits =  settimestamp + minutes( settimelimits )
+    if(timelimits[1] == timelimits[2])     timelimits =  settimestamp +  (settimelimits * 60)
     jj = which( x$timestamp > timelimits[1] & x$timestamp < timelimits[2] ) 
     n.req = 30
     if ( length(jj) > n.req ) {
@@ -356,7 +358,7 @@ O$depth.mean = NA
     tmean = mean( x$temperature[fin.all], na.rm=T )
     tmeansd = sd( x$temperature[fin.all], na.rm=T )
   }
-
+#if(is.na(O$bottom0) ) browser()
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
   
@@ -370,7 +372,8 @@ O$depth.mean = NA
 
   print( O$summary)
   O$good = NULL
-}  
+}
+print(O$res)  
   return( O )
 
 }
