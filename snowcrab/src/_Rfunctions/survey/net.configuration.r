@@ -10,9 +10,12 @@
       surfacearea=NA, vel=NA, vel_sd=NA, netmind_n=NA, t0=NA, t1=NA, dt=NA, yr=NA )
  
     n.req = 30
-     
+    t0_multiple = NULL
     #changed this switch from depgth filed to lat as if there is not depth info can still run script
 	  if ( length( which( is.finite( N$lat))) < n.req ) print(N[1,])
+    
+    if(is.na(t0)) t0 = NULL
+    if(is.na(t1)) t1 = NULL
           
     problem = F
 
@@ -26,16 +29,18 @@
      t0_multiple = t0 = c( as.POSIXct(tchron), t0 )
       tchron =NULL
     }
-
-    if ( any( is.null( c(t0, t1 ) ) ) ) {
+  if(N$netmind_uid[1] =='netmind.S26092014.9.541.17.48.304') return(out)
+ 
+    if ( any( is.null( t1 ) || is.null(t0) ) )   {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 
      
       N$timestamp =  as.POSIXct( N$chron , tz="ADT" )
-      m = N[, c("timestamp", "depth") ]
+      M = N[, c("timestamp", "depth") ]
       
-      settimestamp= as.POSIXct( tchron , tz="ADT" )
+      if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz="ADT" )
+      if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz="ADT" )
 
-      res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
+      res = bottom.contact( id=N$netmind_uid[1], x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
         tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
 
       if (FALSE) {
@@ -53,8 +58,8 @@
 #            res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
 #          }
       
-      if (is.null(t0) & !is.null(bcs$bottom0) ) t0 = res$bottom0
-      if (is.null(t1) & !is.null(bcs$bottom1) ) t1 = res$bottom1
+      if (is.null(t0) & !is.null(res$bottom0) ) t0 = res$bottom0
+      if (is.null(t1) & !is.null(res$bottom1) ) t1 = res$bottom1
       N = N[ res$bottom.contact , ] 
     }
 
@@ -102,7 +107,8 @@
 
     if (!is.null( t1) )    t1 = as.POSIXct(t1,origin='1970-01-01')
     
-    if (!is.null( t0_multiple ) & !any(is.na(t0_multiple) )) { # two estimates of t0
+    if (!is.null( t0_multiple )) {
+        if( !any(is.na(t0_multiple) )) { # two estimates of t0
       timediff = abs( as.numeric( t0_multiple[1] - t0_multiple[2] ))
       
       if (timediff > 20 ) { # more than XX seconds
@@ -112,6 +118,8 @@
           dts =  abs( as.numeric( t1 - t0_multiple ))
           if(all(is.chron(dts))) igood = which( dts > 5/60/24 &  dts < 7/60/24 )
           if(any(!is.chron(dts))) igood = which( dts > 300 &  dts < 420 )
+          if(any(dts<12)) igood = which( dts > 5 &  dts < 7 )
+          
           if (length(igood)==0 ) t0=mean(t0_multiple) # both not good, take mean
           if (length(igood)==1 ) t0=t0_multiple[igood]
           if (length(igood)==2 ) t0=min( t0_multiple )  # both good, no info which is best .. take the longer tow to be conservative
@@ -120,6 +128,7 @@
         t0 = min( t0_multiple ) # this is to be more conservative in SA estimates ... better to be wrong by estimating too large a SA
       }
     }
+  }
 if(length(t0)>1) t0 = NA
     out$t0 = t0
     out$t1 = t1
@@ -133,7 +142,9 @@ if(length(t0)>1) t0 = NA
 if(!is.na(out$t0))    out$yr = as.numeric( as.character( years( out$t0) ))
 if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
 
-    itime =  which( N$chron >= t0  &  N$chron <= t1 )
+    if(is.chron(t0)) itime =  which( N$chron >= t0  &  N$chron <= t1 )
+    if(is.POSIXct(t0)) itime =  which( as.POSIXct(N$chron) >= t0  &  as.POSIXct(N$chron) <= t1 )
+    
     if ( length( itime) < n.req ) problem = T
 
     if (problem) {

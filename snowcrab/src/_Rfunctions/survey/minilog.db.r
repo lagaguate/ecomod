@@ -144,6 +144,10 @@
         }
         mini.meta = minilog.db( DS="metadata", Y=Y )
         res = merge( mini.meta, mini.stat,  by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
+        if(any(duplicated(res[,c('trip','set')]))) {
+            res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
+          }
+
         return (res)
        }
 

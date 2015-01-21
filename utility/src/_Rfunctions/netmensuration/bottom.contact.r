@@ -52,6 +52,7 @@ O$depth.mean = NA
   O$bottom.contact = NA
  if(grepl('minilog.S20052000.10.NA.NA.NA.13',id)) return(O)
 if(grepl('minilog.S19092004.8.389.NA.NA.321',id)) return(O)
+if(sum(!is.na(x$depth))<20) return(O)
 
   ##--------------------------------
   # sort in case time is not in sequence
@@ -70,6 +71,7 @@ if(grepl('minilog.S19092004.8.389.NA.NA.321',id)) return(O)
 
   ##--------------------------------
   # basic depth gating
+  
   if(any(x$depth>depth.min)) { 
   O$good = bottom.contact.gating ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
   x$depth[ !O$good ] = NA
@@ -108,8 +110,9 @@ if(grepl('minilog.S19092004.8.389.NA.NA.321',id)) return(O)
       mcol = "steelblue"
       points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
     }
-
-
+   
+if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return(O)
+if(sum(O$good)==0) return(O)
   res = NULL
   res = bottom.contact.filter.noise ( x, O$good, tdif.min, tdif.max, eps.depth=eps.depth,
     smoothing = smoothing, filter.quants=filter.quants, sd.multiplier=sd.multiplier )

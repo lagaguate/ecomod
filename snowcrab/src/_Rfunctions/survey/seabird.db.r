@@ -173,13 +173,10 @@ print(id)
           if (all (is.finite( res$smooth.method) ) ) {
             ## --- NOTE smooth (1)  seem to work best ... focus upon these methods with seabird data ... 
             ##  likely due to greater precision and data density relative to minilog
-<<<<<<< HEAD
             res$res$t0 = res$smooth.method[1]
             res$res$t1 = res$smooth.method[2]
-=======
             res$res$t0 = as.POSIXct(res$smooth.method[1],origin='1970-01-01')
             res$res$t1 = as.POSIXct(res$smooth.method[2],origin='1970-01-01')
->>>>>>> develop
             res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
           } else if(any(is.na(res$res))) {
                ir = which(is.na(res$res))
