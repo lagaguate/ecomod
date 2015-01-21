@@ -1,7 +1,7 @@
 ############################
 #User PARAMETERS
 #
-year=1974
+year=2013
 type=c(1)
 species.code=11
 strat.list<-c(470:495)
@@ -304,7 +304,16 @@ alw<-aggregate(FWT~AGE+FLEN,data=stock_agelen,FUN=mean)
 alw$FWT = alw$FWT / 1000
 alw_result = reshape(alw,idvar='FLEN',timevar='AGE',direction='wide')
 
-results<-list(tunits_results, alk_results,lset_results, length_mean_result, length_sd_result, length_total_result, alw_result)
+results<-list(tunits_results, alk_results, lset_results, length_mean_result, length_sd_result, length_total_result, alw_result)
+#r_results          == STRANAL results sheet
+#---------------------------------------
+#tunits_results     == Strata Area      (OK)
+#alk_results        == Age Length Key   (OK)
+#lset_results       == Length by Set    (OK)
+#length_mean_result == Length Mean      (OK)
+#length_sd_result   == Length Mean Standard Error (OK)
+#length_total_result== Length Total     (discrepencies > 75)
+#alw_result         == Age Length Weight  (OK)
 
 ##########################################BEWARE!#########################################
 #################################BEYOND HERE BE DRAGONS!##################################
