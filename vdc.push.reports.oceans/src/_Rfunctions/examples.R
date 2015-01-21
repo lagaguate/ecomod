@@ -37,5 +37,8 @@
 #   oceans.activity.mapper(debug=F,last_n_days=NULL,startdate="2014-12-31 23:59", enddate="2014-01-01 00:01", vessel_list=c(999999),datawindows=c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash"))
 #   #get the activity for the 60 days prior to Mike's birthday for Lophelia
 #   oceans.activity.mapper(debug=F,last_n_days=60,startdate="2014-02-11 00:01", enddate=NULL, vessel_list=c(),datawindows=c("Lophelia CCA"))
+
+#Typical default
+#oceans.activity.mapper(debug=F,last_n_days=30,startdate=NULL, enddate=NULL, vessel_list=c(),datawindows=c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash"))
   
  
