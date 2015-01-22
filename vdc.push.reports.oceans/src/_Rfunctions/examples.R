@@ -1,44 +1,100 @@
-#oceans.activity.mapper(debug,last_n_days,startdate,enddate,vessel_list,datawindows)
+# Environment and Running a Default Report ------------------------
 
-#Altering report parameters
+  #For maximum convenience, set your credentials in your .Rprofile:
+   
+    #oracle.dsn = "PTRAN"
+    #oracle.oceans.user = <your username>
+    #oracle.oceans.pw   = <your password>
 
-#NOTE regarding date specifity:
-#if neither start or end date is entered, data is returned relative to NOW
-#if both dates are entered, data is returned for that range
-#if one date is entered, data is returned for x days prior to that date
+  #If your credentials are set, you can run the default report via:
 
-#debug       = T                                      #"T" reuses last data-grab, "F" gets new data
-#last_n_days = 30                                     #previous x days (eg 30)
-#startdate   = NULL                                   #Local startdate (eg '2013-10-27 16:00')
-#enddate     = NULL                                   #Local enddate (eg '2013-11-27 05:00')  
-#vessel_list = c()                                    #vector of vrn (eg c(999999,888888) ) - NO quotes!
-#datawindows = c("Lophelia CCA","Northeast Channel")  #vector of possible values (see list below) - case sensitive, must use quotes!
-  # Lophelia CCA
-  # Northeast Channel
-  # Gully
-  # VazellaEmerald
-  # St Anns Bank Inventory Box
-  # Musquash  
+    #oceans.activity.mapper()
 
-  ####others
-  #Russian Hat Assessment Box1
-  #Stone Fence
-  #Haddock Closed Area
-  #roseway whale
-  #Fundy Whale Sanctuary
-  #All                #All gets one massive file of all areas - just like the old (wrong) NE channel report
+  #Otherwise you have to include them in the function call like this:
 
-# #examples for calling the vdc.oceans.activity.mapper code:
-#   #get the last 15 days in the Gully
-#   oceans.activity.mapper(debug=F,last_n_days=15,startdate=NULL, enddate=NULL, ,datawindows=c("Gully"))
-#   #get the activity for 2014 of a particular vessel in all areas
-#   oceans.activity.mapper(debug=F,last_n_days=NULL,startdate="2014-12-31 23:59", enddate="2014-01-01 00:01", vessel_list=c(999999),datawindows=c("All"))
-#   #same as above, but only for particular areas
-#   oceans.activity.mapper(debug=F,last_n_days=NULL,startdate="2014-12-31 23:59", enddate="2014-01-01 00:01", vessel_list=c(999999),datawindows=c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash"))
-#   #get the activity for the 60 days prior to Mike's birthday for Lophelia
-#   oceans.activity.mapper(debug=F,last_n_days=60,startdate="2014-02-11 00:01", enddate=NULL, vessel_list=c(),datawindows=c("Lophelia CCA"))
+    #oceans.activity.mapper("PTRAN","<your username>","<your password>")
 
-#Typical default
-#oceans.activity.mapper(debug=F,last_n_days=30,startdate=NULL, enddate=NULL, vessel_list=c(),datawindows=c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash"))
+  #The default report getting the last 30 days of data for 
+  #Lophelia, NE Channel, Gully, Vazella, ST Anns and Musquash.
   
- 
+# Custom Reports --------------------------------------------------
+
+  #Instead of simply running reports for the last 30 days, you can 
+  #also run reports for specific date ranges or specific vessels.
+  #You may also choose to run a report for a particular area
+  #rather than for all of them
+
+  #Following are the default values that are used if none are specified
+
+  # dsn         = oracle.dsn                 #The name of your odbc connection to oracle
+  # user        = oracle.oceans.user         #Your oracle user name
+  # pw          = oracle.oceans.password     #Your oracle password
+  # debug       = F                          #debug - generally leave it as F
+  # last_n_days = 30                       #previous x days (eg 30)                         
+  # startdate   = NULL                       #Local startdate (eg '2013-10-27 16:00')
+  # enddate     = NULL                       #Local enddate (eg '2013-11-27 05:00')
+  # vessel_list = c()                        #vector of vrn (eg c(999999,888888) ) - NO quotes!
+  # datawindows = c("Lophelia CCA",          #vector of possible values (see list below) - 
+  #                 "Northeast Channel",     #case sensitive, must use quotes!
+  #                 "Gully",
+  #                 "VazellaEmerald",
+  #                 "St Anns Bank Inventory Box",
+  #                 "Musquash")
+
+# Available datawindows -------------------------------------------
+
+  # default datawindows
+    # Lophelia CCA
+    # Northeast Channel
+    # Gully
+    # VazellaEmerald
+    # St Anns Bank Inventory Box
+    # Musquash
+
+  # other datawindows
+    # Russian Hat Assessment Box1
+    # Stone Fence
+    # Haddock Closed Area
+    # roseway whale
+    # Fundy Whale Sanctuary
+    # All                #All gets one massive file of all areas - 
+                         #just like the old (wrong) NE channel report
+
+  #"Haldimand Canyon" and "Shortland Canyon" don't have 
+  #data windows so they can't be generated.
+
+# Date Specificity ------------------------------------------------
+
+   #if both dates are entered (start and end), data is returned for that
+   #range
+
+   #if a single date (start or end) is entered, the last_n_days of data
+   #are returned prior to that date 
+
+   #if no dates are entered, the last_n_days are relative to the time 
+   #when you ran the report
+
+   #if no value is given for last_n_days, a value of 30 is used
+
+# Examples --------------------------------------------------------
+
+  #Default reports
+    #minimalist, using all defaults
+      #oceans.activity.mapper()
+    #minimalist (with credentials)
+      #oceans.activity.mapper("PTRAN","<your username>","<your password>")
+    #full function call
+      #oceans.activity.mapper(dsn="PTRAN", user="<your username>", pw="<your password>",debug=F,last_n_days=,startdate=NULL, enddate=NULL, vessel_list=c(),datawindows=c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash"))
+  
+  ##examples for calling the vdc.oceans.activity.mapper code:
+    ##last 15 days in the Gully
+      #oceans.activity.mapper(dsn=oracle.oceans.dsn, user=oracle.oceans.user, pw=oracle.oceans.pw, debug=F,last_n_days=15,startdate=NULL, enddate=NULL, ,datawindows=c("Gully"))
+    
+    ##activity for 2014 of 2 particular vessels in all areas
+      #oceans.activity.mapper(dsn=oracle.oceans.dsn, user=oracle.oceans.user, pw=oracle.oceans.pw, debug=F,last_n_days=NULL,startdate="2014-01-01 00:01", enddate="2014-12-31 23:59", vessel_list=c(888888, 999999),datawindows=c("All"))
+    
+    ##activity for june for a single vessel in multiple areas
+      #oceans.activity.mapper(dsn=oracle.oceans.dsn, user=oracle.oceans.user, pw=oracle.oceans.pw, debug=F,last_n_days=NULL,startdate="2014-06-01 00:01", enddate="2014-06-31 23:59", vessel_list=c(777777),datawindows=c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash"))
+    
+    ##get the activity for the 60 days prior to Mike's birthday for Lophelia
+      #oceans.activity.mapper(dsn=oracle.oceans.dsn, user=oracle.oceans.user, pw=oracle.oceans.pw, debug=F,last_n_days=60,startdate=NULL, enddate="2014-02-11 12:00", vessel_list=c(),datawindows=c("Lophelia CCA"))

@@ -1,22 +1,7 @@
-oceans.get.data<-function(datawindow, last_n_days, startDate, endDate, vessel_list){
+oceans.get.data<-function(dsn, user, pw, datawindow, last_n_days, startDate, endDate, vessel_list){
   options(stringsAsFactors=F)
-  
-
-  
-  print('connecting')
-  #ROracle
-  #source(file.path( workdir,"common","Private","connectROracle.R"))
-  #channelMflib <- odbcConnect(GetConnectAsVDC())
-  #RODBC
   require(RODBC)
-  #source(file.path( workdir,"common","Private","GetConnectAs.R" ))
-  channelMflib<-connectAs("VDC")
-
-  #capture last_n_days - if unspecified, default it to 30 day
-  if (is.null(last_n_days)){
-    last_n_days=30
-  }
-  
+  channel<-connectAs(dsn, user,pw)
   #stole SQL from VDC.MWQUERY.DATA (ID=5255)
   #The following SQL was pulled from the VDC and it's one of the Oceans activity area queries
   if (is.null(datawindow) || datawindow == "All" ){
@@ -25,26 +10,30 @@ oceans.get.data<-function(datawindow, last_n_days, startDate, endDate, vessel_li
     where1= paste("WHERE windID = '", datawindow, "'", sep="")
   }
   
-  #if a date range has been provided, use it, otherwise, get last_n_days
   where2<-NULL
+  #if a date range has been provided, use it, otherwise, get last_n_days
   if (!is.null(startDate) && !is.null(endDate)){
-    where2= paste("v.pos_date_local BETWEEN To_Date('",endDate,"','YYYY-MM-DD HH24:MI') AND To_Date('",startDate,"','YYYY-MM-DD HH24:MI')",sep="")
+    where2= paste("v.pos_date_local BETWEEN To_Date('",startDate,"','YYYY-MM-DD HH24:MI') AND To_Date('",endDate,"','YYYY-MM-DD HH24:MI')",sep="")
+    title= paste("Activity in ", datawindow, " between ",startDate," and ",endDate,sep="")
   }else if (!is.null(last_n_days) && (!is.null(startDate) || !is.null(endDate))){
     thedate<-c(startDate,endDate)
     where2= paste("v.pos_date_local BETWEEN (To_Date('",thedate,"','YYYY-MM-DD HH24:MI') - ",as.numeric(last_n_days),") AND (To_Date('",thedate,"','YYYY-MM-DD HH24:MI'))",sep="")
+    title= paste(last_n_days," days of activity prior to ", thedate," in ",datawindow,sep="")
   }else if (!is.null(last_n_days)){
     where2= paste("v.pos_date_local >= sysdate - '",as.numeric(last_n_days),"'",sep="")
+    title= paste("Last ",last_n_days," days of activity in ",datawindow,sep="")
   }else{
-    cat("insufficient dates provided - need last_n_days OR start and ends of a date range")  
+    where2= paste("v.pos_date_local >= sysdate - ",last_n_days,sep="")
+    title= paste("Last ",last_n_days," days of activity in ",datawindow,sep="")
   }
-  
+    
   #if a vessel_list has been provided, add it to the SQL
    if (!is.null(vessel_list)&&vessel_list!='NA'){
       #thevrn<-paste(vessel_list,collapse="', '")
     thevrn<-paste("'",gsub("(\\s*,*\\s,*\\s*)","','",vessel_list),"'",sep="")
-    thevrntitle<-thevrn
-
+    #thevrntitle<-thevrn
     where2= paste(where2, " AND vr_number IN (",thevrn,")",sep="")
+    title<-paste(title, " for VRN: ",thevrn,sep="")
   }else{
     thevrn<-NULL
     thevrntitle<-NULL
@@ -58,7 +47,6 @@ oceans.get.data<-function(datawindow, last_n_days, startDate, endDate, vessel_li
     LAT,
     LON,
     activity,
-
     vr_number,
     VCLASS,
     vessel_name,
@@ -67,48 +55,33 @@ oceans.get.data<-function(datawindow, last_n_days, startDate, endDate, vessel_li
     COMMUNITY,
     DETACHMENT,
     GEAR,
-      vessel_name
-    ||'-'
-    || v.position_local
-    ||'-'
-    ||log_efrt_std_info_id AS setid,
-    vessel_name
-    ||':'
-    ||trip_id vesselTrip,
+    vessel_name ||'-'|| v.position_local||'-'||log_efrt_std_info_id AS setid,
+    vessel_name||':'||trip_id vesselTrip,
     trip_id,
     log_efrt_std_info_id subtrip,
     HAIL_OUT_SPECIES,
     HAIL_OUT_SPECIES_CATEGORY,
-    --SPECIES_GROUP,
     SPECIES,
-    --SPECIES_CATEGORY_ID,
     SPECIES_CATEGORY,
-    --SPECIES_ABBREV,
     RND_WEIGHT_kgs,
     RPT_WEIGHT_kgs,
     VAL_CDN$
-    --Positions
     FROM ocmd_mpa.vessel_events_kml v ,
     (SELECT MIN(minLat) minLat,
     MIN(minLon) minLon,
     MAX(maxLat) maxLat,
     MAX(maxLon) maxLon
     FROM ocmd_mpa.data_window
-    ", where1, " 
-  ) w
-
+    ", where1, " ) w
     WHERE v.lat BETWEEN w.minLat AND w.maxLat
     AND v.lon BETWEEN w.minLon AND w.maxLon  
     AND ", where2 ,sep="")
 	
   vertexFields = c("LON","LAT","POSITION_UTC")
-   cat("Getting Vessel data (takes a while)\n")
-    #sqlQuery is for RODBC
-  cat("<hr>",the.SQL,"<hr>")
-  df<-sqlQuery(channelMflib,the.SQL)
-  #ROracle
-  #df<-dbGetQuery(channelMflib,the.SQL)
- #CATEGORIZE THE HAIL_OUT SPECIES INTO GROUPS - THESE GROUPS WILL SUBDIVIDE GEAR TYPES
+  cat("Getting Vessel data\n")
+  #cat(the.SQL)
+  df<-sqlQuery(channel,the.SQL)
+  #CATEGORIZE THE HAIL_OUT SPECIES INTO GROUPS - THESE GROUPS WILL SUBDIVIDE GEAR TYPES
   pelagics<-c("ALEWIVES/GASPEREAU",
               "ALEWIVES/GASPEREAU-HERRING/MACKEREL",
               "BILLFISH",
@@ -160,7 +133,7 @@ oceans.get.data<-function(datawindow, last_n_days, startDate, endDate, vessel_li
   groundfish<-c("AMERICAN PLAICE",
                 "COD",
                 "CUSK",
-				"GREYSOLE/WITCH",
+                "GREYSOLE/WITCH",
                 "GROUNDFISH",
                 "HAGFISH (SLIME EEL)",
                 "HADDOCK",
@@ -196,41 +169,23 @@ oceans.get.data<-function(datawindow, last_n_days, startDate, endDate, vessel_li
                 ".na."
                  )
   
-  
   df$HAIL_OUT_SPECIES_CATEGORY[df$HAIL_OUT_SPECIES %in% pelagics] <- "PELAGIC"    
   df$HAIL_OUT_SPECIES_CATEGORY[df$HAIL_OUT_SPECIES %in% shellfish] <- "SHELLFISH"  
   df$HAIL_OUT_SPECIES_CATEGORY[df$HAIL_OUT_SPECIES %in% groundfish] <- "GROUNDFISH"  
   df$HAIL_OUT_SPECIES_CATEGORY[df$HAIL_OUT_SPECIES %in% other] <- "OTHER"
   df$HAIL_OUT_SPECIES_CATEGORY[df$HAIL_OUT_SPECIES %in% mysterycategory] <- "Unknown"
 
-  
-  
   the.SQL.dwindow<-paste("SELECT MIN(minLat) minLat,
                          MIN(minLon) minLon,
                          MAX(maxLat) maxLat,
                          MAX(maxLon) maxLon
                          FROM ocmd_mpa.data_window
                          ", where1,sep="")
-cat("Getting OCMD areas\n")
-  #RODBC
-  dWindow<-sqlQuery(channelMflib,the.SQL.dwindow)
-  #ROracle
-  #dWindow<-dbGetQuery(channelMflib,the.SQL.dwindow)
 
-df<-list(df[with(df, order(VR_NUMBER, POSITION_UTC)), ],vertexFields, the.SQL,last_n_days, startDate, endDate, thevrn, datawindow, dWindow)
-dfKeep<<-df
-  #df<-list(df[with(df, order(VR_NUMBER, POSITION_UTC)), ],the.SQL,last_n_days, NULL, NULL, NULL,"GULLY", dWindow)
-  #write(paste(df[with(df, order(VR_NUMBER, POSITION_UTC)), ], the.SQL,last_n_days, startDate, endDate, vrn,datawindow, sep="\n"),'log.txt')
-  #write(unlist(df),'log.txt')
-  #cat("Data log written to log.txt")'
+  dWindow<-sqlQuery(channel,the.SQL.dwindow)
 
-#RODBC
-odbcClose(channelMflib)
-
-#ROracle
-#dbDisconnect(channelMflib)
-#detach("package:ROracle")
-#detach("package:DBI")
-print('closed connection') 
+  df<-list(df[with(df, order(VR_NUMBER, POSITION_UTC)), ],vertexFields, the.SQL,last_n_days, startDate, endDate, thevrn, datawindow, dWindow, title)
+  dfKeep<<-df
+  odbcClose(channel)
   return(df)
 }
