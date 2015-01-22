@@ -167,6 +167,8 @@
         set$station[i] = 212
         i = which(set$trip == 'S07102014' &set$set==13)
         set$stime[i] = 2146
+        i = which(set$trip == 'S06112014' &set$set==8)
+        set$lon[i] = 60.08317
       }
 
       
@@ -403,7 +405,7 @@
       snowcrab = merge(x=numbers, y=biomass, by=c("trip", "set"), all=T)
       snowcrab = snowcrab[ which( as.character(snowcrab$trip) != "-1") , ]
 			
-      # snowcrab$spec = taxonomy.parsimonious( spec=2526 )  # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
+       snowcrab$spec = taxonomy.recode(to='parsimonious',from='spec', tolookup = 2526 )  # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
       # longer here -- in bio db only
 
 			final = snowcrab[,names(x)]  # get the right sequence of variables
@@ -679,21 +681,29 @@
       set = set[ , c( set.names, "seabird_uid", "minilog_uid", "netmind_uid" ) ]
 
       sbStats =  seabird.db( DS="stats" )
-      sbStats = sbStats[ , c("seabird_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+ #     sbStats = sbStats[ , c("seabird_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+      sbStats = sbStats[ , c("seabird_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
 
       mlStats =  minilog.db( DS="stats" )
-      mlStats = mlStats[ , c("minilog_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
-      names( mlStats ) = c("minilog_uid", "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
+ #     mlStats = mlStats[ , c("minilog_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+      mlStats = mlStats[ , c("minilog_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+ 
+      names( mlStats ) = c("minilog_uid",'trip','set', "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
 
-      set = merge( set, sbStats, by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      set = merge( set, mlStats, by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
+#      set = merge( set, sbStats, by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
+#      set = merge( set, mlStats, by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      set = merge( set, sbStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+      set = merge( set, mlStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+      set$t0 = as.POSIXct(set$t0,format="%Y-%m-%d %H:%M:%S")
+      set$t1 = as.POSIXct(set$t1,format="%Y-%m-%d %H:%M:%S")
+      set = toNums(set,c('dt','t0.ml','t1.ml', 'dt.ml'))
 
       # use seabird data as the standard, replace with minilog data where missing
       ii = which(!is.finite( set$t0) )
       if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin='1970-01-01')
  
       ii = which(!is.finite( set$t1) )
-      if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t0.ml[ii],origin='1970-01-01')
+      if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t1.ml[ii],origin='1970-01-01')
       
       ii = which(!is.finite( set$z) )
       if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]

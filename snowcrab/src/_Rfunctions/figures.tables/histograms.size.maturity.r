@@ -12,8 +12,8 @@
       # areas = c("cfanorth.not.glace.bay", "cfa22outer", "cfasouth" )
       # areas = c("cfaall",  "cfanorth", "cfasouth", "cfa20", "cfa21", "cfa22", "cfa23", "cfa24", "cfa4x", "cfa23slope", "cfa24slope", "cfaslope"  )
       areas = c("cfanorth", "cfasouth", "cfa4x")
-     # years = 1998:p$current.assessment.year
-#if(length(years)>15) years = (p$current.assessment.year-14):p$current.assessment.year
+      year = 1998:p$current.assessment.year
+    if(length(year)>15) year = (p$current.assessment.year-14):p$current.assessment.year
 
 
 
@@ -56,7 +56,7 @@
       Cairo( file=fn, type="pdf", bg="white", units="in", width=8, height=10 )
 
       ncols = length(areas)
-      nrows = length(years)
+      nrows = length(year)
       pl = layout( matrix( c(1:(ncols*nrows)), nrow=nrows, ncol=ncols, byrow=F ) )
       par(oma=c(6, 6, 6, 1)) # outer margins default:  c(0, 1, 0, 1)'c(bottom, left, top, right)'
       par(mar=c(0, 0, 0.4, 0))
@@ -69,7 +69,8 @@
       for (a in 1:(ncols)) {
         set0 = set[filter.region.polygon(set, areas[a]),]
         for (y in 1:nrows) {
-          set1 = set0[ which(set0$yr==years[y] ), ]
+          browser()
+          set1 = set0[ which(set0$yr==year[y] ), ]
           sids = sort(unique(set1$sid))
 
           m.i = m.imm[which( rownames(m.imm)%in% sids ) ,]
@@ -85,20 +86,20 @@
           if (areas[a]==areas[1] ) axes=T  # first col
 
           axisnames = F
-          if (years[y]==years[nrows]) axisnames=T  # last row
+          if (year[y]==year[nrows]) axisnames=T  # last row
 
           barplot(toplot, space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=3)
           
           if (areas[a]==areas[ncols]) {
-            text( dim(toplot)[2]-4, ylim[2]*2/3, years[y], cex=1.2  )
+            text( dim(toplot)[2]-4, ylim[2]*2/3, year[y], cex=1.2  )
           }
           
-          if (areas[a]==areas[3] & years[y] %in% c(1998:2000) ) {
+          if (areas[a]==areas[3] & year[y] %in% c(1998:2000) ) {
           } else {
             abline( v=41, lwd=3, lty="dashed" )
           }
           
-          if (areas[a]==areas[3] & years[y]==years[2] ) {
+          if (areas[a]==areas[3] & year[y]==year[2] ) {
             xl = c(xlim[2]*0.1, xlim[2]*0.1)
             yl = c(ylim[2]*0.8, ylim[2]*0.4 )
             points( x=xl, y=yl, pch=22, bg=c(cols[2], cols[1]), cex=2 )
@@ -123,7 +124,7 @@
   Cairo( file=fn, type="pdf", bg="white", units="in", width=8, height=10 )
     
       ncols = length(areas)
-      nrows = length(years)
+      nrows = length(year)
       pl = layout( matrix( c(1:(ncols*nrows)), nrow=nrows, ncol=ncols, byrow=F ) )
       par(oma=c(6, 6, 6, 1)) # outer margins default:  c(0, 1, 0, 1)'c(bottom, left, top, right)'
       par(mar=c(0, 0, 0.4, 0))
@@ -137,7 +138,7 @@
       for (a in 1:(ncols)) {
         set0 = set[filter.region.polygon(set, areas[a]),]
         for (y in 1:nrows) {
-          set1 = set0[ which(set0$yr==years[y]) , ]
+          set1 = set0[ which(set0$yr==year[y]) , ]
           sids = sort(unique(set1$sid))
 
           f.i = f.imm[which( rownames(f.imm)%in% sids ) ,]
@@ -153,13 +154,13 @@
           if (areas[a]==areas[1] ) axes=T  # first col
 
           axisnames = F
-          if (years[y]==years[nrows]) axisnames=T  # last row
+          if (year[y]==year[nrows]) axisnames=T  # last row
 
           barplot(toplot, space=0, axisnames=axisnames, ylim=ylim, axes=axes, xpd=F, lwd=3 )
 
-          if (areas[a]==areas[ncols]) text( dim(toplot)[2]-4, ylim[2]*2/3, years[y], cex=1.2 )
+          if (areas[a]==areas[ncols]) text( dim(toplot)[2]-4, ylim[2]*2/3, year[y], cex=1.2 )
 
-          if (areas[a]==areas[3] & years[y]==years[2] ) {
+          if (areas[a]==areas[3] & year[y]==year[2] ) {
             xl = c(xlim[2]*0.1, xlim[2]*0.1)
             yl = c(ylim[2]*0.8, ylim[2]*0.4 )
             points( x=xl, y=yl, pch=22, bg=c(cols[2], cols[1]), cex=1 )
