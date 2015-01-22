@@ -308,16 +308,16 @@ O$depth.mean = NA
     O$bottom1.sd = sd(  ( tmp[ direct, "end" ]), na.rm=TRUE )
     O$bottom0.n = length( which( is.finite( tmp[ direct, "start" ] )) )
     O$bottom1.n = length( which( is.finite( tmp[ direct, "end" ] )) )
-    O$bottom.diff = O$bottom1 - O$bottom0
+    O$bottom.diff =  difftime( O$bottom1, O$bottom0, units="secs" )
   } else {
     # over-ride all data and use the manually determined results
     O$bottom0 = tmp[ standard, "start" ]
     O$bottom1 = tmp[ standard, "end" ]
-    O$bottom0.sd = -1
-    O$bottom1.sd = -1
-    O$bottom0.n = -1
-    O$bottom1.n = -1
-    O$bottom.diff = O$bottom1 - O$bottom0
+    O$bottom0.sd = NA
+    O$bottom1.sd = NA
+    O$bottom0.n = length( which( is.finite( tmp[ direct, "start" ] )) )
+    O$bottom1.n = length( which( is.finite( tmp[ direct, "end" ] )) )
+    O$bottom.diff = difftime( O$bottom1, O$bottom0, units="secs" )
   }
 
   tmp$diff = difftime( tmp$end, tmp$start, units="secs" )
