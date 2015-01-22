@@ -9,7 +9,11 @@
 ##################################################################
 
 great.circle.distance = function (loc1, loc2, R) {
-    if (is.null(R)) R = 6367.436  # radius of earth (geometric mean) km
+  
+  names(loc1) = c("lon", "lat")
+  names(loc2) = c("lon", "lat")
+  
+  if (is.null(R)) R = 6367.436  # radius of earth (geometric mean) km
     # if R=1 then distances in radians
     if (missing(loc2)) loc2 <- loc1
     pi180 = pi/180

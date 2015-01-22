@@ -46,6 +46,9 @@
 
 vincenty = function (loc1, loc2, a, f) {
 
+  names(loc1) = c("lon", "lat")
+  names(loc2) = c("lon", "lat")
+  
       eps = 0.5e-13
       pi = 3.1415926535897932384626433832795
       rad = 0.0174532925199432957692369076848861
