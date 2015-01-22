@@ -1,5 +1,10 @@
 # Environment and Running a Default Report ------------------------
 
+  #Before you can run a report, you must load in the required functions
+  #These all exist in ecomod, and are loaded via the command
+  
+    #loadfunctions("vdc.push.reports.oceans")
+
   #For maximum convenience, set your credentials in your .Rprofile:
    
     #oracle.dsn = "PTRAN"
