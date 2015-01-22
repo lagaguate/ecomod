@@ -50,7 +50,9 @@ O$depth.mean = NA
   O$timestamp = NA
   O$signal2noise = NA # not really signal to noise but rather  % informations 
   O$bottom.contact = NA
- 
+ if(grepl('minilog.S20052000.10.NA.NA.NA.13',id)) return(O)
+if(grepl('minilog.S19092004.8.389.NA.NA.321',id)) return(O)
+if(sum(!is.na(x$depth))<20) return(O)
 
   ##--------------------------------
   # sort in case time is not in sequence
@@ -69,6 +71,7 @@ O$depth.mean = NA
 
   ##--------------------------------
   # basic depth gating
+  
   if(any(x$depth>depth.min)) { 
   O$good = bottom.contact.gating ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
   x$depth[ !O$good ] = NA
@@ -92,6 +95,7 @@ O$depth.mean = NA
     # AND 9 MINUTES AFTER settimestamp (some are really this long)
     O$res$t0=settimestamp
     timelimits =  settimestamp + minutes( settimelimits )
+    if(timelimits[1] == timelimits[2])     timelimits =  settimestamp +  (settimelimits * 60)
     jj = which( x$timestamp > timelimits[1] & x$timestamp < timelimits[2] ) 
     n.req = 30
     if ( length(jj) > n.req ) {
@@ -106,8 +110,9 @@ O$depth.mean = NA
       mcol = "steelblue"
       points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
     }
-
-
+   
+if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return(O)
+if(sum(O$good)==0) return(O)
   res = NULL
   res = bottom.contact.filter.noise ( x, O$good, tdif.min, tdif.max, eps.depth=eps.depth,
     smoothing = smoothing, filter.quants=filter.quants, sd.multiplier=sd.multiplier )
@@ -356,7 +361,7 @@ O$depth.mean = NA
     tmean = mean( x$temperature[fin.all], na.rm=T )
     tmeansd = sd( x$temperature[fin.all], na.rm=T )
   }
-
+#if(is.na(O$bottom0) ) browser()
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
   
@@ -370,7 +375,8 @@ O$depth.mean = NA
 
   print( O$summary)
   O$good = NULL
-}  
+}
+print(O$res)  
   return( O )
 
 }

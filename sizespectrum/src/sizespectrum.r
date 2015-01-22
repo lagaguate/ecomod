@@ -39,7 +39,7 @@
   p$clusters = rep("localhost", detectCores() )
 
 
-  p$yearstomodel = 1970:2013 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   
   # for spatial interpolation of nss stats
   p$varstomodel = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon" )

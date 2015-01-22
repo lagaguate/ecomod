@@ -16,7 +16,7 @@
   # p$studyarea = c("4vwx", "5yz" )
   
    # set map years separately to temporal.interpolation.redo allow control over specific years updated
-  p$yearstomodel = 1970:2011 
+  p$yearstomodel = 1970:2014 
   # p$seasons = "allseasons"
  
   p$depthrange = c(10,700) # in meters ... allowable values of depth

@@ -46,6 +46,7 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3
 
   aoi.sd = sd( x$depth[ aoi ], na.rm=TRUE )  ## SD 
   buffer = trunc(length(aoi)/10) # additional points to add beyond midpoint to seed initial SD estimates
+  if(any((aoi.mid-buffer)<1)) buffer = aoi.mid-1 #keep the index positive
   duration = 0 
   
   target.sd = aoi.sd * sd.multiplier
@@ -58,8 +59,9 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3
       if ( is.na(sdtest) ) next()
       if ( sdtest  >= target.sd ) break()
     }
+
     for ( j1 in aoi.mid: aoi.max ) {  #  begin from centre to right
-      sdtest =  sd(( x$depth[ (aoi.mid - buffer):j1]), na.rm=T)
+       sdtest =  sd(( x$depth[ (aoi.mid - buffer):j1]), na.rm=T)
       if ( is.na(sdtest) ) next()
       if ( sdtest >= target.sd ) break()
     }

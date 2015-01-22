@@ -30,7 +30,7 @@
 
   p$varstomodel = c( "coAll", "coFish", "coElasmo", "coGadoid", "coDemersal", "coPelagic", "coSmallPelagic", "coLargePelagic", "coSmallDemersal",   "coLargeDemersal" )
   
-  p$yearstomodel = 1970:2013
+  p$yearstomodel = 1970:2014
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
   p$spatial.knots = 100

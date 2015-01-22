@@ -1,15 +1,17 @@
  figure.observed.size.freq = function(regions= c("cfanorth", "cfasouth", "cfa4x"), years=NULL, outdir=NULL ) {
     
     odb = observer.db( DS="odb")
-    # Remove CW's outside norms and remove production (pre-sorted) samples in historical data
-    ii = which( odb$cw > 50 & odb$cw < 170 & odb$prodcd_id=="0" )
+    # Remove CW's outside norms 
+    ii = which( odb$cw > 50 & odb$cw < 170) 
     odb = odb[ii,]
     
     if (years=="all") years = sort( unique( odb$fishyr ) )
-
+years=2014
     for (reg in regions) {
       r = filter.region.polygon(x=odb, region=recode.areas(reg), planar=F)
       for (y in years) {
+        # remove production (pre-sorted) samples in historical data
+        #if(y < 2004) odb = odb[which(odb$prodcd_id=="0"),]
         out= NULL
         i = which( odb$fishyr==y )  # use fishing year and not year of the actual sample
         j = intersect (r, i)

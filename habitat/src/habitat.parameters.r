@@ -17,7 +17,7 @@
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
 
-  p$yearstomodel = 1970:2013
+  p$yearstomodel = 1970:2014
   
    
      p$speciesarea.modeltype = "complex"
