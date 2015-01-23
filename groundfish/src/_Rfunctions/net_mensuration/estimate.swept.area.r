@@ -29,7 +29,9 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
     plot (latitude~longitude, data=x, pch=20, cex=.1)
     plot (depth~timestamp, data=x, pch=20, cex=.1)
     plot (depth~ts, data=x, pch=20, cex=.1)
-    
+    plot (wingspread~ts, data=x, pch=20, cex=.1)
+    plot (doorspread~ts, data=x, pch=20, cex=.1)
+    plot (doorspread~ts, data=x[x$door.and.wing.reliable,], pch=20, cex=.2, col="green") 
   }
 
   mean.velocity.m.per.sec = gs$speed * 1.852  * 1000 / 3600

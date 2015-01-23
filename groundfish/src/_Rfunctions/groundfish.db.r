@@ -377,7 +377,11 @@
       }
  
       gsinf = groundfish.db( DS="gsinf.odbc" )
+
       names(gsinf)[which(names(gsinf)=="type")] = "settype"
+      tz( gsinf$sdate ) = "UTC"  # This makes it match the scanmar/marport time stamps
+      tz( gsinf$etime ) = "UTC"
+      
       gsinf$mission = as.character( gsinf$mission )
       gsinf$strat = as.character(gsinf$strat)
       gsinf$strat[ which(gsinf$strat=="") ] = "NA"
@@ -402,6 +406,7 @@
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
 			gsinf = gsinf[, c("id", "sdate", "time", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
+      
       save(gsinf, file=fn, compress=T)
       return(fn)
     }
