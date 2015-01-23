@@ -1,6 +1,6 @@
 
 
-RLibrary("INLA", "numDeriv" )
+RLibrary("INLA", "numDeriv", "lubridate" )
 
 # this relies upon the gsinf table which is accessible from the groundfish functions
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
@@ -38,13 +38,13 @@ no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
 # load marport data
 net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory ) # load data
 net_mensuration.db( DS="marport.gated.redo",  netswd=marportdatadirectory ) # QA/QC of data
-marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory ) # QA/QC of data
+marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory ) # Not working need to fix to load marport data
 str(marport)
 
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
-load("master.rdata")
+
 
 # Load marport/basedata
 load("C:/Users/mundenj/Desktop/Marport/marport.rdata")
