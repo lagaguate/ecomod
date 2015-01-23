@@ -1,140 +1,103 @@
-estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE  ){
+estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10  ){
 
   if (getnames) return( c("names, of variables") )
   
-  n.req = 30
+  gs$sweptarea.mean = NA
+  gs$depth.mean = NA
+  gs$depth.sd = NA
+  gs$wingspread.mean = NA
+  gs$wingspread.sd = NA
 
-  gsi$sweptarea.mean = NA
-  gsi$depth.mean = NA
-  gsi$depth.sd = NA
-  gsi$wingspread.mean = NA
-  gsi$wingspread.sd = NA
+  # debug
+  if (FALSE){
+   
   
-
+  }
+  bc = which( x$timestamp >=gs$bc0.datetime & x$timestamp <= gs$bc1.datetime ) 
+  x = x[bc,]
   x = x[order( x$timestamp ) ,]
   
   ##--------------------------------
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
-  x$ts = as.numeric(x$timestamp)  # in seconds 
-  x$ts = x$ts - min(x$ts) 
-  
-  bc = which( x$timestamp >=gsi$bc0.datetime & x$timestamp <= gsi$bc1.datetime ) 
-  i0 = min(bc)
-  i1 = max(bc)
+  x$ts = difftime( x$timestamp, min(x$timestamp), units="secs" )
+  x$lon.sm = NA  # interpolated locations
+  x$lat.sm = NA  # interpolated locations
+  x$time.increment = NA
+  ndat = nrow(x)
   
   if (debug) {
     plot (latitude~longitude, data=x, pch=20, cex=.1)
-    points(latitude~longitude, data=x[bc,], pch=20, cex=.1, col="orange")
-  }
-
-  nupos = sqrt( length( unique( x$longitude)) ^2  + length(unique(x$latitude))^2)
-  if (nupos < 30) { 
-    method = "interpolated.using.velocity" # older data
-  } else {
-    method = "direct"  # higher resolution GPS data
-  }
-  
-  if (method=="interpolated.using.velocity") {
-    ## obtain ship velocity 
-    # estim distance from vel * duration
-    # incremental distance from incremental time
-    # integrate
-  }
-
-  
-  if (method=="direct") {
-    # use direct GPS position to estimate diff in 
-    # incremental distance from incremental time
-    # integrate
-  }
-
-
-  # integrate area:: piece-wise integration is used as there is curvature of the fishing track 
-  # PROBLEM: the GPS resolution is very poor requiring that data be discretized
- 
-  O = NULL
-
-  i0 = 1
-  i1 = 2
-  while ( i1 < end ) {
-    i0 = i1 - 1  # previous index
-    if ( N$longitude[i0] == N$longitude[i1]) {
-      
-    }
-
-    j = which( N$longitude)  
-  
-  }
-  
-  ulon = unique( N$longitude ) 
-  ulat = unique( N$latitude )
-
-  
-  if (length(ulon) > length(ulat)) {
+    plot (depth~timestamp, data=x, pch=20, cex=.1)
+    plot (depth~ts, data=x, pch=20, cex=.1)
     
+  }
+
+  mean.velocity.m.per.sec = gs$speed * 1.852  * 1000 / 3600
+  x$distance = x$ts * mean.velocity.m.per.sec 
+  
+  nupos = sqrt( length( unique( x$longitude)) ^2  + length(unique(x$latitude))^2)
+  
+  x$distance.sm = NA
+  if (nupos > 30) { 
+    # interpolated.using.velocity" .. for older data with poor GPS resolution
+    # use ship velocity and distance of tow estimated on board to compute incremental distance, assuming a straight line tow
+    nn = abs( diff( x$ts ) )
+    dd = median( nn[nn>0], na.rm=TRUE )
+    x$t = jitter( x$t, amount=dd / 20) # add noise as inla seems unhappy with duplicates in x?
+    uu = smooth.spline( x=x$ts, y=x$longitude, keep.data=FALSE) 
+    x$lon.sm = uu$y
+    vv = smooth.spline( x=x$ts, y=x$latitude, keep.data=FALSE) 
+    x$lat.sm = vv$y
+    pos = c("lon.sm", "lat.sm")
+    dh =  rep(0, ndat-1)
+    for( j in 1:(ndat-1) ) dh[j] = geodist( point=x[j,pos], locations=x[j+1,pos], method="vincenty" ) * 1000 # m .. slower but high res
+    # dh = zapsmall( dh, 1e-9 )
+    x$distance.sm = c( 0, cumsum( dh ) )
+  }
+
+  # doorspread
+  
+  doorspread.median = median(x$doorspread, na.rm=T)
+  doorspread.sd = sd(x$doorspread, na.rm=T)
+  
+  if ( doorspread.sd / doorspread.median > threshold.cv ) {
+    if (all( !is.finite(x$distance.sm)) ) {
+      SA.door = doorspread.median * max( x$distance.sm, na.rm=TRUE )
+    } else {
+      SA.door = doorspread.median * max( x$distance, na.rm=TRUE )
+    }
   } else {
-  
+    # piece-wise integration here.
+    #partial.area =  delta.distance * mean.doorspreads
+    #out$surfacearea = sum( partial.area )  # km^2
+    #out$surfacearea = abs(  out$surfacearea )
+    
   }
-
-  dh =  rep(0, end-1)
-  for( ii in 1:(end-1) ) dh[ii] = geodist( point=x[ii,pos], locations=x[ii+1,pos], method="vincenty" ) # km .. slower but high res
-  hDist = c( 0, cumsum( dh ) ) 
   
-  dv =  rep(0, end-1)
-  dv = abs( diff( N$depth ) ) / 1000   # m to km
-  vDist = c( 0, cumsum( dv) ) 
-
   
-
-
-  ds = N$doorspread
-  ii = which( is.finite( n$doorspread ) )
-  if ( length(ii) < n.req ) {
-    # estimate from doorspread
-    # 
+  # wingspread .. repeat as above
+  
+  wingspread.median = median(x$wingspread, na.rm=T)
+  wingspread.sd = sd(x$wingspread, na.rm=T)
+  
+  if ( wingspread.sd / wingspread.median > threshold.cv ) {
+    if (all( !is.finite(x$distance.sm)) ) {
+      SA.door = wingspread.median * max( x$distance.sm, na.rm=TRUE )
+    } else {
+      SA.door = wingspread.median * max( x$distance, na.rm=TRUE )
+    }
+  } else {
+    # piece-wise integration here.
+    #partial.area =  delta.distance * mean.doorspreads
+    #out$surfacearea = sum( partial.area )  # km^2
+    #out$surfacearea = abs(  out$surfacearea )
+    
   }
-
-  n$distances = # cumsum used to do piecewise integration of distance
-      # model/smooth/interpolate the spreads
-      n$doorspread.predicted = NA
-      ii = which( is.finite( n$doorspread ) )
-      if ( length(ii) > n.req ) {
-           
-      n$doorspread.predicted = approx( x=n$distances, y=n$doorspread, xout=n$distances, method="linear", rule=2 )$y
-         
-         
-       #turned off gam model in December 20, 2013 giving unrealistic values for spread as the new esnoar files have 0 and NA whereas older netmind are filled with previous value 
-			      	#gam.model = try( gam( doorspread ~ s(distances, k=5, bs="ts"), data=n[ii,], optimizer=c("outer", "nlm")), silent = T )
-			        #if ( ! "try-error" %in% class( gam.model )) {
-			        #  n$doorspread.predicted = predict( gam.model, newdata=n, newdata.guaranteed=T )
-			        #} else {
-			        #  n$doorspread.predicted = approx( x=n$distances, y=n$doorspread, xout=n$distances, method="linear", rule=2 )$y
-			        #}
-      }
-      if ( length( which( is.finite( n$doorspread.predicted ) ) ) < 10 ) {
-        n$doorspread.predicted = mean( n$doorspread , na.rm=T, trim=0.1 )
-      }
-
-      mean.doorspreads = ( n$doorspread.predicted[1:(end-1)] + n$doorspread.predicted[2:(end)] ) / 2 / 1000  # mean between two ends
-      partial.area =  delta.distance * mean.doorspreads
-      out$surfacearea = sum( partial.area )  # km^2
-      out$surfacearea = abs(  out$surfacearea )
-
-      out$spread = mean(n$doorspread.predicted, na.rm=T, trim=0.1)/1000  # in km
-     spread_sd = sd(n$doorspread.predicted, na.rm=T )/1000
-     if(!is.na(spread_sd) & spread_sd!=0) out$spread_sd = spread_sd #if just using the mean from above do not over write spread_sd
-     out$distance=n$distances[end]
-
-
-  plot ()
-
-  gsi$sweptarea.mean = sweptarea.mean 
-  gsi$depth.mean = depth.mean
-  gsi$depth.sd = depth.sd
-  gsi$wingspread.mean = wingspread.mean
-  gsi$wingspread.sd = wingspread.sd
   
-  return( gsi)
+  
+  
+  
+  return( gs)
 
 }
 

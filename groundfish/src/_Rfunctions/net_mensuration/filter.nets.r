@@ -65,4 +65,30 @@ filter.nets = function(DS, x){
     x = x[-i,]
     return(x)
   }
+  
+  if (DS=="door.wing") {
+    require(lubridate)
+    require(mgcv)
+    x$year = year( x$timestamp )
+    x$good = TRUE
+    
+    # first pass -- a linear model to quickly determine large residuals
+    dw = lm( wingspread ~ as.factor(year) + doorspread, data=x, na.action="na.exclude" )
+    # hist(dw$residuals, "fd")
+    x$resids = residuals( dw )
+    q.resids = quantile( x$resids, probs=c(0.05, 0.95), na.rm=TRUE )
+    x$good[ which( x$resids < q.resids[1] | x$resids > q.resids[2] )] = FALSE
+    
+    # second pass -- another linear model
+    x$wingspread[ !x$good ] = NA
+    x$doorspread[ !x$good ] = NA
+    
+    dw2 = lm( wingspread ~ as.factor(year) + doorspread, data=x, na.action="na.exclude")
+    # hist(dw$residuals, "fd")
+    x$resids = residuals( dw2 )
+    q.resids = quantile( x$resids, probs=c(0.05, 0.95), na.rm=TRUE )
+    x$good[ which( x$resids < q.resids[1] | x$resids > q.resids[2] )] = FALSE
+    return( x$good )    
+  }
+  
 }

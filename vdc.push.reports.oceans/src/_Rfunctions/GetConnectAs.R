@@ -1,8 +1,8 @@
-GetConnectAsVDC <- function() {
-  connection<- odbcConnect(oracle.dsn, uid = oracle.vdc.user, pwd = oracle.vdc.password)
-  return(connection)
-}
-connectAs <- function(schema) {
-   connection<- odbcConnect(oracle.dsn, uid = oracle.vdc.user, pwd = oracle.vdc.password)
+connectAs <- function(dsn, user, pw) {
+   connection<- odbcConnect(dsn, uid = user, pwd = pw)
+   if(connection == -1) { 
+     stop("
+         Unable to connect to database.
+         Please check your username and password")}
   return(connection)
 }

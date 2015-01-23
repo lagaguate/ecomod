@@ -187,10 +187,11 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
    nm$clearance = filter.nets("clearance.range", nm$clearance)
    nm$opening = filter.nets("opening.range", nm$opening)
    nm$depth = filter.nets("depth.range", nm$depth)
-   master$date=substring(master$timestamp,0,10) 
-   
+   nm$door.and.wing.reliable = filter.nets( "door.wing", nm )    # flag to ID data that are bivariately stable .. errors still likely present
+ 
    save( nm, file=fn, compress=TRUE)
   }
+
 
 
   if(DS %in% c("post.perley", "post.perley.redo"))  {
@@ -259,7 +260,23 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     
     save(basedata, file=fn, compress= TRUE)
   }
-  
+
+  if(DS %in% c("marport.gated", "marport.gated.redo"))  {
+    basedata=NULL
+    fn=file.path( netswd, paste( "marport.gated", "rdata", sep="." ))
+    if(DS == "marport.gated"){
+      if (file.exists(fn)) load(fn)
+      return(basedata)
+    }
+       nm = net_mensuration.db( DS="marport",  netswd=netswd ) # QA/QC of data
+        
+      nm$doorspread = filter.nets("doorspread.range", nm$doorspread)
+      nm$wingspread = filter.nets("wingspread.range", nm$wingspread)
+      nm$clearance = filter.nets("clearance.range", nm$clearance)
+      nm$opening.scanmar = filter.nets("opening.range", nm$opening.scanmar)
+      nm$depth = filter.nets("depth.range", nm$depth)
+   
+  }
 
   if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
     
@@ -277,6 +294,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     pp$time = NULL
      
     nm = net_mensuration.db( DS="perley.database", netswd=netswd ) 
+    nm$netmensurationfilename = "Perley Oracle instance"
     w = which(!is.finite(nm$cspd))
     nm$ctspeed[w]=nm$cspd[w]
     v = which(!is.finite(nm$fspd))
@@ -291,12 +309,31 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
     
     setdiff(names(pp), names(nm))
+    pp$netmensurationfilename = pp$uniqueid 
     pp$uniqueid=NULL
     pp$ctspeed=NA
     pp=pp[,names(nm)]
+    
     # this is where we add the marport data/2010-2011 data
     master=rbind(nm, pp)
-     
+    
+    master$date = substring(as.character(master$timestamp), 1,10)
+    gooddata = which( !is.na( master$id))
+    
+    
+    ids = strsplit( master$id[gooddata], "[.]" )
+    
+    mission.trip = unlist( lapply( ids, function(x){x[[1]]} ) )
+    setno = unlist( lapply( ids, function(x){x[[2]]} ) )
+    
+    master$set = NA
+    master$set[gooddata] = as.numeric( setno )
+    
+    master$trip = NA
+    master$trip[gooddata] = substring( mission.trip, 8,10 )
+    master$trip = as.numeric(master$trip)
+    master$year=year(master$timestamp)  
+    
     save(master, file=fn, compress= TRUE)
     
   }
@@ -339,7 +376,7 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
 
       bc = NULL
       bc = try( bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=4, sd.multiplier=5, 
-                          depth.min=10, depth.range=c(-40, 30), smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE), silent=TRUE)
+                          depth.min=10, depth.range=c(-50, 50), smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE), silent=TRUE)
       if ("try-error" %in% class(bc) ) next()
       
       gsinf$bc0.datetime[gii] = bc$bottom0 
@@ -373,27 +410,48 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     }
    
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+    
     master = master[which(master$year >= 2004) ,  ]
     
     uid = sort( unique( master$id)) 
     
+    #gsinf = groundfish.db( DS="gsinf" ) # to debug
     gsinf =  net_mensuration.db( DS="bottom.contact", netswd=netswd )
+    gsinf$dist = NULL
+    
+    gsinf.odbc = groundfish.db( DS="gsinf.odbc" ) # loading raw data from Oracle data dump
+    gsinf.odbc$id = paste( gsinf.odbc$mission, gsinf.odbc$setno, sep="." )
+    updated.data = c("id", "speed", "dist")
+    gsinf = merge( gsinf, gsinf.odbc[,updated.data], by="id", all.x=TRUE, all.y=TRUE )
     
     # get variable names and sequence of var's
-    idtest = uid [ 1 ]
     gstest = estimate.swept.area( getnames=TRUE )
     newvars = setdiff( gstest, names( gsinf) )
     for (vn in newvars) gsinf[,vn] = NA
     gsinf = gsinf[, names(gstest) ] # reorder
 
+    if(FALSE) {
+      id="TEM2008775.22"
+      id="NED2010001.59"
+      ii = which( master$id==id ) 
+      gii = which( gsinf$id==id ) 
+      gs = gsinf[gii,]
+      x = master[ii,]
+    }
+    
     for ( id in uid) {
       print( id)
       ii = which( master$id==id )  # rows of master with scanmar/marport data
       if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
       gii = which( gsinf$id==id )  # row of matching gsinf with tow info
       if (length(gii) != 1) next()  # no match in gsinf
-      sa = estimate.swept.area( gsinf[gii,],  master[ii,] )
-      gsinf[gii,] # = sa$surfacearea ... etc
+      if ( all (is.finite( c( gsinf$bc0.sd, gsinf$bc1.sd ) ))) {
+      if ( gsinf$bc0.sd > 30 & gsinf$bc1.sd > 30 )  {
+        # SD of start and end times must have a convengent solution which is considered to be stable when SD < 30 seconds
+        sa = estimate.swept.area( gsinf[gii,],  master[ii,] )
+        gsinf$sa[gii] = sa$surfacearea
+        # ... 
+      }}
     }
     save(gsinf, file=fn, compress= TRUE)
   }
