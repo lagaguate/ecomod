@@ -177,7 +177,7 @@
     # -------------
     
     
-    if ( metthod %in% c( "maxresolved", "parsimonious") ) {
+    if ( method %in% c( "maxresolved", "parsimonious") ) {
       out = taxonomy.db( "parsimonious" )$spec.parsimonious  # full species list for bio using internal codes only
       out = sort( unique(out ) )
       return (out)
