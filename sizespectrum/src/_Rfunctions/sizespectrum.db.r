@@ -8,12 +8,12 @@
     infix = paste( p$nss.taxa, p$nss.type, p$nss.base, sep="." )
 
 
-    if (DS %in% c("sizestructure.by.set", "sizestructure.by.set.redo") ) {
+    if (DS %in% c("sizespectrum.by.set", "sizespectrum.by.set.redo") ) {
       
       # make the base normalised size spectral statistics summaries
       
-      if (DS == "sizestructure.by.set" ) {
-        fn = file.path( ddir, paste(  "sizestructure.by.set", infix, "rdata", sep="." ) )
+      if (DS == "sizespectrum.by.set" ) {
+        fn = file.path( ddir, paste(  "sizespectrum.by.set", infix, "rdata", sep="." ) )
         load( fn )
         return (ss )
       }
@@ -47,7 +47,7 @@
           # closed on the right: (x,x]
           # midpoints = (l.bound [2:n.size] + l.bound [1:(n.size-1)] ) /2
 
-          fn = file.path( ddir, paste(  "sizestructure.by.set", tx, vname, p$nss.base, "rdata", sep="." ) )
+          fn = file.path( ddir, paste(  "ssizespectrum.by.set", tx, vname, p$nss.base, "rdata", sep="." ) )
 
           ss = NULL
           tt = XX$cfdet*XX[,vname]
