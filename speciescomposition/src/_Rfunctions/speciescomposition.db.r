@@ -45,7 +45,7 @@
  
       # filter species 
       # sc$spec = taxonomy.parsimonious( spec=sc$spec )
-      isc = taxonomy.filter.taxa( sc$spec_bio, taxafilter=p$taxa, outtype="internalcodes" )
+      isc = taxonomy.filter.taxa( sc$spec_bio, method=p$taxa, outtype="internalcodes" )
       set = set[ which( set$id %in% unique( sc$id[isc]) ),]
 
       if ( p$season != "allseasons" ) {
