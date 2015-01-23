@@ -32,7 +32,7 @@
  
       sc = bio.db( DS="cat" )  # species catch
       sc = sc[ which(is.finite( sc$zn ) ), ] 
-      sc = sc[ , c("id", "spec", "zn" ) ]  # zscore-transformed into 0,1
+      sc = sc[ , c("id", "spec_bio", "zn" ) ]  # zscore-transformed into 0,1
           
       set = bio.db( DS="set" ) # trip/set loc information
       set = set[ ,  c("id", "yr", "julian", "sa", "lon", "lat", "t", "z" ) ]
