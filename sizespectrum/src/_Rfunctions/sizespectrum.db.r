@@ -28,7 +28,8 @@
    
        for (tx in p$nss.taxa) {
 
-        i.tx = taxonomy.filter.taxa( x$spec_bio, taxafilter=tx)
+        #i.tx = taxonomy.filter.taxa( x$spec_bio, taxafilter=tx)
+       i.tx = taxonomy.filter.taxa( x$spec_bio, method=p$taxa, outtype="internalcodes" )
         if ( is.null(i.tx) || length(i.tx) < 30) next()
         XX = x[ i.tx, ]
         rm( i.tx ); gc()
@@ -46,8 +47,9 @@
  
           # closed on the right: (x,x]
           # midpoints = (l.bound [2:n.size] + l.bound [1:(n.size-1)] ) /2
+         infix = paste( tx, vname, p$nss.base, sep="." )
 
-          fn = file.path( ddir, paste(  "ssizespectrum.by.set", tx, vname, p$nss.base, "rdata", sep="." ) )
+          fn = file.path( ddir, paste(  "sizespectrum.by.set", infix, "rdata", sep="." ) )
 
           ss = NULL
           tt = XX$cfdet*XX[,vname]
@@ -103,7 +105,8 @@
       p$bigmem.desc = describe(nss)
   
       p = make.list( list( nsets=1:p$nsets ), Y=p ) 
-      parallel.run( sizespectrum.compute, p=p, sm=sm )
+     # parallel.run( sizespectrum.compute, p=p, sm=sm )
+sizespectrum.compute( p=p, sm=sm )
 
       nss <- attach.big.matrix( p$bigmem.desc )
       nss = as.data.frame(as.matrix(nss) )
