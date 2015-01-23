@@ -36,10 +36,15 @@ if ( recreate.full.database.locally ) {
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
 
 # load marport data
-marport = net_mensuration.db( DS="marport",  netswd=marportdatadirectory )      # QA/QC of data
+net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory ) # load data
+net_mensuration.db( DS="marport.gated.redo",  netswd=marportdatadirectory ) # QA/QC of data
+marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory ) # QA/QC of data
+str(marport)
+
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+load("master.rdata")
 
 # Load marport/basedata
 load("C:/Users/mundenj/Desktop/Marport/marport.rdata")
@@ -60,6 +65,7 @@ save(modern.data, file="m.data.RData", compress=T)
 load("h.data.RData")
 load("m.data.RData")
 
+
 --- testing / development ---
 allids=unique(master$id)
 i=sample(1:length(allids),15)
@@ -67,9 +73,7 @@ allids=allids[i]
 allids
   id="NED2013028.115"
   mm = master[ which(master$id==id) , ]
-  plot(wingspread~timestamp, mm, col="blue") 
-  plot(doorspread~timestamp, mm) 
-  
+  plot(depth~timestamp, mm, main= id)
   
   
   
@@ -99,7 +103,7 @@ modern.data.2006=modern.data[which(modern.data$year ==2006) , ]
   # Run for many sets
   for (id in allids){
     
-    id = "TEL2006614.89" "NED2006030.64" "TEL2006614.49" "NED2006030.63"
+    id = "NED2006030.73" 
     mm = modern.data[ which(modern.data$id==id) , ]
    # mm = master[ which(master$id==id),]
       bc = NULL

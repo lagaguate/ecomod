@@ -1,11 +1,4 @@
-#source("Oceans/oceans.make.placemark.R")
-#source("Oceans/oceans.ocmd.areas.R")
-#source("Oceans/oceans.export.R")
-
 oceans.make.kml<-function(df_in){
-  
-
-
   #pull out stuff passed with dataframe
   df        <-as.data.frame(df_in[[1]]) 
   vertexFields<-            df_in[[2]]
@@ -16,9 +9,13 @@ oceans.make.kml<-function(df_in){
   vrn       <-              df_in[[7]]
   filename  <-              df_in[[8]]
   dwindow   <-              df_in[[9]]
-  workdir   <-              df_in[[10]]
-  tmpdir    <-              df_in[[11]]
-  savelocation    <-        df_in[[12]]
+  title    <-               df_in[[10]]
+  workdir   <-              df_in[[11]]
+  tmpdir    <-              df_in[[12]]
+  savelocation    <-        df_in[[13]]
+ 
+  library(R.utils)
+  
   if (is.null(filename)){
     filename<-"All"
   }else if (filename == "VazellaEmerald"){
@@ -26,21 +23,6 @@ oceans.make.kml<-function(df_in){
   }
   background.kml<-oceans.ocmd.areas(filename,dwindow)
   
-  if (!is.null(startDate) && !is.null(endDate)){
-    title= paste("Activity in ", filename, " between ",startDate," and ",endDate,sep="")
-  }else if (!is.null(days) && (!is.null(startDate) || !is.null(endDate))){
-    thedate<-c(startDate,endDate)
-    title= paste(days," days of activity prior to ", thedate," in ",filename,sep="")
-  }else if (!is.null(days)){
-    title= paste("Last ",days," days of activity in ",filename,sep="")
-  }else{
-    title= "No title"
-  }
-  if(!is.null(vrn)){
-    title<-paste(title, " for VRN: ",vrn,sep="")
-  }
-  
-
   rightnow<-Sys.time()
   timestamp<-format(rightnow, "%Y%m%d_%H%M")
   descDate<-format(rightnow, "%a %b %d %Y, at %I:%M%p")
@@ -53,9 +35,7 @@ oceans.make.kml<-function(df_in){
 
   fn.kml =file.path( workdir,"templates","Oceans_template.kml")
   tmpfile =  file.path( tmpdir, kmlName) 
-  #kmzfolder =  file.path( workdir, "Oceans","output")  
   kmzfolder =  savelocation  
-  #print('past')
   con = file( tmpfile, open="a")
   kml = readLines( fn.kml)
   kml.toSupportingData = grep (":__SupportingData",kml)
@@ -68,11 +48,9 @@ oceans.make.kml<-function(df_in){
   metadata = paste("Generated: ",descDate, "<br><br>
                     Please contact <a href='mailto:",mike.email,"?Subject=PED kml file'>Mike McMahon</a> (Population Ecology Division) for assistance, or to unsubscribe from this (or other) reports.",sep="")
   kml.head = sub( ":__HeaderDescription", metadata, kml.head )
-
-  if (!NROW(df)<1) { 
-    placemarks=NULL 
-
-  cat(paste("Got the data, generating kml file  '",title,"'...\n",sep=""))
+  placemarks=NULL
+  if (NROW(df)>0) { 
+  cat(paste("\nGenerating kmz file  '",paste(theFile, ".kmz",sep="" ),"'...\n",sep=""))
   #hierarchy
   folderLevel1<-"GEAR"
   folderLevel1a<-"HAIL_OUT_SPECIES_CATEGORY"
@@ -222,16 +200,14 @@ oceans.make.kml<-function(df_in){
         placemarks=c(placemarks, "</Folder>")
         level2df<-NULL
       }
-      
-      
-      
+
       placemarks=c(placemarks, "</Folder>")
 ###################END BY SOURCE######################  
       placemarks=c(placemarks, "</Folder>")
       level1df=NULL
       level2types=NULL
     }
-  }else{
+  }else{       
     cat(paste("No data was found for '",title,"'...\n",sep=""))
     placemarks<-paste("<Folder><name><![CDATA[No data found!]]></name><open>0</open><visibility>0</visibility><styleUrl>#checkHideChildren</styleUrl></Folder>",sep="")
   }
@@ -241,18 +217,15 @@ oceans.make.kml<-function(df_in){
   writeLines(placemarks, con )
   writeLines( kml.tail, con )
   close(con)
-  # cat("Shrinking your file...\n")
-  setwd(tmpdir)
-  library(R.utils)
   kmz<-file.path(kmzfolder,paste(theFile,".kmz",sep=""))
-  kmzfile<-zip(kmz,c(paste(theFile,".kml",sep=""),"customIcons"))
-  #WRITE THE FILE TO web folder
-  download<-file.copy(kmz, paste(savelocation,'/',theFile,'.kmz',sep=""))
-  downloadLoc<-paste(savelocation,'/',theFile,'.kmz',sep="")
-  #Capture stuff relevant to file (for emailing/downloading)
-  #original datawindowname, filename, filepath, when run, days, startDate,endDate, vrn
+  icons<-file.path(workdir,"customIcons")
+  kmzfile<-zip(kmz,
+               c(paste("tmp/",theFile,".kml",sep=""),
+                 "customIcons")
+                )
+  file.copy(kmz, paste(savelocation,'/',theFile,'.kmz',sep=""))
   results<-c(df_in[[8]], theFile, kmz, descDate, the.SQL)
-  #cat("<h4>Cleaning up.</h4>")
   file.remove( tmpfile)
+  print(paste("Completed file saved to ", kmzfolder,"/", theFile, ".kmz",sep="" ))
   return(results)
 }

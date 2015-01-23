@@ -94,7 +94,7 @@ load.marport.rawdata = function( fnroot, fncfg ) {
    
   test =  timestamp.fix ( marport$timestamp, threshold.hrs=2 )
   if (!is.null(test)) marport$timestamp = test
-  
+
   return(marport)
 }
 
