@@ -15,15 +15,15 @@ options(stringsAsFactors=F)
 options(warn=-1)
 workdir <- file.path(project.directory('vdc.push.reports.oceans'),"src" )
 setwd(workdir)
-tmpdir      <- file.path( workdir,"tmp" )
+#tmpdir      <- file.path( workdir,"tmp" )
 savelocation<- file.path( workdir,"output")
 
-map.vessels<-function(dsn, user, pw, datawindows, last_n_days, startDate, endDate, vessel_list,workdir,tmpdir,savelocation){
+map.vessels<-function(dsn, user, pw, datawindows, last_n_days, startDate, endDate, vessel_list,workdir,savelocation){
       if (exists("dfKeep")&&debug==T){
         cat("-------> Using existing data <--------\n")
         setwd(workdir)
         the.df<-dfKeep
-        the.df<-c(the.df,workdir,tmpdir,savelocation )
+        the.df<-c(the.df,workdir,savelocation )
         results1<-oceans.make.kml(the.df)
       }else{
         cat("Getting new data...\n")
@@ -31,7 +31,7 @@ map.vessels<-function(dsn, user, pw, datawindows, last_n_days, startDate, endDat
           cat(paste("Starting ", datawindows[i], "\n"))
           setwd(workdir)
           the.df<-oceans.get.data(dsn, user, pw, datawindows[i], last_n_days, startdate, enddate, vessel_list)
-          the.df<-c(the.df,workdir, tmpdir, savelocation )
+          the.df<-c(the.df,workdir,savelocation )
           results1<-oceans.make.kml(the.df)
           if (length(datawindows>1)){
             cat(paste("Finished ", datawindows[i],"\n"))
@@ -40,5 +40,5 @@ map.vessels<-function(dsn, user, pw, datawindows, last_n_days, startDate, endDat
         }
       }
     }
-map.vessels(dsn, user, pw, datawindows, last_n_days, startdate, enddate, vessel_list,workdir,tmpdir,savelocation)
+map.vessels(dsn, user, pw, datawindows, last_n_days, startdate, enddate, vessel_list,workdir,savelocation)
 }
