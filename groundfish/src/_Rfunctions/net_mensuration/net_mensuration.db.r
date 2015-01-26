@@ -251,22 +251,23 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       basedata = rbind( basedata, j)
     }
     
-    # Include mission as a variable
+    # Include mission as a variable (also trip and year)
     g=substring(basedata$rootname,54,63)      
     basedata$mission = paste(g, basedata$set, sep=".")
-    
-    # Include adjusted time as a variable (plus 7 mins or 420 secs)
-    basedata$adjusted.time=(basedata$timestamp) + 420
+    basedata$year = substring(basedata$mission, 4,7)
+    basedata$year=as.numeric(basedata$year)
+    basedata$trip = substring(basedata$mission, 8,10)
+    basedata$trip=as.numeric(basedata$trip)
     
     save(basedata, file=fn, compress= TRUE)
   }
 
   if(DS %in% c("marport.gated", "marport.gated.redo"))  {
-    basedata=NULL
+    nm=NULL
     fn=file.path( netswd, paste( "marport.gated", "rdata", sep="." ))
     if(DS == "marport.gated"){
       if (file.exists(fn)) load(fn)
-      return(basedata)
+      return(nm)
     }
        nm = net_mensuration.db( DS="marport",  netswd=netswd ) # QA/QC of data
         
@@ -275,6 +276,8 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       nm$clearance = filter.nets("clearance.range", nm$clearance)
       nm$opening.scanmar = filter.nets("opening.range", nm$opening.scanmar)
       nm$depth = filter.nets("depth.range", nm$depth)
+    
+    save(nm, file=fn, compress=TRUE)
    
   }
 
@@ -349,6 +352,10 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     }
     
     gsinf = groundfish.db( DS="gsinf" )
+    
+    # this is temporary until local groundfish data base is updated
+    tz( gsinf$sdate ) = "UTC"  # This makes it match the scanmar/marport time stamps
+    
     gsinf$bottom_duration = NA
     gsinf$bc0.datetime = as.POSIXct(NA)
     gsinf$bc1.datetime = as.POSIXct(NA)
@@ -374,9 +381,16 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
      
       mm = master[ which(master$id==id) , c("depth", "timestamp") ]
 
-      bc = NULL
+      # if ( id =="NED2009027.127")
+
+      # define time gate -20 from t0 and 50 min from t0
+      time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
+      
+      # x=mm; depthproportion=0.6; tdif.min=15; tdif.max=45; eps.depth=4; sd.multiplier=5; depth.min=10; depth.range=c(-50, 50); smoothing = 0.9; filter.quants=c(0.025, 0.975); plot.data=TRUE
+      
+      bc = NULL # 
       bc = try( bottom.contact(id, mm, depthproportion=0.6, tdif.min=15, tdif.max=45, eps.depth=4, sd.multiplier=5, 
-                          depth.min=10, depth.range=c(-50, 50), smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE), silent=TRUE)
+                          depth.min=10, depth.range=c(-50, 50), smoothing = 0.9, filter.quants=c(0.025, 0.975), plot.data=TRUE, time.gate=time.gate ), silent=TRUE)
       if ("try-error" %in% class(bc) ) next()
       
       gsinf$bc0.datetime[gii] = bc$bottom0 
@@ -410,7 +424,6 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     }
    
     master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
-    
     master = master[which(master$year >= 2004) ,  ]
     
     uid = sort( unique( master$id)) 

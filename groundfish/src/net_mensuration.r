@@ -1,6 +1,6 @@
 
 
-RLibrary("INLA", "numDeriv" )
+RLibrary("INLA", "numDeriv", "lubridate" )
 
 # this relies upon the gsinf table which is accessible from the groundfish functions
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
@@ -38,13 +38,13 @@ no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
 # load marport data
 net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory ) # load data
 net_mensuration.db( DS="marport.gated.redo",  netswd=marportdatadirectory ) # QA/QC of data
-marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory ) # QA/QC of data
-str(marport)
+marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory )
+
 
 
 # load all scanmar data for development ...
 master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
-load("master.rdata")
+
 
 # Load marport/basedata
 load("C:/Users/mundenj/Desktop/Marport/marport.rdata")
@@ -71,9 +71,9 @@ allids=unique(master$id)
 i=sample(1:length(allids),15)
 allids=allids[i]
 allids
-  id="NED2013028.115"
+  id="TEL2004529.21"
   mm = master[ which(master$id==id) , ]
-  plot(depth~timestamp, mm, main= id)
+  plot(depth~timestamp, mm, main= "TEL2004529.21")
   
   
   

@@ -1,6 +1,6 @@
   bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=2, 
         filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=10, depth.range=c(-30,30), 
-        plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9) ) {
+        plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9), time.gate=NULL ) {
   
   #require(lubridate) 
   require( numDeriv ) 
@@ -60,21 +60,34 @@ if(sum(!is.na(x$depth))<20) return(O)
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
  
-  if (plot.data) {
-    drange = c( quantile( x$depth, 0.05, na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
-    plot(depth~ts, x, ylim=c(drange[2],drange[1]), pch=20, cex=0.1, col="lightgray" )
-    legendtext = NULL
-    legendcol = NULL
-    legendpch = NULL
-  }
 
 
   ##--------------------------------
   # basic depth gating
   
-  if(any(x$depth>depth.min)) { 
+  if( !any(x$depth>depth.min)) return(O) 
+
+  # simple time-based gating
+  if (!is.null(time.gate)) {
+    O$good = bottom.contact.gating.time ( Zt=x$timestamp, good=O$good, time.gate=time.gate )
+    x$depth[ !O$good ] = NA
+  }
+  
+  if (plot.data) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="lightgray" )
+    legendtext = NULL
+    legendcol = NULL
+    legendpch = NULL
+  }
+
+  # simple depth-based gating
   O$good = bottom.contact.gating ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
   x$depth[ !O$good ] = NA
+  
+  points( depth~ts, x[ O$good, ], pch=20, col="green", cex=0.1)
+
 
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
@@ -375,8 +388,8 @@ if(sum(O$good)==0) return(O)
 
   print( O$summary)
   O$good = NULL
-}
-print(O$res)  
+
+  print(O$res)  
   return( O )
 
 }
