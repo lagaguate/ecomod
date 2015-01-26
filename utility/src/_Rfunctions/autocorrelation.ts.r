@@ -1,4 +1,4 @@
-  correlation.ts( dat, formu='y1 ~ 0 + f( x, model="ar1" )', method="inla", inla.vars=list(x="x", y="y"),
+  autocorrelation.ts = function( dat, formu='y1 ~ 0 + f( x, model="ar1" )', method="inla", inla.vars=list(x="x", y="y"),
     random.ar=0.8, random.missing=0.3, random.n=200, ... ) {
     
     if ( method=="random.data" ) {
