@@ -7,7 +7,8 @@ loadfunctions( "groundfish", functionname="load.groundfish.environment.r")
 
 # define location of local data files
 netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
-# netswd = "~/Downloads"
+# netswd = file.path( project.directory("groundfish"), "data", "nets" )
+
 # load( "~/Downloads/m.data.RData")
 
 marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")

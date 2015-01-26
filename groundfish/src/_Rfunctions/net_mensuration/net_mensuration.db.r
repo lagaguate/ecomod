@@ -374,6 +374,9 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
     uid = sort( unique( master$id)) 
     for ( id in uid) {
       print( id)
+      
+      # id = "TEL2004529.21"
+
       ii = which( master$id==id )  # rows of master with scanmar/marport data
       if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
       gii = which( gsinf$id==id )  # row of matching gsinf with tow info
