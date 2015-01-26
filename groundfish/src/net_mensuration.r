@@ -38,8 +38,8 @@ no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
 # load marport data
 net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory ) # load data
 net_mensuration.db( DS="marport.gated.redo",  netswd=marportdatadirectory ) # QA/QC of data
-marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory ) # Not working need to fix to load marport data
-str(marport)
+marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory )
+
 
 
 # load all scanmar data for development ...
@@ -71,9 +71,9 @@ allids=unique(master$id)
 i=sample(1:length(allids),15)
 allids=allids[i]
 allids
-  id="NED2013028.115"
+  id="TEL2004529.21"
   mm = master[ which(master$id==id) , ]
-  plot(depth~timestamp, mm, main= id)
+  plot(depth~timestamp, mm, main= "TEL2004529.21")
   
   
   
