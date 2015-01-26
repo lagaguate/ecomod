@@ -251,22 +251,23 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       basedata = rbind( basedata, j)
     }
     
-    # Include mission as a variable
+    # Include mission as a variable (also trip and year)
     g=substring(basedata$rootname,54,63)      
     basedata$mission = paste(g, basedata$set, sep=".")
-    
-    # Include adjusted time as a variable (plus 7 mins or 420 secs)
-    basedata$adjusted.time=(basedata$timestamp) + 420
+    basedata$year = substring(basedata$mission, 4,7)
+    basedata$year=as.numeric(basedata$year)
+    basedata$trip = substring(basedata$mission, 8,10)
+    basedata$trip=as.numeric(basedata$trip)
     
     save(basedata, file=fn, compress= TRUE)
   }
 
   if(DS %in% c("marport.gated", "marport.gated.redo"))  {
-    basedata=NULL
+    nm=NULL
     fn=file.path( netswd, paste( "marport.gated", "rdata", sep="." ))
     if(DS == "marport.gated"){
       if (file.exists(fn)) load(fn)
-      return(basedata)
+      return(nm)
     }
        nm = net_mensuration.db( DS="marport",  netswd=netswd ) # QA/QC of data
         
@@ -275,6 +276,8 @@ net_mensuration.db=function( DS, nm=NULL, netswd=getwd(), user.interaction=FALSE
       nm$clearance = filter.nets("clearance.range", nm$clearance)
       nm$opening.scanmar = filter.nets("opening.range", nm$opening.scanmar)
       nm$depth = filter.nets("depth.range", nm$depth)
+    
+    save(nm, file=fn, compress=TRUE)
    
   }
 
