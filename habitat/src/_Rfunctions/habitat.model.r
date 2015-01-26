@@ -11,7 +11,8 @@
     
     if (DS=="saved") {
       models = NULL
-      fn.models =  file.path( outdir, paste("models", vn, yr, "rdata", sep=".") )
+     if(p$movingdatawindow!=0) fn.models =  file.path( outdir, paste("models", vn, yr, "rdata", sep=".") )
+     if(p$movingdatawindow==0) fn.models =  file.path( outdir, paste("models", vn, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
     }
