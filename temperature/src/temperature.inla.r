@@ -1,24 +1,66 @@
 
   # test timeseries methods and spatial, spatio-temporal methods on ocean temperature data
-    RLibrary( "INLA" )
+  loadfunctions("utility")  
+  RLibrary( "INLA" )
     inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
 
    
     # -------------------
     # 1. example model fit of a simple AR1 data series with inla
+    ar.coef = 0.8
     n = 200
     ti =  1:n
-    y = arima.sim(n=n, model=list(ar=0.9))
-    y[ 76:79] = NA
 
-    dat = data.frame( ti=ti, y=y) 
-    r = inla( y ~ 0 + f( ti, model="ar1" ), 
-      data = dat,  
-      control.family = list(initial = 10, fixed=TRUE) ## no observational noise
+    y0 = arima.sim(n=n, model=list( ar=ar.coef ))
+    missing.values = sample( ti, trunc(n * 0.3))  
+    y1 = y0
+    y1[ missing.values ]  = NA 
+    
+    y1  = y1 + rnorm( n, mean=0, sd=sd( y0 ) ) 
+    
+  
+    dat = data.frame( ti=ti, ti2=ti, y0=y0, y1=y1 ) 
+    r = inla( y1 ~ 0 + f( ti, model="ar1" )  , 
+      data = dat
     )
+    dat$predictions =  r$summary.random$ti[["mean"]]
+    ar.pred =  r$summary.hyperpar["Rho for ti", "mean" ]
+    mm = glm( predictions~y0, data=dat )
+    
+    graphics.off()
+    par(mfrow = c(3, 1) )
+    plot(y0 ~ ti, dat, type="l", col="grey" )  # original data
+    points(y1 ~ ti, dat, type="p", col="grey" )  # tainted data
+    legend( "topright", legend=( c( paste( "Ar=", ar.coef ), paste( "Ar estimated=", round(ar.pred, 3) ) ) ) ) 
 
-    summary(r)
-    plot(r)
+    plot( y0 ~ ti, dat, type="n" )  # original data scales
+    points( y1 ~ ti, dat, type="p", col="grey" )  # tainted data
+    lines( y0 ~ ti, dat, col="grey" )
+    lines( predictions ~ ti, dat, col="green" )
+
+    plot(predictions ~ y0, dat)
+    abline( reg=mm, col="green" )
+    mmc = round(coef(mm),3) 
+    legend( "topleft", legend= c( 
+      paste("b =", mmc[1]), 
+      paste("m =", mmc[2]), 
+      paste("R2 = ",  round( Rsquared(mm),3) ), 
+      paste("AIC = ", round( AIC(mm),3) ) 
+    ) ) 
+    
+    
+    u0 = acf( dat$y0 )
+    up = acf( dat$predictions )
+    u = merge(  cbind(acfy0 =u0$acf, lag=u0$lag), cbind( acfpred= up$acf, lag=up$lag), by="lag" )
+
+
+    x11()
+    par(mfrow = c(3, 1) )
+    plot(u0)
+    plot(up)
+    
+    plot( acfpred ~ lag, u, type="l" , col="red" )
+    lines( acfy0 ~ lag, u, type="l" , col="gray" )
 
 
 
@@ -52,7 +94,7 @@
     a = which( point.in.polygon( t0$lon, t0$lat, scotianshelf$lon, scotianshelf$lat ) != 0 )
 
     t0 = t0[a,]
-
+ --- add prediction locations /times / depths / etc .... 
 
     fp = data.frame( lon= -63, lat= 45 )
     dl = 0.5
@@ -68,9 +110,9 @@
 
     R <- inla(
         tC ~ 0 + b0
-          + f( z, model='rw1')
-          + f( yr, model='ar1', param=c(1,0.0001)) 
-          + f( pryr, model='ar1', cyclic=TRUE, param=c(1,0.0001) ),  
+          + f( z, model='rw2')
+          + f( yr, model='ar1', param=c(1,0.01)) 
+          + f( pryr, model='ar1', cyclic=TRUE, param=c(1,0.01) ), 
         family='gaussian',  
         data=t0, 
         control.compute=list(dic=TRUE),
@@ -79,8 +121,10 @@
     )
     summary(R)
     plot(R)
-    # plot( t ~ ti, t0 )
-
+    
+    plot( t ~ ti, t0  )
+    lines( R$summary.fitted.values$mean ~ t0$ti, col="green" )
+    
     round( R$summary.fixed)
 
 Fixed effects:

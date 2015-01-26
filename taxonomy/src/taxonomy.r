@@ -37,7 +37,9 @@
     # example usage to extract TSN's
 		
 		tx="Microgadus tomcod"
-			
+		
+    tx="cod"
+
 			taxonomy.recode( from="taxa.fast", tolookup=tx) # lookup only from local taxonomy db
 			taxonomy.recode( from="taxa", tolookup=tx ) # look up species id from both itis and local taxonomy.db
 			itis.taxa.to.tsn( tx) # look up only from itis

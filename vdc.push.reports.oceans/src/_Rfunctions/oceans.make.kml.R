@@ -11,8 +11,7 @@ oceans.make.kml<-function(df_in){
   dwindow   <-              df_in[[9]]
   title    <-               df_in[[10]]
   workdir   <-              df_in[[11]]
-  tmpdir    <-              df_in[[12]]
-  savelocation    <-        df_in[[13]]
+  savelocation    <-        df_in[[12]]
  
   library(R.utils)
   
@@ -30,11 +29,11 @@ oceans.make.kml<-function(df_in){
   kmlName<-paste(theFile, ".kml",sep="" )
   xlsName<-paste(theFile, ".xls",sep="" )
   #cat("Writing the raw data to an Excel file...\n")
-  #xlsFile<-generateExcel(c(df_in,descDate, xlsName,workdir,tmpdir,savelocation))
+  #xlsFile<-generateExcel(c(df_in,descDate, xlsName,workdir,savelocation))
   #identify the template location and prepare output file 
 
   fn.kml =file.path( workdir,"templates","Oceans_template.kml")
-  tmpfile =  file.path( tmpdir, kmlName) 
+  tmpfile =  file.path( workdir, kmlName) 
   kmzfolder =  savelocation  
   con = file( tmpfile, open="a")
   kml = readLines( fn.kml)
@@ -220,7 +219,7 @@ oceans.make.kml<-function(df_in){
   kmz<-file.path(kmzfolder,paste(theFile,".kmz",sep=""))
   icons<-file.path(workdir,"customIcons")
   kmzfile<-zip(kmz,
-               c(paste("tmp/",theFile,".kml",sep=""),
+               c(paste(theFile,".kml",sep=""),
                  "customIcons")
                 )
   file.copy(kmz, paste(savelocation,'/',theFile,'.kmz',sep=""))
