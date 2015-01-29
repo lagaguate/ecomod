@@ -66,10 +66,10 @@
 
       netmind$chron = chron( dates.=netmind$ndate, times.=netmind$ntime, format=c(dates="y-m-d", times="h:m:s"), out.format=outfmt )
 
-      # netmind data stored in GMT from GPS; the offset varies depending upon season due to daylight savings time (3 or 4 hrs)
+      # netmind data stored in GMT/UTC from GPS; the offset varies depending upon season due to daylight savings time (3 or 4 hrs)
       # obtain time offset in hours
       time.offset = netmindDate( header=header, outvalue="timeoffset" )   #  rounded to hours of fractional days
-      netmind$chron = as.chron( as.numeric(netmind$chron) + time.offset, out.format = outfmt )
+      netmind$chron = as.chron( as.numeric(netmind$chron) + time.offset, out.format = outfmt )  # now in local time (America/Halifax)
 
       netmind.timestamp = netmind$chron[deepest.point]
       yr = as.numeric( as.character( years( netmind.timestamp ) ) )

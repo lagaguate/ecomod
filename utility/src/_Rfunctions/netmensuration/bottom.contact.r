@@ -7,72 +7,56 @@
 
   debug = FALSE
   if (debug) {
-    tdif.min = 3  # min time difference (minutes) .. including tails
-    tdif.max = 15  # min time difference (minutes) .. including tails
-    depthproportion=0.5 # depthproportion controls primary (coarse)gating
+    x = mm
+    tdif.min = 15  # min time difference (minutes) .. including tails
+    tdif.max = 45  # min time difference (minutes) .. including tails
+    depthproportion=0.6 # depthproportion controls primary (coarse)gating
     plot.data=TRUE 
-    smoothing = 0.9
-    eps.depth=1  # for noise filtering  .. ignore variations less than this threshold
+    eps.depth=4  # for noise filtering  .. ignore variations less than this threshold
     filter.quants=c(0.025, 0.975)
-    sd.multiplier=3
+    sd.multiplier=5
+    depth.min=10
+    depth.range=c(-50, 50)
+    smoothing = 0.9
+    filter.quants=c(0.025, 0.975)
+    plot.data=TRUE
     settimestamp=NULL
     setdepth=NULL
     settimelimits=c(-5, 9)
     user.interaction=FALSE # is you want to try to manually determine end points too
   }
-   
+  
+  n.min.required = 20 
+
   O = list()  # output list
   O$id = id
   O$good = rep(TRUE, nrow(x)) # rows that will contain data that passes each step of data quality checks
-  O$summary = NA
-  O$res = data.frame (cbind(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA ) )
-  O$variance.method.indices  = NA
-  O$modal.method = NA
-  O$smooth.method.indices = NA
-  O$bottom0 = NA
-    O$bottom1 = NA
-    O$bottom0.sd = NA
-    O$bottom1.sd = NA
-    O$bottom0.n = NA
-    O$bottom1.n = NA
-    O$bottom.diff = NA
-O$summary = NA
-O$depth.mean = NA
-  O$depth.sd = NA
-  O$depth.n = NA
-  O$depth.n.bad = NA
-  O$depth.smoothed.mean = NA
-  O$depth.smoothed.sd = NA
-  O$depth.goodvalues = NA
-  O$depth.filtered = NA
-  O$depth.smoothed = NA
-  O$ts = NA
-  O$timestamp = NA
-  O$signal2noise = NA # not really signal to noise but rather  % informations 
-  O$bottom.contact = NA
- if(grepl('minilog.S20052000.10.NA.NA.NA.13',id)) return(O)
-if(grepl('minilog.S19092004.8.389.NA.NA.321',id)) return(O)
-if(sum(!is.na(x$depth))<20) return(O)
+
+  if(sum(!is.na(x$depth)) < n.min.required ) return( NULL )
 
   ##--------------------------------
   # sort in case time is not in sequence
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
- 
 
 
   ##--------------------------------
   # basic depth gating
   
-  if( !any(x$depth>depth.min)) return(O) 
+  if( !any(x$depth>depth.min)) return( NULL ) 
 
   # simple time-based gating
   if (!is.null(time.gate)) {
     O$good = bottom.contact.gating.time ( Zt=x$timestamp, good=O$good, time.gate=time.gate )
     x$depth[ !O$good ] = NA
+    if (length( which( is.finite( x$depth) )) < n.min.required ) return(NULL) 
   }
-  
+ 
+  # simple depth-based gating
+  O$good = bottom.contact.gating ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
+  x$depth[ !O$good ] = NA
+   
   if (plot.data) {
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
@@ -82,16 +66,9 @@ if(sum(!is.na(x$depth))<20) return(O)
     legendpch = NULL
   }
 
-  # simple depth-based gating
-  O$good = bottom.contact.gating ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
-  x$depth[ !O$good ] = NA
-  
-  points( depth~ts, x[ O$good, ], pch=20, col="green", cex=0.1)
-
 
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
- 
 
   # settimestamp is time recorded in log books ...
   #   used by snow crab surveys to make gate data further
@@ -124,8 +101,9 @@ if(sum(!is.na(x$depth))<20) return(O)
       points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
     }
    
-if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return(O)
-if(sum(O$good)==0) return(O)
+  if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return( NULL )
+  if(sum(O$good)==0) return( NULL )
+  
   res = NULL
   res = bottom.contact.filter.noise ( x, O$good, tdif.min, tdif.max, eps.depth=eps.depth,
     smoothing = smoothing, filter.quants=filter.quants, sd.multiplier=sd.multiplier )
@@ -309,14 +287,24 @@ if(sum(O$good)==0) return(O)
   methods = c("manual.method", "variance.method", "smooth.method", "modal.method", "linear.method", "means" )
   standard =  which( methods=="manual.method")
   direct = which( methods %in%  c("smooth.method", "modal.method", "linear.method" ) )
+  
+  tzone = tz( x$timestamp[1] )
 
   tmp = as.data.frame(O[methods], stringsAsFactors=FALSE )
   tmp = as.data.frame( t(tmp), stringsAsFactors=FALSE  )
   colnames(tmp) =c("start", "end" )
-  tmp[,"start"]  = as.POSIXct( tmp[,"start"], origin= "1970-01-01" )
-  tmp[,"end"]    = as.POSIXct( tmp[,"end"], origin= "1970-01-01"  )
-  tmp["means", "start"] = as.POSIXct( mean( tmp[ direct, "start" ], na.rm=TRUE ) , origin= "1970-01-01" )
-  tmp["means", "end"] = as.POSIXct( mean( tmp[ direct, "end" ], na.rm=TRUE ) , origin= "1970-01-01" )
+  tmp[,"start"]  = as.POSIXct( tmp[,"start"], origin= "1970-01-01", tz=tzone )
+  tmp[,"end"]    = as.POSIXct( tmp[,"end"], origin= "1970-01-01" , tz=tzone  )
+  tmp["means", "start"] = as.POSIXct( mean( tmp[ direct, "start" ], na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
+  tmp["means", "end"] = as.POSIXct( mean( tmp[ direct, "end" ], na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
+ 
+  O$bottom0 = NA
+  O$bottom1 = NA
+  O$bottom0.sd = NA
+  O$bottom1.sd = NA
+  O$bottom0.n = NA
+  O$bottom1.n = NA
+  O$bottom.diff = NA
 
   if ( any (is.na( tmp[ standard, c("start", "end")] ) ) ) {
     # no manual standard .. use mean as the standard
@@ -351,12 +339,12 @@ if(sum(O$good)==0) return(O)
   fin0 = min( fin.all, na.rm=TRUE)
   fin1 = max( fin.all, na.rm=TRUE)
 
-  O$depth.mean = mean( x$depth[ fin.good ] )
-  O$depth.sd = sd( x$depth[ fin.good ] )
+  O$depth.mean = mean( x$depth[ fin.good ], na.rm=TRUE )
+  O$depth.sd = sd( x$depth[ fin.good ], na.rm=TRUE)
   O$depth.n = length( fin.good )
   O$depth.n.bad = length( fin.all) - O$depth.n
-  O$depth.smoothed.mean =  mean( x$depth.smoothed[ fin0:fin1 ] )
-  O$depth.smoothed.sd = sd( x$depth.smoothed[ fin0:fin1 ] )
+  O$depth.smoothed.mean =  mean( x$depth.smoothed[ fin0:fin1 ], na.rm=TRUE )
+  O$depth.smoothed.sd = sd( x$depth.smoothed[ fin0:fin1 ], na.rm=TRUE )
   O$depth.goodvalues = O$good
   O$depth.filtered = fin.good
   O$depth.smoothed = x$depth.smoothed
@@ -371,8 +359,8 @@ if(sum(O$good)==0) return(O)
   tmean= NA
   tmeansd = NA
   if (exists( "temperature", x )) {  
-    tmean = mean( x$temperature[fin.all], na.rm=T )
-    tmeansd = sd( x$temperature[fin.all], na.rm=T )
+    tmean = mean( x$temperature[fin.all], na.rm=TRUE )
+    tmeansd = sd( x$temperature[fin.all], na.rm=TRUE )
   }
 #if(is.na(O$bottom0) ) browser()
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
@@ -389,7 +377,6 @@ if(sum(O$good)==0) return(O)
   print( O$summary)
   O$good = NULL
 
-  print(O$res)  
   return( O )
 
 }
