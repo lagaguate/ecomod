@@ -1,14 +1,16 @@
 
   net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL ) {
     
+    tzone = "America/Halifax"  ## need to verify if this is correct
+
     # N is netmind data 
     # t0 is current best estimate of start and end time 
     # tchron is .. ?
     if(length(t0)>1) {t0 = NULL}
     # create default output should the following fail
-    out = data.frame(slon=NA, slat=NA, distance=NA, spread=NA, spread_sd=NA, 
+    out = data.frame( slon=NA, slat=NA, distance=NA, spread=NA, spread_sd=NA, 
       surfacearea=NA, vel=NA, vel_sd=NA, netmind_n=NA, t0=NA, t1=NA, dt=NA, yr=NA )
- 
+    
     n.req = 30
     t0_multiple = NULL
     #changed this switch from depgth filed to lat as if there is not depth info can still run script
@@ -26,46 +28,38 @@
     }
 
     if (!is.null(t0) & !is.null(tchron)  ) {
-     t0_multiple = t0 = c( as.POSIXct(tchron), t0 )
+     t0_multiple = t0 = c( as.POSIXct(tchron, tz=tzone), t0 )
       tchron =NULL
     }
-  if(N$netmind_uid[1] =='netmind.S26092014.9.541.17.48.304') return(out)
+  
+    if(N$netmind_uid[1] =='netmind.S26092014.9.541.17.48.304') return(out)
  
     if ( any( is.null( t1 ) || is.null(t0) ) )   {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 
      
-      N$timestamp =  as.POSIXct( N$chron , tz="ADT" )
+      N$timestamp =  as.POSIXct( N$chron , tz=tzone )
       M = N[, c("timestamp", "depth") ]
       
-      if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz="ADT" )
-      if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz="ADT" )
-
-      res = bottom.contact( id=N$netmind_uid[1], x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
+      if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz=tzone )
+      if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz=tzone )
+      
+      bc = NULL
+      bc = bottom.contact( id=N$netmind_uid[1], x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
         tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
 
       if (FALSE) {
-        # to visualize
-        res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
+        # to visualize/debug
+        bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
           tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
       }
-
-#          if (all (is.finite( res$smooth.method) ) ) {
-            ## --- NOTE modal seems to work best ... but 
-            # no single best method .. use the default which is the mean of all methods
-            ##  likely due to greater precision and data density relative to minilog
-#            res$res$t0 = res$smooth.method[1]
-#            res$res$t0 = res$smooth.method[2]
-#            res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
-#          }
       
-      if (is.null(t0) & !is.null(res$bottom0) ) t0 = res$bottom0
-      if (is.null(t1) & !is.null(res$bottom1) ) t1 = res$bottom1
-      N = N[ res$bottom.contact , ] 
+      if (is.null(t0) & !is.null(bc$bottom0) ) t0 = bc$bottom0
+      if (is.null(t1) & !is.null(bc$bottom1) ) t1 = bc$bottom1
+      N = N[ bc$bottom.contact , ] 
     }
 
     if (all(is.na(t0))) t0=NULL
     if (all(is.na(t1))) t1=NULL
-
 
     if ( is.null(t1) ) {
       t1_tmp = t0 + 5 /50/24
@@ -105,7 +99,7 @@
       }
     }
 
-    if (!is.null( t1) )    t1 = as.POSIXct(t1,origin='1970-01-01')
+    if (!is.null( t1) )    t1 = as.POSIXct(t1,origin='1970-01-01', tz=tzone)
     
     if (!is.null( t0_multiple )) {
         if( !any(is.na(t0_multiple) )) { # two estimates of t0
@@ -143,7 +137,7 @@ if(!is.na(out$t0))    out$yr = as.numeric( as.character( years( out$t0) ))
 if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
 
     if(is.chron(t0)) itime =  which( N$chron >= t0  &  N$chron <= t1 )
-    if(is.POSIXct(t0)) itime =  which( as.POSIXct(N$chron) >= t0  &  as.POSIXct(N$chron) <= t1 )
+    if(is.POSIXct(t0)) itime =  which( as.POSIXct(N$chron, tz=tzone) >= t0  &  as.POSIXct(N$chron, tz=tzone) <= t1 )
     
     if ( length( itime) < n.req ) problem = T
 

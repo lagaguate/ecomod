@@ -11,7 +11,7 @@
       }
 
       # local time vs actual in the same file can be wrong: mostly in the year 2000,
-      # the Local Time (computer) entry in incorrect vs the GPS date/time (stored in GMT)
+      # the Local Time (computer) entry in incorrect vs the GPS date/time (stored in GMT/UTC)
       # eg:  /home/jae/ecomod/snowcrab/data/netmind/archive/2000/pos065.txt
       # just in case this occurs elsewhere, use the time stamp in the actual data series rather than "Local Time"
       # determine time from "Local Time:"
