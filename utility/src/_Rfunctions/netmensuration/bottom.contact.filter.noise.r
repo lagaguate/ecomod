@@ -2,6 +2,8 @@
 bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3,  
       smoothing = 0.9, filter.quants=c(0.025, 0.975), sd.multiplier=3 ) {
 
+  out = NULL
+
   ##--------------------------------
   # First, a simple high pass filter to remove noisy data (very large extreme fluctuations)
   # Then, truncation of data based upon variance of central region to permit use of more fine-scale methods 
@@ -84,7 +86,7 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3
   x$depth.smoothed = x$depth
   x$sm.loess = x$sm.inla = x$sm.spline= NA
 
-  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla"  )
+  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla", h=0.05 )
   kk = x$depth - x$sm.inla
   qnts = quantile( kk[aoi], probs=filter.quants, na.rm=TRUE ) 
   qnts[1] = min( qnts[1], - eps.depth )  # eps m fluctuation as being insignificant error

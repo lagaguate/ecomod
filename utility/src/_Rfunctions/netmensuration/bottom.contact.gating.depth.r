@@ -1,5 +1,5 @@
 
-bottom.contact.gating = function( Z, good, depth.min=10, depth.range=c(-30,30), depthproportion=0.5) {
+bottom.contact.gating.depth = function( Z, good, depth.min=10, depth.range=c(-30,30), depthproportion=0.5) {
   
   ## Preliminary gating: simple range limits (gating) of depths to remove real extremes
   # eliminate records with NA for depth  

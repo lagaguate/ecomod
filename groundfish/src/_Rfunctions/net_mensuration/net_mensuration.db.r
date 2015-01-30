@@ -402,29 +402,66 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     
     master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
     master = master[which(master$year >= 2004) ,  ]
-    if (!is.null( override.missions)){
+    
+    if ( !is.null( override.missions)){
       user.interaction = TRUE
       master = master[ which(master$id %in% override.missions ), ]
     }
     
+
+    fn.current = file.path( scanmar.dir, "bottom.contact.tmp.current" )
+    fn.badlist = file.path( scanmar.dir, "bottom.contact.badlist" )
+    # fn.gsinf = file.path( scanmar.dir, "bottom.contact.tmp.gsinf" )
+
+    badlist = skip = cur = NULL
+    
     uid = sort( unique( master$id)) 
+
+    if ( file.exists (fn.current) ) {
+      # if there is something in the current id from a previous run, this indicates that this is likely a re-start
+      # reload saved data and skip ahead to the next id
+        cur = scan( fn.current, what="character", quiet=TRUE )
+        if ( length(cur) > 0 ) {
+          skip = which( uid==cur ) + 1
+          uid = uid[ skip: length(uid) ]
+          # load( fn.gsinf)  # as it is a restart ... load in the saved version instead of the initial version
+        }
+    }
+
+
     for ( id in uid) {
+      
       print( id)
       
-      id = "TEL2004529.21"
+      if ( file.exists (fn.current) ) {
+        # if there is something in the current id from a previous run, this indicates that this is likely a re-start
+        # add it to the list of "bad.list" and skip over for manual analysis
+        cur = scan( fn.current, what="character", quiet=TRUE )
+        if ( length(cur) > 0 ) {
+          bad.list = NULL
+          if (file.exists(fn.badlist) ) {
+            bad.list = scan( fn.badlist, what="character", quiet=TRUE )
+          }
+          cat( unique( c(bad.list, cur)), file=fn.badlist )
+        
+        }
+      }
+      
+      if ( file.exists (fn.badlist) ) {
+        bad.list = scan( fn.badlist, what="character", quiet=TRUE )
+        if ( id %in% bad.list ) next()
+      }
+      
+      cat( id, file = fn.current )
+      
+      # id = "TEL2004529.21"
 
       ii = which( master$id==id )  # rows of master with scanmar/marport data
-      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
+      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next() ## this will also add to the bad.list .. when insufficient data  
       gii = which( gsinf$id==id )  # row of matching gsinf with tow info
-      if (length(gii) != 1) next()  # no match in gsinf
+      if (length(gii) != 1) next()  # no match in gsinf  ## this will also add to the bad.list .. when insufficient data
      
       mm = master[ which(master$id==id) , c("depth", "timestamp") ]
-
-      bad.list = c( 
-        "" 
-      )
-      
-      if ( id %in% bad.list ) next()
 
       # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
       time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
@@ -446,15 +483,29 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
         gsinf$bc0.n[gii] =  bc$bottom0.n
         gsinf$bc1.n[gii] =  bc$bottom1.n
         if ( !is.finite( gsinf$bottom_depth[gii]))  gsinf$bottom_depth[gii] = bc$depth.mean
+        save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
       }
+        
+      # if only the loop completes without error, reset the flag for current id on filesystem
+      cat("", file=fn.current )
     }
-    
+   
+
+
     if (!is.null( override.missions)) {
       fn = paste( fn, "manually.determined.rdata", sep="")
-      print( "Saving to an alternate location as this is being manually handled:" )
+      print( "Saving to an alternate location as this is being manually handled ... merge this by hand:" )
       print( fn)
     }
+    
     save(gsinf, file=fn, compress= TRUE)
+    
+    print( "Use, override.mission=c(...) as a flag and redo .. manually ) for the following:" )
+    print( "Troublesome id's have been stored in file:")
+    print( fn.badlist )
+    print(  scan( fn.badlist, what="character", quiet=TRUE ) )
+
+    file.remove( fn.current )
   }
 
   
