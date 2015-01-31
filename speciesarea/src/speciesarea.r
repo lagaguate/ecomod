@@ -38,8 +38,8 @@
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-  # p$clusters = rep( "localhost", 4 )
-  p$clusters = rep("localhost", detectCores() )
+   p$clusters = rep( "localhost", 5 )
+  #p$clusters = rep("localhost", detectCores() )
   
 
   p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
@@ -97,7 +97,12 @@
 
   # predictive interpolation to full domain (iteratively expanding spatial extent)
   # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
-  p = make.list( list( yrs=p$yearstomodel ), Y=p )
+  #p = make.list( list( yrs=p$yearstomodel ), Y=p )
+  if (p$movingdatawindow == 0 ) { 
+    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+  } else {
+    p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
+  }
   parallel.run( habitat.interpolate, p=p, DS="redo" ) 
   # habitat.interpolate( p=p, DS="redo" ) 
 

@@ -744,11 +744,12 @@
       set = snowcrab.db( DS="set.minilog.seabird" )
       
       nm = netmind.db( DS="stats" )
-      nm = nm[,  c("netmind_uid", "distance", "spread", "spread_sd", "surfacearea", "vel", "vel_sd", "netmind_n", "slon", "slat" ) ]
-      set = merge( set, nm, by =c("netmind_uid"), all.x=TRUE, all.y=FALSE )
+      nm = nm[,  c("trip","set","netmind_uid", "distance", "spread", "spread_sd", "surfacearea", "vel", "vel_sd", "netmind_n", "slon", "slat" ) ]
+      #set = merge( set, nm, by =c("netmind_uid"), all.x=TRUE, all.y=FALSE )
+      set = merge( set, nm, by =c("trip","set"), all.x=TRUE, all.y=FALSE )
 
       set = set[ order( set$yr, set$station, set$t0, set$chron) , ]
-      set$dt = minutes(set$dt) + seconds(set$dt)/60  # convert to decimal minutes
+      #set$dt = minutes(set$dt) + seconds(set$dt)/60  # convert to decimal minutes
       
       # merge in historical temp and depth records when no data are obtained from minilogs
       q = which( !is.finite(set$t) )

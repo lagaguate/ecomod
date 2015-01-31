@@ -44,24 +44,27 @@
     P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
     P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
     
-    for ( iip in ip ) {
-      yr = p$runs[iip,"yrs"]
-      print( p$runs[iip,])
+  if(p$movingdatawindow!=0){ 
+    for ( iip in ip ) { #if not moving window
+        yr = p$runs[iip,"yrs"]
+        print( p$runs[iip,])
+        
+        td = temperature.db( year=yr, p=p, DS="complete")
+        d$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
+        td = td[ , setdiff(names(td), c( "z", "yr", "plon", "plat") )  ]
+        hdat = merge( P0, td, by=c("platplon"), all.x=TRUE, all.y=FALSE )
+        rm( td); gc()
+        
+        hdat$yr = yr # update all other records
+        hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
+        hdat$julian = convert.datecodes(  hdat$chron, "julian" )
+        hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
 
-      td = temperature.db( year=yr, p=p, DS="complete")
-			td$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
-      td = td[ , setdiff(names(td), c( "z", "yr", "plon", "plat") )  ]
-      hdat = merge( P0, td, by=c("platplon"), all.x=TRUE, all.y=FALSE )
-      rm( td); gc()
-
-      hdat$yr = yr # update all other records
-      hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
-      hdat$julian = convert.datecodes(  hdat$chron, "julian" )
-      hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
-
-      for ( ww in p$varstomodel ) {
-        mod.cond = habitat.model( p=p, vn=ww, yr=yr )
-        if (is.null( mod.cond )) next()
+        for ( ww in p$varstomodel ) {
+          mod.cond = habitat.model( p=p, vn=ww, yr=yr )
+          if (is.null( mod.cond )) next()
+     fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
+        if(file.exists(fn)) next()
         sol = try( predict( mod.cond, newdata=hdat, type="response", na.action="na.pass") )
         if  ( "try-error" %in% class(sol) ) {
           hdat[,ww] = NA
@@ -81,6 +84,52 @@
         save ( HD, file=fn, compress=T )
         print(fn)
       }
+      }   
+}
+
+
+#moved down to see if speeds up
+if(p$movingdatawindow==0){
+    for ( iip in ip ) {
+        ww = p$runs[iip,"vars"]
+        mod.cond = habitat.model( p=p, vn=ww, yr=yr )
+        if (is.null( mod.cond )) next()
+    
+            for(yr in p$yearstomodel) {
+                    td = temperature.db( year=yr, p=p, DS="complete")
+                    td$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
+                    td = td[ , setdiff(names(td), c( "z", "yr", "plon", "plat") )  ]
+                    hdat = merge( P0, td, by=c("platplon"), all.x=TRUE, all.y=FALSE )
+                    rm( td); gc()
+
+                    hdat$yr = yr # update all other records
+                    hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
+                    hdat$julian = convert.datecodes(  hdat$chron, "julian" )
+                    hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
+#to here
+
+        fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
+        if(file.exists(fn)) next()
+        sol = try( predict( mod.cond, newdata=hdat, type="response", na.action="na.pass") )
+        if  ( "try-error" %in% class(sol) ) {
+          hdat[,ww] = NA
+        } else { 
+          hdat[,ww] = sol
+        }
+        # debug:: require (lattice); levelplot( mr ~ plon+plat, hdat, aspect="iso")
+        HD = hdat[,ww]
+     
+        iu = which(HD > dr[[ww]][2])
+        if (length( iu)>0) HD[iu] = dr[[ww]][2]
+   
+        id = which(HD < dr[[ww]][1])
+        if (length( id)>0) HD[id] = dr[[ww]][1]
+
+        fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
+        save ( HD, file=fn, compress=T )
+        print(fn)
+      }
+    }
     } 
     return( "Completed spatial interpolations" )
   }
