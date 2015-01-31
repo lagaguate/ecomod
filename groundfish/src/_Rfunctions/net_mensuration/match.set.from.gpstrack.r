@@ -1,7 +1,7 @@
-match.set.from.gpstrack=function( DS="post.perley", netswd=netswd ) {
-  
+match.set.from.gpstrack=function( DS="post.perley", net.root.dir ) {
+
   DS.saved = gsub(".redo$", "", DS)
-  fn  = file.path(netswd, paste(DS.saved, "meta", "rdata", sep= "."))
+  fn  = file.path( net.root.dir, "Scanmar", paste(DS.saved, "meta", "rdata", sep= "."))
   meta= NULL  
   
   if ( !grepl (".redo$", DS) ) {
@@ -10,13 +10,11 @@ match.set.from.gpstrack=function( DS="post.perley", netswd=netswd ) {
   }
     
   # Incorporation of newer data, combining timestamp
-  pp=net_mensuration.db( DS=DS.saved, netswd=netswd ) 
+  pp=net_mensuration.db( DS=DS.saved, net.root.dir=net.root.dir ) 
   pp$lon=pp$longitude
   pp$lat=pp$latitude
   
   gf=groundfish.db(DS="gsinf")
-  gf$sdate=with_tz(gf$sdate, "GMT") # Groundfish tables are stored in AST
-  # gf$lon.end=-gf$lon.end (temporary fix until we correct gf)
   
   meta=data.frame(uniqueid=unique(pp$id), stringsAsFactors=FALSE )
   meta$sdate=NA
@@ -29,10 +27,8 @@ match.set.from.gpstrack=function( DS="post.perley", netswd=netswd ) {
   meta$strat=NA
   meta$time.end=NA
   meta$min.distance = NA
-  
  
   for(i in 1:nrow(meta)){
-    
     k = meta$uniqueid[i]
     print(k)
     

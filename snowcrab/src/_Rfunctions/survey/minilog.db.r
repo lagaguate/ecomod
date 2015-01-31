@@ -1,7 +1,8 @@
 	
 
   minilog.db = function( DS="", Y=NULL ){
-      
+    
+
     minilog.dir = project.directory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
     years.with.sets.combined = 2014 #the years where minilog not downloaded after each tow
@@ -79,7 +80,7 @@
       }
       filelist = filelist[ which( !is.na( filelist[,1] ) ) , ]
 
-      set = snowcrab.db( DS="setInitial" )  # set$chron is in ADT 
+      set = snowcrab.db( DS="setInitial" )  # set$chron is in local time America/Halifax  
     
       for ( yr in Y ) {
         print(yr)
@@ -153,6 +154,7 @@
 
 
       # "stats.redo" is the default action
+      tzone = "America/Halifax" 
       
       for ( yr in Y ) {
         print (yr )
@@ -179,36 +181,48 @@
           if (length( Mi) == 0 ) next()
           M = miniRAW[ Mi, ]
           
-          M$timestamp = as.POSIXct( M$chron, tz="ADT" )
-          settimestamp= as.POSIXct( rid$setChron[i] , tz="ADT" )
-print(id)
+          M$timestamp = as.POSIXct( M$chron, tz=tzone )
+          settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone )
+          print(id)
+     
+          # default, empty container
+          res = data.frame(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA)
 
-  if(length(M$depth[!is.na(M$depth)])>15) {
-          res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
-              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
-} 
- if(length(M$depth[!is.na(M$depth)])==0) {
-  res=list()
-  #res$res = data.frame(yr=yr,timestamp = settimestamp, trip = sso.trip, set = sso.set, station = sso.station, studyid = rid[i,'studyid'], setZx = rid[i,'setZx'], setChron = rid[i,'setChron'],error = rid[i, 'error'], filename = rid[i,'filename'],
-  # headerall = rid[i,'headerall'] , z = NA, t =  NA, zsd =NA, tsd =NA, n = NA,t0 =NA , t1=NA, dt =NA)
-  res$res = data.frame(z = NA, t =  NA, zsd =NA, tsd =NA, n = NA,t0 =NA , t1=NA, dt =NA)
-  #todo tie in the seabird data bottom contact to get secondary temperature data}
-}
-          if (FALSE) {
-            # to visualize
-            res = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
-              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
+          # best to keep snow-crab-specific things here rather than in the more general functions of "bottom.contact " 
+          bad.list = c( 'minilog.S20052000.10.NA.NA.NA.13', 
+                        'minilog.S19092004.8.389.NA.NA.321' ) 
+          
+          if (! ( id %in% bad.list ) ) { 
+            
+            ndat = length(M$depth[!is.na(M$depth)])
+            if( ndat > 15 ) {
+              bc =  NULL
+              bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
+                tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
+              if ( !is.null(bc) ) res = bc$res 
+            } 
+           
+            if( ndat == 0) {
+              # nothing to do now ...
+              # headerall = rid[i,'headerall'] , z = NA, t =  NA, zsd =NA, tsd =NA, n = NA,t0 =NA , t1=NA, dt =NA)
+              #todo tie in the seabird data bottom contact to get secondary temperature data}
+            }
+
           }
 
-#          if (all (is.finite( res$smooth.method) ) ) {
+          if (FALSE) {
+            # to visualize/debug
+            bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
+              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
             ## --- NOTE modal seems to work best ... but 
             # no single best method .. use the default which is the mean of all methods
             ##  likely due to greater precision and data density relative to minilog
-#            res$res$t0 = res$smooth.method[1]
-#            res$res$t0 = res$smooth.method[2]
-#            res$res$dt = res$smooth.method[2] -  res$smooth.method[1]
-#          }
-         miniStats = rbind(miniStats, cbind( minilog_uid=id, res$res ) )
+            #            res$t0 = bc$smooth.method[1]
+            #            res$t0 = bc$smooth.method[2]
+            #            res$dt = bc$smooth.method[2] -  bc$smooth.method[1]
+          }
+
+          miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
         }
         
         miniStats$minilog_uid =  as.character(miniStats$minilog_uid)

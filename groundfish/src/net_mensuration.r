@@ -5,13 +5,9 @@ RLibrary("INLA", "numDeriv", "lubridate" )
 # this relies upon the gsinf table which is accessible from the groundfish functions
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
-# define location of local data files
-netswd = file.path("C:", "Users", "MundenJ", "Desktop", "Scanmar")
-# netswd = "~/Downloads"
-# load( "~/Downloads/m.data.RData")
-
-marportdatadirectory = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
-# netswd = marportdatadirectory
+# define location of local data files 
+# net.root.dir = file.path( project.directory("groundfish"), "data", "nets" ) # eventual permanent locations
+net.root.dir = file.path("C:", "Users", "MundenJ", "Desktop" )  # temporary location
 
 
 # steps required to recreate a local database of all data
@@ -21,29 +17,55 @@ if ( recreate.full.database.locally ) {
   # oracle.perley.user ="username"
   # oracle.perley.password = "password"
   # oracle.perley.db = "servername"
-  net_mensuration.db( DS="perley.database.datadump", netswd=netswd ) # ODBC data dump .. this step requires definition of password etc
-  net_mensuration.db( DS="perley.database.merge", netswd=netswd )    # perley had two db's merge them together
-  net_mensuration.db( DS="post.perley.redo",  netswd=netswd )        # Assimilate Scanmar files in raw data saves *.set.log files
-  match.set.from.gpstrack(DS="post.perley.redo", netswd=netswd ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
-  net_mensuration.db( DS="merge.historical.scanmar.redo",  netswd=netswd ) # add all scanmar data together
-  net_mensuration.db( DS="sanity.checks.redo",  netswd=netswd )      # QA/QC of data
-  net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory )      # QA/QC of data
-  net_mensuration.db( DS="bottom.contact.redo",  netswd=netswd )  # bring in estimates of bottom contact times from scanmar
-  net_mensuration.db( DS="sweptarea.redo",  netswd=netswd )  
-  
+  net_mensuration.db( DS="perley.database.datadump", net.root.dir=net.root.dir ) # ODBC data dump .. this step requires definition of password etc
+  net_mensuration.db( DS="perley.database.merge", net.root.dir=net.root.dir )    # perley had two db's merge them together
+  net_mensuration.db( DS="post.perley.redo",  net.root.dir=net.root.dir )        # Assimilate Scanmar files in raw data saves *.set.log files
+  match.set.from.gpstrack(DS="post.perley.redo", net.root.dir=net.root.dir ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
+  net_mensuration.db( DS="merge.historical.scanmar.redo",  net.root.dir=net.root.dir ) # add all scanmar data together
+  net_mensuration.db( DS="sanity.checks.redo",  net.root.dir=net.root.dir )      # QA/QC of data
+  net_mensuration.db( DS="bottom.contact.redo",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
+  net_mensuration.db( DS="sweptarea.redo",  net.root.dir=net.root.dir )  
 }
 
-no.matches = match.set.from.gpstrack(DS="post.perley.saved", netswd=netswd )
-
-# load marport data
-net_mensuration.db( DS="marport.redo",  netswd=marportdatadirectory ) # load data
-net_mensuration.db( DS="marport.gated.redo",  netswd=marportdatadirectory ) # QA/QC of data
-marport = net_mensuration.db( DS="marport.gated",  netswd=marportdatadirectory )
-
+create.marport.database = FALSE
+if (create.marport.database ) {
+  net_mensuration.db( DS="marport.redo",  net.root.dir=net.root.dir )      # load data from raw data files
+  net_mensuration.db( DS="marport.gated.redo",  net.root.dir=net.root.dir )      # QA/QC of data
+}
 
 
-# load all scanmar data for development ...
-master = net_mensuration.db( DS="sanity.checks", netswd=netswd )
+
+
+
+fn=file.path( scanmar.dir, paste( "scanmar", "post.perley","rdata", sep="." ))
+load(fn)
+basedata[ basedata$id=="2012-Feb10-190056.SET.LOG" , ] -> bd
+bd = basedata
+
+oo =15769
+gs = gsinf[oo,]
+
+ib = which( year( bd$timestamp) == year( gs$sdate ) & month ( bd$timestamp ) == month(  gs$sdate ) & day (  bd$timestamp  ) == day(  gs$sdate  )   )
+ plot( depth ~ timestamp, bd[ib,] )
+
+abline( v=gs$sdate )
+
+
+
+ gsinf[oo,]
+                id               sdate               edate time strat area speed dist cftow      sakm2 settype
+15838 NED2012002.1 2012-02-10 11:04:00 2012-02-10 13:04:00 1104   460  467    NA   NA    NA 0.04050213       9
+            lon    lat lon.end lat.end surface_temperature bottom_temperature bottom_salinity bottom_depth
+15838 -63.32167 44.268 -63.193 44.1608                1.96               7.33          33.912           NA
+
+
+
+--- testing / development ---
+
+
+no.matches = match.set.from.gpstrack(DS="post.perley.saved", net.root.dir=net.root.dir )
+marport = net_mensuration.db( DS="marport.gated",  net.root.dir=net.root.dir )
+master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )# load all scanmar data for development ...
 
 
 # Load marport/basedata
@@ -66,7 +88,6 @@ load("h.data.RData")
 load("m.data.RData")
 
 
---- testing / development ---
 allids=unique(master$id)
 i=sample(1:length(allids),15)
 allids=allids[i]
@@ -137,7 +158,7 @@ allids=unique(modern.data$id)
 i=sample(1:length(allids),5)
 mission.list=allids[i]
 mission.list
-net_mensuration.db( DS="bottom.contact.redo", netswd=netswd, user.interaction=FALSE, override.missions=mission.list  )
+net_mensuration.db( DS="bottom.contact.redo", net.root.dir=net.root.dir, user.interaction=FALSE, override.missions=mission.list  )
 
 
 

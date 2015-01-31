@@ -48,7 +48,8 @@
   if (refresh.bio.species.codes ) {
     # the folowing is copied from taxaonomy/src/taxonomy.r
     groundfish.db( DS="spcodes.odbc.redo" )
-    # bootstrap an initial set of tables .. these will be incomplete as a parsimonious tree needs to be created first but it depends upon the last file created taxonomy.db("complete") .. so ...
+    # bootstrap an initial set of tables .. these will be incomplete as a parsimonious tree needs to be created first but
+    # it depends upon the last file created taxonomy.db("complete") .. so ...
     taxonomy.db( "groundfish.itis.redo" )  ## link itis with groundfish tables using taxa names, vernacular, etc
     taxonomy.db( "full.taxonomy.redo" )  # merge full taxonomic hierrachy (limit to animalia and resolved to species)
 		## taxonomy.db( "parsimonious.redo" )  # (re)create lookups from old codes to a parsimonious species list
@@ -56,9 +57,9 @@
     taxonomy.db( "complete.redo" )
     taxonomy.db( "parsimonious.redo" ) 
   }
-groundfish.db( DS="gscat.redo" )
- 
 
+
+  groundfish.db( DS="gscat.redo" )
   groundfish.db( DS="gsdet.redo" )
   groundfish.db( DS="gsinf.redo" )
   groundfish.db( DS="gshyd.profiles.redo" )

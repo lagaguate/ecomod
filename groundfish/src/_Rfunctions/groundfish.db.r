@@ -377,20 +377,37 @@
       }
  
       gsinf = groundfish.db( DS="gsinf.odbc" )
-
       names(gsinf)[which(names(gsinf)=="type")] = "settype"
-      tz( gsinf$sdate ) = "UTC"  # This makes it match the scanmar/marport time stamps
-      tz( gsinf$etime ) = "UTC"
+     
+
+      #### TODO: and NOTE: Timestamps of "sdate" and "edate" are offset by 1 hr for some reason. 
+      ### Perhaps some standard for the DB ..
+      ### Here we want it in America/Halifax zone as this matches the scanmar time-stamps
+      ###  see for example: gsinf[1:10, c("sdate", "time" ) ]
+      ###  Worth following up with the groundfish people or Shelley
       
+      gsinf$sdate = gsinf$sdate - dhours(1) 
+      gsinf$edate = gsinf$etime - dhours(1) 
+    
+      # by default it should be the correct timezone, but just in case
+      tz( gsinf$sdate) = "America/Halifax"  
+      tz( gsinf$edate) = "America/Halifax"  
+
       gsinf$mission = as.character( gsinf$mission )
       gsinf$strat = as.character(gsinf$strat)
       gsinf$strat[ which(gsinf$strat=="") ] = "NA"
       gsinf$id = paste(gsinf$mission, gsinf$setno, sep=".")
       d = which(duplicated(gsinf$id))
       if (!is.null(d)) write("error: duplicates found in gsinf")
+
       gsinf$lat = gsinf$slat/100
       gsinf$lon = gsinf$slong/100
+      gsinf$lat.end = gsinf$elat/100
+      gsinf$lon.end = gsinf$elong/100
+
       if (mean(gsinf$lon,na.rm=T) >0 ) gsinf$lon = - gsinf$lon  # make sure form is correct
+      if (mean(gsinf$lon.end,na.rm=T) >0 ) gsinf$lon.end = - gsinf$lon.end  # make sure form is correct
+
       gsinf = convert.degmin2degdec(gsinf)
       gsinf$cftow = 1.75/gsinf$dist  # not used
       ft2m = 0.3048
@@ -405,7 +422,9 @@
       gsinf$bottom_depth = rowMeans( gsinf[, c("dmin", "dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
-			gsinf = gsinf[, c("id", "sdate", "time", "strat","area", "dist", "cftow", "sakm2", "settype", "lon", "lat", "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
+			gsinf = gsinf[, c("id", "sdate", "edate", "time", "strat", "area", "speed", "dist", 
+                        "cftow", "sakm2", "settype", "lon", "lat", "lon.end", "lat.end",
+                        "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       
       save(gsinf, file=fn, compress=T)
       return(fn)
