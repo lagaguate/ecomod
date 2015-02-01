@@ -166,7 +166,7 @@
       if (!is.null( mm ) ) oo = sort( unique( mm ) ) 
       if (outcode == "tx.rowindex" ) out = oo  # nothing else to do
       if (outcode == "spec" )    out = c( txi, tx$spec[ oo ]  )
-      if (outcode == "spec.parsimonious" ) out = c( txi, tx$spec.parsiminious[ oo ] ) 
+      if (outcode == "spec.parsimonious" ) out = c( txi, tx$spec.parsimonious[ oo ] ) 
       
       out = sort( unique(out) )
 
