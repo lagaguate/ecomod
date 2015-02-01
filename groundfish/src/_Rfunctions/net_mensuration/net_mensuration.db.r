@@ -411,7 +411,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
     fn.current = file.path( scanmar.dir, "bottom.contact.tmp.current" )
     fn.badlist = file.path( scanmar.dir, "bottom.contact.badlist" )
-    # fn.gsinf = file.path( scanmar.dir, "bottom.contact.tmp.gsinf" )
+    fn.gsinf = file.path( scanmar.dir, "bottom.contact.tmp.gsinf" )
 
     badlist = skip = cur = NULL
     
