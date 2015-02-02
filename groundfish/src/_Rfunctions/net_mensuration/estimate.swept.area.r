@@ -13,9 +13,10 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
    
   
   }
+  
+  x = x[order( x$timestamp ) ,]
   bc = which( x$timestamp >=gs$bc0.datetime & x$timestamp <= gs$bc1.datetime ) 
   x = x[bc,]
-  x = x[order( x$timestamp ) ,]
   
   ##--------------------------------
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
@@ -25,7 +26,7 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
   x$time.increment = NA
   ndat = nrow(x)
   
-  if (debug) {
+  if ( FALSE ) {
     plot (latitude~longitude, data=x, pch=20, cex=.1)
     plot (depth~timestamp, data=x, pch=20, cex=.1)
     plot (depth~ts, data=x, pch=20, cex=.1)
@@ -37,10 +38,13 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
   mean.velocity.m.per.sec = gs$speed * 1.852  * 1000 / 3600
   x$distance = x$ts * mean.velocity.m.per.sec 
   
-  nupos = sqrt( length( unique( x$longitude)) ^2  + length(unique(x$latitude))^2)
-  
+  npos = sqrt( length( unique( x$longitude)) ^2  + length(unique(x$latitude))^2)
+ 
+  # ------------
+  # clean up distance /track
+
   x$distance.sm = NA
-  if (nupos > 30) { 
+  if (npos > 30) { 
     # interpolated.using.velocity" .. for older data with poor GPS resolution
     # use ship velocity and distance of tow estimated on board to compute incremental distance, assuming a straight line tow
     nn = abs( diff( x$ts ) )
@@ -57,7 +61,9 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
     x$distance.sm = c( 0, cumsum( dh ) )
   }
 
-  # doorspread
+  
+  # ------------
+  # clean up doorspread 
   
   doorspread.median = median(x$doorspread, na.rm=T)
   doorspread.sd = sd(x$doorspread, na.rm=T)
@@ -77,6 +83,7 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
   }
   
   
+  # ------------
   # wingspread .. repeat as above
   
   wingspread.median = median(x$wingspread, na.rm=T)
