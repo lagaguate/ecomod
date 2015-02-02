@@ -2,6 +2,8 @@
 bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3,  
       smoothing = 0.9, filter.quants=c(0.025, 0.975), sd.multiplier=3 ) {
 
+  out = NULL
+
   ##--------------------------------
   # First, a simple high pass filter to remove noisy data (very large extreme fluctuations)
   # Then, truncation of data based upon variance of central region to permit use of more fine-scale methods 

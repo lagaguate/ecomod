@@ -211,8 +211,10 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       if (is.null(j)) next()
       basedata = rbind( basedata, j)
     }
-     tz(basedata$timestamp) = tzone
-   save(basedata, file=fn, compress= TRUE)
+    
+    tz(basedata$timestamp) = tzone
+    save(basedata, file=fn, compress= TRUE)
+    return(fn)
   }
 
 
@@ -261,7 +263,9 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     basedata$trip=as.numeric(basedata$trip)
     
     save(basedata, file=fn, compress= TRUE)
+    return (fn )
   }
+
 
   if(DS %in% c("marport.gated", "marport.gated.redo"))  {
     nm=NULL
@@ -279,7 +283,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       nm$depth = filter.nets("depth.range", nm$depth)
     
     save(nm, file=fn, compress=TRUE)
-   
+    return(fn) 
   }
 
   if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
@@ -377,6 +381,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
    nm$door.and.wing.reliable = filter.nets( "door.wing", nm )    # flag to ID data that are bivariately stable .. errors still likely present
  
    save( nm, file=fn, compress=TRUE)
+   return (fn )
   }
 
 
@@ -402,29 +407,64 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     
     master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
     master = master[which(master$year >= 2004) ,  ]
-    if (!is.null( override.missions)){
+    
+    if ( !is.null( override.missions)){
       user.interaction = TRUE
       master = master[ which(master$id %in% override.missions ), ]
     }
     
+
+    fn.current = file.path( scanmar.dir, "bottom.contact.tmp.current" )
+    fn.badlist = file.path( scanmar.dir, "bottom.contact.badlist" )
+    fn.gsinf = file.path( scanmar.dir, "bottom.contact.tmp.gsinf" )
+
     uid = sort( unique( master$id)) 
+
+    ### if rerun necessary .. start from here until R-inla behaves more gracefully with faults
+
+    if ( file.exists (fn.current) ) {
+      # if there is something in the current id from a previous run, this indicates that this is likely a re-start
+      # reload saved data and skip ahead to the next id
+        cur = scan( fn.current, what="character", quiet=TRUE )
+        if ( length(cur) > 0 ) {
+          skip = which( uid==cur ) + 1
+          uid = uid[ skip: length(uid) ]
+          load( fn.gsinf)  # as it is a restart ... load in the saved version instead of the initial version
+        }
+    }
+      
     for ( id in uid) {
+      
       print( id)
       
-      id = "TEL2004529.21"
+      if ( file.exists (fn.current) ) {
+        # if there is something in the current id from a previous run, this indicates that this is likely a re-start
+        # add it to the list of "bad.list" and skip over for manual analysis
+        cur = scan( fn.current, what="character", quiet=TRUE )
+        if ( length(cur) > 0 ) {
+          bad.list = NULL
+          if (file.exists(fn.badlist) ) {
+            bad.list = scan( fn.badlist, what="character", quiet=TRUE )
+          }
+          cat( bad.list, cur, file=fn.badlist )
+        }
+      }
+      
+      if ( file.exists (fn.badlist) ) {
+        bad.list = scan( fn.badlist, what="character", quiet=TRUE )
+        if ( id %in% bad.list ) next()
+      }
+      
+      cat( id, file = fn.current )
+      
+      # id = "TEL2004529.21"
 
       ii = which( master$id==id )  # rows of master with scanmar/marport data
-      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
+      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next() ## this will also add to the bad.list .. when insufficient data  
       gii = which( gsinf$id==id )  # row of matching gsinf with tow info
-      if (length(gii) != 1) next()  # no match in gsinf
+      if (length(gii) != 1) next()  # no match in gsinf  ## this will also add to the bad.list .. when insufficient data
      
       mm = master[ which(master$id==id) , c("depth", "timestamp") ]
-
-      bad.list = c( 
-        "" 
-      )
-      
-      if ( id %in% bad.list ) next()
 
       # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
       time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
@@ -446,74 +486,117 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
         gsinf$bc0.n[gii] =  bc$bottom0.n
         gsinf$bc1.n[gii] =  bc$bottom1.n
         if ( !is.finite( gsinf$bottom_depth[gii]))  gsinf$bottom_depth[gii] = bc$depth.mean
+        save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
       }
+        
+      # if only the loop completes without error, reset the flag for current id on filesystem
+      cat("", file=fn.current )
     }
     
+
+    ## END of re-run area ... 
+
+
     if (!is.null( override.missions)) {
       fn = paste( fn, "manually.determined.rdata", sep="")
-      print( "Saving to an alternate location as this is being manually handled:" )
+      print( "Saving to an alternate location as this is being manually handled ... merge this by hand:" )
       print( fn)
     }
+    
     save(gsinf, file=fn, compress= TRUE)
+    
+    print( "Use, override.mission=c(...) as a flag and redo .. manually ) for the following:" )
+    print( "Troublesome id's have been stored in file:")
+    print( fn.badlist )
+    print(  scan( fn.badlist, what="character", quiet=TRUE ) )
+
+    file.remove( fn.current )
+    return(fn)
   }
 
+   
+
+  if (DS %in% c("scanmar.filtered", "scanmar.filtered.redo" )) {
+     
+    # scanmar.dir = file.path( net.root.dir, "Scanmar" )
+
+    fn = file.path(scanmar.dir, "scanmar.filtered.rdata")
+    nm = NULL
+    if(DS=="scanmar.filtered"){
+      if (file.exists(fn)) load(fn)
+      return( nm )
+    }
+   
+    nm = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
+    nm = nm[which(nm$year >= 2004), ]  # no depths records in data prior to this year
+    gs =  net_mensuration.db( DS="bottom.contact", net.root.dir=net.root.dir )
+   
+    tokeep = NULL
+    uid = sort( unique( nm$id)) 
+    for ( i in 1:length(uid) ) {
+      id = uid[i]
+      gsi = which( gs$id== id )
+      if (length( gsi)==1 ) {
+        tk = NULL
+        tk = which( nm$timestamp >= gs$bc0.datetime[gsi] & nm$timestamp <= gs$bc1.datetime[gsi] )
+        if (length(tk) > 10) c( tokeep, tk )
+      }
+    } 
+
+    nm = nm[ tokeep, ]
+    save( nm, file=fn, compress=TRUE )
+    return ( fn )
+  }
   
 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
      
     # scanmar.dir = file.path( net.root.dir, "Scanmar" )
 
-    fn= file.path(scanmar.dir,"gsinf.sweptarea.rdata")
-    master=NULL
-    if(DS=="sweptarea"){
+    fn = file.path( scanmar.dir, "gsinf.sweptarea.rdata")
+    gs = NULL
+    if( DS=="sweptarea" ){
       if (file.exists(fn)) load(fn)
-      return(master)
+      return(gs)
     }
    
-    master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
-    master = master[which(master$year >= 2004) ,  ]
-    
-    uid = sort( unique( master$id)) 
-    
-    #gsinf = groundfish.db( DS="gsinf" ) # to debug
-    gsinf =  net_mensuration.db( DS="bottom.contact", net.root.dir=net.root.dir )
-    gsinf$dist = NULL
-    
-    gsinf.odbc = groundfish.db( DS="gsinf.odbc" ) # loading raw data from Oracle data dump
-    gsinf.odbc$id = paste( gsinf.odbc$mission, gsinf.odbc$setno, sep="." )
-    updated.data = c("id", "speed", "dist")
-    gsinf = merge( gsinf, gsinf.odbc[,updated.data], by="id", all.x=TRUE, all.y=TRUE )
+    nm = net_mensuration.db( DS="scanmar.filtered", net.root.dir=net.root.dir )
+    gs = net_mensuration.db( DS="bottom.contact", net.root.dir=net.root.dir )
+    gs$dist = NULL  # dummy values .. remove to avoid confusion 
     
     # get variable names and sequence of var's
     gstest = estimate.swept.area( getnames=TRUE )
-    newvars = setdiff( gstest, names( gsinf) )
-    for (vn in newvars) gsinf[,vn] = NA
-    gsinf = gsinf[, names(gstest) ] # reorder
+    newvars = setdiff( gstest, names( gs) )
+    for (vn in newvars) gs[,vn] = NA
+    gs = gs[, names(gstest) ] # reorder
 
     if(FALSE) {
+      # debugging 
       id="TEM2008775.22"
       id="NED2010001.59"
-      ii = which( master$id==id ) 
-      gii = which( gsinf$id==id ) 
-      gs = gsinf[gii,]
-      x = master[ii,]
+      ii = which( nm$id==id ) 
+      gii = which( gs$id==id ) 
+      gs = gs[gii,]
+      x = nm[ii,]
     }
+    
+    uid = sort( unique( nm$id)) 
     
     for ( id in uid) {
       print( id)
-      ii = which( master$id==id )  # rows of master with scanmar/marport data
-      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next()  
-      gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+      ii = which( nm$id==id )  # rows of nm with scanmar/marport data
+      if ( length( which( is.finite(nm[ii, "depth"]))) < 30 ) next()  
+      gii = which( gs$id==id )  # row of matching gsinf with tow info
       if (length(gii) != 1) next()  # no match in gsinf
-      if ( all (is.finite( c( gsinf$bc0.sd, gsinf$bc1.sd ) ))) {
-      if ( gsinf$bc0.sd > 30 & gsinf$bc1.sd > 30 )  {
+      if ( all (is.finite( c( gs$bc0.sd, gs$bc1.sd ) ))) {
+      if ( gs$bc0.sd <= 30 & gs$bc1.sd <= 30 )  {
         # SD of start and end times must have a convengent solution which is considered to be stable when SD < 30 seconds
-        sa = estimate.swept.area( gsinf[gii,],  master[ii,] )
-        gsinf$sa[gii] = sa$surfacearea
-        # ... 
+        sa = estimate.swept.area( gs[gii,],  nm[ii,] )
+        gs$sa[gii] = sa$surfacearea
+         
       }}
     }
-    save(gsinf, file=fn, compress= TRUE)
+    save(gs, file=fn, compress= TRUE)
   }
 }
 

@@ -1,4 +1,4 @@
-interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)) ) {
+interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5 ) {
   # simple interpolation methods
   # target.r2 == target prediction R^2
 
@@ -7,6 +7,7 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
     y=sin(x) + runif(length(x))^2
     xy = data.frame( x=x, y=y )
     target.r2=0.9
+    nmax=5  # max number of times to try to reduce data set
     probs=c(0.025, 0.975)
     loess.spans=seq( 0.2, 0.01, by=-0.01 )
     inla.model="rw2"
@@ -74,7 +75,10 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
     rsq = 0
     nw = length( which(is.finite( z$y)))
     nw0 = nw + 1
+    count = 0
     while ( nw != nw0 ) {
+      count = count + 1
+      if (count > nmax ) break() # this is CPU expensive ... try only a few times 
       v = try( inla( y ~ f(xiid, model="iid", diagonal=0.01) + f(x, model=inla.model, diagonal=.01 ), data=z, 
                     control.inla=list(h=0.01), control.predictor=list( compute=TRUE) ), silent=TRUE )
       if (!( "try-error" %in% class(v) ) ) {
@@ -152,7 +156,10 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
     rsq = 0
     nw = length( which(is.finite( z$y)))
     nw0 = nw + 1
+    count = 0
     while ( nw != nw0 ) {
+      count = count + 1
+      if ( count > nmax ) break()  # in case of endless loop
       uu = smooth.spline( x=z$x, y=z$y, keep.data=FALSE, control.spar=list(tol=dd / 20) )
       if ( length(uu$x) != nrow(z)  ) {
         vv = approx( x=uu$x, y=uu$y, xout=z$x ) 
