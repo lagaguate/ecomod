@@ -64,22 +64,38 @@
   p$project.outdir.root = project.directory( p$project.name, "analysis" )
 
 
-  # create a spatial interpolation model for each variable of interest 
-  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
-  if (p$movingdatawindow == 0 ) { 
-    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-  } else {
-    p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
-  }
-  parallel.run( habitat.model, DS="redo", p=p ) 
-  # habitat.model ( DS="redo", p=p ) 
  
+  if ( p$movingdatawindow == 0 ) { 
+    ## NO windowing ... full model
 
-  # predictive interpolation to full domain (iteratively expanding spatial extent)
-  # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
-  p = make.list( list( yrs=p$yearstomodel ), Y=p )
-  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-  # habitat.interpolate( p=p, DS="redo" ) 
+    # create a spatial interpolation model for each variable of interest 
+    # full model requires 30-40 GB ! 
+    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+    parallel.run( habitat.model, DS="redo", p=p ) 
+    # habitat.model ( DS="redo", p=p ) 
+ 
+    
+    # predictive interpolation to full domain (iteratively expanding spatial extent)
+    # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+
+    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+    # habitat.interpolate( p=p, DS="redo" ) 
+
+  } else {
+    ## Windowing approach
+    p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+    parallel.run( habitat.model, DS="redo", p=p ) 
+    # habitat.model ( DS="redo", p=p ) 
+  
+    # predictive interpolation to full domain (iteratively expanding spatial extent)
+    # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+
+    p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
+    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+    # habitat.interpolate( p=p, DS="redo" ) 
+ 
+  }
 
 
   # map everything
