@@ -1,21 +1,23 @@
-estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10  ){
+estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE, threshold.cv=10  ){
 
-  if (getnames) return( c("names, of variables") )
+  if (getnames) return( c("sweptarea.mean", "depth.mean", "depth.sd", "wingspread.mean", "wingspread.sd" ) )
   
-  gs$sweptarea.mean = NA
-  gs$depth.mean = NA
-  gs$depth.sd = NA
-  gs$wingspread.mean = NA
-  gs$wingspread.sd = NA
+  gsi$sweptarea.mean = NA
+  gsi$depth.mean = NA
+  gsi$depth.sd = NA
+  gsi$wingspread.mean = NA
+  gsi$wingspread.sd = NA
 
   # debug
   if (FALSE){
+    gsi = gs[gii,]
+    x= nm[ii,]
    
   
   }
   
   x = x[order( x$timestamp ) ,]
-  bc = which( x$timestamp >=gs$bc0.datetime & x$timestamp <= gs$bc1.datetime ) 
+  bc = which( x$timestamp >=gsi$bc0.datetime & x$timestamp <= gsi$bc1.datetime ) 
   x = x[bc,]
   
   ##--------------------------------
@@ -35,7 +37,7 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
     plot (doorspread~ts, data=x[x$door.and.wing.reliable,], pch=20, cex=.2, col="green") 
   }
 
-  mean.velocity.m.per.sec = gs$speed * 1.852  * 1000 / 3600
+  mean.velocity.m.per.sec = gsi$speed * 1.852  * 1000 / 3600
   x$distance = x$ts * mean.velocity.m.per.sec 
   
   npos = sqrt( length( unique( x$longitude)) ^2  + length(unique(x$latitude))^2)
@@ -59,7 +61,7 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
     for( j in 1:(ndat-1) ) dh[j] = geodist( point=x[j,pos], locations=x[j+1,pos], method="vincenty" ) * 1000 # m .. slower but high res
     # dh = zapsmall( dh, 1e-9 )
     x$distance.sm = c( 0, cumsum( dh ) )
-  }
+  } 
 
   
   # ------------
@@ -106,7 +108,7 @@ estimate.swept.area = function( gs=NULL, x=NULL, getnames=FALSE, threshold.cv=10
   
   
   
-  return( gs)
+  return( gsi)
 
 }
 

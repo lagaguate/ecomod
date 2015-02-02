@@ -390,10 +390,10 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     # scanmar.dir = file.path( net.root.dir, "Scanmar" )
     
     fn= file.path(scanmar.dir,"gsinf.bottom.contact.rdata" )
-    master=NULL
+    gsinf=NULL
     if(DS=="bottom.contact"){
       if (file.exists(fn)) load(fn)
-      return(master)
+      return(gsinf)
     }
     
     gsinf = groundfish.db( DS="gsinf" )
@@ -535,13 +535,15 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
    
     tokeep = NULL
     uid = sort( unique( nm$id)) 
-    for ( i in 1:length(uid) ) {
+    nuid = length(uid)
+    for ( i in 1:nuid)  {
+      print ( paste( i, "of", nuid ) ) 
       id = uid[i]
       gsi = which( gs$id== id )
       if (length( gsi)==1 ) {
         tk = NULL
         tk = which( nm$timestamp >= gs$bc0.datetime[gsi] & nm$timestamp <= gs$bc1.datetime[gsi] )
-        if (length(tk) > 10) c( tokeep, tk )
+        if (length(tk) > 10) tokeep=c( tokeep, tk )
       }
     } 
 
@@ -590,16 +592,19 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       if ( length( which( is.finite(nm[ii, "depth"]))) < 30 ) next()  
       gii = which( gs$id==id )  # row of matching gsinf with tow info
       if (length(gii) != 1) next()  # no match in gsinf
-      if ( all (is.finite( c( gs$bc0.sd, gs$bc1.sd ) ))) {
-      if ( gs$bc0.sd <= 30 & gs$bc1.sd <= 30 )  {
+      if ( all (is.finite( c( gs$bc0.sd[gii], gs$bc1.sd[gii] ) ))) {
+      if ( gs$bc0.sd[gii] <= 30 & gs$bc1.sd[gii] <= 30 )  {
         # SD of start and end times must have a convengent solution which is considered to be stable when SD < 30 seconds
-        sa = estimate.swept.area( gs[gii,],  nm[ii,] )
+        sa = estimate.swept.area( gsi = gs[gii,],  x= nm[ii,] )
         gs$sa[gii] = sa$surfacearea
-         
+        # gs$ ...
+
       }}
     }
     save(gs, file=fn, compress= TRUE)
   }
 }
+
+
 
 
