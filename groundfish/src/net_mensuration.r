@@ -23,7 +23,13 @@ if ( recreate.full.database.locally ) {
   match.set.from.gpstrack(DS="post.perley.redo", net.root.dir=net.root.dir ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
   net_mensuration.db( DS="merge.historical.scanmar.redo",  net.root.dir=net.root.dir ) # add all scanmar data together
   net_mensuration.db( DS="sanity.checks.redo",  net.root.dir=net.root.dir )      # QA/QC of data
+  
+  # WARNING:: the following will need to be run from inside the function 
+  # as INLA does not exit gracefully from some errors
+  # and R cannot catch the faults .. re-run from indicated parts 
   net_mensuration.db( DS="bottom.contact.redo",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
+  
+  net_mensuration.db( DS="scanmar.filtered.redo",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
   net_mensuration.db( DS="sweptarea.redo",  net.root.dir=net.root.dir )  
 }
 
