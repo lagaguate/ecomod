@@ -93,11 +93,14 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   }
                   dp$pb = dp$fwt * dp$clen
                   dp$pb1 = dp$fwt * dp$clen2
+               
+                  dpp = data.frame(mission=NA,setno=NA,size_class=NA,pn=NA,pw=NA)
+                  if(nrow(dp)>0) {
                   dpp = aggregate(cbind(clen,clen2,pb,pb1)~mission+setno+size_class,data=dp,FUN=sum)
-                  #stop need to finish from here proportion of numbers and weights in the sizeclass
                   dpp$pn = dpp$clen2/dpp$clen
                   dpp$pw = dpp$pb1/dpp$pb
                   dpp = dpp[,c('mission','setno','size_class','pn','pw')]
+                  }
                   ca1 = merge(ca,dpp,by=c('mission','setno','size_class'))
                   ca1$totwgt = ca1$totwgt * ca1$pw
                   ca1$totno = ca1$totno * ca1$pn
@@ -147,7 +150,7 @@ strata.files[[mp]]  = list(st,sc)
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               save(out,file=file.path(loc,fn))
               save(strata.files,file=file.path(loc,fn.st))
-             if(p$strata.files.return) return(strata.files)
+             #if(p$strata.files.return) return(strata.files)
              return(out)
 
    }
