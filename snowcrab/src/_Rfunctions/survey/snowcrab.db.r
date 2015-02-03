@@ -828,7 +828,8 @@
 			# bring in all other habitat variables, use "z" as a proxy of data availability
 			# and then rename a few vars to prevent name conflicts
 			print ("Bring in all other habitat variables")
-      set = habitat.lookup( set,  p=p, DS="all.data" )
+      print("THIS IS TURNED OFF JAN302015")
+     # set = habitat.lookup( set,  p=p, DS="all.data" )
 		
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )
