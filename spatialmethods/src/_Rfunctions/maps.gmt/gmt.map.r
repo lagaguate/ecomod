@@ -29,7 +29,6 @@
 
     # begin mapping
       cmd( "psbasemap", P$region, P$gmtproj, P$annot, "-K >", outfile )
-
      # overlay data
       if (P$block) {
         add.flag = ""
@@ -51,8 +50,9 @@
       cmd( "psmask -C", gmtappend, ">>", outfile )
 
       # various overlays
-      cmd( "cat", P$basemap, ">>", outfile ) # bathymetry
-      if (!is.null(P$overlay)) {
+         #cmd( "cat", P$basemap, ">>", outfile ) # bathymetry
+      
+        if (!is.null(P$overlay)) {
         if ( length(P$overlay)>0) {
           for (o in P$overlay) {
             if ( o == "" ) next()
@@ -74,7 +74,7 @@
         file.copy(from=outfile, to=paste( P$outfile.basename,"ps",sep="."), overwrite=T)
       }
     
-    gmt.cleanup ()
+    gmt.cleanup ()  
     
  }
 
