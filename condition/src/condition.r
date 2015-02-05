@@ -61,7 +61,8 @@
 
 
   # create a spatial interpolation model for each variable of interest 
-  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+  # full model requires 5 GB per model
+  # ~ 30 hrs with 2 CPUs @ 3.6 Ghz
   if (p$movingdatawindow == 0 ) { 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
     parallel.run( habitat.model, DS="redo", p=p ) 

@@ -38,7 +38,7 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE, threshold.cv=1
   }
 
   mean.velocity.m.per.sec = gsi$speed * 1.852  * 1000 / 3600
-  x$distance = x$ts * mean.velocity.m.per.sec 
+  x$distance = as.numeric( x$ts * mean.velocity.m.per.sec )
   
   npos = sqrt( length( unique( x$longitude)) ^2  + length(unique(x$latitude))^2)
  
@@ -70,15 +70,22 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE, threshold.cv=1
   doorspread.median = median(x$doorspread, na.rm=T)
   doorspread.sd = sd(x$doorspread, na.rm=T)
   
+  threshold.cv = 0.5 ## ?? good value ??
+
+  x$tsv = as.numeric( x$ts )
+  ii = interpolate.xy.robust( xy=x[,c("tsv", "doorspread" )], method="loess"  ) 
+  x$doorspread.sm = 
+  
+
   if ( doorspread.sd / doorspread.median > threshold.cv ) {
-    if (all( !is.finite(x$distance.sm)) ) {
       SA.door = doorspread.median * max( x$distance.sm, na.rm=TRUE )
-    } else {
-      SA.door = doorspread.median * max( x$distance, na.rm=TRUE )
-    }
   } else {
     # piece-wise integration here.
-    #partial.area =  delta.distance * mean.doorspreads
+    len.dist = diff ( x$distance.sm ) 
+    
+    
+    len.door = 
+    artial.area =  delta.distance * mean.doorspreads
     #out$surfacearea = sum( partial.area )  # km^2
     #out$surfacearea = abs(  out$surfacearea )
     

@@ -133,19 +133,19 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       nm$logtime=gsub(":", "", nm$logtime)      
       j=nchar(nm$logtime)
       tooshort=which(j==5)
-      nm$logtime[tooshort]=paste("0",nm$logtime[tooshort],sep="")
+      if (length(tooshort)>0) nm$logtime[tooshort]=paste("0",nm$logtime[tooshort],sep="")
       
       tooshort=which(j==4)
-      nm$logtime[tooshort]=paste("00",nm$logtime[tooshort],sep="")
+      if (length(tooshort)>0) nm$logtime[tooshort]=paste("00",nm$logtime[tooshort],sep="")
       
       tooshort=which(j==3)
-      nm$logtime[tooshort]=paste("000",nm$logtime[tooshort],sep="")
+      if (length(tooshort)>0) nm$logtime[tooshort]=paste("000",nm$logtime[tooshort],sep="")
       
       tooshort=which(j==2)
-      nm$logtime[tooshort]=paste("0000",nm$logtime[tooshort],sep="")
+      if (length(tooshort)>0) nm$logtime[tooshort]=paste("0000",nm$logtime[tooshort],sep="")
       
       tooshort=which(j==1)
-      nm$logtime[tooshort]=paste("00000",nm$logtime[tooshort],sep="")
+      if (length(tooshort)>0) nm$logtime[tooshort]=paste("00000",nm$logtime[tooshort],sep="")
       
       nm$hours=substring(nm$logtime,1,2)
       

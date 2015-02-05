@@ -27,6 +27,8 @@
       gmtappend = "-O -K"
       gmt.prep (fnt=P$fnt, psres=P$psresolution)
 
+#      browser()
+
     # begin mapping
       cmd( "psbasemap", P$region, P$gmtproj, P$annot, "-K >", outfile )
      # overlay data
