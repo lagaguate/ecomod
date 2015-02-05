@@ -69,7 +69,6 @@
       for (a in 1:(ncols)) {
         set0 = set[filter.region.polygon(set, areas[a]),]
         for (y in 1:nrows) {
-          browser()
           set1 = set0[ which(set0$yr==year[y] ), ]
           sids = sort(unique(set1$sid))
 

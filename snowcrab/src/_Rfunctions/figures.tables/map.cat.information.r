@@ -5,11 +5,12 @@
                "brittlestar", "basketstar",
                "snowcrab",  "hermitcrab", "jonahcrab",
                "lessertoadcrab", "northernstonecrab", "porcupinestonecrab", "portlyspidercrab",
-               "redcrab", "atlanticrockcrab", "toadcrab", "snowcrab")
+               "redcrab", "atlanticrockcrab", "toadcrab", "snowcrab",'atlanticwolffish','halibut')
     p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
     p$maskres = "-S16k"
     p$interpres = "-nb"
-  
+    
+    
     for (sp in species) {
       outvars = c("trip", "set", "yr", "lon", "lat", "totmass", "totno", "sa")
       basedir = file.path( outdir, p$spatial.domain, sp )
@@ -20,7 +21,7 @@
         sset$totno = log10( sset$totno )  ###### ---------------------- log transform done here as "totno" is not part of the snowcrab recoed db
         # must  sum the catches or numbers by set/trip (across species) before plotting
         # incase multiple species are selected
-        gmt.map.variables( sset, p, variables=variables, plottimes=p$plottimes, basedir=basedir, conversions=p$conversions, init.files=p$init.files )
+        gmt.map.variables( sset, params=p, variables=variables, plottimes=p$plottimes, basedir=basedir, conversions=p$conversions, init.files=p$init.files )
        }
     }
     return( "Done" )

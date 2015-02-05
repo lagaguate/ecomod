@@ -22,10 +22,10 @@
                        func=function(x){ length(unique(x)) } )
       # sums
       pr.sum = tapply2( x=lgbk, indices=c("doc_id"), var="est_weight_log_lbs", newvars=c("pr.sum"),
-                       func=function(x){ sum(x, na.rm=T) } )
+                       func=function(x){ sum(x, na.rm=F) } )
 
       # merge and rescale
-      pr = merge(x=pr.count, y=pr.sum, bu="doc_id", sort=F, all=F)
+      pr = merge(x=pr.count, y=pr.sum, by="doc_id", sort=F, all=F)
       pr$doc_id = as.character(pr$doc_id )
 
       lgbk = merge(x=lgbk, y=pr, by="doc_id", all.x=T, all.y=F, sort=F)
