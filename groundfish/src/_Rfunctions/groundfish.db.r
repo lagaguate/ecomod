@@ -379,19 +379,46 @@
       gsinf = groundfish.db( DS="gsinf.odbc" )
       names(gsinf)[which(names(gsinf)=="type")] = "settype"
      
+      # fix some time values that have lost the zeros due to numeric conversion
+      gsinf$time = as.character(gsinf$time)      
+      j=nchar(gsinf$time)
+      
+      tooshort=which(j==3)
+      if (length(tooshort)>0) gsinf$time[tooshort]=paste("0",gsinf$time[tooshort],sep="")
+      tooshort=which(j==2)
+      if (length(tooshort)>0) gsinf$time[tooshort]=paste("00",gsinf$time[tooshort],sep="")
+      tooshort=which(j==1)
+      if (length(tooshort)>0) gsinf$time[tooshort]=paste("000",gsinf$time[tooshort],sep="")
+      
+      hours=substring(gsinf$time,1,2)
+      mins=substring(gsinf$time,3,4)
+      secs="00"
+      days = day( gsinf$sdate )
+      mons = month( gsinf$sdate )
+      yrs = year( gsinf$sdate )
+    
+      gsinf$timestamp = paste( gsinf$year, gsinf$mon, gsinf$day, hours, mins, secs, sep="-" )
+      tzone = "America/Halifax"  ## need to verify if this is correct
+  
+      #lubridate function 
+      gsinf$timestamp = ymd_hms(gsinf$timestamp, tz=tzone) 
+      
 
       #### TODO: and NOTE: Timestamps of "sdate" and "edate" are offset by 1 hr for some reason. 
       ### Perhaps some standard for the DB ..
       ### Here we want it in America/Halifax zone as this matches the scanmar time-stamps
       ###  see for example: gsinf[1:10, c("sdate", "time" ) ]
       ###  Worth following up with the groundfish people or Shelley
-      
-      gsinf$sdate = gsinf$sdate - dhours(1) 
-      gsinf$edate = gsinf$etime - dhours(1) 
-    
-      # by default it should be the correct timezone, but just in case
+     
+      # by default it should be the correct timezone ("localtime") , but just in case
       tz( gsinf$sdate) = "America/Halifax"  
       tz( gsinf$edate) = "America/Halifax"  
+
+ 
+      # gsinf$sdate = gsinf$sdate - dhours(1) 
+      # gsinf$edate = gsinf$etime - dhours(1) 
+    
+
 
       gsinf$mission = as.character( gsinf$mission )
       gsinf$strat = as.character(gsinf$strat)
