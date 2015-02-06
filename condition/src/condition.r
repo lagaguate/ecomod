@@ -11,7 +11,13 @@
 
 
   p = list()
-  p$init.files = loadfunctions( c("spatialmethods", "utility", "parallel", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "condition" ) )
+ 
+  #required for interpolations and mapping 
+  p$project.name = "condition"
+  p$project.outdir.root = project.directory( p$project.name, "analysis" )
+  
+  p$init.files = loadfunctions( c("spatialmethods", "utility", "parallel", "habitat", "bathymetry",
+                                  "bio", "temperature", "taxonomy", "condition" ) )
   p$libs = RLibrary( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice" ))
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$season = "allseasons"
@@ -47,6 +53,7 @@
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
   p$modtype = "complex"
 
+
   # prepare data
   condition.db( DS="condition.redo", p=p )
 
@@ -54,11 +61,6 @@
 # Generic spatio-temporal interpolations and maping of data 
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
-
-  #required for interpolations and mapping 
-  p$project.name = "condition"
-  p$project.outdir.root = project.directory( p$project.name, "analysis" )
-
 
   # create a spatial interpolation model for each variable of interest 
   # full model requires 5 GB per model

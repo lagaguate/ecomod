@@ -82,7 +82,7 @@
   # this is the basemap from map.r which is then post-labelled in sodipodi
     p$outdir = file.path(p$annual.results,"figures")
     p$outfile.basename = file.path(p$outdir, "map.CFAs")
-    p$basemap = file.path( project.directory("snowcrab"), "R", p$basemap)
+    # p$basemap = file.path( project.directory("snowcrab"), "R", p$basemap)
     map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
 
 

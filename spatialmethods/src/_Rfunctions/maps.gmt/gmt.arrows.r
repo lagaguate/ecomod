@@ -25,7 +25,16 @@
       cmd( "psbasemap", region, gmtproj, annot, "-K >", outfile )
 
     # overlay data
-      cmd( "cat", basemap, ">>", outfile ) # bathymetry
+     # cmd( "cat", basemap, ">>", outfile ) # bathymetry
+          
+      for (d in isobaths ){
+        isob = NULL
+        isob = isobath.db( p=params, depths=d )
+        if (is.null(isob)) next()
+        write.table( isob, file=gmt.isobathdata, quote=FALSE, col.names=FALSE, row.names=FALSE )
+        cmd( "gmt psxy", gmt.isobathdata, region, gmtproj, isobath.options, ps.append, outfile )
+      }
+
       if ( length(overlay)>0 & !is.null(overlay)) {
       for (o in overlay) {
         cmd( "psxy", polygon.ecomod(o), region, gmtproj, append, polygon.options, ">>", outfile ) # polygons
