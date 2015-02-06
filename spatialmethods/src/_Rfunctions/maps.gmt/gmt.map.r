@@ -39,8 +39,7 @@
       cmd( "psbasemap", P$region, P$gmtproj, P$annot, ps.new, outfile )
       # cmd( "cat", P$basemap, ">>", outfile ) # bathymetry
     
-  
-     # overlay data
+      # overlay data
       if (P$block) {
         add.flag = ""
         if (P$blocktype=="mean") block.prg="blockmean"
@@ -94,7 +93,7 @@
         file.copy(from=outfile, to=paste( P$outfile.basename,"ps",sep="."), overwrite=T)
       }
     
-    gmt.cleanup ()
+    gmt.cleanup ()  
     
  }
 

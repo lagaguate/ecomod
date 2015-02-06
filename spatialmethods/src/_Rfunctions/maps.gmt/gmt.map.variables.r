@@ -12,7 +12,7 @@
     if (!params$do.parallel) {
       gmt.map.variables.core(U=U, params=params, variables=variables, plottimes=plottimes, basedir=basedir, conversions=conversions, delta=delta, init.files=init.files, db=db)
     } else if (params$do.parallel) {
-      cl = makeCluster( spec=clusters, type=cltype)
+      cl = makeCluster( spec=params$clusters, type=cltype)
       ssplt = lapply( clusterSplit(cl, 1:nid), function(i) i )   # subset data into lists
       clusterApplyLB( cl, ssplt, gmt.map.variables.core, 
         U=U, params=params, variables=variables, plottimes=plottimes, basedir=basedir, conversions=conversions, delta=delta, init.files=init.files, db=db )

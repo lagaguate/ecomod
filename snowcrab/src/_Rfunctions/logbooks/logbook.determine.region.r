@@ -56,16 +56,17 @@
       # determine 4x lic id's
       
       lic_CFA4X = unique( lic$licence_id[ which( lic$area %in% c( "4X", "24W" ) ) ])  # known to be in CFA 4X
-      lic_CFA24 = unique( lic$licence_id[ which( lic$area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ) ) ]) # known to be in CFA 24
+      lic_CFA24 = unique( lic$licence_id[ which( lic$area %in% c( "24A", "24B", "24C", "24D", "24E", "24S","24H","CFA24" ) ) ]) # known to be in CFA 24
 
       north = which( lic$area %in% c( "20", "21" ,"22", "22I", "22O" )   )  # use upper case
-      cfa23 = which( lic$area %in% c( "23", "23A", "23B", "23C", "23D", "23S") )
+      cfa23 = which( lic$area %in% c( "23", "23A", "23B", "23C", "23D", "23S","CFA23") )
       
       # "area=24" contains both CFA24 and CFA4X .. by default consider all to be part of CFA24
-      #  and then recode after the fact those that belong to 4X
-      cfa24 = which( lic$area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ) | ( (lic$area=="24") & ( lic$licence_id %in% lic_CFA24 ) ) ) 
-      cfa4x = which( lic$area %in% c( "4X", "24W" ) | ( (lic$area=="24") & ( lic$licence_id %in% lic_CFA4X ) ) )
-    
+      #  and then recode after the fact those that belong to 4X---Feb 2015 add in the area 308 ie '24' to cfa24 only this was the big difference between ben's and my data
+      #cfa24 = which( lic$area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ,'24') | ( (lic$area=="24") & ( lic$licence_id %in% lic_CFA24 ) ) ) 
+      #cfa4x = which( lic$area %in% c( "4X", "24W" ) | ( (lic$area=="24") & ( lic$licence_id %in% lic_CFA4X ) 
+    cfa24 = which( lic$area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ,'24') ) 
+     cfa4x = which( lic$area %in% c( "4X", "24W" )) 
       lic$cfa0 = NA
       lic$cfa0 [north] = "cfanorth"
       lic$cfa0 [cfa23] = "cfa23"
@@ -76,7 +77,8 @@
       lic0 = lic0[ - which(duplicated( lic0$licence_id) ) ,]  # finalised licencing information
       lic0$licence = as.character(lic0$licence_id) 
       lic0 = lic0[, c("licence", "area_id", "cfa0", "area", "desc_eng") ]
-
+      #il = which(lic0$licence =='100198')
+      #lic0[il,c('cfa0','area','desc_eng')] <- c('cfa4x','4X','NAFO DIVISION - 4X')
       QQ = merge(logs, lic0, by="licence", all.x=T, all.y=F, sort=F)
      
 
@@ -90,10 +92,10 @@
         s23 = which( QQ$cfa0 =="cfa23" )  # area "24" spans 4X and area 24
         s24 = which( QQ$cfa0 =="cfa24" )  # area "24" spans 4X and area 24
         ssn = which( QQ$cfa0 =="cfanorth" )  # area "24" spans 4X and area 24
-        points( QQ$lon[s4x], QQ$lat[s4x], pch=20, col="blue" )
-        points( QQ$lon[s23], QQ$lat[s23], pch=20, col="green" )
-        points( QQ$lon[s24], QQ$lat[s24], pch=20, col="red" )
-        points( QQ$lon[ssn], QQ$lat[ssn], pch=20, col="yellow" )
+        points( QQ$lon[s4x], QQ$lat[s4x], pch=16, col="blue" )
+        points( QQ$lon[s23], QQ$lat[s23], pch=16, col="green" )
+        points( QQ$lon[s24], QQ$lat[s24], pch=16, col="red" )
+        points( QQ$lon[ssn], QQ$lat[ssn], pch=16, col="yellow" )
 
         unique( QQ$licence[ s4x] )  
         length(unique( QQ$licence[ ssn] ))
