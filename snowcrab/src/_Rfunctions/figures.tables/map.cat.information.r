@@ -5,7 +5,7 @@
                "brittlestar", "basketstar",
                "snowcrab",  "hermitcrab", "jonahcrab",
                "lessertoadcrab", "northernstonecrab", "porcupinestonecrab", "portlyspidercrab",
-               "redcrab", "atlanticrockcrab", "toadcrab", "snowcrab",'atlanticwolffish','halibut')
+               "redcrab", "atlanticrockcrab", "toadcrab", "snowcrab",'atlanticwolffish','halibut','smoothskate','winterskate')
     p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
     p$maskres = "-S16k"
     p$interpres = "-nb"

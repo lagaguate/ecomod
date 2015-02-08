@@ -128,7 +128,9 @@
 
         # ****************************************
         
-        fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
+        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
+        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
+        
         if (file.exists(fn)) load(fn)
         return(Q)
       }
@@ -144,13 +146,16 @@
 
       for ( iip in ip ) {
         v0 = v = p$runs[iip,"v"]
-        yr = p$runs[iip,"yrs"]
+        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
         print ( p$runs[iip,] )
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
-        fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") )
+        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") ) #to turn off moving window
+        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") ) #to turn off moving window
+        
         set = habitat.model.db( DS="basedata", p=p, v=v )
             
-        yrsw = c( p$movingdatawindow + yr  ) 
+        if(any(p$movingdatawindow!=0)) yrsw = c( p$movingdatawindow + yr  ) #turn off moving window Feb 2015
+        if(all(p$movingdatawindow==0))     yrsw = p$years.to.model
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
         if ( nyrsw  < p$movingdatawindowyears ) {
@@ -245,7 +250,9 @@
       
       if( DS=="abundance") {
         Q = NULL
-        fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
+        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
+        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        
         if (file.exists(fn)) load(fn)
         return(Q)
       }
@@ -258,15 +265,17 @@
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
-        yr = p$runs[iip,"yrs"]
+        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
         print( p$runs[iip,])
-
-        fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
+  if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
+  if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
         set = habitat.model.db( DS="basedata", p=p, v=v )
         # set = snowcrab.db( DS="set.logbook" )
         set$Y = set[, v]  # override -- Y is P/A
        
-        yrsw = c( p$movingdatawindow + yr  ) 
+  if(any(p$movingdatawindow!=0))  yrsw = c( p$movingdatawindow + yr  )
+  if(all(p$movingdatawindow==0))  yrsw = c( p$years.to.model)
+        
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
         if ( nyrsw  < p$movingdatawindowyears ) {

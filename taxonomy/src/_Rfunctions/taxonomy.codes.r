@@ -20,6 +20,8 @@
         mackerel          = 70 ,
         thornyskate       = 201 ,
         thorny.skate       = 201 ,
+        smoothskate         =202,
+        winterskate         =204,
         atlanticwolffish  = 50 ,
         atlantic.wolffish  = 50 ,
         spiny.dogfish     = 220 ,

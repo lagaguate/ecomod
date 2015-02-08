@@ -1,11 +1,11 @@
  p = list()
  p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
-p$strat=470:495
+p$strat=440:442
 p$series =c('summer')# p$series =c('4vswcod');p$series =c('georges')
 p$years.to.estimate = c(1970:2014)
-p$species = 12
-p$vessel.correction = F
+p$species = c(202,204,300,320)
+p$vessel.correction = T
 p$vessel.correction.fixed = 1.2
 p$length.based = F
 p$size.class= c(30,60)

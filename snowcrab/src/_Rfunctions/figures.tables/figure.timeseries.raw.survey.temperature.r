@@ -1,5 +1,5 @@
 
-  figure.timeseries.raw.survey.temperature = function( outdir, vars="totno.male",  all.areas=T ) {
+  figure.timeseries.raw.survey.temperature = function( outdir, vars="t",  all.areas=T ) {
  
     set = snowcrab.db( DS="set.merge.det")
   
@@ -10,6 +10,9 @@
       areas = c("cfasouth", "cfanorth" )
       regions = c("S-ENS", "N-ENS")
     }
+        cex.main = 1.4
+    cex.lab = 1.3
+    cex.axis = 1.3
 
     n.regions = length(regions)
     n.areas = length(areas)
@@ -29,31 +32,26 @@
       xlim=range(td$year); xlim[1]=xlim[1]-0.5; xlim[2]=xlim[2]+0.5
 
       dir.create( outdir, recursive=T, showWarnings=F )
-      fn = file.path( outdir, paste( v, "combined", "png", sep="." ) )
-      Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=6, dpi=300)
-      setup.lattice.options()
-      pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
-        layout=c(1,n.areas), 
-        par.strip.text = list(cex=3.0),
-        par.settings=list(  
-          axis.text=list(cex=2.5), 
-          par.main.text = list(cex=4),
-          layout.heights=list(strip=0.2, panel=1, main=0.5 ) 
-        ),
-        xlim=xlim, scales = list(y = "free"),
-        main='Snow Crab', xlab=list("Year", cex=3), ylab=list("Geometric mean Temperature", cex=3),
-        panel = function(x, y, subscripts, ub, lb, ...) {
-          mx <- median(y)
-          larrows(x, lb[subscripts], x, ub[subscripts], angle = 90, code = 3, length=0.05,lwd=3)
-          panel.xyplot(x, y, type="b", lty=1, lwd=6, pch=20, col="black", ...)
-          panel.abline(h=mx, col="gray75", lwd=5, ...)
-        }
+      fn = file.path( outdir, paste( 'temperature', "combined",  sep="." ) )
+   Cairo( file=fn, type="pdf", bg="white",  units="in", width=6, height=8 )
+    setup.lattice.options()
+    pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
+          layout=c(1,n.regions), xlim=xlim, ylim=ylim,
+              main="Snow crab", xlab="Year", ylab=list("Geometric mean Temperature"),
+              cex.lab=cex.lab, cex.axis=cex.axis, cex.main = cex.main,
+              panel = function(x, y, subscripts, ub, lb, ...) {
+             larrows(x, lb[subscripts],
+                     x, ub[subscripts],
+                     angle = 90, code = 3, length=0.05)
+             panel.xyplot(x, y, type="b", lty=1, lwd=2, pch=20, col="black", ...)
+             panel.abline(median(y), col="gray75", ...)
+         }
       )
-       
-      print(pl)
-      dev.off()
-      cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
     
+    print(pl)
+    dev.off()
+   cmd( "convert   -trim -quality 9  -geometry 200% -frame 2% -mattecolor white -antialias ", paste(fn, "pdf", sep="."),  paste(fn, "png", sep=".") )
+   
     }
 
     return("Done")
