@@ -17,6 +17,7 @@ figure.crab.groundfish.survey <- function(species , outdir=file.path(project.dir
  set = snowcrab.db( DS="set.complete")
  set = set[which(set$yr>2003),]
 		 ii  = names(set)[grep(paste("^ms.mass.",species,"$",sep=""),names(set))]
+     if(length(ii)==1){
 		 set = set[,c('yr','cfa',ii)]
 		 names(set)[3] = 'mass'
 		 ou = unique(set[,c('yr','cfa')])
@@ -25,13 +26,15 @@ figure.crab.groundfish.survey <- function(species , outdir=file.path(project.dir
 		 boot.mean <- function(x,i){mean(x[i])}
  #get the bs estimates for snowcrab
  for(j in 1:nrow(ou)) {
- 	lp = set[which(set$yr==ou[j,'yr'] & set$cfa==ou[j,'cfa']),'mass']
+  	lp = set[which(set$yr==ou[j,'yr'] & set$cfa==ou[j,'cfa']),'mass']
 if(all(lp==0)) next()
  	ir = boot(lp,statistic=boot.mean,R=1000)
  	irr = boot.ci(ir,type='bca')
  	ou[j,c('lower','upper','mean')] = c(irr$bca[c(4,5)],ir$t0)
  }
-
+} else {
+  ou = NULL
+}
 
  gr.dir = file.path(project.directory('groundfish'),'analysis')
  gr.list = list()
@@ -55,61 +58,8 @@ gr.list$grp = 'groundfish'
 ou$grp = 'snowcrab'
 
 xlim=c(1968,p$current.assessment.year+2)
-
-oi = rbind(ou,gr.list)
-      #dir.create( outdir, recursive=T, showWarnings=F )
-#      fn = file.path( outdir, paste( "groundfish.snowcrab.survey.species",species, "png", sep="." ) )
-#      png( file=fn,units='in', width=15,height=12,pointsize=18, res=300,type='cairo')
-
-#setup.lattice.options()
-#w <- list(left.padding = list(x = 0.5, units = "inches"),right.padding = list(x = 0.5, units = "inches"))
-#h <- list(bottom.padding = list(x = 0, units = "inches"), top.padding = list(x = 0, units = "inches"))
-#attice.options(layout.widths = lw, layout.heights = lh) 
-
-#     plg = xyplot( mean~yr|cfa, data=gr.list, upper=gr.list$upper, lower=gr.list$lower,
-#       layout=c(1,n.regions), 
-#       par.strip.text = list(cex=2),
-#       par.settings=list(  
-#         axis.text=list(cex=1.8), 
-#         par.main.text = list(cex=1.5),
-#         layout.heights=list(strip=0.8, panel=3, main=1.1),
-#         layout.widths=list(ylab.axis.padding=1.5,units='inches') 
-#       ),
-#       xlim=xlim, scales = list(y = "free"),
-#       xlab=list("Year", cex=2), ylab=list("Kg per km2", cex=2),
-#       prepanel = function(x,y,subscripts,lower,upper,...) {
-#         list(ylim=c(0,max(upper[subscripts])*0.75))
-#       },        
-#       panel = function(x, y, subscripts, lower, upper, ...) {
-#         larrows(x, lower[subscripts], x, upper[subscripts], angle = 90, code = 3, length=0.05,lwd=3)
-#         panel.xyplot(x, y, type="b", lty=1, lwd=6, pch=20, col="black",...)
-#        }
-#     )
-#     plc = xyplot( mean~yr|cfa, data=ou, upper=ou$upper, lower=ou$lower,
-#       layout=c(1,n.regions), 
-#       par.strip.text = list(cex=2),
-#       par.settings=list(  
-#         axis.text=list(cex=1.8), 
-#         par.main.text = list(cex=1.5),
-#         layout.heights=list(strip=0.8, panel=3, main=1.1),
-#        layout.widths=list(ylab.axis.padding=1.5,units='inches')
-#       ),
-#       xlim=xlim, scales = list(y = "free"),
-#       xlab=list("Year", cex=2), ylab=list("Kg per km2", cex=2),
-#       prepanel = function(x,y,subscripts,lower,upper,...) {
-#         list(ylim=c(0,max(upper[subscripts])*0.75))
-#       },
-#       panel = function(x, y, subscripts, lower, upper, ...) {
-#         larrows(x, lower[subscripts], x, upper[subscripts], angle = 90, code = 3, length=0.05,lwd=3)
-#         panel.xyplot(x, y, type="b", lty=1, lwd=6, pch=20, col="red",...)
-#        }
-#     ) 
-#     doubleYScale(plg,plc,rows=3,add.ylab2=T)
-#     update(trellis.last.object(), par.settings = simpleTheme(col = c("black", "red")))
-
-#     graphics.off()
-
-#######
+oi = gr.list
+ if(!is.null(ou)) oi =rbind(ou,gr.list)
 
 ###TO DO## this figure is not working properly but can run through one at a time.  AMC Feb2015
 

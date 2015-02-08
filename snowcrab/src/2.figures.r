@@ -85,13 +85,14 @@
     p$basemap = file.path( project.directory("snowcrab"), "R", p$basemap)
     map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
 
-
+    
   # ------------------------------------------
   # Map:  Mean/geometric mean of various variables in the set data table
     map.set.information( p, outdir=file.path( project.directory("snowcrab"), "R", "maps", "survey" )  )
 
   # ------------------------------------------
   # Map: Numerical density of by-catch species 
+   p$do.parallel=F
     map.cat.information( p, outdir=file.path( project.directory("snowcrab"), "R", "maps", "species" ) )
 
   # ------------------------------------------

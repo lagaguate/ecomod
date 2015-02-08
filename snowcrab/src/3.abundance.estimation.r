@@ -17,7 +17,7 @@
   # p$vars.to.model = c("R0.mass",  "R1.no")
   # p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   # p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
-  p$years.to.model=2004:2005
+  p$years.to.model=2000:2014
 
   
   debug = F
@@ -88,8 +88,8 @@
 			p$prediction.weekno = 39 # predict for ~ Sept 1 
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
-      p$use.annual.models = TRUE  ## <<<<< new addition
-      p$movingdatawindow = c( -1:+1 )  # this is the range in years to supplement data to model 
+      p$use.annual.models = F  ## <<<<< new addition
+      p$movingdatawindow = 0 # c( -1:+1 )  # this is the range in years to supplement data to model 
       p$movingdatawindowyears = length (p$movingdatawindow)
 
 
@@ -127,7 +127,9 @@
 
       # ---------------------
       # model abundance and intermediate predictions 
-      p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
+      moving.window=F
+      if(moving.window) p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
+      if(!moving.window)p = make.list( list(v=p$vars.to.model  ), Y=p )
       parallel.run( habitat.model.db, DS="abundance.redo", p=p )
       # habitat.model.db( DS="abundance.redo", p=p) 
       
@@ -196,7 +198,7 @@
       
       cor( set$predicted.R0.mass , set$R0.mass )^2  # 0.7870114 !!
       
-      save ( set, file="/home/jae/tmp/set.test.rdata")
+      save ( set, file="/home/adam/tmp/set.test.rdata")
       
     }
 

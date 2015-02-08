@@ -31,7 +31,7 @@
 
   p$varstomodel = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
   
-  p$yearstomodel = 1970:2013
+  p$yearstomodel = 1970:2014
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
  
   p$spatial.knots = 100

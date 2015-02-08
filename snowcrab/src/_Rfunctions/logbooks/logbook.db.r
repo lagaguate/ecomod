@@ -371,7 +371,7 @@
       nl0 = nrow( logbook ) 
       logbook = lonlat2planar( logbook ,  proj.type=p$internal.projection, ndigits=0 )
 			logbook$chron = logbook$date.landed  # required for temperature lookups
-
+      logbook = logbook[which(logbook$yr<=p$current.assessment.year),]
 			# bring in time invariant features:: depth
       logbook$z = logbook$depth
 			logbook$depth = NULL
