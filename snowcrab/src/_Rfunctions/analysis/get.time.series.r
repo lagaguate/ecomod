@@ -1,7 +1,8 @@
 
-  get.time.series = function(x=NULL, regions=NULL, vars=NULL, trim=0, from.file=F, outfile=NULL) {
+  get.time.series = function(x=NULL, regions=NULL, vars=NULL, trim=0, from.file=F, outfile=NULL,reduced.stations=F) {
 
-    if (is.null(outfile)) outfile = file.path( project.directory("snowcrab"), "R", "ts.rdata" )
+    if (is.null(outfile) & !reduced.stations) outfile = file.path( project.directory("snowcrab"), "R", "ts.rdata" )
+    if (is.null(outfile) & reduced.stations) outfile = file.path( project.directory("snowcrab"), "R", "ts.reduced.rdata" )
 
     ts= NULL
 
@@ -11,7 +12,10 @@
     }
    
     # ra.jit(2)  # JIT optimisation
-
+ if(reduced.stations) {
+    b = x[which(x$yr==2014),'station']
+    x = x[which(x$station %in% b),]
+    }
       out = NULL
       tmpfile = file.path( tempdir(), make.random.string(".ts.csv"))
 
