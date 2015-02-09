@@ -52,8 +52,8 @@
         qs = signif( qs, 3 )
         for (i in 1:3) {
           pdat = as.vector(y$K[i,,])
-          # prr=NULL
-          # prr$class="normal"
+           prr=NULL
+           prr$class="lognormal"
 
           # E(X) = exp(mu + 1/2 sigma^2)
           # med(X) = exp(mu)
@@ -62,8 +62,8 @@
           # SD(X) = sqrt( exp(2*mu + sigma^2)*(exp(sigma^2) - 1) )
           #  or   = CV * E(X) 
 
-          # prr$mean= sb$K.guess[i]
-          # prr$sd = sb$K.guess[i] * sb$cv.normal.max
+           prr$meanlog= sb$K.mu[i]
+           prr$sdlog = sqrt(sb$K.sd[i])
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ))
@@ -72,7 +72,11 @@
       if ( vname=="r" ) {
         qs = apply( y$r[,,], 1, quantile, probs=c(0.025, 0.5, 0.975) )
         qs = signif( qs, 3 )
-        for (i in 1:3) {
+        for (i in 1:3) {    prr=NULL
+          prr=NULL
+          prr$class='normal'
+          prr$mean=sb$r.mu[i]
+          prr$sd=sqrt(sb$r.sd[i])
           pdat = as.vector(y$r[i,,])
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ) )   
@@ -85,7 +89,10 @@
         qs = signif( qs, 3 )
         for (i in 1:3) {
           pdat = as.vector(y$q[i,,])
-       
+        prr=NULL
+        prr$class='uniform'
+        prr$max=2
+        prr$min=0.1
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" )   
       )}}
@@ -127,6 +134,33 @@
           legend( "topright", bty="n",
             legend=paste( labs[i], " ", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}", sep="" )   
       )}}
+	if ( vname=="bo.sd" ) {
+        qs = apply( y$bo.sd[,,], 1, quantile, probs=c(0.025, 0.5, 0.975) )
+        qs = signif( qs, 3 )
+        for (i in 1:3) {
+          pdat = as.vector(y$bo.sd[i,,])
+          prr=NULL
+          prr$class="lognormal"
+          prr$meanlog=sb$bo.mup
+          prr$sdlog=sqrt(sb$bo.sdp)
+          plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
+          legend( "topright", bty="n",
+            legend=paste( labs[i], " ", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}", sep="" )   
+      )}}
+          if ( vname=="bp.sd" ) {
+        qs = apply( y$bp.sd[,,], 1, quantile, probs=c(0.025, 0.5, 0.975) )
+        qs = signif( qs, 3 )
+        for (i in 1:3) {
+          pdat = as.vector(y$bp.sd[i,,])
+          prr=NULL
+          prr$class="lognormal"
+          prr$meanlog=sb$bp.mup
+          prr$sdlog=sqrt(sb$bp.sdp)
+          plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
+          legend( "topright", bty="n",
+            legend=paste( labs[i], " ", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}", sep="" )   
+      )}}
+
      
     }
 
@@ -170,7 +204,7 @@
         for (i in 1:3) {
           prs = seq( from=0.025, to=0.975, length.out=600)
           Fi = apply( y$F[1:sb$N,i,,], 1, quantile, probs=prs, na.rm=T )
-          yran = range(c(0, Fi), na.rm=T )*1.01
+          yran = range(c(0, max(c(Fi,Fmsy))), na.rm=T )*1.01
           yran = pmin( yran, 1.2 )
           plot( yrs0, Fi[1,], type="n", ylim=yran, xlab="", ylab="" )
           cols = gray.colors( floor(length( prs)/2) )
@@ -210,7 +244,7 @@
           F10 = -log(1-0.1)
 
           Fref =  0.22
-          Bmsy = BMSY[i]
+          Bmsy = K[i] * 0.5
           Bref = K[i] * 0.2 
           BK = K[i] 
           BK25 = K[i] * .25 
@@ -340,7 +374,7 @@
           F =  apply( y$F, c(1,2), mean, na.rm=T  )
           C =  apply( y$C, c(1,2), mean, na.rm=T  )
           K =  apply( y$K, c(1), mean, na.rm=T  )
-          for (i in 1:3) C[,i] = C[,i]  * K[i]
+#          for (i in 1:3) C[,i] = C[,i]  * K[i]
           FMSY = apply( y$FMSY, c(1), mean, na.rm=T  )
           BMSY = apply( y$BMSY, c(1), mean, na.rm=T  )
         
