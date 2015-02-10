@@ -5,12 +5,12 @@
 #     It must be kept separate from "initialise.local.environment.r" as running in parallel mode 
 #     requires occasionally overrding some parameters in "p". This override cannot be completed as  
 #     "initialise.local.environment.r" is sourced with every initialisation of a a new CPU.
-# ----------------------------------------------------------------------------------
-   
-# load required functions and parameters 
-	
-  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  
+  # ----------------------------------------------------------------------------------
+     
+  # load required functions and parameters 
+  	
+    loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+    
   debug = FALSE
   if (debug) {
     p$do.parallel =F
@@ -173,8 +173,13 @@
   logbook.db( DS="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
   snowcrab.db( DS ="set.logbook.redo", yrs=1996:p$current.assessment.year ) # add gridded fisheries data
-  
+  snowcrab.db( DS ="set.logbook", yrs=1996:p$current.assessment.year ) 
   make.timeseries.data(p=p, areas=p$regions )  #  timeseries of means of all survey data
+  
+  #in 2014 as there was reduced stations for comparison
+make.timeseries.data(p=p, areas=p$regions,reduced.stations=T, vars=c('R0.mass' ))  #  timeseries of means of all survey data
+  
+
   #  tsdata = snowcrab.db("set.timerseries")
 
 # create a new lookuptable for data transformations after refreshing set data/ranges

@@ -29,7 +29,8 @@ fdir <-file.path( project.directory("snowcrab"), "R", "gam","habitat" )
         
         td = lo[ which( lo$region %in% areas ) , c('yr','region','sa.region') ]
         td1 =data.frame(yr=rep(2013,3),region=c('cfa4x','cfanorth','cfasouth'),sa.region=aggregate(sa.region~region,data=td[which(td$yr>2008),],FUN=mean)[2])
-        
+        td = rbind(td,td1)
+        td1 =data.frame(yr=rep(2014,3),region=c('cfa4x','cfanorth','cfasouth'),sa.region=aggregate(sa.region~region,data=td[which(td$yr>2009),],FUN=mean)[2])
         td = rbind(td,td1)
         td$year =td$yr
         td$sa.region = td$sa.region/1000

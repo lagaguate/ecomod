@@ -35,7 +35,7 @@
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
           layout=c(1,n.regions), xlim=xlim, ylim=ylim,
-              main="Fishable Biomass Reduced Stations", xlab="Year", ylab=list("Geometric mean No. / km^2"),
+              main="Fishable Biomass Reduced Stations", xlab="Year", ylab=list("Geometric mean t / km^2"),
               cex.lab=cex.lab, cex.axis=cex.axis, cex.main = cex.main,
               panel = function(x, y, subscripts, ub, lb, ...) {
              larrows(x, lb[subscripts],

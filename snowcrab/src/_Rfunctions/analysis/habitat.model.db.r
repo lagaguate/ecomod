@@ -95,7 +95,8 @@
       set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
       set$sa.scaled =rescale.min.max(set$sa)
       set$sa.scaled[ which(set$sa.scaled==0)] = min (set$sa.scaled[ which(set$sa.scaled>0)], na.rm=T) / 2
-      set$wgts = ceiling( set$sa.scaled * 1000 )
+      #set$wgts = ceiling( set$sa.scaled * 1000 )
+      set$wgts = 1
 
       # remove extremes where variance is high due to small n
       # set = filter.independent.variables( x=set )
@@ -196,9 +197,14 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=F )
+           # Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=F )
+            Q = try( bam( .model, data=set, family=fmly  ), silent=F )
+            fn = paste(o,fn,sep=".")
+          
           } else {
-            Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
+           # Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
+           Q = try( gam( .model, data=set, family=fmly, select=T, optimizer=ops ), silent=F )
+          fn = paste(o,fn,sep=".")
           }
           
           print(Q)
@@ -212,8 +218,10 @@
         if ( "try-error" %in% class(Q) ) {
           # last attempt with a simplified model and default optimizer
           .model = model.formula ("simple" )
-          Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = F )
+         # Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = F )
+          Q = try( gam( .model, data=set,  family=fmly, select=T), silent = F )
           print(Q)
+          fn = paste('simple',fn,sep=".")
           if ( "try-error" %in% class(Q) ) {
             print( paste( "No solutions found for:", v ) )
             next()
@@ -361,9 +369,13 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=F )
+            #Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=F )
+            Q = try(  bam( .model, data=set, family=fmly ), silent=F )
+          fn = paste(o,fn,sep=".")
           } else {
-            Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
+            #Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
+            Q = try( gam( .model, data=set, optimizer=ops, family=fmly, select=T ), silent = F )
+          fn = paste(o,fn,sep=".")
           }
           print(Q)
           if ( ! ("try-error" %in% class(Q) ) ) break()  # first good solution exits
@@ -373,7 +385,9 @@
         if ( "try-error" %in% class(Q) ) {
           # last attempt with a simplified model
           .model = model.formula ("simple" )
-          Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = F )
+          #Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = F )
+          Q = try( gam( .model, data=set, family=fmly, select=T), silent = F )
+          fn = paste('simple',fn,sep=".")
           print(Q)
           if ( "try-error" %in% class(Q) ) {
             print( paste( "No solutions found for:", v ) )
