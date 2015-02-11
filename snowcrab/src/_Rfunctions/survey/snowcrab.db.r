@@ -26,8 +26,15 @@
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
 				SNCRABSETS = NULL
 				SNCRABSETS = sqlQuery(con, 
-									paste("select * from SNCRABSETS where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
-				save( SNCRABSETS, file=fny, compress=T)
+									paste("select SNCRABSETS.*, 
+                           TO_CHAR(BOARD_DATE,   'YYYY-MM-DD HH24:MI:SS') BOARD_DATECHAR,  
+                           TO_CHAR(LANDING_DATE, 'YYYY-MM-DD HH24:MI:SS') LANDING_DATECHAR
+                         from SNCRABSETS where EXTRACT(YEAR from BOARD_DATE) = ", YR) )
+        SNCRABSETS$BOARD_DATE = ymd_hms(SNCRABSETS$BOARD_DATECHAR)
+        SNCRABSETS$LANDING_DATE = ymd_hms(SNCRABSETS$LANDING_DATECHAR)
+        SNCRABSETS$BOARD_DATECHAR = NULL
+        SNCRABSETS$LANDING_DATECHAR = NULL
+        save( SNCRABSETS, file=fny, compress=T)
 				gc()  # garbage collection
 				print(YR)
 			}

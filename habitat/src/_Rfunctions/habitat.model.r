@@ -8,12 +8,15 @@
     
     outdir = file.path( p$project.outdir.root, p$spatial.domain, p$season, p$modtype, "models" )
     dir.create( outdir, showWarnings=FALSE, recursive=TRUE )
-    
+   
+    timemethod = "default"
+    if ( all( is.finite(( p$movingdatawindow )) )) timemethod = "windowed"
+
     if (DS=="saved") {
       models = NULL
-     if(p$movingdatawindow!=0) fn.models =  file.path( outdir, paste("models", vn, yr, "rdata", sep=".") )
-     if(p$movingdatawindow==0) fn.models =  file.path( outdir, paste("models", vn, "rdata", sep=".") )
-      if (file.exists( fn.models ) ) load( fn.models)
+      fn.models =  file.path( outdir, paste("models", vn, "rdata", sep=".") )
+      if ( timemethod=="windowed" )  fn.models =  file.path( outdir, paste("models", vn, yr, "rdata", sep=".") )
+      if ( file.exists( fn.models ) ) load( fn.models)
       return( models )
     }
 
@@ -22,7 +25,8 @@
     pdat0 = habitat.db( DS=p$project.name, p=p ) 
     pdat0 = habitat.truncate.data( pdat0, p$varstomodel )
     
-    if ( p$movingdatawindow == 0 ) {  # no moving time window .. single model 
+    if ( timemethod=="default" ) {
+      # no moving time window .. single model 
       for ( iip in ip ) {
         ww = p$runs[iip,"vars"]
         print( p$runs[iip,])
@@ -36,12 +40,13 @@
         save( models, file=fn.models, compress=T)
         print( fn.models )
         rm(models, pdat); gc()
-      
-    } 
-}
+      } 
+    }
+    
     # -------------------------
-
-    if ( p$movingdatawindow != 0 ) {  # moving window approach 
+    
+    if ( timemethod == "windowed" ) {
+      # moving window approach 
       for ( iip in ip ) {
         ww = p$runs[iip,"vars"]
         yr = p$runs[iip,"yrs"]
@@ -73,9 +78,8 @@
         save( models, file=fn.models, compress=T)
         print( fn.models )
         rm(models, pdat); gc()
-      
+      }
     }
-}
     return( "Completed modelling" )
   }      
 

@@ -49,7 +49,7 @@
 
   p$spatial.knots = 100
   
-  p$movingdatawindow = 0  # this signifies no moving window ... all in one model
+  p$movingdatawindow = NA  # this signifies no moving window ... all in one model
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
@@ -92,33 +92,27 @@
   p$project.outdir.root = project.directory( p$project.name, "analysis" )
 
 
-  if (p$movingdatawindow == 0 ) { 
-      # create a spatial interpolation model for each variable of interest 
-      # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
-      p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-      parallel.run( habitat.model, DS="redo", p=p ) 
-      # habitat.model ( DS="redo", p=p ) 
- 
-  
-      # predictive interpolation to full domain (iteratively expanding spatial extent)
-      # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
-      p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-      parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-      # habitat.interpolate( p=p, DS="redo" ) 
-  
-  } else {
+  # -------------------------------------------------------------------------------------
+  # create a spatial interpolation model for each variable of interest 
+  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+  p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+    if ( all( is.finite(( p$movingdatawindow )) )) { 
       p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
-      parallel.run( habitat.model, DS="redo", p=p ) 
-      # habitat.model ( DS="redo", p=p ) 
+    }
 
-      # predictive interpolation to full domain (iteratively expanding spatial extent)
-      p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
-      parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-      # habitat.interpolate( p=p, DS="redo" ) 
-  
-  }
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
 
+
+  # -------------------------------------------------------------------------------------
+  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+  p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+  # habitat.interpolate( p=p, DS="redo" ) 
  
+
+  # -------------------------------------------------------------------------------------
   # map everything
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel ), Y=p )
   parallel.run( habitat.map, p=p ) 
