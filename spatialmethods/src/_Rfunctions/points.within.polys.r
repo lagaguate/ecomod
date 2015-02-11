@@ -50,7 +50,7 @@ points.within.polys <- function(inputpointfile="",
   pointfile <- pointfile[!is.na(pointfile$lat) & !is.na(pointfile$lon),]
   
   #find and load a polygon dataset
-  polygonfile <- readShapePoly(file.path(find.ecomod.gis(inputpolyfile)), proj4string=CRS("+proj=longlat"))
+  polygonfile <- readShapePoly(file.path(find.ecomod.gis(inputpolyfile)), proj4string=sp::CRS("+proj=longlat"))
   
 
   level1<-U(polygonfile[,level1Field][[1]])

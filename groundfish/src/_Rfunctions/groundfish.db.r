@@ -349,7 +349,7 @@
 			for ( YR in datayrs ) {
 				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
         gsinf = sqlQuery( connect,  paste( 
-        "select * from groundfish.gsinf where EXTRACT(YEAR from SDATE) = ", YR, ";"
+        "select gsinf.*, TO_CHAR(SDATE, 'YYYY-MM-DD HH24:MI:SS') SDATECHAR from groundfish.gsinf where EXTRACT(YEAR from SDATE) = ", YR, ";"
         ) )
         names(gsinf) =  tolower( names(gsinf) )
         save(gsinf, file=fny, compress=T)
@@ -378,31 +378,39 @@
  
       gsinf = groundfish.db( DS="gsinf.odbc" )
       names(gsinf)[which(names(gsinf)=="type")] = "settype"
+ 
      
-      # fix some time values that have lost the zeros due to numeric conversion
-      gsinf$time = as.character(gsinf$time)      
-      j=nchar(gsinf$time)
+      if (FALSE) {
+        # no longer needed .. 
+        gsinf$SDATE = ymd_hms(gsinf$SDATECHAR) # use character as date conversions seems faulty ...
+        gsinf$SDATECHAR = NULL
       
-      tooshort=which(j==3)
-      if (length(tooshort)>0) gsinf$time[tooshort]=paste("0",gsinf$time[tooshort],sep="")
-      tooshort=which(j==2)
-      if (length(tooshort)>0) gsinf$time[tooshort]=paste("00",gsinf$time[tooshort],sep="")
-      tooshort=which(j==1)
-      if (length(tooshort)>0) gsinf$time[tooshort]=paste("000",gsinf$time[tooshort],sep="")
+        # fix some time values that have lost the zeros due to numeric conversion
+        gsinf$time = as.character( time( gsinf$sdate) )      
+   
+        j=nchar(gsinf$time)
+        
+        tooshort=which(j==3)
+        if (length(tooshort)>0) gsinf$time[tooshort]=paste("0",gsinf$time[tooshort],sep="")
+        tooshort=which(j==2)
+        if (length(tooshort)>0) gsinf$time[tooshort]=paste("00",gsinf$time[tooshort],sep="")
+        tooshort=which(j==1)
+        if (length(tooshort)>0) gsinf$time[tooshort]=paste("000",gsinf$time[tooshort],sep="")
+        
+        hours=substring(gsinf$time,1,2)
+        mins=substring(gsinf$time,3,4)
+        secs="00"
+        days = day( gsinf$sdate )
+        mons = month( gsinf$sdate )
+        yrs = year( gsinf$sdate )
+        gsinf$timestamp = paste( gsinf$year, gsinf$mon, gsinf$day, hours, mins, secs, sep="-" )
+      }
       
-      hours=substring(gsinf$time,1,2)
-      mins=substring(gsinf$time,3,4)
-      secs="00"
-      days = day( gsinf$sdate )
-      mons = month( gsinf$sdate )
-      yrs = year( gsinf$sdate )
-    
-      gsinf$timestamp = paste( gsinf$year, gsinf$mon, gsinf$day, hours, mins, secs, sep="-" )
       tzone = "America/Halifax"  ## need to verify if this is correct
   
       #lubridate function 
-      gsinf$timestamp = ymd_hms(gsinf$timestamp, tz=tzone) 
-      
+      gsinf$timestamp = gsinf$sdate = ymd_hms(gsinf$sdatechar) 
+      gsinf$edate = gsinf$etime
 
       #### TODO: and NOTE: Timestamps of "sdate" and "edate" are offset by 1 hr for some reason. 
       ### Perhaps some standard for the DB ..
@@ -413,13 +421,10 @@
       # by default it should be the correct timezone ("localtime") , but just in case
       tz( gsinf$sdate) = "America/Halifax"  
       tz( gsinf$edate) = "America/Halifax"  
-
  
       # gsinf$sdate = gsinf$sdate - dhours(1) 
       # gsinf$edate = gsinf$etime - dhours(1) 
     
-
-
       gsinf$mission = as.character( gsinf$mission )
       gsinf$strat = as.character(gsinf$strat)
       gsinf$strat[ which(gsinf$strat=="") ] = "NA"
@@ -449,7 +454,7 @@
       gsinf$bottom_depth = rowMeans( gsinf[, c("dmin", "dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
-			gsinf = gsinf[, c("id", "sdate", "edate", "time", "strat", "area", "speed", "dist", 
+			gsinf = gsinf[, c("id", "sdate", "edate", "timestamp", "strat", "area", "speed", "dist", 
                         "cftow", "sakm2", "settype", "lon", "lat", "lon.end", "lat.end",
                         "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       

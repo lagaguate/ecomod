@@ -114,6 +114,10 @@
          
       outdir =  project.directory("snowcrab", "R", "gam", "models", "habitat" )
       dir.create(path=outdir, recursive=T, showWarnings=F)
+     
+      timemethod = "default"
+      if ( all( is.finite(( p$movingdatawindow )) )) timemethod = "windowed"
+
 
       if( DS=="habitat") {
         Q = NULL
@@ -127,10 +131,8 @@
         # v = habitat.template.lookup( v )   # <------
 
         # ****************************************
-        
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
-        
+        fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
+        if ( timemethod=="windowed" ) fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
         if (file.exists(fn)) load(fn)
         return(Q)
       }
@@ -138,24 +140,34 @@
       if (exists( "init.files", p)) {
         p0 = p; LoadFiles( p$init.files ) 
         p=p0
-        }
+      }
       if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
       
       if (!exists( "optimizers", p) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
 
       for ( iip in ip ) {
+        
         v0 = v = p$runs[iip,"v"]
-        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
-        print ( p$runs[iip,] )
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") ) #to turn off moving window
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") ) #to turn off moving window
+        
+        if ( timemethod=="default" ) {
+          v = p$runs[iip, "v"]
+          yrsw = p$years.to.model
+          fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") ) #to turn off moving window
+        } 
+  
+        if ( timemethod=="windowed" ) {
+          v = p$runs[iip, "v"]
+          yr = p$runs[iip,"yrs"]
+          yrsw = c( p$movingdatawindow + yr  )
+          fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") ) #to turn off moving window
+        } 
+
+        print ( p$runs[iip,] )
         
         set = habitat.model.db( DS="basedata", p=p, v=v )
             
-        if(any(p$movingdatawindow!=0)) yrsw = c( p$movingdatawindow + yr  ) #turn off moving window Feb 2015
-        if(all(p$movingdatawindow==0))     yrsw = p$years.to.model
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
         if ( nyrsw  < p$movingdatawindowyears ) {
@@ -173,9 +185,7 @@
           next()
         } 
 
-
         set = set[ ist , ]        
-        
         
         Q = NULL
         .model = model.formula( v0 )
@@ -191,7 +201,6 @@
         for ( o in p$optimizers ) {
           print (o )
           print( Sys.time() )
-          
           
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
@@ -247,12 +256,15 @@
       
       outdir = file.path( project.directory("snowcrab"), "R", "gam", "models", "abundance"  )
       dir.create(path=outdir, recursive=T, showWarnings=F)
-      
+          
+      timemethod = "default"
+      if ( all( is.finite(( p$movingdatawindow )) )) timemethod = "windowed"
+
+
       if( DS=="abundance") {
         Q = NULL
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
-        
+        fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        if ( timemethod=="default" ) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
         if (file.exists(fn)) load(fn)
         return(Q)
       }
@@ -264,18 +276,26 @@
       if (is.null(ip)) ip = 1:p$nruns
 
       for ( iip in ip ) {
-        v = p$runs[iip, "v"]
-        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
+        
+        if ( timemethod=="default" ) {
+          v = p$runs[iip, "v"]
+          yrsw = p$years.to.model
+          fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        } 
+  
+        if ( timemethod=="windowed" ) {
+          v = p$runs[iip, "v"]
+          yr = p$runs[iip,"yrs"]
+          yrsw = c( p$movingdatawindow + yr  )
+          fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
+        } 
+          
         print( p$runs[iip,])
-  if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-  if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+
         set = habitat.model.db( DS="basedata", p=p, v=v )
         # set = snowcrab.db( DS="set.logbook" )
         set$Y = set[, v]  # override -- Y is P/A
        
-  if(any(p$movingdatawindow!=0))  yrsw = c( p$movingdatawindow + yr  )
-  if(all(p$movingdatawindow==0))  yrsw = c( p$years.to.model)
-        
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
         if ( nyrsw  < p$movingdatawindowyears ) {
@@ -289,7 +309,7 @@
         }
 
         if ( length(ist) < 30 ) {
-            print( paste( "Insufficient data found for:", p$runs[iip,] ) )
+          print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
         set = set[ ist , ]        
@@ -331,7 +351,7 @@
           print (o )
           print( Sys.time() )
          
-          p$use.variogram.method = F
+          p$use.variogram.method = FALSE
             if ( p$use.variogram.method) {
               Vrange = NULL
               Vpsill = NULL

@@ -7,7 +7,11 @@
     
     outdir = file.path( p$project.outdir.root, p$spatial.domain, p$season, p$modtype, "interpolations" )
     dir.create( outdir, showWarnings=FALSE, recursive=TRUE )
-    
+       
+    timemethod = "default"
+    if ( all( is.finite(( p$movingdatawindow )) )) timemethod = "windowed"
+
+
     if (DS=="all") {
       # glue all variables for 1 year
       hdat = habitat.db( DS="baseline", p=p )  
@@ -44,9 +48,10 @@
     P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
     P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
     
-    if (p$movingdatawindow!=0){ 
+    if ( timemethod=="default" ){ 
+      #if not moving window
       
-      for ( iip in ip ) { #if not moving window
+      for ( iip in ip ) { 
         yr = p$runs[iip,"yrs"]
         print( p$runs[iip,])
         
@@ -89,8 +94,9 @@
     }
 
 
-#moved down to see if speeds up
-    if (p$movingdatawindow==0){
+    #moved down to see if speeds up
+    
+    if ( timemethod=="windowed" ){ 
       for ( iip in ip ) {
         ww = p$runs[iip,"vars"]
         mod.cond = habitat.model( p=p, vn=ww, yr=yr )
@@ -108,29 +114,28 @@
           hdat$julian = convert.datecodes(  hdat$chron, "julian" )
           hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
 # to here
-
-        # fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
-        # if(file.exists(fn)) next()
-        sol = try( predict( mod.cond, newdata=hdat, type="response", na.action="na.pass") )
-        if  ( "try-error" %in% class(sol) ) {
-          hdat[,ww] = NA
-        } else { 
-          hdat[,ww] = sol
-        }
-        # debug:: require (lattice); levelplot( mr ~ plon+plat, hdat, aspect="iso")
-        HD = hdat[,ww]
+          # fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
+          # if(file.exists(fn)) next()
+          sol = try( predict( mod.cond, newdata=hdat, type="response", na.action="na.pass") )
+          if  ( "try-error" %in% class(sol) ) {
+            hdat[,ww] = NA
+          } else { 
+            hdat[,ww] = sol
+          }
+          # debug:: require (lattice); levelplot( mr ~ plon+plat, hdat, aspect="iso")
+          HD = hdat[,ww]
+       
+          iu = which(HD > dr[[ww]][2])
+          if (length( iu)>0) HD[iu] = dr[[ww]][2]
      
-        iu = which(HD > dr[[ww]][2])
-        if (length( iu)>0) HD[iu] = dr[[ww]][2]
-   
-        id = which(HD < dr[[ww]][1])
-        if (length( id)>0) HD[id] = dr[[ww]][1]
+          id = which(HD < dr[[ww]][1])
+          if (length( id)>0) HD[id] = dr[[ww]][1]
 
-        fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
-        save ( HD, file=fn, compress=T )
-        print(fn)
+          fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
+          save ( HD, file=fn, compress=T )
+          print(fn)
+        }
       }
-    }
     } 
     return( "Completed spatial interpolations" )
   }

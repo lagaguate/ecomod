@@ -43,12 +43,11 @@
   p$spatial.knots = 100
   
   
-  p$movingdatawindow = 0  # this signifies no moving window ... all in one model
+  p$movingdatawindow = NA  # this signifies no moving window ... all in one model
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this as a failsafe .. see GAM options
-
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt
   p$modtype = "complex"
@@ -65,28 +64,18 @@
   # create a spatial interpolation model for each variable of interest 
   # full model requires 5 GB per model
   # ~ 30 hrs with 2 CPUs @ 3.6 Ghz
-  if (p$movingdatawindow == 0 ) { 
-    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    parallel.run( habitat.model, DS="redo", p=p ) 
-    # habitat.model ( DS="redo", p=p ) 
- 
-    # predictive interpolation to full domain (iteratively expanding spatial extent)
-    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-    # habitat.interpolate( p=p, DS="redo" ) 
+  p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+    if ( all( is.finite(( p$movingdatawindow )) )) { 
+      p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+    }
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
 
 
-  } else {
-    p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
-    parallel.run( habitat.model, DS="redo", p=p ) 
-    # habitat.model ( DS="redo", p=p ) 
- 
-    # predictive interpolation to full domain (iteratively expanding spatial extent)
-    p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-    # habitat.interpolate( p=p, DS="redo" ) 
-
-  }
+  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+  # habitat.interpolate( p=p, DS="redo" ) 
 
 
   # map everything

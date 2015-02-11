@@ -18,13 +18,12 @@ load.scanmar.rawdata = function( fn, tzone="America/Halifax" ) {
   
   if (length(header) < 9 ) return( NULL )
    
-  tmpfile = file.path ("C:", "Users", "mundenj", "Documents", "tmp.scanmar")
+  tmpfile = file.path ( getwd(), "tmp.scanmar" )
   # remove "*" -- hard to do internally without fileswapping out and reloading
   tmp = readLines(fn, encoding="UTF-8", skipNul=TRUE)
   u = nchar(tmp)
   v = which(u>40)
   if (length(v)<100) {return(NULL)}
-    
                       
   tmp = tmp[v]
   write( tmp, file=tmpfile )
@@ -47,12 +46,10 @@ load.scanmar.rawdata = function( fn, tzone="America/Halifax" ) {
   colnames(scanmar) = c("time", "depth", "doorspread", "wingspread", "opening", "clearance",
                         "ltspeed", "gyro", "latitude", "longitude")
   
-  
   numbers = c("depth", "doorspread", "wingspread", "opening", "clearance",
               "ltspeed", "gyro", "latitude", "longitude")
   
   scanmar = factor2number(scanmar, numbers)
-  
 
   scanmar$doorspread = filter.nets("doorspread.range", scanmar$doorspread)
   scanmar$wingspread = filter.nets("wingspread.range", scanmar$wingspread)
