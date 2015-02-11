@@ -1,19 +1,21 @@
 ## Mapping made easy
-
+## basic philosophy: KISS 
+## use simple constructs for mapping as much as possible
+## Proposed solution: use the "maps" library 
+## Remember: this is to do quick and dirty plots/visualization not to do exact analyses 
+##   for the latter: use "sp", "rproj", "rgdal", "lattice", etc
 # Created Wednesday 11 February 2015
 
 
 library(maps) 
 library(mapdata)  # high resolution world coastlines/polygons  
 
-
 m = map()   # low resolution map of the world .. default is rectangular coords
 str(m)
 
 
+# dealing with projections in a simple manner: use "mapproj"
 graphics.off()
-
-# dealing with projections
 require(mapproj)
 map(projection="polyconic")
 
@@ -43,9 +45,7 @@ points(mapproject(list(y=42.5,x=-68)),col="red", pch="x", cex=3 )
 
 graphics.off()
 map( "worldHires", projection="ortho", xlim=c(-165,-53), ylim=c(-0, 90 ),  )      # national boundaries
-
 map( "worldHires", projection="azequalarea", xlim=c(-165,-53), ylim=c(-0, 90 ),  )      # national boundaries
-
 map( "worldHires", projection="eisenlohr", xlim=c(-165,-53), ylim=c(-0, 90 ),  )      # national boundaries
 
   
