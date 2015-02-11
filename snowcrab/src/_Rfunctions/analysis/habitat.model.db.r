@@ -199,12 +199,13 @@
           if (o=="bam") {
            # Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=F )
             Q = try( bam( .model, data=set, family=fmly  ), silent=F )
-            fn = paste(o,fn,sep=".")
+          fn = file.path( outdir, paste("habitat",o, v, yr, "rdata", sep=".") )
           
           } else {
            # Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
            Q = try( gam( .model, data=set, family=fmly, select=T, optimizer=ops ), silent=F )
-          fn = paste(o,fn,sep=".")
+          fn = file.path( outdir, paste("habitat",o, v, yr, "rdata", sep=".") )
+          
           }
           
           print(Q)
@@ -221,7 +222,7 @@
          # Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = F )
           Q = try( gam( .model, data=set,  family=fmly, select=T), silent = F )
           print(Q)
-          fn = paste('simple',fn,sep=".")
+          fn = file.path( outdir, paste("habitat",'simple', v, yr, "rdata", sep=".") )
           if ( "try-error" %in% class(Q) ) {
             print( paste( "No solutions found for:", v ) )
             next()
@@ -243,7 +244,8 @@
         }
       }
 
-      return ( "Complete"  )  
+      print ( "Complete"  )  
+      return(Q)
 
     } # end if habitat
 
@@ -371,11 +373,11 @@
           if (o=="bam") {
             #Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=F )
             Q = try(  bam( .model, data=set, family=fmly ), silent=F )
-          fn = paste(o,fn,sep=".")
-          } else {
+          fn = file.path( outdir, paste("abundance",o, v, yr, "rdata", sep=".") )
+           } else {
             #Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
             Q = try( gam( .model, data=set, optimizer=ops, family=fmly, select=T ), silent = F )
-          fn = paste(o,fn,sep=".")
+          fn = file.path( outdir, paste("abundance",o, v, yr, "rdata", sep=".") )
           }
           print(Q)
           if ( ! ("try-error" %in% class(Q) ) ) break()  # first good solution exits
@@ -387,7 +389,7 @@
           .model = model.formula ("simple" )
           #Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = F )
           Q = try( gam( .model, data=set, family=fmly, select=T), silent = F )
-          fn = paste('simple',fn,sep=".")
+          fn = file.path( outdir, paste("abundance",o, v, yr, "rdata", sep=".") )
           print(Q)
           if ( "try-error" %in% class(Q) ) {
             print( paste( "No solutions found for:", v ) )
