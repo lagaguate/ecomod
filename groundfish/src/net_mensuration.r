@@ -108,13 +108,7 @@ load("basedata.RData")
 
 --- testing / development ---
 
-<<<<<<< HEAD
-# load master
-no.matches = match.set.from.gpstrack(DS="post.perley.saved", net.root.dir=net.root.dir )
-=======
-
 no.matches = net_mensuration.db( DS="post.perley.merged", net.root.dir=net.root.dir )
->>>>>>> origin/master
 marport = net_mensuration.db( DS="marport.gated",  net.root.dir=net.root.dir )
 master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )# load all scanmar data for development ...
 
