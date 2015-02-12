@@ -1,6 +1,6 @@
   bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=2, 
         filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=10, depth.range=c(-30,30), 
-        plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9), time.gate=NULL ) {
+        plot.data=FALSE, outdir = getwd(), user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9), time.gate=NULL ) {
   
   #require(lubridate) 
   #require( numDeriv ) 
@@ -400,7 +400,7 @@
     #x11(); plot( slopes ~ ts, x2 )
     lines( depth.smoothed ~ ts, x, col="brown" )
     # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
-    outdir = getwd()
+    
     dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
   }
 
