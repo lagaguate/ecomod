@@ -260,12 +260,12 @@
       # GDP of NS from various sources, esp::  
       # http://www.gov.ns.ca/econ/businessclimate/bci/indicator_view.asp?IndicatorID=19
       GDP = data.frame( cbind(   
-        yr = c( 1999:2007 ), 
-        percap = c( 24688, 26400, 27799, 28980, 30807, 31828, 33414, 33942, 35337 ) 
+        yr = c( 1999:2007,2009:2013), 
+        percap = c( 24688, 26400, 27799, 28980, 30807, 31828, 33414, 33942, 35337,34753,35806,36073,35950,36042 ) 
       ) ) # reference year= 2004 
 
       GDP$percap = adjust.inflation(  x=GDP$percap, yr=GDP$yr, reference.year=2004, reverse=T )  # return to an unadjusted state
-      GDP$percap = adjust.inflation(  x=GDP$percap, yr=GDP$yr, reference.year=ref.year ) 
+      #GDP$percap = adjust.inflation(  x=GDP$percap, yr=GDP$yr, reference.year=ref.year ) 
 
       # historical from GPI NS report scaled ... need to rescale ... already adjusted 
       gg = data.frame( cbind(
@@ -284,7 +284,7 @@
   
     if (db %in% c("economic.data","economic.data.redo" ) ) {
       data.file=file.path( project.directory("indicators"), "data", "economics.csv")
-      economics = read.table(file=data.file, sep=";", header=T, as.is=T, strip.white=T)
+      economics = read.table(file=data.file, sep=",", header=T, as.is=T, strip.white=T)
       to.keep = c( "yr", "No.of.vessels.4vw", "Commercial.Licences.ns", "No.Fish.harvesters", "No.Fish.processors",
       "Employment.per.landedvalue.n.per.millions1997CAD", "Employment.per.landings.n.per.mt",  "GDP.Fish.Processing.millions.2005CAD", 
       "GDP.Fishing.hunt.trap.millions.2002CAD", "GDP.NS.millions.2002CAD",  "GDP.fishing.percent", "GDP.Offshore.Oil.Gas.millions.2005CAD" )
@@ -377,17 +377,17 @@
       loadfunctions( "habitat")
       
 			p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE" ) )
+      fns = list.files( file.path( project.directory("habitat"), "data", "SSE","complete" ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
 
-      res = data.frame( yr=yrs, C=NA, Z=NA, sar.rsq=NA, Npred=NA )
+      res = data.frame( yr=yrs, C=NA, Z=NA, Npred=NA )
       for ( i in 1:length(yrs) ) {
         H = habitat.db( DS="complete", p=p, year=yrs[i] ) 
         res$C[i] = mean( H$C )
         res$Z[i] = mean( H$Z )
-        res$sar.rsq[i] = mean( H$sar.rsq )
+        #res$sar.rsq[i] = mean( H$sar.rsq )
         res$Npred[i] = mean( H$Npred )
       }
            
@@ -407,16 +407,16 @@
       loadfunctions( "habitat")
 
       p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE" ) )
+      fns = list.files( file.path( project.directory("habitat"), "data", "SSE",'complete' ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
 
-      res = data.frame( yr=yrs, nss.rsquared=NA, nss.b0=NA, nss.b1=NA, nss.shannon=NA )
+      res = data.frame( yr=yrs, nss.rsquared=NA, nss.b1=NA, nss.shannon=NA )
       for ( i in 1:length(yrs) ) {
         H = habitat.db( DS="complete", p=p, year=yrs[i] ) 
         res$nss.rsquared[i] = mean( H$nss.rsquared )
-        res$nss.b0[i] = mean( H$nss.b0 )
+      #  res$nss.b0[i] = mean( H$nss.b0 )
         res$nss.b1[i] = mean( H$nss.b1 )
         res$nss.shannon[i] = mean( H$nss.shannon )
       }
@@ -437,18 +437,18 @@
 			loadfunctions( "habitat")
  
       p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE" ) )
+      fns = list.files( file.path( project.directory("habitat"), "data", "SSE","complete" ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
 
-      res = data.frame( yr=yrs, mr=NA, smr=NA, meanlen=NA, meanwgt=NA )
+      res = data.frame( yr=yrs,  smr=NA, meanlen=NA, meanwgt=NA )
       for ( i in 1:length(yrs) ) {
         H = habitat.db( DS="complete", p=p, year=yrs[i] ) 
-        res$mr[i] = mean( H$mr )
+        #res$mr[i] = mean( H$mr )
         res$smr[i] = mean( H$smr )
-        res$meanlen[i] = mean( H$meanlen )
-        res$meanwgt[i] = mean( H$meanwgt )
+        res$meanlen[i] = mean( H$len )
+        res$meanwgt[i] = mean( H$mass )
         res$tmean[i] = mean( H$tmean )
       }
            
@@ -468,18 +468,18 @@
 			loadfunctions( "habitat")
  
       p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE" ) )
+      fns = list.files( file.path( project.directory("habitat"), "data", "SSE","complete" ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
 
-      res = data.frame( yr = yrs, ca1=NA, ca2=NA, pca1=NA, pca2=NA )
+      res = data.frame( yr = yrs, ca1=NA, ca2=NA)#, pca1=NA, pca2=NA )
       for ( i in 1:length(yrs) ) {
         H = habitat.db( DS="complete", p=p, year=yrs[i] ) 
         res$ca1[i] = mean( H$ca1 )
         res$ca2[i] = mean( H$ca2 )
-        res$pca1[i] = mean( H$pca1 )
-        res$pca2[i] = mean( H$pca2 )
+        #res$pca1[i] = mean( H$pca1 )
+        #res$pca2[i] = mean( H$pca2 )
       }
       save( res, file=outfn, compress=T )
       return (res)
@@ -524,26 +524,27 @@
       x$yr = yrs
       
       # abundance estimated from interpolation
-      p = make.list( list(y=p$years.to.model, v=c("R0.mass", "R1.no", "R2.no", "totno.female.berried", "totno.female.imm", "totno.female.mat") ), Y=p )
-      K = interpolation.db( DS="interpolation.simulation", p=p ) # to return the saved file
-      yrs = sort( unique( K$yr ) )
-      vars = sort( unique( K$vars ) )
-      nyrs = length(yrs)
-      nvars = length(vars)
-      Z = matrix(NA, ncol=nvars, nrow=nyrs)
-      for (y in 1:nyrs) {
-      for (v in 1:nvars) {
-        i = which( K$yr==yrs[y] & K$vars==vars[v])
-        if ( length(i)>0 ) {
-          g =  sum(K[ i, "total" ], na.rm=T)  # sum over all areas
-          Z[y,v] = g
-        }
-      }}
-      Z = Z 
-      Z = as.data.frame(Z)
-      
-      colnames(Z) = paste("snowcrab.kriged", vars, sep="." )
-      Z$yr = yrs
+      #turned off for 2014
+      #p = make.list( list(y=p$years.to.model, v=c("R0.mass", "R1.no", "R2.no", "totno.female.berried", "totno.female.imm", "totno.female.mat") ), Y=p )
+      #K = interpolation.db( DS="interpolation.simulation", p=p ) # to return the saved file
+      #yrs = sort( unique( K$yr ) )
+      #vars = sort( unique( K$vars ) )
+      #nyrs = length(yrs)
+      #nvars = length(vars)
+      #Z = matrix(NA, ncol=nvars, nrow=nyrs)
+      #for (y in 1:nyrs) {
+      #for (v in 1:nvars) {
+      #  i = which( K$yr==yrs[y] & K$vars==vars[v])
+      #  if ( length(i)>0 ) {
+      #    g =  sum(K[ i, "total" ], na.rm=T)  # sum over all areas
+      #    Z[y,v] = g
+      #  }
+      #}}
+      #Z = Z 
+      #Z = as.data.frame(Z)
+      #
+      #colnames(Z) = paste("snowcrab.kriged", vars, sep="." )
+      #Z$yr = yrs
    
       # fishery data
       res = get.fishery.stats.by.region()
@@ -748,12 +749,12 @@
             "groundfish.stratified.mean.oxyml", "groundfish.stratified.mean.sal", "groundfish.stratified.mean.temp", "nitrate"
           )
          
-          snowcrab = c( "snowcrab.fishery.landings", "snowcrab.exploitation.index", 
+          snowcrab = c( "snowcrab.fishery.landings", #"snowcrab.exploitation.index", 
             "snowcrab.geometricmean.cw.male.mat.mean" , "snowcrab.geometricmean.cw.fem.mat.mean",  
-            "snowcrab.kriged.R0.mass", "snowcrab.kriged.R1.no", "snowcrab.kriged.ma13.no", "snowcrab.kriged.ma12.no",
-            "snowcrab.kriged.ma11.no", "snowcrab.kriged.ma10.no", "snowcrab.kriged.ma9.no", 
-            "snowcrab.kriged.fa10.no", "snowcrab.kriged.fa9.no", "snowcrab.kriged.fa8.no", "snowcrab.kriged.fa7.no", 
-            "snowcrab.kriged.totno.female.mat", "snowcrab.kriged.totno.female.imm"
+            "snowcrab.geometricmean.R0.mass", "snowcrab.geometricmean.R1.no", "snowcrab.geometricmean.ma13.no", "snowcrab.geometricmean.ma12.no",
+            "snowcrab.geometricmean.ma11.no", "snowcrab.geometricmean.ma10.no", "snowcrab.geometricmean.ma9.no", 
+            "snowcrab.geometricmean.fa10.no", "snowcrab.geometricmean.fa9.no", "snowcrab.geometricmean.fa8.no", "snowcrab.geometricmean.fa7.no", 
+            "snowcrab.geometricmean.totno.female.mat", "snowcrab.geometricmean.totno.female.imm"
        )
         
           ecosystem = c(  "seals.total", "groundfish.stratified.mean.shannon", "shrimp.capelin.index", 
@@ -793,9 +794,9 @@
         "employment.per.landedvalue.n.per.millions1997cad", "employment.per.landings.n.per.mt",
         "gdp.ns.millions.2002cad", "gdp.fish.processing.millions.2005cad", "gdp.fishing.hunt.trap.millions.2002cad", 
         "gdp.offshore.oil.gas.millions.2005cad", "fish.harvesters.ns", 
-        "snowcrab.geometricmean.cw.fem.mat.mean", "snowcrab.kriged.totno.female.mat", "snowcrab.kriged.totno.female.imm",
+        "snowcrab.geometricmean.cw.fem.mat.mean", "snowcrab.geometricmean.totno.female.mat", "snowcrab.geometricmean.totno.female.imm",
         "snowcrab.geometricmean.cw.male.mat.mean",
-        "snowcrab.kriged.r0.mass", "snowcrab.kriged.r1a.no", "snowcrab.fishery.landings", 
+        "snowcrab.geometricmean.R0.mass", "snowcrab.geometricmean.R1a.no", "snowcrab.fishery.landings", 
         "tmean", "gulf.stream.front.lon62.lat.mean",
         "sa.snowcrab.cfaall",
         "nao",  
@@ -816,7 +817,7 @@
         "groundfish.stratified.mean.totwgt.small.pelagic", 
         "cpr.cf1.4","cpr.cf5.6", "cpr.dino",
 
-        "smr", "mr", "ca1", "ca2", "meanwgt", "nss.b1", "nss.rsquared",
+        "smr", "ca1", "ca2", "meanwgt", "nss.b1", "nss.rsquared",
 
         # "groundfish.stratified.mean.rmean.small.pelagic", 
         # "groundfish.stratified.mean.rmean.small.demersal",
@@ -834,8 +835,8 @@
        
         keyfactors = setdiff( keyfactors, c("landingsTotal.misc.ns.mt.live","landedvalue.NS.Total.miscellaneous" ) )
 
-        to.log = c("snowcrab.kriged.totno.female.mat", "snowcrab.kriged.totno.female.imm" , 
-        "snowcrab.kriged.r0.mass",  "snowcrab.kriged.r1.no" ,"snowcrab.fishery.landings", "seaice.sa.km2", "seals.total")
+        to.log = c("snowcrab.geometricmean.totno.female.mat", "snowcrab.geometricmean.totno.female.imm" , 
+        "snowcrab.geometricmean.r0.mass",  "snowcrab.geometricmean.r1.no" ,"snowcrab.fishery.landings", "seaice.sa.km2", "seals.total")
         
 
         keyfactors.names = matrix( c(
@@ -851,11 +852,11 @@
         "gdp.offshore.oil.gas.millions.2005cad", "GDP: oil and gas",
         "fish.harvesters.ns",  "No. fish harvesters",
         "snowcrab.geometricmean.cw.fem.mat.mean",  "Snow crab: mature female mean size",
-        "snowcrab.kriged.totno.female.mat",  "Snow crab: mature female abundance", 
-        "snowcrab.kriged.totno.female.imm", "Snow crab: immature female abundance",
+        "snowcrab.geometricmean.totno.female.mat",  "Snow crab: mature female abundance", 
+        "snowcrab.geometricmean.totno.female.imm", "Snow crab: immature female abundance",
         "snowcrab.geometricmean.cw.male.mat.mean", "Snow crab: mature male mean size",
-        "snowcrab.kriged.r0.mass", "Snow crab: mature male biomass",
-        "snowcrab.kriged.r1.no", "Snow crab: male recruitment",
+        "snowcrab.geometricmean.r0.mass", "Snow crab: mature male biomass",
+        "snowcrab.geometricmean.r1.no", "Snow crab: male recruitment",
         "snowcrab.fishery.landings",  "Snow crab: landings",
         "tmean", "SSE: temperature mean",
         "sa.snowcrab.cfaall","Snow crab: habitat area",

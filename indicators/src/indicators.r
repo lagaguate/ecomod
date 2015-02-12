@@ -10,7 +10,7 @@
       
       groundfish = indicators.db( db="groundfish.timeseries.redo" )
       snowcrab = indicators.db( db="snowcrab.timeseries.redo") 
-      climate = indicators.db (db="climate.redo" )
+      #climate = indicators.db (db="climate.redo" )
       shrimp = indicators.db( db="shrimp.timeseries.redo")
 
       sar = indicators.db( db="species.area.redo" )
@@ -21,11 +21,11 @@
       economics = indicators.db( db="economic.data.redo" )
 
       # hand constructed and updated .. TODO :: find solutions!
-      plankton = indicators.db( db="plankton.timeseries.redo" )
+      #plankton = indicators.db( db="plankton.timeseries.redo" )
       human = indicators.db( db="demographics.redo" )
-      climate = indicators.db (db="climate.redo" )
+      #climate = indicators.db (db="climate.redo" )
       
-      seals = indicators.db( db="seal.timeseries.redo" ) 
+      #seals = indicators.db( db="seal.timeseries.redo" ) 
       landedvalue = indicators.db( db="landedvalue.annual.redo", ref.year=2008 )
       landings = indicators.db( db="landings.annual.redo" )
       
@@ -60,12 +60,13 @@ data <- readWorksheet(wb)
 
 
   t0 = 1960
-  t1 = 2012
+  t1 = 2014
 
   # ordination of selected key factors
+  indic = indicators.db( db="indicators.all" )  
   
   d = indicators.subset ( indic, type="keyfactors" )
-  save( d, file="/home/jae/projects/indicators/data/ordin.rdata", compress=TRUE )
+  save( d, file="/home/adam/tmp/ordin.rdata", compress=TRUE )
   
   Y = pca.analyse.data(d, t0, t1, fname=file.path(project.directory("indicators"), "keyfactors" ) )
   
