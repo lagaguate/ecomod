@@ -2,12 +2,19 @@
 
 RLibrary("INLA", "numDeriv", "lubridate" )
 
+require(PBSmapping)
+
 # this relies upon the gsinf table which is accessible from the groundfish functions
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
 # define location of local data files 
 # net.root.dir = file.path( project.directory("groundfish"), "data", "nets" ) # eventual permanent locations
 net.root.dir = file.path("C:", "Users", "MundenJ", "Desktop" )  # temporary location
+ 
+if (FALSE) {
+  scanmar.dir = file.path( net.root.dir, "Scanmar" )
+  marport.dir = file.path( net.root.dir, "Marport" )
+}
 
 
 # steps required to recreate a local database of all data
@@ -20,7 +27,7 @@ if ( recreate.full.database.locally ) {
   net_mensuration.db( DS="perley.database.datadump", net.root.dir=net.root.dir ) # ODBC data dump .. this step requires definition of password etc
   net_mensuration.db( DS="perley.database.merge", net.root.dir=net.root.dir )    # perley had two db's merge them together
   net_mensuration.db( DS="post.perley.redo",  net.root.dir=net.root.dir )        # Assimilate Scanmar files in raw data saves *.set.log files
-  match.set.from.gpstrack(DS="post.perley.redo", net.root.dir=net.root.dir ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
+  net_mensuration.db( DS="post.perley.merged.redo", net.root.dir=net.root.dir ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
   net_mensuration.db( DS="merge.historical.scanmar.redo",  net.root.dir=net.root.dir ) # add all scanmar data together
   net_mensuration.db( DS="sanity.checks.redo",  net.root.dir=net.root.dir )      # QA/QC of data
   
@@ -30,6 +37,7 @@ if ( recreate.full.database.locally ) {
   net_mensuration.db( DS="bottom.contact.redo",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
   
   net_mensuration.db( DS="scanmar.filtered.redo",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
+ 
   net_mensuration.db( DS="sweptarea.redo",  net.root.dir=net.root.dir )  
 }
 
@@ -37,42 +45,75 @@ create.marport.database = FALSE
 if (create.marport.database ) {
   net_mensuration.db( DS="marport.redo",  net.root.dir=net.root.dir )      # load data from raw data files
   net_mensuration.db( DS="marport.gated.redo",  net.root.dir=net.root.dir )      # QA/QC of data
+  marport = net_mensuration.db( DS="marport.gated",  net.root.dir=net.root.dir )
 }
 
-
-
-
-
-fn=file.path( scanmar.dir, paste( "scanmar", "post.perley","rdata", sep="." ))
-load(fn)
-basedata[ basedata$id=="2012-Feb10-190056.SET.LOG" , ] -> bd
-bd = basedata
-
-oo =15769
-gs = gsinf[oo,]
-
-ib = which( year( bd$timestamp) == year( gs$sdate ) & month ( bd$timestamp ) == month(  gs$sdate ) & day (  bd$timestamp  ) == day(  gs$sdate  )   )
- plot( depth ~ timestamp, bd[ib,] )
-
-abline( v=gs$sdate )
-
-
-
- gsinf[oo,]
-                id               sdate               edate time strat area speed dist cftow      sakm2 settype
-15838 NED2012002.1 2012-02-10 11:04:00 2012-02-10 13:04:00 1104   460  467    NA   NA    NA 0.04050213       9
-            lon    lat lon.end lat.end surface_temperature bottom_temperature bottom_salinity bottom_depth
-15838 -63.32167 44.268 -63.193 44.1608                1.96               7.33          33.912           NA
-
-
-
---- testing / development ---
-
-
+# load master
 no.matches = match.set.from.gpstrack(DS="post.perley.saved", net.root.dir=net.root.dir )
 marport = net_mensuration.db( DS="marport.gated",  net.root.dir=net.root.dir )
 master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )# load all scanmar data for development ...
 
+file="master.RData"
+save(master, file="Master.RData", compress=T)
+load("roll.summary.RData")
+
+# filitered to bottom contact time
+filtered = net_mensuration.db( DS="scanmar.filtered",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
+
+file="master.RData"
+save(master, file="Master.RData", compress=T)
+load("roll.summary.RData")
+
+# fishing time total included
+gs = net_mensuration.db( DS="bottom.contact",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
+gs$ftmins = NULL
+gs$ftmins = (gs$bottom_duration)/60
+str(gs)
+summary(gs$ftmins)
+---
+  # some stats for bottom contact period
+gs = net_mensuration.db( DS="bottom.contact",  net.root.dir=net.root.dir )
+nm = net_mensuration.db( DS="sanity.checks",  net.root.dir=net.root.dir )
+nm = nm[ -which( nm$year %in% c(1990:1992) ), ]
+
+uid = sort( unique( nm$id) )
+good = NULL
+
+for (ii in 1:length(uid))  {
+  i = uid[ii]
+  j = which ( gs$id == i )
+  if (length(j==1)) {
+    
+    gg = which( nm$timestamp > gs$bc0.datetime[j] & nm$timestamp < gs$bc1.datetime[j] )
+    ss = length(gg) 
+    if (ss < 1) next()
+    if (ss > 30 &&  is.finite(gs$bc0.sd[j]) && is.finite(gs$bc1.sd[j]) && gs$bc0.sd[j] < 30 &&  gs$bc1.sd[j] < 30 ) {
+      good = c(good, gg)
+      print (paste( ii, i, ss ))    
+    }
+  }
+
+}
+  
+
+nm.filtered = nm[good,]
+
+
+----
+
+file="basedata"
+save(basedata, file="basedata.RData", compress=T)
+load("basedata.RData")
+
+
+--- testing / development ---
+
+no.matches = net_mensuration.db( DS="post.perley.merged", net.root.dir=net.root.dir )
+marport = net_mensuration.db( DS="marport.gated",  net.root.dir=net.root.dir )
+master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )# load all scanmar data for development ...
+
+# load gsinf
+gsinf = groundfish.db( DS="gsinf" )
 
 # Load marport/basedata
 load("C:/Users/mundenj/Desktop/Marport/marport.rdata")
@@ -98,12 +139,18 @@ allids=unique(master$id)
 i=sample(1:length(allids),15)
 allids=allids[i]
 allids
-  id="TEL2004529.21"
-  mm = master[ which(master$id==id) , ]
+  id="TEL2004530.99"
+  mm = master[ which(master$year== 2006) , ]
   plot(depth~timestamp, mm, main= "TEL2004529.21")
   
-  
-  
+length(unique(mm$latitude))
+length(unique(mm$longitude))  
+head(mm$latitude)  
+summary(mm$latitude)
+tail(mm$latitude)
+
+r.samp=filteredlm[sample(1:nrow(filteredlm), 10, replace=FALSE),]
+r.samp$id
 # how many unique sets were in 2013/2014
 test=master[which(master$year == 2013) , ]  
 length(unique(test$id))  
@@ -130,7 +177,7 @@ modern.data.2006=modern.data[which(modern.data$year ==2006) , ]
   # Run for many sets
   for (id in allids){
     
-    id = "NED2006030.73" 
+    id = "NED2005001.1" 
     mm = modern.data[ which(modern.data$id==id) , ]
    # mm = master[ which(master$id==id),]
       bc = NULL
@@ -168,4 +215,7 @@ net_mensuration.db( DS="bottom.contact.redo", net.root.dir=net.root.dir, user.in
 
 
 
-
+# General depth plots
+i = master[which(master$id == "NED2014002.38"), ]
+d=range(i$depth, na.rm=TRUE)
+plot(depth~timestamp,i, type = "p", lwd = 1, main =  "Depth", sub=id, ylim=c(d[2], d[1]))

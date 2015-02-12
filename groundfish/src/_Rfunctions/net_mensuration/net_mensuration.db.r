@@ -70,65 +70,12 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       nm$longitude=NA
       nm$depth=NA
       nm$empty=NA
-      
-      rm(scanmar)
+      nm$time=NA
 
-      # using logtime to create the time variable
-      scanmarnew$logtime=scanmarnew$time
-      scanmarnew$time=NULL
-      
-      # creating a matrix (nm2) with nm and scanmarnew
-      nm2=matrix(NA,ncol=ncol(nm),nrow=nrow(scanmarnew))
-      nm2= as.data.frame(nm2)
-      names(nm2)=names(nm)
-      
-      # making the columns names of nm2 equal to those of scanmarnew
-      o =names(scanmarnew)
-      for(n in o){
-        nm2[,n]=scanmarnew[,n]
-      }
-      # Combining rows of nm and nm2 to create the data frame nm
-      nm=rbind(nm,nm2)      
-      
-      rm(scanmarnew, nm2)
-      gc()
-
-      #This step is creating variables by pasting existing together
-      #It is also changing character values to numeric
-      nm$uniqueid=paste(nm$mission,nm$setno,sep="_")
-      nm$ltspeed=as.numeric(nm$ltspeed)
-      nm$ctspeed=as.numeric(nm$ctspeed)
-      nm$doorspread=as.numeric(nm$doorspread)
-      nm$wingspread=as.numeric(nm$wingspread)
-      nm$clearance=as.numeric(nm$clearance)
-      nm$opening=as.numeric(nm$opening)
-      nm$depth=as.numeric(nm$depth)
-      nm$latitude=as.numeric(nm$latitude)
-      nm$longitude=as.numeric(nm$longitude)
-      nm$year= as.numeric(substring(nm$mission,4,7))
-      nm$fspd=as.numeric(nm$fspd)
-      nm$cspd= as.numeric(nm$cspd)
-      
-      
-      # merge groundfish  timestamps and ensure that net mensuration timestamps are correct
-      
-      nm$id=paste(nm$mission, nm$setno, sep=".")
-      
       # Correcting for data which contains NA in the time slot by identifying and deleting it
       strangedata = which(is.na(nm$logtime))
       if(length(strangedata)>0) nm=nm[-strangedata,]
 
-      ii = which( nm$longitude > 0 )
-      if (length(ii) > 0 ) nm$longitude[ii] = - nm$longitude[ii] 
-      
-      # load groundfish inf table which has timestamps of start/stop times and locations
-      gsinf = groundfish.db( DS="gsinf" )
-            
-      gsinfvars=c("id", "sdate", "edate", "time", "settype" )
-      
-      # merge 
-      nm = merge( nm, gsinf[,gsinfvars], by="id", suffixes=c(".nm", ""), all.x=TRUE, all.y=FALSE)
-      
       # fix some time values that have lost the zeros due to numeric conversion
       nm$logtime=gsub(":", "", nm$logtime)      
       j=nchar(nm$logtime)
@@ -146,42 +93,90 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       
       tooshort=which(j==1)
       if (length(tooshort)>0) nm$logtime[tooshort]=paste("00000",nm$logtime[tooshort],sep="")
-      
+            
       nm$hours=substring(nm$logtime,1,2)
       
       nm$min=substring(nm$logtime,3,4)
       
       nm$sec=substring(nm$logtime,5,6)
       
-      nm$day = day( nm$sdate )
+      nm$time = paste(nm$hours, nm$min, nm$sec, sep=":")
+      
+      rm(scanmar)
+
+      # creating a matrix (nm2) with nm and scanmarnew
+      nm2=matrix(NA,ncol=ncol(nm),nrow=nrow(scanmarnew))
+      nm2= as.data.frame(nm2)
+      names(nm2)=names(nm)
+      
+      # making the columns names of nm2 equal to those of scanmarnew
+      o =names(scanmarnew)
+      for(n in o){
+        nm2[,n]=scanmarnew[,n]
+      }
+      
+      # Combining rows of nm and nm2 to create the data frame nm
+      nm=rbind(nm,nm2)      
+      rm(scanmarnew, nm2)
+      gc()
+     
+      #This step is creating variables by pasting existing together
+      #It is also changing character values to numeric
+      nm$uniqueid=paste(nm$mission,nm$setno,sep="_")
+      nm$ltspeed=as.numeric(nm$ltspeed)
+      nm$ctspeed=as.numeric(nm$ctspeed)
+      nm$doorspread=as.numeric(nm$doorspread)
+      nm$wingspread=as.numeric(nm$wingspread)
+      nm$clearance=as.numeric(nm$clearance)
+      nm$opening=as.numeric(nm$opening)
+      nm$depth=as.numeric(nm$depth)
+      nm$latitude=as.numeric(nm$latitude)
+      nm$longitude=as.numeric(nm$longitude)
+      nm$year.mission= as.numeric(substring(nm$mission,4,7))
+      nm$fspd=as.numeric(nm$fspd)
+      nm$cspd= as.numeric(nm$cspd)
+      
+      
+      # merge groundfish  timestamps and ensure that net mensuration timestamps are correct
+      
+      nm$id=paste(nm$mission, nm$setno, sep=".")
+      
+      ii = which( nm$longitude > 0 )
+      if (length(ii) > 0 ) nm$longitude[ii] = - nm$longitude[ii] 
+      
+      # load groundfish inf table which has timestamps of start/stop times and locations
+      gsinf = groundfish.db( DS="gsinf" )
+            
+      gsinfvars=c("id", "sdate", "settype" )
+      
+      # merge 
+      nm = merge( nm, gsinf[,gsinfvars], by="id", all.x=TRUE, all.y=FALSE)
+      
+    nm$day = day( nm$sdate )
       nm$mon = month( nm$sdate )
-      
-      i=which(!is.finite(nm$day))
-      nm = nm[ -i, ]
-      
-      nm$timestamp= paste(nm$year,nm$mon, nm$day, nm$hours, nm$min, nm$sec, sep="-" )
+      nm$year = year( nm$sdate )
+      nm$date = paste(nm$year, nm$mon, nm$day, sep="-")
+    
+      i = which(!is.finite(nm$day))
+      if (length(i)>0) nm = nm[ -i, ]
+
+      i = which( is.na( nm$time))
+      if (length(i)>0) nm = nm[ -i, ]
+ 
+      nm$tstamp= paste( nm$date, nm$time )
       
       tzone = "America/Halifax"  ## need to verify if this is correct
   
       #lubridate function 
-      nm$timestamp = ymd_hms(nm$timestamp, tz=tzone) 
-      
-      nm$uniqueid=NULL
-      nm$mission=NULL
-      nm$cruno=NULL
-      nm$setno=NULL
-      nm$year=NULL
-      nm$day=NULL
-      nm$mon=NULL
-      nm$hours=NULL
-      nm$min=NULL
-      nm$sec=NULL
-      nm$sdate=NULL
-      nm$time=NULL
-      
+      nm$timestamp = ymd_hms(nm$tstamp)
+      tz( nm$timestamp )=tzone
+
+      keep=c("id", "vesel", "ltspeed", "ctspeed", "wingspread", "doorspread", "clearance",
+             "opening", "fspd", "cspd", "latitude", "longitude", "depth", "settype", "timestamp"
+             )
+      nm=nm[,keep]
+
       # fix sets that cross midnight and list
-      uniqueid = unique(nm$id)
-    
       # some sets cross midnight and require days to be adjusted
       nm$timestamp = timestamp.fix (nm$timestamp, threshold.hrs=2 )
       
@@ -190,6 +185,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
   }
   
  
+  # -------------------------------------
 
 
   if(DS %in% c("post.perley", "post.perley.redo"))  {
@@ -214,10 +210,164 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     
     tz(basedata$timestamp) = tzone
     save(basedata, file=fn, compress= TRUE)
+    
     return(fn)
   }
 
 
+
+  # -------------------------------------
+
+
+  if (DS %in% c("post.perley.merged", "post.perley.merged.redo"))  {
+    
+    # match sets with scanmar data using time and gpstrack / location information
+    fn  = file.path(scanmar.dir, paste("post.perley", "meta", "rdata", sep= "."))
+    meta= NULL  
+  
+    if (DS == "post.perley.merged") {
+      if (file.exists(fn)) load(fn)
+      return(meta)
+    }
+
+      
+    # Incorporation of newer data, combining timestamp
+    pp=net_mensuration.db( DS="post.perley", net.root.dir=net.root.dir ) 
+    pp$lon=pp$longitude
+    pp$lat=pp$latitude
+    
+    gf=groundfish.db(DS="gsinf")
+    
+    meta=data.frame(uniqueid=unique(pp$id), stringsAsFactors=FALSE )
+    meta$sdate=NA
+    meta$id=NA
+    meta$bottom_temperature=NA
+    meta$slon=NA
+    meta$slat=NA
+    meta$elon=NA
+    meta$elat=NA
+    meta$strat=NA
+    meta$time.end=NA
+    meta$min.distance = NA
+   
+    for(i in 1:nrow(meta)){
+      k = meta$uniqueid[i]
+      print(k)
+      
+      j = which(pp$id == k)
+      if(length(j)>0) {
+        ppc=pp[j,]
+        
+        m = which.min(ppc$timestamp)
+        meta$sdate[i] = as.character(ppc$timestamp[m])
+        dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
+        u = which(abs(dif)< dhours  (9) )
+        
+        if(length(u)> 1) {
+          gfs=gf[u,]
+          gfs$min.distance.test=NA
+          
+          for(v in 1:nrow (gfs)){
+            distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
+            gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
+          }
+          
+          w = which.min(gfs$min.distance.test)
+          if(gfs$min.distance.test[w]< 1 ){
+            meta$id[i]=gfs$id[w]  # exact match with very high confidence
+            meta$min.distance[i] = gfs$min.distance.test[w]
+          } 
+        }
+      }
+    }
+    
+    # fnn2 = "tmp.meta.rdata"
+    # save( meta, file=fnn2)
+    # load (fnn2)
+    
+    # Check for duplicates as some are data errors .. needed to be checked manually and raw data files altered
+    # others are due to bad tows being redone ... so invoke a distance based rule as the correct one in gsinf (good tows only are recorded)
+    dupids = unique( meta$id[ which( duplicated( meta$id, incomparables=NA) ) ] )
+    for ( dups in dupids ) {
+      uu = which(meta$id %in% dups)
+      good = uu[ which.min( meta$min.distance[uu] ) ]
+      notsogood = setdiff( uu, good )    
+      meta$id[notsogood] = NA       
+    }
+    
+    # redo the distance-based match to catch any that did not due to being duplicates above
+    # does not seem to do much but kept for posterity
+    
+    unmatched = which( is.na(meta$id ) )
+    if (length (unmatched) > 0) {
+      for(i in unmatched ){
+        
+        k = meta$uniqueid[i]
+        print(k)
+        
+        j = which(pp$id == k)
+        if(length(j)>0) {
+          ppc=pp[j,]
+          m = which.min(ppc$timestamp)
+          meta$sdate[i] = as.character(ppc$timestamp[m])
+          dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
+          u = which(abs(dif)< dhours  (9)) 
+          
+          ## the next two lines are where things are a little different from above
+          ## the catch all as yet unmatched id's only for further processing
+          current.meta.ids = unique( sort( meta$id) )
+          u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
+          
+          if(length(u)> 1) {
+            gfs=gf[u,]
+            gfs$min.distance.test=NA
+            
+            for(v in 1:nrow (gfs)){
+              distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
+              gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
+            }
+            
+            w = which.min(gfs$min.distance.test)
+            if(gfs$min.distance.test[w]< 1 ){
+              meta$id[i]=gfs$id[w]  # exact match with very high confidence
+              meta$min.distance[i] = gfs$min.distance.test[w]
+            } 
+          }
+        }
+      }
+    }
+    
+    
+    ## now do a more fuzzy match based upon time stamps as there are no matches based upon distance alone
+    
+    nomatches = which( is.na( meta$id) )
+    if (length(nomatches) > 1) {
+      for(i in nomatches){
+        k = meta$uniqueid[i]
+        print(k)
+        j = which(pp$id == k)
+        if(length(j)>0) {
+          ppc=pp[j,]
+          m = which.min(ppc$timestamp)
+          meta$sdate[i] = as.character(ppc$timestamp[m])
+          dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
+          
+          u = which( abs(dif)< dhours  (1) )
+          if (length(u) == 1 ) { 
+            current.meta.ids = unique( sort( meta$id) )
+            u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
+            if (length(u) == 1 )   meta$id[i]= gfs$id[u]
+          }          
+        }
+      }
+    }    
+    save(meta, file= fn, compress= TRUE)
+
+  }
+
+  # -------------------------------------
+ 
+  
   if(DS %in% c("marport", "marport.redo"))  {
     basedata=NULL
     fn=file.path( marport.dir, paste( "marport", "rdata", sep="." ))
@@ -258,6 +408,36 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     g=substring(basedata$rootname,54,63)      
     basedata$mission = paste(g, basedata$set, sep=".")
     basedata$year = substring(basedata$mission, 4,7)
+
+    print ( "Check this section with Jenna" ) 
+    {
+    
+    # remove US trawls
+    i = grep("us", basedata$mission)
+    basedata = basedata[-i,]
+    n = grep("US", basedata$mission)
+    basedata = basedata[-n,]
+    
+    # Produce standard format for mission to enable comparision with Scanmar
+    basedata$mission = gsub("W2A0", "", basedata$mission)
+    basedata$mission = gsub("001W2", "", basedata$mission)
+    basedata$mission = gsub("WIIA0", "", basedata$mission)
+    basedata$mission = gsub("W2a", "", basedata$mission)
+    basedata$mission = gsub("W2", "", basedata$mission)
+    basedata$mission = gsub("w2", "", basedata$mission)
+    
+    
+    # Remove extra zeros
+    uni = strsplit(basedata$mission,".", fixed = TRUE)
+    uni1 = as.data.frame(matrix(unlist(uni), ncol = 2, byrow = TRUE))
+    basedata$mission = paste(uni1[,1], as.numeric(uni1[,2]),sep=".")
+    }
+
+
+    # rename mission to id, so comparisons with Scanmar are easier
+    basedata$id = basedata$mission
+    
+    # Make year numeric and as trip as a variable
     basedata$year=as.numeric(basedata$year)
     basedata$trip = substring(basedata$mission, 8,10)
     basedata$trip=as.numeric(basedata$trip)
@@ -265,6 +445,9 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     save(basedata, file=fn, compress= TRUE)
     return (fn )
   }
+
+
+  # -------------------------------
 
 
   if(DS %in% c("marport.gated", "marport.gated.redo"))  {
@@ -286,6 +469,8 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     return(fn) 
   }
 
+
+
   if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
     
     fn= file.path(scanmar.dir,"all.historical.data.rdata")
@@ -299,8 +484,6 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     
     pp$uniqueid = pp$id
     pp$id = NULL
-    pp$time = NULL
-     
     nm = net_mensuration.db( DS="perley.database", net.root.dir=net.root.dir ) 
     nm$netmensurationfilename = "Perley Oracle instance"
     w = which(!is.finite(nm$cspd))
@@ -313,8 +496,8 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     nm$edate = NULL
     
     # here we will add the more modern data series and merge with perley
-    meta = match.set.from.gpstrack(DS="post.perley", net.root.dir=net.root.dir )
-    
+    meta =  net_mensuration.db( DS="post.perley.merged", net.root.dir=net.root.dir )
+   
     pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
     
     pp$netmensurationfilename = pp$uniqueid 
@@ -378,7 +561,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
    nm$clearance = filter.nets("clearance.range", nm$clearance)
    nm$opening = filter.nets("opening.range", nm$opening)
    nm$depth = filter.nets("depth.range", nm$depth)
-   nm$door.and.wing.reliable = filter.nets( "door.wing", nm )    # flag to ID data that are bivariately stable .. errors still likely present
+#   nm$door.and.wing.reliable = filter.nets( "door.wing", nm )    # flag to ID data that are bivariately stable .. errors still likely present
  
    save( nm, file=fn, compress=TRUE)
    return (fn )
@@ -386,8 +569,6 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
 
   if (DS %in% c("bottom.contact", "bottom.contact.redo" )) {
-    
-    # scanmar.dir = file.path( net.root.dir, "Scanmar" )
     
     fn= file.path(scanmar.dir,"gsinf.bottom.contact.rdata" )
     gsinf=NULL
@@ -520,8 +701,6 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
   if (DS %in% c("scanmar.filtered", "scanmar.filtered.redo" )) {
      
-    # scanmar.dir = file.path( net.root.dir, "Scanmar" )
-
     fn = file.path(scanmar.dir, "scanmar.filtered.rdata")
     nm = NULL
     if(DS=="scanmar.filtered"){
@@ -555,8 +734,6 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
      
-    # scanmar.dir = file.path( net.root.dir, "Scanmar" )
-
     fn = file.path( scanmar.dir, "gsinf.sweptarea.rdata")
     gs = NULL
     if( DS=="sweptarea" ){
