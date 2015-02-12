@@ -251,7 +251,16 @@
           Fhistorical = mean( F[hdat,i], na.rm=T )
           Bhistorical = mean( B[hdat,i], na.rm=T ) 
           yl = 0.05
-          
+         
+            polygon(x=c(Bmsy,Bmsy*2,Bmsy*2, Bmsy),y=c(-0.1,-0.1,FMSY[i],FMSY[i]),col='lightgreen',border=NA)
+          polygon(x=c(Bmsy/2,Bmsy,Bmsy, Bmsy/2),y=c(-0.1,-0.1,FMSY[i],FMSY[i]),col='lightgoldenrod',border=NA)
+          polygon(x=c(0,Bmsy/2,Bmsy/2, 0),y=c(-0.1,-0.1,FMSY[i],FMSY[i]),col='darksalmon',border=NA)
+
+        lines( B[hdat,i], F[hdat,i],  type="b", xlim=c(0, K[i] * 1.1 ),  
+            ylim=ylims, col="darkblue", cex=0.8, lwd=2, xlab="", ylab="", pch=20 )
+        
+
+
           abline (h=Fref, lty="solid", col="gray", lwd=2 )
     
           abline (h=F10, lty="dotted", col="gray")
@@ -327,6 +336,7 @@
           Bhistorical = mean( B[hdat,i], na.rm=T ) 
           yl = 0.05
           
+       
           abline (h=Fref, lty="solid", col="gray", lwd=2 )
     
           abline (h=F10, lty="dotted", col="gray")
@@ -345,7 +355,7 @@
           # text( Bref-0.2, 0.25, "Lower biomass reference point\n (LBRP = 0.2 * BMSY)" , srt=90, pos=3)
 
           abline (v=Bmsy, lty="dotted")
-        
+
           abline (v=BK, lty="dotted")
     
           abline (v=BK25, lty="dotted")
