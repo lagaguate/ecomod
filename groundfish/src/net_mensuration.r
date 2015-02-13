@@ -31,15 +31,13 @@ if ( recreate.full.database.locally ) {
   net_mensuration.db( DS="merge.historical.scanmar.redo",  net.root.dir=net.root.dir ) # add all scanmar data together
   net_mensuration.db( DS="sanity.checks.redo",  net.root.dir=net.root.dir )      # QA/QC of data
   
-  # WARNING:: the following will need to be run from inside the function 
-  # as INLA does not exit gracefully from some errors
-  # and R cannot catch the faults .. re-run from indicated parts 
+  # WARNING:: the following may crash as INLA does not exit gracefully from some errors
+  # and R cannot catch the faults .. restart R or reboot the system (it can happen) 
+  # and then re-run the line and it will continue from where it crashed
   net_mensuration.db( DS="bottom.contact.redo",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
-  
-  net_mensuration.db( DS="scanmar.filtered.redo",  net.root.dir=net.root.dir )  # bring in estimates of bottom contact times from scanmar
- 
   net_mensuration.db( DS="sweptarea.redo",  net.root.dir=net.root.dir )  
 }
+
 
 create.marport.database = FALSE
 if (create.marport.database ) {

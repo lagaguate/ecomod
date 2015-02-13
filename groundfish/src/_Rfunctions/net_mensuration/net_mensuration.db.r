@@ -778,37 +778,8 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
    
 
-  if (DS %in% c("scanmar.filtered", "scanmar.filtered.redo" )) {
-     
-    fn = file.path(scanmar.dir, "scanmar.filtered.rdata")
-    nm = NULL
-    if(DS=="scanmar.filtered"){
-      if (file.exists(fn)) load(fn)
-      return( nm )
-    }
-   
+  # -----------------------------------
 
-    gs =  net_mensuration.db( DS="bottom.contact", net.root.dir=net.root.dir )
-   
-    tokeep = NULL
-    uid = sort( unique( nm$id)) 
-    nuid = length(uid)
-    for ( i in 1:nuid)  {
-      print ( paste( i, "of", nuid ) ) 
-      id = uid[i]
-      gsi = which( gs$id== id )
-      if (length( gsi)==1 ) {
-        tk = NULL
-        tk = which( nm$timestamp >= gs$bc0.datetime[gsi] & nm$timestamp <= gs$bc1.datetime[gsi] )
-        if (length(tk) > 10) tokeep=c( tokeep, tk )
-      }
-    } 
-
-    nm = nm[ tokeep, ]
-    save( nm, file=fn, compress=TRUE )
-    return ( fn )
-  }
-  
 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
      
@@ -840,17 +811,24 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       gs = gs[gii,]
       x = nm[ii,]
     }
-    
+ 
+    nreq = 30
+    sd.max = 30  # in seconds 
     uid = sort( unique( nm$id)) 
     
     for ( id in uid) {
       print( id)
-      ii = which( nm$id==id )  # rows of nm with scanmar/marport data
-      if ( length( which( is.finite(nm[ii, "depth"]))) < 30 ) next()  
+      jj = NULL
+      jj = which( nm$id==id )  # rows of nm with scanmar/marport data
+      tk = which( nm$timestamp[ii] >= gs$bc0.datetime[gsi] & nm$timestamp[ii] <= gs$bc1.datetime[gsi] )
+      if (length(tk) < nreq ) next()
+      ii = jj[tk]
+      if ( length( which( is.finite(nm[ii, "depth"]))) < nreq ) next()  
       gii = which( gs$id==id )  # row of matching gsinf with tow info
-      if (length(gii) != 1) next()  # no match in gsinf
+
       if ( all (is.finite( c( gs$bc0.sd[gii], gs$bc1.sd[gii] ) ))) {
-      if ( gs$bc0.sd[gii] <= 30 & gs$bc1.sd[gii] <= 30 )  {
+      if ( gs$bc0.sd[gii] <= sd.max & gs$bc1.sd[gii] <= sd.max )  {  
+
         # SD of start and end times must have a convengent solution which is considered to be stable when SD < 30 seconds
         sa = estimate.swept.area( gsi = gs[gii,],  x= nm[ii,] )
         gs$sa[gii] = sa$surfacearea
