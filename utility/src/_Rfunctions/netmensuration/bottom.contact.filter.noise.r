@@ -86,7 +86,7 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3
   x$depth.smoothed = x$depth
   x$sm.loess = x$sm.inla = x$sm.spline= NA
 
-  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla", h=0.05 )
+  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla", h=0.1 )
   kk = x$depth - x$sm.inla
   qnts = quantile( kk[aoi], probs=filter.quants, na.rm=TRUE ) 
   qnts[1] = min( qnts[1], - eps.depth )  # eps m fluctuation as being insignificant error

@@ -39,6 +39,8 @@
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
+  
+  O$Z = x$depth  ## copy of depth data before manipulations
 
 
   ##--------------------------------

@@ -571,7 +571,9 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
   if (DS %in% c("bottom.contact", "bottom.contact.redo", "bottom.contact.id" )) {
     scanmar.bc.dir =  file.path(scanmar.dir, "bottom.contact" )
     dir.create( scanmar.bc.dir, recursive=TRUE, showWarnings=FALSE ) 
-    
+    dir.create (file.path( scanmar.bc.dir, "results"), recursive=TRUE, showWarnings=FALSE )
+    dir.create (file.path( scanmar.bc.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
+
     fn= file.path(scanmar.dir,"gsinf.bottom.contact.rdata" )
     gsinf=NULL
     if(DS=="bottom.contact"){
@@ -580,7 +582,8 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     }
 
     if(DS=="bottom.contact.id"){
-      fn.bc = file.path( scanmar.bc.dir, paste( "bc", id, "rdata", sep=".") )
+      fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )
+      bc = NULL
       if (file.exists(fn.bc)) load(fn.bc)
       return(bc)
     }
@@ -633,7 +636,13 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     for ( id in uid) {
       
       print( id)
-      
+
+      # in sufficient data for these: 
+      if ( id %in% c("NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83" ) ) {
+        # these are just flat-lines .. no reliable data
+        next()
+      }
+
       if ( file.exists (fn.current) ) {
         # if there is something in the current id from a previous run, this indicates that this is likely a re-start
         # add it to the list of "bad.list" and skip over for manual analysis
@@ -670,18 +679,18 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       
       # defaults appropriate for more modern scanmar data have > 3500 pings
       # see:  tapply( master$year,  list(master$id, master$year), length )
-      sd.multiplier = 4
-      depthproportion = 0.75 # multiplier to Zmax, Zmedian estimate ... bigger the number more get filtered out
+      sd.multiplier = 5
+      depthproportion = 0.8 # multiplier to Zmax, Zmedian estimate ... bigger the number more get filtered out
       smoothing = 0.95
       filter.quants=c(0.05, 0.95)
       eps.depth = 0.5
-      depth.range = c(-60, 40)
+      depth.range = c(-60, 60)
       
       if (nrow(mm) < 3500 ) {
         # mostly 2004 to 2008
-        sd.multiplier = 4
-        depthproportion = 0.75
-        smoothing = 0.7
+        sd.multiplier = 5
+        depthproportion = 0.8
+        smoothing = 0.75
         filter.quants=c(0.1, 0.9)
         eps.depth = 1
         depth.range = c(-60, 40)
@@ -701,8 +710,8 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
         # mostly 2004 to 2008 ... truncated already 
        sd.multiplier = 5
         depthproportion = 0.1
-        smoothing = 0.5
-        filter.quants=c(0.01, 0.99) # keep as much data as possible
+        smoothing = 0.4
+        filter.quants=c(0.05, 0.95) # keep as much data as possible
         eps.depth = 1   # ... pre-gated  with not much room to model
         depth.range = c(-60, 30)
       } 
@@ -717,11 +726,14 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
         depth.range = c(-60, 30)
       } 
 
+      if (id=="NED2013028.172") {
+        depth.range = c(-70, 70) 
+      }
    
       bc = NULL # 
       bc = try( bottom.contact(id, mm, depthproportion=depthproportion, tdif.min=15, tdif.max=45, eps.depth=eps.depth, 
                  sd.multiplier=sd.multiplier, depth.min=10, depth.range=depth.range, smoothing=smoothing, filter.quants=filter.quants, 
-                 plot.data=TRUE, outdir=scanmar.bc.dir, time.gate=time.gate ), 
+                 plot.data=TRUE, outdir=file.path(scanmar.bc.dir, "figures"), time.gate=time.gate ), 
           silent=TRUE)
 
 
@@ -735,16 +747,13 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
         gsinf$bc1.n[gii] =  bc$bottom1.n
         if ( !is.finite( gsinf$bottom_depth[gii]))  gsinf$bottom_depth[gii] = bc$depth.mean
         save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
-        fn.bc = file.path( scanmar.bc.dir, paste( "bc", id, "rdata", sep=".") )  
+        fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
         save ( bc, file=fn.bc, compress=TRUE )
       }
         
       # if only the loop completes without error, reset the flag for current id on filesystem
       cat("", file=fn.current )
     }
-
-
-
 
 
     ## END of re-run area ... 
@@ -778,8 +787,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       return( nm )
     }
    
-    nm = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
-    nm = nm[which(nm$year >= 2004), ]  # no depths records in data prior to this year
+
     gs =  net_mensuration.db( DS="bottom.contact", net.root.dir=net.root.dir )
    
     tokeep = NULL
@@ -810,8 +818,10 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       if (file.exists(fn)) load(fn)
       return(gs)
     }
+ 
+    nm = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
+    nm = nm[which(is.finite( nm$depth)) ,  ]
    
-    nm = net_mensuration.db( DS="scanmar.filtered", net.root.dir=net.root.dir )
     gs = net_mensuration.db( DS="bottom.contact", net.root.dir=net.root.dir )
     gs$dist = NULL  # dummy values .. remove to avoid confusion 
     
