@@ -26,7 +26,7 @@ if ( recreate.full.database.locally ) {
   # oracle.perley.db = "servername"
   net_mensuration.db( DS="perley.database.datadump", net.root.dir=net.root.dir ) # ODBC data dump .. this step requires definition of password etc
   net_mensuration.db( DS="perley.database.merge", net.root.dir=net.root.dir )    # perley had two db's merge them together
-  net_mensuration.db( DS="post.perley.redo",  net.root.dir=net.root.dir )        # Assimilate Scanmar files in raw data saves *.set.log files
+  net_mensuration.db( DS="post.perley.redo", net.root.dir=net.root.dir )        # Assimilate Scanmar files in raw data saves *.set.log files
   net_mensuration.db( DS="post.perley.merged.redo", net.root.dir=net.root.dir ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
   net_mensuration.db( DS="merge.historical.scanmar.redo",  net.root.dir=net.root.dir ) # add all scanmar data together
   net_mensuration.db( DS="sanity.checks.redo",  net.root.dir=net.root.dir )      # QA/QC of data

@@ -18,7 +18,7 @@ load.scanmar.rawdata = function( fn, tzone="America/Halifax" ) {
   
   if (length(header) < 9 ) return( NULL )
    
-  tmpfile = file.path ("C:", "Users", "mundenj", "Documents", "tmp.scanmar")
+  tmpfile = file.path (getwd(), "tmp.scanmar")
   # remove "*" -- hard to do internally without fileswapping out and reloading
   tmp = readLines(fn, encoding="UTF-8", skipNul=TRUE)
   u = nchar(tmp)

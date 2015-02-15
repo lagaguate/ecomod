@@ -187,9 +187,10 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
  
   # -------------------------------------
 
-
   if(DS %in% c("post.perley", "post.perley.redo"))  {
-    
+ 
+    print( "## TODO :: make this operate upon 1 year at a time similar to snowcrab approach ## ")
+   
     tzone = "America/Halifax"  ## need to verify if this is correct
     basedata=NULL
     
@@ -198,7 +199,9 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       if (file.exists(fn)) load(fn)
       return(basedata)
     }
-    filelist = list.files(path=scanmar.dir, pattern="set.log", full.names=T, recursive=TRUE, ignore.case=TRUE)
+    
+    rawdata.dir = file.path( scanmar.dir, "datalogs" )
+    filelist = list.files(path=rawdata.dir, pattern="set.log", full.names=T, recursive=TRUE, ignore.case=TRUE)
     unneeded = grep ("copy", filelist, ignore.case=TRUE)
     if (length(unneeded>0)) filelist = filelist[-unneeded]
     for ( fl in filelist ) {
