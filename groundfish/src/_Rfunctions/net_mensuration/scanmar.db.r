@@ -1,69 +1,65 @@
 
-net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.directory("groundfish"), "data", "nets" ), user.interaction=FALSE, override.missions=NULL, id=NULL ){
-  
-  scanmar.dir = file.path( net.root.dir, "Scanmar" )
-  marport.dir = file.path( net.root.dir, "Marport" )
 
-  if (!file.exists( scanmar.dir )) {
+scanmar.db = function( DS, p, nm=NULL, id=NULL ){
+  
+
+  if (!file.exists( p$scanmar.dir )) {
    mk.Dir = readline("Directory not found, shall we create it? Yes/No (Default No) : ")
     if ( mk.Dir =="Yes" ) {
-      dir.create( scanmar.dir, recursive=TRUE) 
-      print( paste("The directory -- ",  scanmar.dir, " -- has been created") )
+      dir.create( p$scanmar.dir, recursive=TRUE) 
+      print( paste("The directory -- ",  p$scanmar.dir, " -- has been created") )
     } else {
-      warning( paste("Directory: ", scanmar.dir, " was not found." )) 
-    }
-  }
-
-  if (!file.exists( marport.dir )) {
-    mk.Dir = readline("Directory not found, shall we create it? Yes/No (Default No) : ")
-    if ( mk.Dir =="Yes" ) {
-      dir.create( marport.dir, recursive=TRUE) 
-      print( paste("The directory -- ",  marport.dir, " -- has been created") )
-    } else {
-      warning( paste("Directory: ", marport.dir, " was not found." )) 
+      warning( paste("Directory: ", p$scanmar.dir, " was not found." )) 
     }
   }
 
 
-  if(DS %in% c("perley.database", "perley.database.merge", "perley.database.datadump" )) {
+  if(DS %in% c("perley", "perley.datadump" )) {
     
     # fn1= old data, fn2= new data and fn3= merged data (old and new)
-    fn1= file.path(scanmar.dir,"scanmar.perley.rdata")
-    fn2= file.path(scanmar.dir,"scanmarnew.perley.rdata")
-    fn3= file.path(scanmar.dir,"scanmar.perley.merged.rdata")
-  
-    if(DS=="perley.database.datadump"){
-      # Package RODBC is a platform for interfacing R to database systems
-      # Package includes the obdc* commands (access) and sql* functions (read, save, copy, and manipulate data between data frames)
-      require(RODBC)
-      connect=odbcConnect( oracle.perley.db, uid=oracle.perley.user, pwd=oracle.perley.password, believeNRows=F)
-      # sqlquery can be used to return part of a table
-      scanmar = sqlQuery(connect, "select * from   groundfish.perleyp_SCANMAR", as.is=T) 
-      scanmarnew = sqlQuery(connect, "select * from   groundfish.perleyp_NEWSCANMAR", as.is=T) 
-      # closing the connection with ODBC
-      odbcClose(connect)
-      # saving the tables to R memory in zip format 
-      save(scanmar, file=fn1, compress=T)
-      save(scanmarnew, file=fn2, compress=T)
-    }
-    
-    # Need an explanation of this step
-    if(DS=="perley.database"){
+    fn1= file.path(p$scanmar.dir,"scanmar.perley.rdata")
+    fn2= file.path(p$scanmar.dir,"scanmarnew.perley.rdata")
+    fn3= file.path(p$scanmar.dir,"scanmar.perley.merged.rdata")
+   
+    if(DS=="perley"){
       nm = NULL
       if (file.exists(fn3)) load(fn3)
       return(nm)
     }
-  
-    # Changing scanmarnew names to lowercase 
-    if(DS=="perley.database.merge"){
-      load(fn1) 
-      load(fn2)
+
+    if(DS=="perley.redo"){
+ 
+      # Package RODBC is a platform for interfacing R to database systems
+      # Package includes the obdc* commands (access) and sql* functions (read, save, copy, and manipulate data between data frames)
+      if (file.exists( fn1) ) {
+        load(fn1)
+      } else {
+        require(RODBC)
+        connect=odbcConnect( oracle.perley.db, uid=oracle.perley.user, pwd=oracle.perley.password, believeNRows=F)
+        scanmar = sqlQuery(connect, "select * from   groundfish.perleyp_SCANMAR", as.is=T) 
+        odbcClose(connect)
+        save(scanmar, file=fn1, compress=T)
+      }
+    
+      if (file.exists( fn2) ) {
+        load(fn2)
+      } else {
+        require(RODBC)
+        connect=odbcConnect( oracle.perley.db, uid=oracle.perley.user, pwd=oracle.perley.password, believeNRows=F)
+        scanmarnew = sqlQuery(connect, "select * from   groundfish.perleyp_NEWSCANMAR", as.is=T) 
+        odbcClose(connect)
+        save(scanmarnew, file=fn2, compress=T)
+      }
+
+      nm = scanmar
+      rm(scanmar)
+      gc()
+
+      names(nm)=tolower(names(nm))      #ac
       names(scanmarnew)=tolower(names(scanmarnew))      
-      names(scanmar)=tolower(names(scanmar))      #ac
       
       # nm is the dataset which combines the old and new data (merged)
       # some variables were missing from scanmar to faciliate the merge of scanmarnew
-      nm=scanmar
       nm$fspd=NA
       nm$cspd=NA        
       nm$latitude=NA
@@ -79,30 +75,17 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       # fix some time values that have lost the zeros due to numeric conversion
       nm$logtime=gsub(":", "", nm$logtime)      
       j=nchar(nm$logtime)
-      tooshort=which(j==5)
-      if (length(tooshort)>0) nm$logtime[tooshort]=paste("0",nm$logtime[tooshort],sep="")
-      
-      tooshort=which(j==4)
-      if (length(tooshort)>0) nm$logtime[tooshort]=paste("00",nm$logtime[tooshort],sep="")
-      
-      tooshort=which(j==3)
-      if (length(tooshort)>0) nm$logtime[tooshort]=paste("000",nm$logtime[tooshort],sep="")
-      
-      tooshort=which(j==2)
-      if (length(tooshort)>0) nm$logtime[tooshort]=paste("0000",nm$logtime[tooshort],sep="")
-      
-      tooshort=which(j==1)
-      if (length(tooshort)>0) nm$logtime[tooshort]=paste("00000",nm$logtime[tooshort],sep="")
+      tooshort=which(j==5); if (length(tooshort)>0) nm$logtime[tooshort]=paste("0",nm$logtime[tooshort],sep="")
+      tooshort=which(j==4); if (length(tooshort)>0) nm$logtime[tooshort]=paste("00",nm$logtime[tooshort],sep="")
+      tooshort=which(j==3); if (length(tooshort)>0) nm$logtime[tooshort]=paste("000",nm$logtime[tooshort],sep="")
+      tooshort=which(j==2); if (length(tooshort)>0) nm$logtime[tooshort]=paste("0000",nm$logtime[tooshort],sep="")
+      tooshort=which(j==1); if (length(tooshort)>0) nm$logtime[tooshort]=paste("00000",nm$logtime[tooshort],sep="")
             
       nm$hours=substring(nm$logtime,1,2)
-      
       nm$min=substring(nm$logtime,3,4)
-      
       nm$sec=substring(nm$logtime,5,6)
-      
       nm$time = paste(nm$hours, nm$min, nm$sec, sep=":")
       
-      rm(scanmar)
 
       # creating a matrix (nm2) with nm and scanmarnew
       nm2=matrix(NA,ncol=ncol(nm),nrow=nrow(scanmarnew))
@@ -138,21 +121,18 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       
       
       # merge groundfish  timestamps and ensure that net mensuration timestamps are correct
-      
       nm$id=paste(nm$mission, nm$setno, sep=".")
-      
       ii = which( nm$longitude > 0 )
       if (length(ii) > 0 ) nm$longitude[ii] = - nm$longitude[ii] 
       
       # load groundfish inf table which has timestamps of start/stop times and locations
       gsinf = groundfish.db( DS="gsinf" )
-            
       gsinfvars=c("id", "sdate", "settype" )
       
       # merge 
       nm = merge( nm, gsinf[,gsinfvars], by="id", all.x=TRUE, all.y=FALSE)
       
-    nm$day = day( nm$sdate )
+      nm$day = day( nm$sdate )
       nm$mon = month( nm$sdate )
       nm$year = year( nm$sdate )
       nm$date = paste(nm$year, nm$mon, nm$day, sep="-")
@@ -180,27 +160,25 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
       # some sets cross midnight and require days to be adjusted
       nm$timestamp = timestamp.fix (nm$timestamp, threshold.hrs=2 )
       
-      save(nm,file=fn3,compress=TRUE)
+      save(nm, file=fn3,compress=TRUE)
     }
   }
-  
  
-  # -------------------------------------
-
-  if(DS %in% c("post.perley", "post.perley.redo"))  {
+  
+  if(DS %in% c("basedata", "basedata.redo"))  {
  
     print( "## TODO :: make this operate upon 1 year at a time similar to snowcrab approach ## ")
    
     tzone = "America/Halifax"  ## need to verify if this is correct
     basedata=NULL
     
-    fn=file.path( scanmar.dir, paste( "scanmar", "post.perley","rdata", sep="." ))
-    if(DS == "post.perley"){
+    fn=file.path( p$scanmar.dir, paste( "scanmar", "basedata","rdata", sep="." ))
+    if(DS == "basedata"){
       if (file.exists(fn)) load(fn)
       return(basedata)
     }
     
-    rawdata.dir = file.path( scanmar.dir, "datalogs" )
+    rawdata.dir = file.path( p$scanmar.dir, "datalogs" )
     filelist = list.files(path=rawdata.dir, pattern="set.log", full.names=T, recursive=TRUE, ignore.case=TRUE)
     unneeded = grep ("copy", filelist, ignore.case=TRUE)
     if (length(unneeded>0)) filelist = filelist[-unneeded]
@@ -222,24 +200,25 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
   # -------------------------------------
 
 
-  if (DS %in% c("post.perley.merged", "post.perley.merged.redo"))  {
+  if (DS %in% c("metadata", "metadata.redo"))  {
     
     # match sets with scanmar data using time and gpstrack / location information
-    fn  = file.path(scanmar.dir, paste("post.perley", "meta", "rdata", sep= "."))
+    fn  = file.path(p$scanmar.dir, paste("scanmar.meta", "rdata", sep= "."))
     meta= NULL  
   
-    if (DS == "post.perley.merged") {
+    if (DS == "metadata") {
       if (file.exists(fn)) load(fn)
       return(meta)
     }
 
       
+    gf=groundfish.db(DS="gsinf")
+    
+    
     # Incorporation of newer data, combining timestamp
-    pp=net_mensuration.db( DS="post.perley", net.root.dir=net.root.dir ) 
+    pp=scanmar.db( DS="basedata", p=p ) 
     pp$lon=pp$longitude
     pp$lat=pp$latitude
-    
-    gf=groundfish.db(DS="gsinf")
     
     meta=data.frame(uniqueid=unique(pp$id), stringsAsFactors=FALSE )
     meta$sdate=NA
@@ -370,124 +349,22 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
   # -------------------------------------
  
-  
-  if(DS %in% c("marport", "marport.redo"))  {
-    basedata=NULL
-    fn=file.path( marport.dir, paste( "marport", "rdata", sep="." ))
-    if(DS == "marport"){
-      if (file.exists(fn)) load(fn)
-      return(basedata)
-    }
-    
-    # configs
-    # marport.dir = file.path("C:", "Users", "MundenJ", "Desktop", "Marport")
-    filelist4 = list.files(path=marport.dir, pattern="^config.*.ini$", full.names=T, recursive=TRUE, ignore.case=TRUE)
-    cfg = data.frame( configroot = dirname( filelist4 ), fn=filelist4, stringsAsFactors=FALSE )
-    
-    filelist1 = list.files(path=marport.dir, pattern=".log$", full.names=T, recursive=TRUE, ignore.case=TRUE)
-    filelist2 = list.files(path=marport.dir, pattern=".gps$", full.names=T, recursive=TRUE, ignore.case=TRUE)
-    filelist3 = list.files(path=marport.dir, pattern=".sgp$", full.names=T, recursive=TRUE, ignore.case=TRUE)
-   
-    filelist1 = gsub( ".log$", "", filelist1)
-    filelist2 = gsub( ".gps$", "", filelist2)
-    filelist3 = gsub( ".sgp$", "", filelist3)
-    
-    fileroots = unique( c( filelist1, filelist2, filelist3 ) )
-    filelist = data.frame( fileroots=fileroots, configroot = dirname( fileroots ), stringsAsFactors=FALSE )
-    filelist = merge( filelist, cfg, by="configroot", all.x=TRUE, all.y=FALSE )
-    
-    no.files = nrow(filelist)
-    for ( ii in 1:no.files ) {
-      fl = filelist$fileroots[ii]
-      sensorconfig = filelist$fn[ii]
-      print(fl)
-      j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
-      if (is.null(j)) next()
-      j$rootname=fl
-      basedata = rbind( basedata, j)
-    }
-    
-    # Include mission as a variable (also trip and year)
-    g=substring(basedata$rootname,54,63)      
-    basedata$mission = paste(g, basedata$set, sep=".")
-    basedata$year = substring(basedata$mission, 4,7)
-
-    print ( "Check this section with Jenna" ) 
-    {
-    
-    # remove US trawls
-    i = grep("us", basedata$mission)
-    basedata = basedata[-i,]
-    n = grep("US", basedata$mission)
-    basedata = basedata[-n,]
-    
-    # Produce standard format for mission to enable comparision with Scanmar
-    basedata$mission = gsub("W2A0", "", basedata$mission)
-    basedata$mission = gsub("001W2", "", basedata$mission)
-    basedata$mission = gsub("WIIA0", "", basedata$mission)
-    basedata$mission = gsub("W2a", "", basedata$mission)
-    basedata$mission = gsub("W2", "", basedata$mission)
-    basedata$mission = gsub("w2", "", basedata$mission)
-    
-    
-    # Remove extra zeros
-    uni = strsplit(basedata$mission,".", fixed = TRUE)
-    uni1 = as.data.frame(matrix(unlist(uni), ncol = 2, byrow = TRUE))
-    basedata$mission = paste(uni1[,1], as.numeric(uni1[,2]),sep=".")
-    }
-
-
-    # rename mission to id, so comparisons with Scanmar are easier
-    basedata$id = basedata$mission
-    
-    # Make year numeric and as trip as a variable
-    basedata$year=as.numeric(basedata$year)
-    basedata$trip = substring(basedata$mission, 8,10)
-    basedata$trip=as.numeric(basedata$trip)
-    
-    save(basedata, file=fn, compress= TRUE)
-    return (fn )
-  }
-
-
-  # -------------------------------
-
-
-  if(DS %in% c("marport.gated", "marport.gated.redo"))  {
-    nm=NULL
-    fn=file.path( marport.dir, paste( "marport.gated", "rdata", sep="." ))
-    if(DS == "marport.gated"){
-      if (file.exists(fn)) load(fn)
-      return(nm)
-    }
-      nm = net_mensuration.db( DS="marport",  net.root.dir=net.root.dir ) # QA/QC of data
-        
-      nm$doorspread = filter.nets("doorspread.range", nm$doorspread)
-      nm$wingspread = filter.nets("wingspread.range", nm$wingspread)
-      nm$clearance = filter.nets("clearance.range", nm$clearance)
-      nm$opening.scanmar = filter.nets("opening.range", nm$opening.scanmar)
-      nm$depth = filter.nets("depth.range", nm$depth)
-    
-    save(nm, file=fn, compress=TRUE)
-    return(fn) 
-  }
-
-
+ 
 
   if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
     
-    fn= file.path(scanmar.dir,"all.historical.data.rdata")
+    fn= file.path(p$scanmar.dir,"all.historical.data.rdata")
     master=NULL
     if(DS=="merge.historical.scanmar"){
       if (file.exists(fn)) load(fn)
       return(master)
     }
     
-    pp= net_mensuration.db( DS="post.perley", net.root.dir=net.root.dir ) 
-    
+    pp = scanmar.db( DS="basedata", p=p ) 
     pp$uniqueid = pp$id
     pp$id = NULL
-    nm = net_mensuration.db( DS="perley.database", net.root.dir=net.root.dir ) 
+    
+    nm = scanmar.db( DS="perley", p=p ) 
     nm$netmensurationfilename = "Perley Oracle instance"
     w = which(!is.finite(nm$cspd))
     nm$ctspeed[w]=nm$cspd[w]
@@ -499,7 +376,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     nm$edate = NULL
     
     # here we will add the more modern data series and merge with perley
-    meta =  net_mensuration.db( DS="post.perley.merged", net.root.dir=net.root.dir )
+    meta =  scanmar.db( DS="metadata", p=p )
    
     pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
     
@@ -538,14 +415,14 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
   if ( DS %in% c("sanity.checks", "sanity.checks.redo") ) {
    # Step to filter data  
    
-   fn = file.path( scanmar.dir, "scanmar.sanity.checked.rdata")
+   fn = file.path( p$scanmar.dir, "scanmar.sanity.checked.rdata")
    if(DS=="sanity.checks") {
      nm = NULL
      if (file.exists(fn)) load(fn)
      return(nm)
    }
 
-   nm = net_mensuration.db( DS="merge.historical.scanmar", net.root.dir=net.root.dir ) 
+   nm = scanmar.db( DS="merge.historical.scanmar", p=p ) 
    
    # remove sets where american trawls were used for comparative surveys
    nm = filter.nets("remove.trawls.with.US.nets", nm)
@@ -572,12 +449,12 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
 
   if (DS %in% c("bottom.contact", "bottom.contact.redo", "bottom.contact.id" )) {
-    scanmar.bc.dir =  file.path(scanmar.dir, "bottom.contact" )
+    scanmar.bc.dir =  file.path(p$scanmar.dir, "bottom.contact" )
     dir.create( scanmar.bc.dir, recursive=TRUE, showWarnings=FALSE ) 
     dir.create (file.path( scanmar.bc.dir, "results"), recursive=TRUE, showWarnings=FALSE )
     dir.create (file.path( scanmar.bc.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
 
-    fn= file.path(scanmar.dir,"gsinf.bottom.contact.rdata" )
+    fn= file.path(p$scanmar.dir,"gsinf.bottom.contact.rdata" )
     gsinf=NULL
     if(DS=="bottom.contact"){
       if (file.exists(fn)) load(fn)
@@ -600,18 +477,18 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     gsinf$bc0.n = NA
     gsinf$bc1.n = NA
     
-    master = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
+    master = scanmar.db( DS="sanity.checks", p=p )
     master = master[which(is.finite(master$depth)) ,  ]
     
-    if ( !is.null( override.missions)){
-      user.interaction = TRUE
-      master = master[ which(master$id %in% override.missions ), ]
+    if ( !is.null( p$override.missions)){
+      p$user.interaction = TRUE
+      master = master[ which(master$id %in% p$override.missions ), ]
     }
     
 
-    fn.current = file.path( scanmar.dir, "bottom.contact.tmp.current" )
-    fn.badlist = file.path( scanmar.dir, "bottom.contact.badlist" )
-    fn.gsinf = file.path( scanmar.dir, "bottom.contact.tmp.gsinf" )
+    fn.current = file.path( p$scanmar.dir, "bottom.contact.tmp.current" )
+    fn.badlist = file.path( p$scanmar.dir, "bottom.contact.badlist" )
+    fn.gsinf = file.path( p$scanmar.dir, "bottom.contact.tmp.gsinf" )
 
     if ( file.exists (fn.current) ) file.remove( fn.current )
     if ( file.exists (fn.badlist) ) file.remove( fn.badlist )
@@ -761,7 +638,7 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
     ## END of re-run area ... 
 
-    if (!is.null( override.missions)) {
+    if (!is.null( p$override.missions)) {
       fn = paste( fn, "manually.determined.rdata", sep="")
       print( "Saving to an alternate location as this is being manually handled ... merge this by hand:" )
       print( fn)
@@ -786,17 +663,17 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
      
-    fn = file.path( scanmar.dir, "gsinf.sweptarea.rdata")
+    fn = file.path( p$scanmar.dir, "gsinf.sweptarea.rdata")
     gs = NULL
     if( DS=="sweptarea" ){
       if (file.exists(fn)) load(fn)
       return(gs)
     }
  
-    nm = net_mensuration.db( DS="sanity.checks", net.root.dir=net.root.dir )
+    nm = scanmar.db( DS="sanity.checks", p=p )
     nm = nm[which(is.finite( nm$depth)) ,  ]
    
-    gs = net_mensuration.db( DS="bottom.contact", net.root.dir=net.root.dir )
+    gs = scanmar.db( DS="bottom.contact", p=p )
     gs$dist = NULL  # dummy values .. remove to avoid confusion 
     
     # get variable names and sequence of var's
@@ -841,8 +718,8 @@ net_mensuration.db=function( DS, nm=NULL, net.root.dir=file.path( project.direct
     }
     save(gs, file=fn, compress= TRUE)
   }
-}
 
+} 
 
 
 
