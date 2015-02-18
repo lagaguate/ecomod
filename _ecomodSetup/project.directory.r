@@ -1,6 +1,6 @@
 
 
-project.directory = function(..., directory=NULL) {
+project.directory = function(directory=NULL, ...) {
   
   ## this function is required to bootstrap the other project level functions
   ## probably should make this cleaner one day .. :)
