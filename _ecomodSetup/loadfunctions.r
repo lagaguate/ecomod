@@ -6,7 +6,8 @@
     RcodeDirectory="src", 
     keydirectories=c("r", "\\.r", "\\_r", "rfunctions", "\\.rfunctions", "\\_rfunctions" ), 
     toignore = c("retired", "_archive", "archive", "orphan", "request", "example" ),
-    filepattern="\\.r$" ) {
+    filepattern="\\.r$",
+    directory=NULL ) {
 	
     # used to load local functions conveniently
     # sequence slightly important ... modify with care
@@ -19,7 +20,7 @@
 
     for (pn in projectname ) {
 
-      projectdirectory = project.directory( name=pn )
+      projectdirectory = project.directory( name=pn, directory  )
 
       for (searchdirectory in c( file.path( projectdirectory, RcodeDirectory ), projectdirectory ) ) {  # first try in RcodeDirectory and then the project if not found in first pass  
 

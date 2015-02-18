@@ -1,6 +1,6 @@
 
 
-project.directory = function( ... ) {
+project.directory = function(..., directory=NULL) {
   
   ## this function is required to bootstrap the other project level functions
   ## probably should make this cleaner one day .. :)
@@ -8,7 +8,8 @@ project.directory = function( ... ) {
   # determine project directory string
   sep = .Platform$file.sep
   dirs = paste0( c(...) , collapse=sep ) 
-  pd = file.path( ecomod.directory, dirs )
+  if (is.null(directory)) dirpath = ecomod.directory else dirpath = directory
+  pd = file.path( dirpath, dirs )
   pd = gsub( paste( sep, "$", sep=""), "", pd) # strip last path element 
   
   # nonexistant directories 
