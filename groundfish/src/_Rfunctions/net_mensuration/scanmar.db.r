@@ -1,7 +1,11 @@
 
 
-scanmar.db = function( DS, p, nm=NULL, id=NULL ){
-  
+scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
+ 
+  perley.years0 = c( 1990:1992 )
+  perley.years1 = c( 2004:2009 )
+  datalog.year0 = 2009    # note this overlaps with the last year in perley's database 
+
 
   if (!file.exists( p$scanmar.dir )) {
    mk.Dir = readline("Directory not found, shall we create it? Yes/No (Default No) : ")
@@ -17,8 +21,8 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
   if(DS %in% c("perley", "perley.datadump" )) {
     
     # fn1= old data, fn2= new data and fn3= merged data (old and new)
-    fn1= file.path(p$scanmar.dir,"scanmar.perley.rdata")
-    fn2= file.path(p$scanmar.dir,"scanmarnew.perley.rdata")
+    fn1= file.path(p$scanmar.dir,"scanmar_rawdata_perley0.rdata")
+    fn2= file.path(p$scanmar.dir,"scanmar_rawdata_perley1.rdata")
     fn3= file.path(p$scanmar.dir,"scanmar.perley.merged.rdata")
    
     if(DS=="perley"){
@@ -86,7 +90,6 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
       nm$sec=substring(nm$logtime,5,6)
       nm$time = paste(nm$hours, nm$min, nm$sec, sep=":")
       
-
       # creating a matrix (nm2) with nm and scanmarnew
       nm2=matrix(NA,ncol=ncol(nm),nrow=nrow(scanmarnew))
       nm2= as.data.frame(nm2)
@@ -119,7 +122,6 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
       nm$fspd=as.numeric(nm$fspd)
       nm$cspd= as.numeric(nm$cspd)
       
-      
       # merge groundfish  timestamps and ensure that net mensuration timestamps are correct
       nm$id=paste(nm$mission, nm$setno, sep=".")
       ii = which( nm$longitude > 0 )
@@ -132,10 +134,10 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
       # merge 
       nm = merge( nm, gsinf[,gsinfvars], by="id", all.x=TRUE, all.y=FALSE)
       
-      nm$day = day( nm$sdate )
-      nm$mon = month( nm$sdate )
-      nm$year = year( nm$sdate )
-      nm$date = paste(nm$year, nm$mon, nm$day, sep="-")
+      nm$day = lubridate::day( nm$sdate )
+      nm$mon = lubridate::month( nm$sdate )
+      nm$yr = lubridate::year( nm$sdate )
+      nm$date = paste(nm$yr, nm$mon, nm$day, sep="-")
     
       i = which(!is.finite(nm$day))
       if (length(i)>0) nm = nm[ -i, ]
@@ -152,158 +154,173 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
       tz( nm$timestamp )=tzone
 
       keep=c("id", "vesel", "ltspeed", "ctspeed", "wingspread", "doorspread", "clearance",
-             "opening", "fspd", "cspd", "latitude", "longitude", "depth", "settype", "timestamp"
+             "opening", "fspd", "cspd", "latitude", "longitude", "depth", "settype", "timestamp", "yr"
              )
       nm=nm[,keep]
 
       # fix sets that cross midnight and list
       # some sets cross midnight and require days to be adjusted
       nm$timestamp = timestamp.fix (nm$timestamp, threshold.hrs=2 )
+       
+      nm$netmensurationfilename = "Perley Oracle instance"
+      w = which(!is.finite(nm$cspd))
+      nm$ctspeed[w]=nm$cspd[w]
+      v = which(!is.finite(nm$fspd))
+      nm$ltspeed[v]=nm$fspd[v]
+      nm$gyro=NA  
+      v.to.drop = c("vesel", "empty", "logtime", "cspd", "fspd", "settype", "dist", "edate" )
+      for ( v in v.to.drop) nm[,v] = NULL
       
       save(nm, file=fn3,compress=TRUE)
     }
   }
- 
+
+  # -------------------------------
   
   if(DS %in% c("basedata", "basedata.redo"))  {
- 
-    print( "## TODO :: make this operate upon 1 year at a time similar to snowcrab approach ## ")
    
-    tzone = "America/Halifax"  ## need to verify if this is correct
-    basedata=NULL
+    if (is.null (YRS) ) YRS = p$netmensuration.years 
+    tzone = "America/Halifax"  ## for the logs
+      
+    dir.create( file.path( p$scanmar.dir, "basedata"), recursive=TRUE, showWarnings=FALSE ) 
     
-    fn=file.path( p$scanmar.dir, paste( "scanmar", "basedata","rdata", sep="." ))
     if(DS == "basedata"){
-      if (file.exists(fn)) load(fn)
-      return(basedata)
+      out = NULL
+      for ( YR in YRS ) {
+        basedata=NULL
+        fn = file.path( p$scanmar.dir,  "basedata",  paste( "scanmar", "basedata", YR, "rdata", sep="." ))
+        if ( file.exists(fn)) {
+          load(fn)
+          out = rbind( out, basedata )
+        }
+      }
+      return(out)
     }
-    
-    rawdata.dir = file.path( p$scanmar.dir, "datalogs" )
-    filelist = list.files(path=rawdata.dir, pattern="set.log", full.names=T, recursive=TRUE, ignore.case=TRUE)
-    unneeded = grep ("copy", filelist, ignore.case=TRUE)
-    if (length(unneeded>0)) filelist = filelist[-unneeded]
-    for ( fl in filelist ) {
-      print(fl)
-      j = load.scanmar.rawdata( fl, tzone=tzone )  # variable naming conventions in the past
-      if (is.null(j)) next()
-      basedata = rbind( basedata, j)
-    }
-    
-    tz(basedata$timestamp) = tzone
-    save(basedata, file=fn, compress= TRUE)
-    
-    return(fn)
-  }
 
+    varnames = c( "id", "ltspeed", "ctspeed", "wingspread", "doorspread", "clearance", "opening", 
+                  "latitude", "longitude", "depth", "gyro", "timestamp", "netmensurationfilename")
+
+    rawdata.dir = file.path( p$scanmar.dir, "datalogs" )
+    
+    for ( YR in YRS ) {
+      basedata = NULL
+      fn = file.path( p$scanmar.dir, "basedata", paste( "scanmar", "basedata", YR, "rdata", sep="." ))
+      
+      if (YR %in% c( perley.years0, perley.years1)  ) {
+        nm = scanmar.db( DS="perley", p=p )
+        oo = which( nm$yr == YR )
+        if (length( oo) > 0 ) {
+          basedata = nm[oo,]
+          basedata = basedata[ ,varnames ]
+        }
+        rm(nm); gc()  
+      }
+
+      # if YR == 2009 .. then the next step will add the log data as well
+      if (YR >= datalog.year0 ) {   
+        filelist = list.files(path=file.path( rawdata.dir, YR ), pattern="\\.log$", 
+                              full.names=T, recursive=TRUE, ignore.case=TRUE)
+        unneeded = grep ("copy", filelist, ignore.case=TRUE)
+        if (length(unneeded>0)) filelist = filelist[-unneeded]
+        unneeded = grep ("all.log", filelist, ignore.case=TRUE)
+        if (length(unneeded>0)) filelist = filelist[-unneeded]
+        
+        if (length( filelist) > 0 ) {
+          print( "Reading in scanmar log files:" )
+          for ( fl in filelist ) {
+            print(fl)
+            j = load.scanmar.rawdata( fl, tzone=tzone )  # variable naming conventions in the past
+            if (is.null(j)) next()
+            j$ctspeed=NA  # missing in modern data so add to permit merging with historical data
+            j$id = NA # this will be filled in later once the position/time is matched to gsinf
+            j = j[ , varnames ]
+            basedata = rbind( basedata, j)
+          }
+        }
+      }
+      if (!is.null( basedata) ) {
+        save(basedata, file=fn, compress= TRUE)
+        print(fn)
+      }
+    } 
+    return( YRS )
+  }
 
 
   # -------------------------------------
 
 
-  if (DS %in% c("metadata", "metadata.redo"))  {
+  if (DS %in% c("basedata.lookuptable", "basedata.lookuptable.redo"))  {
+    ## RAtionale: data from 2009 to 2014+ are missing mission/set inforamtion
+    ## we need to match sets ("id") with scanmar data ("nm_id") using time and gpstrack / location information
     
-    # match sets with scanmar data using time and gpstrack / location information
-    fn  = file.path(p$scanmar.dir, paste("scanmar.meta", "rdata", sep= "."))
-    meta= NULL  
+    dir.create( file.path( p$scanmar.dir, "basedata.lookuptable"), recursive=TRUE, showWarnings=FALSE ) 
   
-    if (DS == "metadata") {
-      if (file.exists(fn)) load(fn)
-      return(meta)
-    }
-
-      
-    gf=groundfish.db(DS="gsinf")
+    if (is.null (YRS) ) YRS = p$netmensuration.years 
     
-    
-    # Incorporation of newer data, combining timestamp
-    pp=scanmar.db( DS="basedata", p=p ) 
-    pp$lon=pp$longitude
-    pp$lat=pp$latitude
-    
-    meta=data.frame(uniqueid=unique(pp$id), stringsAsFactors=FALSE )
-    meta$sdate=NA
-    meta$id=NA
-    meta$bottom_temperature=NA
-    meta$slon=NA
-    meta$slat=NA
-    meta$elon=NA
-    meta$elat=NA
-    meta$strat=NA
-    meta$time.end=NA
-    meta$min.distance = NA
-   
-    for(i in 1:nrow(meta)){
-      k = meta$uniqueid[i]
-      print(k)
-      
-      j = which(pp$id == k)
-      if(length(j)>0) {
-        ppc=pp[j,]
-        
-        m = which.min(ppc$timestamp)
-        meta$sdate[i] = as.character(ppc$timestamp[m])
-        dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
-        u = which(abs(dif)< dhours  (9) )
-        
-        if(length(u)> 1) {
-          gfs=gf[u,]
-          gfs$min.distance.test=NA
-          
-          for(v in 1:nrow (gfs)){
-            distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
-            gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
-          }
-          
-          w = which.min(gfs$min.distance.test)
-          if(gfs$min.distance.test[w]< 1 ){
-            meta$id[i]=gfs$id[w]  # exact match with very high confidence
-            meta$min.distance[i] = gfs$min.distance.test[w]
-          } 
+    if(DS == "basedata.lookuptable"){
+      out = NULL
+      for ( YR in YRS ) {
+        meta = NULL
+        fn = file.path( p$scanmar.dir, "basedata.lookuptable", paste( "scanmar", "basedata.lookuptable", YR, "rdata", sep= "."))
+        if ( file.exists(fn)) {
+          load(fn)
+          out = rbind( out, meta )
         }
       }
+      return(out)
     }
+      
+    gf = groundfish.db(DS="gsinf")
     
-    # fnn2 = "tmp.meta.rdata"
-    # save( meta, file=fnn2)
-    # load (fnn2)
-    
-    # Check for duplicates as some are data errors .. needed to be checked manually and raw data files altered
-    # others are due to bad tows being redone ... so invoke a distance based rule as the correct one in gsinf (good tows only are recorded)
-    dupids = unique( meta$id[ which( duplicated( meta$id, incomparables=NA) ) ] )
-    for ( dups in dupids ) {
-      uu = which(meta$id %in% dups)
-      good = uu[ which.min( meta$min.distance[uu] ) ]
-      notsogood = setdiff( uu, good )    
-      meta$id[notsogood] = NA       
-    }
-    
-    # redo the distance-based match to catch any that did not due to being duplicates above
-    # does not seem to do much but kept for posterity
-    
-    unmatched = which( is.na(meta$id ) )
-    if (length (unmatched) > 0) {
-      for(i in unmatched ){
+    for ( YR in YRS ) {
+      
+      fn = file.path( p$scanmar.dir, "basedata.lookuptable", paste( "scanmar", "basedata.lookuptable", YR, "rdata", sep= "."))
+      
+      # Incorporation of newer data, combining timestamp
+      nm=scanmar.db( DS="basedata", p=p, YRS=YR ) 
+      if (is.null( nm)) next()
+
+      nm$lon=nm$longitude
+      nm$lat=nm$latitude
+      nm$longitude =NULL
+      nm$latitude =NULL
+      
+      if (YR %in% c( perley.years0, perley.years1)  ) {
+        nm$nm_id = nm$id  
+      }
+      if (YR == datalog.year0 ) {   
+        nm$nm_id = nm$id
+        oo = which( nm$netmensurationfilename != "Perley Oracle instance") 
+        if (length(oo) > 0) nm$nm_id[oo] = nm$netmensurationfilename[ oo ]
+      }
+      if (YR > datalog.year0 ) {   
+        nm$nm_id = nm$netmensurationfilename
+      }
+
+      meta = data.frame( nm_id=unique( nm$nm_id), stringsAsFactors=FALSE )
+      meta$timestamp = NA
+      meta$id=NA
+      meta$min.distance = NA
+      meta$time.difference = NA
+      
+      for(i in 1:nrow(meta)){
+        k = meta$nm_id[i]
+        # print(k)
         
-        k = meta$uniqueid[i]
-        print(k)
-        
-        j = which(pp$id == k)
+        j = which(nm$nm_id == k)
         if(length(j)>0) {
-          ppc=pp[j,]
-          m = which.min(ppc$timestamp)
-          meta$sdate[i] = as.character(ppc$timestamp[m])
-          dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
-          u = which(abs(dif)< dhours  (9)) 
+          ppc=nm[j,]
           
-          ## the next two lines are where things are a little different from above
-          ## the catch all as yet unmatched id's only for further processing
-          current.meta.ids = unique( sort( meta$id) )
-          u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
+          m = which.min(ppc$timestamp)
+          meta$timestamp[i] = as.character(ppc$timestamp[m])
+          dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
+          u = which(abs(dif)< dhours  (9) )
           
           if(length(u)> 1) {
             gfs=gf[u,]
             gfs$min.distance.test=NA
-            
+
             for(v in 1:nrow (gfs)){
               distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
               gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
@@ -313,152 +330,232 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
             if(gfs$min.distance.test[w]< 1 ){
               meta$id[i]=gfs$id[w]  # exact match with very high confidence
               meta$min.distance[i] = gfs$min.distance.test[w]
+              meta$time.difference[i] = dif[u[w]]
             } 
           }
         }
       }
-    }
-    
-    
-    ## now do a more fuzzy match based upon time stamps as there are no matches based upon distance alone
-    
-    nomatches = which( is.na( meta$id) )
-    if (length(nomatches) > 1) {
-      for(i in nomatches){
-        k = meta$uniqueid[i]
-        print(k)
-        j = which(pp$id == k)
-        if(length(j)>0) {
-          ppc=pp[j,]
-          m = which.min(ppc$timestamp)
-          meta$sdate[i] = as.character(ppc$timestamp[m])
-          dif = as.duration(ymd_hms(meta$sdate[i]) - gf$sdate)
-          
-          u = which( abs(dif)< dhours  (1) )
-          if (length(u) == 1 ) { 
+      
+      # Check for duplicates as some are data errors .. needed to be checked manually and raw data files altered
+      # others are due to bad tows being redone ... so invoke a distance based rule as the correct one in gsinf 
+      # (good tows only are recorded)
+      dupids = unique( meta$id[ which( duplicated( meta$id, incomparables=NA) ) ] )
+      for ( dups in dupids ) {
+        uu = which(meta$id %in% dups)
+        good = uu[ which.min( meta$min.distance[uu] ) ]
+        notsogood = setdiff( uu, good )    
+        meta$id[notsogood] = NA       
+      }
+      
+      # redo the distance-based match to catch any that did not due to being duplicates above
+      # does not seem to do much but kept for posterity
+      unmatched = which( is.na(meta$id ) )
+      if (length (unmatched) > 0) {
+        for(i in unmatched ){
+          k = meta$nm_id[i]
+          j = which(nm$nm_id == k)
+          if(length(j)>0) {
+            ppc=nm[j,]
+            m = which.min(ppc$timestamp)
+            meta$timestamp[i] = as.character(ppc$timestamp[m])
+            dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
+            u = which(abs(dif)< dhours  (9)) 
+            
+            ## the next two lines are where things are a little different from above
+            ## catch all as yet unmatched id's only for further processing
             current.meta.ids = unique( sort( meta$id) )
             u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
-            if (length(u) == 1 )   meta$id[i]= gfs$id[u]
-          }          
+            
+            if(length(u)> 1) {
+              gfs=gf[u,]
+              gfs$min.distance.test=NA
+              
+              for(v in 1:nrow (gfs)){
+                distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
+                gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
+              }
+              
+              w = which.min(gfs$min.distance.test)
+              if(gfs$min.distance.test[w]< 1 ){
+                meta$id[i]=gfs$id[w]  # exact match with very high confidence
+                meta$min.distance[i] = gfs$min.distance.test[w]
+                meta$time.difference[i] = dif[u[w]]
+              } 
+            }
+          }
         }
       }
-    }    
-    save(meta, file= fn, compress= TRUE)
+      
+      ## now do a more fuzzy match based upon time stamps as there are no matches based upon distance alone
+      nomatches = which( is.na( meta$id) )
+      if (length(nomatches) > 1) {
+        for(i in nomatches){
+          k = meta$nm_id[i]
+          # print(k)
+          j = which(nm$nm_id == k)
+          if(length(j)>0) {
+            ppc=nm[j,]
+            m = which.min(ppc$timestamp)
+            meta$timestamp[i] = as.character(ppc$timestamp[m])
+            dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
+            u = which( abs(dif)< dhours  (1) )
+            if (length(u) == 1 ) { 
+              current.meta.ids = unique( sort( meta$id) )
+              u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
+              if (length(u) == 1 ) {
+                meta$id[i]= gf$id[u]
+                meta$time.difference[i] = dif[u]
+              }
+            }          
+          }
+        }
+      }    
+      
+      save(meta, file= fn, compress= TRUE)
+      print(fn)
+    }  # end loop for YRS
 
+    return( YRS )
   }
 
+  
   # -------------------------------------
  
- 
-
-  if(DS %in% c("merge.historical.scanmar", "merge.historical.scanmar.redo" )) {
-    
-    fn= file.path(p$scanmar.dir,"all.historical.data.rdata")
-    master=NULL
-    if(DS=="merge.historical.scanmar"){
-      if (file.exists(fn)) load(fn)
-      return(master)
-    }
-    
-    pp = scanmar.db( DS="basedata", p=p ) 
-    pp$uniqueid = pp$id
-    pp$id = NULL
-    
-    nm = scanmar.db( DS="perley", p=p ) 
-    nm$netmensurationfilename = "Perley Oracle instance"
-    w = which(!is.finite(nm$cspd))
-    nm$ctspeed[w]=nm$cspd[w]
-    v = which(!is.finite(nm$fspd))
-    nm$ltspeed[v]=nm$fspd[v]
-    v.to.drop = c("vesel", "empty", "logtime", "cspd", "fspd", "settype", "dist" )
-    for ( v in v.to.drop) nm[,v] = NULL
-    nm$gyro=NA  
-    nm$edate = NULL
-    
-    # here we will add the more modern data series and merge with perley
-    meta =  scanmar.db( DS="metadata", p=p )
-   
-    pp = merge(pp, meta, by="uniqueid", all.x=TRUE, all.y=FALSE)
-    
-    pp$netmensurationfilename = pp$uniqueid 
-    pp$uniqueid=NULL
-    pp$ctspeed=NA
-    
-    # setdiff(names(nm), names(pp))
-    pp=pp[,names(nm)]
-    
-    # this is where we add the marport data/2010-2011 data
-    master=rbind(nm, pp)
-    
-    master$date = substring(as.character(master$timestamp), 1,10)
-    gooddata = which( !is.na( master$id))
-    
-    
-    ids = strsplit( master$id[gooddata], "[.]" )
-    
-    mission.trip = unlist( lapply( ids, function(x){x[[1]]} ) )
-    setno = unlist( lapply( ids, function(x){x[[2]]} ) )
-    
-    master$set = NA
-    master$set[gooddata] = as.numeric( setno )
-    
-    master$trip = NA
-    master$trip[gooddata] = substring( mission.trip, 8,10 )
-    master$trip = as.numeric(master$trip)
-    master$year=year(master$timestamp)  
-    
-    save(master, file=fn, compress= TRUE)
-    
-  }
-
 
   if ( DS %in% c("sanity.checks", "sanity.checks.redo") ) {
    # Step to filter data  
-   
-   fn = file.path( p$scanmar.dir, "scanmar.sanity.checked.rdata")
-   if(DS=="sanity.checks") {
-     nm = NULL
-     if (file.exists(fn)) load(fn)
-     return(nm)
-   }
+    
+   if (is.null (YRS) ) YRS = p$netmensuration.years 
+   dir.create( file.path( p$scanmar.dir, "sanity.checked"), recursive=TRUE, showWarnings=FALSE )
 
-   nm = scanmar.db( DS="merge.historical.scanmar", p=p ) 
-   
-   # remove sets where american trawls were used for comparative surveys
-   nm = filter.nets("remove.trawls.with.US.nets", nm)
-   # empty variable is not needed (crossed channel with doorspread), also values present look erroneous in NED2005001 1
-   i = which( nm$id=="NED2005001.1" )
-   nm$doorspread[i] = NA
-   nm$wingspread[i] = NA
-   nm$clearance[i] = NA
-   nm$opening[i] = NA
-   nm$ltspeed[i] = NA
-   nm$ctspeed[i] = NA
-   
-   # coarse level gating   
-   nm$doorspread = filter.nets("doorspread.range", nm$doorspread)
-   nm$wingspread = filter.nets("wingspread.range", nm$wingspread)
-   nm$clearance = filter.nets("clearance.range", nm$clearance)
-   nm$opening = filter.nets("opening.range", nm$opening)
-   nm$depth = filter.nets("depth.range", nm$depth)
-#   nm$door.and.wing.reliable = filter.nets( "door.wing", nm )    # flag to ID data that are bivariately stable .. errors still likely present
+   if(DS=="sanity.checks") {
+      out = NULL
+      for ( YR in YRS ) {
+        nm = NULL
+        fn = file.path( p$scanmar.dir, "sanity.checked", paste("scanmar.sanity.checked", YR, "rdata", sep=".") )
+        if ( file.exists(fn)) {
+          load(fn)
+          out = rbind( out, nm )
+        }
+      }
+      return(out)
+   }
+  
+
+   for ( YR in YRS ) {
+      meta =  scanmar.db( DS="basedata.lookuptable", p=p, YRS=YR )
+      if (is.null(meta)) next()
  
-   save( nm, file=fn, compress=TRUE)
-   return (fn )
+      nm = scanmar.db( DS="basedata", p=p, YRS=YR ) 
+      if (is.null( nm )) next()
+ 
+      meta = meta[ which(!is.na( meta$nm_id)),]
+      meta$timestamp =NULL # redundant
+     
+      if (YR %in% setdiff(c( perley.years0, perley.years1), datalog.year0)  ) {
+        nm$nm_id = nm$id
+        nm = merge(nm, meta, by="nm_id", all.x=TRUE, all.y=FALSE, , suffixes=c("", ".meta"))
+        oo = which (is.na( nm$id))
+        if (length(oo)>0) nm$id[oo] = nm$id.meta[oo]
+      }
+      
+      if (YR == datalog.year0 ) {   
+        nm$nm_id = nm$id
+        oo = which( nm$netmensurationfilename != "Perley Oracle instance") 
+        if (length(oo) > 0) nm$nm_id[oo] = nm$netmensurationfilename[ oo ]
+        nm = merge(nm, meta, by="nm_id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".meta") )
+        pp =  which (is.na( nm$id))
+        if (length(pp)>0) nm$id[pp] = nm$id.meta[pp]
+      }
+      
+      if (YR > datalog.year0 ) {   
+        # id not yet generated .. use filename
+        nm$nm_id = nm$netmensurationfilename
+        nm = merge(nm, meta, by="nm_id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".meta") )
+        nm$id = nm$id.meta
+      }
+
+      todrop = grep( ".meta$", names(nm))
+      if (length(todrop)>0) nm = nm[ ,-todrop]
+
+      nm$date = substring(as.character(nm$timestamp), 1,10)
+      gooddata = which( !is.na( nm$id))
+      
+      
+      ids = strsplit( nm$id[gooddata], "[.]" )
+      
+      mission.trip = unlist( lapply( ids, function(x){x[[1]]} ) )
+      setno = unlist( lapply( ids, function(x){x[[2]]} ) )
+      
+      nm$set = NA
+      nm$set[gooddata] = as.numeric( setno )
+      
+      nm$trip = NA
+      nm$trip[gooddata] = substring( mission.trip, 8,10 )
+      nm$trip = as.numeric(nm$trip)
+      nm$year= lubridate::year(nm$timestamp)  
+    
+      # empty variable is not needed (crossed channel with doorspread), also values present look erroneous in NED2005001 1
+      i = which( nm$id=="NED2005001.1" )
+      if (length(i) >0) {
+        nm$doorspread[i] = NA
+        nm$wingspread[i] = NA
+        nm$clearance[i] = NA
+        nm$opening[i] = NA
+        nm$ltspeed[i] = NA
+        nm$ctspeed[i] = NA
+      }
+
+     # coarse level gating   
+      
+     # ID sets where American trawls were used for comparative surveys
+     nm$net = "standard"
+     oo = filter.nets("identify.trawls.with.US.nets", nm) 
+     if (length( oo) >0 ) {
+       nm$net[oo] = "american"
+       ## additional gating goes here ... 
+     }
+
+     pp = which( nm$net == "standard" )
+     if (length(pp) >0 ) {
+       nm$doorspread[pp] = filter.nets("doorspread.range", nm$doorspread[pp] )
+       nm$wingspread[pp]  = filter.nets("wingspread.range", nm$wingspread[pp] )
+       nm$clearance[pp]  = filter.nets("clearance.range", nm$clearance[pp] )
+       nm$opening[pp]  = filter.nets("opening.range", nm$opening[pp] )
+       nm$depth[pp]  = filter.nets("depth.range", nm$depth[pp] )
+#   nm$door.and.wing.reliable[pp]  = filter.nets( "door.wing", nm[pp]  )    # flag to ID data that are bivariately stable .. errors still likely present
+     }
+
+     fn = file.path( p$scanmar.dir, "sanity.checked", paste("scanmar.sanity.checked", YR, "rdata", sep=".") )
+     save( nm, file=fn, compress=TRUE)
+     print(fn)
+   }
+   return (YRS )
   }
 
 
+  # -------------------
+
+
   if (DS %in% c("bottom.contact", "bottom.contact.redo", "bottom.contact.id" )) {
+    
+    if (is.null (YRS) ) YRS = p$netmensuration.years 
+
     scanmar.bc.dir =  file.path(p$scanmar.dir, "bottom.contact" )
     dir.create( scanmar.bc.dir, recursive=TRUE, showWarnings=FALSE ) 
     dir.create (file.path( scanmar.bc.dir, "results"), recursive=TRUE, showWarnings=FALSE )
     dir.create (file.path( scanmar.bc.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
 
-    fn= file.path(p$scanmar.dir,"gsinf.bottom.contact.rdata" )
-    gsinf=NULL
     if(DS=="bottom.contact"){
-      if (file.exists(fn)) load(fn)
-      return(gsinf)
+      for ( YR in YRS ) {
+        gsinf=NULL
+        fn= file.path( scanmar.bc.dir, paste( "gsinf.bottom.contact", YR, "rdata", sep=".")  )
+        if (file.exists(fn)) load(fn) 
+        out = rbind( out, gsinf )
+      }
+      gsinf0 = groundfish.db( DS="gsinf" )
+      if (!is.null(out)) gsinf0 = merge( gsinf0, out, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
+      return(gsinf0)
     }
 
     if(DS=="bottom.contact.id"){
@@ -468,192 +565,192 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
       return(bc)
     }
     
-    gsinf = groundfish.db( DS="gsinf" )
-    gsinf$bottom_duration = NA
-    gsinf$bc0.datetime = as.POSIXct(NA)
-    gsinf$bc1.datetime = as.POSIXct(NA)
-    gsinf$bc0.sd = NA
-    gsinf$bc1.sd = NA
-    gsinf$bc0.n = NA
-    gsinf$bc1.n = NA
-    
-    master = scanmar.db( DS="sanity.checks", p=p )
-    master = master[which(is.finite(master$depth)) ,  ]
-    
-    if ( !is.null( p$override.missions)){
-      p$user.interaction = TRUE
-      master = master[ which(master$id %in% p$override.missions ), ]
-    }
-    
-
-    fn.current = file.path( p$scanmar.dir, "bottom.contact.tmp.current" )
-    fn.badlist = file.path( p$scanmar.dir, "bottom.contact.badlist" )
-    fn.gsinf = file.path( p$scanmar.dir, "bottom.contact.tmp.gsinf" )
+    fn.current = file.path( scanmar.bc.dir, "bottom.contact.tmp.current" )
+    fn.badlist = file.path( scanmar.bc.dir, "bottom.contact.badlist" )
+    fn.gsinf = file.path( scanmar.bc.dir, "bottom.contact.tmp.gsinf" )
 
     if ( file.exists (fn.current) ) file.remove( fn.current )
     if ( file.exists (fn.badlist) ) file.remove( fn.badlist )
     if ( file.exists (fn.gsinf) ) file.remove( fn.gsinf )
-
-    badlist = skip = cur = NULL
-    
-    uid = sort( unique( master$id)) 
-
-
-    ### if rerun necessary .. start from here until R-inla behaves more gracefully with faults
-
-    if ( file.exists (fn.current) ) {
-      # if there is something in the current id from a previous run, this indicates that this is likely a re-start
-      # reload saved data and skip ahead to the next id
-        cur = scan( fn.current, what="character", quiet=TRUE )
-        if ( length(cur) > 0 ) {
-          skip = which( uid==cur ) + 1
-          uid = uid[ skip: length(uid) ]
-          # load( fn.gsinf)  # as it is a restart ... load in the saved version instead of the initial version
-        }
-    }
-
-
-    for ( id in uid) {
       
-      print( id)
+    badlist = skip = cur = NULL
 
-      # in sufficient data for these: 
-      if ( id %in% c("NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83" ) ) {
-        # these are just flat-lines .. no reliable data
-        next()
-      }
+    gsinf0 = groundfish.db( DS="gsinf" )
+    gsinf0$year = lubridate::year( gsinf0$timestamp )
+    gsinf0.names = names( gsinf0 )
+
+    for ( YR in YRS ) {
+      yy = which( gsinf0$year == YR )
+      if (length(yy)==0 ) next()
+      gsinf = gsinf0[ yy, ]  
+      gsinf$bottom_duration = NA
+      gsinf$bc0.datetime = as.POSIXct(NA)
+      gsinf$bc1.datetime = as.POSIXct(NA)
+      gsinf$bc0.sd = NA
+      gsinf$bc1.sd = NA
+      gsinf$bc0.n = NA
+      gsinf$bc1.n = NA
+     
+      nm = scanmar.db( DS="sanity.checks", p=p, YRS=YR )
+      if (is.null( nm)) next()
+      nm = nm[which(is.finite(nm$depth)) ,  ]
+      nm = nm[which(!is.na( nm$id ) ) , ]
+      
+      if (nrow( nm) < 1 ) next()
+
+      uid = sort( unique( nm$id)) 
+
+      ### if rerun necessary .. start from here until R-inla behaves more gracefully with faults
 
       if ( file.exists (fn.current) ) {
         # if there is something in the current id from a previous run, this indicates that this is likely a re-start
-        # add it to the list of "bad.list" and skip over for manual analysis
-        cur = scan( fn.current, what="character", quiet=TRUE )
-        if ( length(cur) > 0 ) {
-          bad.list = NULL
-          if (file.exists(fn.badlist) ) {
-            bad.list = scan( fn.badlist, what="character", quiet=TRUE )
+        # reload saved data and skip ahead to the next id
+          cur = scan( fn.current, what="character", quiet=TRUE )
+          if ( length(cur) > 0 ) {
+            skip = which( uid==cur ) + 1
+            uid = uid[ skip: length(uid) ]
+            # load( fn.gsinf)  # as it is a restart ... load in the saved version instead of the initial version
           }
-          cat( unique( c(bad.list, cur)), file=fn.badlist )
+      }
+
+      for ( id in uid) {
+        print( id)
+        # in sufficient data for these: 
+        if ( id %in% c("NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83" ) ) {
+          # these are just flat-lines .. no reliable data
+          next()
         }
-      }
-      
-      if ( file.exists (fn.badlist) ) {
-        bad.list = scan( fn.badlist, what="character", quiet=TRUE )
-        if ( id %in% bad.list ) next()
-      }
-      
-      cat( id, file = fn.current )
-      
-      # id = "TEL2004529.21"
 
-      ii = which( master$id==id )  # rows of master with scanmar/marport data
-      if ( length( which( is.finite(master[ii, "depth"]))) < 30 ) next() ## this will also add to the bad.list .. when insufficient data  
-      gii = which( gsinf$id==id )  # row of matching gsinf with tow info
-      if (length(gii) != 1) next()  # no match in gsinf  ## this will also add to the bad.list .. when insufficient data
-     
-      mm = master[ which(master$id==id) , c("depth", "timestamp") ]
-
-      # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
-      time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
-      
-      # x=mm; depthproportion=0.6; tdif.min=15; tdif.max=45; eps.depth=4; sd.multiplier=5; depth.min=10; depth.range=c(-50, 50); smoothing = 0.9; filter.quants=c(0.025, 0.975); plot.data=TRUE
-      
-      # defaults appropriate for more modern scanmar data have > 3500 pings
-      # see:  tapply( master$year,  list(master$id, master$year), length )
-      sd.multiplier = 5
-      depthproportion = 0.8 # multiplier to Zmax, Zmedian estimate ... bigger the number more get filtered out
-      smoothing = 0.95
-      filter.quants=c(0.05, 0.95)
-      eps.depth = 0.5
-      depth.range = c(-60, 60)
-      
-      if (nrow(mm) < 3500 ) {
-        # mostly 2004 to 2008
-        sd.multiplier = 5
-        depthproportion = 0.8
-        smoothing = 0.75
-        filter.quants=c(0.1, 0.9)
-        eps.depth = 1
-        depth.range = c(-60, 40)
-       } 
-  
-      if (nrow(mm) < 1200 ) {
-        # mostly 2004 to 2008
-        sd.multiplier = 4
-        depthproportion = 0.5
-        smoothing = 0.5
-        filter.quants=c(0.025, 0.975)
-        eps.depth = 1
-        depth.range = c(-60, 40)
-      } 
-     
-      if (nrow(mm) < 200 ) {
-        # mostly 2004 to 2008 ... truncated already 
-       sd.multiplier = 5
-        depthproportion = 0.1
-        smoothing = 0.4
-        filter.quants=c(0.05, 0.95) # keep as much data as possible
-        eps.depth = 1   # ... pre-gated  with not much room to model
-        depth.range = c(-60, 30)
-      } 
-   
-      if (nrow(mm) < 100 ) {
-        # mostly 2004 to 2008 ... truncated already 
-        sd.multiplier = 5
-        depthproportion = 0.1
-        smoothing = 0.4
-        filter.quants=c(0.01, 0.99) # keep as much data as possible
-        eps.depth = 1   # ... pre-gated  with not much room to model
-        depth.range = c(-60, 30)
-      } 
-
-      if (id=="NED2013028.172") {
-        depth.range = c(-70, 70) 
-      }
-   
-      bc = NULL # 
-      bc = try( bottom.contact(id, mm, depthproportion=depthproportion, tdif.min=15, tdif.max=45, eps.depth=eps.depth, 
-                 sd.multiplier=sd.multiplier, depth.min=10, depth.range=depth.range, smoothing=smoothing, filter.quants=filter.quants, 
-                 plot.data=TRUE, outdir=file.path(scanmar.bc.dir, "figures"), time.gate=time.gate ), 
-          silent=TRUE)
-
-
-      if ( ! is.null(bc) && ( ! ( "try-error" %in% class(bc) ) ) ) { 
-        gsinf$bc0.datetime[gii] = bc$bottom0 
-        gsinf$bc1.datetime[gii] = bc$bottom1
-        gsinf$bottom_duration[gii] = bc$bottom.diff
-        gsinf$bc0.sd[gii] = bc$bottom0.sd
-        gsinf$bc1.sd[gii] = bc$bottom1.sd
-        gsinf$bc0.n[gii] =  bc$bottom0.n
-        gsinf$bc1.n[gii] =  bc$bottom1.n
-        if ( !is.finite( gsinf$bottom_depth[gii]))  gsinf$bottom_depth[gii] = bc$depth.mean
-        save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
-        fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
-        save ( bc, file=fn.bc, compress=TRUE )
-      }
+        if ( file.exists (fn.current) ) {
+          # if there is something in the current id from a previous run, this indicates that this is likely a re-start
+          # add it to the list of "bad.list" and skip over for manual analysis
+          cur = scan( fn.current, what="character", quiet=TRUE )
+          if ( length(cur) > 0 ) {
+            bad.list = NULL
+            if (file.exists(fn.badlist) ) {
+              bad.list = scan( fn.badlist, what="character", quiet=TRUE )
+            }
+            cat( unique( c(bad.list, cur)), file=fn.badlist )
+          }
+        }
         
-      # if only the loop completes without error, reset the flag for current id on filesystem
-      cat("", file=fn.current )
-    }
+        if ( file.exists (fn.badlist) ) {
+          bad.list = scan( fn.badlist, what="character", quiet=TRUE )
+          if ( id %in% bad.list ) next()
+        }
+        
+        cat( id, file = fn.current )
+        
+        # id = "TEL2004529.21"
 
+        ii = which( nm$id==id )  # rows of nm with scanmar/marport data
+        if ( length( which( is.finite(nm[ii, "depth"]))) < 30 ) next() ## this will also add to the bad.list .. when insufficient data  
+        gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+        if (length(gii) != 1) next()  # no match in gsinf  ## this will also add to the bad.list .. when insufficient data
+       
+        mm = nm[ which(nm$id==id) , c("depth", "timestamp") ]
 
-    ## END of re-run area ... 
-
-    if (!is.null( p$override.missions)) {
-      fn = paste( fn, "manually.determined.rdata", sep="")
-      print( "Saving to an alternate location as this is being manually handled ... merge this by hand:" )
-      print( fn)
-    }
+        # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
+        time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
+        
+        # x=mm; depthproportion=0.6; tdif.min=15; tdif.max=45; eps.depth=4; sd.multiplier=5; depth.min=10; depth.range=c(-50, 50); smoothing = 0.9; filter.quants=c(0.025, 0.975); plot.data=TRUE
+        
+        # defaults appropriate for more modern scanmar data have > 3500 pings
+        # see:  tapply( nm$year,  list(nm$id, nm$year), length )
+        sd.multiplier = 5
+        depthproportion = 0.8 # multiplier to Zmax, Zmedian estimate ... bigger the number more get filtered out
+        smoothing = 0.95
+        filter.quants=c(0.05, 0.95)
+        eps.depth = 0.5
+        depth.range = c(-60, 60)
+        
+        if (nrow(mm) < 3500 ) {
+          # mostly 2004 to 2008
+          sd.multiplier = 5
+          depthproportion = 0.8
+          smoothing = 0.75
+          filter.quants=c(0.1, 0.9)
+          eps.depth = 1
+          depth.range = c(-60, 40)
+         } 
     
-    save(gsinf, file=fn, compress= TRUE)
-    
-    print( "Use, override.mission=c(...) as a flag and redo .. manually ) for the following:" )
-    print( "Troublesome id's have been stored in file:")
-    print( fn.badlist )
-    print(  scan( fn.badlist, what="character", quiet=TRUE ) )
+        if (nrow(mm) < 1200 ) {
+          # mostly 2004 to 2008
+          sd.multiplier = 4
+          depthproportion = 0.5
+          smoothing = 0.5
+          filter.quants=c(0.025, 0.975)
+          eps.depth = 1
+          depth.range = c(-60, 40)
+        } 
+       
+        if (nrow(mm) < 200 ) {
+          # mostly 2004 to 2008 ... truncated already 
+         sd.multiplier = 5
+          depthproportion = 0.1
+          smoothing = 0.4
+          filter.quants=c(0.05, 0.95) # keep as much data as possible
+          eps.depth = 1   # ... pre-gated  with not much room to model
+          depth.range = c(-60, 30)
+        } 
+     
+        if (nrow(mm) < 100 ) {
+          # mostly 2004 to 2008 ... truncated already 
+          sd.multiplier = 5
+          depthproportion = 0.1
+          smoothing = 0.4
+          filter.quants=c(0.01, 0.99) # keep as much data as possible
+          eps.depth = 1   # ... pre-gated  with not much room to model
+          depth.range = c(-60, 30)
+        } 
 
-    if (file.exists(fn.current)) file.remove( fn.current )
-    if (file.exists(fn.gsinf)) file.remove( fn.gsinf ) 
-    return(fn)
+        if (id=="NED2013028.172") {
+          depth.range = c(-70, 70) 
+        }
+     
+        bc = NULL # 
+        bc = try( 
+          bottom.contact(id, mm, depthproportion=depthproportion, tdif.min=15, tdif.max=45, eps.depth=eps.depth, 
+            sd.multiplier=sd.multiplier, depth.min=10, depth.range=depth.range, smoothing=smoothing, filter.quants=filter.quants, 
+            plot.data=TRUE, outdir=file.path(scanmar.bc.dir, "figures"), time.gate=time.gate ), 
+          silent=TRUE
+        )
+
+
+        if ( ! is.null(bc) && ( ! ( "try-error" %in% class(bc) ) ) ) { 
+          gsinf$bc0.datetime[gii] = bc$bottom0 
+          gsinf$bc1.datetime[gii] = bc$bottom1
+          gsinf$bottom_duration[gii] = bc$bottom.diff
+          gsinf$bc0.sd[gii] = bc$bottom0.sd
+          gsinf$bc1.sd[gii] = bc$bottom1.sd
+          gsinf$bc0.n[gii] =  bc$bottom0.n
+          gsinf$bc1.n[gii] =  bc$bottom1.n
+          if ( !is.finite( gsinf$bottom_depth[gii]))  gsinf$bottom_depth[gii] = bc$depth.mean
+          save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
+          fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
+          save ( bc, file=fn.bc, compress=TRUE )
+        }
+          
+        # if only the loop completes without error, reset the flag for current id on filesystem
+        cat("", file=fn.current )
+      }
+
+      ## END of re-run area ... 
+      gsinf.tokeep = setdiff( names( gsinf), setdiff(gsinf0.names, "id") )
+      gsinf = gsinf[ , gsinf.tokeep ]
+      fn = file.path( scanmar.bc.dir, paste( "gsinf.bottom.contact", YR, "rdata", sep=".")  )
+      save(gsinf, file=fn, compress= TRUE)
+      
+      print( "Troublesome id's have been stored in file:")
+      print( fn.badlist )
+      if (file.exists(fn.badlist)) print(  scan( fn.badlist, what="character", quiet=TRUE ) )
+
+      if (file.exists(fn.current)) file.remove( fn.current )
+      if (file.exists(fn.gsinf)) file.remove( fn.gsinf ) 
+    
+    }  # end for years
+
+    return( YRS )
   }
 
    
@@ -662,59 +759,83 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL ){
 
 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
-     
-    fn = file.path( p$scanmar.dir, "gsinf.sweptarea.rdata")
-    gs = NULL
-    if( DS=="sweptarea" ){
-      if (file.exists(fn)) load(fn)
-      return(gs)
+    
+    if (is.null (YRS) ) YRS = p$netmensuration.years 
+  
+    scanmar.sa.dir =  file.path(p$scanmar.dir, "sweptarea" )
+    dir.create( scanmar.sa.dir, recursive=TRUE, showWarnings=FALSE ) 
+    dir.create (file.path( scanmar.sa.dir, "results"), recursive=TRUE, showWarnings=FALSE )
+    dir.create (file.path( scanmar.sa.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
+
+
+    if(DS=="sweptarea"){
+      for ( YR in YRS ) {
+        gs = NULL
+        fn = file.path( scanmar.sa.dir, paste( "gsinf.sweptarea", YR, "rdata", sep=".")  )
+        if (file.exists(fn)) load(fn) 
+        out = rbind( out, gs )
+      }
+      return(out)
     }
- 
-    nm = scanmar.db( DS="sanity.checks", p=p )
-    nm = nm[which(is.finite( nm$depth)) ,  ]
+
+
+    for ( YR in YRS ) {
    
-    gs = scanmar.db( DS="bottom.contact", p=p )
-    gs$dist = NULL  # dummy values .. remove to avoid confusion 
+      nm = scanmar.db( DS="sanity.checks", p=p )
+      if (is.null( nm)) next()
     
-    # get variable names and sequence of var's
-    gstest = estimate.swept.area( getnames=TRUE )
-    newvars = setdiff( gstest, names( gs) )
-    for (vn in newvars) gs[,vn] = NA
-    gs = gs[, names(gstest) ] # reorder
+      nm = nm[which(is.finite(nm$depth)) ,  ]
+      nm = nm[which(!is.na( nm$id ) ) , ]
+      if (nrow( nm) < 1 ) next()
 
-    if(FALSE) {
-      # debugging 
-      id="TEM2008775.22"
-      id="NED2010001.59"
-      ii = which( nm$id==id ) 
-      gii = which( gs$id==id ) 
-      gs = gs[gii,]
-      x = nm[ii,]
-    }
- 
-    nreq = 30
-    sd.max = 30  # in seconds 
-    uid = sort( unique( nm$id)) 
-    
-    for ( id in uid) {
-      print( id)
-      jj = NULL
-      jj = which( nm$id==id )  # rows of nm with scanmar/marport data
-      tk = which( nm$timestamp[ii] >= gs$bc0.datetime[gsi] & nm$timestamp[ii] <= gs$bc1.datetime[gsi] )
-      if (length(tk) < nreq ) next()
-      ii = jj[tk]
-      if ( length( which( is.finite(nm[ii, "depth"]))) < nreq ) next()  
-      gii = which( gs$id==id )  # row of matching gsinf with tow info
+      gs = scanmar.db( DS="bottom.contact", p=p )
+      if (is.null ( gs)) next()
+     
+      gs$dist = NULL  # dummy values .. remove to avoid confusion 
+      
+      # get variable names and sequence of var's
+      gstest = estimate.swept.area( getnames=TRUE )
+      newvars = setdiff( gstest, names( gs) )
+      for (vn in newvars) gs[,vn] = NA
+      gs = gs[, names(gstest) ] # reorder
 
-      if ( all (is.finite( c( gs$bc0.sd[gii], gs$bc1.sd[gii] ) ))) {
-      if ( gs$bc0.sd[gii] <= sd.max & gs$bc1.sd[gii] <= sd.max )  {  
+      if(FALSE) {
+        # debugging 
+        id="TEM2008775.22"
+        id="NED2010001.59"
+        ii = which( nm$id==id ) 
+        gii = which( gs$id==id ) 
+        gs = gs[gii,]
+        x = nm[ii,]
+      }
+   
+      nreq = 30
+      sd.max = 30  # in seconds 
+      uid = sort( unique( nm$id)) 
+      
+      for ( id in uid) {
+        print( id)
+        
+        bc = scanmar.db( DS="bottom.contact.id", p=p, id=id )
+        
+        jj = NULL
+        jj = which( nm$id==id )  # rows of nm with scanmar/marport data
+        tk = which( nm$timestamp[ii] >= gs$bc0.datetime[gsi] & nm$timestamp[ii] <= gs$bc1.datetime[gsi] )
+        if (length(tk) < nreq ) next()
+        ii = jj[tk]
+        if ( length( which( is.finite(nm[ii, "depth"]))) < nreq ) next()  
+        gii = which( gs$id==id )  # row of matching gsinf with tow info
 
-        # SD of start and end times must have a convengent solution which is considered to be stable when SD < 30 seconds
-        sa = estimate.swept.area( gsi = gs[gii,],  x= nm[ii,] )
-        gs$sa[gii] = sa$surfacearea
-        # gs$ ...
+        if ( all (is.finite( c( gs$bc0.sd[gii], gs$bc1.sd[gii] ) ))) {
+        if ( gs$bc0.sd[gii] <= sd.max & gs$bc1.sd[gii] <= sd.max )  {  
 
-      }}
+          # SD of start and end times must have a convengent solution which is considered to be stable when SD < 30 seconds
+          sa = estimate.swept.area( gsi = gs[gii,],  x= nm[ii,] )
+          gs$sa[gii] = sa$surfacearea
+          # gs$ ...
+
+        }}
+      }
     }
     save(gs, file=fn, compress= TRUE)
   }

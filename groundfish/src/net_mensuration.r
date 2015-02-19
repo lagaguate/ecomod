@@ -11,26 +11,28 @@ p$scanmar.dir = file.path( project.directory("groundfish"), "data", "nets", "Sca
 p$marport.dir = file.path( project.directory("groundfish"), "data", "nets", "Marport" ) 
 
 p$current.year = 2014
-p$netmensuration.years = 2006:p$current.year
-# p$ntemensuration.year = p$current.year  # to process and update a given year's data
+p$netmensuration.years = c(1990:1992, 2004:p$current.year)  ## 2009 is the first year with set logs from scanmar available .. if more are found, alter this date
+p$netmensuration.years = p$current.year  ## for incremental/annual update
 
-p$user.interaction=FALSE  # for debugging .. leave FALSE
-p$override.missions=FALSE  # for debugging .. leave FALSE
+
 
 
 # steps required to recreate a local database of all data
-recreate.full.database.locally = FALSE
-if ( recreate.full.database.locally ) {
+recreate.perley.db = FALSE
+if ( recreate.perley.db ) {
   # define these in your Rprofile 
   # oracle.perley.user ="username"
   # oracle.perley.password = "password"
   # oracle.perley.db = "servername"
   scanmar.db( DS="perley.datadump", p=p ) # ODBC data dump .. this step requires definition of password etc
-  scanmar.db( DS="perley.redo", p=p )    # perley had two db's merge them together
-  
-  scanmar.db( DS="post.perley.redo", p=p )        # Assimilate Scanmar files in raw data saves *.set.log files
-  scanmar.db( DS="post.perley.merged.redo", p=p ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
-  scanmar.db( DS="merge.historical.scanmar.redo",  p=p ) # add all scanmar data together
+  scanmar.db( DS="perley.redo", p=p )    # perley had two db's merge them together: from XXXX-2002 and 2006 to 200X
+}
+
+
+# the following works upon annual time slices ( defined in p$netmensuration.years )
+
+  scanmar.db( DS="basedata.redo", p=p )        # Assimilate Scanmar files in raw data saves *.set.log files
+  scanmar.db( DS="basedata.lookuptable.redo", p=p ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
   scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
   
   # WARNING:: the following may crash as INLA does not exit gracefully from some errors
@@ -38,7 +40,7 @@ if ( recreate.full.database.locally ) {
   # and then re-run the line and it will continue from where it crashed
   scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
   scanmar.db( DS="sweptarea.redo",  p=p )  
-}
+
 
 
 create.marport.database = FALSE
@@ -207,17 +209,6 @@ plot(depth~timestamp, rawdata)
 plot(depth~timestamp, rawdata, ylim=c(250,0))
 
 points(x$timestamp[bc$variance.method.indices],  x$depth[bc$variance.method.indices], col="violet", pch=19)
-
-
-# Only run to genereate new samples
-loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
-allids=unique(modern.data$id)
-
-i=sample(1:length(allids),5)
-mission.list=allids[i]
-mission.list
-scanmar.db( DS="bottom.contact.redo", p=p, user.interaction=FALSE, override.missions=mission.list  )
-
 
 
 # General depth plots

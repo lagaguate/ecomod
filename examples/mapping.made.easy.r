@@ -174,3 +174,61 @@ plot( dm100, add=TRUE )  # there seem to be some problems with the polygon data 
 
 
 
+
+### an example using lattice plots and passing the map coastline to it
+# non-lattice plots do not work well inside of lattice .. but you can pass data
+require(lubridate)
+require(lattice)
+loadfunctions( "groundfish" )
+loadfunctions( "utility") 
+
+datatoplot = groundfish.db( DS="gsinf" ) 
+datatoplot$year = lubridate::year( datatoplot$timestamp ) 
+datatoplot = datatoplot[ which(datatoplot$year %in% 2000:2014 ), ]
+                     
+# trellis.par.set(col.whitebg())
+xyplot( lat ~ lon| factor(year), data=datatoplot,
+  as.table=TRUE, xlab="Longitude", ylab="Latitude", main="Example",      
+  panel = function(x, y, subscripts, ...) {
+    panel.xyplot( x, y, pch=21, cex=0.4, col="orange" , ...)
+  }
+)
+
+print(pl)
+
+  
+require(maps)
+require(mapdata)
+coast =  map( "worldHires", regions=c("Canada", "USA"), xlim=c(-72, -56 ), ylim=c(42,49), fill=TRUE, resolution=0, plot=FALSE)  
+
+
+trellis.par.set(col.whitebg())
+xyplot( lat ~ lon| factor(year), data=datatoplot, coast=coast,
+  as.table=TRUE, xlab="Longitude", ylab="Latitude", main="Example",      
+  panel = function(x, y, subscripts, ...) {
+    panel.lines( coast$x, coast$y, col = "grey", lwd=0.7 )
+    panel.xyplot( x, y, pch=21, cex=0.4, col="orange" , ...)
+  }
+)
+
+
+           
+ncats = 100
+drange = range( z, na.rm=TRUE) 
+cols = color.code( "seis", seq( drange[1], drange[2], length.out=ncats) ) [ cut( z, ncats, label = FALSE) ]
+                
+trellis.par.set(col.whitebg())
+xyplot( lat ~ lon| factor(year), data=datatoplot, coast=coast, cols=cols, 
+  as.table=TRUE, xlab="Longitude", ylab="Latitude", main="Example", 
+  panel = function(x, y, subscripts, cols=cols, colorkey=colorkey, ...) {
+    panel.lines( coast$x, coast$y, col = "grey", lwd=0.7 )
+    panel.xyplot( x, y, pch=21, cex=0.4, col=cols , ...)
+  }
+)
+  
+Cairo( file="zooplankton_data_yearly.pdf", type="pdf", bg="white",  units="in", width=6, height=8 )
+  print(pl)
+dev.off()
+
+
+

@@ -1,6 +1,6 @@
 
 
-load.marport.rawdata = function( fnroot, fncfg, tzone="UTC" ) {
+load.marport.rawdata = function( fnroot, fncfg, tzone="America/Halifax" ) {
 
   require(lubridate)
   if (FALSE) {
