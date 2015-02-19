@@ -1,6 +1,6 @@
 
 
-project.directory = function(directory=NULL, ...) {
+project.directory = function(..., directory=NULL) {
   
   ## this function is required to bootstrap the other project level functions
   ## probably should make this cleaner one day .. :)
@@ -14,7 +14,7 @@ project.directory = function(directory=NULL, ...) {
   
   # nonexistant directories 
   if (! file.exists( pd)) {
-    mk.Dir = readline("Directory not found, shall we create it? Yes/No (Default No) : ")
+    mk.Dir = readline(paste("Directory",pd,"not found, shall we create it? Yes/No (Default No) : "))
     if ( mk.Dir =="Yes" ) {
       dir.create( pd, recursive=TRUE) 
       print( paste("The directory -- ",  pd, " -- has been created") )
