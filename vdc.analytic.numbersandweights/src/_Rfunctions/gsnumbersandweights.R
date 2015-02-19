@@ -49,4 +49,4 @@ gsnumbersandweights<-function(){
   return(data)
 }
 
-gsnumbersandweights()
+#gsnumbersandweights()
