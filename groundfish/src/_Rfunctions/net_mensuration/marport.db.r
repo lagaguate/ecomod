@@ -54,14 +54,12 @@ marport.db = function( DS, p ){
     basedata$mission = paste(g, basedata$set, sep=".")
     basedata$year = substring(basedata$mission, 4,7)
 
-    print ( "Check this section with Jenna" ) 
-    {
-    
-    # remove US trawls
+    basedata$trawl = "WesternIIA"
+    # flag US trawls
     i = grep("us", basedata$mission)
-    basedata = basedata[-i,]
+    if (length(i) > 0) basedata$trawl[i] = "US"
     n = grep("US", basedata$mission)
-    basedata = basedata[-n,]
+    if (length(n) > 0) basedata$trawl[n] = "US"
     
     # Produce standard format for mission to enable comparision with Scanmar
     basedata$mission = gsub("W2A0", "", basedata$mission)
@@ -76,7 +74,7 @@ marport.db = function( DS, p ){
     uni = strsplit(basedata$mission,".", fixed = TRUE)
     uni1 = as.data.frame(matrix(unlist(uni), ncol = 2, byrow = TRUE))
     basedata$mission = paste(uni1[,1], as.numeric(uni1[,2]),sep=".")
-    }
+    
 
 
     # rename mission to id, so comparisons with Scanmar are easier
@@ -108,7 +106,12 @@ marport.db = function( DS, p ){
       nm$wingspread = filter.nets("wingspread.range", nm$wingspread)
       nm$clearance = filter.nets("clearance.range", nm$clearance)
       nm$opening.scanmar = filter.nets("opening.range", nm$opening.scanmar)
-      nm$depth = filter.nets("depth.range", nm$depth)
+      nm$DepthDoorPort = filter.nets("depth.range", nm$DepthDoorPort)
+      nm$DepthDoorStar = filter.nets("depth.range", nm$DepthDoorStar)
+      nm$DepthWingPort = filter.nets("depth.range", nm$DepthWingPort)
+      nm$DepthWingStar = filter.nets("depth.range", nm$DepthWingStar)
+      nm$DepthScanmar = filter.nets("depth.range", nm$DepthScanmar)
+    
     
     save(nm, file=fn, compress=TRUE)
     return(fn) 
