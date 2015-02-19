@@ -509,14 +509,14 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
      # coarse level gating   
       
      # ID sets where American trawls were used for comparative surveys
-     nm$net = "standard"
+     nm$net = "WesternIIA"
      oo = filter.nets("identify.trawls.with.US.nets", nm) 
      if (length( oo) >0 ) {
-       nm$net[oo] = "american"
+       nm$net[oo] = "American"
        ## additional gating goes here ... 
      }
 
-     pp = which( nm$net == "standard" )
+     pp = which( nm$net == "WesternIIA" )
      if (length(pp) >0 ) {
        nm$doorspread[pp] = filter.nets("doorspread.range", nm$doorspread[pp] )
        nm$wingspread[pp]  = filter.nets("wingspread.range", nm$wingspread[pp] )
@@ -615,11 +615,12 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
 
       for ( id in uid) {
         print( id)
-        # in sufficient data for these: 
-        if ( id %in% c("NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83" ) ) {
-          # these are just flat-lines .. no reliable data
-          next()
-        }
+        # in sufficient data for these or just flat-lines .. no reliable data
+        baddata = c("NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83", "NED2010027.15", 
+                    "NED2010027.29", "NED2010027.66", "NED2010027.8", "NED2013028.105" 
+        )
+        # NED2010027.66 looks to be two tows in one file
+        if ( id %in% baddata )  next()
 
         if ( file.exists (fn.current) ) {
           # if there is something in the current id from a previous run, this indicates that this is likely a re-start
@@ -754,6 +755,68 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
   }
 
    
+  # -------
+  
+
+  if (DS %in% c("scanmar.filtered", "scanmar.filtered.redo", "scanmar.filtered.indices" )) {
+    
+    if (is.null (YRS) ) YRS = p$netmensuration.years 
+  
+    scanmar.filtered.dir =  file.path(p$scanmar.dir, "scanmar.filtered" )
+    dir.create( scanmar.filtered.dir, recursive=TRUE, showWarnings=FALSE ) 
+    dir.create (file.path( scanmar.filtered.dir, "results"), recursive=TRUE, showWarnings=FALSE )
+    dir.create (file.path( scanmar.filtered.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
+
+
+    if(DS=="scanmar.filtered"){
+      nm = scanmar.db( DS="sanity.checks", p=p, YRS=YRS )
+      ii = scanmar.db( DS="scanmar.filtered.indices", p=p, YRS=YRS )
+      return(nm[ii,])
+    }
+
+    if(DS=="scanmar.filtered.indices"){
+      ii = NULL
+      for ( YR in YRS ) {
+        out = NULL
+        fn = file.path( scanmar.filtered.dir, paste( "scanmar.filtered.indices", YR, "rdata", sep=".")  )
+        if (file.exists(fn)) load(fn) 
+        ii = rbind( ii, out )
+      }
+      return(out)
+    }
+    
+    for ( YR in YRS ) {
+      out = NULL
+      nm = scanmar.db( DS="sanity.checks", p=p, YRS=YR )
+      if (is.null( nm)) next()
+      nm = nm[which(is.finite(nm$depth)) ,  ]
+      nm = nm[which(!is.na( nm$id ) ) , ]
+      if (nrow( nm) < 1 ) next()
+      gs = scanmar.db( DS="bottom.contact", p=p, YRS=YR )
+      if (is.null ( gs)) next()
+      nreq = 30
+      sd.max = 30  # in seconds 
+      uid = sort( unique( nm$id)) 
+      for ( id in uid) {
+        print( id)
+        jj = NULL
+        jj = which( nm$id==id )  # rows of nm with scanmar/marport data
+        tk = which( nm$timestamp[jj] >= gs$bc0.datetime[gsi] & nm$timestamp[jj] <= gs$bc1.datetime[gsi] )
+        if (length(tk) < nreq ) next()
+        ii = jj[tk]
+        if ( length( which( is.finite(nm[ii, "depth"]))) < nreq ) next()  
+        if ( all (is.finite( c( gs$bc0.sd[gii], gs$bc1.sd[gii] ) ))) {
+          if ( gs$bc0.sd[gii] <= sd.max & gs$bc1.sd[gii] <= sd.max )  {  
+            out = c( out, ii)
+          }
+        }
+      }
+      fn = file.path( scanmar.filtered.dir, paste( "scanmar.filtered.indices", YR, "rdata", sep=".")  )
+      save( out, file=fn, compress= TRUE)
+    } # end for years
+    return( YRS)
+  }
+
 
   # -----------------------------------
 
@@ -778,17 +841,12 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       return(out)
     }
 
-
     for ( YR in YRS ) {
    
-      nm = scanmar.db( DS="sanity.checks", p=p )
+      nm = scanmar.db( DS="scanmar.filered", p=p, YRS=YR )
       if (is.null( nm)) next()
-    
-      nm = nm[which(is.finite(nm$depth)) ,  ]
-      nm = nm[which(!is.na( nm$id ) ) , ]
-      if (nrow( nm) < 1 ) next()
 
-      gs = scanmar.db( DS="bottom.contact", p=p )
+      gs = scanmar.db( DS="bottom.contact", p=p, YRS=YR )
       if (is.null ( gs)) next()
      
       gs$dist = NULL  # dummy values .. remove to avoid confusion 
@@ -818,27 +876,20 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
         
         bc = scanmar.db( DS="bottom.contact.id", p=p, id=id )
         
-        jj = NULL
-        jj = which( nm$id==id )  # rows of nm with scanmar/marport data
-        tk = which( nm$timestamp[ii] >= gs$bc0.datetime[gsi] & nm$timestamp[ii] <= gs$bc1.datetime[gsi] )
-        if (length(tk) < nreq ) next()
-        ii = jj[tk]
-        if ( length( which( is.finite(nm[ii, "depth"]))) < nreq ) next()  
+        gii = jj = NULL
+        jj  = which( nm$id==id )  # rows of nm with scanmar/marport data
         gii = which( gs$id==id )  # row of matching gsinf with tow info
 
-        if ( all (is.finite( c( gs$bc0.sd[gii], gs$bc1.sd[gii] ) ))) {
-        if ( gs$bc0.sd[gii] <= sd.max & gs$bc1.sd[gii] <= sd.max )  {  
+        sa = estimate.swept.area( gsi=gs[gii,],  x= nm[jj,] )
+        gs$sa[gii] = sa$surfacearea
+        # gs$ ...
 
-          # SD of start and end times must have a convengent solution which is considered to be stable when SD < 30 seconds
-          sa = estimate.swept.area( gsi = gs[gii,],  x= nm[ii,] )
-          gs$sa[gii] = sa$surfacearea
-          # gs$ ...
-
-        }}
       }
-    }
-    save(gs, file=fn, compress= TRUE)
-  }
+      save(gs, file=fn, compress= TRUE)
+    } # end for years
+    return(YRS)
+  } # end DS
+
 
 } 
 
