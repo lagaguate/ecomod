@@ -108,7 +108,12 @@ marport.db = function( DS, p ){
       nm$wingspread = filter.nets("wingspread.range", nm$wingspread)
       nm$clearance = filter.nets("clearance.range", nm$clearance)
       nm$opening.scanmar = filter.nets("opening.range", nm$opening.scanmar)
-      nm$depth = filter.nets("depth.range", nm$depth)
+      nm$DepthDoorPort = filter.nets("depth.range", nm$DepthDoorPort)
+      nm$DepthDoorStar = filter.nets("depth.range", nm$DepthDoorStar)
+      nm$DepthWingPort = filter.nets("depth.range", nm$DepthWingPort)
+      nm$DepthWingStar = filter.nets("depth.range", nm$DepthWingStar)
+      nm$DepthScanmar = filter.nets("depth.range", nm$DepthScanmar)
+    
     
     save(nm, file=fn, compress=TRUE)
     return(fn) 
