@@ -287,12 +287,14 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       nm$latitude =NULL
       
       if (YR %in% c( perley.years0, perley.years1)  ) {
-        nm$nm_id = nm$id  
+        nm$id = nm$nm_id = nm$id  
       }
       if (YR == datalog.year0 ) {   
         nm$nm_id = nm$id
         oo = which( nm$netmensurationfilename != "Perley Oracle instance") 
-        if (length(oo) > 0) nm$nm_id[oo] = nm$netmensurationfilename[ oo ]
+        if (length(oo) > 0)  {
+          nm$id[oo] = nm$nm_id[oo] = nm$netmensurationfilename[ oo ]
+        }
       }
       if (YR > datalog.year0 ) {   
         nm$nm_id = nm$netmensurationfilename
@@ -303,78 +305,31 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       meta$id=NA
       meta$min.distance = NA
       meta$time.difference = NA
-      
-      for(i in 1:nrow(meta)){
-        k = meta$nm_id[i]
-        # print(k)
-        
-        j = which(nm$nm_id == k)
-        if(length(j)>0) {
-          ppc=nm[j,]
-          
-          m = which.min(ppc$timestamp)
-          meta$timestamp[i] = as.character(ppc$timestamp[m])
-          dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
-          u = which(abs(dif)< dhours  (9) )
-          
-          if(length(u)> 1) {
-            gfs=gf[u,]
-            gfs$min.distance.test=NA
 
-            for(v in 1:nrow (gfs)){
-              distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
-              gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
-            }
-            
-            w = which.min(gfs$min.distance.test)
-            if(gfs$min.distance.test[w]< 1 ){
-              meta$id[i]=gfs$id[w]  # exact match with very high confidence
-              meta$min.distance[i] = gfs$min.distance.test[w]
-              meta$time.difference[i] = dif[u[w]]
-            } 
-          }
-        }
-      }
-      
-      # Check for duplicates as some are data errors .. needed to be checked manually and raw data files altered
-      # others are due to bad tows being redone ... so invoke a distance based rule as the correct one in gsinf 
-      # (good tows only are recorded)
-      dupids = unique( meta$id[ which( duplicated( meta$id, incomparables=NA) ) ] )
-      for ( dups in dupids ) {
-        uu = which(meta$id %in% dups)
-        good = uu[ which.min( meta$min.distance[uu] ) ]
-        notsogood = setdiff( uu, good )    
-        meta$id[notsogood] = NA       
-      }
-      
-      # redo the distance-based match to catch any that did not due to being duplicates above
-      # does not seem to do much but kept for posterity
-      unmatched = which( is.na(meta$id ) )
-      if (length (unmatched) > 0) {
-        for(i in unmatched ){
+      # Perley series has id's
+      pp = grep( "*.log$", meta$nm_id, invert=TRUE, ignore.case=TRUE )
+      if (length( pp)>0) meta$id[pp] = meta$nm_id[pp]
+
+      unmatched = which( is.na( meta$id))
+      if (length(unmatched)>0) {
+        for(i in unmatched){
           k = meta$nm_id[i]
           j = which(nm$nm_id == k)
           if(length(j)>0) {
             ppc=nm[j,]
+            cc = which( is.finite( ppc$lon + ppc$lat)  )
+            if (length (cc) == 0 ) next()
             m = which.min(ppc$timestamp)
             meta$timestamp[i] = as.character(ppc$timestamp[m])
             dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
-            u = which(abs(dif)< dhours  (9)) 
-            
-            ## the next two lines are where things are a little different from above
-            ## catch all as yet unmatched id's only for further processing
-            current.meta.ids = unique( sort( meta$id) )
-            u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
-            
+            u = which(abs(dif)< dhours  (9) )
             if(length(u)> 1) {
               gfs=gf[u,]
               gfs$min.distance.test=NA
-              
               for(v in 1:nrow (gfs)){
                 distance.test = geodist(ppc[,c("lon","lat")], gfs[v,c("lon","lat")], method="great.circle")
                 gfs$min.distance.test[v] = min(distance.test, na.rm=TRUE)
               }
-              
               w = which.min(gfs$min.distance.test)
               if(gfs$min.distance.test[w]< 1 ){
                 meta$id[i]=gfs$id[w]  # exact match with very high confidence
@@ -384,33 +339,45 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
             }
           }
         }
-      }
-      
-      ## now do a more fuzzy match based upon time stamps as there are no matches based upon distance alone
-      nomatches = which( is.na( meta$id) )
-      if (length(nomatches) > 1) {
-        for(i in nomatches){
-          k = meta$nm_id[i]
-          # print(k)
-          j = which(nm$nm_id == k)
-          if(length(j)>0) {
-            ppc=nm[j,]
-            m = which.min(ppc$timestamp)
-            meta$timestamp[i] = as.character(ppc$timestamp[m])
-            dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
-            u = which( abs(dif)< dhours  (1) )
-            if (length(u) == 1 ) { 
-              current.meta.ids = unique( sort( meta$id) )
-              u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
-              if (length(u) == 1 ) {
-                meta$id[i]= gf$id[u]
-                meta$time.difference[i] = dif[u]
-              }
-            }          
+
+        # Check for duplicates as some are data errors .. needed to be checked manually and raw data files altered
+        # others are due to bad tows being redone ... so invoke a distance based rule as the correct one in gsinf 
+        # (good tows only are recorded)
+        dupids = unique( meta$id[ which( duplicated( meta$id, incomparables=NA) ) ] )
+        if (length(dupids)>0) {
+          for ( dups in dupids ) {
+            uu = which(meta$id %in% dups)
+            good = uu[ which.min( meta$min.distance[uu] ) ]
+            notsogood = setdiff( uu, good )    
+            meta$id[notsogood] = NA       
           }
-        }
-      }    
-      
+        }  
+        
+        ## now do a more fuzzy match based upon time stamps as there are no matches based upon distance alone
+        nomatches = which( is.na( meta$id) )
+        if (length(nomatches) > 0) {
+          for(i in nomatches){
+            k = meta$nm_id[i]
+            # print(k)
+            j = which(nm$nm_id == k)
+            if(length(j)>0) {
+              ppc=nm[j,]
+              m = which.min(ppc$timestamp)
+              meta$timestamp[i] = as.character(ppc$timestamp[m])
+              dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
+              u = which( abs(dif)< dhours  (1) )
+              if (length(u) == 1 ) { 
+                current.meta.ids = unique( sort( meta$id) )
+                u = u[ which( ! (gf$id[u] %in% current.meta.ids ) )]
+                if (length(u) == 1 ) {
+                  meta$id[i]= gf$id[u]
+                  meta$time.difference[i] = dif[u]
+                }
+              }          
+            }
+          }
+        }   
+      }
       save(meta, file= fn, compress= TRUE)
       print(fn)
     }  # end loop for YRS
@@ -513,7 +480,12 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
      oo = filter.nets("identify.trawls.with.US.nets", nm) 
      if (length( oo) >0 ) {
        nm$net[oo] = "American"
-       ## additional gating goes here ... 
+       ## additional gating goes here ... currently using the same rules .. 
+       nm$doorspread[oo] = filter.nets("doorspread.range", nm$doorspread[oo] )
+       nm$wingspread[oo]  = filter.nets("wingspread.range", nm$wingspread[oo] )
+       nm$clearance[oo]  = filter.nets("clearance.range", nm$clearance[oo] )
+       nm$opening[oo]  = filter.nets("opening.range", nm$opening[oo] )
+       nm$depth[oo]  = filter.nets("depth.range", nm$depth[oo] )
      }
 
      pp = which( nm$net == "WesternIIA" )
@@ -547,6 +519,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
     dir.create (file.path( scanmar.bc.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
 
     if(DS=="bottom.contact"){
+      out = NULL
       for ( YR in YRS ) {
         gsinf=NULL
         fn= file.path( scanmar.bc.dir, paste( "gsinf.bottom.contact", YR, "rdata", sep=".")  )
@@ -555,7 +528,10 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       }
       gsinf0 = groundfish.db( DS="gsinf" )
       if (!is.null(out)) gsinf0 = merge( gsinf0, out, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      return(gsinf0)
+      gg = which( lubridate::year(gsinf0$timestamp) %in% YRS )
+      gs = NULL
+      if (length(gg)>0) gs = gsinf0[ gg, ]
+      return(gs)
     }
 
     if(DS=="bottom.contact.id"){
@@ -615,13 +591,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
 
       for ( id in uid) {
         print( id)
-        # in sufficient data for these or just flat-lines .. no reliable data
-        baddata = c("NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83", "NED2010027.15", 
-                    "NED2010027.29", "NED2010027.66", "NED2010027.8", "NED2013028.105" 
-        )
-        # NED2010027.66 looks to be two tows in one file
-        if ( id %in% baddata )  next()
-
+        if ( id %in% p$bc.badlist )  next()
         if ( file.exists (fn.current) ) {
           # if there is something in the current id from a previous run, this indicates that this is likely a re-start
           # add it to the list of "bad.list" and skip over for manual analysis
@@ -775,45 +745,52 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
     }
 
     if(DS=="scanmar.filtered.indices"){
-      ii = NULL
+      res = NULL
       for ( YR in YRS ) {
         out = NULL
         fn = file.path( scanmar.filtered.dir, paste( "scanmar.filtered.indices", YR, "rdata", sep=".")  )
         if (file.exists(fn)) load(fn) 
-        ii = rbind( ii, out )
+        res = c( res, out )
       }
-      return(out)
+      res = sort( unique( res))
+      return(res)
     }
+ 
+    nreq = 30
+    sd.max = 30  # in seconds 
     
     for ( YR in YRS ) {
       out = NULL
+      gs = scanmar.db( DS="bottom.contact", p=p, YRS=YR )
+      if (is.null ( gs)) next()
       nm = scanmar.db( DS="sanity.checks", p=p, YRS=YR )
       if (is.null( nm)) next()
       nm = nm[which(is.finite(nm$depth)) ,  ]
       nm = nm[which(!is.na( nm$id ) ) , ]
       if (nrow( nm) < 1 ) next()
-      gs = scanmar.db( DS="bottom.contact", p=p, YRS=YR )
-      if (is.null ( gs)) next()
-      nreq = 30
-      sd.max = 30  # in seconds 
       uid = sort( unique( nm$id)) 
       for ( id in uid) {
-        print( id)
-        jj = NULL
-        jj = which( nm$id==id )  # rows of nm with scanmar/marport data
-        tk = which( nm$timestamp[jj] >= gs$bc0.datetime[gsi] & nm$timestamp[jj] <= gs$bc1.datetime[gsi] )
+        # print( id)
+        kk = jj = NULL
+        kk = which( gs$id==id) 
+        jj = which( nm$id==id)  # rows of nm with scanmar/marport data
+        if (length( kk) < 1) next()
+        if (length( jj) < nreq ) next()
+        tk = which( nm$timestamp[jj] >= gs$bc0.datetime[kk] & nm$timestamp[jj] <= gs$bc1.datetime[kk] )
         if (length(tk) < nreq ) next()
         ii = jj[tk]
         if ( length( which( is.finite(nm[ii, "depth"]))) < nreq ) next()  
-        if ( all (is.finite( c( gs$bc0.sd[gii], gs$bc1.sd[gii] ) ))) {
-          if ( gs$bc0.sd[gii] <= sd.max & gs$bc1.sd[gii] <= sd.max )  {  
+        if ( all (is.finite( c( gs$bc0.sd[kk], gs$bc1.sd[kk] ) ))) {
+          if ( gs$bc0.sd[kk] <= sd.max & gs$bc1.sd[kk] <= sd.max )  {  
             out = c( out, ii)
           }
         }
       }
       fn = file.path( scanmar.filtered.dir, paste( "scanmar.filtered.indices", YR, "rdata", sep=".")  )
       save( out, file=fn, compress= TRUE)
+      print(fn)
     } # end for years
+    
     return( YRS)
   }
 
@@ -832,6 +809,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
 
 
     if(DS=="sweptarea"){
+      out = NULL
       for ( YR in YRS ) {
         gs = NULL
         fn = file.path( scanmar.sa.dir, paste( "gsinf.sweptarea", YR, "rdata", sep=".")  )
@@ -840,11 +818,16 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       }
       return(out)
     }
+  
+    
+    nreq = 30
+    sd.max = 30  # in seconds 
 
     for ( YR in YRS ) {
    
-      nm = scanmar.db( DS="scanmar.filered", p=p, YRS=YR )
+      nm = scanmar.db( DS="scanmar.filtered", p=p, YRS=YR )
       if (is.null( nm)) next()
+      uid = sort( unique( nm$id)) 
 
       gs = scanmar.db( DS="bottom.contact", p=p, YRS=YR )
       if (is.null ( gs)) next()
@@ -867,10 +850,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
         x = nm[ii,]
       }
    
-      nreq = 30
-      sd.max = 30  # in seconds 
-      uid = sort( unique( nm$id)) 
-      
+       
       for ( id in uid) {
         print( id)
         
