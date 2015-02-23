@@ -27,7 +27,7 @@ if ( recreate.perley.db ) {
 
 
 # the following works upon annual time slices ( defined in p$netmensuration.years )
-
+p$netmensuration.years = c(1990:1992, 2004:p$current.year)  
 scanmar.db( DS="basedata.redo", p=p )        # Assimilate Scanmar files in raw data saves *.set.log files
 scanmar.db( DS="basedata.lookuptable.redo", p=p ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
 scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
@@ -57,9 +57,10 @@ nm = scanmar.db( DS="scanmar.filtered",  p=p )  # bring in estimates of bottom c
 
 create.marport.database = FALSE
 if (create.marport.database ) {
-  marport.db( DS="marport.redo",  p=p )      # load data from raw data files
-  marport.db( DS="marport.gated.redo",  p=p )      # QA/QC of data
-  marport = marport.db( DS="marport.gated",  p=p )
+  p$netmensuration.years = 2013:2014  
+  marport.db( DS="basedata.redo",  p=p )      # load data from raw data files
+  marport.db( DS="gated.redo",  p=p )      # QA/QC of data
+  marport = marport.db( DS="gated",  p=p )
 }
 
 

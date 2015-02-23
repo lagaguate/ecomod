@@ -11,7 +11,7 @@ marport.db = function( DS, p, YRS=NULL ){
   }
 
  
-  if(DS %in% c("marport", "marport.redo"))  {
+  if(DS %in% c("basedata", "basedata.redo"))  {
     
     if (is.null (YRS) ) YRS = p$netmensuration.years 
     
@@ -62,17 +62,16 @@ marport.db = function( DS, p, YRS=NULL ){
         print(fl)
         j = load.marport.rawdata( fl, sensorconfig )  # variable naming conventions in the past
         if (is.null(j)) next()
-        j$rootname=fl
+        j$rootname = fl
+        kk =  ll = NULL
+        kk = gsub( rawdata.dir, "", fl, fixed=TRUE )
+        j$mission = unlist( strsplit(kk, .Platform$file.sep, fixed = TRUE)) [2]
+        ll = basename( kk)
+        j$set  = as.numeric( unlist( strsplit(ll, "-", fixed = TRUE)) [3] )
+        j$id = paste( j$mission, j$set, sep="." )
         basedata = rbind( basedata, j)
       }
       
-      # Include mission as a variable (also trip and year)
-      g=substring(basedata$rootname,54,63)      
-      basedata$mission = paste(g, basedata$set, sep=".")
-      basedata$year = substring(basedata$mission, 4,7)
-
-    
-    
     basedata$trawl = "WesternIIA"
     # flag US trawls
     i = grep("us", basedata$mission)
@@ -82,27 +81,26 @@ marport.db = function( DS, p, YRS=NULL ){
     
     
     # Produce standard format for mission to enable comparision with Scanmar
-    basedata$mission = gsub("W2A0", "", basedata$mission)
-    basedata$mission = gsub("001W2", "", basedata$mission)
-    basedata$mission = gsub("WIIA0", "", basedata$mission)
-    basedata$mission = gsub("W2a", "", basedata$mission)
-    basedata$mission = gsub("W2", "", basedata$mission)
-    basedata$mission = gsub("w2", "", basedata$mission)
+   #  basedata$mission = gsub("W2A0", "", basedata$mission)
+   #  basedata$mission = gsub("001W2", "", basedata$mission)
+   # basedata$mission = gsub("WIIA0", "", basedata$mission)
+   # basedata$mission = gsub("W2a", "", basedata$mission)
+   # basedata$mission = gsub("W2", "", basedata$mission)
+   # basedata$mission = gsub("w2", "", basedata$mission)
     
     
     # Remove extra zeros
-    uni = strsplit(basedata$mission,".", fixed = TRUE)
-    uni1 = as.data.frame(matrix(unlist(uni), ncol = 2, byrow = TRUE))
-    basedata$mission = paste(uni1[,1], as.numeric(uni1[,2]),sep=".")
-
+#    uni = strsplit(basedata$mission,".", fixed = TRUE)
+#    uni1 = as.data.frame(matrix(unlist(uni), ncol = 2, byrow = TRUE))
+#    basedata$mission = paste(uni1[,1], as.numeric(uni1[,2]),sep=".")
 
       # rename mission to id, so comparisons with Scanmar are easier
-      basedata$id = basedata$mission
+#      basedata$id = basedata$mission
       
       # Make year numeric and as trip as a variable
-      basedata$year=as.numeric(basedata$year)
+      basedata$year= YR
       basedata$trip = substring(basedata$mission, 8,10)
-      basedata$trip=as.numeric(basedata$trip)
+      basedata$trip = as.numeric(basedata$trip)
       
       save(basedata, file=fn, compress= TRUE)
       print( fn)
@@ -115,10 +113,10 @@ marport.db = function( DS, p, YRS=NULL ){
   # -------------------------------
 
 
-  if(DS %in% c("marport.gated", "marport.gated.redo"))  {
+  if(DS %in% c("gated", "gated.redo"))  {
     nm=NULL
-    fn=file.path( p$marport.dir, paste( "marport.gated", "rdata", sep="." ))
-    if(DS == "marport.gated"){
+    fn=file.path( p$marport.dir, paste( "gated", "rdata", sep="." ))
+    if(DS == "gated"){
       if (file.exists(fn)) load(fn)
       return(nm)
     }
