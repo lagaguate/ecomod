@@ -1,13 +1,14 @@
-gsnumbersandweights<-function(){
+numbersandweights.gs<-function(showchemistry=FALSE){
   #DFO/RV Survey Numbers and Weights
   #ported to ecomod Feb 20, 2015 (Mike McMahon)
   
+  #may need to tweak input parameters to narrow down selections available to user
   library(RODBC)
   chan<-odbcConnect(uid=oracle.vdc.user,pw=oracle.vdc.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)
   
-  
   selections<-populateselections()
   
+  paramlist<-NULL
   paramlist<-list()
   paramlist[[":bind__Species"]]<-select.list(as.character(selections$the.species[[2]]),title='Choose a species:',multiple=F,graphics=T,preselect="White Hake")
   paramlist[[":bind__Series"]]<-select.list(selections$the.series,title='Choose a series:',multiple=T,graphics=T, preselect=c('SUMMER','SUMMER_TELEOST'))
@@ -44,9 +45,18 @@ gsnumbersandweights<-function(){
   AND c.year(+)=i.year
   GROUP BY i.year
   ORDER BY 1"
-  data<-sqlQuery(chan,binder(sselect, paramlist))
+  sql<-binder(sselect, paramlist)
+  df<-sqlQuery(chan,sql)
   close(chan)
-  return(data)
+  output<-list()
+  output[["paramlist"]]<-paramlist
+  output[["sql"]]<-sql
+  output[["df"]]<-df
+  numbersandweights.plots(df, showchemistry=showchemistry)
+  return(output)
 }
 
-#gsnumbersandweights()
+#loadfunctions("vdc.analytic.numbersandweights")
+#test<-numbersandweights.gs()
+
+

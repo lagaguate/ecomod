@@ -1,14 +1,15 @@
-itqnumbersandweights<-function(){
+numbersandweights.itq<-function(){
   #DFO/ITQ Survey Numbers and Weights
   #ported to ecomod Feb 20, 2015 (Mike McMahon)
+  
   #may need to tweak input paramters to narrow down selections available to user
   library(RODBC)
   chan<-odbcConnect(uid=oracle.vdc.user,pw=oracle.vdc.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)
+  
   selections<-populateselections()
   
   paramlist<-list()
   paramlist[[":bind__Species"]]<-select.list(as.character(selections$the.species[[2]]),title='Choose a species:',multiple=F,graphics=T,preselect="White Hake")
-  paramlist[[":bind__Series"]]<-select.list(selections$the.series,title='Choose a series:',multiple=T,graphics=T, preselect=c('SUMMER','SUMMER_TELEOST'))
   paramlist[[":bind__Strata_forcequote"]]<-select.list(selections$the.strata,title='Choose strata:',multiple=T,graphics=T, preselect=as.character(c(440:495)))
   standardize<-select.list(c("Yes","No"),title='Standardize by Tow Dist?:',multiple=F,graphics=T,preselect="Yes")
   lenfreqonly<-select.list(c("Yes","No"),title='Only use catches with length frequency samples?',multiple=F,graphics=T,preselect="No")
@@ -38,16 +39,24 @@ itqnumbersandweights<-function(){
  FROM mflib.iscat_7051 c, mflib.isinf_7051_calc d
  WHERE :bind__LenFreq_noquote 
  c.fishset_id=d.fishset_id AND c.haulccd_id IN (1,2,3) 
- AND c.speccd_id IN (SELECT DISTINCT research FROM species_codes WHERE common=:bind__Species)
+ AND c.speccd_id IN (SELECT DISTINCT research FROM species_codes WHERE common=UPPER(:bind__Species))
  AND c.stratum_id IN (SELECT DISTINCT strat FROM groundfish.gsmgt WHERE unit IN (:bind__Strata_forcequote))
  GROUP BY c.year) c
  WHERE i.year=c.year(+)
  AND i.year >= 1996
  GROUP BY i.year	
  ORDER by 1 "
-  data<-sqlQuery(chan,binder(sselect, paramlist))
+  sql<-binder(sselect, paramlist)
+  df<-sqlQuery(chan,sql)
   close(chan)
-  return(data)
+  output<-list()
+  output[["paramlist"]]<-paramlist
+  output[["sql"]]<-sql
+  output[["df"]]<-df
+  return(output)
 }
 
-#itqnumbersandweights()
+#loadfunctions("vdc.analytic.numbersandweights")
+# df1<-numbersandweights.itq()
+# df1<-as.data.frame(df1[3])
+# numbersandweights.plots(df2)
