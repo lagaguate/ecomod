@@ -10,6 +10,12 @@ oceans.activity.mapper<-function(
   vessel_list = c(),          
   datawindows = c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash")
   ){
+  
+#   datawindows<-select.list(as.character(c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash","Russian Hat Assessment Box1","Stone Fence","Haddock Closed Area","roseway whale","Fundy Whale Sanctuary","All")),
+#                            title='Choose an area:',
+#                            multiple=T,
+#                            graphics=T,
+#                            preselect=as.character(c("Lophelia CCA","Northeast Channel","Gully","VazellaEmerald","St Anns Bank Inventory Box","Musquash")))
 
 options(stringsAsFactors=F)
 options(warn=-1)
