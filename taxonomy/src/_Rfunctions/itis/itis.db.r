@@ -8,8 +8,9 @@
 
     if (DS=="make.snapshot") {
       # unix-specific commands .. make more generic
-      system( paste( "rm -rf", itis.dir ) )
-      dir.create( itis.dir, showWarnings = FALSE, recursive = TRUE )
+      #MMM 2015 - following line seems to inhibit folder creation on windows
+      #system( paste( "rm -rf", itis.dir ) )
+      dir.create( itis.dir, recursive = TRUE )
       if (is.null(lnk)) lnk = "http://www.itis.gov/downloads/itisMySqlTables.tar.gz"
       fn = file.path( tempdir(), basename(lnk) ) 
       download.file( url=lnk, destfile=fn )

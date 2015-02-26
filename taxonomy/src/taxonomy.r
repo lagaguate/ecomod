@@ -18,7 +18,7 @@
   if ( bootstrap.new.data.system) {
       
     # first. refresh BIO's species codes from Oracle -- done also from groundfish update
-    taxonomy.db( "spcodes.odbc.redo" )  
+    taxonomy.db( "spcodes.redo" )  
     
     # bootstrap an initial set of tables .. these will be incomplete as a parsimonious tree needs to be created first but it depends upon the last file created taxonomy.db("complete") .. so ...
     taxonomy.db( "groundfish.itis.redo" )  ## link itis with groundfish tables using taxa names, vernacular, etc
