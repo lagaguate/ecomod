@@ -46,7 +46,7 @@
    
   refresh.bio.species.codes = F
   if (refresh.bio.species.codes ) {
-    # the folowing is copied from taxaonomy/src/taxonomy.r
+    # the following is copied from taxaonomy/src/taxonomy.r
     groundfish.db( DS="spcodes.odbc.redo" )
     # bootstrap an initial set of tables .. these will be incomplete as a parsimonious tree needs to be created first but
     # it depends upon the last file created taxonomy.db("complete") .. so ...
