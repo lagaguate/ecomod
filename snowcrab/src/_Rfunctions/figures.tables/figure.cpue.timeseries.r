@@ -4,13 +4,14 @@
     k = NULL
     for (r in regions) {
       res = get.fishery.stats.by.region(Reg=r)
+      if(r=='cfanorth') {ii=which(res$yr==2014); res[ii,'cpue'] <- 104.5; ii=which(res$yr==2013); res[ii,'cpue'] <- 106}
       k = cbind( k, res$cpue )
     }
-
+    
     k = as.data.frame( k )
     colnames(k) = regions
     rownames(k) = res$yr
-   
+    
     k = k[ which( as.numeric(rownames(k)) <= yearmax ), ] 
     uyrs = as.numeric(rownames(k) ) 
 

@@ -2,8 +2,8 @@
 # generate map using PBSmapping plotting functions
 #----------------------------------------------------
 wd = file.path(project.directory('polygons'),'data')
-makeMap= function(x,xlim=c(-67,-57), ylim=c(42,47.5), addCrabLabels=T, title="", area='ALL',addEmera=F,addStAnns=F,addGully=F, 
-addSurvey=F,addFisheryFootprint=F,main=""){
+makeMap= function(x,xlim=c(-67,-57), ylim=c(42,47.5), addCrabLabels=F, title="", area='ALL',addEmera=F,addStAnns=F,addGully=F, 
+addSurvey=F,addFisheryFootprint=F,addSummerStrata,main=""){
   require(PBSmapping)
   require("raster")
 	require("geosphere")
@@ -60,11 +60,33 @@ wd <- file.path(project.directory('polygons'),'data')
     text("CFA 24", x=-60.9, y=43.75, font=2, cex=1.0)
     text("CFA 4X", x=-64.2, y=43.25, font=2, cex=1.0)
     text("N-ENS", x= -59.15, y=46.65, font=2, cex=1.0)
-      addLines(zones, col="darkgoldenrod1", lwd=2)
-  }
+          addLines(zones, col="darkgoldenrod1", lwd=2)
+      }
 #add in shrimp
 
-  
+  if(addSummerStrata) {
+
+  a = find.ecomod.gis('summer_strata_labels',return.one.match=F)
+  a = read.csv(a,header=T)
+  names(a)[4] <- 'label'
+  b = find.ecomod.gis('strat.gf',return.one.match=F)
+  b = read.table(b)
+  names(b) <- c('X','Y','PID')
+  b = within(b,{POS <- ave(PID,list(PID),FUN=seq_along)})
+  addPolys(b,lty=1,border='red')
+  addLabels(a,cex=0.6)
+
+    text("S-ENS", x=-59.05, y=42.9, font=2, cex=1.0)
+    text("CFA 4X", x=-64.2, y=42.35, font=2, cex=1.0)
+    text("N-ENS", x= -59.15, y=46.95, font=2, cex=1.0)
+    addLines(zones[zones$PID!=6,], col="black", lwd=3)
+ #   addLines(data.frame(X=c(-65.9,-67.3),Y=c(44,42.2),PID=c(1,1),POS=c(1,2)),col='black',lwd=3)
+ 
+  addPolys(land, col="khaki", border="khaki")
+  addLines(coast, col="black")
+  box()
+
+  }
 
 if(addStAnns) {
 	sta <- read.csv(find.ecomod.gis('StAnnsMPA.csv'))

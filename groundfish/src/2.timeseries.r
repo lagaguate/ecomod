@@ -2,7 +2,7 @@
 	
 	loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 require(parallel)	
-  data.location = file.path( project.directory("groundfish"), "data", "2006")
+  data.location = file.path( project.directory("groundfish"), "data", "2014")
   set =  groundfish.db( "set.complete" )
 
   variables = variable.list.expand("all")
