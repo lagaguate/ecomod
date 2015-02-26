@@ -1,6 +1,6 @@
   bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=2, 
         filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=10, depth.range=c(-30,30), 
-        plot.data=FALSE, user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9), time.gate=NULL ) {
+        plot.data=FALSE, outdir = getwd(), user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9), time.gate=NULL, inla.h=0.05, inla.diagonal=0.05 ) {
   
   #require(lubridate) 
   #require( numDeriv ) 
@@ -39,6 +39,8 @@
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
+  
+  O$Z = x$depth  ## copy of depth data before manipulations
 
 
   ##--------------------------------
@@ -114,7 +116,7 @@
   res = NULL
   res = try( 
     bottom.contact.filter.noise ( x, O$good, tdif.min, tdif.max, eps.depth=eps.depth,
-      smoothing = smoothing, filter.quants=filter.quants, sd.multiplier=sd.multiplier ), silent =TRUE)
+      smoothing = smoothing, filter.quants=filter.quants, sd.multiplier=sd.multiplier, inla.h=inla.h, inla.diagonal=inla.diagonal ), silent =TRUE)
   
   if ( ! "try-error" %in% class( res) )  {
     x$depth.smoothed = res$depth.smoothed
@@ -400,7 +402,7 @@
     #x11(); plot( slopes ~ ts, x2 )
     lines( depth.smoothed ~ ts, x, col="brown" )
     # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
-    outdir = getwd()
+    
     dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
   }
 

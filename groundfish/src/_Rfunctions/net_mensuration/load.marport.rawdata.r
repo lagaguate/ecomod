@@ -1,6 +1,6 @@
 
 
-load.marport.rawdata = function( fnroot, fncfg, tzone="UTC" ) {
+load.marport.rawdata = function( fnroot, fncfg, tzone="America/Halifax" ) {
 
   require(lubridate)
   if (FALSE) {
@@ -89,9 +89,10 @@ load.marport.rawdata = function( fnroot, fncfg, tzone="UTC" ) {
 
   marport = marport[, outputvnames]
   
-  marport$timestamp = mdy_hms( marport$timestamp, tz=tzone ) ## need to check if mdy or dmy ...
-  dlog$timestamp = mdy_hms(dlog$timestamp, tz=tzone ) 
-   
+  marport$timestamp = mdy_hms( marport$timestamp ) ## need to check if mdy or dmy ...
+  dlog$timestamp = mdy_hms(dlog$timestamp) 
+  tz(marport$timestamp) = tzone
+  tz(dlog$timestamp) = tzone
   test =  timestamp.fix ( marport$timestamp, threshold.hrs=2 )
   if (!is.null(test)) marport$timestamp = test
 

@@ -213,7 +213,7 @@
           if (FALSE) {
             # to visualize/debug
             bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
-              tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
+              tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
             ## --- NOTE modal seems to work best ... but 
             # no single best method .. use the default which is the mean of all methods
             ##  likely due to greater precision and data density relative to minilog

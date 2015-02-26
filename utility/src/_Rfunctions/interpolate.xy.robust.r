@@ -1,4 +1,4 @@
-interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5, h=0.05 ) {
+interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5, inla.h=0.1, inla.diagonal=0.01 ) {
   
   # simple interpolation methods
   # target.r2 == target prediction R^2
@@ -81,8 +81,8 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
       count = count + 1
       if (count > nmax ) break() # this is CPU expensive ... try only a few times 
       v = NULL
-      v = try( inla( y ~ f(xiid, model="iid", diagonal=0.01) + f(x, model=inla.model, diagonal=.01 ), data=z, 
-                    control.inla=list(h=h), control.predictor=list( compute=TRUE) ), silent=TRUE )
+      v = try( inla( y ~ f(xiid, model="iid", diagonal=inla.diagonal) + f(x, model=inla.model, diagonal=inla.diagonal ), data=z, 
+                    control.inla=list(h=inla.h), control.predictor=list( compute=TRUE) ), silent=TRUE )
       if (!( "try-error" %in% class(v) ) ) {
         z$p = v$summary.fitted.values$mean 
         rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2

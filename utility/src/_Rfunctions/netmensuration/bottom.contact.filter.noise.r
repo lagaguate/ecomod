@@ -1,6 +1,6 @@
  
 bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3,  
-      smoothing = 0.9, filter.quants=c(0.025, 0.975), sd.multiplier=3 ) {
+      smoothing = 0.9, filter.quants=c(0.025, 0.975), sd.multiplier=3, inla.h=0.01, inla.diagonal=0.01 ) {
 
   out = NULL
 
@@ -86,7 +86,7 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3
   x$depth.smoothed = x$depth
   x$sm.loess = x$sm.inla = x$sm.spline= NA
 
-  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla", h=0.05 )
+  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla", inla.h=inla.h, inla.diagonal=inla.diagonal )
   kk = x$depth - x$sm.inla
   qnts = quantile( kk[aoi], probs=filter.quants, na.rm=TRUE ) 
   qnts[1] = min( qnts[1], - eps.depth )  # eps m fluctuation as being insignificant error
@@ -112,7 +112,7 @@ bottom.contact.filter.noise = function( x, good, tdif.min, tdif.max, eps.depth=3
   if (length(i) > 0) good[i] = FALSE
   x$depth.smoothed[ !good] = NA
   
-  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla"  )
+  x$sm.inla[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, probs=filter.quants, method="inla" , inla.h=inla.h, inla.diagonal=inla.diagonal )
   x$sm.loess[aoi] = interpolate.xy.robust( x[aoi, c("ts", "depth.smoothed")],  target.r2=smoothing, method="loess"  )
   
 
