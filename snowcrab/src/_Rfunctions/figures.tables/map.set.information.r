@@ -8,7 +8,7 @@
       p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth
       p$maskres = "-S16k"
       p$interpres = "-nb"
-      outdir = file.path( outdir, paste( p$mapres, p$spatial.domain, sep=".") )
+      outdir = file.path( outdir, p$spatial.domain )
       gmt.map.variables( set, p=p, variables=variables, plottimes=p$plottimes, 
         basedir=outdir, conversions=p$conversions, init.files=p$init.files )
     }
