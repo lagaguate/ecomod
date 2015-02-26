@@ -1,5 +1,5 @@
 
-  figure.bugs = function( vname="", type="density", sb=NULL, y=NULL, fn=NULL, labs=c("N-ENS","S-ENS","4X") ) {
+  figure.bugs = function( vname="", type="density", sb=NULL, y=NULL, fn=NULL, labs=c("N-ENS","S-ENS","4X") ,save.plot=T) {
  
     ntacs = sb$nProj
     yrs0 = as.numeric( as.character( rownames(sb$IOA) ) )
@@ -31,7 +31,7 @@
           legend( "topright", bty="n", legend=paste( labs[i], YR, "r", " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" ), cex=0.9 )   
         }}
         
-      savePlot( filename=fn, type="png" )
+     if(save.plot) savePlot( filename=fn, type="png" )
       return( fn)
 
     }
@@ -91,7 +91,7 @@
           pdat = as.vector(y$q[i,,])
         prr=NULL
         prr$class='uniform'
-        prr$max=2
+        prr$max=7
         prr$min=0.1
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" )   
@@ -519,7 +519,7 @@
 
 
     if (is.null(fn)) fn = paste(vname, "tmp", ".png", sep="" )
-    savePlot( filename=fn, type="png" )
+  if(save.plot) savePlot( filename=fn, type="png" )
     return( fn)
 
   }
