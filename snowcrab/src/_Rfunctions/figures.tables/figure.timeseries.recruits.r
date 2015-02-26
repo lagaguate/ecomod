@@ -1,5 +1,5 @@
 
-  figure.timeseries.recruits = function( outdir, all.areas=T ) {
+  figure.timeseries.R2 = function( outdir, all.areas=T ) {
  
     set = snowcrab.db( DS="set.merge.det")
   
@@ -14,7 +14,7 @@
     n.regions = length(regions)
     n.areas = length(areas)
 
-    v = "R1.no"
+    v = "R2.no"
 
     td =  get.time.series ( from.file=T )
     td = td[ which( td$variable == v) ,]
@@ -35,7 +35,7 @@
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
           layout=c(1,n.regions), xlim=xlim, ylim=ylim,
-              main="Recruits (t-1)", xlab="Year", ylab=list("Geometric mean No. / km^2"),
+              main="Recruits (t-2)", xlab="Year", ylab=list("Geometric mean No. / km^2"),
               cex.lab=cex.lab, cex.axis=cex.axis, cex.main = cex.main,
               panel = function(x, y, subscripts, ub, lb, ...) {
              larrows(x, lb[subscripts],
