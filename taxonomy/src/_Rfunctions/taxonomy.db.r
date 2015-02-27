@@ -33,7 +33,7 @@
       
 			print( "Warning:  ")
       print( "  spec = bio species codes -- use this to match data but not analysis" )
-			print( "  spec.clean = manually updated codes to use for taxonomic work in groundfish.itis.lookuptable.manually.maintained.csv" )
+			print( "  spec.clean = manually updated codes to use for taxonomic work " )
 			print( "" )
 			
 			# add itis tsn's to spcodes -- this completes the lookup table
@@ -58,41 +58,8 @@
       spi$name.scientific = as.character( spi$spec )
       spi$spec = as.numeric(spi$code)
       spi = spi[ , c("spec", "name.common", "name.scientific" ) ]
-  	
 
-			# update tsn's directly using any local corrections/additions
-			# these have been manually verified: http://www.itis.gov/servlet/SingleRpt/SingleRpt
-			# these also help speed up the lookup through itis as that is slow
-			print( "Updating from manually verified tsn/spec codes:")
-			print( "maintained in file: groundfish.itis.lookuptable.manually.maintained.csv" ) 
-      print( "      -- must be'|' delimited and 'quotes used for export' " )
-			print( "### New additions can be placed here too " )
-			
-			fn.local.taxa.lookup = file.path( taxadir.manually.maintained, "groundfish.itis.lookuptable.manually.maintained.csv" )
-			tx.local = read.csv( file=fn.local.taxa.lookup, sep="|", as.is=T, strip.white=T, header=T, fill=T) 
-			tx.local = tx.local[, c("spec", "spec.clean", "accepted_tsn", "name.common.bio", "comments" )]
-      
-      tx.local = tx.local[  which( is.finite( tx.local$spec.clean ) ) ,]
-      
-      oo =  which( !is.finite( tx.local$spec ) ) 
-      tx.local$spec[oo] = tx.local$spec.clean[oo]  # overwrite missing with new species id's ( == spec.clean == - itis.tsn )
-
-      tx.local = tx.local[ which( is.finite( tx.local$spec ) ) ,]
-			it = which( duplicated( tx.local$spec))
-			if (length(it)>0) {
-				print ( "Warning: Duplicated spec codes found in groundfish.itis.lookuptable.manually.maintained.csv")
-				print ( tx.local[ which(tx.local$spec %in% unique(tx.local$spec[it]) ), ])
-				tx.local = tx.local[ -it, ]
-			}
-
-			# this adds new species to the local lookup
-      spi.n0 = nrow(spi)
-			spi_id = unique( spi$spec )
-			spi = merge( spi, tx.local, by="spec", all.x=T, all.y=T, sort=F )
-
-			# overwrite completely as this is the first data layer for the tsn's
-			spi$itis.tsn = spi$itis.tsn_manually_maintained = spi$accepted_tsn
-			spi$accepted_tsn = NULL
+      spi$itis.tsn = spi$spec.clean = spi$comments = NA
 
       # additional vars to help with lookup
       spi$tolookup = TRUE
@@ -116,27 +83,22 @@
       # check for keywords that flag that no lookup is necessary
       spi = taxonomy.keywords.flag( spi, "name.scientific" )
       spi = taxonomy.keywords.flag( spi, "name.common" )
-      spi = taxonomy.keywords.flag( spi, "name.common.bio" )
 
       # remove words with punctuation
       spi = taxonomy.keywords.remove( spi, "name.scientific", withpunctuation=T )
       spi = taxonomy.keywords.remove( spi, "name.common", withpunctuation=T )
-      spi = taxonomy.keywords.remove( spi, "name.common.bio", withpunctuation=T )
 
       # remove words without punctuation
       spi = taxonomy.keywords.remove( spi, "name.scientific", withpunctuation=F )
       spi = taxonomy.keywords.remove( spi, "name.common", withpunctuation=F )
-      spi = taxonomy.keywords.remove( spi, "name.common.bio", withpunctuation=F )
 
       # final formatting of names
       spi$name.scientific = taxonomy.strip.unnecessary.characters(spi$name.scientific)
       spi$name.common = taxonomy.strip.unnecessary.characters(spi$name.common)
-      spi$name.common.bio = taxonomy.strip.unnecessary.characters(spi$name.common.bio)
 
-   
 
       # link itis with groundfish species codes using an exhaustive search of all taxa names
-      vnames = c( "name.scientific", "name.scientific", "name.common", "name.common.bio" )
+      vnames = c( "name.scientific", "name.scientific", "name.common")
       vtypes = c( "default", "vernacular", "vernacular", "default" )
       spi = itis.lookup.exhaustive.search( spi, vnames, vtypes )  
 
@@ -160,36 +122,13 @@
         oo = taxonomy.recode( from="tsn", to="sci", tolookup=spi$itis.tsn[i] )
         if (length(oo) == length(i)) spi$name.common[i] = oo
       }
-    
-      i = which(is.na( spi$name.common.bio))
-      if (length(i) > 0 ) {
-        oo = taxonomy.recode( from="tsn", to="tx", tolookup=spi$itis.tsn[i] )
-        if (length(oo) == length(i)) spi$name.common.bio[i] = oo
-      }
-
-      # have to do it again and fill with scientific name if missing
-      i = which(is.na( spi$name.common.bio))
-      if (length(i) > 0 ) {
-        oo = taxonomy.recode( from="tsn", to="sci", tolookup=spi$itis.tsn[i] )
-        if (length(oo) == length(i)) spi$name.common.bio[i] = oo
-      }
-
+   
   		# make sure the remainder of missing spec.clean points to spec
 			i = which( !is.finite(spi$spec.clean) )
 			if (length(i)>0) {
         spi$spec.clean[i] = spi$spec[i]
       }
-      
-      # now that tsn lookup's have been completed, it is necessary to update 
-      # the tsn's to reflect any manually determined spec.clean from tx.local
-			i = which( (spi$spec != spi$spec.clean) & spi$tolookup )
-			if (length(i)>0) {
-				for (j in i) {
-					k = which( spi$spec== spi$spec.clean[j] )
-          if (length(k)>0) spi$itis.tsn[ j ] = spi$itis.tsn[ k ]
-				}
-			}
-
+     
   		# for all duplicated tsn's, point them to the same species id:   
       # spec.clean id's to point to a single spec id (choose min value as default)
 			dup.tsn = sort( unique( spi$itis.tsn[ duplicates.toremove( spi$itis.tsn )]  )) 
@@ -201,20 +140,48 @@
         }
       }
 
-
-			i = which( !is.finite(spi$itis.tsn) & spi$tolookup )
+      i = which( !is.finite(spi$itis.tsn) & spi$tolookup )
 			if (length(i)>0) {
-				print( "The following have no itis tsn matches ")
-				print( "for now, assuming their spec id's are OK" )
-				print( "Their tsn's should be manually identified and updated in the local updates file:" )
-				print( "groundfish.itis.lookuptable.manually.maintained.csv")
-        print( "  -- see groundfish.itis.redo, above .. these are stored in with '|' as delimiter " ) 
-				print( spi[i,] )
-				fn2 = file.path( taxadir, "spcodes.no.itis.matches.csv" )
-				print (fn2 )
-				write.csv ( spi[i,], file=fn2 )
-			}
+			 
 
+      # as of 27 Feb 2015, the following have known issues of having no itis matches
+
+# spi[i,]        
+#    spec          name.common      name.scientific spec.clean     comments
+#306  3163            LEIOCHONE            LEIOCHONE       3163    NA
+#625  6700     PSOLUSES THYONES     PSOLUSES THYONES       6700    Species not found: common ancestor Dendrochirotida
+#1344 2865       PONTOGENEIIDAE       PONTOGENEIIDAE       2865    NA
+#1830 1800        PROTOCHORDATA        PROTOCHORDATA       1800    NA
+#1848 1920 BRYOZOANS ECTOPROCTA BRYOZOANS ECTOPROCTA       1920    NA
+#1956 8200         COELENTERATA         COELENTERATA       8200    Obsolete: Cnidaria and Ctenophora, using latter
+#2133 8363 HALIPTERUS BALTICINA HALIPTERUS BALTICINA       8363    Species not found, taken as genus
+
+        # overrides are placed here:
+
+        known.issues.spec = c(  3163,   6700,  2865,   1800,   1920,   8200,   8363)  # add new unmatched "spec" here
+        known.issues.tsn  = c( 67602, 158142, 93681, 203347, 155470, 118845, 719025)  # manually determined tsn's here
+        known.issues.comments = c( "", "Species not found: common ancestor Dendrochirotida", "", "", "", "Obsolete: Cnidaria and Ctenophora, using latter", "Species not found: genus" )
+
+        for ( pp in 1:length( known.issues.spec) ) {
+          kk = known.issues.spec[pp]
+          oo = which( spi$spec==kk)
+          if (length(oo)==1) {
+            spi$itis.tsn[oo] = known.issues.tsn[pp]
+            spi$comments[oo] = known.issues.comments[pp]
+          }
+        }
+
+        jj = which( !is.finite(spi$itis.tsn) & spi$tolookup   )
+	
+        if (length(jj) > 0 ) {
+          # should not be necessary unles taxa list at ODBC level has changed (e.g., due to new species inclusions )
+          print( "The following species have no itis tsn matches. ")
+	  			print( "Their tsn's should be manually identified and workarounds should be placed in this" ) 
+          print( "function, 'taxonomy.db(DS='groundfish.itis.redo')' " ) 
+				  print( spi[jj,] )
+			    stop()
+        }
+      }
       save( spi, file=fn, compress=T )
 
       return ( fn )

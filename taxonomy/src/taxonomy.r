@@ -42,7 +42,14 @@
 
 			taxonomy.recode( from="taxa.fast", tolookup=tx) # lookup only from local taxonomy db
 			taxonomy.recode( from="taxa", tolookup=tx ) # look up species id from both itis and local taxonomy.db
-			itis.taxa.to.tsn( tx) # look up only from itis
+			
+      lu = taxonomy.recode( from="taxa", tolookup="AMMODYTES" ) # look up species id from both itis and local taxonomy.db
+      taxonomy.recode( from="tsn", to="taxa", tolookup= lu[[1]]$tsn )
+
+      taxonomy.recode( from="spec", to="taxa", tolookup=taxonomy.recode( from="taxa.fast", tolookup="AMMODYTES" ) )
+
+
+      itis.taxa.to.tsn( tx) # look up only from itis
 
 			o = taxonomy.recode( from="taxa", tolookup=tx )
 				o

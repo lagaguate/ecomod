@@ -183,6 +183,8 @@
           
           M$timestamp = as.POSIXct( M$chron, tz=tzone )
           settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone )
+          time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
+            
           print(id)
      
           # default, empty container
@@ -197,8 +199,8 @@
             ndat = length(M$depth[!is.na(M$depth)])
             if( ndat > 15 ) {
               bc =  NULL
-              bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
-                tdif.min=3, tdif.max=9, eps.depth=3, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
+              bc = bottom.contact( id=id, x=M, time.gate=time.gate, setdepth=rid$setZx[i],
+                tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
               if ( !is.null(bc) ) res = bc$res 
             } 
            
@@ -212,7 +214,7 @@
 
           if (FALSE) {
             # to visualize/debug
-            bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
+            bc = bottom.contact( id=id, x=M, time.gate=time.gate, setdepth=rid$setZx[i], 
               tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
             ## --- NOTE modal seems to work best ... but 
             # no single best method .. use the default which is the mean of all methods

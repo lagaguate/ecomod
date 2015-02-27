@@ -1,6 +1,7 @@
-  bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=2, 
-        filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=10, depth.range=c(-30,30), 
-        plot.data=FALSE, outdir = getwd(), user.interaction=FALSE, settimestamp=NULL, setdepth=NULL, settimelimits=c(-5, 9), time.gate=NULL, inla.h=0.05, inla.diagonal=0.05 ) {
+
+bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=1, 
+        filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=20, depth.range=c(-30,30), 
+        plot.data=FALSE, outdir = getwd(), user.interaction=FALSE, setdepth=NULL,  time.gate=NULL, inla.h=0.05, inla.diagonal=0.05 ) {
   
   #require(lubridate) 
   #require( numDeriv ) 
@@ -20,9 +21,7 @@
     smoothing = 0.9
     filter.quants=c(0.025, 0.975)
     plot.data=TRUE
-    settimestamp=NULL
     setdepth=NULL
-    settimelimits=c(-5, 9)
     user.interaction=FALSE # is you want to try to manually determine end points too
   }
   
@@ -49,16 +48,41 @@
   if( !any(x$depth>depth.min)) return( NULL ) 
 
   # simple time-based gating ..
-  # sometimes the time metrics are incorrect .. skip the time gate if insufficient data is found
   if (!is.null(time.gate)) {
-    O$good = bottom.contact.gating.time ( Zt=x$timestamp, good=O$good, time.gate=time.gate, min.n=50 )
+    O$good = bottom.contact.gating.time ( Zt=x$timestamp, good=O$good, time.gate=time.gate, min.n=(tdif.max+5) )
     x$depth[ !O$good ] = NA
   }
  
   # simple depth-based gating
-  O$good = bottom.contact.gating.depth ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range, depthproportion=depthproportion )
+  O$good = bottom.contact.gating.depth ( Z=x$depth, good=O$good, depth.min=depth.min, depth.range=depth.range,
+    depthproportion=depthproportion, setdepth=setdepth )
   x$depth[ !O$good ] = NA
-   
+
+  
+  # time and depth-based gating
+  x.timerange = range( x$timestamp, na.rm=TRUE )
+  x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
+
+  if ( x.dt > (tdif.max+10) ) {   # +10 = 5 min on each side
+    # data vector is too long ... truncate 
+    if (is.null(setdepth)) {
+      zx = which.max( x$depth )
+      shallow = x$depth[zx] / 4 
+    } else {
+      zx = median( which( x$depth < (setdepth + 5 ) & x$depth > (setdepth - 5 ) ) )  # median location bounded byu +/- 5 m
+      shallow = setdepth / 4 
+    }
+    ss = which( x$depth < shallow ) 
+    if (length( ss) > 30 ) {
+      x$depth[ss] = NA
+      x$timestamp[ss] = NA
+    }
+    timerange = new_interval(  (x$timestamp[zx] -dminutes( tdif.max+5) ),  ( x$timestamp[zx]+ dminutes( tdif.max+5) ) )
+    oo = which( ! x$timestamp %within% timerange)
+    O$good[oo] = FALSE
+    x$depth[ !O$good ] = NA
+  }
+
   if (plot.data) {
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
@@ -72,31 +96,6 @@
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
 
-  # settimestamp is time recorded in log books ...
-  #   used by snow crab surveys to make gate data further
-  #   not used (yet) by groundfish methods
-  if ( !is.null(settimestamp) ) {
-    if ( length(settimestamp)==0 || is.na(settimestamp)) settimestamp = NULL
-  }
-
-  if ( !is.null( settimestamp) ) {
-    # settimelimits=c(-5, 9) # in snow crab surveys the time range relative relative to the "start time" 
-    # select based upon time stamps ... pre-prefilter based upon set information  
-    # to ensure tails are well defined
-    # 5 min prior to settimestamp some data seem to have desynchronized times (drift?)
-    # AND 9 MINUTES AFTER settimestamp (some are really this long)
-    O$res$t0=settimestamp
-    timelimits =  settimestamp + minutes( settimelimits )
-    if(timelimits[1] == timelimits[2])     timelimits =  settimestamp +  (settimelimits * 60)
-    jj = which( x$timestamp > timelimits[1] & x$timestamp < timelimits[2] ) 
-    n.req = 30
-    if ( length(jj) > n.req ) {
-      r = range( jj )
-      good = r[1]: r[2]
-      bad = setdiff(1:nrow(x), good)
-      O$good[ bad ] = FALSE
-    }
-  }
 
     if (plot.data) {
       mcol = "steelblue"
