@@ -42,14 +42,15 @@
       
       if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz=tzone )
       if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz=tzone )
-      
+      time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
+
       bc = NULL
-      bc = bottom.contact( id=N$netmind_uid[1], x=M, settimestamp=settimestamp, setdepth=rid$setZx[i],
+      bc = bottom.contact( id=N$netmind_uid[1], x=M,  time.gate=time.gate, setdepth=rid$setZx[i],
         tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
 
       if (FALSE) {
         # to visualize/debug
-        bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
+        bc = bottom.contact( id=id, x=M,  time.gate=time.gate, setdepth=rid$setZx[i], 
           tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
       }
       

@@ -11,7 +11,7 @@ bottom.contact.gating.time = function( Zt, good, time.gate, min.n=50 ) {
     good0 = good
     if (length(i) > 0) good[i] = FALSE
     grange = range( Zt[ which(good) ], na.rm= TRUE )
-    if ( ( grange[2] - grange[1] ) < dminutes(min.n) ) out = good
+    if ( difftime( grange[2], grange[1], units="mins" ) < min.n ) out = good
   }
   return(good)
 

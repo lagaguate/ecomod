@@ -160,16 +160,18 @@
           
           M$timestamp = as.POSIXct( M$chron, tz=tzone )
           settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone )
-print(id)
+          time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
+
+          print(id)
           bc = NULL
           
           if (FALSE) {
             # to visualize
-            bc = bottom.contact( id=id, x=M, settimestamp=settimestamp, setdepth=rid$setZx[i], 
+            bc = bottom.contact( id=id, x=M, time.gate=time.gate, setdepth=rid$setZx[i], 
               tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6, plot.data=TRUE )
           }
 
-          bc = bottom.contact( id=id, x=M , settimestamp=settimestamp, setdepth=rid$setZx[i], 
+          bc = bottom.contact( id=id, x=M , time.gate=time.gate, setdepth=rid$setZx[i], 
             tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 )
                    
           # default, empty container

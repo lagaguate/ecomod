@@ -657,13 +657,12 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
         if (length(gii) != 1) next()  # no match in gsinf  ## this will also add to the bad.list .. when insufficient data
        
         mm = nm[ which(nm$id==id) , c("depth", "timestamp") ]
-
+        
+        # NOTE:: do not use time.gate for historical data .. inconsistent timestamps causes data loss 
+        # dropping time-gating as winch timestamps are too erratic and frequently wrong ... 
         # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
         # time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
-        # dropping time-gating as winch timestamps are too erratic and frequently wrong ... 
 
-        # x=mm; depthproportion=0.6; tdif.min=15; tdif.max=45; eps.depth=4; sd.multiplier=5; depth.min=10; depth.range=c(-50, 50); smoothing = 0.9; filter.quants=c(0.025, 0.975); plot.data=TRUE
-        
         # defaults appropriate for more modern scanmar data have > 3500 pings
         # see:  tapply( nm$year,  list(nm$id, nm$year), length )
         sd.multiplier = 4
@@ -720,7 +719,8 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
         bc = NULL # 
         bc = try( 
           bottom.contact(id, mm, depthproportion=depthproportion, tdif.min=15, tdif.max=45, eps.depth=eps.depth, 
-            sd.multiplier=sd.multiplier, depth.min=10, depth.range=depth.range, smoothing=smoothing, filter.quants=filter.quants, 
+            sd.multiplier=sd.multiplier, depth.min=10, depth.range=depth.range, setdepth=gsinf$bottom_depth[gii], 
+            smoothing=smoothing, filter.quants=filter.quants, 
             plot.data=TRUE, outdir=file.path(scanmar.bc.dir, "figures"), inla.h=0.005, inla.diagonal=0.01  ), 
           silent=TRUE
         )
@@ -795,7 +795,8 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
  
     nreq = 30
     sd.max = 30  # in seconds 
-    
+    counts = 0 
+
     for ( YR in YRS ) {
       out = NULL
       gs = scanmar.db( DS="bottom.contact", p=p, YRS=YR )
@@ -825,9 +826,12 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       }
       fn = file.path( scanmar.filtered.dir, paste( "scanmar.filtered.indices", YR, "rdata", sep=".")  )
       save( out, file=fn, compress= TRUE)
-      print(fn)
+      nc = length( out)
+      nu = length( uid ) 
+      print( paste(fn, nc, nu) )
+      counts = counts + nu
     } # end for years
-    
+    print( paste("Total count of unique id: ", counts ) ) 
     return( YRS)
   }
 
@@ -856,9 +860,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       return(out)
     }
   
-    
     nreq = 30
-    sd.max = 30  # in seconds 
 
     for ( YR in YRS ) {
    

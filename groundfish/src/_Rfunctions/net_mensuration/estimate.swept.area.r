@@ -1,3 +1,4 @@
+
 estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE, threshold.cv=10  ){
 
   if (getnames) return( c("sweptarea.mean", "depth.mean", "depth.sd", "wingspread.mean", "wingspread.sd" ) )
@@ -12,8 +13,6 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE, threshold.cv=1
   if (FALSE){
     gsi = gs[gii,]
     x= nm[ii,]
-   
-  
   }
   
   x = x[order( x$timestamp ) ,]
