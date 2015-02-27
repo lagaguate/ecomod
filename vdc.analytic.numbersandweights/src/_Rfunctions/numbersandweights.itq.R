@@ -1,7 +1,14 @@
 numbersandweights.itq<-function(){
   #DFO/ITQ Survey Numbers and Weights
   #ported to ecomod Feb 20, 2015 (Mike McMahon)
+
+   # CONCERNS ----------------------------------------------------------
+  # This relies on some derived tables that were created for the VDC, rather than calculating
+  # the information from the original data (eg mflib.isinf_7051, mflib.iscat_7051, mflib.isinf_7051_calc).  
+  # This has the potential to be ugly as additional grants will be necessary so tha users can 
+  # access everythingthat will be needed.
   
+
   #may need to tweak input paramters to narrow down selections available to user
   library(RODBC)
   chan<-odbcConnect(uid=oracle.vdc.user,pw=oracle.vdc.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)

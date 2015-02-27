@@ -2,6 +2,13 @@ numbersandweights.gs<-function(showchemistry=FALSE){
   #DFO/RV Survey Numbers and Weights
   #ported to ecomod Feb 20, 2015 (Mike McMahon)
   
+  # CONCERNS ----------------------------------------------------------
+  # This relies on some derived tables that were created for the VDC, rather than calculating
+  # the information from the original data (eg nwags.gsscat_mv, nwags.gssinf_mv, mflib.gsmgt).  
+  # This has the potential to be ugly as additional grants will be necessary so tha users can 
+  # access everythingthat will be needed.
+
+  
   # TO  DO ----------------------------------------------------------
   #Add following functionality already present on the VDC:
     #1 selecting a year shows all of the strata with all of the same data limited to that year alone
@@ -17,11 +24,6 @@ numbersandweights.gs<-function(showchemistry=FALSE){
   
     #6 the standard error is shown
 
-  # CONCERNS ----------------------------------------------------------
-  # This relies on some derived tables that were created for the VDC, rather than calculating
-  # the information from the original data (eg nwags.gsscat_mv, nwags.gssinf_mv, mflib.gsmgt).  
-  # This has the potential to be ugly as additional grants will be necessary so tha users can 
-  # access everythingthat will be needed.
   
   library(RODBC)
   chan<-odbcConnect(uid=oracle.vdc.user,pw=oracle.vdc.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)

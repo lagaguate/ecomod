@@ -2,6 +2,12 @@ numbersandweights.4vnsentinel<-function(){
   #DFO/4VN Sentinel Survey Numbers and Weights
   #ported to ecomod Feb 21, 2015 (Mike McMahon)
   
+   # CONCERNS ----------------------------------------------------------
+  # This relies on some derived tables that were created for the VDC, rather than calculating
+  # the information from the original data (eg isinf_4vn_sentinel, iscat_4vn_sentinel).  
+  # This has the potential to be ugly as additional grants will be necessary so tha users can 
+  # access everythingthat will be needed.
+
   #may need to tweak input parameters to narrow down selections available to user
   library(RODBC)
   chan<-odbcConnect(uid=oracle.vdc.user,pw=oracle.vdc.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)
