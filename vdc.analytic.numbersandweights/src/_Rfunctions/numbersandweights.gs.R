@@ -83,6 +83,6 @@ numbersandweights.gs<-function(showchemistry=FALSE){
 
 
 #loadfunctions("vdc.analytic.numbersandweights")
-
+#loadfunctions("utility")
 
 #data<-test[[3]]
