@@ -1,9 +1,9 @@
 ############################
 #User PARAMETERS
 #
-year=2013
+year=2010
 type=c(1)
-species.code=16
+species.code=10
 strat.list<-c(440:495)
 ############################
 options(stringsAsFactors = FALSE) 
@@ -270,10 +270,10 @@ nw.weight.tot<-aggregate(list(TOTAL_WGT=nw.weights$TOTWGT), by=list(STRAT=nw.wei
 nw.weight.var<-aggregate(list(VAR_WGT=nw.weights$TOTWGT), by=list(STRAT=nw.weights$STRAT), FUN=var)
 
 numbers.and.weights<-merge(nw.cnt,nw.tunits)
-numbers.and.weights<-merge(numbers.and.weights,nw.tot)
-numbers.and.weights<-merge(numbers.and.weights,nw.mean)
+numbers.and.weights<-merge(numbers.and.weights,nw.numbers.tot)
+numbers.and.weights<-merge(numbers.and.weights,nw.numbers.mean)
 numbers.and.weights$ABUND<-numbers.and.weights$TUNITS*numbers.and.weights$MEAN_NO
-numbers.and.weights<-merge(numbers.and.weights,nw.var)
+numbers.and.weights<-merge(numbers.and.weights,nw.numbers.var)
 
 numbers.and.weights<-merge(numbers.and.weights,nw.weight.tot)
 numbers.and.weights<-merge(numbers.and.weights,nw.weight.mean)
