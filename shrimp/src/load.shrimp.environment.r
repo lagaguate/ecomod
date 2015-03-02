@@ -4,7 +4,7 @@
     "gstat", "rgdal", "maptools"
   ) )
 
-  init.files = loadfunctions( c( "utility", "spatialmethods", "bathymetry", "shrimp") )
+  init.files = loadfunctions( c( "utility", "spacetime", "bathymetry", "shrimp") )
 	
   
   # working directory for temporary/work files 

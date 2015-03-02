@@ -23,7 +23,7 @@
     # start data uptake and processing
 
     p = list()
-    p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "bathymetry", "temperature", "biochem" ) ) 
+    p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "temperature", "biochem" ) ) 
     p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$newyear = newyear = c( 2012)
 

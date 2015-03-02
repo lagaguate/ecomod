@@ -10,7 +10,7 @@
 	
   p = list()
   p$libs = RLibrary ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel")) 
-  p$init.files = loadfunctions( c("spatialmethods", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
+  p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
   # faster to use RAM-based data objects but this forces use only of local cpu's
   # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)

@@ -5,7 +5,7 @@
   require(geoRglm)
 
 	
-	loadfunctions( "spatialmethods", "utility", "parallel" )
+	loadfunctions( "spacetime", "utility", "parallel" )
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
 	

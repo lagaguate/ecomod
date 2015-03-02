@@ -8,7 +8,7 @@
 
 
 	p = list()
-  p$init.files = loadfunctions(c( "spatialmethods", "utility", "parallel", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
+  p$init.files = loadfunctions(c( "spacetime", "utility", "parallel", "taxonomy", "bio", "habitat", "habitatsuitability", "temperature",  "bathymetry"	)) 
 	p$libs = RLibrary (c("chron", "fields", "rgdal", "snow", "mgcv", "arm" ))
   
   p = spatial.parameters(p=p, type="SSE" ) # 4VWX

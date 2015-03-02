@@ -12,7 +12,7 @@
 
     p = list()
     p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory" ) )
-    p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature" ) ) 
+    p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature" ) ) 
  
     # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$tyears = c(1950:2014)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -257,7 +257,7 @@
           # start data uptake and processing
 
           p = list()
-          p$init.files = loadfunctions( c("spatialmethods", "utility", "parallel", "bathymetry", "temperature" ) ) 
+          p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature" ) ) 
           p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
 
           p = spatial.parameters( p=p, type= "SSE" )

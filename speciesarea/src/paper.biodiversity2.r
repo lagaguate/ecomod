@@ -10,7 +10,7 @@
 
   p = list()
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
-  p$init.files = loadfunctions( c("spatialmethods", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"    ) )
+  p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"    ) )
   p$data.sources = c("groundfish", "snowcrab") 
   p$speciesarea.method = "glm" 
   

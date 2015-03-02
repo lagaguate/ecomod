@@ -72,7 +72,7 @@
 
     p = list()
     p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
-    p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
+    p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(1970:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$wtimes = 1:52 
@@ -275,7 +275,7 @@ Posterior marginals for linear predictor and fitted values computed
  
     p = list()
     p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
-    p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
+    p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$wtimes = 1:52 
@@ -437,7 +437,7 @@ Posterior marginals for linear predictor and fitted values computed
 
   p = list()
   p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
-  p$init.files = loadfunctions( c( "spatialmethods", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
+  p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
   p$tyears = c(1990:1995)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
   p$wtimes = 1:52 

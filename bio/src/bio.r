@@ -2,7 +2,7 @@
   # glue biological data sets together from various surveys
 
 	pinits = loadfunctions( c( 
-    "spatialmethods", "utility", "parallel", "taxonomy", 
+    "spacetime", "utility", "parallel", "taxonomy", 
     "groundfish", "snowcrab", "bathymetry", "temperature", "habitat", "bio" ))
 
   p=list()

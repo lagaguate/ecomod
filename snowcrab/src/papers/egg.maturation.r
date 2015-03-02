@@ -15,7 +15,7 @@
   } else { # assume linux
     
     workdir = file.path( project.directory( "snowcrab"), "R" )  # linux
-  	loadfunctions( c("spatialmethods", "utility", "parallel", "snowcrab") ) 
+  	loadfunctions( c("spacetime", "utility", "parallel", "snowcrab") ) 
  
   }
 

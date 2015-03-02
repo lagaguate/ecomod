@@ -2,7 +2,7 @@
 setwd("c:/Rsaves")
 load("c:/Rsaves/survey.crab.with.mat.region.etc.to.2006.rdata")
 
-	loadfunctions( c( "spatialmethods", "utility", "parallel", "lobster") )
+	loadfunctions( c( "spacetime", "utility", "parallel", "lobster") )
 	
 xmatreg=xmatreg[!is.na(xmatreg$temp),]
 xmatreg=xmatreg[!is.na(xmatreg$depth),]
