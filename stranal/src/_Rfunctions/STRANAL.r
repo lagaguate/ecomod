@@ -1,12 +1,11 @@
 ############################
 #User PARAMETERS
 #
-year=2014
+year=2013
 type=c(1)
-species.code=14
-strat.list<-c(484:495)
+species.code=16
+strat.list<-c(440:495)
 ############################
-#loadfunctions("utility",,"na.zero")
 options(stringsAsFactors = FALSE) 
 loadfunctions("utility")
 library(RODBC)
@@ -91,12 +90,6 @@ ctd<-pre[which(pre$GEAR==2),]
 bottom<-rbind(ctd, bot)
 bottom<-bottom[!duplicated(bottom[c("MISSION","SETNO")]),]
 
-#FOWLER 2014
-#original surveyscope table 
-#For SurveyScope this is part of a batch job in which custom tables 
-#are created for every species and/or stock. The species is a 
-#substitution variable in the batch job (spec=&&1), hard-coded here
-
 #MMM Oct 2014
 #not creating tables for every species/stock anymore
 #extraction is limited by the users' selection of year and species at top
@@ -134,10 +127,6 @@ stock_all_adj_cat$TOTNO <- (stock_all_adj_cat$TOTNO*1.75)/stock_all_adj_cat$DIST
 #FOWLER 2014
 #STRANAL-specific tables from here on
 #Provide data to build age:length keys and age composition. 
-#Grab default bin width and whether age composition should be sexed or not from gsspec.
-#If you want non-default stipulations for bins or sexing, replace the variable values below, e.g. lgrp 1,lfsexed 'Y'
-#The bin width and sex stipulations would be options in an app (default or custom).
-# drop table stock_all_raw_age;
 
 #MMM Oct 2014
 #converted to ANSI join
@@ -209,9 +198,7 @@ tunits_results<-tunits_results[order(tunits_results$STRAT),]  #these results see
 
 #FOWLER 2014
   #The primary table to accomplish STRANAL.
-  #Includes some spurious variables that some might want to consider as 
-  #explanatory or filter variates (e.g. don't include sets below some
-  # temperature). Making flen reflect the centre of its bin.
+  #Making flen reflect the centre of its bin.
 
 #MMM 2014
 #Added some default values to replace NA values (this was done in thh SQL previously)
@@ -260,7 +247,41 @@ lset_results <- dcast(lset, STRAT + SLAT + SLONG + UNITAREA + MISSION + SETNO  ~
   remove<-c("STRAT","SLAT","SLONG","UNITAREA","MISSION","SETNO")
   Set_Totals<-rowSums(lset_results[-match(remove, names(lset_results))], na.rm = T)
   lset_results<-cbind(lset_results,Set_Totals)  
-#length by set values do MATCH stranal at least for 4x haddock 1974 AMC
+
+
+# added this section to see if we've duplicated the results given by the VDC
+# "numbers and weights' analytic
+#the positive will be that these results are derived directly from the data,
+#while the VDC results are cached, and updated annually.
+
+nw.tunits<-tunits_results[,which(names(tunits_results) %in% c("STRAT","TUNITS"))]
+
+nw.numbers<-lset_results
+nw.numbers<-nw.numbers[,which(names(nw.numbers) %in% c("STRAT","Set_Totals"))]
+nw.numbers.mean<-aggregate(list(MEAN_NO=nw.numbers$Set_Totals), by=list(STRAT=nw.numbers$STRAT), FUN=mean)
+nw.numbers.tot<-aggregate(list(TOTAL_NO=nw.numbers$Set_Totals), by=list(STRAT=nw.numbers$STRAT), FUN=sum)
+nw.numbers.var<-aggregate(list(VAR_NO=nw.numbers$Set_Totals), by=list(STRAT=nw.numbers$STRAT), FUN=var)
+nw.cnt<-nw.numbers$STRAT
+nw.cnt<-aggregate(list(SETS=nw.cnt), by=list(STRAT=nw.cnt), FUN=length)
+
+nw.weights<-stock_all_adj_cat
+nw.weight.mean<-aggregate(list(MEAN_WGT=nw.weights$TOTWGT), by=list(STRAT=nw.weights$STRAT), FUN=mean)
+nw.weight.tot<-aggregate(list(TOTAL_WGT=nw.weights$TOTWGT), by=list(STRAT=nw.weights$STRAT), FUN=sum)
+nw.weight.var<-aggregate(list(VAR_WGT=nw.weights$TOTWGT), by=list(STRAT=nw.weights$STRAT), FUN=var)
+
+numbers.and.weights<-merge(nw.cnt,nw.tunits)
+numbers.and.weights<-merge(numbers.and.weights,nw.tot)
+numbers.and.weights<-merge(numbers.and.weights,nw.mean)
+numbers.and.weights$ABUND<-numbers.and.weights$TUNITS*numbers.and.weights$MEAN_NO
+numbers.and.weights<-merge(numbers.and.weights,nw.var)
+
+numbers.and.weights<-merge(numbers.and.weights,nw.weight.tot)
+numbers.and.weights<-merge(numbers.and.weights,nw.weight.mean)
+numbers.and.weights$BIOMASS<-numbers.and.weights$TUNITS*numbers.and.weights$MEAN_WGT
+numbers.and.weights<-merge(numbers.and.weights,nw.weight.var)
+
+#think you're missing a set within a strata?  Try
+#gsinf_source[gsinf_source$STRAT=='476',]
 
 
 
@@ -308,6 +329,7 @@ alw<-aggregate(FWT~AGE+FLEN,data=stock_agelen,FUN=mean)
 alw$FWT = alw$FWT / 1000
 alw_result = reshape(alw,idvar='FLEN',timevar='AGE',direction='wide')
 
+#results<-list(tunits_results, alk_results, lset_results, length_mean_result, length_sd_result, length_total_result, alw_result)
 results<-list(tunits_results, alk_results, lset_results, length_mean_result, length_sd_result, length_total_result, alw_result)
 #r_results          == STRANAL results sheet
 #---------------------------------------
@@ -327,52 +349,52 @@ results<-list(tunits_results, alk_results, lset_results, length_mean_result, len
 
 
 
-
-#lookup table for numbers of sets and area in nm per strata
-xxx1_query<-
-  paste("select strat,setno,sum(setno/setno) recs
-    from stock_agelen
-    where year=",year," and to_number(strat)>=",strat.min," and to_number(strat)<=",strat.max,"
-    group by strat,setno
-    order by strat,setno",sep="")
-xxx1<-sqlQuery(channel,xxx1_query)
-
-xxx2_query<-
-  "select x.strat,sum(x.recs/x.recs) sets, g.area areanm
-    from xxx1 x, groundfish.gsstratum g
-    where x.strat=g.strat
-    group by x.strat,g.area
-    order by x.strat,g.area"
-xxx2<-sqlQuery(channel,xxx2_query)
-
-#stratified LF table
-#cage is the count at length adjusted for real tow distance and sample weight bumped to total weight
-#sage is stratified numbers at length
-#summing over sex and size_class (sex would be an option in the application)
-#adding number of sets per strata to each record for convenient math
-
-####
-####bad join!
-####
-LF_query<-
-  paste("select vessel,mission,sa.strat,tunits,setno,flen, sum(cage) cage, sum(nvl(cage,0)*tunits) sage, sets
-    from stock_agelen sa, xxx2 x
-    where year=",year," and to_number(sa.strat)>=",strat.min," and to_number(sa.strat)<=",strat.max,"
-    and x.strat=sa.strat(+)
-    group by sa.strat,tunits,vessel,mission,setno,flen,sets
-    order by sa.strat,tunits,vessel,mission,setno,flen,sets",sep="")
-LF<-sqlQuery(channel,LF_query)
-
-#weight by set sheet (not formatted for output)
-
-####
-####bad join!
-####
-setwgt_query<-
-  paste("select sa.strat,sa.slat,sa.slong,sa.name unitarea,sa.mission,setno,sets,tunits,x.areanm,avg(raw_totwgt*1.75/dist) setwt
- from stock_agelen sa, xxx2 x
-where year=",year," and to_number(sa.strat)>=",strat.min," and to_number(sa.strat)<=",strat.max,"
-and x.strat=sa.strat(+)
-group by sa.strat,sa.mission,setno,sa.slat,sa.slong,sa.name,sets,tunits,x.areanm
-order by sa.strat,sa.mission,setno,sa.slat,sa.slong,sa.name,sets,tunits,x.areanm",sep="")
-setwgt<-sqlQuery(channel,setwgt_query)
+# 
+# #lookup table for numbers of sets and area in nm per strata
+# xxx1_query<-
+#   paste("select strat,setno,sum(setno/setno) recs
+#     from stock_agelen
+#     where year=",year," and to_number(strat)>=",strat.min," and to_number(strat)<=",strat.max,"
+#     group by strat,setno
+#     order by strat,setno",sep="")
+# xxx1<-sqlQuery(channel,xxx1_query)
+# 
+# xxx2_query<-
+#   "select x.strat,sum(x.recs/x.recs) sets, g.area areanm
+#     from xxx1 x, groundfish.gsstratum g
+#     where x.strat=g.strat
+#     group by x.strat,g.area
+#     order by x.strat,g.area"
+# xxx2<-sqlQuery(channel,xxx2_query)
+# 
+# #stratified LF table
+# #cage is the count at length adjusted for real tow distance and sample weight bumped to total weight
+# #sage is stratified numbers at length
+# #summing over sex and size_class (sex would be an option in the application)
+# #adding number of sets per strata to each record for convenient math
+# 
+# ####
+# ####bad join!
+# ####
+# LF_query<-
+#   paste("select vessel,mission,sa.strat,tunits,setno,flen, sum(cage) cage, sum(nvl(cage,0)*tunits) sage, sets
+#     from stock_agelen sa, xxx2 x
+#     where year=",year," and to_number(sa.strat)>=",strat.min," and to_number(sa.strat)<=",strat.max,"
+#     and x.strat=sa.strat(+)
+#     group by sa.strat,tunits,vessel,mission,setno,flen,sets
+#     order by sa.strat,tunits,vessel,mission,setno,flen,sets",sep="")
+# LF<-sqlQuery(channel,LF_query)
+# 
+# #weight by set sheet (not formatted for output)
+# 
+# ####
+# ####bad join!
+# ####
+# setwgt_query<-
+#   paste("select sa.strat,sa.slat,sa.slong,sa.name unitarea,sa.mission,setno,sets,tunits,x.areanm,avg(raw_totwgt*1.75/dist) setwt
+#  from stock_agelen sa, xxx2 x
+# where year=",year," and to_number(sa.strat)>=",strat.min," and to_number(sa.strat)<=",strat.max,"
+# and x.strat=sa.strat(+)
+# group by sa.strat,sa.mission,setno,sa.slat,sa.slong,sa.name,sets,tunits,x.areanm
+# order by sa.strat,sa.mission,setno,sa.slat,sa.slong,sa.name,sets,tunits,x.areanm",sep="")
+# setwgt<-sqlQuery(channel,setwgt_query)
