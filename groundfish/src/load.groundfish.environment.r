@@ -7,7 +7,7 @@
   R.gs        = file.path( project.directory("groundfish"), "R" )
   if (!file.exists(R.gs)) dir.create(R.gs)
 # helper functions  
-init.files = loadfunctions( c( "plottingmethods", "spatialmethods", "utility", "parallel", "taxonomy", "temperature", "habitat", "bathymetry", "bio", "groundfish"))#,"BIOsurvey" ) )
+init.files = loadfunctions( c( "plottingmethods", "spacetime", "utility", "parallel", "taxonomy", "temperature", "habitat", "bathymetry", "bio", "groundfish"))#,"BIOsurvey" ) )
   
   
 setwd( R.gs )

@@ -82,7 +82,7 @@
 
   p= list()
 	p$init.files = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  p$init.files = c( p$init.files, loadfunctions( c( "spatialmethods", "utility", "parallel", "bathymetry", "temperature" ) ) )
+  p$init.files = c( p$init.files, loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "temperature" ) ) )
 
   p$libs = RLibrary( "mgcv", "chron", "lattice", "lattice", "grid", "fields", "parallel", 
                          "sp", "INLA", "geostatsinla", "geostatsp", "raster"  ) 
@@ -1006,7 +1006,7 @@ abline(0:1, col=gray(.7))
 
   p= list()
 	p$init.files = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  p$init.files = c( p$init.files, loadfunctions( c("spatialmethods", "utility", "parallel", "bathymetry", "temperature" ) ) )
+  p$init.files = c( p$init.files, loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature" ) ) )
 
   p$libs = RLibrary( "mgcv", "chron", "lattice", "lattice", "grid", "fields", "parallel", 
                          "sp", "INLA", "geostatsinla", "geostatsp", "raster"  ) 

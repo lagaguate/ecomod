@@ -3,7 +3,7 @@
 
   RLibrary( "maptools" , "rgdal" )
 
-	loadfunctions( c("spatialmethods", "utility", "substrate", "bathymetry" ) ) 
+	loadfunctions( c("spacetime", "utility", "substrate", "bathymetry" ) ) 
 
 	# --------------------------------------
   # create the main database

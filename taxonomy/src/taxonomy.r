@@ -23,7 +23,6 @@
     # bootstrap an initial set of tables .. these will be incomplete as a parsimonious tree needs to be created first but it depends upon the last file created taxonomy.db("complete") .. so ...
     taxonomy.db( "groundfish.itis.redo" )  ## link itis with groundfish tables using taxa names, vernacular, etc
     taxonomy.db( "full.taxonomy.redo" )  # merge full taxonomic hierrachy (limit to animalia and resolved to species)
-		## taxonomy.db( "parsimonious.redo" )  # (re)create lookups from old codes to a parsimonious species list
     taxonomy.db( "life.history.redo" ) # add life history data (locally maintained in groundfish.lifehistory.manually.maintained.csv )
     taxonomy.db( "complete.redo" )
     taxonomy.db( "parsimonious.redo" ) 

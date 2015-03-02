@@ -1,5 +1,5 @@
   
-	 loadfunctions( c( "plottingmethods", "spatialmethods", "utility" ) )
+	 loadfunctions( c( "plottingmethods", "spacetime", "utility" ) )
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 

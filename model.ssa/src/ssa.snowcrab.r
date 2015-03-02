@@ -9,7 +9,7 @@
   # set.seed(1)
 
    p$libs = RLibrary( c("parallel", "Rcpp",  "rlecuyer" ))
-   p$init = loadfunctions( c( "model.ssa", "model.pde",  "spatialmethods", "utility", "parallel", "snowcrab"  )  )
+   p$init = loadfunctions( c( "model.ssa", "model.pde",  "spacetime", "utility", "parallel", "snowcrab"  )  )
    
     # diffusion coef d=D/h^2 ; h = 1 km; per year (range from 1.8 to 43  ) ... using 10 here 
     # ... see b ulk estimation in model.lattice/src/_Rfunctions/estimate.bulk.diffusion.coefficient.r

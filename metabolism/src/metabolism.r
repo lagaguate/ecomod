@@ -16,7 +16,7 @@
 
   p$libs = RLibrary ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel" ))
   p$init.files = loadfunctions( c(
-	  "spatialmethods", "utility", "parallel", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "metabolism"
+	  "spacetime", "utility", "parallel", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "metabolism"
 	) )
   
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
