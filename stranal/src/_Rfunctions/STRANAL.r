@@ -1,10 +1,10 @@
 ############################
 #User PARAMETERS
 #
-year=2013
+year=2014
 type=c(1)
-species.code=11
-strat.list<-c(470:495)
+species.code=14
+strat.list<-c(484:495)
 ############################
 #loadfunctions("utility",,"na.zero")
 options(stringsAsFactors = FALSE) 
@@ -301,6 +301,10 @@ length_total_result = rbind(lo,c('Total',colSums(lo[2:ncol(lo)])))
 
 #age length weight sheet
 alw<-aggregate(FWT~AGE+FLEN,data=stock_agelen,FUN=mean)
+#MMM 2015
+#try this is no age
+#alw<-aggregate(FWT~FLEN,data=stock_agelen,FUN=mean)
+
 alw$FWT = alw$FWT / 1000
 alw_result = reshape(alw,idvar='FLEN',timevar='AGE',direction='wide')
 
