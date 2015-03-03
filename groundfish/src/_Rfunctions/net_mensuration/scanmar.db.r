@@ -803,17 +803,19 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       if (is.null ( gs)) next()
       nm = scanmar.db( DS="sanity.checks", p=p, YRS=YR )
       if (is.null( nm)) next()
-      nm = nm[which(is.finite(nm$depth)) ,  ]
-      nm = nm[which(!is.na( nm$id ) ) , ]
-      if (nrow( nm) < 1 ) next()
-      uid = sort( unique( nm$id)) 
+      nm$good = TRUE 
+      nm$good[which(!is.finite(nm$depth)) ] = FALSE
+      nm$good[which(is.na( nm$id ) )  ]   = FALSE
+      w = which( nm$good) 
+      if ( length(w) < 1 ) next()
+      uid = unique( nm$id[w] )
       for ( id in uid) {
         # print( id)
         kk = jj = NULL
-        kk = which( gs$id==id) 
-        jj = which( nm$id==id)  # rows of nm with scanmar/marport data
-        if (length( kk) < 1) next()
-        if (length( jj) < nreq ) next()
+        kk = which( gs$id==id ) 
+        jj = which( nm$id==id & nm$good )  # rows of nm with scanmar/marport data
+        if (length( kk ) < 1) next()
+        if (length( jj ) < nreq ) next()
         tk = which( nm$timestamp[jj] >= gs$bc0.datetime[kk] & nm$timestamp[jj] <= gs$bc1.datetime[kk] )
         if (length(tk) < nreq ) next()
         ii = jj[tk]
