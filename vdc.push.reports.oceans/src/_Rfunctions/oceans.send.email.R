@@ -73,9 +73,6 @@ Please send questions\\comments\\suggestions related to this report, please cont
   msg<-list(mime_part(metadata), 
             mime_part(theKmz))
 	 for (to in recipients[[cleanDataWindow]]) {
-      #   uncomment the following line if in an environment where you can send emails
-     #    sendmail(from, to, subject, msg, headers=header, control = list(smtpServer = dfo.smtpserver))
-
+         sendmail(from, to, subject, msg, headers=header, control = list(smtpServer = dfo.smtpserver))
   }
-  print("emailing disabled since it's broken on local machines (perhaps the port is blocked)")
 }			
