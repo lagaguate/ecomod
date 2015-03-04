@@ -16,7 +16,7 @@
   p$project.name = "condition"
   p$project.outdir.root = project.directory( p$project.name, "analysis" )
   
-  p$init.files = loadfunctions( c("spatialmethods", "utility", "parallel", "habitat", "bathymetry",
+  p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "habitat", "bathymetry",
                                   "bio", "temperature", "taxonomy", "condition" ) )
   p$libs = RLibrary( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice" ))
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far

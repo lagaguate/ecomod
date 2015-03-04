@@ -776,10 +776,15 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
 
 
     if(DS=="scanmar.filtered"){
-      nm = scanmar.db( DS="sanity.checks", p=p, YRS=YRS )
-      ii = scanmar.db( DS="scanmar.filtered.indices", p=p, YRS=YRS )
-      return(nm[ii,])
+      nm = NULL
+      for ( YR in YRS ) {
+        sc = scanmar.db( DS="sanity.checks", p=p, YRS=YR )
+        ii = scanmar.db( DS="scanmar.filtered.indices", p=p, YRS=YR )
+        if ( !is.null(sc) && !is.null(ii) && length(ii) > 0)  nm = rbind( nm, sc [ii,] )
+      }
+      return(nm)
     }
+
 
     if(DS=="scanmar.filtered.indices"){
       res = NULL
@@ -803,24 +808,26 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       if (is.null ( gs)) next()
       nm = scanmar.db( DS="sanity.checks", p=p, YRS=YR )
       if (is.null( nm)) next()
-      nm = nm[which(is.finite(nm$depth)) ,  ]
-      nm = nm[which(!is.na( nm$id ) ) , ]
-      if (nrow( nm) < 1 ) next()
-      uid = sort( unique( nm$id)) 
+      nm$good = TRUE 
+      nm$good[which(!is.finite(nm$depth)) ] = FALSE
+      nm$good[which(is.na( nm$id ) )  ]   = FALSE
+      w = which( nm$good) 
+      if ( length(w) < 1 ) next()
+      uid = unique( nm$id[w] )
       for ( id in uid) {
         # print( id)
         kk = jj = NULL
-        kk = which( gs$id==id) 
-        jj = which( nm$id==id)  # rows of nm with scanmar/marport data
-        if (length( kk) < 1) next()
-        if (length( jj) < nreq ) next()
-        tk = which( nm$timestamp[jj] >= gs$bc0.datetime[kk] & nm$timestamp[jj] <= gs$bc1.datetime[kk] )
+        kk = which( gs$id==id ) 
+        jj = which( nm$id==id & nm$good )  # rows of nm with scanmar/marport data
+        if (length( kk ) < 1) next()
+        if (length( jj ) < nreq ) next()
+        tk = which( nm$timestamp[jj] >= gs$bc0.datetime[kk] & nm$timestamp[jj] <= gs$bc1.datetime[kk] & nm$good[jj] )
         if (length(tk) < nreq ) next()
         ii = jj[tk]
         if ( length( which( is.finite(nm[ii, "depth"]))) < nreq ) next()  
         if ( all (is.finite( c( gs$bc0.sd[kk], gs$bc1.sd[kk] ) ))) {
           if ( gs$bc0.sd[kk] <= sd.max & gs$bc1.sd[kk] <= sd.max )  {  
-            out = c( out, ii)
+            out = c(out, ii)
           }
         }
       }

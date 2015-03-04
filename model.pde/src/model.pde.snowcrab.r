@@ -1,7 +1,7 @@
 
 
   # simple PDE 2D spatial model of interacting nodes in a lattice
-  loadfunctions( c("spatialmethods", "utility", "parallel", "habitat", "snowcrab", "temperature", "depth", "bathymetry" ) )
+  loadfunctions( c("spacetime", "utility", "parallel", "habitat", "snowcrab", "temperature", "depth", "bathymetry" ) )
   loadfunctions( "model.pde" )
 
 

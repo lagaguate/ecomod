@@ -2,7 +2,7 @@
 # Bathymetry data
   
   p=list()
-  p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "bathymetry" ) )
+  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
   p$libs = RLibrary( "chron", "rgdal", "lattice", "parallel" )
 
   
@@ -145,7 +145,7 @@
   # geostats for area of interest
   
   p=list()
-  p$init.files = loadfunctions( c( "spatialmethods", "utility",  "bathymetry", "polygons" ) )
+  p$init.files = loadfunctions( c( "spacetime", "utility",  "bathymetry", "polygons" ) )
   p$libs = RLibrary( "chron", "rgdal", "lattice", "INLA"  )
   p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
   bt = bathymetry.db ( p, DS="baseline" )

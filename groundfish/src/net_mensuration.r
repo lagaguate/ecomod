@@ -52,8 +52,14 @@ scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom c
 scanmar.db( DS="sweptarea.redo",  p=p )  
 
 
-nm = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
-nm = scanmar.db( DS="scanmar.filtered",  p=p )  # bring in estimates of bottom contact times from scanmar
+gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
+length( gs[ which(is.finite(gs$bottom_duration) ), "id" ] )
+length( gs[ which(is.finite(gs$bottom_duration) & gs$bc0.sd<30 & gs$bc1.sd<30), "id" ] )
+
+
+nm= scanmar.db( DS="scanmar.filtered",  p=p )  # bring in estimates of bottom contact times from scanmar
+tapply( nm$id, nm$year, function(x) { length(unique(x))} )
+sum( tapply( nm$id, nm$year, function(x) { length(unique(x))} ) )
 
 
 create.marport.database = FALSE

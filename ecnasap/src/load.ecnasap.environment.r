@@ -11,5 +11,5 @@
   gs.srcdir         = project.directory("groundfish", "src" )
   ecnasapdir        = project.directory("ecnasap", "src" )
 	
-	loadfunctions( c("spatialmethods", "utility", "parallel", "taxonomy", "ecnasap", "speciesarea", "groundfish" )
+	loadfunctions( c("spacetime", "utility", "parallel", "taxonomy", "ecnasap", "speciesarea", "groundfish" )
 

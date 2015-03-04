@@ -12,14 +12,6 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   
   out = NULL
 
- 
-  if ( !grepl( "planar", crs )) { 
-    # i.e. if not already planar coords, then  assume it is in lon-lat .. requires some planar coord system
-    nm = names(xyz) 
-    xyz = try( lonlat2planar( xyz, proj.type=crs ), silent=TRUE )
-    xyz = xyz[, c("plon", "plat", nm[3])]
-  } 
-  
  if ( "test" %in% xyz ) {
     # just for debugging / testing ...
     data(meuse)
@@ -27,6 +19,14 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
     crs="+proj=utm +zone=20 +ellps=WGS84"
   }
 
+   
+  if ( !grepl( "planar", crs )) { 
+    # i.e. if not already planar coords, then  assume it is in lon-lat .. requires some planar coord system
+    nm = names(xyz) 
+    xyz = try( lonlat2planar( xyz, proj.type=crs ), silent=TRUE )
+    xyz = xyz[, c("plon", "plat", nm[3])]
+  } 
+  
   names(xyz) =  c("plon", "plat", "z" )
   
   drange = sqrt(diff(range(xyz$plon))^2 + diff(range(xyz$plat))^2)

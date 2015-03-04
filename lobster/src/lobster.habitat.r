@@ -5,7 +5,7 @@
     loadfunctions( "groundfish" , functionname="load.groundfish.environment.r" )
     loadfunctions( "snowcrab" , functionname="initialise.local.environment.r" )
 
-    p$init.lobster = loadfunctions( c("spatialmethods", "utility", "parallel", "habitat", "groundfish", "taxonomy", "snowcrab", "lobster" ) )
+    p$init.lobster = loadfunctions( c("spacetime", "utility", "parallel", "habitat", "groundfish", "taxonomy", "snowcrab", "lobster" ) )
 
     dir.lob = file.path( project.directory("lobster"), "habitat" )
     workdir = file.path( project.directory("lobster"), "R" )
