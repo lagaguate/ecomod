@@ -403,6 +403,9 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
     
     dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
+    dev.off(dev.prev())
+    # dev.off()
+
   }
 
   print( O$summary)
