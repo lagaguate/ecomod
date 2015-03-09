@@ -132,7 +132,7 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
   
   stop() ## fix the following ...
 
-  O$aoi.good = O$aoi[which( O$good)  # used for indexing good values within aoi
+  O$aoi.good = O$aoi[which( O$good)]  # used for indexing good values within aoi
   sm0=x[ O$aoi, ]  # used for methods that require only data from the area of interest 
 
 
@@ -187,7 +187,7 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
   O$incremental.method = c(NA, NA)
   O$incremental.method.indices = NA
   sm1 = sm0[ , c("depth", "timestamp", "ts") ]
-  sm1$depth [ !O$good=] = NA
+#   sm1$depth [ !O$good=] = NA
   res = NULL
   res = try( bottom.contact.incremental( sm=sm1, good=O$good, nx=10 ) , silent =TRUE)
   if ( ! "try-error" %in% class( res) ) {
@@ -219,7 +219,7 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
         }
       }
     }  
-     
+  } 
 
   ## ---------------------------
   ## Linear method: looking at the intersection of three lines (up, bot and down)
