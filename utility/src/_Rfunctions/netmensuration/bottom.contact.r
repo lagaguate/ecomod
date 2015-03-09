@@ -1,7 +1,7 @@
 
 bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportion=0.5, smoothing = 0.9, eps.depth=1, 
         filter.quants=c(0.025, 0.975), sd.multiplier=3, depth.min=20, depth.range=c(-30,30), 
-        plot.data=FALSE, outdir = getwd(), user.interaction=FALSE, setdepth=NULL,  time.gate=NULL, inla.h=0.05, inla.diagonal=0.05 ) {
+        user.interaction=FALSE, setdepth=NULL,  time.gate=NULL, inla.h=0.05, inla.diagonal=0.05 ) {
   
   #require(lubridate) 
   #require( numDeriv ) 
@@ -12,7 +12,6 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     tdif.min = 15  # min time difference (minutes) .. including tails
     tdif.max = 45  # min time difference (minutes) .. including tails
     depthproportion=0.6 # depthproportion controls primary (coarse)gating
-    plot.data=TRUE 
     eps.depth=4  # for noise filtering  .. ignore variations less than this threshold
     filter.quants=c(0.025, 0.975)
     sd.multiplier=5
@@ -20,7 +19,6 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     depth.range=c(-50, 50)
     smoothing = 0.9
     filter.quants=c(0.025, 0.975)
-    plot.data=TRUE
     setdepth=NULL
     user.interaction=FALSE # is you want to try to manually determine end points too
   }
@@ -39,7 +37,9 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
   
-  O$Z = x$depth  ## copy of depth data before manipulations
+  # O$Z = x$depth  ## copy of depth data before manipulations ... not used? 
+  
+  O$plotdata = x   # save incoming data after creation of time stamps and ordering 
 
 
   ##--------------------------------
@@ -83,24 +83,8 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     x$depth[ !O$good ] = NA
   }
 
-  if (plot.data) {
-    trange = range( x$ts[O$good], na.rm=TRUE )
-    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
-    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
-    legendtext = NULL
-    legendcol = NULL
-    legendpch = NULL
-  }
-
-
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
-
-
-    if (plot.data) {
-      mcol = "steelblue"
-      points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
-    }
    
   if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return( NULL )
   if(sum(O$good)==0) return( NULL )
@@ -123,19 +107,10 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     O$variance.method = res$variance.method
     O$variance.method.indices  = res$variance.method.indices
     x$depth[ !O$good ] = NA
-    if (all(is.finite( O$variance.method) ) ) {
-      if (plot.data) {
-        mcol = "gray"
-        points( depth~ts, x[ O$variance.method.indices, ], pch=20, col=mcol, cex=0.2)
-        abline (v=x$ts[min(O$variance.method.indices)], col=mcol, lty="dotted")
-        abline (v=x$ts[max(O$variance.method.indices)], col=mcol, lty="dotted")
-        duration = as.numeric( difftime( O$variance.method[2], O$variance.method[1], units="mins" ) )
-        legendtext = c( legendtext, paste( "variance:   ", round( duration, 2) ) )
-        legendcol = c( legendcol, mcol)
-        legendpch =c( legendpch, 20 ) 
-      }
-    }
   }
+    
+  ## NOTE::: From this point on, O$good is now complete 
+  ## -- it contains indices of time and depth-based gating as well as the variance based gating
 
  
   # Now that data is more or less clean ... 
@@ -153,9 +128,12 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
   aoi.mid = trunc( mean( aoi.range ) ) # approximate midpoint
   aoi.min = aoi.range[1]
   aoi.max = aoi.range[2]
-  aoi = aoi.min:aoi.max
+  O$aoi = aoi.min:aoi.max  # stored for use in the linear method where we need to recover the left-most index 
   
-  sm0=x[aoi, ]  # used for methods that require only data from the area of interest 
+  stop() ## fix the following ...
+
+  O$aoi.good = O$aoi[which( O$good)  # used for indexing good values within aoi
+  sm0=x[ O$aoi, ]  # used for methods that require only data from the area of interest 
 
 
   ##--------------------------------
@@ -166,28 +144,20 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
 
   O$modal.method = c(NA, NA)
   O$modal.method.indices = NA
-  
+  sm0 = sm0[ , c("depth.residual", "timestamp", "ts" ) ]  # send filtered data ... continuity not important
+  sm0$depth.residual[ !smgood] = NA 
   res = NULL
-  res = try( bottom.contact.modal( sm=sm0[, c("depth.residual", "timestamp", "ts" ) ], 
-      tdif.min=tdif.min, tdif.max=tdif.max, density.factor=5, kernal.bw.method="SJ" ), silent=TRUE )
-   
-  if ( !"try-error" %in% class( res) )  {
-    O$modal.method = res 
-      if (all(is.finite( O$modal.method) ) ) {
-        O$modal.method.indices = which( x$timestamp >= O$modal.method[1] &  x$timestamp <= O$modal.method[2] )
-        if (plot.data) {
-          mcol = "red" # colour for plotting
-          points( depth~ts, x[O$modal.method.indices,], col=mcol, pch=20, cex=0.2)       
-          abline (v=x$ts[min(O$modal.method.indices)], col=mcol, lty="dashed")
-          abline (v=x$ts[max(O$modal.method.indices)], col=mcol, lty="dashed")
-          duration = as.numeric( difftime( O$modal.method[2], O$modal.method[1], units="mins" ) )
-          legendtext = c( legendtext, paste( "modal:   ", round( duration, 2) ) )
-          legendcol = c( legendcol, mcol)
-          legendpch =c( legendpch, 20) 
+  res = try( bottom.contact.modal( sm=sm0, density.factor=5, kernal.bw.method="SJ" ), silent=TRUE )
+    if ( ! "try-error" %in% class( res) ) {
+      if ( all(is.finite(res) ) ) {
+        duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+        if ( duration > tdif.min & duration < tdif.max ) {
+          O$modal.method = res
+          O$modal.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
         }
       }
-  }
-  
+    }  
+    
 
   ## ---------------------------- 
   ## Smooth method: using smoothed data (slopes are too unstable with raw data), 
@@ -195,129 +165,101 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
 
   O$smooth.method = c(NA, NA)
   O$smooth.method.indices = NA
-
+  sm0 = sm0[, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi ... filtered ? --- check this
   res = NULL
   res = try( 
-    bottom.contact.smooth( sm=sm0[, c("depth.smoothed", "timestamp", "ts")], 
-      tdif.min=tdif.min, tdif.max=tdif.max, target.r2=smoothing, filter.quants=filter.quants ) , silent =TRUE)
- 
-  if ( ! "try-error" %in% class( res) ) {
-    O$smooth.method = res
-      if ( all(is.finite(O$smooth.method) ) ) {
-        O$smooth.method.indices = which( x$timestamp >= O$smooth.method[1] &  x$timestamp <= O$smooth.method[2] ) # x correct
-        if (plot.data) {
-          mcol = "blue"
-          points( depth~ts, x[O$smooth.method.indices,], col=mcol, pch=20, cex=0.2)   
-          abline (v=x$ts[min(O$smooth.method.indices)], col=mcol, lty="dashed")
-          abline (v=x$ts[max(O$smooth.method.indices)], col=mcol, lty="dashed")
-          duration = as.numeric( difftime( O$smooth.method[2], O$smooth.method[1], units="mins" ) )
-          legendtext = c(legendtext, paste( "smooth:   ", round(duration, 2)) )
-          legendcol = c( legendcol, mcol)
-          legendpch =c( legendpch, 20) 
+    bottom.contact.smooth( sm=sm0, target.r2=smoothing, filter.quants=filter.quants ) , silent =TRUE)
+    if ( ! "try-error" %in% class( res) ) {
+      if ( all(is.finite(res) ) ) {
+        duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+        if ( duration > tdif.min & duration < tdif.max ) {
+          O$smooth.method = res
+          O$smooth.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
         }
       }
+    }  
+    
+
+  ## ---------------------------- 
+  ## Incremental method: using unsmoothed data compute slopes in a moving window to determine when the slopes cross 
+  ## the modal bounds of the distribution of slopes 
+
+  O$incremental.method = c(NA, NA)
+  O$incremental.method.indices = NA
+  sm1 = sm0[ , c("depth", "timestamp", "ts") ]
+  sm1$depth [ !O$good=] = NA
+  res = NULL
+  res = try( bottom.contact.incremental( sm=sm1, good=O$good, nx=10 ) , silent =TRUE)
+  if ( ! "try-error" %in% class( res) ) {
+    if ( all(is.finite( res ) ) ) {
+      duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+      if ( duration > tdif.min & duration < tdif.max ) {
+        O$incremental.method = res
+        O$incremental.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
+      }
+    }
   }  
-  
+    
+
 
   ## ---------------------------- 
   ## Intersect method: looking at the intersection of a perpendicular line onto the trajectory of the profile
-  if ( FALSE ) {  # turn off for now .. not working reliably
-    O$intersect.method = c(NA, NA) 
-    O$intersect.method.indices = NA
+  O$intersect.method = c(NA, NA) 
+  O$intersect.method.indices = NA
      
+  if ( FALSE ) {  # turn off for now .. not working reliably
     res = NULL
-    res = try( 
-      bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")], tdif.min=tdif.min, tdif.max=tdif.max ), silent=TRUE ) 
-    
-    if ( ! "try-error" %in% class( res) )  {
-      O$intersect.method = res
-      if ( all(is.finite(O$intersect.method) ) ) {
-        O$intersect.method.indices = which( x$timestamp >= O$intersect.method[1] &  x$timestamp <= O$intersect.method[2] ) # x correct
-        if (plot.data) {
-          mcol = "magenta"
-          points( depth~ts, x[O$intersect.method.indices,], col=mcol, pch=20, cex=0.2)   
-          abline (v=x$ts[min(O$intersect.method.indices)], col=mcol, lty="dashed")
-          abline (v=x$ts[max(O$intersect.method.indices)], col=mcol, lty="dashed")
-          duration = as.numeric( difftime( O$intersect.method[2], O$intersect.method[1], units="mins" ) )
-          legendtext = c(legendtext, paste( "intersect:   ", round(duration, 2)) )
-          legendcol = c( legendcol, mcol)
-          legendpch =c( legendpch, 20) 
+    res = try( bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")] ), silent=TRUE ) 
+    if ( ! "try-error" %in% class( res) ) {
+      if ( all(is.finite( res ) ) ) {
+        duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+        if ( duration > tdif.min & duration < tdif.max ) {
+          O$intersect.method = res
+          O$intersect.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
         }
       }
-    }
-  }
-
+    }  
+     
 
   ## ---------------------------
   ## Linear method: looking at the intersection of three lines (up, bot and down)
  
   O$linear.method = c(NA, NA)
   O$linear.method.indices = NA
-
- 
-    ## at least one solution required to continue  (2 means a valid start and end)
-     # ID best model based upon time .. furthest up a tail is best 
-    rsmooth = c(NA, NA)
-    rmodal  = c(NA, NA) 
-    rintersect = c(NA, NA)
-
-    if ( length(O$smooth.method.indices) > 0) rsmooth = range(O$smooth.method.indices)
-    if ( length(O$modal.method.indices) > 0) rmodal = range(O$modal.method.indices)
-    # if ( length(O$intersect.method.indices) > 0) rintersect = range(O$intersect.method.indices)
-
-    sol = NULL
-    sol = rbind( rsmooth, rmodal, rintersect )
-   
-    left = trunc(median( sol[,1], na.rm=TRUE)) - min(aoi) + 1
-    right = trunc( median( sol[,2], na.rm=TRUE)) - min(aoi) + 1
-
-    res = NULL
-    res = try( 
-      bottom.contact.linear( sm=sm0[, c("depth.residual", "timestamp", "ts" )], 
-        left=left, right=right, tdif.min=tdif.min, tdif.max=tdif.max ) , silent=TRUE )
-    
-    if ( ! "try-error" %in% class( res) )  {
-      O$linear.method =res
-      if (all(is.finite(O$linear.method)) ) {
-        O$linear.method.indices = which( x$timestamp >= O$linear.method[1] &  x$timestamp <= O$linear.method[2] ) 
-        if (plot.data) {
-          mcol ="green"
-          points( depth~ts, x[O$linear.method.indices,], col=mcol, pch=20, cex=0.2)      
-          abline (v=x$ts[min(O$linear.method.indices)], col=mcol)
-          abline (v=x$ts[max(O$linear.method.indices)], col=mcol)
-          duration = as.numeric( difftime( O$linear.method[2], O$linear.method[1], units="mins" ) )
-          legendtext = c( legendtext, paste( "linear: ", round( duration, 2) ) )
-          legendcol = c( legendcol, mcol)
-          legendpch =c( legendpch, 20) 
-        }
+  res = NULL
+  res = try( bottom.contact.linear( sm=sm0[, c("depth.residual", "timestamp", "ts" )], O=O) , silent=TRUE )
+  if ( ! "try-error" %in% class( res) ) {
+    if ( all(is.finite( res ) ) ) {
+      duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+      if ( duration > tdif.min & duration < tdif.max ) {
+        O$linear.method = res
+        O$linear.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
       }
     }
-     
+  }  
+  
    
+  ## ---------------------------
+  
   O$manual.method = c(NA , NA)
   if ( user.interaction  ) { 
     print( "Click with mouse on start and stop locations now.")          
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
+
     useridentified = locator( n=2, type="o", col="cyan")
     u.ts0 = which.min( abs( x$ts-useridentified$x[1] ))
     u.ts1 = which.min( abs( x$ts-useridentified$x[2] ))
     O$manual.method = c( x$timestamp[u.ts0], x$timestamp[ u.ts1 ]  )
     O$manual.method.indices = which( x$timestamp >= O$manual.method[1] &  x$timestamp <= O$manual.method[2] ) 
-    tdif = abs( as.numeric(difftime(O$manual.method, units="mins")) )
-    tdifflinear = round( tdif, 2)
-    legendtext = c( legendtext, paste( "manual: ", tdifflinear  ) ) 
-    legendcol = c( legendcol, "cyan")
-    legendpch =c( legendpch, 20) 
   }
-  
-  if (plot.data) {
-    if ( !( is.null( legendtext)))  legend( "top", legend=legendtext, col=legendcol, pch=legendpch )
-  }
-  
-
+ 
   O$means = c(NA, NA )
-  methods = c("manual.method", "variance.method", "smooth.method", "modal.method", "linear.method", "means" )
+  methods = c("manual.method", "variance.method", "smooth.method", "incremental.method", "modal.method", "linear.method", "means" )
   standard =  which( methods=="manual.method")
-  direct = which( methods %in%  c("smooth.method", "modal.method", "linear.method" ) )
+  direct = which( methods %in%  c("smooth.method", "modal.method", "incremental.method", "linear.method" ) )
   
   tzone = tz( x$timestamp[1] )
 
@@ -396,17 +338,6 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
 #if(is.na(O$bottom0) ) browser()
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
-  
-  if (plot.data) {
-    #x11(); plot( slopes ~ ts, x2 )
-    lines( depth.smoothed ~ ts, x, col="brown" )
-    # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
-    
-    dev.copy2pdf( file=file.path( outdir, paste(id, "pdf", sep="." ) ) )
-    dev.off(dev.prev())
-    # dev.off()
-
-  }
 
   print( O$summary)
   O$good = NULL

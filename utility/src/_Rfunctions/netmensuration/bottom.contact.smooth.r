@@ -4,6 +4,17 @@ bottom.contact.smooth = function( sm, tdif.min, tdif.max, target.r2=0.9, filter.
 
   res = c(NA, NA)
 
+  if(0) {
+    load("~/ecomod/groundfish/data/nets/Scanmar/bottom.contact/results/bc.NED2014102.8.rdata")
+    sm =data.frame( Z=bc$Z)
+    sm$timestamp=bc$timestamp
+    sm$ts=bc$ts
+    good = bc$depth.goodvalues 
+    sm$Z[ !good] = NA
+    target.r2=0.9
+    filter.quants=c(0.025, 0.975)
+  }
+
   # use only the subset with data for this step
   names( sm) = c("Z", "timestamp", "ts" ) # Z is used to abstract the variable name such that any variable can be passed
   N = nrow(sm)
@@ -57,8 +68,7 @@ bottom.contact.smooth = function( sm, tdif.min, tdif.max, target.r2=0.9, filter.
     for( k1 in N:mm) if ( sm$dZ.smoothed[ k1 ] >  dZ.modes["simple", "lb"]  )  break()  ## note this is inverted on purpose (lb for right tail)
   }
 
-  duration =  as.numeric( difftime(sm$timestamp[k1], sm$timestamp[k0], units="mins" ) )
-  if ( duration > tdif.min & duration < tdif.max ) res =  c( sm$timestamp[k0], sm$timestamp[k1] )    
+  res =  c( sm$timestamp[k0], sm$timestamp[k1] )    
   
   return(res)
 }

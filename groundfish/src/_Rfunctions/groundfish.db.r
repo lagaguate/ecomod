@@ -381,45 +381,56 @@
      
       # fix some time values that have lost the zeros due to numeric conversion
       gsinf$time = as.character(gsinf$time)      
-      j=nchar(gsinf$time)
       
-      tooshort=which(j==3)
-      if (length(tooshort)>0) gsinf$time[tooshort]=paste("0",gsinf$time[tooshort],sep="")
-      tooshort=which(j==2)
-      if (length(tooshort)>0) gsinf$time[tooshort]=paste("00",gsinf$time[tooshort],sep="")
-      tooshort=which(j==1)
-      if (length(tooshort)>0) gsinf$time[tooshort]=paste("000",gsinf$time[tooshort],sep="")
-      
-      hours=substring(gsinf$time,1,2)
-      mins=substring(gsinf$time,3,4)
-      secs="00"
-      days = day( gsinf$sdate )
-      mons = month( gsinf$sdate )
-      yrs = year( gsinf$sdate )
-    
-      gsinf$timestamp = paste( gsinf$year, gsinf$mon, gsinf$day, hours, mins, secs, sep="-" )
       tzone = "America/Halifax"  ## need to verify if this is correct
-  
-      #lubridate function 
-      gsinf$timestamp = ymd_hms(gsinf$timestamp, tz=tzone) 
-      
 
-      #### TODO: and NOTE: Timestamps of "sdate" and "edate" are offset by 1 hr for some reason. 
-      ### Perhaps some standard for the DB ..
-      ### Here we want it in America/Halifax zone as this matches the scanmar time-stamps
-      ###  see for example: gsinf[1:10, c("sdate", "time" ) ]
-      ###  Worth following up with the groundfish people or Shelley
-     
       # by default it should be the correct timezone ("localtime") , but just in case
-      tz( gsinf$sdate) = "America/Halifax"  
-      tz( gsinf$edate) = "America/Halifax"  
+      tz( gsinf$sdate) = tzone  
+     
+      gsinf$edate = gsinf$etime 
+      tz( gsinf$edate) = tzone  
 
- 
-      # gsinf$sdate = gsinf$sdate - dhours(1) 
-      # gsinf$edate = gsinf$etime - dhours(1) 
+      # fix sdate - edate inconsistencies .. assuming sdate is correct 
+      gsinf$timediff.gsinf = gsinf$edate - gsinf$sdate
+      oo = which( abs( gsinf$timediff.gsinf)  > dhours( 4 ) ) 
+      if (length(oo)>0) {
+        print( "Time stamps sdate and etime (renamed as edate) are severely off (more than 4 hrs):" )
+        print( gsinf[oo,] )
+        if (FALSE) {
+          hist( as.numeric(  gsinf$timediff.gsinf[-oo]), breaks=200 )
+          abline (v=30*60, col="red")  # expected value of 30 min 
+          abline (v=90*60, col="red")  # after 90 min 
+          abline (v=150*60, col="red")  # after 150 min 
+        }
+      }
+      uu = which( gsinf$timediff.gsinf < 0 ) # when tow end is before start
+      gsinf$edate[uu]  = NA  # set these to NA untile they can be corrected manually
+      gsinf$timediff.gsinf[uu] =NA
+      print( "Time stamps sdate and etime (renamed as edate) are severely off: edate is before sdate:" )
+      print( gsinf[uu,] )
+      
+      if (FALSE)  hist( as.numeric(  gsinf$timediff.gsinf), breaks=200 ) 
     
-
-
+  
+      uu = which( gsinf$timediff.gsinf > dminutes(50) & gsinf$timediff.gsinf < dminutes(50+60) ) # assuming 50 min is a max tow length
+      if (length(uu)>0) {
+        gsinf$edate[uu] = gsinf$edate[uu] - dhours(1) ### this is assuming sdate is correct ... which might not be the case 
+        if (FALSE) {
+          hist( as.numeric(  gsinf$timediff.gsinf[-oo]), breaks=200 )
+        }
+      }
+      gsinf$timediff.gsinf = gsinf$edate - gsinf$sdate
+      uu = which( gsinf$timediff.gsinf > dminutes(50) ) # assuming 50 min is a max tow length
+      gsinf$edate[uu]  = NA  # set these to NA untile they can be corrected manually
+      gsinf$timediff.gsinf[uu] =NA
+        if (FALSE) {
+          hist( as.numeric(  gsinf$timediff.gsinf), breaks=200 )
+          abline (v=30*60, col="red")  # expected value of 30 min 
+          abline (v=90*60, col="red")  # after 90 min 
+          abline (v=150*60, col="red")  # after 150 min 
+        }
+    
+    
       gsinf$mission = as.character( gsinf$mission )
       gsinf$strat = as.character(gsinf$strat)
       gsinf$strat[ which(gsinf$strat=="") ] = "NA"

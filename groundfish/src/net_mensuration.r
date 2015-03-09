@@ -49,17 +49,31 @@ p$bc.badlist = c(
 scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 
 scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
+
 scanmar.db( DS="sweptarea.redo",  p=p )  
 
 
 gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
+pp = tapply( gs$id, year(gs$bc0.datetime), function(x) { length(unique(x))} )
+pp = data.frame( yr= rownames(pp), n.bc=pp)
+oo = tapply( gs$id, year(gs$sdate), function(x) { length(unique(x))} )
+oo = data.frame( yr = rownames(oo), n.gs= oo)
 length( gs[ which(is.finite(gs$bottom_duration) ), "id" ] )
 length( gs[ which(is.finite(gs$bottom_duration) & gs$bc0.sd<30 & gs$bc1.sd<30), "id" ] )
 
 
-nm= scanmar.db( DS="scanmar.filtered",  p=p )  # bring in estimates of bottom contact times from scanmar
-tapply( nm$id, nm$year, function(x) { length(unique(x))} )
-sum( tapply( nm$id, nm$year, function(x) { length(unique(x))} ) )
+sc = scanmar.db( DS="sanity.checks",  p=p )      # QA/QC of data
+rr = tapply( sc$id, sc$year, function(x) { length(unique(x))} )
+rr = data.frame( yr= rownames(rr), n.scanmar=rr )
+
+nm = scanmar.db( DS="scanmar.filtered",  p=p )  # bring in estimates of bottom contact times from scanmar
+qq = tapply( nm$id, nm$year, function(x) { length(unique(x))} )
+qq = data.frame( yr= rownames(qq), n.filtered=qq )
+
+
+res = merge ( oo, pp, by="yr") 
+res = merge ( res, qq, by="yr") 
+res = merge ( res, rr, by="yr") 
 
 
 create.marport.database = FALSE

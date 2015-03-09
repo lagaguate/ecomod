@@ -190,9 +190,10 @@
           # default, empty container
           res = data.frame(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA)
 
-          # best to keep snow-crab-specific things here rather than in the more general functions of "bottom.contact " 
-          bad.list = c( 'minilog.S20052000.10.NA.NA.NA.13', 
-                        'minilog.S19092004.8.389.NA.NA.321' ) 
+          bad.list = c( 
+            'minilog.S20052000.10.NA.NA.NA.13', 
+            'minilog.S19092004.8.389.NA.NA.321' 
+          ) 
           
           if (! ( id %in% bad.list ) ) { 
             
@@ -214,8 +215,7 @@
 
           if (FALSE) {
             # to visualize/debug
-            bc = bottom.contact( id=id, x=M, time.gate=time.gate, setdepth=rid$setZx[i], 
-              tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5, plot.data=TRUE )
+            bottom.contact.plot(bc)
             ## --- NOTE modal seems to work best ... but 
             # no single best method .. use the default which is the mean of all methods
             ##  likely due to greater precision and data density relative to minilog
