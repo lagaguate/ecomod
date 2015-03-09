@@ -1,5 +1,5 @@
   
-bottom.contact.modal = function( sm, tdif.min, tdif.max, density.factor=5, kernal.bw.method="SJ-ste" ) {
+bottom.contact.modal = function( sm, density.factor=5, kernal.bw.method="SJ-ste" ) {
   
   # Modal method: gating by looking for modal distribution and estimating sd of the modal group in the 
   # data specified by the indices, aoi
@@ -19,8 +19,7 @@ bottom.contact.modal = function( sm, tdif.min, tdif.max, density.factor=5, kerna
   # catch situations where there is no variance in data due to only bottom-track being recorded and truncated: 
   if ( Zmodes[ "simple", "sd" ] < 1e-3) {
     # no discrimination possible, so default to start and end indices and test for acceptable time duration .. use defaults
-    duration = as.numeric( difftime( sm$timestamp[r1],  sm$timestamp[r0], units="mins" ) )
-    if ( duration > tdif.min & duration < tdif.max ) res = c( sm$timestamp[r0], sm$timestamp[r1] )
+    res = c( sm$timestamp[r0], sm$timestamp[r1] )
     return(res)
   } 
  
@@ -38,8 +37,7 @@ bottom.contact.modal = function( sm, tdif.min, tdif.max, density.factor=5, kerna
     }
   }
 
-  duration = as.numeric( difftime( sm$timestamp[r1],  sm$timestamp[r0], units="mins" ) )
-  if ( duration > tdif.min & duration < tdif.max ) res = c( sm$timestamp[r0], sm$timestamp[r1] )
+  res = c( sm$timestamp[r0], sm$timestamp[r1] )
 
   return(res)
 }
