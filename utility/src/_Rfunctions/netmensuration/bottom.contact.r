@@ -12,17 +12,20 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     tdif.min = 15  # min time difference (minutes) .. including tails
     tdif.max = 45  # min time difference (minutes) .. including tails
     depthproportion=0.6 # depthproportion controls primary (coarse)gating
-    eps.depth=4  # for noise filtering  .. ignore variations less than this threshold
+    eps.depth=1  # for noise filtering  .. ignore variations less than this threshold
     filter.quants=c(0.025, 0.975)
-    sd.multiplier=5
-    depth.min=10
+    sd.multiplier=3
+    depth.min=20
     depth.range=c(-50, 50)
     smoothing = 0.9
     filter.quants=c(0.025, 0.975)
     setdepth=NULL
+    time.gate.NULL
     user.interaction=FALSE # is you want to try to manually determine end points too
+    debug.plot = TRUE
   }
   
+  debug.plot = FALSE
   n.min.required = 30 
 
   O = list()  # output list
@@ -108,7 +111,16 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     O$variance.method.indices  = res$variance.method.indices
     x$depth[ !O$good ] = NA
   }
-    
+   
+  if(debug.plot) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    mcol = "gray"
+    points( depth~ts, x[ O$variance.method.indices, ], pch=20, col=mcol, cex=0.2)
+  }
+
+  
   ## NOTE::: From this point on, O$good is now complete 
   ## -- it contains indices of time and depth-based gating as well as the variance based gating
 
@@ -130,11 +142,6 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
   aoi.max = aoi.range[2]
   O$aoi = aoi.min:aoi.max  # stored for use in the linear method where we need to recover the left-most index 
   
-  stop() ## fix the following ...
-
-  O$aoi.good = O$aoi[which( O$good)]  # used for indexing good values within aoi
-  sm0=x[ O$aoi, ]  # used for methods that require only data from the area of interest 
-
 
   ##--------------------------------
   # Modal method: gating by looking for modal distribution and estimating sd of the modal group in the data 
@@ -144,20 +151,30 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
 
   O$modal.method = c(NA, NA)
   O$modal.method.indices = NA
-  sm0 = sm0[ , c("depth.residual", "timestamp", "ts" ) ]  # send filtered data ... continuity not important
-  sm0$depth.residual[ !smgood] = NA 
+  sm0 = x[ , c("depth.residual", "timestamp", "ts" ) ]  # send filtered data ... continuity not important .. order is important
+  # sm0$depth.residual[ !O$good ] = NA
+  sm0 = sm0[ O$aoi, ]
   res = NULL
   res = try( bottom.contact.modal( sm=sm0, density.factor=5, kernal.bw.method="SJ" ), silent=TRUE )
     if ( ! "try-error" %in% class( res) ) {
       if ( all(is.finite(res) ) ) {
-        duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+        duration =  abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
         if ( duration > tdif.min & duration < tdif.max ) {
           O$modal.method = res
           O$modal.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
         }
       }
     }  
-    
+     
+  if(debug.plot) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    mcol = "green"
+    points( depth~ts, x[ O$modal.method.indices, ], pch=20, col=mcol, cex=0.2)
+  }
+
+  
 
   ## ---------------------------- 
   ## Smooth method: using smoothed data (slopes are too unstable with raw data), 
@@ -165,20 +182,32 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
 
   O$smooth.method = c(NA, NA)
   O$smooth.method.indices = NA
-  sm0 = sm0[, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi ... filtered ? --- check this
+  sm0 = x[, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
+  sm0$depth.smoothed[ !O$good ] = NA
+  sm0 = sm0[ O$aoi, ]
   res = NULL
   res = try( 
     bottom.contact.smooth( sm=sm0, target.r2=smoothing, filter.quants=filter.quants ) , silent =TRUE)
     if ( ! "try-error" %in% class( res) ) {
       if ( all(is.finite(res) ) ) {
-        duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+        duration =  abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
         if ( duration > tdif.min & duration < tdif.max ) {
           O$smooth.method = res
           O$smooth.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
         }
       }
     }  
-    
+      
+  if(debug.plot) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    mcol = "blue"
+    points( depth~ts, x[ O$smooth.method.indices, ], pch=20, col=mcol, cex=0.2)
+  }
+
+  
+
 
   ## ---------------------------- 
   ## Incremental method: using unsmoothed data compute slopes in a moving window to determine when the slopes cross 
@@ -186,13 +215,14 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
 
   O$incremental.method = c(NA, NA)
   O$incremental.method.indices = NA
-  sm1 = sm0[ , c("depth", "timestamp", "ts") ]
-#   sm1$depth [ !O$good=] = NA
+  sm0 = x[, c("depth", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
+  sm0$depth[ !O$good ] = NA
+  sm0 = sm0[ O$aoi, ]
   res = NULL
-  res = try( bottom.contact.incremental( sm=sm1, good=O$good, nx=10 ) , silent =TRUE)
+  res = try( bottom.contact.incremental( sm=sm0, nx=10 ) , silent =TRUE)
   if ( ! "try-error" %in% class( res) ) {
     if ( all(is.finite( res ) ) ) {
-      duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+      duration =  abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
       if ( duration > tdif.min & duration < tdif.max ) {
         O$incremental.method = res
         O$incremental.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
@@ -200,19 +230,29 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     }
   }  
     
+ 
+  if(debug.plot) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    mcol = "purple"
+    points( depth~ts, x[ O$incremental.method.indices, ], pch=20, col=mcol, cex=0.2)
+  }
 
 
   ## ---------------------------- 
   ## Intersect method: looking at the intersection of a perpendicular line onto the trajectory of the profile
   O$intersect.method = c(NA, NA) 
   O$intersect.method.indices = NA
-     
+  sm0 = x[, c("depth", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
+  sm0$depth[ !O$good ] = NA
+  sm0 = sm0[ O$aoi, ]
   if ( FALSE ) {  # turn off for now .. not working reliably
     res = NULL
-    res = try( bottom.contact.intersect( sm=sm0[, c("depth", "timestamp", "ts")] ), silent=TRUE ) 
+    res = try( bottom.contact.intersect( sm=sm0 ), silent=TRUE ) 
     if ( ! "try-error" %in% class( res) ) {
       if ( all(is.finite( res ) ) ) {
-        duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+        duration = abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
         if ( duration > tdif.min & duration < tdif.max ) {
           O$intersect.method = res
           O$intersect.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
@@ -220,17 +260,30 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
       }
     }  
   } 
+ 
+ 
+  if(debug.plot) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    mcol = "yellow"
+    points( depth~ts, x[ O$intersect.method.indices, ], pch=20, col=mcol, cex=0.2)
+  }
+
 
   ## ---------------------------
   ## Linear method: looking at the intersection of three lines (up, bot and down)
  
   O$linear.method = c(NA, NA)
   O$linear.method.indices = NA
+  sm0 = x[, c("depth.residual", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
+  sm0$depth.residual[ !O$good ] = NA
+  sm0 = sm0[ O$aoi, ]
   res = NULL
-  res = try( bottom.contact.linear( sm=sm0[, c("depth.residual", "timestamp", "ts" )], O=O) , silent=TRUE )
+  res = try( bottom.contact.linear( sm=sm0[, c("depth.residual", "ts" )], O=O) , silent=TRUE )
   if ( ! "try-error" %in% class( res) ) {
     if ( all(is.finite( res ) ) ) {
-      duration =  as.numeric( difftime( res[1], res[2], units="mins" ) )
+      duration =  abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
       if ( duration > tdif.min & duration < tdif.max ) {
         O$linear.method = res
         O$linear.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
@@ -238,7 +291,16 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
     }
   }  
   
-   
+ 
+  if(debug.plot) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    mcol = "red"
+    points( depth~ts, x[ O$linear.method.indices, ], pch=20, col=mcol, cex=0.2)
+  }
+
+
   ## ---------------------------
   
   O$manual.method = c(NA , NA)
@@ -318,7 +380,7 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
   O$depth.n.bad = length( fin.all) - O$depth.n
   O$depth.smoothed.mean =  mean( x$depth.smoothed[ fin0:fin1 ], na.rm=TRUE )
   O$depth.smoothed.sd = sd( x$depth.smoothed[ fin0:fin1 ], na.rm=TRUE )
-  O$depth.goodvalues = O$good
+  O$good = O$good
   O$depth.filtered = fin.good
   O$depth.smoothed = x$depth.smoothed
   O$ts = x$ts
@@ -338,9 +400,17 @@ bottom.contact = function( id="noid", x, tdif.min=3, tdif.max=15, depthproportio
 #if(is.na(O$bottom0) ) browser()
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
+ 
+  if(debug.plot) {
+    trange = range( x$ts[O$good], na.rm=TRUE )
+    drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
+    plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
+    mcol = "yellow"
+    points( depth~ts, x[ O$intersect.method.indices, ], pch=20, col=mcol, cex=0.2)
+  }
+
 
   print( O$summary)
-  O$good = NULL
 
   return( O )
 

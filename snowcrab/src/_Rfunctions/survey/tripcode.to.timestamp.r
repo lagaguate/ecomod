@@ -7,7 +7,8 @@
     mth = as.numeric(substring( x, z-5, z-4))
     day = as.numeric(substring( x, 2, z-6))
     datecode = paste( yr, mth, day, sep="-")
-    datetime = ymd_hms( paste( datecode, y), tz=tzone )
+    datetime = ymd_hms( paste( datecode, y) )
+    tz( datetime ) = tzone
     return( datetime )
   }
 
