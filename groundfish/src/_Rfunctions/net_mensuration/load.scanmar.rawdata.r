@@ -62,7 +62,8 @@ load.scanmar.rawdata = function( fn, tzone="America/Halifax" ) {
   
   scanmar$timestamp= paste(yr,mon, day, scanmar$time, sep="-" )
   scanmar$timestamp=gsub(":","-",scanmar$timestamp)
-  scanmar$timestamp = ymd_hms(scanmar$timestamp, tz=tzone ) 
+  scanmar$timestamp = ymd_hms(scanmar$timestamp)
+  tz(scanmar$timestamp) = tzone
   scanmar$netmensurationfilename = basename(fn)
   
   test = timestamp.fix ( scanmar$timestamp, threshold.hrs=2 )
