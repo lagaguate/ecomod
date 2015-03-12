@@ -9,7 +9,7 @@ bottom.contact.linear = function( sm, O )  {
     sm =data.frame( Z=bc$Z)
     sm$timestamp=bc$timestamp
     sm$ts=bc$ts
-    good = bc$depth.goodvalues 
+    good = bc$good 
     sm$Z[ !good] = NA
     O = bc
   }

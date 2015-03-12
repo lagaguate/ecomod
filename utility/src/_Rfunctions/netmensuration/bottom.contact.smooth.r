@@ -9,7 +9,7 @@ bottom.contact.smooth = function( sm, tdif.min, tdif.max, target.r2=0.9, filter.
     sm =data.frame( Z=bc$Z)
     sm$timestamp=bc$timestamp
     sm$ts=bc$ts
-    good = bc$depth.goodvalues 
+    good = bc$good 
     sm$Z[ !good] = NA
     target.r2=0.9
     filter.quants=c(0.025, 0.975)

@@ -1,19 +1,18 @@
 
 bottom.contact.plot = function ( O ) {
 
-
   x = O$plotdata
    # browser()
 
   # all data within range of gated limits
-    trange = range( x$ts[O$depth.goodvalues], na.rm=TRUE )
+    trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
     plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
     legendtext = NULL
     legendcol = NULL
     legendpch = NULL
     mcol = "steelblue"
-    points( depth~ts, x[O$depth.goodvalues,], pch=20, col=mcol, cex=0.2)
+    points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
 
 
     if (all(is.finite( O$variance.method) ) ) {
@@ -101,7 +100,7 @@ bottom.contact.plot = function ( O ) {
      
     #x11(); plot( slopes ~ ts, x2 )
     lines( O$depth.smoothed ~ x$ts, col="brown" )
-    # points( depth0~ts, x[!O$depth.goodvalues,], col="red", cex=1 )   ## points dropped from filters
+    # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
     
  
 }
