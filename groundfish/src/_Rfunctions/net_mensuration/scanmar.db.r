@@ -208,6 +208,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       
       if (YR %in% c( perley.years0, perley.years1)  ) {
         nm = scanmar.db( DS="perley", p=p )
+        nm$yr =  lubridate::year(nm$timestamp)
         oo = which( nm$yr == YR )
         if (length( oo) > 0 ) {
           basedata = nm[oo,]
