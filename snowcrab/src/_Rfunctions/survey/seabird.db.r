@@ -165,15 +165,15 @@
           print(id)
           bc = NULL
           
-          if (FALSE) {
-            # to visualize
-            bc = bottom.contact( id=id, x=M, time.gate=time.gate, setdepth=rid$setZx[i], 
-              tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6, plot.data=TRUE )
-          }
 
           bc = bottom.contact( id=id, x=M , time.gate=time.gate, setdepth=rid$setZx[i], 
             tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 )
-                   
+           
+          if (FALSE) {
+            # to visualize
+            bottom.contact.plot( bc )
+          }
+        
           # default, empty container
           res = data.frame(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA)
           if (!is.null(bc)) res=bc$res 

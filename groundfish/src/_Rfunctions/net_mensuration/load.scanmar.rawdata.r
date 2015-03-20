@@ -1,9 +1,8 @@
 
 
-load.scanmar.rawdata = function( fn, tzone="America/Halifax" ) {
-  
+load.scanmar.rawdata = function( fn, tzone="UTC" ) {
+  # Scanmar is always UTC!!!
   scanmar=NULL
-   
   header = readLines(fn, n=10, encoding="UTF-8", skipNul=TRUE)
   datestring = basename(fn)
   yr = substring( datestring, 1, 4 )
@@ -62,7 +61,8 @@ load.scanmar.rawdata = function( fn, tzone="America/Halifax" ) {
   
   scanmar$timestamp= paste(yr,mon, day, scanmar$time, sep="-" )
   scanmar$timestamp=gsub(":","-",scanmar$timestamp)
-  scanmar$timestamp = ymd_hms(scanmar$timestamp, tz=tzone ) 
+  scanmar$timestamp = ymd_hms(scanmar$timestamp) # Scanmar is always UTC!!! .. which is the default of ymd_hms
+  
   scanmar$netmensurationfilename = basename(fn)
   
   test = timestamp.fix ( scanmar$timestamp, threshold.hrs=2 )

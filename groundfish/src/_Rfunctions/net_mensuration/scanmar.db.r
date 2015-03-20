@@ -208,6 +208,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       
       if (YR %in% c( perley.years0, perley.years1)  ) {
         nm = scanmar.db( DS="perley", p=p )
+        nm$yr =  lubridate::year(nm$timestamp)
         oo = which( nm$yr == YR )
         if (length( oo) > 0 ) {
           basedata = nm[oo,]
@@ -305,6 +306,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       meta$id=NA
       meta$min.distance = NA
       meta$time.difference = NA
+      meta$exact.match = FALSE
 
       # Perley series has id's
       pp = grep( "*.log$", meta$nm_id, invert=TRUE, ignore.case=TRUE )
@@ -324,7 +326,20 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
             meta$timestamp[i] = as.character(ppc$timestamp[m])
             dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
             u = which(abs(dif)< dhours  (1) )  # time constraint here .. 1 hr
-            if(length(u)> 1) {
+            
+            if(length(u) == 1) {
+              # most likely correct match but test for  distance to ensure match
+              gfs=gf[u,]
+              distance.test = geodist(ppc[,c("lon","lat")], gfs[,c("lon","lat")], method="great.circle")
+              if( distance.test < 1 ){  # if less than 1 km distance
+                meta$id[i]=gfs$id  # exact match with very high confidence
+                meta$min.distance[i] = distance.test
+                meta$time.difference[i] = dif[ u ]
+                meta$exact.match = TRUE
+              } 
+            }
+         
+            if(length(u) > 1) {
               gfs=gf[u,]
               gfs$min.distance.test=NA
               for(v in 1:nrow (gfs)){
@@ -336,6 +351,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
                 meta$id[i]=gfs$id[w]  # exact match with very high confidence
                 meta$min.distance[i] = gfs$min.distance.test[w]
                 meta$time.difference[i] = dif[u[w]]
+                meta$exact.match = TRUE
               } 
             }
           }
@@ -348,19 +364,25 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
         if (length(dupids)>0) {
           for ( dups in dupids ) {
             uu = which(meta$id %in% dups)
-            vv = which( meta$min.distance[uu] < 1 )  # ensure less than 1 km away
-            ww = which.min( meta$min.distance[uu[vv]] )
-            good = uu[vv[ww] ]
-            if ( length( good)==1 ) {
-              notsogood = setdiff( uu, good )    
-              meta$id[notsogood] = NA 
+            if ( any( meta$exact.match[uu] ) ) {
+              pp = which(  meta$exact.match[uu] ) 
+              qq = which( !meta$exact.match[uu] ) 
+              if ( length(pp) == 1 ) meta$id[uu[qq]] = NA
             } else {
-              meta$id[uu] = NA  # set all to NA unless a single solution is found
+              vv = which( meta$min.distance[uu] < 1 )  # ensure less than 1 km away
+              ww = which.min( meta$min.distance[uu[vv]] )
+              good = uu[vv[ww] ]
+              if ( length( good)==1 ) {
+                notsogood = setdiff( uu, good )    
+                meta$id[notsogood] = NA 
+              } else {
+                meta$id[uu] = NA  # set all to NA unless a single solution is found
+              }
             }
           }
         }  
         
-        ## second pass: relax time constrain in case there were errors of time stamps ...
+        ## second pass: relax time constraint in case there were errors of time stamps ...
         unmatched = which( is.na( meta$id) )
         for(i in unmatched){
           k = meta$nm_id[i]
@@ -373,7 +395,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
             meta$timestamp[i] = as.character(ppc$timestamp[m])
             dif = as.duration(ymd_hms(meta$timestamp[i]) - gf$timestamp)
             u = which(abs(dif)< dhours  (5) ) # <<<<------------ in case of timezone confusion between Atlantic vs UTC (3-4 hr diff) ..
-            if(length(u)> 1) {
+            if(length(u) >= 1) {
               gfs=gf[u,]
               gfs$min.distance.test=NA
               for(v in 1:nrow (gfs)){
@@ -540,7 +562,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
       }
       gsinf0 = groundfish.db( DS="gsinf" )
       if (!is.null(out)) gsinf0 = merge( gsinf0, out, by="id", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      gg = which( lubridate::year(gsinf0$timestamp) %in% YRS )
+      gg = which( lubridate::year(gsinf0$sdate) %in% YRS )
       gs = NULL
       if (length(gg)>0) gs = gsinf0[ gg, ]
       return(gs)
@@ -564,31 +586,8 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
     badlist = skip = cur = NULL
 
     gsinf0 = groundfish.db( DS="gsinf" )
-    gsinf0$timediff.gsinf = gsinf0$edate - gsinf0$sdate
-    oo = which( abs( gsinf0$timediff.gsinf)  > dhours( 4 ) ) 
-    if (length(oo)>0) {
-      print( "Time stamps sdate and etime (renamed as edate) are severely off (more than 4 hrs):" )
-      print( gsinf0[oo,] )
-      if (FALSE) {
-        hist( as.numeric(  gsinf0$timediff.gsinf[-oo]), breaks=200 )
-        abline (v=30*60, col="red")  # expected value of 30 min 
-        abline (v=90*60, col="red")  # after 90 min 
-        abline (v=150*60, col="red")  # after 150 min 
-      }
-    }
-    
-    uu = which( gsinf0$timediff.gsinf > dminutes(50) & gsinf0$timediff.gsinf < dminutes(50+60) ) # assuming 50 min is a max tow length
-    if (length(uu)>0) {
-      gsinf0$edate[uu] = gsinf0$edate[uu] - dhours(1) ### this is assuming sdate is correct ... which might not be the case 
-      if (FALSE) {
-        hist( as.numeric(  gsinf0$timediff.gsinf[-oo]), breaks=200 )
-      }
-    }
-    gsinf0$timediff.gsinf = gsinf0$edate - gsinf0$sdate
-    uu = which( gsinf0$timediff.gsinf > dminutes(50) ) # assuming 50 min is a max tow length
-    gsinf0$edate[uu]  = NA  # set these to NA untile they can be corrected manually
-
-    gsinf0$year = lubridate::year( gsinf0$timestamp )
+ 
+    gsinf0$year = lubridate::year( gsinf0$sdate )
 
     gsinf0.names = names( gsinf0 )
 
@@ -674,58 +673,72 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
         
         if (nrow(mm) < 3500 ) {
           # mostly 2004 to 2008
-          sd.multiplier = 4
-          depthproportion = 0.6
           smoothing = 0.95
           filter.quants=c(0.025, 0.975)
-          eps.depth = 1
           depth.range = c(-60, 60)
          } 
     
         if (nrow(mm) < 1200 ) {
           # mostly 2004 to 2008
-          sd.multiplier = 4
           depthproportion = 0.5
           smoothing = 0.5
           filter.quants=c(0.025, 0.975)
-          eps.depth = 1
           depth.range = c(-60, 60)
         } 
-       
+        
+        if (nrow(mm) < 400 ) {
+          # mostly 2004 to 2008 ... truncated already 
+          depthproportion = 0.2  # not much data and already prefiltered a bit
+          smoothing = 0.5
+          filter.quants=c(0.01, 0.99) # keep as much data as possible
+          eps.depth = 0.5   # ... pre-gated  with not much room to model
+          depth.range = c(-50, 40)
+        
+          if (YR>= 2008) {
+           depthproportion = 0.5
+           smoothing = 0.75
+          }
+        } 
+      
         if (nrow(mm) < 200 ) {
           # mostly 2004 to 2008 ... truncated already 
-         sd.multiplier = 4
-          depthproportion = 0.1
-          smoothing = 0.4
-          filter.quants=c(0.05, 0.95) # keep as much data as possible
-          eps.depth = 1   # ... pre-gated  with not much room to model
-          depth.range = c(-60, 30)
+          depthproportion = 0.1  # not much data and already prefiltered a bit
+          smoothing = 0.5
+          filter.quants=c(0.01, 0.99) # keep as much data as possible
+          eps.depth = 0.5   # ... pre-gated  with not much room to model
+          depth.range = c(-60, 40)
         } 
      
         if (nrow(mm) < 100 ) {
           # mostly 2004 to 2008 ... truncated already 
-          sd.multiplier = 4
           depthproportion = 0.1
           smoothing = 0.4
           filter.quants=c(0.01, 0.99) # keep as much data as possible
-          eps.depth = 1   # ... pre-gated  with not much room to model
-          depth.range = c(-60, 30)
+          eps.depth = 0.5   # ... pre-gated  with not much room to model
+          depth.range = c(-60, 40)
         } 
 
         if (id=="NED2013028.172") {
           depth.range = c(-70, 70) 
         }
-     
+   
         bc = NULL # 
         bc = try( 
           bottom.contact(id, mm, depthproportion=depthproportion, tdif.min=15, tdif.max=45, eps.depth=eps.depth, 
             sd.multiplier=sd.multiplier, depth.min=10, depth.range=depth.range, setdepth=gsinf$bottom_depth[gii], 
-            smoothing=smoothing, filter.quants=filter.quants, 
-            plot.data=TRUE, outdir=file.path(scanmar.bc.dir, "figures"), inla.h=0.005, inla.diagonal=0.01  ), 
+            smoothing=smoothing, filter.quants=filter.quants, inla.h=0.005, inla.diagonal=0.01  ), 
           silent=TRUE
         )
 
         if ( ! is.null(bc) && ( ! ( "try-error" %in% class(bc) ) ) ) { 
+          
+          bottom.contact.plot( bc )
+          plotfn = file.path( scanmar.bc.dir, "figures", paste(id, "pdf", sep="." ) )
+          print (plotfn)
+          dev.flush()
+          dev.copy2pdf( file=plotfn )
+          # dev.off(dev.prev())
+ 
           gsinf$bc0.datetime[gii] = bc$bottom0 
           gsinf$bc1.datetime[gii] = bc$bottom1
           gsinf$bottom_duration[gii] = bc$bottom.diff
@@ -737,6 +750,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
           save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
           fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
           save ( bc, file=fn.bc, compress=TRUE )
+
         }
           
         # if only the loop completes without error, reset the flag for current id on filesystem
