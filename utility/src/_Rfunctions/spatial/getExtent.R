@@ -1,22 +1,28 @@
 getExtent <- function(area){
+  #this function checks some simple csv files to grab the extents necessary 
+  #to show a number of regions, including NAFO, strata, and a number of others
+  #review the csv files themselves to see available values
+  
   #prevent case sensitivity errors
   area<-toupper(area)
+  
+  #read in the csv files
   FishingExtentsList<-read.csv(find.ecomod.gis("Fishing_areas_extents"))
   StrataExtentsList<-read.csv(find.ecomod.gis("Strata_extents"))
   MgmtExtentsList<-read.csv(find.ecomod.gis("Management_Area_extents"))
-  #...moreextents?
+  NAFOExtentsList<-read.csv(find.ecomod.gis("NAFO_extents"))
   extentsList<-rbind(FishingExtentsList,StrataExtentsList)
-  theselimits<-extentsList[extentsList$FEATUREID==area,][3:6]  
+  extentsList<-rbind(extentsList,MgmtExtentsList)
+  extentsList<-rbind(extentsList,NAFOExtentsList)
   
+  #grab the coords for those features that match selection
+  theselimits<-data.frame(c(extentsList[extentsList$FEATUREID==area,][3:6] ) )
+  #if there are no matches, just return the name of the failure so we can alert user
+  if (nrow(theselimits)<1){
+    return(area)
+  }
   xlim=c(theselimits[1],theselimits[2])
   ylim=c(theselimits[3],theselimits[4])
-  limits<-c(xlim,ylim)
-#   #Snowcrab Areas originally added by Ben
-#   if(area=='NENS') 			{ xlim=c(-61,-58.2); ylim=c(45.9,47.5) }
-#   if(area=='SENS') 			{ xlim=c(-63.5,-57); ylim=c(42.5,46.1)   }
-#   if(area=='4X')   			{ xlim=c(-67,-63.1); ylim=c(42.5,45)     }
-#   if(area=='23')   			{ xlim=c(-60.5,-57); ylim=c(43,46.2)   }
-#   if(area=='24')   			{ xlim=c(-63.5,-59); ylim=c(42.5,45.5)   }
-#   if(area=='not4X')   	{ xlim=c(-63.5,-57); ylim=c(42.5,47.5)   } 
+  limits<-data.frame(c(id=as.character(area), xlim,ylim))
   return(limits)
 }
