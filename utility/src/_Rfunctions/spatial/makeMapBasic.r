@@ -52,11 +52,10 @@ makeMapBasic= function(x,xlim=c(-67,-57), ylim=c(42,47.5), title="", area=c('ALL
   addPolys(dm100, col="lightblue1", border="lightblue1")
 
 #Try adding a csv data layer
-# data1<-read.csv(find.ecomod.gis("StAnnsMPA.csv"))
-# data2<-as.PolySet(data1)
-# #addPolys(data2, col="red", border="darkred")
-# addLines(data2, projection="LL", col="darkred")
-  
+#  ports <- as.EventData(read.csv(find.ecomod.gis("ports.csv")))
+#  addPoints(ports,col="red")
+#  addLabels(ports)
+
   #Overlay land and coastline such that any bad data (on land) is hidden
   addPolys(land, col="moccasin", border="moccasin")
   addLines(coast, col="black")
