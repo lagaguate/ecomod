@@ -8,6 +8,8 @@
 *.kmz
 *.kml
 *.Rhistory
+*.gz
+*.xls*
 
 _pkg
 _src
@@ -15,4 +17,4 @@ maps
 private/
 .Rproj.user
 archive
-data/
+data/itis
