@@ -1,0 +1,25 @@
+
+*~
+*.tmp
+*.bak
+*.old
+.tmp.*
+*.rdata
+*.kmz
+*.kml
+*.Rhistory
+*.gz
+*.xls*
+
+_pkg
+_src
+maps
+private/
+<<<<<<< HEAD
+=======
+data/
+data
+>>>>>>> origin/stranalR
+.Rproj.user
+archive
+data/itis
