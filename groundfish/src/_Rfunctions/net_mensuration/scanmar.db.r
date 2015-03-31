@@ -1,6 +1,6 @@
 
 
-scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
+scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.id=NULL){
  
   perley.years0 = c( 1990:1992 )
   perley.years1 = c( 2004:2009 )
@@ -180,7 +180,6 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
   if(DS %in% c("basedata", "basedata.redo"))  {
    
     if (is.null (YRS) ) YRS = p$netmensuration.years 
-    tzone = "America/Halifax"  ## for the logs
       
     dir.create( file.path( p$scanmar.dir, "basedata"), recursive=TRUE, showWarnings=FALSE ) 
     
@@ -230,7 +229,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
           print( "Reading in scanmar log files:" )
           for ( fl in filelist ) {
             print(fl)
-            j = load.scanmar.rawdata( fl, tzone=tzone )  # variable naming conventions in the past
+            j = load.scanmar.rawdata( fl, yr=YR )  # variable naming conventions in the past  .. always UTC
             if (is.null(j)) next()
             j$ctspeed=NA  # missing in modern data so add to permit merging with historical data
             j$id = NA # this will be filled in later once the position/time is matched to gsinf
@@ -612,6 +611,11 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
 
       uid = sort( unique( nm$id)) 
 
+      if ( !is.null( bottom.contact.debug.id ) ) {
+        if (! bottom.contact.debug.id %in% uid) next()
+        uid = bottom.contact.debug.id
+      }
+
       ### if rerun necessary .. start from here until R-inla behaves more gracefully with faults
 
       if ( file.exists (fn.current) ) {
@@ -656,89 +660,44 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
         if (length(gii) != 1) next()  # no match in gsinf  ## this will also add to the bad.list .. when insufficient data
        
         mm = nm[ which(nm$id==id) , c("depth", "timestamp") ]
-        
+         
         # NOTE:: do not use time.gate for historical data .. inconsistent timestamps causes data loss 
         # dropping time-gating as winch timestamps are too erratic and frequently wrong ... 
         # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
         # time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
 
         # defaults appropriate for more modern scanmar data have > 3500 pings
-        # see:  tapply( nm$year,  list(nm$id, nm$year), length )
-        sd.multiplier = 4
-        depthproportion = 0.6 # multiplier to Zmax, Zmedian estimate ... bigger the number more get filtered out
-        smoothing = 0.95
-        filter.quants=c(0.025, 0.975)
-        eps.depth = 1
-        depth.range = c(-60, 60)
+        bcp = list( 
+          id=id, datasource="groundfish", nr=nrow(mm), YR=YR,
+          tdif.min=15, tdif.max=45,
+          depth.min=10, setdepth=gsinf$bottom_depth[gii], 
+          noisefilter.inla.h=0.05, noisefilter.inla.diagonal=0.05
+        )
         
-        if (nrow(mm) < 3500 ) {
-          # mostly 2004 to 2008
-          smoothing = 0.95
-          filter.quants=c(0.025, 0.975)
-          depth.range = c(-60, 60)
-         } 
-    
-        if (nrow(mm) < 1200 ) {
-          # mostly 2004 to 2008
-          depthproportion = 0.5
-          smoothing = 0.5
-          filter.quants=c(0.025, 0.975)
-          depth.range = c(-60, 60)
-        } 
+        bcp = bottom.contact.parameters( bcp ) # add other default parameters
         
-        if (nrow(mm) < 400 ) {
-          # mostly 2004 to 2008 ... truncated already 
-          depthproportion = 0.2  # not much data and already prefiltered a bit
-          smoothing = 0.5
-          filter.quants=c(0.01, 0.99) # keep as much data as possible
-          eps.depth = 0.5   # ... pre-gated  with not much room to model
-          depth.range = c(-50, 40)
-        
-          if (YR>= 2008) {
-           depthproportion = 0.5
-           smoothing = 0.75
-          }
-        } 
-      
-        if (nrow(mm) < 200 ) {
-          # mostly 2004 to 2008 ... truncated already 
-          depthproportion = 0.1  # not much data and already prefiltered a bit
-          smoothing = 0.5
-          filter.quants=c(0.01, 0.99) # keep as much data as possible
-          eps.depth = 0.5   # ... pre-gated  with not much room to model
-          depth.range = c(-60, 40)
-        } 
-     
-        if (nrow(mm) < 100 ) {
-          # mostly 2004 to 2008 ... truncated already 
-          depthproportion = 0.1
-          smoothing = 0.4
-          filter.quants=c(0.01, 0.99) # keep as much data as possible
-          eps.depth = 0.5   # ... pre-gated  with not much room to model
-          depth.range = c(-60, 40)
-        } 
-
         if (id=="NED2013028.172") {
-          depth.range = c(-70, 70) 
+          bcp$depth.range = c(-70, 70) 
         }
    
         bc = NULL # 
-        bc = try( 
-          bottom.contact(id, mm, depthproportion=depthproportion, tdif.min=15, tdif.max=45, eps.depth=eps.depth, 
-            sd.multiplier=sd.multiplier, depth.min=10, depth.range=depth.range, setdepth=gsinf$bottom_depth[gii], 
-            smoothing=smoothing, filter.quants=filter.quants, inla.h=0.005, inla.diagonal=0.01  ), 
-          silent=TRUE
-        )
+        bc = try( bottom.contact(mm, bcp ), silent=TRUE )
+        
+        if ( !is.null( bottom.contact.debug.id ) ) {
+          ## this is a debugging mode return results and escape
+          bottom.contact.plot( bc )
+          return(bc)
+        }
 
         if ( ! is.null(bc) && ( ! ( "try-error" %in% class(bc) ) ) ) { 
-          
           bottom.contact.plot( bc )
           plotfn = file.path( scanmar.bc.dir, "figures", paste(id, "pdf", sep="." ) )
           print (plotfn)
           dev.flush()
           dev.copy2pdf( file=plotfn )
-          # dev.off(dev.prev())
- 
+         
+          if ( exists("error.flag", bc) && !is.na( bc$error.flag ) ) next()
+
           gsinf$bc0.datetime[gii] = bc$bottom0 
           gsinf$bc1.datetime[gii] = bc$bottom1
           gsinf$bottom_duration[gii] = bc$bottom.diff
@@ -750,7 +709,6 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL ){
           save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
           fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
           save ( bc, file=fn.bc, compress=TRUE )
-
         }
           
         # if only the loop completes without error, reset the flag for current id on filesystem

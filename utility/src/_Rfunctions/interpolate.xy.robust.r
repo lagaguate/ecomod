@@ -1,4 +1,4 @@
-interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5, inla.h=0.1, inla.diagonal=0.01 ) {
+interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=5, trim=0.05, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5, inla.h=0.1, inla.diagonal=0.01 ) {
   
   # simple interpolation methods
   # target.r2 == target prediction R^2
@@ -29,28 +29,50 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, probs=c(0.025, 0.97
   
   z$p= NA
   z$noise = FALSE
-   
+  z$loc = 1:nz  # row index used in seq lin method
+
   if (method =="sequential.linear") { 
     # check adjacent values and reject if differences are greater than a given range of quantiles (95%)
+       
+      m = z # locs are the location indices for z$y ... to bring back into "z"
+      m = m[ which(is.finite( m$y)) , ]
       lg = 1 # lag 
-      nw0 = length( which(z$noise) )
-      nw = nw0 + 1  # staring with a dummy value
-      while ( nw != nw0 ) {
-        z$ydiff = c( diff( z$y, lag=lg ) , rep(NA,lg ))  # padding with NA's 
-        yquants = quantile( z$ydiff, probs=probs, na.rm=T) 
-        i = which( z$ydiff < yquants[1] | z$ydiff > yquants[2]) 
-        suspect.noise =  c(i, i+lg )
-        n = suspect.noise[ duplicated(suspect.noise, incomparables=c(1, nz, NA)) ] # exclude terminal points
-        z$noise[ n ] = TRUE
-        z$y[n] = NA  
-        ii = which(is.na( z$y))
-        if (length(ii)>0) z$y[ii ] = approx( x=z$x, y=z$y, xout=z$x[ii], method="linear", rule=2 )$y
-        nw0 = nw
-        nw = length( which(z$noise ) )
+      nw = nrow( m )  # staring number of data points
+      nw_target =  nw * (1-trim)  # proportion of data to retain (not trim)
+      while ( nw > nw_target ) {
+        yd0 = c( diff( m$y, lag=lg ) , rep( 0, lg )) # diffs left-right # padding with 0's  (no change)
+        dm = quantile( yd0, probs=probs, na.rm=TRUE ) 
+        n = which( yd0 < dm[1] | yd0 > dm[2] ) 
+        if ( length(n) > 0 ) m = m[-n, ]  # remove na's and then assess again 
+        nw = nrow( m )
       }
-    z$p[ !z$noise ] = z$y[ !z$noise ]
-    z$y[n] = NA
-    z$p[n] = approx( x=z$x, y=z$y, xout=z$x[n], method="linear", rule=2 )$y
+      
+      # m$locs contains indices of "good" data .. setdiff to get the "bad" .. set to NA and then 
+      #   infill missing with interpolated values
+      ii = setdiff( 1:nz, unique(m$loc) )
+      if (length(ii) > 0)  {
+        z$y[ii] = NA  
+        z$y[ii] = approx( x=z$x, y=z$y, xout=z$x[ii], method="linear", rule=2 )$y
+      }
+    z$p = z$y
+  }
+
+  if (method =="local.variance") { 
+    # local variance estimates used to flag strange areas .. where local variance is too high .. remove the data
+
+    z$Zvar = NA
+    vwindow = c( -mv.win : mv.win )
+    nz = nrow(z)
+    for (i in 1:nz ) {
+      j = i+vwindow
+      j = j[ which(j >=1 & j<= nz)] 
+      if (length(j)> 5)  z$Zvar[i] = var( z$y[j], na.rm=TRUE )
+    }
+    qnts = quantile( z$Zvar, probs=(1-trim), na.rm=TRUE )  # remove upper quantile
+    ii = which( z$Zvar > qnts )
+    if (length(ii) > 0) z$y[ ii ] = NA
+    z$y[ii] = approx( x=z$x, y=z$y, xout=z$x[ii], method="linear", rule=2 )$y 
+    z$p =z$y
   }
 
 

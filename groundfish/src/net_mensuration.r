@@ -6,11 +6,15 @@ p$inits = loadfunctions( "groundfish", functionname="load.groundfish.environment
 # define location of local data files 
 p$scanmar.dir = file.path( project.directory("groundfish"), "data", "nets", "Scanmar" ) 
 p$marport.dir = file.path( project.directory("groundfish"), "data", "nets", "Marport" ) 
-p$current.year = 2014
+
+
+
 # pick the year to process:
 # p$netmensuration.years = p$current.year  ## for incremental/annual update
 ## 2009 is the first year with set logs from scanmar available .. if more are found, alter this date
+p$current.year = 2015
 p$netmensuration.years = c(1990:1992, 2004:p$current.year)  
+# p$netmensuration.years = p$current.year  
 
 
 
@@ -27,7 +31,6 @@ if ( recreate.perley.db ) {
 
 
 # the following works upon annual time slices ( defined in p$netmensuration.years )
-p$netmensuration.years = c(1990:1992, 2004:p$current.year)  
 scanmar.db( DS="basedata.redo", p=p )        # Assimilate Scanmar files in raw data saves *.set.log files
 scanmar.db( DS="basedata.lookuptable.redo", p=p ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
 scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
@@ -37,21 +40,40 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 # and then re-run the line and it will continue from where it crashed ... update the bc.badlist too
 # doing it year by year is probably wise for now
 # usually insufficient data for these or just flat-lines .. no reliable data
-# but .. NED2010027.66 looks to be two tows in one file ... need to break file manually ...
-#  "NED2010027.24"
 
+
+if (FALSE) {
+  # tests
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.74") # simple with noisy tail 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.68") # large simple curve on bottom 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.24") # double tow ... should bring up plot  and then continue 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.1") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013028.10") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.175") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2005633.40") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2006614.20") 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2006614.10") 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEM2008830.120") 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.18")
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.25")
+}
+
+# the data for these sets need to be checked:
 p$bc.badlist = c(
-  "NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83", "NED2010027.15", 
-  "NED2010027.29", "NED2010027.66", "NED2010027.8", "NED2013028.105", "NED2013022.178", 
-   "TEL2005545.73",  "TEL2005633.41",  "TEL2006614.2",   "TEM2008830.126",  "NED2010027.24" 
+  "TEL2005545.73",  "TEL2005633.41",  "NED2010027.24", 
+  "TEL2006614.2",   "TEM2008830.126", 
+  "NED2010027.15",  "NED2010027.66", 
+  "NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83", "NED2013028.105", 
+  "NED2013022.178"
 )
+
+#  "NED2010027.24" is a double tow
 
 scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 
 scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 
 scanmar.db( DS="sweptarea.redo",  p=p )  
-
 
 gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
 pp = tapply( gs$id, year(gs$bc0.datetime), function(x) { length(unique(x))} )
