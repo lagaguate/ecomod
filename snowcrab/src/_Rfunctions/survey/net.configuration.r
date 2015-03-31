@@ -43,11 +43,21 @@
       if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz=tzone )
       if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz=tzone )
       time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
+      
+      bcp = list( 
+        id=N$netmind_uid[1], datasource="snowcrab", nr=rown(M), YR=yr,
+        tdif.min=3, tdif.max=9, time.gate=time.gate,
+        setdepth=rid$setZx[i], depth.min=20, depth.range=c(-20,30), depthproportion=0.5, 
+        noisefilter.eps.depth=1, noisefilter.sd.multiplier=3, 
+        noisefilter.inla.h=0.005, noisefilter.inla.diagonal=0.01
+      )
+      
+      bcp = bottom.contact.parameters( bcp ) # add other default parameters
+   
 
       bc = NULL
-      bc = bottom.contact( id=N$netmind_uid[1], x=M,  time.gate=time.gate, setdepth=rid$setZx[i],
-        tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.5 )
-
+      bc = bottom.contact( x=M, bcp=bcp )
+        
       if (FALSE) {
         # to visualize/debug
         bottom.contact.plot( bc) 

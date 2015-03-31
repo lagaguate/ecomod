@@ -14,6 +14,7 @@ modes = function( Z, density.factor=5, kernal.bw.method="sj"  ) {
 
   
   # simple determination from histogram
+  Z = Z[ which(is.finite(Z) ) ]
   N = length(Z) 
   nb = min( 50, trunc(N/4) )
   Zh = hist( Z, breaks=nb, plot =FALSE)
@@ -96,8 +97,12 @@ modes = function( Z, density.factor=5, kernal.bw.method="sj"  ) {
   Zu.mode.sd = sd( u$y[ Zulb:Zuub ] , na.rm=TRUE )  ## SD 
   
   res = rbind( res, cbind( mode=Zu.mode, sd=Zu.mode.sd, lb=Zu.mode.group[1], ub=Zu.mode.group[2] ))
+  res = rbind( res, rep(NA, 4) )
 
-  rownames(res) = c("simple", "kerneldensity", "hybrid")
+  rownames(res) = c("simple", "kerneldensity", "hybrid", "mean")
+  for (i in 1:4 ) {
+    res["mean", i] = mean( res[,i], trim =0.1, na.rm=TRUE )   
+  }
 
   return(res)
 
