@@ -54,8 +54,7 @@
   
   ######## density modelling GAM/GLM
   
-
-  source( file.path( project.directory("snowcrab"), "src", "initialise.local.environment.r" ) )
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r" )
 
   S = snowcrab.db( DS ="set.logbook" ) 
   Sn = colnames( S )

@@ -95,9 +95,8 @@
 
 
   # -------------------------------------------------------------------------------------
-# Run BIO.DB to update the multi-survey databases /home/jae/ecomod/bio/src/bio.r
+# Run BIO.DB to update the multi-survey databases 
 # -------------------------------------------------------------------------------------
-  # source( file.path( project.directory("bio"), "src", "bio.r") )
   loadfunctions ( "bio", functionname="bio.r" ) 
 
 

@@ -3,7 +3,7 @@
     loc = file.path( project.directory("groundfish"), "data" )
     DataDumpFromWindows = F
     if ( DataDumpFromWindows ) {
-      project.directory("taxonomy") = loc = file.path("C:", "datadump")
+      loc = file.path("C:", "datadump")
     }
     dir.create( path=loc, recursive=T, showWarnings=F )
     

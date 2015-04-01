@@ -21,7 +21,7 @@ oceans.activity.mapper<-function(
 
 options(stringsAsFactors=T)
 options(warn=-1)
-workdir <- file.path(project.directory('vdc.push.reports.oceans'),"src" )
+workdir <- file.path(project.codedirectory('vdc.push.reports.oceans'),"src" )
 setwd(workdir)
 #tmpdir      <- file.path( workdir,"tmp" )
 savelocation<- file.path( workdir,"output")

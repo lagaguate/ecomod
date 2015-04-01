@@ -106,7 +106,6 @@
 
   # -------------------
   ##  simple surplus production with observation and process error
-  # m = jags.model( file=file.path( project.directory("snowcrab"), "src", "bugs", "biomassdynamic_2010.bugs" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )
   # m = jags.model( file=fishery.model.jags ( DS="biomassdynamic_basic_2013.bugs" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  
   # m = jags.model( file=fishery.model.jags ( DS="biomassdynamic_recruitment_2013.bugs" ), data=sb, n.chains=n.chains, n.adapt=n.adapt )  # "recruitment" + spring/summer q's
 
