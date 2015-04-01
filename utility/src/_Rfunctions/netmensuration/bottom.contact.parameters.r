@@ -11,33 +11,35 @@
       # parameters tuned to different years of data for groundfish survey 
       bcp$depth.range = c(-60, 60)
 
-      if ( bcp$nr < 3500  ) {
+      if ( bcp$nr < 3500 & bcp$nr >= 2000 ) {
+        bcp$noisefilter.target.r2 = 0.8
+        bcp$noisefilter.target.r2.final = 0.6
       } 
 
       if ( bcp$nr < 2000 & bcp$nr >= 1200 ) {
-#          bcp$noisefilter.target.r2 = 0.8
-#          bcp$smooth.target.r2 = 0.6
-#          bcp$noisefilter.inla.h=0.05
-         # bcp$noisefilter.trim = 0.1  
-         # bcp$noisefilter.quants=c(0.1, 0.9)
-         # bcp$smooth.target.r2 = 0.4  # for smooth of dZ (slopes)
+        bcp$noisefilter.target.r2 = 0.6
+        bcp$noisefilter.target.r2.final = 0.5
+
       } 
 
       if ( bcp$nr < 1200 &  bcp$nr >= 400  ) {
+        bcp$noisefilter.target.r2 = 0.6
+        bcp$noisefilter.target.r2.final = 0.5
       } 
       
       if ( bcp$nr < 400  & bcp$nr >= 200  ) {
         #bcp$depthproportion=0.8  
-        #bcp$noisefilter.target.r2 = 0.5
+        bcp$noisefilter.target.r2 = 0.6
         bcp$noisefilter.target.r2.final = 0.5
-        bcp$noisefilter.quants=c(0.1, 0.9)
-        bcp$noisefilter.inla.h=0.05
+ #       bcp$noisefilter.quants=c(0.1, 0.9)
+ #       bcp$noisefilter.inla.h=0.05
         # bcp$noisefilter.trim = 0.05
       } 
     
       if (bcp$nr < 200 & bcp$nr >= 100  ) {
+        bcp$noisefilter.target.r2 = 0.8
+        bcp$noisefilter.target.r2.final = 0.5
         #bcp$noisefilter.trim = 0.05 
-        #bcp$noisefilter.target.r2 = 0.5 
         #bcp$noisefilter.var.window=3  # 1/2 of moving window used to compute local variance
        # bcp$smooth.target.r2 = 0.5  # for smooth of dZ (slopes)
       } 
@@ -65,8 +67,8 @@
     if ( !exists("noisefilter.trim", bcp)) bcp$noisefilter.trim = 0.1  # proportion of data to remove/trim based upon adjacent differences that are too extreme and local variance windows
     if ( !exists("noisefilter.var.window", bcp)) bcp$noisefilter.var.window=4  # 1/2 of moving window used to compute local variance
     if ( !exists("noisefilter.eps.depth", bcp)) bcp$noisefilter.eps.depth=1
-    if ( !exists("noisefilter.inla.h", bcp)) bcp$noisefilter.inla.h=0.02
-    if ( !exists("noisefilter.inla.diagonal", bcp)) bcp$noisefilter.inla.diagonal=0.02
+    if ( !exists("noisefilter.inla.h", bcp)) bcp$noisefilter.inla.h=0.05
+    if ( !exists("noisefilter.inla.diagonal", bcp)) bcp$noisefilter.inla.diagonal=0.05
     if ( !exists("noisefilter.quants", bcp)) bcp$noisefilter.quants=c(0.025, 0.975)
     if ( !exists("noisefilter.sd.multiplier", bcp)) bcp$noisefilter.sd.multiplier=4  
     if ( !exists("noisefilter.target.r2", bcp)) bcp$noisefilter.target.r2 = 0.9 # for noise filtering  .. ignore variations less than this threshold

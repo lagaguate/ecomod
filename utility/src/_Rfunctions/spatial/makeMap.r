@@ -1,14 +1,14 @@
 #----------------------------------------------------
 # generate map using PBSmapping plotting functions
 #----------------------------------------------------
-wd = file.path(project.datadirectory('polygons'),'data')
+
 makeMap= function(x,xlim=c(-67,-57), ylim=c(42,47.5), addCrabLabels=F, title="", area='ALL',addEmera=F,addStAnns=F,addGully=F, 
 addSurvey=F,addFisheryFootprint=F,addSummerStrata,main=""){
   require(PBSmapping)
   require("raster")
 	require("geosphere")
 
-wd <- file.path(project.datadirectory('polygons'),'data')
+wd = project.datadirectory('polygons','data')
 ##from Ben June 14, 2013 08:15:00 PM 
 ##couple of mods by Adam June 14, 2013 01:21:02 PM 
 ## area one of c('NENS','SENS','4X','23','24')
