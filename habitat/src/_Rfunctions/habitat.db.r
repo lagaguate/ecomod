@@ -19,8 +19,8 @@
       # form a basic prediction surface in planar coords for SS habitat for 
       # factors that do not "change" rapidly and 
     
-      outdir = file.path( project.directory("habitat"), "data", p$spatial.domain, "baseline" )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE", "baseline" )
+      outdir = file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "baseline" )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE", "baseline" )
       
       dir.create(outdir, recursive=T, showWarnings=F)
       outfile =  file.path( outdir, "PS.baseline.rdata" )
@@ -75,8 +75,8 @@
 
     if (DS %in% c("environmentals", "environmentals.redo") ) {
       
-      outdir =  file.path( project.directory("habitat"), "data", p$spatial.domain, "environmentals" )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE","environmentals" )
+      outdir =  file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "environmentals" )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE","environmentals" )
       dir.create(outdir, recursive=T, showWarnings=F)
    
       if ( DS=="environmentals" ) {
@@ -113,8 +113,8 @@
 
     if (DS %in% c("complete", "complete.redo") ) {
       
-      outdir =  file.path( project.directory("habitat"), "data", p$spatial.domain, "complete" )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("habitat"), "data", "SSE","complete" )
+      outdir =  file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "complete" )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE","complete" )
       dir.create(outdir, recursive=T, showWarnings=F)
    
       if ( DS=="complete" ) {
@@ -149,7 +149,7 @@
         pm$data.sources = p$speciesarea.data.sources
         pm$varstomodel = pm$speciesarea.variables
         pm$project.name = "speciesarea"
-        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
+        pm$project.outdir.root = project.datadirectory( pm$project.name, "analysis" )
 
         SAG =  habitat.interpolate( DS="all", p=pm, yr=max(1970,yr)   )
 
@@ -180,7 +180,7 @@
         pm$season = p$speciescomposition.season
         pm$varstomodel= pm$speciescomposition.variables
         pm$project.name = "speciescomposition"
-        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
+        pm$project.outdir.root = project.datadirectory( pm$project.name, "analysis" )
 
 
         SC = habitat.interpolate( DS="all", p=pm, yr=max(1970,yr) ) 
@@ -211,7 +211,7 @@
         pm$season = p$sizespectrum.season
         pm$varstomodel = pm$sizespectrum.variables
         pm$project.name = "sizespectrum"
-        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
+        pm$project.outdir.root = project.datadirectory( pm$project.name, "analysis" )
 
 
         SS = habitat.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 
@@ -244,7 +244,7 @@
     #   pm$season = p$condition.season
     #   pm$varstomodel = pm$condition.variables
     #   pm$project.name = "condition"
-    #   pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
+    #   pm$project.outdir.root = project.datadirectory( pm$project.name, "analysis" )
 
 
     #   CD = habitat.interpolate ( DS="all", p=pm,  yr=max(1970,yr) )
@@ -278,7 +278,7 @@
         pm$season = p$metabolism.season 
         pm$varstomodel = p$metabolism.variables 
         pm$project.name = "metabolism"
-        pm$project.outdir.root = project.directory( pm$project.name, "analysis" )
+        pm$project.outdir.root = project.datadirectory( pm$project.name, "analysis" )
 
 
         MR = habitat.interpolate ( DS="all", p=pm, yr=max(1970,yr) ) 

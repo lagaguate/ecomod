@@ -7,7 +7,7 @@
 
     if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo" )){
       
-			tstatdir = project.directory("temperature",  "data", "stats", p$spatial.domain ) 
+			tstatdir = project.datadirectory("temperature",  "data", "stats", p$spatial.domain ) 
       dir.create( tstatdir, showWarnings=F, recursive = TRUE )
 
 			if (DS %in% c("bottom.statistics.annual")) {
@@ -76,7 +76,7 @@
     if (DS %in% c( "bottom.mean", "bottom.mean.redo" )){
 			
 			# global / climatological mean across all years
-			tstatdir = project.directory("temperature", "data", "stats", p$spatial.domain )
+			tstatdir = project.datadirectory("temperature", "data", "stats", p$spatial.domain )
       dir.create( tstatdir, showWarnings=F, recursive = TRUE  )
 
 			if (DS=="bottom.mean") {

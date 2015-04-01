@@ -2,7 +2,7 @@
   allometry.snowcrab = function( id, sex, redo=F ) {
 
     M = NULL
-    fn = file.path( project.directory("snowcrab"), "R", paste( sex, id, "rdata", sep=".") ) 
+    fn = file.path( project.datadirectory("snowcrab"), "R", paste( sex, id, "rdata", sep=".") ) 
     
     if (!redo)  {
       if (file.exists(fn)) load(fn)

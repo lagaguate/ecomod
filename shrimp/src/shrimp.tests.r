@@ -6,10 +6,10 @@
 # --------------------------
 # minilog data cleaning ...
 # data file
-  datapath = file.path( project.directory("shrimp"), "data","miniA" )
+  datapath = file.path( project.datadirectory("shrimp"), "data","miniA" )
   outputA = extracts.minilog.stats( datapath )
 
-  datapath = file.path( project.directory("shrimp"), "data","miniB" )
+  datapath = file.path( project.datadirectory("shrimp"), "data","miniB" )
   outputB = extracts.minilog.stats( datapath )
 
   dat.merged = rbind( outputA, outputB )
@@ -24,12 +24,12 @@
       
   result = merge.juvenile.sizes (
     year = 2008, 
-    fname=file.path( project.directory("shrimp"), "data", "2008", "weights", "weights.xls") 
-    size.dir=file.path( project.directory("shrimp"), "data", "2008", "sizes" ) 
+    fname=file.path( project.datadirectory("shrimp"), "data", "2008", "weights", "weights.xls") 
+    size.dir=file.path( project.datadirectory("shrimp"), "data", "2008", "sizes" ) 
   ) 
  
 #  write.table( result, "clipboard", sep="\t",col.names=T)
-  write.table( result, file=file.path(project.directory("shrimp"), "d:q
+  write.table( result, file=file.path(project.datadirectory("shrimp"), "d:q
   ata", "2008", "test.csv"), sep="\t", col.names=T)
                                                   
   

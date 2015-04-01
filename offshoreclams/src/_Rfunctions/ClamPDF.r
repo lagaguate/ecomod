@@ -823,7 +823,7 @@ ClamPDF<-function(final.year){
 # fname = determine name of file to save
 # fpath = full path to save the file, in the docs folder of this project (offshoreclams)
 fname = paste("OffShoreClams_",final.year,".pdf",sep="")
-fpath = file.path( project.directory("offshoreclams"), "docs", fname)
+fpath = file.path( project.datadirectory("offshoreclams"), "docs", fname)
 pdf(file = fpath,
     ## onefile = "TRUE",
     height = 11.0,

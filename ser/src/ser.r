@@ -19,8 +19,8 @@
 
   # read data and reformat into logical groups
 
-    datadir= file.path( project.directory( "ser"), "data" )
-    mapdir = file.path( project.directory( "ser"), "maps" )
+    datadir= file.path( project.datadirectory( "ser"), "data" )
+    mapdir = file.path( project.datadirectory( "ser"), "maps" )
 
     bottomT.integral = read.table( file="~/ecomod/ser/data/BtmT4VW_NAO.txt", sep=";", header=T, as.is=T, strip.white=T)
     

@@ -4,7 +4,7 @@
 		#### TODO  --- compare zqn, zqm by survey ...
 
 
-		fn = file.path( project.directory("bio"), "data", "species.specific.calibration.estimates.rdata" )
+		fn = file.path( project.datadirectory("bio"), "data", "species.specific.calibration.estimates.rdata" )
     
 		sq = NULL # trip/set loc information
 	

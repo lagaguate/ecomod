@@ -105,7 +105,7 @@
 	
 	x$z =log( x$z )
   
-  outdir = file.path(project.directory("bathymetry","maps"), p$spatial.domain) 
+  outdir = file.path(project.datadirectory("bathymetry","maps"), p$spatial.domain) 
 
   dr = quantile( x$z, probs=c(0.005, 0.995))
   datarange = seq(dr[1], dr[2], length.out=100)

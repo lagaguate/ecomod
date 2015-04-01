@@ -13,7 +13,7 @@ library(plyr)
 library(reshape2)
 
 channel<-odbcConnect(uid=oracle.personal.user,pw=oracle.personal.password,dsn=oracle.dsn,case='nochange',rows_at_time=1)
-wd <- file.path(project.directory('stranal'),'data')
+wd <- file.path(project.datadirectory('stranal'),'data')
 options(stringsAsFactors = FALSE)
 
 #FOWLER 2014 

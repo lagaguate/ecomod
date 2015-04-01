@@ -1,5 +1,5 @@
 
-  lob.data.dir = file.path( project.directory("lobster"), "data")
+  lob.data.dir = file.path( project.datadirectory("lobster"), "data")
   ld = read.table(file.path(lob.data.dir, "morphometrics.lobster.ess.2005.csv"), sep=";", as.is=T, header=T)
   colnames(ld) = tolower(colnames(ld))
   

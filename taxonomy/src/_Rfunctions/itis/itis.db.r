@@ -1,8 +1,8 @@
 
   itis.db = function( DS="itaxa", lnk=NULL, itis.kingdom=NULL ) {
     
-		datdir = file.path( project.directory("taxonomy"), "data", "data.locally.generated" )
-    itis.dir = file.path( project.directory("taxonomy"), "data", "itis" )
+		datdir = file.path( project.datadirectory("taxonomy"), "data", "data.locally.generated" )
+    itis.dir = file.path( project.datadirectory("taxonomy"), "data", "itis" )
 
     dir.create( datdir, showWarnings = FALSE, recursive = TRUE )
 

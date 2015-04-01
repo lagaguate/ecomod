@@ -3,7 +3,7 @@
  
   biochem.db = function(DS="", p=NULL, ss=NULL, tbl=NULL ) {
       
-    biochem.dir = project.directory("biochem") 
+    biochem.dir = project.datadirectory("biochem") 
     biochem.data.dir = file.path( biochem.dir, "data" ) 
     biochem.datadump.dir = file.path( biochem.dir, "data", "datadump" ) 
 

@@ -43,7 +43,7 @@
   outfn = "substrate.grainsize"
   annot = "ln ( Grain size; mm )"
   map( xyz=substrate[inside,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=file.path( project.directory("substrate"), "R"), at=datarange , col.regions=cols )
+    fn=outfn, loc=file.path( project.datadirectory("substrate"), "R"), at=datarange , col.regions=cols )
 
   
 

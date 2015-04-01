@@ -2,12 +2,12 @@
   lobster.db = function( DS="", p="" ) {
     
     if (DS %in% c("lfa41", "lfa41.redo") ) {
-      fn = file.path( project.directory("lobster"), "data", "lfa41.rdata" )
+      fn = file.path( project.datadirectory("lobster"), "data", "lfa41.rdata" )
       if ( DS=="lfa41") {
         load( fn)
         return (lob)
       }
-      fn.lfa41 = file.path( project.directory("lobster"), "data", "lfa41.txt" )
+      fn.lfa41 = file.path( project.datadirectory("lobster"), "data", "lfa41.txt" )
       lob = read.table( fn.lfa41, header=T, as.is=T, sep="\t" )
       names(lob) = tolower( names(lob))
       names(lob) [which(names(lob)=="ddlat")] = "lat"
@@ -42,7 +42,7 @@
     }
 
     if ( DS %in% c("snowcrab", "snowcrab.redo") ) {
-      fn = file.path( project.directory("lobster"), "data", "lobster.from.snowcrab.surveys.rdata" )
+      fn = file.path( project.datadirectory("lobster"), "data", "lobster.from.snowcrab.surveys.rdata" )
       if (DS =="snowcrab") {
         load(fn)
         return(sc)
@@ -74,7 +74,7 @@
     # --------------------
 
     if (DS %in% c("groundfish", "groundfish.redo") ) {
-      fn = file.path( project.directory("lobster"), "data", "lobster.from.groundfish.surveys.rdata" )
+      fn = file.path( project.datadirectory("lobster"), "data", "lobster.from.groundfish.surveys.rdata" )
       if (DS =="groundfish") {
         load(fn)
         return(gf)
@@ -113,7 +113,7 @@
     # --------------------
 
     if (DS %in% c("complete", "complete.redo") ) {
-      fn = file.path( project.directory("lobster"), "data", "lobster.complete.rdata" )
+      fn = file.path( project.datadirectory("lobster"), "data", "lobster.complete.rdata" )
       if (DS =="complete") {
         load(fn)
         return(L)

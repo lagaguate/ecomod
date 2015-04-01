@@ -7,14 +7,14 @@
       # 322624071 "grid points
       # 50 m  horizontal resolution
       # depth range: -5053.6 to 71.48 m 
-      fn = project.directory( "bathymetry", "data", "bathymetry.greenlaw.rdata" )
+      fn = project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata" )
       if (file.exists (fn) ) {
         load(fn)
         return(gdem)
       }
 
       require(rgdal)
-      demfile.adf = project.directory( "bathymetry", "data", "greenlaw_DEM", "mdem_50", "w001001.adf" )  # in ArcInfo adf format
+      demfile.adf = project.datadirectory( "bathymetry", "data", "greenlaw_DEM", "mdem_50", "w001001.adf" )  # in ArcInfo adf format
       dem = new( "GDALReadOnlyDataset", demfile.adf )
       # gdem = asSGDF_GROD( dem, output.dim=dim(dem) ) # regrid to another dim
       # gdem = getRasterData(dem) # in matrix format
@@ -25,14 +25,14 @@
       gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
       gdem = planar2lonlat( gdem, "utm20", planar.coord.scale=1 )  # plon,plat already in meters
       gdem = gdem[, c("lon", "lat", "z") ]
-      save( gdem, file=project.directory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
+      save( gdem, file=project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
     }
 
 
     if (  DS %in% c("z.lonlat.rawdata.redo", "z.lonlat.rawdata") ) {
 			# raw data minimally modified all concatenated
       
-      datadir = project.directory("bathymetry", "data" )
+      datadir = project.datadirectory("bathymetry", "data" )
 			dir.create( datadir, showWarnings=F, recursive=T )
       
       fn = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.rdata" )
@@ -107,7 +107,7 @@
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
 			
 			tmpdir  = tempdir()
-			outdir = project.directory("bathymetry", "interpolated" )
+			outdir = project.datadirectory("bathymetry", "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
  
 			fn.interp.z = file.path( outdir,  paste(  p$spatial.domain, "Z.interpolated.xyz", sep=".") )
@@ -152,7 +152,7 @@
    
 		if ( DS %in% c( "Z.redo", "Z.lonlat", "Z.lonlat.grid", "Z.planar", "Z.planar.grid" ) ) { 
 
-			outdir = project.directory("bathymetry", "interpolated" )
+			outdir = project.datadirectory("bathymetry", "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 		
 			fn.lonlat = file.path( outdir, paste( p$spatial.domain, "Z.interpolated.lonlat.rdata", sep=".") )
@@ -213,7 +213,7 @@
     
 		if ( DS %in% c( "dZ.redo", "dZ.lonlat", "dZ.lonlat.grid", "dZ.planar", "dZ.planar.grid" ) ) { 
   
-			outdir = file.path( project.directory("bathymetry"), "interpolated" )
+			outdir = file.path( project.datadirectory("bathymetry"), "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 	    
       fn.lonlat = file.path( outdir, paste( p$spatial.domain, "dZ.interpolated.lonlat.rdata", sep=".")  )
@@ -276,7 +276,7 @@
     }
     
     if ( DS %in% c( "ddZ.redo", "ddZ.lonlat", "ddZ.planar", "ddZ.lonlat.grid", "ddZ.planar.grid"  ) ) { 
-     	outdir = file.path( project.directory("bathymetry"), "interpolated" )
+     	outdir = file.path( project.datadirectory("bathymetry"), "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 	  
       fn.lonlat = file.path( outdir,  paste( p$spatial.domain, "ddZ.interpolated.lonlat.rdata", sep=".")  )
@@ -340,7 +340,7 @@
 
     if (DS %in% c("baseline", "baseline.redo") ) {
       # form prediction surface in planar coords for SS snowcrab area
-      outfile =  file.path( project.directory("bathymetry"), "interpolated", paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
+      outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
 
       if ( DS=="baseline" ) {
         load( outfile )
@@ -412,7 +412,7 @@
     if (DS %in% c( "complete", "complete.redo") ) {
       # form prediction surface in planar coords for SS snowcrab area
       
-      outfile =  file.path( project.directory("bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
+      outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
       if (p$spatial.domain == "snowcrab" ) outfile=gsub( p$spatial.domain, "SSE", outfile )
 
       if ( DS=="complete" ) {
@@ -439,7 +439,7 @@
     if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) { 
       # create a lookuptable for SSE -> snowcrab domains
       # both share the same initial domains + resolutions
-      fn = file.path( project.directory("bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata") 
+      fn = file.path( project.datadirectory("bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata") 
       if (DS== "lookuptable.sse.snowcrab" ) { 
         if (file.exists(fn)) load(fn)
         return(id)

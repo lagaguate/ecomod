@@ -1,5 +1,5 @@
 #MMM Sept 2014 - altered paths to reflect new ecomod polygon paths
-cover= function(x,area="all", wd=wd <- file.path(project.directory('polygons'),'data')){
+cover= function(x,area="all", wd=wd <- file.path(project.datadirectory('polygons'),'data')){
   require(PBSmapping)
 
   borders= read.csv(file=file.path(wd,"Management_Areas","Fisheries","areaborders.csv"), head=T, sep=",")

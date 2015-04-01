@@ -1,7 +1,7 @@
 
   wolffish.db = function( DS="", p=NULL ) {
     
-    wdir = file.path( project.directory("habitatsuitability"), "analysis", p$speciesofinterest, "data" )
+    wdir = file.path( project.datadirectory("habitatsuitability"), "analysis", p$speciesofinterest, "data" )
 
     if (DS %in% c("complete.redo", "complete") ) {
       
@@ -103,7 +103,7 @@
      
       require( gdata ) # to access read.xls()
       
-      wdir = file.path( project.directory("habitatsuitability"), "analysis", p$speciesofinterest, "data" )
+      wdir = file.path( project.datadirectory("habitatsuitability"), "analysis", p$speciesofinterest, "data" )
 
 
       # landings from MARFIS -- weight per tow, etc: source Jim Simon
@@ -128,7 +128,7 @@
     if ( DS=="surveys.worksheet" ) {
   
       require( gdata ) # to access read.xls()
-     wdir = file.path( project.directory("habitatsuitability"), "analysis", p$speciesofinterest, "data" )
+     wdir = file.path( project.datadirectory("habitatsuitability"), "analysis", p$speciesofinterest, "data" )
 
 
       # rv surveys and 4VsW sentinel surveys, etc: source Jim Simon

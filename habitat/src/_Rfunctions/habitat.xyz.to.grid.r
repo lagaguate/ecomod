@@ -1,7 +1,7 @@
 
   habitat.xyz.to.grid = function( p, redo=FALSE ) {
 
-    ddir = project.directory( "habitat" , "data" )
+    ddir = project.datadirectory( "habitat" , "data" )
 
     fn = file.path( ddir, paste( "habitat.xyz2grid", p$spatial.domain, "rdata", sep="." ) ) 
  

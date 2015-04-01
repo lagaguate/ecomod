@@ -7,8 +7,8 @@
 
     p$init.lobster = loadfunctions( c("spacetime", "utility", "parallel", "habitat", "groundfish", "taxonomy", "snowcrab", "lobster" ) )
 
-    dir.lob = file.path( project.directory("lobster"), "habitat" )
-    workdir = file.path( project.directory("lobster"), "R" )
+    dir.lob = file.path( project.datadirectory("lobster"), "habitat" )
+    workdir = file.path( project.datadirectory("lobster"), "R" )
     setwd(workdir)
     
     p = list()

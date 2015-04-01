@@ -2,7 +2,7 @@
 
   netmind.db = function( DS, Y=NULL ) {
     
-    netmind.dir = project.directory("snowcrab", "data", "netmind" )
+    netmind.dir = project.datadirectory("snowcrab", "data", "netmind" )
     netmind.rawdata.location = file.path( netmind.dir, "archive" )
    
     if (!is.null(Y)) {

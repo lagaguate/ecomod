@@ -9,14 +9,14 @@
       sn = variable.list.expand("all.data")
       set = snowcrab.db("set.merge.cat") # base transform characteristics 
       logs = logbook.db('logbook')
-      repository = file.path( project.directory("snowcrab"), "R", "transform.lookup.rdata" )
+      repository = file.path( project.datadirectory("snowcrab"), "R", "transform.lookup.rdata" )
     } else if (db=="groundfish") {
       log.transform = variable.list.expand("log.transform")
       scaled.centered = variable.list.expand("scaled.centered")
       sn = variable.list.expand("all")
       set = groundfish.db("set.partial" )
 	logs=NULL    
-      repository = file.path( project.directory("groundfish"), "R", "transform.lookup.rdata" )
+      repository = file.path( project.datadirectory("groundfish"), "R", "transform.lookup.rdata" )
     } else {
       print(" Must define data sources for transformation to this function" )
       stop()

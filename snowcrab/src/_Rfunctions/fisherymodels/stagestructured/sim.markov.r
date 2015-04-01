@@ -5,8 +5,8 @@
     if (exists( "libs", p)) RLibrary( p$libs ) 
     if (is.null(ip)) ip = 1:p$nruns
    
-    fn.root =  file.path( project.directory("snowcrab"), "markov"  )
-    fn =  file.path( project.directory("snowcrab"), "markov", paste( p$senario, "rdata", sep=".")  )
+    fn.root =  file.path( project.datadirectory("snowcrab"), "markov"  )
+    fn =  file.path( project.datadirectory("snowcrab"), "markov", paste( p$senario, "rdata", sep=".")  )
 
     dir.create( fn.root, recursive=T, showWarnings=F )
 

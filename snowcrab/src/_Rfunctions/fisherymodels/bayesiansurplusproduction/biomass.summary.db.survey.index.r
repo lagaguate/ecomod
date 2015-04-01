@@ -2,7 +2,7 @@
   biomass.summary.survey.db = function( DS="complete", p=NULL ) {
     
     if (DS %in% c("complete", "complete.redo") ) {
-      fn = file.path( project.directory("snowcrab"), "R", "bugssurvey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "bugssurvey.rdata" ) 
       if ( DS == "complete") {
         out = NULL
         if (file.exists(fn)) load(fn)
@@ -45,7 +45,7 @@
 
 
     if (DS %in% c("L", "L.redo" ) ) {
-      fn = file.path( project.directory("snowcrab"), "R", "L.bugs.survey.rdata" )
+      fn = file.path( project.datadirectory("snowcrab"), "R", "L.bugs.survey.rdata" )
       L=NULL
       if (DS=="L") {
         if (file.exists(fn)) load(fn)
@@ -60,7 +60,7 @@
 
 
     if (DS %in% c("B", "B.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "B.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "B.bugs.survey.rdata" ) 
       B=NULL
       if (DS=="B") {
         if (file.exists(fn)) load(fn)
@@ -71,7 +71,7 @@
         p$vars.to.model ="R0.mass"
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
-        fdir <-file.path( project.directory("snowcrab"), "R", "gam","habitat" )
+        fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
         fs <- dir(fdir)
 		fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
         lo <- c()
@@ -84,7 +84,7 @@
         areas=c("cfanorth", "cfasouth", "cfa4x")
         td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
         
-		load(file.path(project.directory('snowcrab'),"R","ts.rdata"))
+		load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
 		ts <- ts[which(ts$variable==p$vars.to.model & ts$region %in% areas),c('year','region','mean')]
 		ts$yr <- ts$year
 		td <- merge(ts,td, by=c('yr','region'),all.x=T)
@@ -109,7 +109,7 @@
    
     
     if (DS %in% c("B.sd", "B.sd.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "B.sd.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "B.sd.bugs.survey.rdata" ) 
       B=NULL
       if (DS=="B.sd") {
         if (file.exists(fn)) load(fn)
@@ -119,7 +119,7 @@
             p$vars.to.model ="R0.mass"
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
-        fdir <-file.path( project.directory("snowcrab"), "R", "gam","habitat" )
+        fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
         fs <- dir(fdir)
 		fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
         lo <- c()
@@ -132,7 +132,7 @@
         areas=c("cfanorth", "cfasouth", "cfa4x")
         td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
         
-		load(file.path(project.directory('snowcrab'),"R","ts.rdata"))
+		load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
 		ts <- ts[which(ts$variable==p$vars.to.model & ts$region %in% areas),c('year','region','se')]
 		ts$yr <- ts$year
 		td <- merge(ts,td, by=c('yr','region'),all.x=T)
@@ -157,7 +157,7 @@
 
 
     if (DS %in% c("R_geomean", "R_geomean.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "R_geomean.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "R_geomean.bugs.survey.rdata" ) 
       Bx = NULL
       if (DS=="R_geomean") {
         if (file.exists(fn)) load(fn)
@@ -189,7 +189,7 @@
 
 
     if (DS %in% c("B_geomean", "B_geomean.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "B_geomean.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "B_geomean.bugs.survey.rdata" ) 
       Bx = NULL
       if (DS=="B_geomean") {
         if (file.exists(fn)) load(fn)
@@ -218,7 +218,7 @@
  
 
     if (DS %in% c("B_geomean.sd", "B_geomean.sd.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "B_geomean.sd.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "B_geomean.sd.bugs.survey.rdata" ) 
       Bx = NULL
       if (DS=="B_geomean.sd") {
         if (file.exists(fn)) load(fn)
@@ -247,7 +247,7 @@
  
 
     if (DS %in% c("R_geomean.sd", "R_geomean.sd.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "R_geomean.sd.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "R_geomean.sd.bugs.survey.rdata" ) 
       Bx = NULL
       if (DS=="R_geomean.sd") {
         if (file.exists(fn)) load(fn)
@@ -275,7 +275,7 @@
     }
  
     if (DS %in% c("R", "R.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "R.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "R.bugs.survey.rdata" ) 
       R=NULL
       if (DS=="R") {
         if (file.exists(fn)) load(fn)
@@ -286,7 +286,7 @@
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
                 p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
-        fdir <-file.path( project.directory("snowcrab"), "R", "gam","habitat" )
+        fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
         fs <- dir(fdir)
 		fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
         lo <- c()
@@ -299,7 +299,7 @@
         areas=c("cfanorth", "cfasouth", "cfa4x")
         td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
         
-		load(file.path(project.directory('snowcrab'),"R","ts.rdata"))
+		load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
 		ts <- ts[which(ts$variable==p$vars.to.model & ts$region %in% areas),c('year','region','mean')]
     ts[ts$mean<0.1,'mean'] <- min(ts$mean[ts$mean>0.1])
 		ts$yr <- ts$year
@@ -330,7 +330,7 @@
 
 
     if (DS %in% c("R.sd", "R.sd.redo" )) {
-      fn = file.path( project.directory("snowcrab"), "R", "R.sd.bugs.survey.rdata" ) 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "R.sd.bugs.survey.rdata" ) 
       R=NULL
       if (DS=="R.sd") {
         if (file.exists(fn)) load(fn)
@@ -341,7 +341,7 @@
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
                 p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
-        fdir <-file.path( project.directory("snowcrab"), "R", "gam","habitat" )
+        fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
         fs <- dir(fdir)
 		fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
         lo <- c()
@@ -354,7 +354,7 @@
         areas=c("cfanorth", "cfasouth", "cfa4x")
         td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
         
-		load(file.path(project.directory('snowcrab'),"R","ts.rdata"))
+		load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
 		ts <- ts[which(ts$variable==p$vars.to.model & ts$region %in% areas),c('year','region','se')]
 		ts$yr <- ts$year
 		td <- merge(ts,td, by=c('yr','region'),all.x=T)

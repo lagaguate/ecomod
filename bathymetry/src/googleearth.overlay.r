@@ -11,12 +11,12 @@
   # 1.  map of bathymetry contours : colour background and lines
 
   gmt = list()
-  gmt$out = file.path(project.directory("bathymetry"), "ss.bathymetry.colour.platecarre.ps" )
+  gmt$out = file.path(project.datadirectory("bathymetry"), "ss.bathymetry.colour.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour", "bathymetry.redo" )
   gmt$region=" -R-72/-52/40/50"    
   gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
-  gmt$inp = file.path(project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
+  gmt$inp = file.path(project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
   gmt$tension ="-T0.35"
   gmt$cpt = "-Cjet -T-350/350/10 -Z -D"
   gmt$incscale = "-B50"
@@ -47,7 +47,7 @@
   loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
 
   gmt = list()
-  gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
+  gmt$out = file.path( project.datadirectory("snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour" )
   gmt$region=" -R-72/-52/40/50"    
   gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
@@ -62,7 +62,7 @@
   gmt$annot.text = "Fishable biomass (log10; kg/km2)"
   gmt$scale.location = "-D4.25i/0.75i/0.75i/0.075ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
   
-  gmt$bathy.xyz = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz")
+  gmt$bathy.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz")
   gmt$bathy.grid = file.path(tmpdir, make.random.string(".gmt.grid"))
 
   PS = kriging.db( DS="UK.point.PS", p=list(v="R0.mass", y=2008, r="cfaall", transgaussian.kriging=T)  )
@@ -99,14 +99,14 @@
   loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
 
   gmt = list()
-  gmt$out = file.path( project.directory("snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )
+  gmt$out = file.path( project.datadirectory("snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )
   gmt$outputs = c( "colourscale", "colourcontour" )
   gmt$region=" -R-72/-52/40/50"    
   gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
   gmt$resolution="-I0.25m" #  resolution
   gmt$inp = NULL 
   gmt$tension ="-T1"
-  gmt$bathy.xyz = file.path( project.directory("bathymetry"), "data", "bathymetry.canada.east.xyz")
+  gmt$bathy.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz")
   gmt$bathy.grid = file.path(tmpdir, make.random.string(".gmt.grid"))
 
   PS = kriging.db( DS="UK.point.PS", p=list(v="R0.mass", y=2008, r="cfaall", transgaussian.kriging=T)  )

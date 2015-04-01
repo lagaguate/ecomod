@@ -14,7 +14,7 @@
  
   #required for interpolations and mapping 
   p$project.name = "condition"
-  p$project.outdir.root = project.directory( p$project.name, "analysis" )
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
   
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "habitat", "bathymetry",
                                   "bio", "temperature", "taxonomy", "condition" ) )

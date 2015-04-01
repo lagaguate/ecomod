@@ -3,7 +3,7 @@
   minilog.db = function( DS="", Y=NULL ){
     
 
-    minilog.dir = project.directory("snowcrab", "data", "minilog" )
+    minilog.dir = project.datadirectory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
     years.with.sets.combined = 2014 #the years where minilog not downloaded after each tow
 

@@ -137,7 +137,7 @@
 
   p$ofname = paste("B", p$interp.method, p$tension, p$maskres, p$interpres, "rdata", sep=".")
   K = interpolated.estimates ( list (
-        outfile = file.path( project.directory("snowcrab"), "R", p$ofname),
+        outfile = file.path( project.datadirectory("snowcrab"), "R", p$ofname),
        make.biomass.grids = T,
        biomass.regrid = T,
        biomass.extract =T,
@@ -182,7 +182,7 @@ gc()
     psill=final.vgm$psill[2], nugget=final.vgm$psill[1], range=final.vgm$range[2]  )
   print( K0 )
 
-  a = read.table( file.path( project.directory("snowcrab"), "R", "block.size.dat"), header=T) # size influence of block dimensions
+  a = read.table( file.path( project.datadirectory("snowcrab"), "R", "block.size.dat"), header=T) # size influence of block dimensions
   errbar(log10(a$res), a$totno, a$ub, a$lb, xlab="Log10(block size; km)", ylab="No. x 1000", lty=1, lwd=2, ylim=c(0,10000) )
   lines(log10(a$res), a$totno, lty=2, col="orange")
   dev.print(pdf, "block.size.pdf")

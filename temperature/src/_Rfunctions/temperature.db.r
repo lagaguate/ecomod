@@ -10,7 +10,7 @@
       # factors that do not "change" rapidly and 
       # e.g. climatological means of temperature characteristics, substrate, bathymetry
     
-      outdir = file.path( project.directory("temperature"), "data", "interpolated" )
+      outdir = file.path( project.datadirectory("temperature"), "data", "interpolated" )
       dir.create(outdir, recursive=T, showWarnings=F)
       
       outfile =  file.path( outdir, paste("PS.climatology", p$spatial.domain, "rdata", sep="." ) )
@@ -84,8 +84,8 @@
       ### a conveniance data table to reduce number of merges occuring during modelling steps
       ### annual stats and climatology are merged together  
       ### essentially the base level data set for habitat db but needed at a lower level as it is used for the other indicators
-      outdir =  file.path( project.directory("temperature"), "data", "interpolated", "complete", p$spatial.domain )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.directory("temperature"), "data", "interpolated", "complete", "SSE" )
+      outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p$spatial.domain )
+      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", "SSE" )
       dir.create(outdir, recursive=T, showWarnings=F)
 
       if (DS=="complete") {

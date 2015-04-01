@@ -40,7 +40,7 @@
     p$delete.postscript = T
     p$redo.basemap = F
 
-    basemap.location = project.directory("bathymetry", "maps" )
+    basemap.location = project.datadirectory("bathymetry", "maps" )
     p$basemap = file.path(basemap.location, "basemap.default.ps" )  # default
 
     if ( exists( "spatial.domain", p) ) {

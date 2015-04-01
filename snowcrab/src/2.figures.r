@@ -88,44 +88,44 @@
   # this is the basemap from map.r which is then post-labelled in sodipodi
     p$outdir = file.path(p$annual.results,"figures")
     p$outfile.basename = file.path(p$outdir, "map.CFAs")
-    # p$basemap = file.path( project.directory("snowcrab"), "R", p$basemap)
+    # p$basemap = file.path( project.datadirectory("snowcrab"), "R", p$basemap)
     map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
 
     
   # ------------------------------------------
   # Map:  Mean/geometric mean of various variables in the set data table
-    map.set.information( p, outdir=file.path( project.directory("snowcrab"), "R", "maps", "survey" )  )
+    map.set.information( p, outdir=file.path( project.datadirectory("snowcrab"), "R", "maps", "survey" )  )
 
   # ------------------------------------------
   # Map: Numerical density of by-catch species 
    p$do.parallel=F
-    map.cat.information( p, outdir=file.path( project.directory("snowcrab"), "R", "maps", "species" ) )
+    map.cat.information( p, outdir=file.path( project.datadirectory("snowcrab"), "R", "maps", "species" ) )
 
   # ------------------------------------------
   # Map:Fisheries logbook data (Effort, CPU, Landings)
-    map.fisheries.data( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "logbook") )
+    map.fisheries.data( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "logbook") )
 
   # ------------------------------------------
   # Map: Survey locations
     
-    map.survey.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps", "survey.locations"),  newyear=F, map.method="lattice"  )
-    map.survey.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps", "survey.locations"),  newyear=F, map.method="googleearth"  )
+    map.survey.locations( p, basedir=file.path(project.datadirectory("snowcrab"), "R", "maps", "survey.locations"),  newyear=F, map.method="lattice"  )
+    map.survey.locations( p, basedir=file.path(project.datadirectory("snowcrab"), "R", "maps", "survey.locations"),  newyear=F, map.method="googleearth"  )
 
   # ------------------------------------------
   # Map: Observer locations
-    map.observer.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps","observer.locations" ), newyear=F , map.method="lattice"  )
+    map.observer.locations( p, basedir=file.path(project.datadirectory("snowcrab"), "R", "maps","observer.locations" ), newyear=F , map.method="lattice"  )
 
   # ------------------------------------------
   # Map: Logbook recorded locations
-    map.logbook.locations( p, basedir=file.path(project.directory("snowcrab"), "R", "maps","logbook.locations" ), newyear=F , map.method="lattice"  )
+    map.logbook.locations( p, basedir=file.path(project.datadirectory("snowcrab"), "R", "maps","logbook.locations" ), newyear=F , map.method="lattice"  )
 
   # ------------------------------------------
   # Map: Crab movement from mark-recapture data
-    map.movement( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "mark.recapture") ) 
+    map.movement( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "mark.recapture") ) 
   
   # ------------------------------------------
   # Map: Spatial representation of maturity patterns of snow crab
-    map.maturity( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "maturity"), newyear=T ) 
+    map.maturity( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "maturity"), newyear=T ) 
 
 
   ##########################################################################
@@ -155,15 +155,15 @@
 
   # ------------------------------------------
   # Timeseries: Larval brachyura from the SSIP data 
-    figure.timeseries.larvae( outdir=file.path(project.directory("snowcrab"), "R", "timeseries", "larvae") ) 
+    figure.timeseries.larvae( outdir=file.path(project.datadirectory("snowcrab"), "R", "timeseries", "larvae") ) 
 
   # ------------------------------------------
   # Growth as a a function of instar for Scotian Shelf snow crab
-    figure.growth.instar( outdir=file.path(project.directory("snowcrab"), "R", "growth") )
+    figure.growth.instar( outdir=file.path(project.datadirectory("snowcrab"), "R", "growth") )
 
  
   # ------------------------------------------
   # Map: Larval distributions from the Scotian Shelf Ichtyoplankton Program data
-    map.larvae( p, outdir=file.path(project.directory("snowcrab"), "R", "maps", "larvae"), conversions=conversions, init.files=p$init.files ) 
+    map.larvae( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "larvae"), conversions=conversions, init.files=p$init.files ) 
 
 

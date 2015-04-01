@@ -13,7 +13,7 @@
 
   p = parameter.list.snowcrab ( current.assessment.year=current.assessment.year, set="default")
   
-  workpath = file.path( project.directory("snowcrab"), "R" )
+  workpath = file.path( project.datadirectory("snowcrab"), "R" )
   dir.create( workpath, recursive=T, showWarnings=FALSE )
   setwd (workpath)
 

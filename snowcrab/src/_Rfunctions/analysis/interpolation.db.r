@@ -3,7 +3,7 @@
     
     if ( DS %in% c( "interpolation.redo", "interpolation", "interpolation.simulation", "interpolation.simulation.redo", "interpolation.simulation.complete", "interpolation.simulation.PS" ) ) {
      
-      basedir = file.path( project.directory("snowcrab"), "R", "gam" )
+      basedir = file.path( project.datadirectory("snowcrab"), "R", "gam" )
 
       loc.map = file.path( basedir, "maps" )
       loc.sol = file.path( basedir, "predictions" )

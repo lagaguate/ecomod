@@ -107,8 +107,8 @@
   y = stepAIC( Qlm)
   fy = labels(terms(y))  # accepted terms 
 
-  save( Qlm, file=file.path( project.directory("snowcrab"), "R", "density.model.lm.rdata"), compress=T )
-  save( y, file=file.path( project.directory("snowcrab"), "R", "density.model.lm.stepwise.rdata"), compress=T )
+  save( Qlm, file=file.path( project.datadirectory("snowcrab"), "R", "density.model.lm.rdata"), compress=T )
+  save( y, file=file.path( project.datadirectory("snowcrab"), "R", "density.model.lm.stepwise.rdata"), compress=T )
 
 
   # gam model
@@ -123,7 +123,7 @@
   plot( Qgam)
   
 
-  save( Qgam, file=file.path( project.directory("snowcrab"), "R", "density.model.gam.rdata", compress=T )
+  save( Qgam, file=file.path( project.datadirectory("snowcrab"), "R", "density.model.gam.rdata", compress=T )
 
 
 

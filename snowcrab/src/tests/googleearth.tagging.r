@@ -3,7 +3,7 @@
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   
 
-  workdir = file.path( project.directory("snowcrab"), "R" )
+  workdir = file.path( project.datadirectory("snowcrab"), "R" )
    
   redo.background.kml = F
   if ( redo.background.kml ) {

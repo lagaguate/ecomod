@@ -61,7 +61,7 @@
 
   #required for interpolations and mapping 
   p$project.name = "speciescomposition"
-  p$project.outdir.root = project.directory( p$project.name, "analysis" )
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
 
  

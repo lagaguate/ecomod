@@ -28,7 +28,7 @@
    )
    p$regions.to.model = "cfaall"
 
-   p$ofname = file.path( project.directory("snowcrab"), "R", "egg.production.rdata" )
+   p$ofname = file.path( project.datadirectory("snowcrab"), "R", "egg.production.rdata" )
    
    p = make.list( list(p$vars.to.model, p$years.to.model), Y=p)
 

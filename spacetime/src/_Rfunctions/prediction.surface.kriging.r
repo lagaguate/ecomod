@@ -4,7 +4,7 @@
     
     if (DS %in% c("annual", "annual.redo" ) ) {
 
-      fn = file.path( project.directory("snowcrab"), "R", "PS.habitat.ts.rdata" )    
+      fn = file.path( project.datadirectory("snowcrab"), "R", "PS.habitat.ts.rdata" )    
       
       if (DS=="annual") {
         load(fn)

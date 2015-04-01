@@ -8,7 +8,7 @@
   }
    
   # mapping of fisher stats
-  loc = file.path( project.directory("shrimp"), "maps" )
+  loc = file.path( project.datadirectory("shrimp"), "maps" )
 
   s = shrimp.db( DS="shrimp.shrcomlog" )
   sm = s[ which( s$btype.simple=="mobile" & is.finite(s$fhours) ) ,]

@@ -11,7 +11,7 @@ ClamMap<-function(area = 'custom', ylim = c(41,47), xlim = c(-68, -57), title = 
   require(PBSmapping)|| stop("Install PBSmapping Package")
   require(fields)
 #MMM Sept 2014 - modified path for ecomod 
-wd<-file.path(project.directory('polygons'),'data')
+wd<-file.path(project.datadirectory('polygons'),'data')
   
   # Mapping
   if(area=='custom')	{ ylim=ylim; 			 xlim=xlim			}

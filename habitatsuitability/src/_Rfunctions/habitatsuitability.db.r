@@ -1,7 +1,7 @@
 
   habitatsuitability.db = function( DS, p=NULL ) {
 
-    SSSdir = file.path( project.directory("habitatsuitability"), "data", p$studyarea )
+    SSSdir = file.path( project.datadirectory("habitatsuitability"), "data", p$studyarea )
     dir.create( SSSdir, showWarnings=FALSE, recursive=TRUE )
 
 		if (DS %in% c("initial.set.redo", "initial.set" ) ) {

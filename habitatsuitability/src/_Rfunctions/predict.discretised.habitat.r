@@ -5,10 +5,10 @@
     if (exists( "libs", p)) RLibrary( p$libs ) 
     if (is.null(ip)) ip = 1:p$nruns
 
-    dir.create( file.path( project.directory("habitatsuitability"), p$speciesofinterest ), recursive=T, showWarnings=F )
+    dir.create( file.path( project.datadirectory("habitatsuitability"), p$speciesofinterest ), recursive=T, showWarnings=F )
         
     if (DS %in% c( "model.pa", "model.pa.redo") ) {
-      fn.model.pa = file.path( project.directory("habitatsuitability"), p$speciesofinterest, "model.pa.rdata" )
+      fn.model.pa = file.path( project.datadirectory("habitatsuitability"), p$speciesofinterest, "model.pa.rdata" )
       if (DS=="model.pa") {
         Q = NULL
         load(fn.model.pa)
@@ -43,8 +43,8 @@
     
     if (DS %in% c( "model.ra", "model.ra.redo") ) {
       
-      dir.create( file.path( project.directory("habitatsuitability"), p$speciesofinterest ), recursive=T, showWarnings=F )
-      fn.model.ra = file.path( project.directory("habitatsuitability"), p$speciesofinterest, "model.ra.rdata" )
+      dir.create( file.path( project.datadirectory("habitatsuitability"), p$speciesofinterest ), recursive=T, showWarnings=F )
+      fn.model.ra = file.path( project.datadirectory("habitatsuitability"), p$speciesofinterest, "model.ra.rdata" )
       
       if (DS=="model.ra") {
         Q = NULL
@@ -82,8 +82,8 @@
 
     if (DS %in% c( "sim", "sim.redo", "timeseries", "timeseries.redo", "timeseries.all" ) ) {
 
-      gdir = file.path( project.directory("habitatsuitability"), p$speciesofinterest, "grids" )
-      tdir = file.path( project.directory("habitatsuitability"), p$speciesofinterest, "timeseries" )
+      gdir = file.path( project.datadirectory("habitatsuitability"), p$speciesofinterest, "grids" )
+      tdir = file.path( project.datadirectory("habitatsuitability"), p$speciesofinterest, "timeseries" )
 
       dir.create( gdir, recursive=T, showWarnings=F )
       dir.create( tdir, recursive=T, showWarnings=F )
@@ -213,7 +213,7 @@
 
     if (DS =="map.habitat" ) {
 
-      map.loc = file.path( project.directory("habitatsuitability"), p$speciesofinterest, "maps" )
+      map.loc = file.path( project.datadirectory("habitatsuitability"), p$speciesofinterest, "maps" )
       dir.create (map.loc,  recursive=T, showWarnings=F )
       planar.corners = data.frame(rbind( cbind( plon=p$corners$plon, plat=p$corners$plat ))) 
       

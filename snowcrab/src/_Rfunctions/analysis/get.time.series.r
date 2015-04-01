@@ -1,8 +1,8 @@
 
   get.time.series = function(x=NULL, regions=NULL, vars=NULL, trim=0, from.file=F, outfile=NULL,reduced.stations=F) {
 
-    if (is.null(outfile) & !reduced.stations) outfile = file.path( project.directory("snowcrab"), "R", "ts.rdata" )
-    if (is.null(outfile) & reduced.stations) outfile = file.path( project.directory("snowcrab"), "R", "ts.reduced.rdata" )
+    if (is.null(outfile) & !reduced.stations) outfile = file.path( project.datadirectory("snowcrab"), "R", "ts.rdata" )
+    if (is.null(outfile) & reduced.stations) outfile = file.path( project.datadirectory("snowcrab"), "R", "ts.reduced.rdata" )
 
     ts= NULL
 

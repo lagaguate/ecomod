@@ -1,5 +1,5 @@
 
-  figure.timeseries.gam.potential.habitat.survey.biomass= function( outdir=file.path(project.directory('snowcrab'), "assessments","2014"), all.areas=T ) {
+  figure.timeseries.gam.potential.habitat.survey.biomass= function( outdir=file.path(project.datadirectory('snowcrab'), "assessments","2014"), all.areas=T ) {
  
     set = snowcrab.db( DS="set.merge.det")
   
@@ -15,7 +15,7 @@
     n.areas = length(areas)
     varnames = names(set)
 #    vars = varnames[ grep ( vars, varnames) ]
-fdir <-file.path( project.directory("snowcrab"), "R", "gam","habitat" )
+fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
         fs <- dir(fdir)
     fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
         lo <- c()
@@ -36,7 +36,7 @@ fdir <-file.path( project.directory("snowcrab"), "R", "gam","habitat" )
       
         td$year =td$yr
         td$sa.region = td$sa.region/1000
-        load(file.path(project.directory('snowcrab'),"R","ts.rdata"))
+        load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
     ts <- ts[which(ts$variable=='R0.mass' & ts$region %in% areas),c('year','region','mean','ub','lb')]
       td <- merge(ts,td, by=c('year','region'),all.x=T)
     

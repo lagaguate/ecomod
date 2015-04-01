@@ -7,7 +7,7 @@ habitat.estimate.global = function( DS="gam" ) {
 
  
   # estimate a global surface that is potentially habitat
-  outdir = project.directory( "snowcrab", "R", "gam", "habitat.global" )
+  outdir = project.datadirectory( "snowcrab", "R", "gam", "habitat.global" )
   dir.create(path=outdir, recursive=T, showWarnings=F)
    
   if ( DS %in% c("gam", "gam.redo")  ) {

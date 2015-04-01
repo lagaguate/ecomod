@@ -1,6 +1,6 @@
   map.krige.lattice = function( ip=NULL, M=NULL, init.files=NULL, log.transf=T ) {
 
-    loc = file.path( project.directory("snowcrab"), "R", "kriging", "maps" )
+    loc = file.path( project.datadirectory("snowcrab"), "R", "kriging", "maps" )
 
        if (M$transgaussian.kriging) {
          loc = file.path( loc, "trans.gaussian" )

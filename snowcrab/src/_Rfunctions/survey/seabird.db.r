@@ -5,7 +5,7 @@
 
   seabird.db = function( DS="", Y=NULL ){
     
-    sb.dir = project.directory("snowcrab", "data", "seabird" )
+    sb.dir = project.datadirectory("snowcrab", "data", "seabird" )
     seabird.rawdata.location = file.path( sb.dir, "archive" ) 
     
     if (!is.null(Y)) {

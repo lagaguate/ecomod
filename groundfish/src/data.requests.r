@@ -39,7 +39,7 @@
 
 loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 	
-loc = file.path( project.directory("groundfish"), "data", "2006")
+loc = file.path( project.datadirectory("groundfish"), "data", "2006")
 require(chron)
         
     load( file.path(loc,"gscat.rdata") )

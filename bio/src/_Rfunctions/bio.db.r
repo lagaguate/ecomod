@@ -1,12 +1,12 @@
 
   bio.db = function( DS, p=NULL ) {
   
-    dir.create( file.path( project.directory("bio"), "data" ), showWarnings=FALSE, recursive=TRUE )
+    dir.create( file.path( project.datadirectory("bio"), "data" ), showWarnings=FALSE, recursive=TRUE )
 
     if (DS %in% c("set.init","set.init.redo") ) {
       # survet sets
       set = NULL # trip/set loc information
-      fn = file.path( project.directory("bio"), "data", "set.init.rdata"  )
+      fn = file.path( project.datadirectory("bio"), "data", "set.init.rdata"  )
       if (DS=="set.init") {
         if (file.exists( fn) ) load( fn)
         return ( set )
@@ -57,7 +57,7 @@
     if (DS %in% c("cat.init","cat.init.redo") ) {
       # all species caught
       cat = NULL # trip/cat loc information
-      fn = file.path( project.directory("bio"), "data", "cat.init.rdata"  )
+      fn = file.path( project.datadirectory("bio"), "data", "cat.init.rdata"  )
       if (DS=="cat.init") {
         if (file.exists( fn) ) load( fn)
         return ( cat )
@@ -115,7 +115,7 @@
     if (DS %in% c("det.init","det.init.redo") ) {
       # all species caught
       det = NULL # biologicals 
-      fn = file.path( project.directory("bio"), "data", "det.init.rdata"  )
+      fn = file.path( project.datadirectory("bio"), "data", "det.init.rdata"  )
       if (DS=="det.init") {
         if (file.exists( fn) ) load( fn)
         return ( det )
@@ -202,7 +202,7 @@
     if (DS %in% c("set.intermediate","set.intermediate.redo") ) {
       # survet sets
       set = NULL # trip/set loc information
-      fn = file.path( project.directory("bio"), "data", "set.intermediate.rdata"  )
+      fn = file.path( project.datadirectory("bio"), "data", "set.intermediate.rdata"  )
       if (DS=="set.intermediate") {
         if (file.exists( fn) ) load( fn)
         return ( set )
@@ -228,7 +228,7 @@
       # error checking, imputation, etc
       
       det = NULL 
-      fn = file.path( project.directory("bio"), "data", "det.rdata"  )
+      fn = file.path( project.datadirectory("bio"), "data", "det.rdata"  )
       if (DS=="det") {
         if (file.exists( fn) ) load( fn)
         return ( det )
@@ -401,7 +401,7 @@
     if (DS %in% c("cat", "cat.redo") ) {
       # all species caught
       cat = NULL # biologicals 
-      fn = file.path( project.directory("bio"), "data", "cat.rdata"  )
+      fn = file.path( project.datadirectory("bio"), "data", "cat.rdata"  )
       if (DS=="cat") {
         if (file.exists( fn) ) load( fn)
         return ( cat )
@@ -513,7 +513,7 @@
     if (DS %in% c("set","set.redo") ) {
       # survet sets
       set = NULL # trip/set loc information
-      fn = file.path( project.directory("bio"), "data", "set.rdata"  )
+      fn = file.path( project.datadirectory("bio"), "data", "set.rdata"  )
       if (DS=="set") {
         if (file.exists( fn) ) load( fn)
         return ( set )

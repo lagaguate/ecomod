@@ -1,7 +1,7 @@
 
     grid.spatial = function( p, R=NULL, grid.method=block.mean ) {
       
-			fn = file.path( project.directory("bathymetry"), p$resolution.ofdata+extent ) 
+			fn = file.path( project.datadirectory("bathymetry"), p$resolution.ofdata+extent ) 
      
       if ( is.null( R ) ) {
         load( fn )

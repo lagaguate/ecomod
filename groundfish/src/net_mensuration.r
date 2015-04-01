@@ -4,8 +4,8 @@ p$libs = RLibrary("INLA", "numDeriv", "lubridate" )
 # this relies upon the gsinf table which is accessible from the groundfish functions
 p$inits = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 # define location of local data files 
-p$scanmar.dir = file.path( project.directory("groundfish"), "data", "nets", "Scanmar" ) 
-p$marport.dir = file.path( project.directory("groundfish"), "data", "nets", "Marport" ) 
+p$scanmar.dir = file.path( project.datadirectory("groundfish"), "data", "nets", "Scanmar" ) 
+p$marport.dir = file.path( project.datadirectory("groundfish"), "data", "nets", "Marport" ) 
 
 
 
