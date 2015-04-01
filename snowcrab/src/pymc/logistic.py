@@ -10,7 +10,7 @@ import pdb
 
 
 r('source( "~/.Rprofile" )')
-r('source( file.path( project.directory("snowcrab"), "src", "_Rfunctions", "initialise.local.environment.r" ) )')
+r(' loadfunction ( "snowcrab", functionname="initialise.local.environment.r" ) ')
 r('res = biomass.summary.db(p=p)')
 
 IOA = array( r('as.matrix(res$B)') )

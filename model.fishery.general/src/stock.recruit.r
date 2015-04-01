@@ -5,7 +5,7 @@
 # ICA analysis of the data for Baltic Cod Subdivisions 25-32
 
 
-cod = read.table( file.path( project.directory("model.fishery.general"), "src", "stock.recruit.data"), header=T)
+cod = read.table( file.path( project.codedirectory("model.fishery.general"), "src", "stock.recruit.data"), header=T)
 
 # reformat data such that each SSB is associated with the correct R.age2
 

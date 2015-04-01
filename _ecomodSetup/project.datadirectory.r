@@ -1,11 +1,9 @@
 
 
-project.directory = function(..., alternate.directory=NULL) {
+project.datadirectory = function(..., alternate.directory=NULL) {
   
   ## this function is required to bootstrap the other project level functions
   ## probably should make this cleaner one day .. :)
-  
-  warning( "NOTE:: project.directory() is depricated, use instead, project.datadirectory() for data and project.codedirectory() for source code" )
 
   # determine project directory string
   sep = .Platform$file.sep

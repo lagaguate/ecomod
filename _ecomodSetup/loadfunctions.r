@@ -20,7 +20,7 @@
 
     for (pn in projectname ) {
 
-      projectdirectory = project.directory(directory, name=pn  )
+      projectdirectory = project.codedirectory( directory, pn )
 
       for (searchdirectory in c( file.path( projectdirectory, RcodeDirectory ), projectdirectory ) ) {  # first try in RcodeDirectory and then the project if not found in first pass  
 

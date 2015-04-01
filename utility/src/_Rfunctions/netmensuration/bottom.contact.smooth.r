@@ -36,14 +36,15 @@ bottom.contact.smooth = function( sm, bcp )  {
   # sm$ddZ[N] = sm$ddZ[ N-1 ]
   
   sm$dZ.smoothed = interpolate.xy.robust( sm[, c("ts", "dZ")], 
-        target.r2=bcp$smooth.target.r2, probs=bcp$smooth.filter.quants, method=bcp$smooth.dZ.method,  inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal )
+        target.r2=bcp$smooth.target.r2, probs=bcp$smooth.filter.quants, method=bcp$smooth.dZ.method, 
+        inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal )
  
   dZ.modes = modes( sm$dZ.smoothed )
 
   # now using (smoothed) first derivative determine inflection points (crossing of the (near)-zero line)
   mm = trunc( N/2 )
-  ml = trunc(mm/2) # 1/4
-  mr = trunc(N-mm/2) # #/4 
+  ml = trunc(mm/3) # 1/6
+  mr = trunc(N-mm/3) # #/6 
   mmed = median( sm$Z, na.rm=TRUE )
   mmsd = 2 * sd( sm$Z, na.rm=TRUE )  ## SD 
 

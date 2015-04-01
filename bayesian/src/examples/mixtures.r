@@ -75,8 +75,8 @@ gelman.plot(y[1])
 
 # ----------------------
 # using snowcrab data
- 
-  source( file.path( project.directory("snowcrab"), "src", "initialise.local.environment.r" ) )
+  
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
   det = snowcrab.db( DS ="det.georeferenced" ) 
   
   hvar="cw" #!

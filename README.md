@@ -16,6 +16,7 @@ To download this repository, you can either:
 To fully use this respository, you will need to add the following to the end of your .Rprofile file (located in your 'home' directory).  If this file does not already exist, simply create a new file and add the following:
 
     ecomod.workdirectory = file.path( "C:", "R", "workspace" )    ### replace with correct path to R workspace
+    ecomod.datadirectory = file.path( "C:", "path", "to", "ecomod_data" )  ### replace with correct path to local data directory ... must have the same directory hierarchy
     ecomod.directory = file.path( "C:", "path", "to", "ecomod" )  ### replace with correct path to cloned folder
 	
     source( file.path( ecomod.directory, "_ecomodSetup", "ecomod.rprofile.r" ) ) ### initializes the ecomod environment
@@ -36,5 +37,8 @@ or to load a specific file/function that fuzzy matches the 'functionname' criter
 
 'loadfunctions()' is a simple function that reads in all files under a particular project directory in a structured manner. 
 
+    project.codedirectory( "spacetime" ) # returns the file path to the spacetime code directory under ecomod
+    project.directory( "spacetime" ) # returns the file path to the spacetime data directory under ecomod_data (or whatever you defined as the root data location in your Rprofile )
+    project.datadirectory()  is a synomym for project.directory() ... the latter is depricated 
 
 

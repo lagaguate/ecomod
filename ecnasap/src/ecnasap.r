@@ -3,9 +3,8 @@
 # ecansap data access example and some simple analyses of species composition, etc
 # ecnasapdir = "/home/jae/src/ecnasap"; defined in home/jae/src/startup.r
 
-  source( file.path( project.directory("ecnasap"), "src", "load.ecnasap.environment.r"))
-
-
+  loadfunctions( "ecnasap", functionname="load.ecnasap.environment.r" )
+ 
 # ----------------------
 # load main data table
 #  ecnasap = get.cat.ecnasap (source="redo")

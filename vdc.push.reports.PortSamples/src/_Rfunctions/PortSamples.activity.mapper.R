@@ -17,7 +17,7 @@ PortSamples.activity.mapper<-function(
 
 options(stringsAsFactors=F)
 options(warn=-1)
-workdir <- file.path(project.directory('vdc.push.reports.portsamples'),"src" )
+workdir <- file.path(project.codedirectory('vdc.push.reports.portsamples'),"src" )
 setwd(workdir)
 savelocation<- file.path( workdir,"output")
 map.vessels<-function(dsn, user, pw, last_n_days, vessel_list, filename, title){

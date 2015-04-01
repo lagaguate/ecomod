@@ -7,7 +7,7 @@ ssa.engine.approximation.rcpp = function( p, res, rn=0 ) {
   ##         better to make into a package for a quick load in future.
   print( "Compiling supporting methods ...")
 
-  ssadir = project.directory( "model.ssa", "src",  "_Rfunctions")
+  ssadir = project.codedirectory( "model.ssa", "src",  "_Rfunctions")
   source( file.path( ssadir, "random_deviate_exponential.rcpp" ) )
   source( file.path( ssadir, "reaction_locations.rcpp" ) )
   
