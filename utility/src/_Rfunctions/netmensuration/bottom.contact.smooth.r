@@ -37,7 +37,7 @@ bottom.contact.smooth = function( sm, bcp )  {
   
   sm$dZ.smoothed = interpolate.xy.robust( sm[, c("ts", "dZ")], 
         target.r2=bcp$smooth.target.r2, probs=bcp$smooth.filter.quants, method=bcp$smooth.dZ.method, 
-        inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal )
+        inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$noisefilter.inla.diagonal )
  
   dZ.modes = modes( sm$dZ.smoothed )
 

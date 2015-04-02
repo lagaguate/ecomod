@@ -670,16 +670,24 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         bcp = list( 
           id=id, datasource="groundfish", nr=nrow(mm), YR=YR,
           tdif.min=15, tdif.max=45,
-          depth.min=10, setdepth=gsinf$bottom_depth[gii], 
-          noisefilter.inla.h=0.05, noisefilter.inla.diagonal=0.05
+          depth.min=10, setdepth=gsinf$bottom_depth[gii] 
         )
         
         bcp = bottom.contact.parameters( bcp ) # add other default parameters
         
+        # over-ride stange data
         if (id=="NED2013028.172") {
           bcp$depth.range = c(-70, 70) 
         }
-   
+        if (id=="NED2013022.192"){
+          bcp$depth.range = c(-250, 150) 
+        }
+     
+        if (id=="NED2013022.193"){
+          bcp$depth.range = c(-250, 150) 
+        }
+
+
         bc = NULL # 
         bc = try( bottom.contact(mm, bcp ), silent=TRUE )
         
