@@ -3,7 +3,7 @@
  
   biochem.db = function(DS="", p=NULL, ss=NULL, tbl=NULL ) {
       
-    biochem.dir = project.datadirectory("biochem") 
+    biochem.dir = project.directory("biochem") 
     biochem.data.dir = file.path( biochem.dir, "data" ) 
     biochem.datadump.dir = file.path( biochem.dir, "data", "datadump" ) 
 
@@ -20,7 +20,7 @@
 
       require(RODBC)
       dir.create( biochem.datadump.dir, recursive=TRUE, showWarnings=FALSE )
-      con = odbcConnect( oracle.personal.dsn, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+      con = odbcConnect( dsn=oracle.biochem.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
 
       for ( o in 1:length(bctables) ) {
         tblname =  bctables[o]
