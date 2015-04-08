@@ -1,6 +1,8 @@
 
 bottles.db = function( DS, p, plotdata=FALSE ) {
- # data view of nutrients and chl from biochem db
+ # Gordana Lazin, 8 April 2015, first version
+  
+  # data view of nutrients and chl from biochem db
   
   biochem.dir = project.directory("biochem") 
   biochem.data.dir = file.path( biochem.dir, "data" ) 
