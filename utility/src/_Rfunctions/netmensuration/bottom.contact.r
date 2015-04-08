@@ -19,7 +19,7 @@ bottom.contact = function( x, bcp ) {
   O$error.flag = NA
   O$good = rep(TRUE, nrow(x)) # rows that will contain data that passes each step of data quality checks
 
-  if(sum(!is.na(x$depth)) < n.min.required ) return( NULL )
+  if(length (which( (!is.na(x$depth)))) < n.min.required ) return( NULL )
 
   ##--------------------------------
   # sort in case time is not in sequence
@@ -96,6 +96,18 @@ bottom.contact = function( x, bcp ) {
   if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return( NULL )
   if(sum(O$good)==0) return( NULL )
   
+  x.timerange = range( x$timestamp[O$good], na.rm=TRUE )
+  x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
+
+  if ( x.dt < (bcp$tdif.min ) ) { 
+      O$error.flag = "Not enough data?"   
+      return(O)
+  }
+
+  if ( x.dt > (bcp$tdif.max + 10 ) ) { 
+      O$error.flag = "Too much data?"   
+      return(O)
+  }
   
   # variance gating attempt
   O$variance.method = c(NA, NA)
@@ -279,7 +291,8 @@ bottom.contact = function( x, bcp ) {
   methods = c("manual.method", "variance.method", "smooth.method", "modal.method", "maxdepth.method", "linear.method", "means" )
   standard =  which( methods=="manual.method")
   direct = which( methods %in%  c("smooth.method", "modal.method", "linear.method", "maxdepth.method" ) )
-  
+ 
+
   tzone = tz( x$timestamp[1] )
 
   tmp = as.data.frame(O[methods], stringsAsFactors=FALSE )
@@ -287,8 +300,14 @@ bottom.contact = function( x, bcp ) {
   colnames(tmp) =c("start", "end" )
   tmp[,"start"]  = as.POSIXct( tmp[,"start"], origin= "1970-01-01", tz=tzone )
   tmp[,"end"]    = as.POSIXct( tmp[,"end"], origin= "1970-01-01" , tz=tzone  )
-  tmp["means", "start"] = as.POSIXct( mean( tmp[ direct, "start" ], trim=0.1, na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
-  tmp["means", "end"] = as.POSIXct( mean( tmp[ direct, "end" ], trim=0.1, na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
+  
+  dflag = rowSums(as.matrix(dist(tmp[direct,2], upper=TRUE )), na.rm=TRUE)  # which are most extreme
+  tooextreme = which.max( dflag)
+  trimmed= direct
+  if (length( which(dflag>0) ) > 1 ) trimmed = direct[-tooextreme]
+  
+  tmp["means", "start"] = as.POSIXct( mean( tmp[ trimmed, "start" ], na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
+  tmp["means", "end"] = as.POSIXct( mean( tmp[ trimmed, "end" ], na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
  
   O$bottom0 = NA
   O$bottom1 = NA
@@ -303,10 +322,10 @@ bottom.contact = function( x, bcp ) {
     # no manual standard .. use mean as the standard
     O$bottom0 = tmp["means", "start"]
     O$bottom1 = tmp["means", "end" ]
-    O$bottom0.sd = sd(  ( tmp[ direct, "start" ]), na.rm=TRUE ) # in secconds
-    O$bottom1.sd = sd(  ( tmp[ direct, "end" ]), na.rm=TRUE )
-    O$bottom0.n = length( which( is.finite( tmp[ direct, "start" ] )) )
-    O$bottom1.n = length( which( is.finite( tmp[ direct, "end" ] )) )
+    O$bottom0.sd = sd(  ( tmp[ trimmed, "start" ]), na.rm=TRUE ) # in secconds
+    O$bottom1.sd = sd(  ( tmp[ trimmed, "end" ]), na.rm=TRUE )
+    O$bottom0.n = length( which( is.finite( tmp[ trimmed, "start" ] )) )
+    O$bottom1.n = length( which( is.finite( tmp[ trimmed, "end" ] )) )
     O$bottom.diff =  difftime( O$bottom1, O$bottom0, units="secs" )
     O$bottom.diff.sd = sqrt(O$bottom0.sd ^2 + O$bottom0.sd^2) # sec 
   } else {
@@ -315,8 +334,8 @@ bottom.contact = function( x, bcp ) {
     O$bottom1 = tmp[ standard, "end" ]
     O$bottom0.sd = NA
     O$bottom1.sd = NA
-    O$bottom0.n = length( which( is.finite( tmp[ direct, "start" ] )) )
-    O$bottom1.n = length( which( is.finite( tmp[ direct, "end" ] )) )
+    O$bottom0.n = 1
+    O$bottom1.n = 1
     O$bottom.diff = difftime( O$bottom1, O$bottom0, units="secs" )
   }
 

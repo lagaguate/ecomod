@@ -39,10 +39,12 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=5, trim=0.05
       lg = 1 # lag 
       nw = nrow( m )  # staring number of data points
       nw_target =  nw * (1-trim)  # proportion of data to retain (not trim)
+
       while ( nw > nw_target ) {
         yd0 = c( diff( m$y, lag=lg ) , rep( 0, lg )) # diffs left-right # padding with 0's  (no change)
         dm = quantile( yd0, probs=probs, na.rm=TRUE ) 
         n = which( yd0 < dm[1] | yd0 > dm[2] ) 
+        if (length(n) == 0 ) break()
         if ( length(n) > 0 ) m = m[-n, ]  # remove na's and then assess again 
         nw = nrow( m )
       }

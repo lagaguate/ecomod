@@ -5,7 +5,7 @@ bottom.contact.plot = function ( O ) {
     x = O$plotdata
     trange = range( x$ts, na.rm=TRUE )
     drange = range( x$depth, na.rm=TRUE) 
-    plot(depth~ts, x, ylim=c(drange[2] +2.5, drange[1] -5), xlim=c(trange[1],trange[2]), type="p", pch=".", col="black", cex=2 )
+    plot(depth~ts, x, ylim=c(drange[2] +2.5, drange[1] -5), xlim=c(trange[1]-20,trange[2]+20), type="p", pch=".", col="black", cex=2 )
     title( sub=paste(O$id, O$error.flag) ) 
     return() 
   }
@@ -16,7 +16,7 @@ bottom.contact.plot = function ( O ) {
   # all data within range of gated limits
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = range( x$depth[O$good], na.rm=TRUE) 
-    plot(depth~ts, x, ylim=c(drange[2] +2.5, drange[1] -5), xlim=c(trange[1],trange[2]), type="n" )
+    plot(depth~ts, x, ylim=c(drange[2] +2.5, drange[1] -5), xlim=c(trange[1],trange[2]), type="n", xlab="" )
     legendtext = NULL
     legendcol = NULL
     legendpch = NULL
@@ -87,7 +87,7 @@ bottom.contact.plot = function ( O ) {
           abline (v=x$ts[min(O$bottom.contact)], col=mcol, lty="dotted")
           abline (v=x$ts[max(O$bottom.contact)], col=mcol, lty="dotted")
           duration = as.numeric( difftime( O$bottom1, O$bottom0, units="mins" ) )
-          legendtext = c( legendtext, paste( "Overall mean: ", round( duration, 2) ) )
+          legendtext = c( legendtext, paste( "Trimmed mean: ", round( duration, 2) ) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
      }
@@ -111,11 +111,11 @@ bottom.contact.plot = function ( O ) {
     lines( O$depth.smoothed ~ x$ts, col="brown" )
     # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
     
-    title( sub=paste( O$id, 
+    title( sub=paste( O$id,  
       " :: time mean=", signif( as.numeric(O$bottom.diff)/60, 3), 
       "; time sd=", signif( as.numeric(O$bottom.diff.sd)/60, 3) , 
-      "; n=", O$depth.n, 
-      "; depth mean=", signif( O$depth.mean, 3), 
+      "; n=", O$depth.n,  
+      ";", "\n", " depth mean=", signif( O$depth.mean, 3), 
       "; depth sd=", signif( O$depth.sd, 3), 
       "; signal=", signif(O$signal2noise, 3) , sep="")  )
 
