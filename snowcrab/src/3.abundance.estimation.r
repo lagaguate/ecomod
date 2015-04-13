@@ -162,7 +162,7 @@
       Pmeta = K[ which( K$region=="cfa4x") ,]
       Pmeta = K[ which( K$region=="cfaall") ,]
      
-      outdir = file.path( project.directory("snowcrab"), "R", "gam", "timeseries")
+      outdir = file.path( project.datadirectory("snowcrab"), "R", "gam", "timeseries")
       rr = "cfanorth"
       rr = "cfasouth"
       rr = "cfa4x"

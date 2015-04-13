@@ -1,9 +1,9 @@
 figure.stratified.analysis <- function(x,p) {
-	fn=file.path(project.directory('groundfish'),'analysis','figures')
+	fn=file.path(project.datadirectory('groundfish'),'analysis','figures')
 	dir.create(fn,showWarnings=F)
 	if(is.character(x)) {
 		#if using file name
-		load(file.path(project.directory('groundfish'),'analysis',x))
+		load(file.path(project.datadirectory('groundfish'),'analysis',x))
 		x = out; rm(out)
 		}
 	#default is to use the object directly	

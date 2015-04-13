@@ -1,4 +1,4 @@
-figure.crab.groundfish.survey <- function(species , outdir=file.path(project.directory('snowcrab'), 
+figure.crab.groundfish.survey <- function(species , outdir=file.path(project.datadirectory('snowcrab'), 
 	"assessments",p$current.assessment.year)) {
 		require(latticeExtra)
     require(boot)
@@ -36,7 +36,7 @@ if(all(lp==0)) next()
   ou = NULL
 }
 
- gr.dir = file.path(project.directory('groundfish'),'analysis')
+ gr.dir = file.path(project.datadirectory('groundfish'),'analysis')
  gr.list = list()
 
  for(i in 1:n.regions) {

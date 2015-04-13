@@ -5,7 +5,7 @@
         if (!is.null(init.files)) for( i in init.files ) source (i)
         if (is.null(ip)) ip = 1:length(pyears)
 
-        outdir = file.path( project.directory("snowcrab"), "R", "habitat", "maps" ) 
+        outdir = file.path( project.datadirectory("snowcrab"), "R", "habitat", "maps" ) 
         dir.create(path=outdir, recursive=T, showWarnings=F)
         
         if ( plotvar %in% c("habitat", "habitat.sim") ) {

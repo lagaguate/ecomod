@@ -48,7 +48,7 @@
 
     if (p$plot.variogram) {
       # plot finalised variograms
-      loc = file.path(  project.directory("snowcrab"), "R", "variograms" )
+      loc = file.path(  project.datadirectory("snowcrab"), "R", "variograms" )
       fname = file.path(loc, paste(v, y,"png", sep="."))
       dir.create(path=loc, recursive=T, showWarnings=F)
       png(filename=fname)

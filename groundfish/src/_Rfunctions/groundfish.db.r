@@ -1,9 +1,9 @@
 
   groundfish.db = function(  DS="complete", p=NULL, taxa="all", datayrs=NULL  ) {
-    loc = file.path( project.directory("groundfish"), "data" )
+    loc = file.path( project.datadirectory("groundfish"), "data" )
     DataDumpFromWindows = F
     if ( DataDumpFromWindows ) {
-      project.directory("taxonomy") = loc = file.path("C:", "datadump")
+      loc = file.path("C:", "datadump")
     }
     dir.create( path=loc, recursive=T, showWarnings=F )
     
@@ -60,7 +60,7 @@
 
 		if (DS %in% c( "gscat.odbc", "gscat.odbc.redo" ) ) {
       
-      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gscat" )
+      fn.root =  file.path( project.datadirectory("groundfish"), "data", "trawl", "gscat" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
        
 			out = NULL
@@ -210,7 +210,7 @@
 
    if (DS %in% c('gsdet.spec','gsdet.spec.redo')) {
           
-             fn.root =  file.path( project.directory("groundfish"), "data")
+             fn.root =  file.path( project.datadirectory("groundfish"), "data")
              fi = 'gsdet.spec.rdata'
              dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
           
@@ -245,7 +245,7 @@
 
 
 		if (DS %in% c( "gsdet.odbc", "gsdet.odbc.redo" ) ) {
-      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gsdet" )
+      fn.root =  file.path( project.datadirectory("groundfish"), "data", "trawl", "gsdet" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
        
 			out = NULL
@@ -330,7 +330,7 @@
 
 		if (DS %in% c( "gsinf.odbc", "gsinf.odbc.redo" ) ) {
       
-      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gsinf" )
+      fn.root =  file.path( project.datadirectory("groundfish"), "data", "trawl", "gsinf" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
        
 			out = NULL
@@ -473,7 +473,7 @@
 
 		if (DS %in% c( "gshyd.profiles.odbc" , "gshyd.profiles.odbc.redo" ) ) {
       
-      fn.root =  file.path( project.directory("groundfish"), "data", "trawl", "gshyd" )
+      fn.root =  file.path( project.datadirectory("groundfish"), "data", "trawl", "gshyd" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
        
 			out = NULL
@@ -500,7 +500,7 @@
         names(gshyd) =  tolower( names(gshyd) )
         if(all(is.na(gshyd$mission))) {
         	#if gshyd is not loaded and the odf files are obtained AMC
-		        fy <- file.path(project.directory("temperature"), "data", "archive", "ctd",YR)
+		        fy <- file.path(project.datadirectory("temperature"), "data", "archive", "ctd",YR)
 		        o <- compileODF(path=fy)
 		        gshyd <- makeGSHYD(o)
         }
@@ -703,7 +703,7 @@
  # ----------------------
 
     if (DS %in% c("cat.base", "cat.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "cat.base.rdata")
+      fn = file.path( project.datadirectory("groundfish"), "data", "cat.base.rdata")
       if ( DS=="cat.base" ) {
         load( fn )
         return (cat)
@@ -732,7 +732,7 @@
      # ----------------------
 
     if (DS %in% c("det.base", "det.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "det.base.rdata")
+      fn = file.path( project.datadirectory("groundfish"), "data", "det.base.rdata")
       if ( DS=="det.base" ) {
         load( fn )
         return (det)
@@ -751,7 +751,7 @@
  # ----------------------
 
     if (DS %in% c("cat", "cat.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "cat.rdata")
+      fn = file.path( project.datadirectory("groundfish"), "data", "cat.rdata")
       if ( DS=="cat" ) {
         load( fn )
         return (cat)
@@ -795,7 +795,7 @@
 
 
     if (DS %in% c("det", "det.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "det.rdata")
+      fn = file.path( project.datadirectory("groundfish"), "data", "det.rdata")
       if ( DS=="det" ) {
         load( fn )
         return (det)
@@ -846,7 +846,7 @@
 
   
     if (DS %in% c("set.base", "set.base.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "set.base.rdata")
+      fn = file.path( project.datadirectory("groundfish"), "data", "set.base.rdata")
       if ( DS=="set.base" ) {
         load( fn )
         return ( set )
@@ -881,7 +881,7 @@
 
     
     if (DS %in% c("catchbyspecies", "catchbyspecies.redo") ) {
-     fn = file.path( project.directory("groundfish"), "data", "set.catchbyspecies.rdata")
+     fn = file.path( project.datadirectory("groundfish"), "data", "set.catchbyspecies.rdata")
      if ( DS=="catchbyspecies" ) {
        load( fn )
        return ( set )
@@ -930,7 +930,7 @@
 
 
     if (DS %in% c("set.det", "set.det.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "set_det.rdata")
+      fn = file.path( project.datadirectory("groundfish"), "data", "set_det.rdata")
       if ( DS=="set.det" ) {
         load( fn )
         return ( set )
@@ -1040,7 +1040,7 @@
 
 
     if (DS %in% c("set.complete", "set.complete.redo") ) {
-      fn = file.path( project.directory("groundfish"), "data", "set.rdata")
+      fn = file.path( project.datadirectory("groundfish"), "data", "set.rdata")
       if ( DS=="set.complete" ) {
         load( fn )
         return ( set )

@@ -6,7 +6,7 @@ require(effects)
 require(splines)
 
 
-  data.file = file.path(  project.directory("snowcrab"), "R", "det_georef.rdata" )
+  data.file = file.path(  project.datadirectory("snowcrab"), "R", "det_georef.rdata" )
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  

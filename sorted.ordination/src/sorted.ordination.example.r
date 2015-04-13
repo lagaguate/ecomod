@@ -4,7 +4,7 @@
 
   # load data of interest (annual time-series)
   # .. an example dataset from the Eastern Scotian Shelf
-    load( file.path( project.directory( "sorted.ordination" ), "ess.data.rdata" ) )  
+    load( file.path( project.datadirectory( "sorted.ordination" ), "ess.data.rdata" ) )  
 
   # choose subset of data of interest and scale/center
     rownames( ess.data ) = ess.data$yr  # the rownames must be set

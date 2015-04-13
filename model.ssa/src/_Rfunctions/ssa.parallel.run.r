@@ -3,7 +3,7 @@
 
   ssa.parallel.run = function( DS="load", p=NULL, run=NULL, res=NULL ) {
    
-    outdir = project.directory( "model.ssa", "data", p$runname )
+    outdir = project.datadirectory( "model.ssa", "data", p$runname )
 
     if (DS=="load") {
       if (is.numeric(run)) {

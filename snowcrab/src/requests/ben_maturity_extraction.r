@@ -1,5 +1,5 @@
 
- setwd( file.path( project.directory("snowcrab"), "R" )
+ setwd( file.path( project.datadirectory("snowcrab"), "R" )
  load("det.georef.rdata")
  load("set.complete.rdata")
 

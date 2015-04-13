@@ -11,8 +11,8 @@
       # Scotian shelf gridded grain size (mm).
       # NAD83 UTM zone 20 (I think)
     
-      rawdata.file = file.path( project.directory("substrate"), "data", "grainsize.txt" )
-      filename = file.path( project.directory("substrate"), "data", "substrate.asciigrid.rdata" )
+      rawdata.file = file.path( project.datadirectory("substrate"), "data", "grainsize.txt" )
+      filename = file.path( project.datadirectory("substrate"), "data", "substrate.asciigrid.rdata" )
       
       if (DS =="substrate.initial" ) {
         load( filename )   
@@ -25,7 +25,7 @@
 
     # lon - lat converted
     if (  DS %in% c("lonlat.highres", "lonlat.highres.redo") ) {
-      filename = file.path( project.directory("substrate"), "data", "substrate.lonlat.highres.rdata" )
+      filename = file.path( project.datadirectory("substrate"), "data", "substrate.lonlat.highres.rdata" )
       if (DS =="lonlat.highres" ) {
         load( filename)
         return( substrate)
@@ -47,7 +47,7 @@
     if ( DS %in% c("lonlat.interpolated", "lonlat.interpolated.redo") ) { 
       # interpolation to internal grid
       # locally (internally) force the highest possible resolution to not lose data and extrapolate safely
-      filename.lonlat.interp = file.path( project.directory("substrate"), "data", 
+      filename.lonlat.interp = file.path( project.datadirectory("substrate"), "data", 
 					paste( p$spatial.domain, "substrate.lonlat.interpolated.rdata", sep=".")  ) 
       if (DS =="lonlat.interpolated" ) {
         load (filename.lonlat.interp )
@@ -76,9 +76,9 @@
     if ( DS %in% c("lonlat", "lonlat.redo", "lonlat.grid") ) { 
       # interpolation to internal grid
       # locally (internally) force the highest possible resolution to not lose data
-      filename.lonlat = file.path( project.directory("substrate"), "data", 
+      filename.lonlat = file.path( project.datadirectory("substrate"), "data", 
 					paste( p$spatial.domain, "substrate.lonlat.rdata", sep=".") ) 
-      filename.lonlat.grid = file.path( project.directory("substrate"), "data", 
+      filename.lonlat.grid = file.path( project.datadirectory("substrate"), "data", 
 					paste( p$spatial.domain, "substrate.lonlat.grid.rdata", sep=".") ) 
       
       if (DS =="lonlat.grid" ) {
@@ -111,8 +111,8 @@
     if ( DS %in% c("planar", "planar.redo", "planar.grid") ) { 
       # Re-grid data to be internally consistent with the snowcrab coordinate system
       # WGS84 ellipsoid and not NAD83 ... 
-      filename.planar = file.path( project.directory("substrate"), "data", paste( p$spatial.domain, "substrate.planar.rdata", sep=".") ) 
-      filename.planar.grid = file.path( project.directory("substrate"), "data", paste( p$spatial.domain, "substrate.planar.grid.rdata", sep=".") ) 
+      filename.planar = file.path( project.datadirectory("substrate"), "data", paste( p$spatial.domain, "substrate.planar.rdata", sep=".") ) 
+      filename.planar.grid = file.path( project.datadirectory("substrate"), "data", paste( p$spatial.domain, "substrate.planar.grid.rdata", sep=".") ) 
   
       if (DS =="planar.grid" ) {
         load( filename.planar.grid )

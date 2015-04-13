@@ -118,7 +118,7 @@
     ubound = XX$ubound
     surfacearea = XX$surfacearea
 
-    ts.plotandsave(xx, yy, lbound, ubound, surfacearea, action="save", title="Biomass (x 1000 t)", filename=paste(v,r,sep="."), outdir=file.path(project.directory("snowcrab"), "R", "Requests") )
+    ts.plotandsave(xx, yy, lbound, ubound, surfacearea, action="save", title="Biomass (x 1000 t)", filename=paste(v,r,sep="."), outdir=file.path(project.datadirectory("snowcrab"), "R", "Requests") )
 
   }
   }
@@ -589,7 +589,7 @@ observer.data.request.oracle = function () {
 
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
 
-	load(file.path( project.directory("snowcrab"), "R", "cat_georef.rdata"))
+	load(file.path( project.datadirectory("snowcrab"), "R", "cat_georef.rdata"))
    
 whelks = c(4210, 4211, 4212, 4227, 4228)  # Family Buccinidae 
 cucumbers = c(6600, 6600, 6611, 6700 , 6705, 6710 , 6711 , 6712, 6713, 6714, 6715, 6716, 6717, 6718, 6719, 6720 ) # class Holothuroidea
@@ -615,7 +615,7 @@ write.table( out, file="temp.csv", sep =";")
 
 loadfunctions( "snowcrab", functionname="initialise.local.environment.r")
      
-load(file.path( project.directory("snowcrab"), "R", "cat.georef.rdata"))
+load(file.path( project.datadirectory("snowcrab"), "R", "cat.georef.rdata"))
 cat$totno = cat$totno * cat$sa
 to.extract = c("lon", "lat", "yr", "totno", "spec") 
 yrs = which(cat$yr > 2003)

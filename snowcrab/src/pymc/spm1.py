@@ -6,7 +6,7 @@ import pdb as pdb
 # get data from an R-session
 from rpy2.robjects import r
 r('source( "~/.Rprofile" )')
-r('source( file.path( project.directory("snowcrab"), "src", "_Rfunctions", "initialise.local.environment.r" ) )')
+r(' loadfunction ( "snowcrab", functionname="initialise.local.environment.r" ) ')
 
 
 r('res = biomass.summary.db(p=p)')

@@ -8,7 +8,7 @@
      
     if (DS %in% c("large.male.auxillary.data", "large.male.auxillary.data.redo") ) {
       
-      outdir = project.directory("snowcrab", "R"  )
+      outdir = project.datadirectory("snowcrab", "R"  )
       dir.create(path=outdir, recursive=T, showWarnings=F)
       fn = file.path( outdir, paste("habitat.model", "large_male_auxillary_data", "basedata", "rdata", sep=".") ) 
       
@@ -113,7 +113,7 @@
     
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
          
-      outdir =  project.directory("snowcrab", "R", "gam", "models", "habitat" )
+      outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
       dir.create(path=outdir, recursive=T, showWarnings=F)
 
       if( DS=="habitat") {
@@ -253,7 +253,7 @@
 
     if ( DS %in% c("abundance.redo", "abundance" ) ) {
       
-      outdir = file.path( project.directory("snowcrab"), "R", "gam", "models", "abundance"  )
+      outdir = file.path( project.datadirectory("snowcrab"), "R", "gam", "models", "abundance"  )
       dir.create(path=outdir, recursive=T, showWarnings=F)
       
       if( DS=="abundance") {

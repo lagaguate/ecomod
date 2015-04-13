@@ -2,9 +2,9 @@
 
   taxonomy.db = function( DS="complete", itis.taxa.lowest="species" ) {
     
-    taxadir.manually.maintained =  file.path(project.directory( "taxonomy"), "data.manually.maintained" )  # part of the respository
-    taxadir = file.path(project.directory( "taxonomy"), "data" )
-    localdir = file.path(project.directory( "taxonomy"), "data", "data.locally.generated" )
+    taxadir.manually.maintained =  file.path(project.datadirectory( "taxonomy"), "data.manually.maintained" )  # part of the respository
+    taxadir = file.path(project.datadirectory( "taxonomy"), "data" )
+    localdir = file.path(project.datadirectory( "taxonomy"), "data", "data.locally.generated" )
 
     dir.create( taxadir.manually.maintained, recursive=TRUE, showWarnings=FALSE )
     dir.create( taxadir, recursive=TRUE, showWarnings=FALSE )

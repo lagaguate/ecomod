@@ -4,7 +4,7 @@
     
       if ( DS %in% c("speciesarea", "sizespectrum", "metabolism","speciescomposition", "condition", "biochem" ) ) { 
         p$project.name = DS
-        p$project.outdir.root = project.directory( p$project.name, "analysis" )
+        p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
         H = habitat.interpolate( DS=DS, p=p ) 
         H = H[,  c("plon", "plat", p$varstomodel ) ]  # add variable names
       }

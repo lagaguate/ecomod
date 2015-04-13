@@ -5,7 +5,7 @@
 
   seabird.db = function( DS="", Y=NULL ){
     
-    sb.dir = project.directory("snowcrab", "data", "seabird" )
+    sb.dir = project.datadirectory("snowcrab", "data", "seabird" )
     seabird.rawdata.location = file.path( sb.dir, "archive" ) 
     
     if (!is.null(Y)) {
@@ -161,14 +161,21 @@
           M$timestamp = as.POSIXct( M$chron, tz=tzone )
           settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone )
           time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
-
+     
+          bcp = list( 
+            id=N$netmind_uid[1], datasource="snowcrab", nr=rown(M), YR=yr,
+            tdif.min=3, tdif.max=9, time.gate=time.gate,
+            depth.min=20, setdepth=rid$setZx[i], depth.range=c(-20,30), depthproportion=0.6, 
+            noisefilter.eps.depth=1, noisefilter.sd.multiplier=3, 
+            noisefilter.inla.h=0.005, noisefilter.inla.diagonal=0.01
+          )
+        
+          bcp = bottom.contact.parameters( bcp ) # add other default parameters
+   
           print(id)
           bc = NULL
-          
+          bc = bottom.contact( x=M, bcp=bcp )
 
-          bc = bottom.contact( id=id, x=M , time.gate=time.gate, setdepth=rid$setZx[i], 
-            tdif.min=3, tdif.max=9, eps.depth=1, sd.multiplier=3, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 )
-           
           if (FALSE) {
             # to visualize
             bottom.contact.plot( bc )

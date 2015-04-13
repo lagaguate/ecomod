@@ -12,7 +12,7 @@
   }
    
   # mapping of fisher stats
-  # loc = file.path( project.directory("shrimp"), "maps" )  
+  # loc = file.path( project.datadirectory("shrimp"), "maps" )  
   loc = file.path( "C:\\Rsaves" )   # <<<< output directory .. change to desired location
   loc.k = file.path( loc, "kml" )
   dir.create(path=loc.k, recursive=T, showWarnings=F)

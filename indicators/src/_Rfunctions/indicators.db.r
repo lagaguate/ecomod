@@ -2,14 +2,14 @@
   indicators.db = function( db="", ref.year=2008  ) {
     
     if (db %in% c("climate", "climate.redo" ) ) {
-      fn = file.path(  project.directory("indicators"), "data", "climate.rdata")
+      fn = file.path(  project.datadirectory("indicators"), "data", "climate.rdata")
       if (db=="climate") {
         load(fn)
         return (climate)
       }
 
       # old method ... manual db updates
-      # climate = get.climate.data( file.path( project.directory("indicators"), "data", "oceanclimate.csv"))
+      # climate = get.climate.data( file.path( project.datadirectory("indicators"), "data", "oceanclimate.csv"))
       
       seaice = osd.data( source="seaice.refresh" ) # daily
       icebergs =  osd.data( source="icebergs.refresh" )  # monthly
@@ -124,7 +124,7 @@
     }
   
     if ( db %in% c("cpi", "cpi.redo" ) ) {
-      cpidir =  file.path( project.directory("indicators"), "data", "CPI" )
+      cpidir =  file.path( project.datadirectory("indicators"), "data", "CPI" )
       fn = file.path( cpidir, "cpi.csv")
       
       if (db=="cpi") {
@@ -153,7 +153,7 @@
       # load landings and landed values from CSV files
       # these have been exported from spreadsheets that need to be updated
       # need an automated update mechanism   
-      infile = file.path(  project.directory("indicators"), "data", "fish", "landings.all.modern.csv")
+      infile = file.path(  project.datadirectory("indicators"), "data", "fish", "landings.all.modern.csv")
       ld = read.csv( infile, header=T, strip.white=T, stringsAsFactors=F ) # mt.live
       colnames(ld) = tolower(colnames(ld))
       ld$type = tolower( ld$type )
@@ -170,7 +170,7 @@
       # load landings and landed values from CSV files
       # these have been exported from spreadsheets that need to be updated
       # need an automated update mechanism   
-      infile = file.path( project.directory("indicators"), "data", "fish", "landedvalue.all.modern.csv")
+      infile = file.path( project.datadirectory("indicators"), "data", "fish", "landedvalue.all.modern.csv")
       lv = read.csv( infile, header=T, strip.white=T, stringsAsFactors=F ) # K dollar
       colnames(lv) = tolower(colnames(lv)) 
       lv$type = tolower( lv$type )
@@ -216,13 +216,13 @@
 
 
     if (db=="landedvalue.archive") {
-      data.file = file.path( project.directory("indicators"), "data", "landedvalues.csv")
+      data.file = file.path( project.datadirectory("indicators"), "data", "landedvalues.csv")
       landedvalue = read.table(file=data.file, sep=";", header=T, as.is=T, strip.white=T)
       return (landedvalue)
     }
 
     if (db=="landings.archive") {
-      data.file=file.path( project.directory("indicators"), "data", "landings.csv")
+      data.file=file.path( project.datadirectory("indicators"), "data", "landings.csv")
       landings = read.table(file=data.file, sep=";", header=T, as.is=T, strip.white=T)
       return(landings)
     }
@@ -248,7 +248,7 @@
     if (db %in% c("demographics" ) ) {
       ### goto:: http://www.gov.ns.ca/finance/communitycounts/dataview.asp?gnum=pro9012&gnum2=pro9012&chartid=&whichacct=&year2=&mapid=&ptype=&gtype=&yearid=2006&acctype=0&gname=&dcol=&group=&group1=&group2=&group3=&gview=3&table=table_d17&glevel=pro
       
-      infile = file.path( project.directory("indicators"), "data", "human.csv")
+      infile = file.path( project.datadirectory("indicators"), "data", "human.csv")
       demogr = read.table(file=infile, sep=",", header=T, as.is=T, strip.white=T, row.names = NULL)
       demogr$PCB.sealblubber = as.numeric( demogr$PCB.sealblubber )
       demogr$fish_harvesters_ns [ which( demogr$year %in% c(2003: 2007) ) ] = demogr$fish_harvesters_ns[ which(demogr$year==2002) ]
@@ -283,7 +283,7 @@
     }
   
     if (db %in% c("economic.data","economic.data.redo" ) ) {
-      data.file=file.path( project.directory("indicators"), "data", "economics.csv")
+      data.file=file.path( project.datadirectory("indicators"), "data", "economics.csv")
       economics = read.table(file=data.file, sep=",", header=T, as.is=T, strip.white=T)
       to.keep = c( "yr", "No.of.vessels.4vw", "Commercial.Licences.ns", "No.Fish.harvesters", "No.Fish.processors",
       "Employment.per.landedvalue.n.per.millions1997CAD", "Employment.per.landings.n.per.mt",  "GDP.Fish.Processing.millions.2005CAD", 
@@ -310,12 +310,12 @@
     if (db %in% c("shrimp.timeseries", "shrimp.timeseries.redo") ) {
       # shrimp: directly contributed by Peter Koeller, but apparently available via VDC
       # data from Peter Koeller's indicators 
-      fn = file.path( project.directory("indicators"), "data", "shrimp.rdata" )
+      fn = file.path( project.datadirectory("indicators"), "data", "shrimp.rdata" )
       if (db=="shrimp.timeseries") {
         load( fn )
         return ( shrimp )
       } 
-      shrimp = read.csv( file.path( project.directory("indicators"), "data", "ESS_shrimp.csv"), header=T, stringsAsFactors=FALSE, na.strings=c("NA", "NAN", "NaN"))
+      shrimp = read.csv( file.path( project.datadirectory("indicators"), "data", "ESS_shrimp.csv"), header=T, stringsAsFactors=FALSE, na.strings=c("NA", "NAN", "NaN"))
       names(shrimp) = c("yr", "shrimp.abundance.index", "shrimp.size.sexchange.mm", "shrimp.exploitation.index", "shrimp.size.female", "shrimp.capelin.index" )
 
         # rv_cpue -- cpue of shrimp from dedicated shrimp trawls
@@ -333,7 +333,7 @@
 
     if (db %in% c("groundfish.timeseries", "groundfish.timeseries.redo" ) ) {
  
-      outfn = file.path( project.directory("indicators"), "data", "groundfish.ts.rdata" )
+      outfn = file.path( project.datadirectory("indicators"), "data", "groundfish.ts.rdata" )
       if ( db=="groundfish.timeseries" ) {
         load(outfn)
         return(Z)
@@ -368,7 +368,7 @@
 
     if (db %in% c("species.area", "species.area.redo" )) { 
       
-      outfn = file.path( project.directory("indicators"), "data", "species.area.ts.rdata" )
+      outfn = file.path( project.datadirectory("indicators"), "data", "species.area.ts.rdata" )
       if ( db=="species.area" ) {
         load(outfn)
         return(res)
@@ -377,7 +377,7 @@
       loadfunctions( "habitat")
       
 			p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE","complete" ) )
+      fns = list.files( file.path( project.datadirectory("habitat"), "data", "SSE","complete" ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
@@ -398,7 +398,7 @@
 
     if (db %in% c("sizespectrum", "sizespectrum.redo" )) { 
       
-      outfn = file.path( project.directory("indicators"), "data", "sizespectrum.ts.rdata" )
+      outfn = file.path( project.datadirectory("indicators"), "data", "sizespectrum.ts.rdata" )
       if ( db=="sizespectrum" ) {
         load(outfn)
         return(res)
@@ -407,7 +407,7 @@
       loadfunctions( "habitat")
 
       p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE",'complete' ) )
+      fns = list.files( file.path( project.datadirectory("habitat"), "data", "SSE",'complete' ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
@@ -428,7 +428,7 @@
 
     if (db %in% c("metabolism", "metabolism.redo" )) { 
       
-      outfn = file.path( project.directory("indicators"), "data", "metabolism.ts.rdata" )
+      outfn = file.path( project.datadirectory("indicators"), "data", "metabolism.ts.rdata" )
       if ( db=="metabolism" ) {
         load(outfn)
         return(res)
@@ -437,7 +437,7 @@
 			loadfunctions( "habitat")
  
       p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE","complete" ) )
+      fns = list.files( file.path( project.datadirectory("habitat"), "data", "SSE","complete" ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
@@ -459,7 +459,7 @@
 
     if (db %in% c("species.composition", "species.composition.redo" )) { 
       
-      outfn = file.path( project.directory("indicators"), "data", "species.composition.ts.rdata" )
+      outfn = file.path( project.datadirectory("indicators"), "data", "species.composition.ts.rdata" )
       if ( db=="species.composition" ) {
         load(outfn)
         return(res)
@@ -468,7 +468,7 @@
 			loadfunctions( "habitat")
  
       p = spatial.parameters( type="SSE" )
-      fns = list.files( file.path( project.directory("habitat"), "data", "SSE","complete" ) )
+      fns = list.files( file.path( project.datadirectory("habitat"), "data", "SSE","complete" ) )
       yrs = substring( fns, 4,7)
       yrs = as.numeric(yrs)
       yrs = sort( yrs[ which( is.finite( yrs) ) ] )
@@ -490,7 +490,7 @@
 
     if (db %in% c("snowcrab.timeseries", "snowcrab.timeseries.redo" )) { 
       
-      outfn = file.path( project.directory("indicators"), "data", "snowcrab.ts.rdata" )
+      outfn = file.path( project.datadirectory("indicators"), "data", "snowcrab.ts.rdata" )
       if ( db=="snowcrab.timeseries") {
         load(outfn)
         return(res)
@@ -593,13 +593,13 @@
 
 
     if (db=="seal.timeseries") {
-      data.file = file.path( project.directory("indicators"), "data", "seals.csv")       
+      data.file = file.path( project.datadirectory("indicators"), "data", "seals.csv")       
       seal = read.table( data.file, sep=",", header=T,  as.is=T, strip.white=T)
       return(seal)
     }
 
     if (db=="plankton.timeseries") {
-      data.file = file.path( project.directory("indicators"), "data", "plankton.csv")       
+      data.file = file.path( project.datadirectory("indicators"), "data", "plankton.csv")       
       plankton = read.table( data.file, sep=";", header=T,  as.is=T, strip.white=T)
       return(plankton)
     }
@@ -608,7 +608,7 @@
 
     if (db %in% c("indicators.all", "indicators.all.glue") ) {
     
-      fn = file.path( project.directory("indicators") , "data", "indicators.all.rdata" ) 
+      fn = file.path( project.datadirectory("indicators") , "data", "indicators.all.rdata" ) 
       if (db=="indicators.all" ) {
         load(fn)
         return (indicators)

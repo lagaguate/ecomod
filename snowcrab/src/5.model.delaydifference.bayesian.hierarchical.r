@@ -55,7 +55,7 @@
     coef(m)
     tomonitor = c("FB","K", "REC", "Znat", "Ztot", "q.biomass", "qREC", "Catch", "Cr" )
     dic.samples(m, n.iter=n.iter ) # pDIC
-    fnres = file.path( project.directory("snowcrab"), "R", "delaydifference.mcmc.simple.rdata" )
+    fnres = file.path( project.datadirectory("snowcrab"), "R", "delaydifference.mcmc.simple.rdata" )
 
   }
 
@@ -66,7 +66,7 @@
     coef(m)
     tomonitor =  c("FB","K", "REC", "Znat", "Ztot", "q.biomass", "qREC", "Catch", "Cr" )
     dic.samples(m, n.iter=n.iter ) # pDIC
-    fnres = file.path( project.directory("snowcrab"), "R", "delaydifference.mcmc.simple.illegal.rdata" )
+    fnres = file.path( project.datadirectory("snowcrab"), "R", "delaydifference.mcmc.simple.illegal.rdata" )
   
   }
  

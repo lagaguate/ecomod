@@ -1,7 +1,7 @@
   	
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
  
-  setwd( project.directory("snowcrab") )
+  setwd( project.datadirectory("snowcrab") )
 
   det = snowcrab.db( DS ="det.georeferenced" ) 
   set = snowcrab.db( DS ="set.complete" )
@@ -28,7 +28,7 @@
       panel.mathdensity( dmath=dnorm, col = "black", args=list(mean=mean(x),sd=sd(x)))
    } )
 
-   Pr( "png", dname=file.path(project.directory("snowcrab"), "R"), fname="temp.hist", trim=F , res=144)
+   Pr( "png", dname=file.path(project.datadirectory("snowcrab"), "R"), fname="temp.hist", trim=F , res=144)
 
  
   histogram( ~ z | sex + mat , data = xdet,
@@ -38,7 +38,7 @@
       panel.mathdensity( dmath=dnorm, col = "black", args=list(mean=mean(x),sd=sd(x)))
    } )
 
-   Pr( "png", dname=file.path(project.directory("snowcrab"), "R"), fname="temp.hist", trim=F , res=144)
+   Pr( "png", dname=file.path(project.datadirectory("snowcrab"), "R"), fname="temp.hist", trim=F , res=144)
 
 
  
@@ -49,7 +49,7 @@
       panel.mathdensity( dmath=dnorm, col = "black", args=list(mean=mean(x),sd=sd(x)))
    } )
 `
-   Pr( "png", dname=file.path(project.directory("snowcrab"), "R"), fname="temp.hist", trim=F , res=144)
+   Pr( "png", dname=file.path(project.datadirectory("snowcrab"), "R"), fname="temp.hist", trim=F , res=144)
 
 
 

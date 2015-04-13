@@ -2,7 +2,7 @@
   stomach.db = function( DS="stomachs" ) {
 
     if ( DS %in% c("sddet", "sddet.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sddet.rdata" ) 
+      fn =  project.datadirectory("stomachs", "data", "sddet.rdata" ) 
       if ( DS == "sddet" ) {
         load( fn )
         return( sddet )
@@ -17,7 +17,7 @@
     }
   
     if ( DS %in% c("sdinf", "sdinf.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sdinf.rdata" ) 
+      fn =  project.datadirectory("stomachs", "data", "sdinf.rdata" ) 
       if ( DS == "sdinf" ) {
         load( fn )
         return( sdinf )
@@ -33,7 +33,7 @@
   
   
     if ( DS %in% c("sdtrips", "sdtrips.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sdtrips.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sdtrips.rdata" ) 
       if ( DS == "sdtrips" ) {
         load( fn )
         return( sdtrips )
@@ -49,7 +49,7 @@
   
   
      if ( DS %in% c("sddigest", "sddigest.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sddigest.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sddigest.rdata" ) 
       if ( DS == "sddigest" ) {
         load( fn )
         return( sddigest )
@@ -64,7 +64,7 @@
     }
     
     if ( DS %in% c("sdfullness", "sdfullness.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sdfullness.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sdfullness.rdata" ) 
       if ( DS == "sdfullness" ) {
         load( fn )
         return( sdfullness )
@@ -80,7 +80,7 @@
     
     
     if ( DS %in% c("sditem", "sditem.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sditem.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sditem.rdata" ) 
       if ( DS == "sditem" ) {
         load( fn )
         return( sditem )
@@ -95,7 +95,7 @@
     }
     
     if ( DS %in% c("sdpred", "sdpred.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sdpred.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sdpred.rdata" ) 
       if ( DS == "sdpred" ) {
         load( fn )
         return( sdpred )
@@ -110,7 +110,7 @@
     }
   
     if ( DS %in% c("sdsource", "sdsource.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sdsource.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sdsource.rdata" ) 
       if ( DS == "sdsource" ) {
         load( fn )
         return( sdsource )
@@ -125,7 +125,7 @@
     }
   
     if ( DS %in% c("sdsto", "sdsto.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sdsto.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sdsto.rdata" ) 
       if ( DS == "sdsto" ) {
         load( fn )
         return( sdsto )
@@ -141,7 +141,7 @@
   
  
     if ( DS %in% c("sdtech", "sdtech.redo"  ) ) {
-      fn =  file.path( project.directory("stomachs"), "data", "sdtech.rdata" ) 
+      fn = project.datadirectory("stomachs", "data", "sdtech.rdata" ) 
       if ( DS == "sdtech" ) {
         load( fn )
         return( sdtech )

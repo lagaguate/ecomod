@@ -2,7 +2,7 @@
   histograms.size.maturity = function( outdir, redo.data=F ) {
     # size frequency distributions of snow crab, broken down by maturity
 
-      loc = file.path(project.directory("snowcrab"), "R", "size.data")
+      loc = file.path(project.datadirectory("snowcrab"), "R", "size.data")
        
       dir.create(path=outdir, recursive=T, showWarnings=F)
       dir.create(path=loc, recursive=T, showWarnings=F)

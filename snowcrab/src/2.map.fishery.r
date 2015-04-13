@@ -4,7 +4,7 @@
 
 
   # mapping of fisher stats
-  # loc = file.path( project.directory("shrimp"), "maps" ) # output directory <---- change this to a local 
+  # loc = file.path( project.datadirectory("shrimp"), "maps" ) # output directory <---- change this to a local 
                                             # drive/directory as you cannot write to the server (tethys)
   loc = file.path( "C:\\Rsaves" )
   loc.k = file.path( loc, "kml" )

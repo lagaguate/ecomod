@@ -13,7 +13,7 @@
     cols = color.code( "blue.black", datarange )
     
     if ( type=="weekly" ) {
-      bottomdir.maps = file.path( project.directory("temperature"), "maps", p$spatial.domain, "bottom.predictions", "weekly" )
+      bottomdir.maps = file.path( project.datadirectory("temperature"), "maps", p$spatial.domain, "bottom.predictions", "weekly" )
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
       datarange = seq(-0.5,12, length.out=50)
       cols = color.code( "blue.black", datarange )
@@ -37,7 +37,7 @@
     
     if ( type %in% c("annual", "amplitudes", "temperatures", "week.of.minima", "halfperiod", "tsd" ) ) {
     
-      bottomdir.maps = file.path( project.directory("temperature"), "maps", p$spatial.domain , "bottom.predictions", "annual" )
+      bottomdir.maps = file.path( project.datadirectory("temperature"), "maps", p$spatial.domain , "bottom.predictions", "annual" )
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
  
       for (iy in ip ) {
@@ -108,7 +108,7 @@
       
       if ( type %in% c("global", "amplitudes", "temperatures", "week.of.minima", "halfperiod", "tsd" ) ) {
     
-      bottomdir.maps = file.path( project.directory("temperature"), "maps", p$spatial.domain, "bottom.predictions", "global" )
+      bottomdir.maps = file.path( project.datadirectory("temperature"), "maps", p$spatial.domain, "bottom.predictions", "global" )
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
  
         if (type %in% c("temperatures", "global") ) {

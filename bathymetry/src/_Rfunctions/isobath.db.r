@@ -4,7 +4,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=NULL, DS="" ) {
   if (exists( "init.files", p)) LoadFiles( p$init.files ) 
   if (exists( "libs", p)) RLibrary( p$libs ) 
 
-  datadir = file.path( project.directory("bathymetry"), "isobaths", p$spatial.domain ) 
+  datadir = project.datadirectory("bathymetry", "isobaths", p$spatial.domain ) 
   if (! file.exists( datadir) ) dir.create(datadir, showWarnings=FALSE , recursive=TRUE ) 
 
   if ( DS == "" ) {

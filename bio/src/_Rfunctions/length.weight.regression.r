@@ -3,7 +3,7 @@
 
     ## TODO -- make parallel require(multicore)
 
-    ddir = file.path( project.directory("bio"), "data" )
+    ddir = file.path( project.datadirectory("bio"), "data" )
     dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
     
     fn = file.path( ddir, "bio.length.weight.parameters.rdata" )

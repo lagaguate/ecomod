@@ -2,7 +2,7 @@
 
   model.habitat.kriging = function( model.type="gam.full", p=NULL, hvar="R0.mass", plotdata=T) {
 
-    outdir = file.path( project.directory("snowcrab"), "R", "habitat", "models" )
+    outdir = file.path( project.datadirectory("snowcrab"), "R", "habitat", "models" )
     dir.create(path=outdir, recursive=T, showWarnings=F)
 
     qq =  grep( "redo", model.type)

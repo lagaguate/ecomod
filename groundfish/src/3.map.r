@@ -3,7 +3,7 @@
 	init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 
 	gs.datayear = 2009
-	data.dir = file.path( project.directory("groundfish"), "data", gs.datayear )
+	data.dir = file.path( project.datadirectory("groundfish"), "data", gs.datayear )
 
 
 # ----------------------------
@@ -60,7 +60,7 @@ if (get.isobath) {  # tighter isobath-related outline of shelf at 1000m
     pt5 = cbind(-60, 48)
 
     d = rbind(pt1, d, pt2, pt3, pt4, pt5, pt1)
-    write.table(d, file.path( project.directory("polygons"), paste("isobath", i, "m.dat", sep="") ), col.names =F, row.names=F, quote=F)
+    write.table(d, file.path( project.datadirectory("polygons"), paste("isobath", i, "m.dat", sep="") ), col.names =F, row.names=F, quote=F)
 }
 
 

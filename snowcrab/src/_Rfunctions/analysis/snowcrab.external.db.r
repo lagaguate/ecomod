@@ -45,7 +45,7 @@
   
     if ( DS %in% c("set.snowcrab.in.groundfish.survey", "set.snowcrab.in.groundfish.survey.redo"  ) ) {
 
-      fn = file.path( project.directory("snowcrab"), "R", paste("set.groundfish", vname, "rdata", sep=".") )
+      fn = file.path( project.datadirectory("snowcrab"), "R", paste("set.groundfish", vname, "rdata", sep=".") )
 
       set = NULL
       if ( DS=="set.snowcrab.in.groundfish.survey" ) {

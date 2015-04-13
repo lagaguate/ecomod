@@ -1,7 +1,7 @@
 
 	loadfunctions( "ser" ) 
   
-  ns = read.table(file.path( project.directory("indicators"), "regns", "regns.dat"), sep=";", header=T)
+  ns = read.table(file.path( project.datadirectory("indicators"), "regns", "regns.dat"), sep=";", header=T)
   
   years = colnames(ns)
   vars =  rownames(ns)

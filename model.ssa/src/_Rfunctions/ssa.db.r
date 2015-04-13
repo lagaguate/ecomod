@@ -2,7 +2,7 @@
 
   ssa.db = function( p=NULL, DS="debug", out=NULL, tio=NULL, rn=0 ) {
     
-    outdir = project.directory( "model.ssa", "data", p$runname )
+    outdir = project.datadirectory( "model.ssa", "data", p$runname )
     odir = file.path( outdir, rn )  # rn is the default run number when not in parallel mode .. no need to change
     fn = file.path( odir, paste( "out", tio, "rdata", sep="." )) 
     

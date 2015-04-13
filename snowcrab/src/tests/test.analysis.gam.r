@@ -77,7 +77,7 @@ Test:     Biomass estimation via GAM / LME
     )
 
 
-    save( Ql, file=file.path( project.directory("snowcrab"), "test.Ql.gam.rdata", compress=T )
+    save( Ql, file=file.path( project.datadirectory("snowcrab"), "test.Ql.gam.rdata", compress=T )
 
 
     cor( predict( Q$gam, g, type="response"), g$Y, use="pairwise.complete.obs")^2 # = 0.038

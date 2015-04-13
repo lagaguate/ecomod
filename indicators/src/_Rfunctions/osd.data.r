@@ -1,5 +1,5 @@
 
-  osd.data = function( source, osd.dir=file.path( project.directory("indicators"), "data", "osd" ), ... ) {
+  osd.data = function( source, osd.dir=file.path( project.datadirectory("indicators"), "data", "osd" ), ... ) {
 
     if ( source %in% c("seaice", "seaice.refresh")) {
       
@@ -246,7 +246,7 @@
     if ( source %in% c("sable.meteorological", "sable.meteorological.refresh")) {
     
       ## http://www.climate.weatheroffice.ec.gc.ca/prods_servs/documentation_index_e.html
-      outfile = file.path( project.directory("indicators"), "data", "osd", "sable.met.merged.rdata")  ## large file .. save a merged instance
+      outfile = file.path( project.datadirectory("indicators"), "data", "osd", "sable.met.merged.rdata")  ## large file .. save a merged instance
       if ( source=="sable.meteorological") {
         load( outfile)
         return(data)

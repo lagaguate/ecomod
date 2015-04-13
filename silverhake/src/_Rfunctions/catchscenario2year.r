@@ -18,7 +18,7 @@ input1$C <- lann
 
 		
 		
-spBUGS3 <- function(input=input1,inits=inits,n = 3000, burn = 50, thin = 2, debug = F, wd=file.path(project.directory('silverhake'),'src')){
+spBUGS3 <- function(input=input1,inits=inits,n = 3000, burn = 50, thin = 2, debug = F, wd=file.path(project.codedirectory('silverhake'),'src')){
 		require(R2WinBUGS)
 			
 	#	Initial values for WinBUGS one for each chain

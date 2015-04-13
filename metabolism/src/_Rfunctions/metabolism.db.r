@@ -3,7 +3,7 @@
   
     if (DS %in% c( "metabolism", "metabolism.redo" ) ) {
  
-      ddir = file.path( project.directory("metabolism"), "data" )
+      ddir = file.path( project.datadirectory("metabolism"), "data" )
       dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
       
       fn = file.path( ddir, paste( "set.metabolism",  p$spatial.domain, p$taxa, p$season, ".rdata", sep=".") )

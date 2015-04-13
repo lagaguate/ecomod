@@ -1,5 +1,5 @@
 groundfish.analysis <- function(DS='stratified.estimates',p=p, ip=NULL) {
-    loc = file.path( project.directory("groundfish"), "analysis" )
+    loc = file.path( project.datadirectory("groundfish"), "analysis" )
     
     dir.create( path=loc, recursive=T, showWarnings=F )
          if(p$series=='summer')  {mns = c('June','July','August')     ; strat = c(440:495)}

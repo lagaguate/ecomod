@@ -11,7 +11,7 @@
     ## use choijae/Jc#00390
     ## depths: 500,500, "complete profile"   .. raw data  for the SS
     # (USER Defined -- region: jc.ss")
-    basedir = project.directory("temperature", "data" )
+    basedir = project.datadirectory("temperature", "data" )
     loc.archive = file.path( basedir, "archive", "profiles", p$spatial.domain )
     loc.basedata = file.path( basedir, "basedata", "rawdata", p$spatial.domain )
     
@@ -140,7 +140,7 @@
       
       if (p$spatial.domain %in% c("SSE", "snowcrab")  ) p$spatial.domain="canada.east"  ## no point in having these as they are small subsets
 
-      basedir = project.directory("temperature", "data" )
+      basedir = project.datadirectory("temperature", "data" )
       loc.profile = file.path( basedir, "basedata", "profiles", p$spatial.domain )
       dir.create( loc.profile, recursive=T, showWarnings=F )
  
@@ -282,7 +282,7 @@
      
       if (p$spatial.domain %in% c("SSE", "snowcrab")  ) p$spatial.domain="canada.east"  ## no point in having these as they are small subsets
 
-      basedir = project.directory("temperature", "data" )
+      basedir = project.datadirectory("temperature", "data" )
       loc.bottom = file.path( basedir, "basedata", "bottom", p$spatial.domain )
       dir.create( loc.bottom, recursive=T, showWarnings=F )
  
@@ -349,7 +349,7 @@
     if (DS %in% c( "bottom.gridded", "bottom.gridded.redo" , "bottom.gridded.all" )){
       # this is stored locally and not as an archive for speed and flexibility
       
-      basedir = project.directory("temperature", "data" )
+      basedir = project.datadirectory("temperature", "data" )
       loc.gridded = file.path( basedir, "basedata", "gridded", "bottom", p$spatial.domain )
       dir.create( loc.gridded, recursive=T, showWarnings=F )
       

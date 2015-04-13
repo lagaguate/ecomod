@@ -5,5 +5,5 @@
     if(is.null(vars)) variables =  variable.list.expand("all.data")
     if(!is.null(vars)) variables=vars
     tsdata =  get.time.series (set, areas, variables, outfile="ts.rdata", from.file=F,reduced.stations=reduced.stations)  # this returns 1.96SE as "se"
-    return( paste("Saved: ts.rdata in",  file.path(project.directory("snowcrab"), "R") ) )
+    return( paste("Saved: ts.rdata in",  file.path(project.datadirectory("snowcrab"), "R") ) )
   }

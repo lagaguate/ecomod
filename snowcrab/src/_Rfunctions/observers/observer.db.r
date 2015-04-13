@@ -8,7 +8,7 @@
 				.libPaths("D://R//library-local")
 			}
 
-			fn.root =  file.path( project.directory("snowcrab"), "data", "observer", "datadump" )
+			fn.root =  file.path( project.datadirectory("snowcrab"), "data", "observer", "datadump" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
 		
 			if (DS=="odbc") {
@@ -57,7 +57,7 @@
     # ---------------------
 
     if (DS %in% c("odb", "odb.redo")) {
-      fn = file.path( project.directory("snowcrab"), "data", "observer", "odb.rdata" )
+      fn = file.path( project.datadirectory("snowcrab"), "data", "observer", "odb.rdata" )
       if (DS=="odb") {
         load( fn )
         return(odb)

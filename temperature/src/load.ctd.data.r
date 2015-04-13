@@ -4,7 +4,7 @@
 # saved to show loading of ODF formatted file method:
 
  
-    data.dir = project.directory("temperature", "data", "tmp" )
+    data.dir = project.datadirectory("temperature", "data", "tmp" )
 
     flist = list.files(path=data.dir, pattern="CTD.*\\.ODF$", full.names=T, recursive=FALSE)
     out = NULL

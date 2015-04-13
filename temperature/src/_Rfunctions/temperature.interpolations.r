@@ -5,7 +5,7 @@
    
       starttime = Sys.time()
       
-      tinterpdir = project.directory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
+      tinterpdir = project.datadirectory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
       dir.create( tinterpdir, recursive=T, showWarnings=F )
 				
       if (DS %in% c("temporal.interpolation")) {
@@ -106,9 +106,9 @@
       if ( exists("libs", p) ) RLibrary( p$libs ) 
      
 			# interpolated predictions over only missing data
-			spinterpdir =  file.path( project.directory("temperature"), "data", "interpolated", "spatial", p$spatial.domain )
+			spinterpdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "spatial", p$spatial.domain )
 			if (p$spatial.domain=="snowcrab") {
-        spinterpdir = file.path( project.directory("temperature"), "data", "interpolated", "spatial", "SSE" )
+        spinterpdir = file.path( project.datadirectory("temperature"), "data", "interpolated", "spatial", "SSE" )
       }
   
       dir.create( spinterpdir, recursive=T, showWarnings=F )

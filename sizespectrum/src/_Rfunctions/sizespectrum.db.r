@@ -2,7 +2,7 @@
   sizespectrum.db = function( DS="", p=NULL ) {
     ### dependency is only groundfish db for now. ... 
  
-    ddir = file.path( project.directory("sizespectrum"), "data"  )
+    ddir = file.path( project.datadirectory("sizespectrum"), "data"  )
     dir.create( ddir, showWarnings=FALSE, recursive=TRUE )
 
     infix = paste( p$nss.taxa, p$nss.type, p$nss.base, sep="." )

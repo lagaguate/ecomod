@@ -17,7 +17,7 @@
 
    
     if (loc=="default") {
-      loc = project.directory( "oracle.objects", "src", "sql") 
+      loc = project.codedirectory( "oracle.objects", "src", "sql") 
     }
     
     flist = list.files( path=loc, pattern="*.sql", recursive=TRUE, ignore.case=TRUE ) 

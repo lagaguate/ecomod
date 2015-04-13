@@ -5,7 +5,7 @@
 
 		if (DS %in% c("set.odbc.redo", "set.odbc") ) {
 
-	    fn.root =  file.path( project.directory("snowcrab"), "data", "trawl", "SNCRABSETS" )
+	    fn.root =  file.path( project.datadirectory("snowcrab"), "data", "trawl", "SNCRABSETS" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
 
 	    if (DS=="set.odbc") {
@@ -38,7 +38,7 @@
 
 
 		if (DS %in% c("det.odbc.redo", "det.odbc") ) {
-      fn.root =  file.path( project.directory("snowcrab"), "data", "trawl", "SNCRABDETAILS" )
+      fn.root =  file.path( project.datadirectory("snowcrab"), "data", "trawl", "SNCRABDETAILS" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
   
 	    if (DS=="det.odbc") {
@@ -75,7 +75,7 @@
 
 		if (DS %in% c("cat.odbc.redo", "cat.odbc") ) {
 
-      fn.root =  file.path( project.directory("snowcrab"), "data", "trawl", "SNTRAWLBYCATCH" )
+      fn.root =  file.path( project.datadirectory("snowcrab"), "data", "trawl", "SNTRAWLBYCATCH" )
 			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
   
 	    if (DS=="cat.odbc") {
@@ -111,7 +111,7 @@
 
 
     if (DS %in% c("setInitial.redo", "setInitial")) {
-      fn = file.path( project.directory( "snowcrab", "data" ), "set.initial.rdata" )
+      fn = file.path( project.datadirectory( "snowcrab", "data" ), "set.initial.rdata" )
 
       if (DS =="setInitial") {
         set = NULL
@@ -190,7 +190,7 @@
 
       # ---------------------
       # local lookuptable for netmind/minilog data (historical data only)
-      sntows = read.table(file.path( project.directory("snowcrab"), "data", "lookuptables", "sntow.csv"),  sep=";", as.is=T, colClasses="character", header=T)
+      sntows = read.table(file.path( project.datadirectory("snowcrab"), "data", "lookuptables", "sntow.csv"),  sep=";", as.is=T, colClasses="character", header=T)
       sntow.vars = c("trip",  "set", "patchtime", "netmind", "minilog")
 
       set = merge(set, sntows[,sntow.vars], by=c("trip", "set"), all.x=T, all.y=F, sort=F)
@@ -231,7 +231,7 @@
     # --------------------
 
     if (DS %in% c("det.initial", "det.initial.redo") ) {
-      fn = file.path(project.directory("snowcrab"), "R", "det.initial.rdata")
+      fn = file.path(project.datadirectory("snowcrab"), "R", "det.initial.rdata")
       if (DS =="det.initial") {
         load(fn)
         return(det)
@@ -324,7 +324,7 @@
 
 
     if (DS %in% c("cat.initial", "cat.initial.redo") ) {
-      fn = file.path(project.directory("snowcrab"), "R", "cat.initial.rdata")
+      fn = file.path(project.datadirectory("snowcrab"), "R", "cat.initial.rdata")
       if(DS =="cat.initial" ) {
         load(fn)
         return(cat)
@@ -493,7 +493,7 @@
 
     if ( DS %in% c("set.merge.det","set.merge.det.redo") ) {
 
-      fn = file.path( project.directory("snowcrab"), "R", "set.biologicals.rdata")
+      fn = file.path( project.datadirectory("snowcrab"), "R", "set.biologicals.rdata")
 
       if (DS=="set.merge.det" ) {
         load(fn) 
@@ -624,7 +624,7 @@
 
     if ( DS %in% c("set.merge.cat","set.merge.cat.redo") ) {
 
-      fn = file.path( project.directory("snowcrab"), "R", "set.cat.rdata")
+      fn = file.path( project.datadirectory("snowcrab"), "R", "set.cat.rdata")
 
       if (DS %in% c("set.merge.cat" )) {
         load(fn) 
@@ -733,7 +733,7 @@
     if ( DS %in% c("set.clean", "set.clean.redo") ) {
     
       # after the merging of minilog and netmind data .. do some checks and cleaning
-      fn = project.directory( "snowcrab", "data", "set.clean.rdata" )
+      fn = project.datadirectory( "snowcrab", "data", "set.clean.rdata" )
 
       if ( DS=="set.clean" ) {
         set= NULL
@@ -808,7 +808,7 @@
 
     if (DS %in% c("set", "set.complete", "set.complete.redo") ) {
       
-      fn = file.path( project.directory("snowcrab"), "R", "set.complete.rdata") 
+      fn = file.path( project.datadirectory("snowcrab"), "R", "set.complete.rdata") 
 
       if (DS %in% c("set", "set.complete") ){
         load( fn )
@@ -873,7 +873,7 @@
     }
 
     if (DS %in% c("det.georeferenced", "det.georeferenced.redo" ) ) {
-      fn = file.path( project.directory("snowcrab"), "R", "det.georef.rdata" )  
+      fn = file.path( project.datadirectory("snowcrab"), "R", "det.georef.rdata" )  
       if (DS=="det.georeferenced") {
         load(fn)
         return(det)
@@ -887,7 +887,7 @@
     }
    
     if (DS %in% c("cat.georeferenced", "cat.georeferenced.redo" ) ) {
-      fn = file.path( project.directory("snowcrab"), "R", "cat.georef.rdata" )  
+      fn = file.path( project.datadirectory("snowcrab"), "R", "cat.georef.rdata" )  
       if (DS=="cat.georeferenced") {
         load(fn)
         return(cat)
@@ -907,7 +907,7 @@
     
     if (DS %in% c("set.logbook", "set.logbook.redo" )) {
       
-      outdir = file.path( project.directory("snowcrab"), "data" )
+      outdir = file.path( project.datadirectory("snowcrab"), "data" )
       dir.create(path=outdir, recursive=T, showWarnings=F)
       fn = file.path( outdir, "set.logbook.rdata" ) 
       

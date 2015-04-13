@@ -2,7 +2,7 @@
   get.move = function( redo=F ) {
     move = NULL
     
-    tags.datadir= file.path( project.directory("snowcrab"), "data", "tagging" )
+    tags.datadir= file.path( project.datadirectory("snowcrab"), "data", "tagging" )
     
     fn =file.path( tags.datadir, paste("move", "rdata", sep="." ) )
 
