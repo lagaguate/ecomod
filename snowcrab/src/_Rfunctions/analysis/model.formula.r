@@ -14,17 +14,29 @@
             + s(plon, plat, k=spatial.knots, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
        }
       
-      if ( V %in% c("R0.no", "R0.mass", "totmass.com") ) {
+   #  if ( V %in% c("R0.no", "R0.mass", "totmass.com") ) {
+   #    #  same as basic model but with higher spatial densities
+   #      out = formula( Y ~ s(weekno, bs="ts" ) 
+   #        + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) 
+   #        + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) 
+   #        + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )             
+   #        + s(ca1, bs="ts" ) + s(ca2, bs="ts" ) 
+   #        + s(Npred, bs="ts") + s(Z, bs="ts" ) 
+   #        + s(smr, bs="ts" ) + s(A, bs="ts" ) + s(Ea, bs="ts" )     
+   #        + s(nss.shannon, bs="ts" ) + s(nss.rsquared, bs="ts" ) 
+   #        + s(plon, plat, k=200, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+   #  }
+  if ( V %in% c("R0.mass") ) {
         #  same as basic model but with higher spatial densities
-          out = formula( Y ~ s(weekno, bs="ts" ) 
-            + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) 
-            + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) 
-            + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )             
-            + s(ca1, bs="ts" ) + s(ca2, bs="ts" ) 
-            + s(Npred, bs="ts") + s(Z, bs="ts" ) 
-            + s(smr, bs="ts" ) + s(A, bs="ts" ) + s(Ea, bs="ts" )     
-            + s(nss.shannon, bs="ts" ) + s(nss.rsquared, bs="ts" ) 
-            + s(plon, plat, k=200, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
+          out = formula( Y ~ te(weekno, bs="cs" ) 
+            + te(tmean,bs='cs') + te(dt.annual, bs="cs" ) + te(dt.seasonal, bs="cs" ) 
+            + te(tamp, bs="cs" )+ te(wmin, bs="cs" ) 
+            + te(z,bs='cs') + te(dZ, bs="cs" )  + te(substrate.mean, bs="cs" )             
+            + te(ca1, bs="cs" ) + te(ca2, bs="cs" ) 
+            + te(Npred, bs="cs") + te(Z, bs="cs" ) 
+            + te(smr, bs="cs" ) + te(A, bs="cs" ) + te(Ea, bs="cs" )     
+            + te(nss.shannon, bs="cs" ) + te(nss.rsquared, bs="cs" ) 
+            + te(plon, plat, k=150, bs="cs", by=as.factor(yr) ) + as.factor(yr)  ) 
       }
 
 			if ( V=="simple" ) {
@@ -33,6 +45,14 @@
             + s(tmean) + s(z) + s(dZ, k=4, bs="ts" ) + s(substrate.mean, k=4, bs="ts" )             
             + s(plon, plat, bs="tp", by=as.factor(yr)) + as.factor(yr) ) 
       }
+
+      if(V == 'simple.2015'){
+         out = formula( Y ~  s(t, k = 5, bs = 'ds') +  
+            + s(tmean.cl , k = 5, bs = 'ds') + s(z, k=4,bs = 'ds') + s(dZ, k=4, bs="ds" ) + s(substrate.mean, k=4, bs="ds" )             
+            + s(plon, plat, k=100,bs="ds",by=as.factor(yr)) +   s(A,k=4,bs='ds')+  s(mass,k=4,bs='ds')+
+            s(Z,k=4,bs='ds') + as.factor(yr) )# nonsig-- s(smr,k=4,bs='ds')+s(Ea,k=4,bs='ds')+ s(Npred,k=4,bs='ds')+s(qm,k=4,bs='ds')
+      }
+
 
 			if ( V=="R0.mass.2012" ) {
         # enough data for a high spatial resolution of data variability

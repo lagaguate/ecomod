@@ -13,7 +13,7 @@
         }
 
         if (!exists("clustertype")) {
-          clustertype = "SOCK"
+          clustertype = "PSOCK"
           print( paste( "Using", clustertype, "connections as default, 'clustertype' was not defined." ))
         }
         
