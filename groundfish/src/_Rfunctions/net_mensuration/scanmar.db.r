@@ -350,7 +350,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
               jj = dd[ui]
               if (length( which( is.finite ( nm$depth[jj] ) ) ) < 30 )  next() 
               dmode = modes( nm$depth[jj] )  # fast estimate of location of bottom
-              mm = which( nm$depth[jj] < dmode["mean", "ub"] & nm$depth[jj] > dmode["mean", "lb" ]) 
+              mm = which( nm$depth[jj] < dmode$ub2 & nm$depth[jj] > dmode$lb2 ) 
               m = median( trunc(jj[mm]) ) # approx midpoint of bottom
               distance.km = try( abs( as.vector( 
                   geodist( nm[ m, c("lon","lat")], gf[igg, c("lon","lat")], method="great.circle")) ), silent=TRUE ) 
@@ -701,8 +701,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         # defaults appropriate for more modern scanmar data have > 3500 pings
         bcp = list( 
           id=id, datasource="groundfish", nr=nrow(mm), YR=YR,
-          tdif.min=15, tdif.max=45,
-          depth.min=10, setdepth=gsinf$bottom_depth[gii] 
+          tdif.min=15, tdif.max=45, setdepth=gsinf$bottom_depth[gii] 
         )
         
         bcp = bottom.contact.parameters( bcp ) # add other default parameters
@@ -898,18 +897,20 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       for (vn in newvars) gs[,vn] = NA
       gs = gs[, names(gstest) ] # reorder
 
-      if(FALSE) {
-        # debugging 
-        id="TEM2008775.22"
-        id="NED2010001.59"
-        ii = which( nm$id==id ) 
-        gii = which( gs$id==id ) 
-        gs = gs[gii,]
-        x = nm[ii,]
-      }
    
        
       for ( id in uid) {
+         
+        if(FALSE) {
+          # debugging 
+          id="NED2010001.59"
+          ii = which( nm$id==id ) 
+          gii = which( gs$id==id ) 
+          gs = gs[gii,]
+          x = nm[ii,]
+        }
+        
+        
         print( id)
         
         bc = scanmar.db( DS="bottom.contact.id", p=p, id=id )
