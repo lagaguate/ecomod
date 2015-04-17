@@ -14,6 +14,8 @@ bottom.contact.gating.time = function( Zt, good, bcp ) {
     grange = range( Zt[ which(good) ], na.rm= TRUE )
     if ( difftime( grange[2], grange[1], units="mins" ) < bcp$trange.max ) out = good
   }
+
+
   return(good)
 
 }

@@ -42,18 +42,18 @@ bottom.contact.incremental = function( sm, bcp=bcp )  {
   slope.modes = modes( sm$slope )
   # sm$slope.smoothed = interpolate.xy.robust( sm[, c("ts", "slope")], method="inla" )
  
-  if ( !is.finite(slope.modes[ "simple", "sd" ]) || slope.modes[ "simple", "sd" ] < 1e-3) {
+  if ( !is.finite(slope.modes$sd ) || slope.modes$sd < 1e-3) {
     return(res)
   }
 
   i0 = slope.imax
   for (i0 in slope.imax:slope.mid) {
-    if (sm$slope[i0] < slope.modes["simple", "ub"] ) break()
+    if (sm$slope[i0] < slope.modes$ub2 ) break()
   }
 
   i1 = slope.imin
   for (i1 in slope.imin:slope.mid) {
-    if (sm$slope[i1] > slope.modes["simple", "lb"] ) break()
+    if (sm$slope[i1] > slope.modes$lb2 ) break()
   }
 
   res =  c( sm$timestamp[i0], sm$timestamp[i1] )    

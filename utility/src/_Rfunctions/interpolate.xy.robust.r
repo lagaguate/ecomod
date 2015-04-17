@@ -1,4 +1,4 @@
-interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=5, trim=0.05, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5, inla.h=0.1, inla.diagonal=0.01 ) {
+interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.05, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5, inla.h=0.1, inla.diagonal=0.01 ) {
   
   # simple interpolation methods
   # target.r2 == target prediction R^2
@@ -15,21 +15,47 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=5, trim=0.05
     smoothing.kernel=kernel( "modified.daniell", c(2,1)) 
   }
 
-
-  if (ncol(xy) ==1 ) {
+  if ( is.vector(xy) ) {
     nz = length(xy)
     z = data.frame( x=1:nz, y=xy ) 
-  } else  if (ncol(xy) ==2 ) {
-    nz = nrow(xy)
-    z = data.frame( xy)
-    names(z) = c("x", "y" )
   } else {
-    stop( "Error: y or c(x,y) expected")
+    if (ncol(xy) == 2 ) {
+      nz = nrow(xy)
+      z = data.frame( xy)
+      names(z) = c("x", "y" )
+    } else {
+      stop( "Error: y or c(x,y) expected")
+    }
   }
   
   z$p= NA
   z$noise = FALSE
   z$loc = 1:nz  # row index used in seq lin method
+
+
+  if (method == "moving.window" ) {
+    z$p = z$y 
+    for (nw in mv.win:1) {
+      win = -nw:nw
+      z$p = NA
+      for( i in 1:nz ) {
+        iw = i+win
+        iw = iw[ which( iw >= 1 & iw <=nz ) ]
+        z$p[i] = mean( z$y[iw], na.rm=TRUE ) 
+      }
+      z$diff = abs( z$p - z$y ) 
+      qnts = quantile( z$diff, probs=(1-trim), na.rm=TRUE )  # remove upper quantile
+      ii = which( z$diff > qnts )
+      if (length(ii) > 0) z$p[ ii ] = NA
+      z$p[ii] = approx( x=z$x, y=z$p, xout=z$x[ii], method="linear", rule=2 )$y 
+      rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
+      if (!is.na(rsq)){
+        if (rsq > target.r2 ) break()
+      }
+    }
+  }
+
+
 
   if (method =="sequential.linear") { 
     # check adjacent values and reject if differences are greater than a given range of quantiles (95%)
@@ -59,22 +85,28 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=5, trim=0.05
     z$p = z$y
   }
 
+
   if (method =="local.variance") { 
     # local variance estimates used to flag strange areas .. where local variance is too high .. remove the data
 
-    z$Zvar = NA
-    vwindow = c( -mv.win : mv.win )
-    nz = nrow(z)
-    for (i in 1:nz ) {
-      j = i+vwindow
-      j = j[ which(j >=1 & j<= nz)] 
-      if (length(j)> 5)  z$Zvar[i] = var( z$y[j], na.rm=TRUE )
+    z$p = z$y
+    for (nw in mv.win:1) {
+      z$Zvar = NA
+      win = c( -nw : nw )
+      for (i in 1:nz ) {
+        iw = i+win
+        iw = iw[ which(iw >=1 & iw<= nz)] 
+        if (length(iw)> 3)  z$Zvar[i] = var( z$p[iw], na.rm=TRUE )
+      }
+      qnts = quantile( z$Zvar, probs=(1-trim), na.rm=TRUE )  # remove upper quantile
+      ii = which( z$Zvar > qnts )
+      if (length(ii) > 0) z$p[ ii ] = NA
+      z$p[ii] = approx( x=z$x, y=z$p, xout=z$x[ii], method="linear", rule=2 )$y 
+      rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
+      if (!is.na(rsq)){
+        if (rsq > target.r2 ) break()
+      }
     }
-    qnts = quantile( z$Zvar, probs=(1-trim), na.rm=TRUE )  # remove upper quantile
-    ii = which( z$Zvar > qnts )
-    if (length(ii) > 0) z$y[ ii ] = NA
-    z$y[ii] = approx( x=z$x, y=z$y, xout=z$x[ii], method="linear", rule=2 )$y 
-    z$p =z$y
   }
 
 
@@ -90,6 +122,7 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=5, trim=0.05
       }
     }
   }
+
 
 
   if (method == "inla") {
@@ -140,7 +173,7 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=5, trim=0.05
       # interpolate missing/skipped data before smoothing
       ifunc = approxfun( x= z$x, y=z$y, method="linear", rule=2 )
       r0 = range( z$x, na.rm=TRUE )
-      fx = seq( r0[1], r0[2], by= min(u) ) 
+      fx = seq( r0[1], r0[2], by= min(uu) ) 
       fy = ifunc( fx)
     } else if (length(uu) ==1 ) {
       fx = z$x

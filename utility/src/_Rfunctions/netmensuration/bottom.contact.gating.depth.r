@@ -12,12 +12,13 @@ bottom.contact.gating.depth = function( Z, good, bcp ) {
   i = which(Z< bcp$depth.min )
   if (length(i) > 0) good[i] = FALSE
 
-  
-  ## -----
-  mediandepth = median( Z[ good ], na.rm=TRUE)
-  Zh = hist( Z[ good ], breaks=trunc(length(good)/3), plot =FALSE)
-  modedepth = Zh$mids[ which.max( Zh$counts ) ]
-  depth.bottom = max( c(mediandepth, modedepth, bcp$setdepth), na.rm=TRUE)
+
+
+  zm = modes( Z[good] )
+  zsd = zm$sd
+  ir = which( Z < (zm$lb2 +bcp$depth.range[1]) | Z > (zm$ub2 + bcp$depth.range[2])  )  # a bit more inclusive as these are crude gates at an early stage
+  if (length(ir) > 0) good[ir] =FALSE
+  depth.bottom = zm$mode
 
   ##--------------------------------
   # eliminiate records that are shallower than a given percentage of the bottom depth
@@ -27,12 +28,12 @@ bottom.contact.gating.depth = function( Z, good, bcp ) {
 
   ##--------------------------------
   ## record filter
-
   depth.diff =  Z - depth.bottom 
   i = which( depth.diff < bcp$depth.range[1] | depth.diff> bcp$depth.range[2])
   if (length(i) > 0) good[i] = FALSE
   # points( Z[good] ~ iz[good] , pch=20, col="cyan" )
 
+     
   return(good)
 
 }

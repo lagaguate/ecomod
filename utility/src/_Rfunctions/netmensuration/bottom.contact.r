@@ -4,8 +4,7 @@ bottom.contact = function( x, bcp ) {
   #require(lubridate) 
   #require( numDeriv ) 
 
-  debug = FALSE
-  if (debug) {
+  if (FALSE) {
     x = mm
     bcp = bottom.contact.parameters( data.source="groundfish", YR="default", nr="default" ) 
     debug.plot = TRUE
@@ -30,10 +29,11 @@ bottom.contact = function( x, bcp ) {
   # O$Z = x$depth  ## copy of depth data before manipulations ... not used? 
   
   O$plotdata = x   # save incoming data after creation of time stamps and ordering 
-
-
-
-##--------------------------------
+ 
+  x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
+  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
+  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
+  ##--------------------------------
   # basic depth gating
   
   if( !any(x$depth > bcp$depth.min)) return( NULL ) 
@@ -48,9 +48,35 @@ bottom.contact = function( x, bcp ) {
   # simple depth-based gating
   O$good = bottom.contact.gating.depth ( Z=x$depth, good=O$good, bcp=bcp) 
   x$depth[ !O$good ] = NA
-  
+
   # time and depth-based gating
-  x.timerange = range( x$timestamp, na.rm=TRUE )
+  
+  mm = modes( x$depth  )
+  mm.i = which( x$depth > (mm$lb2+bcp$depth.range[1]) & x$depth < (mm$ub2 + bcp$depth.range[2]) )
+  
+  O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
+  O$good[mm.i] = TRUE
+
+  # sometimes multiple tows exist in one track ...  this is not completed ... needs some tweaking for strange conditions ...
+  # over-smoothed depth to capture stange tows  
+  nZ = nrow(x)
+  zs = zz = rep( 0, nZ )
+  zz[ which(  x$dsm < ( mm$mode / 2)) ] = 1  # flag shallow areas
+  # zz[ which( is.na( x$depth)) ] = 1  # flag missing data
+  dzz = diff(zz)
+  bnds = c(1, which( dzz != 0 ), nZ ) 
+  
+  if ( length (bnds) > 2 ) {
+    # contaminated by noise
+    segs = diff(bnds) # length of each segment
+    longest = which.max( segs ) 
+    gg = bnds[longest]:bnds[(longest+1)]
+    bad = setdiff( 1:nZ, gg)
+    O$good[bad] = FALSE
+  }
+
+
+  x.timerange = range( x$timestamp[O$good], na.rm=TRUE )
   x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
 
   if ( x.dt < (bcp$tdif.min ) ) { 
@@ -60,46 +86,36 @@ bottom.contact = function( x, bcp ) {
 
   if ( x.dt > (bcp$tdif.max+10) ) {   # +10 = 5 min on each side
     # data vector is too long ... truncate 
-    mm = modes( x$depth  )
-    mm.i = which( x$depth > mm["mean", "lb"] & x$depth < mm["mean", "ub"] )
     mm.r = range( mm.i )
     mm.dt = difftime( x$timestamp[mm.r[2]], x$timestamp[mm.r[1]], units="mins" )
-    O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
-    O$good[mm.i] = TRUE
-
     if ( mm.dt > (bcp$tdif.max+10) ) {
-
-      O$error.flag = "Time track is too long?"   
-      if (is.null(bcp$setdepth)) {
-        zx = which.max( x$depth )
-        shallow = x$depth[zx] / 4 
-      } else {
-        zx = median( which( x$depth < (bcp$setdepth + 5 ) & x$depth > ( bcp$setdepth - 5 ) ) )  # median location bounded byu +/- 5 m
-        shallow = bcp$setdepth / 4 
-      }
-      ss = which( x$depth < shallow ) 
-      if (length( ss) > 30 ) {
-        x$depth[ss] = NA
-        x$timestamp[ss] = NA
-      }
-      timerange = new_interval(  (x$timestamp[zx] -dminutes( bcp$tdif.max+5) ),  ( x$timestamp[zx]+ dminutes( bcp$tdif.max+5) ) )
-      oo = which( ! x$timestamp %within% timerange)
-      O$good[oo] = FALSE
-      x$depth[ !O$good ] = NA
-      return(O)
+      O$error.flag = "Time track is too long?"  
     }
   }
 
+
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
-   
+
+  res = NULL
+  res = try( bottom.contact.filter.noise ( x=x, good=O$good, bcp=bcp ), silent =TRUE )
+
+  x$depth.smoothed = x$depth
+  if ( ! "try-error" %in% class( res) )  {
+    x$depth.smoothed = res$depth.smoothed
+    O$good = res$good
+    x$depth[ !O$good ] = NA
+  } 
+
+
   if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return( NULL )
   if(sum(O$good)==0) return( NULL )
   
   x.timerange = range( x$timestamp[O$good], na.rm=TRUE )
   x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
 
-  if ( x.dt < (bcp$tdif.min ) ) { 
+
+  if ( x.dt < ( bcp$tdif.min ) ) { 
       O$error.flag = "Not enough data?"   
       return(O)
   }
@@ -110,21 +126,24 @@ bottom.contact = function( x, bcp ) {
   }
   
   # variance gating attempt
-  O$variance.method = c(NA, NA)
+  O$variance.method0 = NA
+  O$variance.method1 = NA
   O$variance.method.indices = NA
-  x$depth0 = x$depth  # for plotting only, later of the unfiltered data
-  x$depth.smoothed  = x$depth
-
-
   res = NULL
-  res = try( bottom.contact.filter.noise ( x, O$good, bcp ), silent =TRUE )
+  res = try( bottom.contact.gating.variance ( x, O$good, bcp ), silent =TRUE )
 
   if ( ! "try-error" %in% class( res) )  {
-    x$depth.smoothed = res$depth.smoothed
-    O$good = res$good
-    O$variance.method = res$variance.method
-    O$variance.method.indices  = res$variance.method.indices
-    x$depth[ !O$good ] = NA
+    if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
+      duration = abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+      if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+        O$variance.method0 = res$bc0
+        O$variance.method1 = res$bc1  
+        O$variance.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 )
+        bad = which( x$timestamp < res$bc0 |  x$timestamp > res$bc1 )
+        if (length( bad) > 0) O$good[ bad ] = FALSE
+        x$depth[ !O$good ] = NA
+      }
+    }
   }
 
   if(debug.plot) {
@@ -146,22 +165,27 @@ bottom.contact = function( x, bcp ) {
   aoi.min = aoi.range[1]
   aoi.max = aoi.range[2]
   O$aoi = aoi.min:aoi.max  # stored for use in the linear method where we need to recover the left-most index 
- 
+
+
   ##--------------------------------
   # Modal method: gating by looking for modal distribution and estimating sd of the modal group in the data 
   # first by removing small densities ( 1/(length(i)/nb)  ) and by varying the number of breaks in the histogram
   # until a target number of breaks, nbins with valid data are found
-  O$modal.method = c(NA, NA)
+  O$modal.method0 = NA  #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+  O$modal.method1 = NA  #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$modal.method.indices = NA
+
+
   sm0 = x[ O$aoi, c("depth.smoothed", "timestamp", "ts" ) ]  # send filtered data ... continuity not important .. order is important
   res = NULL
   res = try( bottom.contact.modal( sm=sm0, bcp ), silent=TRUE )
     if ( ! "try-error" %in% class( res) ) {
-      if ( all(is.finite(res) ) ) {
-        duration =  abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
+      if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
+        duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
         if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
-          O$modal.method = res
-          O$modal.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
+          O$modal.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+          O$modal.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+          O$modal.method.indices = which( x$timestamp >= res$bc0  &  x$timestamp <= res$bc1  ) # x correct
         }
       }
     }  
@@ -180,18 +204,20 @@ bottom.contact = function( x, bcp ) {
   ## Smooth method: using smoothed data (slopes are too unstable with raw data), 
   ## compute first derivatives to determine when the slopes inflect 
 
-  O$smooth.method = c(NA, NA)
+  O$smooth.method0 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+  O$smooth.method1 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$smooth.method.indices = NA
   sm0 = x[ O$aoi, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
   res = NULL
   res = try( 
     bottom.contact.smooth( sm=sm0, bcp=bcp ) , silent =TRUE)
     if ( ! "try-error" %in% class( res) ) {
-      if ( all(is.finite(res) ) ) {
-        duration =  abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
+      if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
+        duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
         if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
-          O$smooth.method = res
-          O$smooth.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
+          O$smooth.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+          O$smooth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+          O$smooth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
         }
       }
     }  
@@ -205,25 +231,27 @@ bottom.contact = function( x, bcp ) {
   }
 
   
-
   ## ---------------------------- 
   ## maxdepth method: looking for the max depth near the areas of interest (left, right) 
-  O$maxdepth.method = c(NA, NA) 
+  O$maxdepth.method0 =  NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+  O$maxdepth.method1 =  NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$maxdepth.method.indices = NA
   sm0 = x[, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
   sm0$depth[ !O$good ] = NA
   sm0 = sm0[ O$aoi, ]
 
+
   bcmethods=c( "smooth.method", "modal.method" )
   res = NULL
   res = try( bottom.contact.maxdepth( sm=sm0, O=O, bcmethods=bcmethods, bcp=bcp ) , silent=TRUE ) 
-  
+
   if ( ! "try-error" %in% class( res) ) {
-    if ( all(is.finite( res ) ) ) {
-      duration = abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
+    if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
+      duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
       if ( is.finite(duration) && duration > bcp$tdif.min & duration < bcp$tdif.max ) {
-        O$maxdepth.method = res
-        O$maxdepth.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
+        O$maxdepth.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+        O$maxdepth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+        O$maxdepth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
       }
     }
   }  
@@ -241,21 +269,25 @@ bottom.contact = function( x, bcp ) {
   ## ---------------------------
   ## Linear method: looking at the intersection of three lines (up, bot and down)
  
-  O$linear.method = c(NA, NA)
+  O$linear.method0 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+  O$linear.method1 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$linear.method.indices = NA
   sm0 = x[, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
   sm0$depth[ !O$good ] = NA
   sm0 = sm0[ O$aoi, ]
  
+  bcmethods=c( "smooth.method", "modal.method", "linear.method" )
+
   res = NULL
-  res = try( bottom.contact.linear( sm=sm0, O=O, bcp=bcp ) , silent=TRUE )
+  res = try( bottom.contact.linear( sm=sm0, O=O, bcmethods=bcmethods, bcp=bcp ) , silent=TRUE )
 
   if ( ! "try-error" %in% class( res) ) {
-    if ( all(is.finite( res ) ) ) {
-      duration =  abs( as.numeric( difftime( res[1], res[2], units="mins" ) ) )
+    if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
+      duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
       if ( is.finite(duration) && duration > bcp$tdif.min & duration < bcp$tdif.max ) {
-        O$linear.method = res
-        O$linear.method.indices = which( x$timestamp >= res[1] &  x$timestamp <= res[2] ) # x correct
+        O$linear.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+        O$linear.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+        O$linear.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
       }
     }
   }  
@@ -272,7 +304,8 @@ bottom.contact = function( x, bcp ) {
 
   ## ---------------------------
   
-  O$manual.method = c(NA , NA)
+  O$manual.method0 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+  O$manual.method1 = NA  ### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   if ( bcp$user.interaction  ) { 
     print( "Click with mouse on start and stop locations now.")          
     trange = range( x$ts[O$good], na.rm=TRUE )
@@ -283,32 +316,50 @@ bottom.contact = function( x, bcp ) {
     useridentified = locator( n=2, type="o", col="cyan")
     u.ts0 = which.min( abs( x$ts-useridentified$x[1] ))
     u.ts1 = which.min( abs( x$ts-useridentified$x[2] ))
-    O$manual.method = c( x$timestamp[u.ts0], x$timestamp[ u.ts1 ]  )
-    O$manual.method.indices = which( x$timestamp >= O$manual.method[1] &  x$timestamp <= O$manual.method[2] ) 
+    O$manual.method0 = x$timestamp[u.ts0] 
+    O$manual.method1 = x$timestamp[u.ts1] 
+    O$manual.method.indices = which( x$timestamp >= O$manual.method0 &  x$timestamp <= O$manual.method1 ) 
   }
- 
-  O$means = c(NA, NA )
-  methods = c("manual.method", "variance.method", "smooth.method", "modal.method", "maxdepth.method", "linear.method", "means" )
-  standard =  which( methods=="manual.method")
-  direct = which( methods %in%  c("smooth.method", "modal.method", "linear.method", "maxdepth.method" ) )
- 
 
-  tzone = tz( x$timestamp[1] )
 
-  tmp = as.data.frame(O[methods], stringsAsFactors=FALSE )
-  tmp = as.data.frame( t(tmp), stringsAsFactors=FALSE  )
-  colnames(tmp) =c("start", "end" )
-  tmp[,"start"]  = as.POSIXct( tmp[,"start"], origin= "1970-01-01", tz=tzone )
-  tmp[,"end"]    = as.POSIXct( tmp[,"end"], origin= "1970-01-01" , tz=tzone  )
+  O$means0 = NA  ### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
+  O$means1 = NA  ### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   
-  dflag = rowSums(as.matrix(dist(tmp[direct,2], upper=TRUE )), na.rm=TRUE)  # which are most extreme
-  tooextreme = which.max( dflag)
-  trimmed= direct
-  if (length( which(dflag>0) ) > 1 ) trimmed = direct[-tooextreme]
-  
-  tmp["means", "start"] = as.POSIXct( mean( tmp[ trimmed, "start" ], na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
-  tmp["means", "end"] = as.POSIXct( mean( tmp[ trimmed, "end" ], na.rm=TRUE ) , origin= "1970-01-01", tz=tzone  )
+  bcmethods = c("manual.method", "variance.method", "smooth.method", "modal.method", "maxdepth.method", "linear.method", "means" )
+  standard =  which( bcmethods=="manual.method") # gold standard
+  direct = which( bcmethods %in%  c("smooth.method", "modal.method", "linear.method", "maxdepth.method" ) )
+  imeans = which( bcmethods == "means" )
+
  
+  # must be careful as timestamp is being converted to text and will lose tzone ... need to reset to correct timezone:
+  bcm0 = paste(bcmethods, "0", sep="")
+  bcm1 = paste(bcmethods, "1", sep="")
+  
+  tzone = tz (x$timestamp[1] )
+
+  # recovert to time zone of incoming data as time zone is lost with the transpose
+  tmp0 = ymd_hms( t( as.data.frame(O[ bcm0 ]) ), tz=tzone )
+  tmp1 = ymd_hms( t( as.data.frame(O[ bcm1 ]) ), tz=tzone )
+
+  bottom0.mean =  mean(tmp0, na.rm=TRUE) 
+  bottom1.mean =  mean(tmp1, na.rm=TRUE) 
+  
+  bottom0.sd = max( 1, sd( tmp0, na.rm=TRUE  ) ) # in seconds
+  bottom1.sd = max( 1, sd( tmp1, na.rm=TRUE  ) )
+  
+  dflag0 = rowSums(as.matrix(dist(tmp0[direct], upper=TRUE )), na.rm=TRUE)  # which are most extreme
+  dflag1 = rowSums(as.matrix(dist(tmp1[direct], upper=TRUE )), na.rm=TRUE)  # which are most extreme
+
+  tooextreme0 = which.max( dflag0 ) 
+  tooextreme1 = which.max( dflag1 ) 
+ 
+  trimmed0 = trimmed1 = direct
+  if (length( which(dflag0 > 0) ) > 1 ) trimmed0 = trimmed0[-tooextreme0 ]
+  if (length( which(dflag1 > 0) ) > 1 ) trimmed1 = trimmed1[-tooextreme1 ]
+  
+  tmp0[imeans] = mean( tmp0[ trimmed0 ], na.rm=TRUE ) 
+  tmp1[imeans] = mean( tmp1[ trimmed1 ], na.rm=TRUE )
+
   O$bottom0 = NA
   O$bottom1 = NA
   O$bottom0.sd = NA
@@ -318,20 +369,20 @@ bottom.contact = function( x, bcp ) {
   O$bottom.diff = NA
   O$bottom.diff.sd = NA
 
-  if ( any (is.na( tmp[ standard, c("start", "end")] ) ) ) {
+  if ( any (is.na( c( tmp0[ standard ],  tmp1[ standard ]) ) ) ) {
     # no manual standard .. use mean as the standard
-    O$bottom0 = tmp["means", "start"]
-    O$bottom1 = tmp["means", "end" ]
-    O$bottom0.sd = sd(  ( tmp[ trimmed, "start" ]), na.rm=TRUE ) # in secconds
-    O$bottom1.sd = sd(  ( tmp[ trimmed, "end" ]), na.rm=TRUE )
-    O$bottom0.n = length( which( is.finite( tmp[ trimmed, "start" ] )) )
-    O$bottom1.n = length( which( is.finite( tmp[ trimmed, "end" ] )) )
+    O$bottom0 = tmp0[imeans]
+    O$bottom1 = tmp1[imeans]
+    O$bottom0.sd = sd(  ( tmp0[ trimmed0]), na.rm=TRUE ) # in secconds
+    O$bottom1.sd = sd(  ( tmp1[ trimmed1]), na.rm=TRUE )
+    O$bottom0.n = length( which( is.finite( tmp0[ trimmed0] )) )
+    O$bottom1.n = length( which( is.finite( tmp1[ trimmed1] )) )
     O$bottom.diff =  difftime( O$bottom1, O$bottom0, units="secs" )
     O$bottom.diff.sd = sqrt(O$bottom0.sd ^2 + O$bottom0.sd^2) # sec 
   } else {
     # over-ride all data and use the manually determined results
-    O$bottom0 = tmp[ standard, "start" ]
-    O$bottom1 = tmp[ standard, "end" ]
+    O$bottom0 = tmp0[ standard ]
+    O$bottom1 = tmp1[ standard ]
     O$bottom0.sd = NA
     O$bottom1.sd = NA
     O$bottom0.n = 1
@@ -339,14 +390,19 @@ bottom.contact = function( x, bcp ) {
     O$bottom.diff = difftime( O$bottom1, O$bottom0, units="secs" )
   }
 
-  tmp$diff = difftime( tmp$end, tmp$start, units="secs" )
-  tmp$start.bias =  difftime( tmp$start,  O$bottom0, units="secs" )
-  tmp$end.bias   = difftime( tmp$end,  O$bottom1, units="secs" )
+
+  tmp = data.frame( start=tmp0)
+  tmp$end = tmp1 
+
+  tmp$diff = difftime( tmp[,"end"], tmp[,"start"], units="secs" )
+  tmp$start.bias =  difftime( tmp[,"start"],  O$bottom0, units="secs" )
+  tmp$end.bias   = difftime( tmp[,"end"],  O$bottom1, units="secs" )
+  rownames(tmp) = bcmethods
 
   O$summary = tmp
 
   # finalised data which have been filtered 
-  fin.all = which( x$timestamp > O$bottom0 & x$timestamp < O$bottom1 )  
+  fin.all = which( x$timestamp >= O$bottom0 & x$timestamp <= O$bottom1 )  
   if (length( fin.all ) == 0 ) fin.all = min( which( O$good)) : max( which( O$good) )
   fin.good = intersect( fin.all, which( O$good)  )
   fin0 = min( fin.all, na.rm=TRUE)
@@ -364,7 +420,8 @@ bottom.contact = function( x, bcp ) {
   O$ts = x$ts
   O$timestamp = x$timestamp
   O$signal2noise = O$depth.n / length( fin.all )  # not really signal to noise but rather  % informations 
-
+  
+  O$bottom.contact.indices = fin.all
   O$bottom.contact = rep( FALSE, nrow(x) )
   O$bottom.contact[ fin.all ] = TRUE
   
