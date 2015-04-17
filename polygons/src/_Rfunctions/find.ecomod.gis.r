@@ -10,7 +10,7 @@
 
 find.ecomod.gis = function( 
     polyname, 
-    loc = project.codedirectory("polygons", "data"),  ## NOTE:: should make this into datadirectory once data sharing has been resolved( Jae )
+    loc = project.datadirectory("polygons", "data"),  ## NOTE:: should make this into datadirectory once data sharing has been resolved( Jae )
     ignorelist=c("archive", "retired"), 
     acceptable.extensions = c( "dat", "csv", "xy", "shp","ll" ),
     returndata=FALSE ,

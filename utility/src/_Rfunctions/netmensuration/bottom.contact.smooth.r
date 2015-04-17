@@ -2,7 +2,7 @@
 bottom.contact.smooth = function( sm, bcp )  {
   ## Smooth method: smooth data to remove local trends and compute first derivatives 
 
-  res = c(NA, NA)
+  res = list( bc0=NA, bc1=NA)
 
   if(0) {
     load("~/ecomod/groundfish/data/nets/Scanmar/bottom.contact/results/bc.NED2014102.8.rdata")
@@ -17,52 +17,53 @@ bottom.contact.smooth = function( sm, bcp )  {
   names( sm) = c("Z", "timestamp", "ts" ) # Z is used to abstract the variable name such that any variable can be passed
   N = nrow(sm)
   
-  Zmodes0 = modes( sm$Z )
-
-  # create a variable with any linear or quadratic trend in the depths removed as this can increase the precision of the method
-  ib = which( sm$Z > Zmodes0["mean", "lb"] & sm$Z < Zmodes0["mean", "ub"] )
-  ib.range = max(ib) - min(ib)
-  ib.guess = min(ib) : max(ib)
-  botlm = lm( Z ~ ts +I(ts^2) + I(ts^3), data= sm[ ib.guess, ], na.action="na.omit")  
-  sm$Z = sm$Z - predict( botlm, newdata=sm )
-
-  sm$dZ = grad( approxfun( sm$ts, sm$Z ), sm$ts, method="simple" )
-  ii = which( !is.finite( sm$dZ ) )
-  sm$dZ[ii] = sm$dZ[ min(ii)-1 ]    
-  # last element(s) are NA's .. copy the next to last value into it
+  # expand tails a bit more:
+  Z0 = modes( sm$Z )
+  aoi.i = which( sm$Z > (Z0$lb2 + bcp$depth.range[1]/2) &  sm$Z < (Z0$ub2 + bcp$depth.range[2]/2 ) )
+  
+  ml0 = min(aoi.i + 5 ) ## move away from edge to avoid strange curvatures due to being on the tail
+  mr0 = max(aoi.i - 5 )
+  
+  #sm$Z.smoothed = interpolate.xy.robust( sm[, c("ts", "Z")], 
+  #      target.r2=bcp$smooth.target.r2, probs=bcp$smooth.filter.quants, method="moving.window" ) 
+  
+  sm$dZ = grad( approxfun( sm$ts, sm$Z, rule=2 ), sm$ts, method="simple" )
 
   # Too noisy to use 2nd derivative ///
   # sm$ddZ = grad( approxfun( sm$ts, sm$dZ ), sm$ts, method="simple" )
   # sm$ddZ[N] = sm$ddZ[ N-1 ]
   
+  # remove high freq variation
   sm$dZ.smoothed = interpolate.xy.robust( sm[, c("ts", "dZ")], 
-        target.r2=bcp$smooth.target.r2, probs=bcp$smooth.filter.quants, method=bcp$smooth.dZ.method, 
-        inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal )
- 
-  dZ.modes = modes( sm$dZ.smoothed )
+        target.r2=bcp$smooth.target.r2, probs=bcp$smooth.filter.quants, method="sequential.linear" ) 
+
+  dZ.modes = modes( sm$dZ )
+  ub =  dZ.modes$ub2
+  lb =  dZ.modes$lb2 
 
   # now using (smoothed) first derivative determine inflection points (crossing of the (near)-zero line)
-  mm = trunc( N/2 )
-  ml = trunc(mm/3) # 1/6
-  mr = trunc(N-mm/3) # #/6 
-  mmed = median( sm$Z, na.rm=TRUE )
-  mmsd = 2 * sd( sm$Z, na.rm=TRUE )  ## SD 
+  iib = which( sm$dZ.smoothed < ub & sm$dZ.smoothed > lb )
+  ib = min(iib): max(iib)
 
-  ub =  dZ.modes["mean", "ub"] 
-  lb =  dZ.modes["mean", "lb"] 
+  ng = trunc( length(ib) / 10 ) # small chunk close to candidate area of interest
+  ml = ib[ ng ] 
+  mr = ib[ (length(ib) - ng) ] 
 
-  mwin = -bcp$smooth.windowsize : bcp$smooth.windowsize
+  #browser()
+
+  mwin = - bcp$smooth.windowsize : bcp$smooth.windowsize
+  
   # left side
-  if ( abs( sm$Z[1] - mmed ) < mmsd ) {
+  if ( abs( sm$Z[1] - Z0$mode ) < Z0$sd ) {
     # assuming it is truncated without the left tail ..
     k0 = 1
   } else {
-    for( k0 in ml:1) {
+    for( k0 in ml0:ml) {
       ri = k0+mwin
       ri = ri[ ri >= 1 & ri <=N ]
       nri = length(ri)
       if ( nri > 3 ) {
-        nx = length( which( sm$dZ.smoothed[ri] > ub ) )
+        nx = length( which( sm$dZ.smoothed[ri] < ub ) )
         prx = nx / nri
         if (prx > bcp$smooth.threshold) break()
       }
@@ -70,24 +71,24 @@ bottom.contact.smooth = function( sm, bcp )  {
 
   }
 
-  if ( abs( sm$Z[N] - mmed ) < mmsd ) {
+  if ( abs( sm$Z[N] - Z0$mode ) < Z0$sd ) {
     # assuming it is truncated without the right tail ..
     k1 = N
   } else {
     
-    for( k1 in mr:N) {
+    for( k1 in mr0:mr) {
       ri = k1+mwin
       ri = ri[ ri >= 1 & ri <=N ]
       nri = length(ri)
       if ( nri > 3 ) {
-        nx = length( which( sm$dZ.smoothed[ri] < lb ) )
+        nx = length( which( sm$dZ.smoothed[ri] > lb ) )
         prx = nx / nri
         if (prx > bcp$smooth.threshold) break()
       }
     }
   }
 
-  res =  c( sm$timestamp[k0], sm$timestamp[k1] )    
+  res =  list( bc0=sm$timestamp[k0], bc1=sm$timestamp[k1] )    
   
   return(res)
 }

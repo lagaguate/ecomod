@@ -5,18 +5,19 @@ bottom.contact.plot = function ( O ) {
     x = O$plotdata
     trange = range( x$ts, na.rm=TRUE )
     drange = range( x$depth, na.rm=TRUE) 
-    plot(depth~ts, x, ylim=c(drange[2] +2.5, drange[1] -5), xlim=c(trange[1],trange[2]), type="p", pch=".", col="black", cex=2 )
+    plot(depth~ts, x, ylim=c(drange[2] +2.5, drange[1] -5), xlim=c(trange[1]-20,trange[2]+20), type="p", pch=".", col="black", cex=2 )
     title( sub=paste(O$id, O$error.flag) ) 
     return() 
   }
 
-  x = O$plotdata
-   # browser()
+    x = O$plotdata
 
   # all data within range of gated limits
-    trange = range( x$ts[O$good], na.rm=TRUE )
-    drange = range( x$depth[O$good], na.rm=TRUE) 
-    plot(depth~ts, x, ylim=c(drange[2] +2.5, drange[1] -5), xlim=c(trange[1],trange[2]), type="n" )
+    dtrg = O$variance.method.indices
+    if (length( which (is.finite( dtrg))) == 0 ) dtrg = O$good
+    trange = range( x$ts[dtrg], na.rm=TRUE )
+    drange = range( O$depth.smoothed[dtrg], na.rm=TRUE) 
+    plot(depth~ts, x, ylim=c(drange[2] + 5, drange[1] -10 ), xlim=c(trange[1]-60,trange[2]+60), type="n", xlab="" )
     legendtext = NULL
     legendcol = NULL
     legendpch = NULL
@@ -24,59 +25,59 @@ bottom.contact.plot = function ( O ) {
     points( depth~ts, x[!O$good,], pch=21, col="red", cex=0.4)
 
 
-    if (all(is.finite( O$variance.method) ) ) {
+    if (all(is.finite(c( O$variance.method0, O$variance.method1) ) ) ) {
         mcol = "gray"
         # points( depth~ts, x[ O$variance.method.indices, ], pch=20, col=mcol, cex=0.2)
         abline (v=x$ts[min(O$variance.method.indices)], col=mcol, lty="solid", lwd=1.2)
         abline (v=x$ts[max(O$variance.method.indices)], col=mcol, lty="solid", lwd=1.2)
-        duration = as.numeric( difftime( O$variance.method[2], O$variance.method[1], units="mins" ) )
+        duration = as.numeric( difftime( O$variance.method1, O$variance.method0, units="mins" ) )
         legendtext = c( legendtext, paste( "variance gate:   ", round( duration, 2), "" ) )
         legendcol = c( legendcol, mcol)
         legendpch =c( legendpch, 20 ) 
     }
     
 
-    if (all(is.finite( O$modal.method) ) ) {
+    if (all(is.finite( c(O$modal.method0, O$modal.method1 ) ) ) ) {
         mcol = "red" # colour for plotting
         # points( depth~ts, x[O$modal.method.indices,], col=mcol, pch=20, cex=0.2)       
         abline (v=x$ts[min(O$modal.method.indices)], col=mcol, lty="dashed")
         abline (v=x$ts[max(O$modal.method.indices)], col=mcol, lty="dashed")
-        duration = as.numeric( difftime( O$modal.method[2], O$modal.method[1], units="mins" ) )
+        duration = as.numeric( difftime( O$modal.method1, O$modal.method0, units="mins" ) )
         legendtext = c( legendtext, paste( "modal:   ", round( duration, 2) ) )
         legendcol = c( legendcol, mcol)
         legendpch =c( legendpch, 20) 
     }
 
     
-    if ( all(is.finite(O$smooth.method) ) ) {
+    if ( all(is.finite( c( O$smooth.method0,  O$smooth.method1) ) ) ) {
           mcol = "blue"
           # points( depth~ts, x[O$smooth.method.indices,], col=mcol, pch=20, cex=0.2)   
           abline (v=x$ts[min(O$smooth.method.indices)], col=mcol, lty="dotdash", lwd=1.5)
           abline (v=x$ts[max(O$smooth.method.indices)], col=mcol, lty="dotdash", lwd=1.5)
-          duration = as.numeric( difftime( O$smooth.method[2], O$smooth.method[1], units="mins" ) )
+          duration = as.numeric( difftime( O$smooth.method1, O$smooth.method0, units="mins" ) )
           legendtext = c(legendtext, paste( "smooth:   ", round(duration, 2)) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
     }
   
-    if (all(is.finite(O$linear.method)) ) {
+    if (all(is.finite( c(O$linear.method0, O$linear.method1)  )) ) {
           mcol ="green"
           # points( depth~ts, x[O$linear.method.indices,], col=mcol, pch=20, cex=0.2)      
           abline (v=x$ts[min(O$linear.method.indices)], col=mcol, lty="twodash")
           abline (v=x$ts[max(O$linear.method.indices)], col=mcol, lty="twodash")
-          duration = as.numeric( difftime( O$linear.method[2], O$linear.method[1], units="mins" ) )
+          duration = as.numeric( difftime( O$linear.method1, O$linear.method0, units="mins" ) )
           legendtext = c( legendtext, paste( "linear: ", round( duration, 2) ) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
      }
 
 
-    if (all(is.finite(O$maxdepth.method)) ) {
+    if (all(is.finite( c( O$maxdepth.method0,  O$maxdepth.method1) )) ) {
       mcol ="orange"
           # points( depth~ts, x[O$linear.method.indices,], col=mcol, pch=20, cex=0.2)      
           abline (v=x$ts[min(O$maxdepth.method.indices)], col=mcol, lty="solid")
           abline (v=x$ts[max(O$maxdepth.method.indices)], col=mcol, lty="solid")
-          duration = as.numeric( difftime( O$maxdepth.method[2], O$maxdepth.method[1], units="mins" ) )
+          duration = as.numeric( difftime( O$maxdepth.method1, O$maxdepth.method0, units="mins" ) )
           legendtext = c( legendtext, paste( "maxdepth: ", round( duration, 2) ) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
@@ -84,21 +85,25 @@ bottom.contact.plot = function ( O ) {
 
     if (all(is.finite( c(O$bottom0, O$bottom1) )) ) {
       mcol ="purple"
-          abline (v=x$ts[min(O$bottom.contact)], col=mcol, lty="dotted")
-          abline (v=x$ts[max(O$bottom.contact)], col=mcol, lty="dotted")
+        td0 = abs( difftime( O$bottom0, x$timestamp)) 
+        td1 = abs( difftime( O$bottom1, x$timestamp) )
+        ii0  =which.min( td0)
+        ii1  =which.min( td1)
+          abline (v=x$ts[ ii0], col=mcol, lty="solid", lwd=1.6)
+          abline (v=x$ts[ ii1], col=mcol, lty="solid", lwd=1.6)
           duration = as.numeric( difftime( O$bottom1, O$bottom0, units="mins" ) )
-          legendtext = c( legendtext, paste( "Overall mean: ", round( duration, 2) ) )
+          legendtext = c( legendtext, paste( "Trimmed mean: ", round( duration, 2) ) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
      }
 
 
-     if (all(is.finite(O$manual.method)) ) {
+     if (all(is.finite( c(O$manual.method0, O$manual.method1 ) )) ) {
         mcol ="cyan"
-        points( depth~ts, x[O$manual.method.indices,], col=mcol, pch=20, cex=0.2)      
+        # points( depth~ts, x[O$manual.method.indices,], col=mcol, pch=20, cex=0.2)      
         abline (v=x$ts[min(O$manual.method.indices)], col=mcol, lty="dotdash")
         abline (v=x$ts[max(O$manual.method.indices)], col=mcol, lty="dotdash")
-        tdif = abs( as.numeric(difftime(O$manual.method, units="mins")) )
+        tdif = abs( as.numeric(difftime(O$manual.method1, O$manual.method0 , units="mins")) )
         tdiffman = round( tdif, 2)
         legendtext = c( legendtext, paste( "manual: ", tdiffman  ) ) 
         legendcol = c( legendcol, mcol)
@@ -111,11 +116,11 @@ bottom.contact.plot = function ( O ) {
     lines( O$depth.smoothed ~ x$ts, col="brown" )
     # points( depth0~ts, x[!O$good,], col="red", cex=1 )   ## points dropped from filters
     
-    title( sub=paste( O$id, 
+    title( sub=paste( O$id,  
       " :: time mean=", signif( as.numeric(O$bottom.diff)/60, 3), 
       "; time sd=", signif( as.numeric(O$bottom.diff.sd)/60, 3) , 
-      "; n=", O$depth.n, 
-      "; depth mean=", signif( O$depth.mean, 3), 
+      "; n=", O$depth.n,  
+      ";", "\n", " depth mean=", signif( O$depth.mean, 3), 
       "; depth sd=", signif( O$depth.sd, 3), 
       "; signal=", signif(O$signal2noise, 3) , sep="")  )
 

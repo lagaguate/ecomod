@@ -5,7 +5,7 @@ load.scanmar.rawdata = function( fn, tzone="UTC", yr=NULL ) {
   scanmar=NULL
   header = readLines(fn, n=10, encoding="UTF-8", skipNul=TRUE)
   datestring = basename(fn)
-  
+ 
   yr_test = substring( datestring, 1, 4 )
   if (yr_test == as.character(yr)) {
     # for 1990 to 2014 .. naming method is consistent
@@ -71,14 +71,35 @@ load.scanmar.rawdata = function( fn, tzone="UTC", yr=NULL ) {
   
   scanmar$timestamp= paste(yr, mon, day, scanmar$time, sep="-" )
   scanmar$timestamp=gsub(":","-",scanmar$timestamp)
-  scanmar$timestamp = ymd_hms(scanmar$timestamp) # Scanmar is always UTC!!! .. which is the default of ymd_hms
+  scanmar$timestamp = lubridate::ymd_hms(scanmar$timestamp) # Scanmar is always UTC!!! .. which is the default of ymd_hms
   
   scanmar$netmensurationfilename = basename(fn)
   
   test = timestamp.fix ( scanmar$timestamp, threshold.hrs=2 )
   if (!is.null(test))  scanmar$timestamp = test
 
+  scanmar = look.for.multiple.sets ( scanmar )
+  scanmar$id = NA  # filled in below if from 2015 and onwards, otherwise this will be filled in later once the position/time is matched to gsinf
+  
+  if (yr >= 2015) {
+    h1 = unlist( strsplit( header[1], "[[:punct:]]" ))
+    mission = substring( h1[1], nchar(h1[1])-9, nchar(h1[1]) )
+    set = as.character( h1[2] )
+    header.id = paste( mission, set, sep=".") 
+
+    f0 = unlist( strsplit( basename( fn), "[[:punct:]]" )) 
+    filename.id = paste( f0[1], f0[2], sep=".")
+    
+    scanmar$id = header.id
+
+    if (header.id != filename.id){ 
+      print( "Header and filename do not indicate the same mission & set" )
+      print( "Using header id over filename ... please check the file." )
+    }
+  }
+  
   return(scanmar)
+
 }
 
 

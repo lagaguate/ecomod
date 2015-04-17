@@ -20,7 +20,7 @@
     xlim[1] = xlim[1]-0.5
     xlim[2] = xlim[2]+0.5
     
-    ylim = range( c( ub, lb, c(-2,2)*sdy+y) , na.rm=T)
+    ylim = range( c( ub, lb, 0) , na.rm=T)
     
     par( cex = 2, cex.lab=4 )
 

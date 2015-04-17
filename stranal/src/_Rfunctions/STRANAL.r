@@ -249,11 +249,7 @@ lset_results <- dcast(lset, STRAT + SLAT + SLONG + UNITAREA + MISSION + SETNO  ~
   lset_results<-cbind(lset_results,Set_Totals)  
 
 
-# added this section to see if we've duplicated the results given by the VDC
-# "numbers and weights' analytic
-#the positive will be that these results are derived directly from the data,
-#while the VDC results are cached, and updated annually.
-
+# added this section to see if we've duplicated the results given by the VDC "numbers and weights' analytic
 nw.tunits<-tunits_results[,which(names(tunits_results) %in% c("STRAT","TUNITS"))]
 
 nw.numbers<-lset_results

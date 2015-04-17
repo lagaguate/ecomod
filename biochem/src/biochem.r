@@ -2,15 +2,47 @@
 ## http://www.meds-sdmm.dfo-mpo.gc.ca/biochemQuery/authenticate.do?errors=yes
 
 
-  
-    require(chron)
-    require(gstat)
-    require(snow)
-    require(RODBC)
+
+source( file.path("C:","Users", "choij", "Documents", ".Rprofile"))
+p = list()
+p$libs = RLibrary( c( "lubridate", "lattice", "INLA", "sp", "RODBC" ) )
+p$init.files = loadfunctions( c( "spatialmethods", "utility", "bathymetry", "biochem" ) ) 
+p$bottles.years = c( 1955:2014 )
+p$zoop.years = c( 1914:2014 )
+
+recreate.polygon5kmcoast=FALSE
+if (recreate.polygon5kmcoast) {
+  polygon5kmcoast(plotdata=TRUE)
+}
+
+bottles.db( DS="bottles.dump.odbc", p=p ) 
+bottles.db( DS="bottles.odbc.all.redo", p=p ) 
+bottles.db( DS="bottles.qa.qc.redo", p=p ) 
 
 
-    if (is.null(biochem.user)) biochem.user = "you.need.to.define.biochem.user"
-    if (is.null(biochem.password)) biochem.password = "you.need.to.define.biochem.password"
+zoop.db( DS="zoop.data.dump.odbc", p=p ) 
+zoop.db( DS="zoop.data.odbc.all.redo", p=p ) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ---- 
 
 
     biochem.db( DS="odbc.datadump" ) 
@@ -23,7 +55,7 @@
     # start data uptake and processing
 
     p = list()
-    p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "temperature", "biochem" ) ) 
+    p$init.files = loadfunctions( c( "spatialmethods", "utility", "parallel", "bathymetry", "temperature", "biochem" ) ) 
     p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$newyear = newyear = c( 2012)
 
