@@ -61,7 +61,7 @@ bottom.contact = function( x, bcp ) {
   # over-smoothed depth to capture stange tows  
   nZ = nrow(x)
   zs = zz = rep( 0, nZ )
-  zz[ which(  x$dsm < bcp$depth.min ) ] = 1  # flag shallow areas
+  zz[ which(  x$dsm < ( mm$mode / 2)) ] = 1  # flag shallow areas
   # zz[ which( is.na( x$depth)) ] = 1  # flag missing data
   dzz = diff(zz)
   bnds = c(1, which( dzz != 0 ), nZ ) 

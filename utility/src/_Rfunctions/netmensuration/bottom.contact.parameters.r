@@ -21,10 +21,14 @@
       } 
 
       if ( bcp$nr < 1200 &  bcp$nr >= 400  ) {
-       # bcp$noisefilter.target.r2 = 0.6
+        bcp$noisefilter.trim = 0.05
+        bcp$noisefilter.quants = c(0.1, 0.9)
+      # bcp$noisefilter.target.r2 = 0.6
       } 
       
       if ( bcp$nr < 400 ) {  # tend to be more noisy
+        bcp$noisefilter.trim = 0.05 
+        bcp$noisefilter.quants = c(0.1, 0.9)
         #bcp$noisefilter.target.r2 = 0.8
         #bcp$noisefilter.trim = 0.1
       } 
@@ -40,7 +44,7 @@
     if ( !exists("nr", bcp)) bcp$nr = NA
     if ( !exists("YR", bcp)) bcp$YR = NA
 
-    if ( !exists("tdif.min", bcp)) bcp$tdif.min=12 # min time difference (minutes)
+    if ( !exists("tdif.min", bcp)) bcp$tdif.min=10 # min time difference (minutes)
     if ( !exists("tdif.max", bcp)) bcp$tdif.max=50  # max time difference (minutes) .. including tails
     if ( !exists("depthproportion", bcp)) bcp$depthproportion=0.6  # depthproportion controls primary (coarse)gating
     if ( !exists("depth.min", bcp)) bcp$depth.min=20
@@ -49,12 +53,12 @@
     if ( !exists("time.gate", bcp)) bcp$time.gate=NA
     if ( !exists("eps.depth", bcp)) bcp$eps.depth = 1 # m
 
-    if ( !exists("noisefilter.trim", bcp)) bcp$noisefilter.trim = 0.1  # proportion of data to remove/trim based upon adjacent differences that are too extreme and local variance windows
-    if ( !exists("noisefilter.var.window", bcp)) bcp$noisefilter.var.window = 10  # 1/2 of moving window used to compute local variance and moving window mean
+    if ( !exists("noisefilter.trim", bcp)) bcp$noisefilter.trim = 0.04  # proportion of data to remove/trim based upon adjacent differences that are too extreme and local variance windows
+    if ( !exists("noisefilter.var.window", bcp)) bcp$noisefilter.var.window = 5  # 1/2 of moving window used to compute local variance and moving window mean
     if ( !exists("noisefilter.inla.h", bcp)) bcp$noisefilter.inla.h = 0.05
     if ( !exists("noisefilter.inla.diagonal", bcp)) bcp$noisefilter.inla.diagonal = 0.05
     if ( !exists("noisefilter.quants", bcp)) bcp$noisefilter.quants = c(0.05, 0.95)
-    if ( !exists("noisefilter.sd.multiplier", bcp)) bcp$noisefilter.sd.multiplier = 3 
+    if ( !exists("noisefilter.sd.multiplier", bcp)) bcp$noisefilter.sd.multiplier = 4 
     if ( !exists("noisefilter.target.r2", bcp)) bcp$noisefilter.target.r2 = 0.8 # for noise filtering  .. ignore variations less than this threshold
 
     if ( !exists("smooth.filter.quants", bcp)) bcp$smooth.filter.quants=c(0.05, 0.95) # for dZ 

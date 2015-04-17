@@ -58,7 +58,7 @@ bottom.contact.modal = function( sm, bcp ) {
     if ( abs( sm$Zr[1] - Zrmodes.left$mode ) <   bcp$modal.sd.multiplier* Zrmodes.left$sd ) {
       r0 = 1 # nothing to do .. assuming it is truncated without the left tail ..
     } else {
-      for ( r0 in 1:trunc(median(i.mod) )){
+      for ( r0 in 5:trunc(median(i.mod) )){
         ri = r0 + mwin
         ri = ri[ ri >= 1 & ri <=N ]
         nri = length(ri)
@@ -80,7 +80,7 @@ bottom.contact.modal = function( sm, bcp ) {
       r1 = N # nothing to do ... assuming it is truncated without the right tail ..
     } else {
 
-      for ( r1 in N:trunc(median(i.mod)) ) {
+      for ( r1 in (N-5):trunc(median(i.mod)) ) {
         ri = r1+mwin
         ri = ri[ ri >= 1 & ri <=N ]
         nri = length(ri)
