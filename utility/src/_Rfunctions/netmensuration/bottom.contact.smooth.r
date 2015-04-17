@@ -21,8 +21,8 @@ bottom.contact.smooth = function( sm, bcp )  {
   Z0 = modes( sm$Z )
   aoi.i = which( sm$Z > (Z0$lb2 + bcp$depth.range[1]/2) &  sm$Z < (Z0$ub2 + bcp$depth.range[2]/2 ) )
   
-  ml0 = min(aoi.i)
-  mr0 = max(aoi.i)
+  ml0 = min(aoi.i + 5 ) ## move away from edge to avoid strange curvatures due to being on the tail
+  mr0 = max(aoi.i - 5 )
   
   #sm$Z.smoothed = interpolate.xy.robust( sm[, c("ts", "Z")], 
   #      target.r2=bcp$smooth.target.r2, probs=bcp$smooth.filter.quants, method="moving.window" ) 
