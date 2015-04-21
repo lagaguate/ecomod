@@ -132,7 +132,15 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 			addPolys(LFAgrid,border=rgb(0,0,0,0.2))
 		}
 	}
-			
+	if(boundaries=='scallop'){
+		
+		SFA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SFA.csv"))
+		addLines(SFA)
+
+		SPA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SPA.csv"))
+		addPolys(SPA)
+	}
+		
 	EEZ<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","EEZ.csv"))
 	addLines(EEZ,lty=4,lwd=2)
 	

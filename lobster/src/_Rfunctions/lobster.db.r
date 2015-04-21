@@ -19,6 +19,7 @@
         lobster.db( DS="atSea.redo")
         lobster.db( DS="cris.redo")
         lobster.db( DS="port.redo")
+        lobster.db( DS="vlog.redo")
         lobster.db( DS="fsra.redo")
         lobster.db( DS="scallop.redo")
       }

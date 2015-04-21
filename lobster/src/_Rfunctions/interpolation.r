@@ -372,7 +372,7 @@ grid.data <- function(vdata,gdata){
 	
 
 
-# areacal.r	("Y:/Assessment/Georges a/2009/r/fn/design functions/areacal.r"):
+# areacal.r	
 # calculate strata areas
 
 areacal <- function(strata.dat,strata.def=c(0,5,10,20,40),units='km2'){
