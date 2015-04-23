@@ -16,8 +16,8 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE, threshold.cv=1
   }
   
   x = x[order( x$timestamp ) ,]
-  bc = which( x$timestamp >=gsi$bc0.datetime & x$timestamp <= gsi$bc1.datetime ) 
-  x = x[bc,]
+  onbottom = which( x$timestamp >=gsi$bc0.datetime & x$timestamp <= gsi$bc1.datetime ) 
+  x = x[onbottom,]
   
   ##--------------------------------
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
@@ -60,7 +60,11 @@ estimate.swept.area = function( gsi=NULL, x=NULL, getnames=FALSE, threshold.cv=1
     for( j in 1:(ndat-1) ) dh[j] = geodist( point=x[j,pos], locations=x[j+1,pos], method="vincenty" ) * 1000 # m .. slower but high res
     # dh = zapsmall( dh, 1e-9 )
     x$distance.sm = c( 0, cumsum( dh ) )
-  } 
+  
+  } else {
+
+  
+  }
 
   
   # ------------

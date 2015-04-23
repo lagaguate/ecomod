@@ -280,12 +280,15 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       return(out)
     }
 
+
+
     gf0 = groundfish.db(DS="gsinf")
     gf0$yr = lubridate::year( gf0$sdate)
     gf0$nm_id = NA
     gf0$timestamp = gf0$sdate
     gf0$min.distance = NA
     gf0$time.difference = NA
+    gf0$depth.difference = NA
     gf0$match.level = NA  # -1 = not matched 
   
     for ( YR in YRS ) {
@@ -305,6 +308,8 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       nm$longitude =NULL
       nm$latitude =NULL
 
+      if ( YR < 2015 ) nm$id = NA   # remove the id's ... they are unreliably matched (in the Perley data base)
+      
       # match level 0 :: if there is already a misson.set identified in nm then nothing else to do 
       oo = which( !is.na(nm$id) )
       if (length(oo) > 0) {
@@ -312,37 +317,49 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         ii = which( gf$id %in% ids )
         if ( length(ii) > 0 ) {
           gf$nm_id[ii] =gf$id[ii]
-          gf$match.level[ii] = 0  # tag exact matches
+          gf$match.level[ii] = 0  # tag exact matches  .. only true for 2015 onwards
         } 
       }
-    
 
       # now switching focus upon gsinf: if id is missing then we require a matching nm identity (filename) 
       # match level 1:: unique element with data within 1 km an 1 hr
       # criteria for exact matches in time (hr) and distance (km) :: 1 nm = 1.852 km, 3
       unmatched = which( is.na( gf$nm_id ) )
       if (length(unmatched)>0) {
-        ## first pass ... match based upon time and space contraints
         for(igg in unmatched) {
  
-          # backup method:: match on distance only ( and year) in case there was a time stamp error 
-          distance.km = try( abs( as.vector( 
-              geodist( nm[ , c("lon","lat")], gf[igg, c("lon","lat")], method="great.circle")
-          ) ), silent=TRUE )
-          if (all( is.na( distance.km))) next()
-
-          mmi = which.min( distance.km) 
-          
-          res = NULL
+         # if (gf$id[igg] != "TEL2004529.1" ) {
+         #   next ()
+         # } else {
+         #   browser()
+         # }
+          res = NULL  # container for matches
           res = data.frame(time.hr = NA)
-          res$distance.km = distance.km[mmi]
-          res$fn = nm$netmensurationfilename[mmi]
-          res$match.level = distance.km[mmi]
+          res$distance.km = NA 
+          res$depth.diff  = NA
+          res$fn = NA
+          res$match.level = NA
 
-          # now time-based matches ... lower condifence as there are so many issues with timezones and unsynced clocks
-          dif = difftime( nm$timestamp, gf$sdate[igg], units="hours" )
-          dd = which(abs(dif) <= 5  )  # time constraint for an expansive match ... 4 hrs should catch any strangeness due to time zone errors..  
-          if(length(dd) > 30 ) { # at least 30 time slots 
+          # criteria for matching: distance, time and depth differences
+          distance.km = try( abs( as.vector( geodist( nm[ , c("lon","lat")], gf[igg, c("lon","lat")], method="great.circle")) ), silent=TRUE )
+          diftime.hr = difftime( nm$timestamp, gf$sdate[igg], units="hours" )
+          dd = which( abs(diftime.hr) <= 5  )  # 5hr constraint ... 4 hrs should catch any strangeness due to time zone errors.. 
+          difdepth.m = nm$depth - gf$bottom_depth[igg]
+          ee = which( abs(difdepth.m) < 20 )
+
+          if ( all( is.na( distance.km)) || ( length( dd) ==0 ) ) next()  # no possible matches based upon loc nor time 
+
+          # match 1: distance only (and year .. implicit) 
+          # in case there was a time stamp error .. this is a backup method in case everything else fails
+            mmi = which.min( distance.km) 
+            res$time.hr = diftime.hr[mmi]
+            res$distance.km = distance.km[mmi]
+            res$depth.diff  = difdepth.m[mmi]
+            res$fn = nm$netmensurationfilename[mmi]
+            res$match.level = distance.km[mmi]
+
+          # match 2: time-based only
+          # ... lower condifence as there are so many issues with timezones and unsynced clocks
             fns =  unique( nm$netmensurationfilename[dd] ) 
             fn0 = NULL
             for ( fni in fns ) {
@@ -352,46 +369,53 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
               dmode = modes( nm$depth[jj] )  # fast estimate of location of bottom
               mm = which( nm$depth[jj] < dmode$ub2 & nm$depth[jj] > dmode$lb2 ) 
               m = median( trunc(jj[mm]) ) # approx midpoint of bottom
-              distance.km = try( abs( as.vector( 
-                  geodist( nm[ m, c("lon","lat")], gf[igg, c("lon","lat")], method="great.circle")) ), silent=TRUE ) 
-              if (class(distance.km) %in% "try-error") distance.km = NA
+              midpoint.distance.km = try( abs( as.vector( geodist( nm[ m, c("lon","lat")], gf[igg, c("lon","lat")], method="great.circle")) ), silent=TRUE ) 
+              if (class(midpoint.distance.km) %in% "try-error") midpoint.distance.km = NA
               time.hr =  try(  difftime( nm$timestamp[m], gf$sdate[igg], units="hours" ) , silent=TRUE ) 
-              
+              fno = NULL
               fno = data.frame( time.hr = time.hr )
-              fno$distance.km= distance.km
+              fno$distance.km= midpoint.distance.km
+              fno$depth.diff = difdepth.m [m]
               fno$fn = fni
               fno$match.level = NA 
-              
               res = rbind( res, fno )
             }
-          }
-      
+  
+          uu = which( is.na( res$time.hr))
+          if ( length(uu) > 0) res$time.hr[uu] = min( 10, max(res$time.hr, na.rm=TRUE) )
+         
+          vv = which( is.na( res$distance.km))
+          if ( length(vv) > 0) res$distance.km[vv] = min( 10, max(res$distance.km, na.rm=TRUE) )
+
+    
           # res contains best candidate matches, now choose best match, if any ... 
-          o1 = which( abs( res$time.hr) < 1 & res$distance.km < 1 ) 
+          
+          o1 = which( abs( res$time.hr) < 1.5 & res$distance.km < 1 ) 
           if (length(o1) == 1) {
             # most likely an exact match ...
             res$match.level[o1] = 1
           }
           if (length(o1) > 1) {
             # multiple matches
-            res$match.level[o1] = 1 + 1/length(o1)  
+            res$match.level[o1] = 1 + abs( res$distance.km[o1] * res$time.hr[o1]  )  
           }
           
-          o2 = which( abs( res$time.hr) < 4 & res$distance.km < 1 ) 
+
+          o2 = which( abs( res$time.hr) >= 1.5  & abs( res$time.hr) < 4 & res$distance.km < 1 ) 
           if (length(o2) == 1) {    
             # most likely an exact match ...
             res$match.level[o2] = 2
           }
           if (length(o2) > 1) {
             # multiple matches
-            res$match.level[o2] = 2 + 1/length(o2)  
+            res$match.level[o2] = 2 + abs( res$distance.km[o2] * res$time.hr[o2]  )
           }
           
           o3 = which( is.na( res$match.level) ) 
-          if (length(o3) > 1) {
-            res$match.level[o3] = abs( res$distance.km[o3] * res$time.hr[o3] )
+          if (length(o3) > 0) {
+            res$match.level[o3] = 3 + abs( res$distance.km[o3] * res$time.hr[o3] )
           }
-
+          
           best.choice = which.min( res$match.level )  
           if ( abs( res$match.level[best.choice] ) < 5 ) {  
             # 5 .. in case of time zone issues and some gps timing issues  ... anything higher is too unreliable
@@ -400,7 +424,13 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
             gf$timestamp[igg] = gf$sdate[igg] 
             gf$min.distance[igg] = res[best.choice, "distance.km"]
             gf$time.difference[igg] = res[best.choice, "time.hr"]
+            gf$depth.difference[igg] = res[best.choice, "depth.diff"] 
           }
+
+       #   print( gf[igg,] )
+
+        #  print()
+
         } # end for loop  unmatched
       
       }  # end if
@@ -409,7 +439,6 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       uu = which( duplicated( gf$fn ) ) 
       if ( length(uu) > 0 ) {
         print( "Duplicated matches:")
-        # browser()
         
         did = unique( gf$fn )
         for ( dd in did ) {
@@ -479,7 +508,10 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       if (length( nmj) > 0 ) nm = nm[ -nmj,]
 
     
-      nm = merge(nm, gf, by="nm_id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".gf") )
+      nmm = merge(nm, gf, by="nm_id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".gf") )
+      
+      if( nrow(nm) != nrow(nm) ) stop("Merge error") 
+      nm =nmm
       gooddata = which( !is.na( nm$id))
       if (length( gooddata) ==0 ) {
         print( paste("No id's found for", YR ))
@@ -491,7 +523,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       if (length(todrop)>0) nm = nm[ ,-todrop]
       
       # check for unbelievable matches based upon distance: these should really be right on top of each other ... 
-      distanceissues = which( nm$min.distance > 0.2 )   
+      distanceissues = which( nm$min.distance > 1.25 )   
       if (length( distanceissues ) >0 ) {
         uu = unique( nm$id[distanceissues] )
         for (u in uu ) {
@@ -502,7 +534,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         if (length( oo) >0 ) nm = nm[ - oo, ] 
       }
 
-      # check for time zone type issues and assume gf is correct
+      # check for time zone type issues and assume gf is correct time
       timeissues = which( nm$time.difference > 1 ) # time.difference is in hours
       if (length(timeissues) >0 ) {
         uu = unique( nm$id[ timeissues ])
@@ -648,6 +680,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         uid = bottom.contact.debug.id
       }
 
+
       ### if rerun necessary .. start from here until R-inla behaves more gracefully with faults
 
       if ( file.exists (fn.current) ) {
@@ -701,7 +734,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         # defaults appropriate for more modern scanmar data have > 3500 pings
         bcp = list( 
           id=id, datasource="groundfish", nr=nrow(mm), YR=YR,
-          tdif.min=15, tdif.max=45, setdepth=gsinf$bottom_depth[gii] 
+          tdif.min=13, tdif.max=45, setdepth=gsinf$bottom_depth[gii] 
         )
         
         bcp = bottom.contact.parameters( bcp ) # add other default parameters
@@ -717,6 +750,11 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         if (id=="NED2013022.193"){
           bcp$depth.range = c(-250, 150) 
         }
+ 
+        if (id=="TEL2004529.16"){
+          bcp$depth.range = c(-150, 150) 
+        }
+
 
 
         bc = NULL # 
@@ -725,18 +763,21 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         if ( !is.null( bottom.contact.debug.id ) ) {
           ## this is a debugging mode return results and escape
           bottom.contact.plot( bc )
+         #  bc = wingspread( bc, mm, bcp )
           return(bc)
         }
 
         if ( ! is.null(bc) && ( ! ( "try-error" %in% class(bc) ) ) ) { 
           bottom.contact.plot( bc )
-          plotfn = file.path( scanmar.bc.dir, "figures", paste(id, "pdf", sep="." ) )
-          print (plotfn)
-          dev.flush()
-          dev.copy2pdf( file=plotfn )
-         
+            plotfn = file.path( scanmar.bc.dir, "figures", paste(id, "pdf", sep="." ) )
+            print (plotfn)
+            dev.flush()
+            dev.copy2pdf( file=plotfn )
+           
           if ( exists("error.flag", bc) && !is.na( bc$error.flag ) ) next()
 
+          # bc = wingspread( bc, mm, bcp )
+          
           gsinf$bc0.datetime[gii] = bc$bottom0 
           gsinf$bc1.datetime[gii] = bc$bottom1
           gsinf$bottom_duration[gii] = bc$bottom.diff
@@ -744,7 +785,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
           gsinf$bc1.sd[gii] = bc$bottom1.sd
           gsinf$bc0.n[gii] =  bc$bottom0.n
           gsinf$bc1.n[gii] =  bc$bottom1.n
-          if ( !is.finite( gsinf$bottom_depth[gii]))  gsinf$bottom_depth[gii] = bc$depth.mean
+          if ( !is.finite( bc$depth.mean))  gsinf$bottom_depth[gii] = bc$depth.mean  # over ride as there are many issues with the depth recorded in gsinf ...
           save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
           fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
           save ( bc, file=fn.bc, compress=TRUE )
@@ -855,8 +896,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
 
 
   # -----------------------------------
-
-
+ 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
     
     if (is.null (YRS) ) YRS = p$netmensuration.years 
@@ -889,13 +929,13 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       gs = scanmar.db( DS="bottom.contact", p=p, YRS=YR )
       if (is.null ( gs)) next()
      
-      gs$dist = NULL  # dummy values .. remove to avoid confusion 
+      # gs$dist = NULL  # dummy values .. remove to avoid confusion 
       
       # get variable names and sequence of var's
       gstest = estimate.swept.area( getnames=TRUE )
       newvars = setdiff( gstest, names( gs) )
       for (vn in newvars) gs[,vn] = NA
-      gs = gs[, names(gstest) ] # reorder
+      # gs = gs[, names(gstest) ] # reorder
 
    
        
@@ -904,10 +944,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         if(FALSE) {
           # debugging 
           id="NED2010001.59"
-          ii = which( nm$id==id ) 
-          gii = which( gs$id==id ) 
-          gs = gs[gii,]
-          x = nm[ii,]
+     
         }
         
         
@@ -916,10 +953,18 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         bc = scanmar.db( DS="bottom.contact.id", p=p, id=id )
         
         gii = jj = NULL
+
         jj  = which( nm$id==id )  # rows of nm with scanmar/marport data
         gii = which( gs$id==id )  # row of matching gsinf with tow info
 
-        sa = estimate.swept.area( gsi=gs[gii,],  x= nm[jj,] )
+     #   sa = estimate.swept.area( gsi=gs[gii,],  x= nm[jj,] )
+     
+
+          gs = gs[gii,]
+          x = nm[jj,]
+
+
+
         gs$sa[gii] = sa$surfacearea
         # gs$ ...
 

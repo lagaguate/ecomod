@@ -13,7 +13,8 @@ p$marport.dir = file.path( project.datadirectory("groundfish"), "data", "nets", 
 # p$netmensuration.years = p$current.year  ## for incremental/annual update
 ## 2009 is the first year with set logs from scanmar available .. if more are found, alter this date
 p$current.year = 2015
-p$netmensuration.years = c(1990:1992, 2004:p$current.year)  
+p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992 data really do not match the timestamps (and have no location info) 
+
 # p$netmensuration.years = p$current.year  
 
 
@@ -42,8 +43,9 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 # usually insufficient data for these or just flat-lines .. no reliable data
 
 
-if (FALSE) {
+if (FALSE) { 
   # tests of extreme data conditions :
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.155") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.1") # simple, low n 
 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.18")  # n=300, very curvy data
@@ -61,7 +63,13 @@ if (FALSE) {
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2006614.10") # n=353, noisy 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.74") # n=1876, simple with noisy tail 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.68") # n=1917, large simple curve on bottom 
+ 
+
+### not working
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEM2008830.120") # n= 343, noisy tail 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.4") # n= 343, noisy tail 
+  
+  
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.70" ) # n=3600 .. flat but sloped bottom
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.91" ) # n=3400 .. .very curvy bottom
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.225" ) # n <100 
@@ -82,30 +90,31 @@ if (FALSE) {
 
 }
 
+
 # the data for these sets need to be checked:
 p$bc.badlist = c(
-  "TEL2005545.73",  "TEL2005633.41",  "NED2010027.24", 
-  "TEL2006614.2",   "TEM2008830.126", 
-  "NED2010027.15",  "NED2010027.66",  "TEL2005633.63", 
-  "NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83", "NED2013028.105", 
-  "NED2013022.178", "NED2013022.193", "NED2014102.34",  "NED2013028.104", "NED2013028.148",
-  "TEL2004529.19" , "TEL2004529.25",  "NED2013028.168", "NED2013028.174", "TEL2004529.46",  "TEL2004529.59" ,
- "TEL2004529.78" , "TEL2004530.23",  "NED2013028.59",  "TEL2004530.55",  "NED2005001.11",  "NED2005001.12" ,
-"NED2005001.32",  "NED2013028.9", "NED2012002.66",  "NED2005001.74",  "NED2005001.81" , "NED2005001.82",  "NED2005001.86",  "NED2005001.91" ,
-  "NED2009027.135", "NED2012002.81" , "TEL2005545.11" , "TEL2005545.12" , "TEL2005545.21",  "NED2009027.146",
- "NED2012002.92",  "NED2009027.152", "NED2009027.154", "TEL2005545.9" ,  "TEL2005605.1" ,  "TEL2005605.42" ,
- "TEL2005605.45" , "TEL2005605.50",  "TEL2005605.59" , "TEL2005605.68",  "TEL2005605.80" , "TEL2005633.1"  ,
- "TEL2005633.106", "NED2009027.35"  ,"TEL2005633.15" , "NED2009027.43" , "TEL2005633.43" , "TEL2005633.50" ,
- "TEL2005633.59",  "NED2006001.47" , "NED2006001.59" , "NED2006001.80" ,
- "NED2012002.92"  ,"NED2009027.152", "NED2009027.154", "NED2014018.28",  
- "NED2014002.4",   "NED2014018.13" , "NED2014018.168", "NED2014018.169", "NED2014018.214" ,"NED2014018.225",
- "NED2014018.33" , "NED2014101.14"
+  "tel2005545.73",  "tel2005633.41",  "ned2010027.24", 
+  "tel2006614.2",   "tem2008830.126", 
+  "ned2010027.15",  "ned2010027.66",  "tel2005633.63", 
+  "ned2013028.106", "ned2013028.147", "ned2013028.188", "ned2013028.83", "ned2013028.105", 
+  "ned2013022.178", "ned2013022.193", "ned2014102.34",  "ned2013028.104", "ned2013028.148",
+  "tel2004529.19" , "tel2004529.25",  "ned2013028.168", "ned2013028.174", "tel2004529.46",  "tel2004529.59" ,
+ "tel2004529.78" , "tel2004530.23",  "ned2013028.59",  "tel2004530.55",  "ned2005001.11",  "ned2005001.12" ,
+"ned2005001.32",  "ned2013028.9", "ned2012002.66",  "ned2005001.74",  "ned2005001.81" , "ned2005001.82",  "ned2005001.86",  "ned2005001.91" ,
+  "ned2009027.135", "ned2012002.81" , "tel2005545.11" , "tel2005545.12" , "tel2005545.21",  "ned2009027.146",
+ "ned2012002.92",  "ned2009027.152", "ned2009027.154", "tel2005545.9" ,  "tel2005605.1" ,  "tel2005605.42" ,
+ "tel2005605.45" , "tel2005605.50",  "tel2005605.59" , "tel2005605.68",  "tel2005605.80" , "tel2005633.1"  ,
+ "tel2005633.106", "ned2009027.35"  ,"tel2005633.15" , "ned2009027.43" , "tel2005633.43" , "tel2005633.50" ,
+ "tel2005633.59",  "ned2006001.47" , "ned2006001.59" , "ned2006001.80" ,
+ "ned2012002.92"  ,"ned2009027.152", "ned2009027.154", "ned2014018.28",  
+ "ned2014002.4",   "ned2014018.13" , "ned2014018.168", "ned2014018.169", "ned2014018.214" ,"ned2014018.225",
+ "ned2014018.33" , "ned2014101.14"
   )
 
 
 
 
-scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
+scanmar.db( DS ="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 scanmar.db( DS="sweptarea.redo",  p=p )  
 
@@ -116,7 +125,7 @@ scanmar.db( DS="sweptarea.redo",  p=p )
 gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
 pp = tapply( gs$id, year(gs$bc0.datetime), function(x) { length(unique(x))} )
 pp = data.frame( yr= rownames(pp), n.bc=pp)
-scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
+#scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 
 oo = tapply( gs$id, year(gs$sdate), function(x) { length(unique(x))} )
 oo = data.frame( yr = rownames(oo), n.gs= oo)
