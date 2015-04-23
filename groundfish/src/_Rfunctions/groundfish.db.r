@@ -461,7 +461,7 @@
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
 			gsinf = gsinf[, c("id", "sdate", "edate", "time", "strat", "area", "speed", "dist", 
-                        "cftow", "sakm2", "settype", "lon", "lat", "lon.end", "lat.end",
+                        "cftow", "sakm2", "settype", "gear", "lon", "lat", "lon.end", "lat.end",
                         "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       
       save(gsinf, file=fn, compress=T)

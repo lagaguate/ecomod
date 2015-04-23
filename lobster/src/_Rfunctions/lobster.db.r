@@ -1,167 +1,156 @@
 
-  lobster.db = function( DS="", p="" ) {
+  lobster.db = function( DS="complete.redo") {
+
+
+    fn.root =  file.path( project.datadirectory("lobster"), "data", "ODBCDump")
+    dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
     
-    if (DS %in% c("lfa41", "lfa41.redo") ) {
-      fn = file.path( project.datadirectory("lobster"), "data", "lfa41.rdata" )
-      if ( DS=="lfa41") {
-        load( fn)
-        return (lob)
+    if (DS %in% c("complete.redo", "complete") ) {
+
+      if (DS=="complete") {
+        fl = list.files( path=fn.root, pattern="*.rdata", full.names=T ) 
+        for ( fny in fl ) {
+          load (fny, .GlobalEnv)
+        }
       }
-      fn.lfa41 = file.path( project.datadirectory("lobster"), "data", "lfa41.txt" )
-      lob = read.table( fn.lfa41, header=T, as.is=T, sep="\t" )
-      names(lob) = tolower( names(lob))
-      names(lob) [which(names(lob)=="ddlat")] = "lat"
-      names(lob) [which(names(lob)=="ddlon")] = "lon"
-      names(lob) [which(names(lob)=="date_fished")] = "date"
-      lob$lon = -lob$lon
-      lob$z = log( lob$depth_fm * 1.8288  )  # natural log by default
-      lob$depth_fm = NULL
-      lob$catchrate = lob$lobster / lob$trap_hauls
-      lob$chron = chron( dates.=lob$date, times.="12:00:00", format=c(dates="d/m/y",  times = "h:m:s"), out.format=c( "year-m-d", "h:m:s") )
-      lob$yr = convert.datecodes(lob$chron, "year")
-      lob$julian = convert.datecodes(lob$chron, "julian")
-      
-      lob$id = paste( lob$cfv_no, rownames(lob), sep="~" )
-
-      # drop data with geographics (n=3)
-      i = which(lob$lon > - 10 |lob$lat < 10   )
-      lob = lob[-i ,]
-
-      lb = quantile(  lob$catchrate[ which(lob$catchrate>0)], probs=p$threshold.quantile, na.rm=T )
-      lob$PA = 0
-      lobster.present = which( lob$catchrate > lb )  ## many NA's which represent no catches 
-      lob$PA[ lobster.present ] = 1
-      lob$percentile = quantile.estimate( lob$catchrate  )  # convert to percentiles
-      lob$percentile[ which( !is.finite(  lob$percentile ) ) ] = 0
-
-      lob$source = "lobster"
-      lob$abundance.index.raw = lob$catchrate
-
-      save( lob, file=fn, compress=T ) 
-      return( lob )
+      if (DS=="complete.redo") {
+        # ODBC data dump of lobster data
+        lobster.db( DS="logs.redo")
+        lobster.db( DS="atSea.redo")
+        lobster.db( DS="cris.redo")
+        lobster.db( DS="port.redo")
+        lobster.db( DS="vlog.redo")
+        lobster.db( DS="fsra.redo")
+        lobster.db( DS="scallop.redo")
+      }
     }
 
-    if ( DS %in% c("snowcrab", "snowcrab.redo") ) {
-      fn = file.path( project.datadirectory("lobster"), "data", "lobster.from.snowcrab.surveys.rdata" )
-      if (DS =="snowcrab") {
-        load(fn)
-        return(sc)
+    ## Commercial Logs and slips
+    if (DS %in% c("logs.redo", "logs") ) {
+
+     if (DS=="logs.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # logs
+        logs = sqlQuery(con, "select * from marfissci.lobster_sd_log")
+        save( logs, file=file.path( fn.root, "logs.rdata"), compress=T)
+       
+        # slips
+        slips = sqlQuery(con, "select * from marfissci.lobster_sd_slip")
+        save( logs, file=file.path( fn.root, "slip.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
       }
-      ca = snowcrab.db( DS ="cat.georeferenced" ) 
-      ca$id = paste( ca$trip, ca$set, sep="." )
+      load (file.path( fn.root, "slip.rdata"), .GlobalEnv)
+      load (file.path( fn.root, "logs.rdata"), .GlobalEnv)
+      
+    }
+
+    ## At Sea sampling from Cheryl's view
+    if (DS %in% c("atSea.redo", "atSea") ) {
+
+     if (DS=="atSea.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # atSea
+        atSea = sqlQuery(con, "select * from FRAILC.LOBSTER_ATSEA_VW")
+        save( atSea, file=file.path( fn.root, "atSea.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
+      }
+      load(file.path( fn.root, "atSea.rdata"), .GlobalEnv)
+     }
+
+    ## port sampling 
+    if (DS %in% c("port.redo", "port") ) {
+
+     if (DS=="port.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # port
+        port = sqlQuery(con, "select a.SAMPLE_SEQ,a.SAMPLE_NO,a.SDATE,a.SEASON,a.NTRAPS,a.LATITUDE,a.LONGITUDE,a.GRADE, b.L_SIZE,b.N_MALES,b.N_FEM,b.NBF, c.LFA,c.PORT,c.COUNTY,c.STAT,c.PORT_CODE,c.LATITUDE port_lat,c.LONGITUDE port_lon from lobster.CRLENGCODE a, lobster.CRLENGFREQ b, lobster.CRLOCATIONS c where a.sample_seq = b.sample_seq and a.port = c.port and a.type = 'P' ")
+        save( port, file=file.path( fn.root, "port.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
+      }
+      load(file.path( fn.root, "port.rdata"), .GlobalEnv)
+     }
   
-      ca.lob = ca[ which( ca$spec %in% p$taxa.codes ) , c("id", "totno") ] 
-      
-      sc = snowcrab.db( DS ="set.complete" ) 
-      sc$id = paste( sc$trip, sc$set, sep="." )
+  ## voluntary logs 
+    if (DS %in% c("vlog.redo", "vlog") ) {
 
-      i = which(duplicated( sc$id ))
-      if (length(i)>0  ) stop()
-      sc = merge( sc, ca.lob, by="id", all.x=T, all.y=F, sort=F)
-      sc$PA = 0
-      lb = quantile(  sc$totno[ which(sc$totno>0)], probs=p$threshold.quantile, na.rm=T )
-      lobster.present = which( sc$totno > lb ) 
-      sc$PA[ lobster.present ] = 1
-      sc$percentile = quantile.estimate( sc$totno  )  # convert to percentiles
-      sc$percentile[ which( !is.finite(  sc$percentile ) ) ] = 0
-      sc$source = "snowcrab"
-      sc$abundance.index.raw = sc$totno
-
-      save( sc, file=fn, compress=T )
-      return (sc) 
-    } 
- 
-    # --------------------
-
-    if (DS %in% c("groundfish", "groundfish.redo") ) {
-      fn = file.path( project.datadirectory("lobster"), "data", "lobster.from.groundfish.surveys.rdata" )
-      if (DS =="groundfish") {
-        load(fn)
-        return(gf)
+     if (DS=="vlog.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # vlog
+        vlog = sqlQuery(con, "select a.FDATE,a.N_TRP,a.W_TOT,a.FCODE,a.N_L,a.W_AVG,a.PORT,a.CPTH,a.NBF,a.SEASON,a.W_C,a.CPTH_C, b.LFA,b.COUNTY,b.STAT,b.PORT_CODE,b.LATITUDE,b.LONGITUDE,b.COMMENTS from lobster.CRLOGDATA a, lobster.CRLOCATIONS b where a.port = b.port")
+        save( vlog, file=file.path( fn.root, "vlog.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
       }
-      # groundfish 
-      # there was a periods where lobster was not recorded 
-      # and these records may need to be thrown out **************
+      load(file.path( fn.root, "vlog.rdata"), .GlobalEnv)
+     }
 
-      set = groundfish.db( "set.base" )
-      i=which(duplicated( set$id ))
-      if (length(i) >0) set = set[ -i ,]
+    ## CRIS database
+    if (DS %in% c("cris.redo", "cris") ) {
 
-      cat = groundfish.db( "cat" )
-      cat = cat[, c("spec", "id", "totwgt", "totno") ]
-      cat = cat[ which( cat$spec %in% p$taxa.codes ) ,]
-      i=which(duplicated( cat$id ))
-      cat = cat[ -i ,]
-      gf = merge(set, cat, by="id", sort=F, all.x=T, all.y=F)
-      gf$PA = 0
-      lb = quantile(  gf$totwgt[ which(gf$totwgt>0)], probs=p$threshold.quantile, na.rm=T )
-      lobster.present = which( gf$totwgt > lb )  
-      gf$PA[ lobster.present ] = 1
-      gf$z = log( gf$sdepth)
-      gf$t = gf$temp
-   
-      gf$percentile = quantile.estimate( gf$totwgt  )  # convert to percentiles
-      gf$percentile[ which( !is.finite(  gf$percentile ) ) ] = 0
-
-      gf$source = "groundfish"
-      gf$abundance.index.raw = gf$totwgt 
-
-      save( gf, file=fn, compress=T )
-      return (gf) 
-    } 
-    
-    # --------------------
-
-    if (DS %in% c("complete", "complete.redo") ) {
-      fn = file.path( project.datadirectory("lobster"), "data", "lobster.complete.rdata" )
-      if (DS =="complete") {
-        load(fn)
-        return(L)
+     if (DS=="cris.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # cris
+        cris.trips = sqlQuery(con, "select * from cris.crtrips")
+        save( cris.trips, file=file.path( fn.root, "crisTrips.rdata"), compress=T)
+        cris.traps = sqlQuery(con, "select * from cris.crtraps")
+        save( cris.traps, file=file.path( fn.root, "crisTraps.rdata"), compress=T)
+        cris.samples = sqlQuery(con, "select * from cris.crsamples")
+        save( cris.samples, file=file.path( fn.root, "crisSamples.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
       }
+      load(file.path( fn.root, "crisTrips.rdata"), .GlobalEnv)       
+      load(file.path( fn.root, "crisTraps.rdata"), .GlobalEnv)       
+      load(file.path( fn.root, "crisSamples.rdata"), .GlobalEnv)       
+     }
+  
+    ## FSRS traps 
+    if (DS %in% c("fsrs.redo", "fsrs") ) {
 
-      lob = lobster.db( "lfa41", p=p)
-      lob$t = NA
-      lob$sal = NA
-      lob$oxysat = NA
-      lob$substrate.mean = NA
-      lob$dZ = NA
-      lob$ddZ = NA
-      lob$tmean = NA
-      lob$tamp = NA
-      lob$wmin = NA
-      lob$thp = NA
-      lob$tsd = NA
-      lob$tmean.cl = NA
-      lob$tamp.cl = NA
-      lob$wmin.cl = NA
-      
-      sc = lobster.db( "snowcrab", p=p)
-      sc$sal = NA
-      sc$oxysat = NA
+     if (DS=="fsrs.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # fsrs
+        fsrs = sqlQuery(con, "select * from fsrs_lobster.FSRS_LOBSTER_VW")
+        save( fsrs, file=file.path( fn.root, "fsrs.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
+      }
+      load(file.path( fn.root, "fsrs.rdata"), .GlobalEnv)
+     }
 
-      gf = lobster.db( "groundfish", p=p)
-      gf$substrate.mean = NA
-      gf$dZ = NA
-      gf$ddZ = NA
-      gf$tmean = NA
-      gf$tamp = NA
-      gf$wmin = NA
-      gf$thp = NA
-      gf$tsd = NA
-      gf$tmean.cl = NA
-      gf$tamp.cl = NA
-      gf$wmin.cl = NA
-      
-      tokeep = c( "id", "source", "lon", "lat",  "chron", "yr", "julian", "z", "t", "sal",
-        "oxysat", "abundance.index.raw", "PA", "percentile",  "substrate.mean", "dZ", "ddZ", "tmean", 
-        "tamp", "wmin", "thp", "tsd", "tmean.cl", "tamp.cl", "wmin.cl", "tsd.cl" ) 
-      L = rbind( lob[,tokeep], gf[,tokeep], sc[,tokeep] )
+     ## lobster catch from scallop survey traps 
+    if (DS %in% c("scallop.redo", "scallop") ) {
 
-      save( L, file=fn, compress=T )
-      return(L)
-    } 
-
-
+     if (DS=="scallop.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # scallop
+        scallop.catch = sqlQuery(con, "select * from SCALLSUR.SCBYCATCHES")
+        save( scallop.catch, file=file.path( fn.root, "scallopCatch.rdata"), compress=T)
+        scallop.tows = sqlQuery(con, "select * from SCALLSUR.SCTOWS")
+        save( scallop.tows, file=file.path( fn.root, "scallopTows.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
+      }
+      load(file.path( fn.root, "scallopCatch.rdata"), .GlobalEnv)
+      load(file.path( fn.root, "scallopTows.rdata"), .GlobalEnv)
+    }
   }
 
 
