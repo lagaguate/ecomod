@@ -1,6 +1,6 @@
 
 
-look.for.multiple.sets = function( x, threshold.depth=20, tdiff.min=20 ) {
+look.for.multiple.sets = function( x,  tdiff.min=20 ) {
   
   # some logs contain multiple sets in one file
   # break them down into separate groups
@@ -10,7 +10,16 @@ look.for.multiple.sets = function( x, threshold.depth=20, tdiff.min=20 ) {
     yr=2009
     fn="/home/jae/ecomod/groundfish/data/nets/Scanmar/datalogs/2009/2009-Aug20-024348.SET.LOG"
     x = load.scanmar.rawdata( fn, yr=yr)
-     threshold.depth=20 
+     threshold.depth=20  
+    tdiff.min=20 
+  }
+  
+  ii = which( x$depth > 20 )
+  if (length(ii) > 30) {
+    zm = modes( x$depth[ii ] ) #  
+    threshold.depth = zm$mode / 3  # retain bottom 2/3 of data 
+  } else {
+    threshold.depth = 20 
   }
 
   shallow = which( x$depth < threshold.depth )

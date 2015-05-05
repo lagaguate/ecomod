@@ -13,7 +13,8 @@ p$marport.dir = file.path( project.datadirectory("groundfish"), "data", "nets", 
 # p$netmensuration.years = p$current.year  ## for incremental/annual update
 ## 2009 is the first year with set logs from scanmar available .. if more are found, alter this date
 p$current.year = 2015
-p$netmensuration.years = c(1990:1992, 2004:p$current.year)  
+p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992 data really do not match the timestamps (and have no location info) 
+
 # p$netmensuration.years = p$current.year  
 
 
@@ -42,8 +43,9 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 # usually insufficient data for these or just flat-lines .. no reliable data
 
 
-if (FALSE) {
+if (FALSE) { 
   # tests of extreme data conditions :
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.155") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.1") # simple, low n 
 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.18")  # n=300, very curvy data
@@ -61,7 +63,13 @@ if (FALSE) {
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2006614.10") # n=353, noisy 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.74") # n=1876, simple with noisy tail 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.68") # n=1917, large simple curve on bottom 
+ 
+
+### not working
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEM2008830.120") # n= 343, noisy tail 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.4") # n= 343, noisy tail 
+  
+  
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.70" ) # n=3600 .. flat but sloped bottom
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.91" ) # n=3400 .. .very curvy bottom
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.225" ) # n <100 
@@ -82,6 +90,7 @@ if (FALSE) {
 
 }
 
+
 # the data for these sets need to be checked:
 p$bc.badlist = c(
   "TEL2005545.73",  "TEL2005633.41",  "NED2010027.24", 
@@ -99,13 +108,13 @@ p$bc.badlist = c(
  "TEL2005633.59",  "NED2006001.47" , "NED2006001.59" , "NED2006001.80" ,
  "NED2012002.92"  ,"NED2009027.152", "NED2009027.154", "NED2014018.28",  
  "NED2014002.4",   "NED2014018.13" , "NED2014018.168", "NED2014018.169", "NED2014018.214" ,"NED2014018.225",
- "NED2014018.33" , "NED2014101.14"
+ "NED2014018.33" , "NED2014101.14", "NED2012002.17"
   )
 
 
 
 
-scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
+scanmar.db( DS ="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 scanmar.db( DS="sweptarea.redo",  p=p )  
 
@@ -116,7 +125,7 @@ scanmar.db( DS="sweptarea.redo",  p=p )
 gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
 pp = tapply( gs$id, year(gs$bc0.datetime), function(x) { length(unique(x))} )
 pp = data.frame( yr= rownames(pp), n.bc=pp)
-scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
+#scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 
 oo = tapply( gs$id, year(gs$sdate), function(x) { length(unique(x))} )
 oo = data.frame( yr = rownames(oo), n.gs= oo)

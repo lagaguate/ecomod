@@ -23,6 +23,7 @@
         groundfish.db( DS="gscoords.odbc.redo" )
         groundfish.db( DS="spcodes.odbc.redo" )
         groundfish.db( DS="gslist.odbc.redo" )
+        groundfish.db( DS="gsgear.odbc.redo" )
         groundfish.db( DS="gsstratum.odbc.redo" )
       }
     
@@ -378,7 +379,10 @@
  
       gsinf = groundfish.db( DS="gsinf.odbc" )
       names(gsinf)[which(names(gsinf)=="type")] = "settype"
-     
+    
+      gsgear = groundfish.db( DS="gsgear" )
+      gsinf = merge (gsinf, gsgear, by="gear", all.x=TRUE, all.y=FALSE, sort= FALSE )
+
       # fix some time values that have lost the zeros due to numeric conversion
       gsinf$time = as.character(gsinf$time)      
       
@@ -461,7 +465,7 @@
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
 			gsinf = gsinf[, c("id", "sdate", "edate", "time", "strat", "area", "speed", "dist", 
-                        "cftow", "sakm2", "settype", "lon", "lat", "lon.end", "lat.end",
+                        "cftow", "sakm2", "settype", "gear", "lon", "lat", "lon.end", "lat.end",
                         "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       
       save(gsinf, file=fn, compress=T)
@@ -636,6 +640,28 @@
       print(fn)
       return( fn )
     }
+
+
+    # ----------------------
+
+
+    if (DS %in% c("gsgear", "gsgear.odbc.redo") ) {
+      fn = file.path( loc,"gsgear.rdata")
+      if ( DS=="gsgear" ) {
+        load( fn )
+        return (gsgear)
+      }
+      require(RODBC)
+      connect=odbcConnect( oracle.groundfish.server, uid=oracle.personal.user, 
+          pwd=oracle.personal.password, believeNRows=F)
+      gsgear =  sqlQuery(connect, "select * from groundfish.gsgear", as.is=T) 
+      odbcClose(connect)
+      names(gsgear) =  tolower( names(gsgear) )
+      save(gsgear, file=fn, compress=T)
+      print(fn)
+      return( fn )
+    }
+
 
 
     # ----------------------
