@@ -14,8 +14,6 @@ groundfish.analysis <- function(DS='stratified.estimates',p=p, ip=NULL) {
          if (exists( "libs", p)) RLibrary( p$libs ) 
          if (is.null(ip)) ip = 1:p$nruns
  
-
-
 if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
           if(DS=='stratified.estimates'){
              if(p$length.based) lle = 'by.length'
@@ -42,6 +40,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
      out = data.frame(yr=NA,sp=NA,w.yst=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,
                   n.yst=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
     mp=0
+    np=1
     for(iip in ip) {
             mp = mp+1
             v = p$runs[iip,"v"]
@@ -59,18 +58,18 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   n.yst=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
               strata.files = list()
               mp=1
+              np = np + 1
             } 
-            v0=v
+            vv = v0 = v0
             yr = p$runs[iip,"yrs"]
             print ( p$runs[iip,] )
-            
-            iv = which(cas$spec==v0)
+            if(p$functional.groups) vv = p$yy[[which(names(p$yy)==v0)]] 
+            iv = which(cas$spec %in% vv)
             iy = which(years(set$sdate) %in% yr)
     
                 se = set[iy,]
                 ca = cas[iv,]
-                   
-                se$z = (se$dmin+se$dmax) / 2        
+                  se$z = (se$dmin+se$dmax) / 2        
                 vars.2.keep = c('mission','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity')  
                 se = se[,vars.2.keep]
         if(!p$length.based) {
@@ -79,7 +78,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                         }
         if(p$length.based){
         
-                  dp = de[which(de$spec==v0),]
+                  dp = de[which(de$spec %in% v0),]
                   ids = paste(se$mission,se$setno,sep="~")
                   dp$ids = paste(dp$mission,dp$setno,sep="~")
                   dp = dp[which(dp$ids %in% ids),]
