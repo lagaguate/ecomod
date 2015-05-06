@@ -4,11 +4,15 @@
 
 
 source( file.path("C:","Users", "choij", "Documents", ".Rprofile"))
+
 p = list()
 p$libs = RLibrary( c( "lubridate", "lattice", "INLA", "sp", "RODBC" ) )
-p$init.files = loadfunctions( c( "spatialmethods", "utility", "bathymetry", "biochem" ) ) 
-p$bottles.years = c( 1955:2014 )
-p$zoop.years = c( 1914:2014 )
+p$init.files = loadfunctions( c( "utility", "polygons", "spacetime", "bathymetry", "biochem" ) ) 
+
+p$current.year = 2015
+
+p$bottles.years = c( 1955:p$current.year )
+p$zoop.years = c( 1990:p$current.year )
 
 recreate.polygon5kmcoast=FALSE
 if (recreate.polygon5kmcoast) {
@@ -22,6 +26,11 @@ bottles.db( DS="bottles.qa.qc.redo", p=p )
 
 zoop.db( DS="zoop.data.dump.odbc", p=p ) 
 zoop.db( DS="zoop.data.odbc.all.redo", p=p ) 
+zoop.db( DS="zoop.qa.qc.redo", p=p )
+zoop.db( DS="zoop.totalSamples.redo", p=p )
+zoop.db( DS="zoop.speciesAbund.redo", p=p )
+
+
 
 
 
