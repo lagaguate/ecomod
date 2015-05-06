@@ -4,7 +4,7 @@ bottles.db = function( DS, p, plotdata=FALSE ) {
   
   # data view of nutrients and chl from biochem db
   
-  biochem.dir = project.directory("biochem") 
+  biochem.dir = project.datadirectory("biochem") 
   biochem.data.dir = file.path( biochem.dir, "data" ) 
   biochem.datadump.dir = file.path( biochem.dir, "data", "datadump" ) 
   
@@ -100,6 +100,7 @@ bottles.db = function( DS, p, plotdata=FALSE ) {
     
   }
 
+  # --------------------------------
   
   if ( DS == "bottles.odbc.all.redo" ) {
     fn.all = file.path( biochem.datadump.dir, paste( "bottles.dump.odbc", "all_years", "rdata", sep=".")  )  
@@ -113,12 +114,18 @@ bottles.db = function( DS, p, plotdata=FALSE ) {
     save(out, file=fn.all, compress=TRUE)
   }
   
+  
+  # --------------------------------
+
+  
   if ( DS == "bottles.odbc.all" ) {
     fn.all = file.path( biochem.datadump.dir, paste( "bottles.dump.odbc", "all_years", "rdata", sep=".")  )  
     out= NULL
     if (file.exists(fn.all)) load(fn.all) 
     return( out)
   }
+  
+  # --------------------------------
   
   if ( DS %in% c("bottles.qa.qc", "bottles.qa.qc.redo")  ) {
     fn = file.path( biochem.data.dir, paste( "bottles.qa.qc", ".rdata", sep="") )  
@@ -164,17 +171,24 @@ bottles.db = function( DS, p, plotdata=FALSE ) {
    
    dup=which(duplicated(nc$uid1)) # duplicated records
    
+   # start and end depth have to be the same. if not remove those records
+   ddif=nc$header_start_depth-nc$header_end_depth
+   different_depths=which(ddif !=0)
+   
+   # remove suspect cast from mission CHA7910
+   ll=which(out$mission=="CHA7910" & out$param=="chl" & out$collector_event_id==50)
+   
    
    # remove identified records and create filtered nutrient-chlorophyll dataset ncf
-   ncf=nc[-unique(c( flagged,neg,uptake,bc,bp,bs,dup)) ,] 
+   ncf=nc[-unique(c( flagged,neg,uptake,bc,bp,bs,dup,different_depths,ll)) ,] 
    
-   rm(nc)
+   #rm(nc)
    
    # ==== flag coastal and ocean data ====
    
    # load polygons 5km away from coastline (dataframe is c5kf)
-   fn=find.ecomod.gis("coast5km.polygons.4filtering")
-   c5kf=read.table(fn)
+   fnc5kf=file.path( biochem.data.dir, "coast5km.polygons.4filtering.rdata")
+   load(fnc5kf)  # loads c5kf (c)
    
    # add coastFlag field (1 for open ocean, 2 for coastal ocean)
    # set coastFlag to 1 for all records
