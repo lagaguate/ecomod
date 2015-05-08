@@ -1,5 +1,5 @@
 
-variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FALSE, edge=c(1/5, 1), return.inla=FALSE ) {
+variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FALSE, edge=c(0.5, 1), return.inla=FALSE, hull=NULL ) {
   
   # estimate empirical variograms and then model them using a number of different approaches
   # returns empirical variogram and parameter estimates, and optionally the models themselves
@@ -13,10 +13,16 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   out = NULL
 
  if ( "test" %in% xyz ) {
-    # just for debugging / testing ...
+   source( file.path("C:","Users", "choij", "Documents", ".Rprofile")) 
+   loadfunctions( "spacetime")
+   loadfunctions( "utility")
+   # just for debugging / testing ...
     data(meuse)
     xyz = meuse[, c("x", "y", "elev")]
     crs="+proj=utm +zone=20 +ellps=WGS84"
+    n =20
+    h = data.frame( cbind( lon=-60*runif(n), lat=42*runif(n), chl=10*runif(n)) )
+    o = variogram.ecomod( h, plot=TRUE)
   }
 
    
@@ -35,8 +41,12 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   yrange = range( xyz$plat, na.rm=TRUE )
   zrange = range( xyz$z, na.rm=TRUE )
   
-  nxout = 100
-  nyout = 100
+  nx = diff(xrange)
+  ny = diff(yrange)
+  nn = 200
+  nxout = trunc( nn * nx / ny)
+  nyout = nn
+ 
   nzout = 100
 
   xx = seq( xrange[1], xrange[2], length.out=nxout )
@@ -75,10 +85,25 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   xyz$z = NULL
   xyz$b0 = 1  # intercept for inla
   
-  M0.domain = inla.nonconvex.hull( locs0 )
+#  if (is.null(hull)) {
+#    M0.domain = inla.nonconvex.hull( locs0 )
+#  } else {
+  
+  edge = c(0.125, 1)
+
+  hull=list(
+    convex = 25, 
+    resolution = 120
+  )   
+    
+  M0.domain = inla.nonconvex.hull( locs0, 
+      convex=hull$convex, resolution=hull$resolution )
+#  }
+
   M0 = inla.mesh.2d (
     loc=locs0, # locations of data points
     boundary = M0.domain,
+    cutoff = min (edge * vRange),
     max.edge = edge * vRange
   )
  
@@ -105,12 +130,12 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
       effects=list( i=i, xyz )  # b0 is the intercept
   )
 
-  R <- inla(  z ~ 0 + b0+ f( i, model=S0, diagonal=1e-2), 
+  R <- inla(  z ~ 0 + b0 + f( i, model=S0), 
       data=inla.stack.data(Z), 
-      control.compute=list(dic=TRUE),
+#      control.compute=list(dic=TRUE),
       control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
       control.predictor=list(A=inla.stack.A(Z), compute=TRUE) , 
-      control.inla=list(strategy="laplace", npoints=21, stencil=7 ) ,
+ #     control.inla=list(strategy="laplace", npoints=21, stencil=7 ) ,
       verbose = FALSE
   )
 
@@ -183,7 +208,8 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
     lp = levelplot( z~plon+plat, preds, aspect="iso", main="Posterior mean", at=dr, col.regions=color.code( "seis", dr) ,
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
     print(lp)
-
+    
+    x11()
     pG = inla.mesh.projector( M0, xlim=xrange, ylim=yrange, dims=c(nxout, nyout) )
     out = inla.mesh.project( pG, R$summary.random$i$sd ) # SD
     outdf = as.data.frame.table( out)

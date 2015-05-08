@@ -15,7 +15,7 @@ polygon5kmcoast = function( plotdata=FALSE ) {
   # before bottle data filtering (chlorophyll and nutrients).
     
   
-  pd = project.directory("polygons")
+  pd = project.datadirectory("biochem")
   
   pddata = file.path( pd, "data")
   
@@ -114,7 +114,7 @@ polygon5kmcoast = function( plotdata=FALSE ) {
   coast5km = inla.nonconvex.hull( out, convex=5, resolution=500 )
   
   # output is a list. save 
-  fn5km="coast5km.all.polygons.list.rdata"
+  fn5km= file.path( pddata, "coast5km.all.polygons.list.rdata" )
   save( coast5km, file=fn5km)
   load(fn5km)
   
@@ -193,7 +193,7 @@ polygon5kmcoast = function( plotdata=FALSE ) {
   fn3= file.path( pddata, "coast5km.polygons.4filtering.csv" )
   
   save(c5kf, file=fn2)
-  write.table( c5kf, file=fn3 )
+  # write.table( c5kf, file=fn3 )
   
   
   if (plotdata=="final") {  
