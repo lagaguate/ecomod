@@ -6,6 +6,9 @@
     mat = test.male * NA # initialise a vector with NA's of the right length
     mat[ which( test.male <= 0 ) ] = immature
     mat[ which( test.male > 0 )  ] = mature
+
+    ii =which(cw.mm<60)
+    mat[ii] = immature
     return(mat)
   }
 
