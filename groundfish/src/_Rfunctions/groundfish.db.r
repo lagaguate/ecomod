@@ -338,8 +338,8 @@
 	    if ( is.null(DS) | DS=="gsinf.odbc" ) {
         fl = list.files( path=fn.root, pattern="*.rdata", full.names=T  ) 
  				for ( fny in fl ) {
-					load (fny)
-					out = rbind( out, gsinf )
+          load (fny)
+          out = rbind( out, gsinf )
 				}
 				return (out)
       }
@@ -465,7 +465,7 @@
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
 			gsinf = gsinf[, c("id", "sdate", "edate", "time", "strat", "area", "speed", "dist", 
-                        "cftow", "sakm2", "settype", "gear", "lon", "lat", "lon.end", "lat.end",
+                        "cftow", "sakm2", "settype", "gear", "geardesc", "lon", "lat", "lon.end", "lat.end",
                         "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       
       save(gsinf, file=fn, compress=T)

@@ -201,6 +201,13 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.0
   }
 
 
+
+  if (method=="simple.linear") {
+    pfunc = approxfun( x=z$x, y=z$y, method="linear", rule=2)
+    z$p = pfunc( z$x)
+  }
+
+
   if (method=="gam") {
     require(mgcv)
     gmod = gam( y ~ s(x) , data=z)  

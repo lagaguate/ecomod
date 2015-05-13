@@ -1,5 +1,5 @@
 
-  bottom.contact.parameters = function( bcp=list() ) {
+  bottom.contact.parameters = function( bcp=list( datasource ="groundfish" ) ) {
     
     if (bcp$datasource =="snowcrab") {
       # snow crab specific defaults  
@@ -11,31 +11,32 @@
       # parameters tuned to different years of data for groundfish survey 
       bcp$depth.range = c(-65, 65)
     
-    
-      if ( bcp$nr < 3500 & bcp$nr >= 2000 ) {
-        bcp$noisefilter.var.window = 30
-        bcp$noisefilter.target.r2 = 0.8
-        bcp$noisefilter.trim = 0.1
-        bcp$noisefilter.quants = c(0.1, 0.9)
-      } 
-
-      if ( bcp$nr < 2000 & bcp$nr >= 1200 ) {
-        bcp$noisefilter.var.window = 20
-        bcp$noisefilter.target.r2 = 0.8
-        bcp$noisefilter.trim = 0.1
-        bcp$noisefilter.quants = c(0.1, 0.9)
-      } 
-
-      if ( bcp$nr < 1200 &  bcp$nr >= 400  ) {
-        bcp$noisefilter.trim = 0.05
-        bcp$noisefilter.quants = c(0.1, 0.9)
-      } 
+      if ( exists( "nr", bcp ) ) {
       
-      if ( bcp$nr < 400 ) {  # tend to be very noisy
-        bcp$noisefilter.trim = 0.05 
-        bcp$noisefilter.quants = c(0.1, 0.9)
+        if ( bcp$nr < 3500 & bcp$nr >= 2000 ) {
+          bcp$noisefilter.var.window = 30
+          bcp$noisefilter.target.r2 = 0.8
+          bcp$noisefilter.trim = 0.1
+          bcp$noisefilter.quants = c(0.1, 0.9)
+        } 
+
+        if ( bcp$nr < 2000 & bcp$nr >= 1200 ) {
+          bcp$noisefilter.var.window = 20
+          bcp$noisefilter.target.r2 = 0.8
+          bcp$noisefilter.trim = 0.1
+          bcp$noisefilter.quants = c(0.1, 0.9)
+        } 
+
+        if ( bcp$nr < 1200 &  bcp$nr >= 400  ) {
+          bcp$noisefilter.trim = 0.05
+          bcp$noisefilter.quants = c(0.1, 0.9)
+        } 
+        
+        if ( bcp$nr < 400 ) {  # tend to be very noisy
+          bcp$noisefilter.trim = 0.05 
+          bcp$noisefilter.quants = c(0.1, 0.9)
+        } 
       } 
-  
 
     }
 
@@ -50,7 +51,7 @@
     if ( !exists("tdif.min", bcp)) bcp$tdif.min=10 # min time difference (minutes)
     if ( !exists("tdif.max", bcp)) bcp$tdif.max=50  # max time difference (minutes) .. including tails
     if ( !exists("depthproportion", bcp)) bcp$depthproportion=0.6  # depthproportion controls primary (coarse)gating
-    if ( !exists("depth.min", bcp)) bcp$depth.min=20
+    if ( !exists("depth.min", bcp)) bcp$depth.min= 15
     if ( !exists("depth.range", bcp)) bcp$depth.range=c(-60,60)
     if ( !exists("setdepth", bcp)) bcp$setdepth=NA
     if ( !exists("time.gate", bcp)) bcp$time.gate=NA

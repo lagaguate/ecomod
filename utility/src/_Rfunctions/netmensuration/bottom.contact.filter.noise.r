@@ -10,10 +10,16 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
    
    
   # do not operate upon depth ... operate upon Z and Z.smoothed
+  x$depth0 = x$depth
   x$Z = NA
-  x$Z[aoi] = x$depth[aoi]
+  x$Z[aoi] = x$depth[aoi] 
 
-
+  if ( exists( "double.depth.sensors", bcp) ) {
+    oi  = interpolate.xy.robust( x[aoi, c("ts", "Z")], method="loess", trim=0.1, probs=c(0.05, 0.95),  target.r2=0.9 )
+    oo = which( (x$Z - oi) > 0) 
+    x$Z[oo] = NA
+    x$depth[oo] = NA
+  }
 
   # filter out based on localized (adjacent) deviations
   x$sm.seq = x$Z
@@ -59,18 +65,39 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
 
 
 # last step ... finalize id of good data and then smooth over the raw data
+  outsideofaoi = setdiff(1:nrow(x), aoi )
+  #x$Z[outsideofaoi] = NA
+  x$depth[ outsideofaoi] =NA
+
   x$Z.smoothed = x$depth
   x$Z.smoothed[aoi] = x$sm.win[aoi]  # basis is the moving averge which is the most stable 
   x$Z.smoothed[ good ] = x$Z[good]  # these Z are the highest probability of good clean data .. return to the data for futher processing
-  x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "Z.smoothed")], method="loess", target.r2=0.95,  probs=c(0.05, 0.95) )
+  x$Z.smoothed[ good ] = interpolate.xy.robust( x[ good, c("ts", "Z.smoothed")], method="loess", 
+                                               trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.95 )
+  x$Z.smoothed[outsideofaoi] = NA
+ 
+  # return tails to improve fit of curvature at touchdown and lift-off
+  leftt = 1 : min( which( good)) 
+  rightt = max( which( good) ) : nrow(x)
+
+  #dx = range( x$Z[good], na.rm=TRUE )
+  #oo = which( x$depth0 > dx[2]  & x$depth0 < dx[1]  )
+  #if (length(oo) > 0) x$depth0[ oo] = NA  # remove likely errors
+  
+  x$Z.smoothed[ leftt ] = interpolate.xy.robust( x[leftt, c("ts", "depth0")], method="loess",
+                                                 trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.9 )
+  x$Z.smoothed[ rightt ] = interpolate.xy.robust( x[rightt, c("ts", "depth0")], method="loess",
+                                                 trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.9 )
+
   kk = x$depth - x$Z.smoothed
+ 
   i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
   if (length(i) > 0 ) {
     good.final = rep( FALSE, nrow(x) )
     good.final [ i]  = TRUE
     good.final = good.final | good  # or is adding
   }  
-  
+ 
   x$depth[!good.final] = NA
 
   sminla = try( interpolate.xy.robust( x[, c("ts", "depth")],  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, method="inla", inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal ), silent=TRUE )
@@ -79,9 +106,14 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   } else { 
     x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "depth")], method="loess", probs=bcp$noisefilter.quants,  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim )
   }
- 
-# high freq noise still observed on a handful of cases .. smooth via running average again
+
+# final tweaks .. order is important  
+
+  # high freq noise still observed on a handful of cases .. smooth via running average again
   x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "Z.smoothed")],  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window, method="moving.window" )
+
+  # high freq noise still observed on a handful of cases .. smooth via running average again
+  x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "Z.smoothed")],  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window, method="smooth.spline" )
 
   return( list( depth.smoothed=x$Z.smoothed, good=good.final ) )
 }

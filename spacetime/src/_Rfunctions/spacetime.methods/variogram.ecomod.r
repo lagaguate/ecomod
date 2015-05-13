@@ -1,5 +1,5 @@
 
-variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FALSE, edge=c(1/5, 1), return.inla=FALSE ) {
+variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FALSE, edge=c(1/3, 1), return.inla=FALSE ) {
   
   # estimate empirical variograms and then model them using a number of different approaches
   # returns empirical variogram and parameter estimates, and optionally the models themselves
@@ -14,9 +14,12 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
 
  if ( "test" %in% xyz ) {
     # just for debugging / testing ...
-    data(meuse)
+   loadfunctions("utility")
+   loadfunctions("spacetime")
+   data(meuse)
     xyz = meuse[, c("x", "y", "elev")]
     crs="+proj=utm +zone=20 +ellps=WGS84"
+    edge=c(1/3, 1)
   }
 
    
@@ -35,8 +38,12 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   yrange = range( xyz$plat, na.rm=TRUE )
   zrange = range( xyz$z, na.rm=TRUE )
   
-  nxout = 100
-  nyout = 100
+  difx = diff( xrange) 
+  dify = diff( yrange) 
+
+  nn = 400
+  nxout = trunc(nn * difx / dify)
+  nyout = nn
   nzout = 100
 
   xx = seq( xrange[1], xrange[2], length.out=nxout )
@@ -110,7 +117,7 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
       control.compute=list(dic=TRUE),
       control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
       control.predictor=list(A=inla.stack.A(Z), compute=TRUE) , 
-      control.inla=list(strategy="laplace", npoints=21, stencil=7 ) ,
+      # control.inla=list(strategy="laplace", npoints=21, stencil=7 ) ,
       verbose = FALSE
   )
 
