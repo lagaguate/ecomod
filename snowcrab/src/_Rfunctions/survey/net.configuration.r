@@ -45,11 +45,9 @@
       time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
       
       bcp = list( 
-        id=N$netmind_uid[1], datasource="snowcrab", nr=rown(M), YR=yr,
+        id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), YR=yr,
         tdif.min=3, tdif.max=9, time.gate=time.gate,
-        setdepth=rid$setZx[i], depth.min=20, depth.range=c(-20,30), depthproportion=0.5, 
-        noisefilter.eps.depth=1, noisefilter.sd.multiplier=3, 
-        noisefilter.inla.h=0.005, noisefilter.inla.diagonal=0.01
+        setdepth=rid$setZx[i], depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
       )
       
       bcp = bottom.contact.parameters( bcp ) # add other default parameters

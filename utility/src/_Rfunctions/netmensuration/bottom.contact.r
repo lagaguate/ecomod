@@ -29,7 +29,7 @@ bottom.contact = function( x, bcp ) {
   # O$Z = x$depth  ## copy of depth data before manipulations ... not used? 
   
   O$plotdata = x   # save incoming data after creation of time stamps and ordering 
- 
+
   x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
@@ -423,7 +423,12 @@ bottom.contact = function( x, bcp ) {
   O$bottom.contact.indices = fin.all
   O$bottom.contact = rep( FALSE, nrow(x) )
   O$bottom.contact[ fin.all ] = TRUE
-  
+
+
+  O$surface.area = NA
+  sa = try( surfacearea.estimate( bcp=bcp, O=O ), silent=TRUE )
+  if ( ! "try-error" %in% class( sa ) ) O$surface.area = sa
+
   # for minilog and seabird data .. we have temperature estimates to make ..
   tmean= NA
   tmeansd = NA
@@ -432,8 +437,10 @@ bottom.contact = function( x, bcp ) {
     tmeansd = sd( x$temperature[fin.all], na.rm=TRUE )
   }
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
-                            n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
- 
+                            n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) # this is really for the snow crab system
+
+  
+
   if(debug.plot) {
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )

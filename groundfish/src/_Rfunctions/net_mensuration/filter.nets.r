@@ -1,4 +1,4 @@
-filter.nets = function(DS, x){
+filter.nets = function(DS, x, probs=c(0.05, 0.95) ){
   
   if(DS == "doorspread.range")  {
     # doorspread sanity check
@@ -33,60 +33,6 @@ filter.nets = function(DS, x){
     i = which( (x > 750) | (x < 0) ) 
     if (length(i) > 0 )  x[i] = NA
     return(x)
-  }
-  
-  if(DS=="identify.trawls.with.US.nets") {
-    # removing the trips that fish the US trawl 
-    out = NULL
-    i = NULL
-    i = grep("NED2014102", x$id)
-    if( length (i) > 0) out = c( out, i )
-#    if( length (i) > 0) x = x[-i,]
-    
-    mission = "NED2013028"
-    setno =c(1, 4, 5, 8, 9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 
-             33, 34, 37, 38, 41, 42, 45, 46, 49, 50, 54, 55, 
-             58, 59, 60, 64, 65, 68, 69, 72, 73, 76, 77, 80, 81, 
-             84, 85, 88, 89, 92, 93, 96, 97, 100, 101, 104, 105, 
-             108, 109, 112, 113, 116, 117, 120, 121, 124, 125, 
-             128, 129, 132, 133, 136, 137, 140, 141, 144, 145, 
-             148, 149, 152, 153,  156,  157,  160,  161,  164,  
-             165,  168,  169,  174,  175,  178,  179,  
-             182,  183,  186,  187,  190)
-    
-    id=paste( mission, setno,sep=".")
-    i = NULL
-    i = which( x$id %in% id)
-    if( length (i) > 0) out = c( out, i )
-    # if( length (i) > 0) x = x[-i,]
-    
-    return( sort( unique( i)) )
-  }
-  
-
-  if (DS=="door.wing") {
-    require(lubridate)
-    require(mgcv)
-    x$year = year( x$timestamp )
-    x$good = TRUE
-    
-    # first pass -- a linear model to quickly determine large residuals
-    dw = lm( wingspread ~ as.factor(year) + doorspread, data=x, na.action="na.exclude" )
-    # hist(dw$residuals, "fd")
-    x$resids = residuals( dw )
-    q.resids = quantile( x$resids, probs=c(0.05, 0.95), na.rm=TRUE )
-    x$good[ which( x$resids < q.resids[1] | x$resids > q.resids[2] )] = FALSE
-    
-    # second pass -- another linear model
-    x$wingspread[ !x$good ] = NA
-    x$doorspread[ !x$good ] = NA
-    
-    dw2 = lm( wingspread ~ as.factor(year) + doorspread, data=x, na.action="na.exclude")
-    # hist(dw$residuals, "fd")
-    x$resids = residuals( dw2 )
-    q.resids = quantile( x$resids, probs=c(0.05, 0.95), na.rm=TRUE )
-    x$good[ which( x$resids < q.resids[1] | x$resids > q.resids[2] )] = FALSE
-    return( x$good )    
   }
   
 }

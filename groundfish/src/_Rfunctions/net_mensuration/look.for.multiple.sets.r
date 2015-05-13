@@ -25,7 +25,7 @@ look.for.multiple.sets = function( x,  tdiff.min=20 ) {
   shallow = which( x$depth < threshold.depth )
   if (length(shallow)>0) x$depth[shallow] = NA
   x = x[order( x$timestamp ) ,]
-  fn0 = unique(x$netmensurationfilename)
+  fn0 = unique(x$nm_id)
   set = list()
   startdata = which( is.finite(x$depth) )
   if (length(startdata) < 30) return(x) # nothing to do
@@ -60,11 +60,11 @@ look.for.multiple.sets = function( x,  tdiff.min=20 ) {
     tn = tn + 1
     j = which( x$timestamp >= x$timestamp[i0[ti]] &  x$timestamp <= x$timestamp[i1[ti]] )
     fnj =  paste(fn0, tn, sep=".")
-    x$netmensurationfilename[j] = fnj
+    x$nm_id[j] = fnj
     print( fnj )
   }
  
-  todrop = which(  x$netmensurationfilename == fn0 )
+  todrop = which(  x$nm_id == fn0 )
   if (length(todrop) > 0 ) x=x[-todrop,]
 
   return(x)

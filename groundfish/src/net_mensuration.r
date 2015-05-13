@@ -18,7 +18,6 @@ p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992
 # p$netmensuration.years = p$current.year  
 
 
-
 # steps required to recreate a local database of all data
 recreate.perley.db = FALSE
 if ( recreate.perley.db ) {
@@ -31,7 +30,7 @@ if ( recreate.perley.db ) {
 }
 
 
-# the following works upon annual time slices ( defined in p$netmensuration.years )
+# the following works upon many or annual time slices ( defined in p$netmensuration.years )
 scanmar.db( DS="basedata.redo", p=p )        # Assimilate Scanmar files in raw data saves *.set.log files
 scanmar.db( DS="basedata.lookuptable.redo", p=p ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
 scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
@@ -45,82 +44,28 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 
 if (FALSE) { 
   # tests of extreme data conditions :
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.155") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.1") # simple, low n 
-
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.18")  # n=300, very curvy data
-
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.25") # no data
-
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.74")  ### echos noisy
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2005633.111") # ?? 
-
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2005633.107") # deep 
-
-
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2005633.40") # simple, low n=308 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2006614.20") # n=191, noisy but simple 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2006614.10") # n=353, noisy 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.74") # n=1876, simple with noisy tail 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2007745.68") # n=1917, large simple curve on bottom 
- 
-
-### not working
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEM2008830.120") # n= 343, noisy tail 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.4") # n= 343, noisy tail 
-  
-  
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.70" ) # n=3600 .. flat but sloped bottom
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.91" ) # n=3400 .. .very curvy bottom
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.225" ) # n <100 
-
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.24") # double tow ... should bring up plot  and then continue 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.178") # 
-  
-  
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.155") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.139" ) # n=1851
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.192")  ### large depth range and wrong
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.193")  ### flat line
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.147")  ### ... noise
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.12")  ###vv strage
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.14")  ###vv strage
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.181")  ###vv strage
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.175") # ?? 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013028.10") # simple, n=1663, strange tail 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2014102.35") # constant depth data ...  
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2015102.61") # two depth sensors!
 
 }
 
 
 # the data for these sets need to be checked:
-p$bc.badlist = c(
-  "TEL2005545.73",  "TEL2005633.41",  "NED2010027.24", 
-  "TEL2006614.2",   "TEM2008830.126", 
-  "NED2010027.15",  "NED2010027.66",  "TEL2005633.63", 
-  "NED2013028.106", "NED2013028.147", "NED2013028.188", "NED2013028.83", "NED2013028.105", 
-  "NED2013022.178", "NED2013022.193", "NED2014102.34",  "NED2013028.104", "NED2013028.148",
-  "TEL2004529.19" , "TEL2004529.25",  "NED2013028.168", "NED2013028.174", "TEL2004529.46",  "TEL2004529.59" ,
- "TEL2004529.78" , "TEL2004530.23",  "NED2013028.59",  "TEL2004530.55",  "NED2005001.11",  "NED2005001.12" ,
-"NED2005001.32",  "NED2013028.9", "NED2012002.66",  "NED2005001.74",  "NED2005001.81" , "NED2005001.82",  "NED2005001.86",  "NED2005001.91" ,
-  "NED2009027.135", "NED2012002.81" , "TEL2005545.11" , "TEL2005545.12" , "TEL2005545.21",  "NED2009027.146",
- "NED2012002.92",  "NED2009027.152", "NED2009027.154", "TEL2005545.9" ,  "TEL2005605.1" ,  "TEL2005605.42" ,
- "TEL2005605.45" , "TEL2005605.50",  "TEL2005605.59" , "TEL2005605.68",  "TEL2005605.80" , "TEL2005633.1"  ,
- "TEL2005633.106", "NED2009027.35"  ,"TEL2005633.15" , "NED2009027.43" , "TEL2005633.43" , "TEL2005633.50" ,
- "TEL2005633.59",  "NED2006001.47" , "NED2006001.59" , "NED2006001.80" ,
- "NED2012002.92"  ,"NED2009027.152", "NED2009027.154", "NED2014018.28",  
- "NED2014002.4",   "NED2014018.13" , "NED2014018.168", "NED2014018.169", "NED2014018.214" ,"NED2014018.225",
- "NED2014018.33" , "NED2014101.14", "NED2012002.17"
-  )
+p$bc.badlist = c( 
+  "NED2012002.17", "TEL2005545.73","NED2015002.7", "NED2015002.8", "NED2015002.9"
+) 
 
-
-
-
-scanmar.db( DS ="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
+scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 scanmar.db( DS="sweptarea.redo",  p=p )  
 
 
-
-# --- stats /analysis
+# --- stats /analysi# s
 
 gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
 pp = tapply( gs$id, year(gs$bc0.datetime), function(x) { length(unique(x))} )
