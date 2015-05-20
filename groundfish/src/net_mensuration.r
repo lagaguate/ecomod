@@ -65,7 +65,7 @@ scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom c
 scanmar.db( DS="sweptarea.redo",  p=p )  
 
 
-# --- stats /analysi# s
+# --- stats /analysis
 
 gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
 pp = tapply( gs$id, year(gs$bc0.datetime), function(x) { length(unique(x))} )

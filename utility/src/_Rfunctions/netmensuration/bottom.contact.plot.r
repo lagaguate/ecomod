@@ -1,5 +1,5 @@
 
-bottom.contact.plot = function ( O ) {
+bottom.contact.plot = function ( O, netspread=FALSE ) {
   
   if ( exists("error.flag", O) && !is.na( O$error.flag ) )  {
     x = O$plotdata
@@ -124,6 +124,34 @@ bottom.contact.plot = function ( O ) {
       "; depth sd=", signif( O$depth.sd, 3), 
       "; signal=", signif(O$signal2noise, 3) , sep="")  )
 
+    if (netspread) {
+      x11()
+      par(mfrow=c(2,2))
+      bts = O$ts[ O$bottom.contact ] 
+
+      dr = range( c( O$plotdata$wingspread[ O$bottom.contact ] , O$surface.area$wing.smoothed, O$surface.area$wing.mean - 2*O$surface.area$wing.sd,  O$surface.area$wing.mean + 2*O$surface.area$wing.sd ) , na.rm=TRUE )
+      plot(  O$plotdata$wingspread[ O$bottom.contact ] ~ bts, pch=20, col="lightgray", cex=0.5, ylim=dr ) 
+      abline( h=O$surface.area$wing.mean, lwd=2, col="gray") 
+      abline( h=O$surface.area$wing.mean - 2*O$surface.area$wing.sd, lty="dotted", col="lightgray" ) 
+      abline( h=O$surface.area$wing.mean + 2*O$surface.area$wing.sd, lty="dotted", col="lightgray" ) 
+      lines( O$surface.area$wing.smoothed ~ bts, col="red" )
+
+      dr = range( c( O$plotdata$doorspread[ O$bottom.contact ] , O$surface.area$door.smoothed, O$surface.area$door.mean - 2*O$surface.area$door.sd,  O$surface.area$door.mean + 2*O$surface.area$door.sd ) , na.rm=TRUE )
+      plot(  O$plotdata$doorspread[ O$bottom.contact ] ~ bts, pch=20, col="lightgray", cex=0.5, ylim=dr ) 
+      abline( h=O$surface.area$door.mean, lwd=2, col="gray") 
+      abline( h=O$surface.area$door.mean - 2*O$surface.area$door.sd, lty="dotted", col="lightgray" ) 
+      abline( h=O$surface.area$door.mean + 2*O$surface.area$door.sd, lty="dotted", col="lightgray" ) 
+      lines( O$surface.area$door.smoothed ~ bts, col="blue" )
+
+      plot( O$surface.area$distances.total ~ bts, type="l", col="red" ) 
+      lines( O$surface.area$distances.vertical ~ bts,  col="orange" ) 
+      lines( O$surface.area$distances.horizontal ~ bts,  col="cyan" ) 
+ 
+      plot( c( O$surface.area$door.sa.cum, O$surface.area$wing.sa.cum ) ~ c( bts, bts) , type="n" ) 
+      lines( O$surface.area$door.sa.cum ~ bts,  col="blue" ) 
+      lines( O$surface.area$wing.sa.cum ~ bts,  col="red" ) 
+    
+    }
 }
 
 

@@ -850,7 +850,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
               print (plotfn)
               dev.flush()
               dev.copy2pdf( file=plotfn )
-             
+            
             if ( ! exists("error.flag", bc) || is.na( bc$error.flag ) ) { 
               gsinf$bc0.datetime[gii] = bc$bottom0 
               gsinf$bc1.datetime[gii] = bc$bottom1
@@ -861,7 +861,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
               gsinf$bc1.n[gii] =  bc$bottom1.n
              
               if ( exists("surface.area", bc) ) { 
-                if ( !is.null( bc$surace.area )  && !is.na( bc$surace.area )  ) {
+                if ( is.list( bc$surface.area )  && !is.na( bc$surface.area )  ) {
                   if ( exists("door.sa", bc$surface.area ) ) gsinf$door.sa[gii] =  bc$surface.area$door.sa
                   if ( exists("wing.sa", bc$surface.area ) ) gsinf$wing.sa[gii] =  bc$surface.area$wing.sa
                   if ( exists("door.mean", bc$surface.area ) ) gsinf$door.mean[gii] =  bc$surface.area$door.mean
