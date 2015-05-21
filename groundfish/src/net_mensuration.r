@@ -52,6 +52,8 @@ if (FALSE) {
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2014102.35") # constant depth data ...  
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2015102.61") # two depth sensors!
 
+  bottom.contact.plot( bc, netspread=TRUE )
+
 }
 
 

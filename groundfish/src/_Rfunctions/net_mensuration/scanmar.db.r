@@ -825,7 +825,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
           
           # low-level over-ride of bottom contact parameters for strange data
           if (id=="NED2013028.172") bcp$depth.range = c(-70, 70) 
-          if (id=="NED2013022.192") bcp$depth.range = c(-250, 150) 
+          if (id=="NED2013022.192") bcp$depth.range = c(-300, 300) # not sure why this has such a large range! 
           if (id=="NED2013022.193") bcp$depth.range = c(-250, 150) 
           if (id=="TEL2004529.16")  bcp$depth.range = c(-150, 150) 
 

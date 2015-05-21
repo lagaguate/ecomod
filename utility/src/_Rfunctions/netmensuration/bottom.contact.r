@@ -26,8 +26,6 @@ bottom.contact = function( x, bcp ) {
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
   
-  # O$Z = x$depth  ## copy of depth data before manipulations ... not used? 
-  
   O$plotdata = x   # save incoming data after creation of time stamps and ordering 
 
   x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
@@ -37,6 +35,33 @@ bottom.contact = function( x, bcp ) {
   # basic depth gating
   
   if( !any(x$depth > bcp$depth.min)) return( NULL ) 
+
+
+  # sometimes multiple tows exist in one track ... 
+  # over-smooth depth to capture stange tows  
+  nZ = nrow(x)
+  zs = zz = rep( 0, nZ )
+  mm = modes( x$depth ) # naive first estimate of location of most data depths
+  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas
+  inc.depth = abs( diff( x$depth ) )
+  rapid.depth.changes = which( inc.depth > quantile( inc.depth, 0.995 ) )
+  zz[ rapid.depth.changes ] = 1
+  zz[ rapid.depth.changes-1 ] = 1  # include adjecent points to remove
+  zz[ rapid.depth.changes+1 ] = 1
+  dzz = diff(zz)
+  bnds = c(1, which( dzz != 0 ), nZ ) 
+ 
+  # browser()
+
+  if ( length (bnds) > 2 ) {
+    # contaminated by noise
+    segs = diff(bnds) # length of each segment
+    longest = which.max( segs ) 
+    gg = bnds[longest]:bnds[(longest+1)]
+    bad = setdiff( 1:nZ, gg)
+    O$good[bad] = FALSE
+  }
+
 
   # simple time-based gating ..
   if (!is.na(bcp$time.gate)) {
@@ -57,25 +82,7 @@ bottom.contact = function( x, bcp ) {
   O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
   O$good[mm.i] = TRUE
 
-  # sometimes multiple tows exist in one track ...  this is not completed ... needs some tweaking for strange conditions ...
-  # over-smoothed depth to capture stange tows  
-  nZ = nrow(x)
-  zs = zz = rep( 0, nZ )
-  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas
-  # zz[ which( is.na( x$depth)) ] = 1  # flag missing data
-  dzz = diff(zz)
-  bnds = c(1, which( dzz != 0 ), nZ ) 
-  
-  if ( length (bnds) > 2 ) {
-    # contaminated by noise
-    segs = diff(bnds) # length of each segment
-    longest = which.max( segs ) 
-    gg = bnds[longest]:bnds[(longest+1)]
-    bad = setdiff( 1:nZ, gg)
-    O$good[bad] = FALSE
-  }
-
-
+ 
   x.timerange = range( x$timestamp[O$good], na.rm=TRUE )
   x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
 
