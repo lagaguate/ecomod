@@ -33,7 +33,8 @@ bottom.contact = function( x, bcp ) {
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
   ##--------------------------------
   # basic depth gating
-  
+ 
+
   if( !any(x$depth > bcp$depth.min)) return( NULL ) 
 
 
@@ -432,9 +433,13 @@ bottom.contact = function( x, bcp ) {
   O$bottom.contact[ fin.all ] = TRUE
 
 
+  # estimate surface area if possible using wingspread &/or doorspread
   O$surface.area = NA
-  sa = try( surfacearea.estimate( bcp=bcp, O=O ), silent=TRUE )
-  if ( ! "try-error" %in% class( sa ) ) O$surface.area = sa
+  if ( exists ( "wingspread", x ) | exists( "doorspread", x ) ) {
+    sa = try( surfacearea.estimate( bcp=bcp, O=O ), silent=TRUE )
+    if ( ! "try-error" %in% class( sa ) ) O$surface.area = sa
+  }
+
 
   # for minilog and seabird data .. we have temperature estimates to make ..
   tmean= NA

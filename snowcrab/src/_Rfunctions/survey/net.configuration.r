@@ -179,13 +179,11 @@ if(nrow(N)>1) {
 	      out$netmind_n=end
 
       delta.distance = NULL
-	  n$distance = NA
+	   n$distance = NA
      if(nrow(n)>10) {	
       # integrate area:: piece-wise integration is used as there is curvature of the fishing track (just in case)
-      for( ii in 1:(end-1) ) {
-        gd = geodist( point=n[ ii, pos], locations=n[ ii+1, pos], method="vincenty" ) # km
-        delta.distance = c( delta.distance, gd  )
-      }
+       
+      delta.distance = geosphere::distMeeus ( nms[ 1:(end-1), pos ], nms[ 2:end, pos ] ) / 1000 ## in meters convert to km 
       n$distances = c( 0, cumsum( delta.distance  ) ) # cumsum used to do piecewise integration of distance
 	
       # model/smooth/interpolate the spreads

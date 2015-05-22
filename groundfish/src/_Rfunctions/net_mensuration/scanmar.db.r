@@ -761,10 +761,8 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
             skipyear = TRUE 
           } else { 
             uid = bottom.contact.debug.id
-            # browser()
           }
       }
-
 
       if ( ! skipyear ) {
 
@@ -803,6 +801,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
          
           cat( id, file = fn.current )
 
+
           ii = which( nm$id==id )  # rows of nm with scanmar/marport data
           if ( length( which( is.finite(nm[ii, "depth"]))) < 30 ) next() ## this will also add to the bad.list .. when insufficient data  
           gii = which( gsinf$id==id )  # row of matching gsinf with tow info
@@ -828,6 +827,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
           if (id=="NED2013022.192") bcp$depth.range = c(-300, 300) # not sure why this has such a large range! 
           if (id=="NED2013022.193") bcp$depth.range = c(-250, 150) 
           if (id=="TEL2004529.16")  bcp$depth.range = c(-150, 150) 
+
 
           if (YR == 2015) {
             # two depth sensors were used simultaneously but they are not calibrated! 

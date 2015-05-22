@@ -1,6 +1,6 @@
 
 p = list()
-p$libs = RLibrary("INLA", "numDeriv", "lubridate" )
+p$libs = RLibrary("INLA", "numDeriv", "lubridate", "geosphere" )
 # this relies upon the gsinf table which is accessible from the groundfish functions
 p$inits = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
 # define location of local data files 
@@ -45,19 +45,15 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 if (FALSE) { 
   # tests of extreme data conditions :
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.1") # simple, low n 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2009027.155") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.139" ) # n=1851
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.192")  ### large depth range and wrong
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013028.10") # simple, n=1663, strange tail 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2014102.35") # constant depth data ...  
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2015102.61") # two depth sensors!
-
   bottom.contact.plot( bc, netspread=TRUE )
-
 }
 
 
-# the data for these sets need to be checked:
+# the data for these sets need to be checked?
 p$bc.badlist = c( 
   "NED2012002.17", "TEL2005545.73","NED2015002.7", "NED2015002.8", "NED2015002.9"
 ) 
@@ -67,7 +63,17 @@ scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom c
 scanmar.db( DS="sweptarea.redo",  p=p )  
 
 
-# --- stats /analysis
+create.marport.database = FALSE
+if (create.marport.database ) {
+  p$netmensuration.years = 2013:2014  
+  marport.db( DS="basedata.redo",  p=p )      # load data from raw data files
+  marport.db( DS="gated.redo",  p=p )      # QA/QC of data
+  marport = marport.db( DS="gated",  p=p )
+}
+
+
+
+# --- misc stats / analysis
 
 gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
 pp = tapply( gs$id, year(gs$bc0.datetime), function(x) { length(unique(x))} )
@@ -92,14 +98,5 @@ qq = data.frame( yr= rownames(qq), n.filtered=qq )
 res = merge ( oo, pp, by="yr") 
 res = merge ( res, qq, by="yr") 
 res = merge ( res, rr, by="yr") 
-
-
-create.marport.database = FALSE
-if (create.marport.database ) {
-  p$netmensuration.years = 2013:2014  
-  marport.db( DS="basedata.redo",  p=p )      # load data from raw data files
-  marport.db( DS="gated.redo",  p=p )      # QA/QC of data
-  marport = marport.db( DS="gated",  p=p )
-}
 
 

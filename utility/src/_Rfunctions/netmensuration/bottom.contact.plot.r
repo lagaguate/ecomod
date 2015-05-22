@@ -124,7 +124,8 @@ bottom.contact.plot = function ( O, netspread=FALSE ) {
       "; depth sd=", signif( O$depth.sd, 3), 
       "; signal=", signif(O$signal2noise, 3) , sep="")  )
 
-    if (netspread) {
+    if (netspread & !is.na(O$surface.area) ) {
+      
       x11()
       par(mfrow=c(2,2))
       bts = O$ts[ O$bottom.contact ] 
