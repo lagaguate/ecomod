@@ -14,14 +14,12 @@
       for ( i in ip ) {
         seti = set[i,]
         t0 = seti$yr
-        dist = geodist( seti[, coords], set[,coords], method="great.circle" )
-        
+        dist = geosphere::distCosine( seti[, coords], set[,coords] ) / 1000
         cnter = round(i/length(ip) *100) 
         if ( ( cnter-c0 ) > 1 ) {
           print ( paste( cnter, "% complete" ))
           c0 = cnter
         }
-        
         for (k in 1:p$nlengthscale) {
           qid = which(dist <= p$lengthscale[k])  # sets and taxa within target distance
           for (l in 1:p$ntimescale) {

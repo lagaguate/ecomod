@@ -331,11 +331,10 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         
         unmatched = which( is.na( gf$nm_id ) )
         if (length(unmatched)>0) {
-           
+          coords = c("lon", "lat")
           for(igg in unmatched) {
-
             # criteria for matching: distance, time and depth differences
-            distance.km = try( abs( as.vector( geodist( nm[ , c("lon","lat")], gf[igg, c("lon","lat")], method="great.circle")) ), silent=TRUE )
+            distance.km = try( abs( as.vector( geosphere::distCosine( nm[ , coords], gf[igg, coords])) )/1000 , silent=TRUE )
             diftime.hr = as.numeric( difftime( nm$timestamp, gf$sdate[igg], units="hours" ) )
             dd = which( abs(diftime.hr) <= 4  )  
             difdepth.m = nm$depth - gf$bottom_depth[igg]

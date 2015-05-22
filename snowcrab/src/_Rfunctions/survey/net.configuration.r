@@ -167,7 +167,7 @@ if(nrow(N)>1) {
       # at maximum tension and not the position at net movemnent up
       # (otherwise, this would introduce a net bias towards smaller swept areas).
       pos = c( "lon", "lat" )
-      distance.from.start = geodist(point=N[1, pos], locations=N[, pos], method="great.circle") #  in km^2
+      distance.from.start = geosphere::distCosine(N[1, pos], N[, pos])/1000  #  in km^2
       end = which.max( distance.from.start)
       if( !is.finite(end) ) end=nrow(N)
       n = N[ 1:end , ]

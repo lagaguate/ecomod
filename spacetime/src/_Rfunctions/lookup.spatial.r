@@ -6,7 +6,7 @@
     
     for (i in init.files) source( i )
     
-    coords = c( ix, iy ) ## iy=lon and iy=lat
+    coords = c( iy, ix ) ## iy=lon and iy=lat
     ### iz  is column index for variable of interest
 
     if (is.null (id) )  id = c(1:nrow(X))
@@ -37,7 +37,7 @@
         Y[,iy] >= dsy[1] & Y[,iy] <= dsy[2] 
       ), ]
 
-      d = geodist( X[i, coords], Y.sample[, coords], method="great.circle" )
+      d = geosphere::distCosine( X[i, coords], Y.sample[, coords] ) / 1000
       near = NULL
       near = which(d <= distance.threshold.km) # within 1 km of the point
       nn =  length(near) 
