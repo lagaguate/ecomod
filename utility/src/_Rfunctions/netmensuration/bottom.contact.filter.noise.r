@@ -14,13 +14,6 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   x$Z = NA
   x$Z[aoi] = x$depth[aoi] 
 
-  if ( exists( "double.depth.sensors", bcp) ) {
-    oi  = interpolate.xy.robust( x[aoi, c("ts", "Z")], method="loess", trim=0.1, probs=c(0.05, 0.95),  target.r2=0.9 )
-    oo = which( (x$Z - oi) > 0) 
-    x$Z[oo] = NA
-    x$depth[oo] = NA
-  }
-
   # filter out based on localized (adjacent) deviations
   x$sm.seq = x$Z
   x$sm.seq[aoi] = interpolate.xy.robust( x[aoi, c("ts", "Z")],  trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, method="sequential.linear" )
@@ -89,8 +82,8 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   x$Z.smoothed[ rightt ] = interpolate.xy.robust( x[rightt, c("ts", "depth0")], method="loess",
                                                  trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.9 )
 
-  kk = x$depth - x$Z.smoothed
- 
+  kk = x$depth0 - x$Z.smoothed
+  
   i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
   if (length(i) > 0 ) {
     good.final = rep( FALSE, nrow(x) )
@@ -98,13 +91,13 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
     good.final = good.final | good  # or is adding
   }  
  
-  x$depth[!good.final] = NA
+  x$depth0[!good.final] = NA
 
-  sminla = try( interpolate.xy.robust( x[, c("ts", "depth")],  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, method="inla", inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal ), silent=TRUE )
+  sminla = try( interpolate.xy.robust( x[, c("ts", "depth0")],  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, method="inla", inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal ), silent=TRUE )
   if ( ! class( sminla) %in% "try-error" ) { 
     x$Z.smoothed  = sminla
   } else { 
-    x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "depth")], method="loess", probs=bcp$noisefilter.quants,  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim )
+    x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "depth0")], method="loess", probs=bcp$noisefilter.quants,  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim )
   }
 
 # final tweaks .. order is important  

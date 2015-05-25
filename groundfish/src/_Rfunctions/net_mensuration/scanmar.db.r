@@ -760,6 +760,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
             skipyear = TRUE 
           } else { 
             uid = bottom.contact.debug.id
+            browser()
           }
       }
 
@@ -828,18 +829,18 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
           if (id=="TEL2004529.16")  bcp$depth.range = c(-150, 150) 
 
 
-          if (YR == 2015) {
-            # two depth sensors were used simultaneously but they are not calibrated! 
-            double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )  
-            if ( id %in% double.depth.sensors ) bcp$double.depth.sensors = TRUE 
-          }
+          # two depth sensors were used simultaneously but they are not calibrated!
+          # remarkably hard to filter this out
+          # send a trigger to bottom.contact to operate on this properly
+          if ( id %in% p$double.depth.sensors ) bcp$double.depth.sensors = TRUE 
 
           bc = NULL # 
           bc = try( bottom.contact(mm, bcp ), silent=TRUE )
           
           if ( !is.null( bottom.contact.debug.id ) ) {
             ## this is a debugging mode return results and escape
-            bottom.contact.plot( bc )
+            browser()
+            if (!is.null(bc)) bottom.contact.plot( bc )
             return(bc)
           }
 

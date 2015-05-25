@@ -42,25 +42,43 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 # usually insufficient data for these or just flat-lines .. no reliable data
 
 
-if (FALSE) { 
-  # tests of extreme data conditions :
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.1") # simple, low n 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.139" ) # n=1851
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.192")  ### large depth range and wrong
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013028.10") # simple, n=1663, strange tail 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2014102.35") # constant depth data ...  
-  bottom.contact.plot( bc, netspread=TRUE )
-}
-
-
 # the data for these sets need to be checked?
 p$bc.badlist = c( 
   "NED2012002.17", "TEL2005545.73","NED2015002.7", "NED2015002.8", "NED2015002.9"
 ) 
 
+# two depth sensors were used simultaneously but they are not calibrated!
+# they are remarkably hard to filter out while still maintaining current methods
+# instead: send a trigger to bottom.contact to operate on this properly
+p$double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
+
+
+
+if (FALSE) { 
+  # tests of extreme data conditions :
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004529.1") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004530.21") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004530.41") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004530.46") # complex hump, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "TEL2004530.70") # simple, low n 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2010027.139" ) # n=1851
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013022.192")  ### large depth range and wrong
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2013028.10") # simple, n=1663, strange tail 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2014102.35") # constant depth data ...  --
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2015002.59") # two depth sensors  --
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2015002.12") # missing a tail 
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , bottom.contact.debug.id= "NED2015002.27") # normal .. lots of data 
+
+
+  bottom.contact.plot( bc, netspread=TRUE )
+}
+
 scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 scanmar.db( DS="scanmar.filtered.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
-scanmar.db( DS="sweptarea.redo",  p=p )  
+
+# where there was insufficient data to compute SA directly from logs, 
+# estimate via approximation using speed etc. 
+scanmar.db( DS="sweptarea.redo",  p=p ) 
 
 
 create.marport.database = FALSE
