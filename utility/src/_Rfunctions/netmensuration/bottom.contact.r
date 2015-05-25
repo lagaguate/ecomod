@@ -28,41 +28,15 @@ bottom.contact = function( x, bcp ) {
   
   O$plotdata = x   # save incoming data after creation of time stamps and ordering 
 
-  x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
-  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
-  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
-  ##--------------------------------
-  # basic depth gating
- 
-
-  if( !any(x$depth > bcp$depth.min)) return( NULL ) 
-
-
-  # sometimes multiple tows exist in one track ... 
-  # over-smooth depth to capture stange tows  
-  nZ = nrow(x)
-  zs = zz = rep( 0, nZ )
-  mm = modes( x$depth ) # naive first estimate of location of most data depths
-  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas
-  inc.depth = abs( diff( x$depth ) )
-  rapid.depth.changes = which( inc.depth > quantile( inc.depth, 0.995 ) )
-  zz[ rapid.depth.changes ] = 1
-  zz[ rapid.depth.changes-1 ] = 1  # include adjecent points to remove
-  zz[ rapid.depth.changes+1 ] = 1
-  dzz = diff(zz)
-  bnds = c(1, which( dzz != 0 ), nZ ) 
- 
-  # browser()
-
-  if ( length (bnds) > 2 ) {
-    # contaminated by noise
-    segs = diff(bnds) # length of each segment
-    longest = which.max( segs ) 
-    gg = bnds[longest]:bnds[(longest+1)]
-    bad = setdiff( 1:nZ, gg)
-    O$good[bad] = FALSE
+  if ( exists( "double.depth.sensors", bcp) ) {
+    # two depth sensors were used simultaneously but they are not calibrated!
+    # remarkably hard to filter this out with any reliability while still maintaining current methods
+    # send a trigger to bottom.contact.filter tto operate on this properly
+    oi  = interpolate.xy.robust( x[, c("ts", "depth")], method="loess", trim=0.1, probs=c(0.05, 0.95),  target.r2=0.9 )
+    oo = which( (x$depth - oi) > 0) 
+    x$depth[oo] = NA
+    if (any( is.na( x$depth))) x$depth = interpolate.xy.robust( x[, c("ts", "depth")], method="simple.linear" )
   }
-
 
   # simple time-based gating ..
   if (!is.na(bcp$time.gate)) {
@@ -72,12 +46,14 @@ bottom.contact = function( x, bcp ) {
   }
  
   # simple depth-based gating
+  if( !any(x$depth > bcp$depth.min)) return( NULL ) 
   O$good = bottom.contact.gating.depth ( Z=x$depth, good=O$good, bcp=bcp) 
   x$depth[ !O$good ] = NA
-
-  # time and depth-based gating
-  
+ # time and depth-based gating
   mm = modes( x$depth  )
+  
+  if (mm$sd < 0.001) return(NULL)  # there is no depth variation in the data ... likely a bad data series
+  
   mm.i = which( x$depth > (mm$lb2+bcp$depth.range[1]) & x$depth < (mm$ub2 + bcp$depth.range[2]) )
   
   O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
@@ -101,6 +77,37 @@ bottom.contact = function( x, bcp ) {
     }
   }
 
+# browser()
+
+  # sometimes multiple tows exist in one track ... 
+  # over-smooth depth to capture stange tows  
+  x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
+  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
+  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
+  
+  nZ = nrow(x)
+  zs = zz = rep( 0, nZ )
+  mm = modes( x$depth ) # naive first estimate of location of most data depths
+  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas
+  inc.depth = abs( diff( x$dsm ) )
+  
+  # also capture strong noise - very obviously wrong data
+  rapid.depth.changes = which( inc.depth > mm$sd * 5 )
+  if ( length( rapid.depth.changes ) > 0 ) {
+    zz[ rapid.depth.changes ] = 1
+    zz[ rapid.depth.changes-1 ] = 1  # include adjecent points to remove
+    zz[ rapid.depth.changes+1 ] = 1
+  }
+  dzz = diff(zz)
+  bnds = c(1, which( dzz != 0 ), nZ ) 
+  if ( length (bnds) > 2 ) {
+    # i.e. , contaminated by noise or multiple tows
+    segs = diff(bnds) # length of each segment
+    longest = which.max( segs ) 
+    gg = bnds[longest]:bnds[(longest+1)]
+    bad = setdiff( 1:nZ, gg)
+    O$good[bad] = FALSE
+  }
 
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible

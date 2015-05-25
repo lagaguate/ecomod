@@ -72,7 +72,7 @@
  
     if ( !exists("modal.sd.multiplier", bcp)) bcp$modal.sd.multiplier=2 # to detect if end point has been prefiltered/truncated 
     if ( !exists("modal.trim", bcp)) bcp$modal.trim = 0.001  # keep low as it is really only for interpolation of NAs
-    if ( !exists("modal.filter.quants", bcp)) bcp$modal.filter.quants = c(0.05, 0.95) # as above 
+    if ( !exists("modal.filter.quants", bcp)) bcp$modal.filter.quants = c(0.025, 0.975) # as above 
     if ( !exists("modal.windowsize",  bcp))  bcp$modal.windowsize = 5  # number of data points to assess for consistent passage into the non-modal (depths) area
     if ( !exists("modal.threshold",  bcp))  bcp$modal.threshold = 0.5  # proportion of data outside of mode in window to consider  consistent passage into the non-modal (depths) area
     
