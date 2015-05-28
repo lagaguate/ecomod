@@ -332,11 +332,11 @@ bottom.contact = function( x, bcp ) {
   O$manual.method0 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$manual.method1 = NA  ### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   if ( bcp$user.interaction  ) { 
-    print( "Click with mouse on start and stop locations now.")          
+    print( "Click with left mouse on start and stop locations and then press ESC or right click to continue.")          
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
     plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
-    points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
+    points( depth~ts, x[O$good,], pch=20, col="orange", cex=0.2)
 
     useridentified = locator( n=2, type="o", col="cyan")
     u.ts0 = which.min( abs( x$ts-useridentified$x[1] ))

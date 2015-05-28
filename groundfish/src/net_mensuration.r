@@ -115,7 +115,7 @@ datadir = file.path( project.datadirectory("groundfish"), "data", "nets", "Scanm
 fn = "NED2015002.028.2015-Mar21-162742.SET.LOG" # filename of data file to examine
 fl = file.path( datadir, fn)
 mm = load.scanmar.rawdata( fl ) 
-bcp = list( id=fn, datasource="groundfish", nr=nrow(mm), tdif.min=9, tdif.max=45 )  ### yes some are as short as 9 min
+bcp = list( id=fn, datasource="groundfish", nr=nrow(mm), tdif.min=9, tdif.max=45, user.interaction=TRUE )  ### yes some are as short as 9 min .. turn user interaction off if you would like automatic solutions only
 bcp = bottom.contact.parameters( bcp ) # add other default parameters
 bc =  bottom.contact(mm, bcp )
 bottom.contact.plot( bc, netspread=TRUE )
