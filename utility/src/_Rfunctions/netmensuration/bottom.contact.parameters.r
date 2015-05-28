@@ -46,16 +46,16 @@
     if ( !exists("id", bcp)) bcp$id="noid"
     if ( !exists("datasource", bcp)) bcp$datasource ="datasource"
     if ( !exists("nr", bcp)) bcp$nr = NA
-    if ( !exists("YR", bcp)) bcp$YR = NA
 
     if ( !exists("tdif.min", bcp)) bcp$tdif.min=10 # min time difference (minutes)
     if ( !exists("tdif.max", bcp)) bcp$tdif.max=50  # max time difference (minutes) .. including tails
     if ( !exists("depthproportion", bcp)) bcp$depthproportion=0.6  # depthproportion controls primary (coarse)gating
     if ( !exists("depth.min", bcp)) bcp$depth.min= 15
     if ( !exists("depth.range", bcp)) bcp$depth.range=c(-60,60)
-    if ( !exists("setdepth", bcp)) bcp$setdepth=NA
     if ( !exists("time.gate", bcp)) bcp$time.gate=NA
     if ( !exists("eps.depth", bcp)) bcp$eps.depth = 1 # m
+ 
+    if ( !exists("maxdepthchange", bcp)) bcp$maxdepthchange = 10 # max fluctuation in depth (m) between sensor pings
 
     if ( !exists("noisefilter.trim", bcp)) bcp$noisefilter.trim = 0.04  # proportion of data to remove/trim based upon adjacent differences that are too extreme and local variance windows
     if ( !exists("noisefilter.var.window", bcp)) bcp$noisefilter.var.window = 5  # 1/2 of moving window used to compute local variance and moving window mean

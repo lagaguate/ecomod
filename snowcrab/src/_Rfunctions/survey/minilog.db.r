@@ -202,8 +202,7 @@
               # defaults appropriate for more modern scanmar data have > 3500 pings
               bcp = list( 
                 id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
-                tdif.min=3, tdif.max=9, time.gate=time.gate,
-                setdepth=rid$setZx[i],  depth.min=20, depth.range=c(-20,30)
+                tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30)
               )
               
               bcp = bottom.contact.parameters( bcp ) # add other default parameters .. not specified above

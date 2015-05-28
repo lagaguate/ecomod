@@ -28,6 +28,7 @@ bottom.contact = function( x, bcp ) {
   
   O$plotdata = x   # save incoming data after creation of time stamps and ordering 
 
+
   if ( exists( "double.depth.sensors", bcp) ) {
     # two depth sensors were used simultaneously but they are not calibrated!
     # remarkably hard to filter this out with any reliability while still maintaining current methods
@@ -92,7 +93,7 @@ bottom.contact = function( x, bcp ) {
   inc.depth = abs( diff( x$dsm ) )
   
   # also capture strong noise - very obviously wrong data
-  rapid.depth.changes = which( inc.depth > mm$sd * 5 )
+   rapid.depth.changes = which( inc.depth > bcp$maxdepthchange )   
   if ( length( rapid.depth.changes ) > 0 ) {
     zz[ rapid.depth.changes ] = 1
     zz[ rapid.depth.changes-1 ] = 1  # include adjecent points to remove
@@ -139,7 +140,8 @@ bottom.contact = function( x, bcp ) {
       O$error.flag = "Too much data?"   
       return(O)
   }
-  
+ 
+
   # variance gating attempt
   O$variance.method0 = NA
   O$variance.method1 = NA
@@ -149,15 +151,16 @@ bottom.contact = function( x, bcp ) {
 
   if ( ! "try-error" %in% class( res) )  {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-      duration = abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-      if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+      DT = abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+      if ( length(DT) == 1 ) {
+        if ( is.finite(DT) &&  DT > bcp$tdif.min & DT < bcp$tdif.max ) {
         O$variance.method0 = res$bc0
         O$variance.method1 = res$bc1  
         O$variance.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 )
         bad = which( x$timestamp < res$bc0 |  x$timestamp > res$bc1 )
         if (length( bad) > 0) O$good[ bad ] = FALSE
         x$depth[ !O$good ] = NA
-      }
+      } }
     }
   }
 
@@ -196,12 +199,13 @@ bottom.contact = function( x, bcp ) {
   res = try( bottom.contact.modal( sm=sm0, bcp ), silent=TRUE )
     if ( ! "try-error" %in% class( res) ) {
       if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-        duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-        if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+        DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+        if ( length(DT) == 1 ) {
+          if ( is.finite(DT) &&  DT > bcp$tdif.min & DT < bcp$tdif.max ) {
           O$modal.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$modal.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$modal.method.indices = which( x$timestamp >= res$bc0  &  x$timestamp <= res$bc1  ) # x correct
-        }
+        } }
       }
     }  
      
@@ -223,17 +227,21 @@ bottom.contact = function( x, bcp ) {
   O$smooth.method1 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$smooth.method.indices = NA
   sm0 = x[ O$aoi, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
+  
+  # browser()
+
   res = NULL
   res = try( 
     bottom.contact.smooth( sm=sm0, bcp=bcp ) , silent =TRUE)
     if ( ! "try-error" %in% class( res) ) {
       if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-        duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-        if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+        DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+        if ( length(DT) == 1) { 
+          if ( is.finite(DT) &&  DT > bcp$tdif.min & DT < bcp$tdif.max ) {
           O$smooth.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$smooth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$smooth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
-        }
+        } }
       }
     }  
       
@@ -262,12 +270,13 @@ bottom.contact = function( x, bcp ) {
 
   if ( ! "try-error" %in% class( res) ) {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-      duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-      if ( is.finite(duration) && duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+      DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+      if ( length(DT) == 1 ) {
+        if ( is.finite(DT) && DT > bcp$tdif.min & DT < bcp$tdif.max ) {
         O$maxdepth.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$maxdepth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$maxdepth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
-      }
+      }}
     }
   }  
  
@@ -298,12 +307,13 @@ bottom.contact = function( x, bcp ) {
 
   if ( ! "try-error" %in% class( res) ) {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-      duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-      if ( is.finite(duration) && duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+      DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+      if (  length(DT) == 1) {
+          if ( is.finite(DT) && DT > bcp$tdif.min & DT < bcp$tdif.max ) {
         O$linear.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$linear.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$linear.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
-      }
+      } }
     }
   }  
   

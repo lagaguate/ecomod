@@ -46,8 +46,7 @@
       
       bcp = list( 
         id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), YR=yr,
-        tdif.min=3, tdif.max=9, time.gate=time.gate,
-        setdepth=rid$setZx[i], depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
+        tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
       )
       
       bcp = bottom.contact.parameters( bcp ) # add other default parameters

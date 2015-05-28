@@ -1,6 +1,6 @@
 
 
-scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.id=NULL){
+scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
  
   perley.years0 = c( 1990:1992 )
   perley.years1 = c( 2004:2009 )
@@ -670,7 +670,14 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
     dir.create (file.path( scanmar.bc.dir, "results"), recursive=TRUE, showWarnings=FALSE )
     dir.create (file.path( scanmar.bc.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
 
-    if(DS=="bottom.contact"){
+    if ( DS=="bottom.contact"){
+      if ( !is.null( setid ) ) {
+        fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", setid, "rdata", sep=".") )
+        bc = NULL
+        if (file.exists(fn.bc)) load(fn.bc)
+        return(bc)
+      }
+
       out = NULL
       for ( YR in YRS ) {
         gsinf=NULL
@@ -684,13 +691,6 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
       gs = NULL
       if (length(gg)>0) gs = gsinf0[ gg, ]
       return(gs)
-    }
-
-    if(DS=="bottom.contact.id"){
-      fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )
-      bc = NULL
-      if (file.exists(fn.bc)) load(fn.bc)
-      return(bc)
     }
     
     fn.current = file.path( scanmar.bc.dir, "bottom.contact.tmp.current" )
@@ -755,11 +755,11 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
         uid = sort( uid[ ui  ] )
       }
      
-      if ( !is.null( bottom.contact.debug.id ) & length(uid)>0 ) {
-          if (! bottom.contact.debug.id %in% uid) {
+      if ( !is.null( debugid ) & length(uid)>0 ) {
+          if (! debugid %in% uid) {
             skipyear = TRUE 
           } else { 
-            uid = bottom.contact.debug.id
+            uid = debugid
             browser()
           }
       }
@@ -815,10 +815,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
           # time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
 
           # defaults appropriate for more modern scanmar data have > 3500 pings
-          bcp = list( 
-            id=id, datasource="groundfish", nr=nrow(mm), YR=YR,
-            tdif.min=13, tdif.max=45, setdepth=gsinf$bottom_depth[gii] 
-          )
+          bcp = list( id=id, datasource="groundfish", nr=nrow(mm), tdif.min=9, tdif.max=45 )  ### yes some are as short as 9 min
           
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
           
@@ -837,7 +834,7 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
           bc = NULL # 
           bc = try( bottom.contact(mm, bcp ), silent=TRUE )
           
-          if ( !is.null( bottom.contact.debug.id ) ) {
+          if ( !is.null( debugid ) ) {
             ## this is a debugging mode return results and escape
             browser()
             if (!is.null(bc)) bottom.contact.plot( bc )
@@ -905,6 +902,35 @@ scanmar.db = function( DS, p, nm=NULL, id=NULL, YRS=NULL, bottom.contact.debug.i
   # -------
   
 
+
+  if (DS %in% c("sweptarea", "sweptarea.redo" )) {
+
+    fn = file.path( p$scanmar.dir, "gsinf.sweptarea.rdata" )
+    scanmar.bc.dir =  file.path(p$scanmar.dir, "bottom.contact" )
+    
+    if (DS=="sweptarea") {
+      gsinf = NULL
+      if (file.exists(fn)) load(fn) 
+      return( gsinf )
+    }
+
+    if (is.null (YRS) ) YRS = p$netmensuration.years 
+    gsinf = scanmar.db( DS="bottom.contact", p=p )
+
+    ## g = NED2010027.90
+    # some sanity checks:
+
+
+
+    # estimate swept area for data locations where estimates do not exist or are problematic from bottom contact approach
+
+
+
+    return(gsinf)
+  }
+
+
+  # -------------
   if (DS %in% c("scanmar.filtered", "scanmar.filtered.redo", "scanmar.filtered.indices" )) {
     
     if (is.null (YRS) ) YRS = p$netmensuration.years 
