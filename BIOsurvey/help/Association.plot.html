@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Plots association between catch and covariate</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for Association.plot {BIOsurvey}"><tr><td>Association.plot {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Plots association between catch and covariate</h2>
+
+
+<h3>Description</h3>
+
+<p>
+Produces an association plot using one environmental variable for stratified random survey data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Association.plot(data, hydro, strata.group, species = NULL,subset, plot = TRUE, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>data</code></td>
+<td>
+data.frame (class = strata.data) prepared by <code>Prepare.strata.data</code></td></tr>
+<tr valign="top"><td><code>hydro</code></td>
+<td>
+character name of vector specifying hydrographic variable to be analysed</td></tr>
+<tr valign="top"><td><code>strata.group </code></td>
+<td>
+List object prepared by <code>Prepare.strata.file</code></td></tr>
+<tr valign="top"><td><code>species</code></td>
+<td>
+character name of element in data.obj specifying what species' catches are to be analysed. The default is the hydrographic variable named in hydro= argument.
+</td></tr>
+<tr valign="top"><td><code>subset</code></td>
+<td>
+expression specifying which subset of observations should be used in the fit.
+This can be a logical vector (which is replicated to have length equal to the 
+number of observations), a numeric vector indicating the observation numbers to be included, or a 
+character vector of the observation names that should be included. All observations are included by default.
+</td></tr>
+<tr valign="top"><td><code>plot</code></td>
+<td>
+logical flag: if TRUE, then quantile-quantile plot is plotted on current graphics device.  Otherwise x and y coordinates for plot provided.</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+arguments to be passed onto plot function, such as xlab, xlim, etc.</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+See example below for producing an association plot comparing fish catch and a hydrographic variable.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+if plot is FALSE, quantile.strata returns a list with components x and y, giving coordinates of the points that would have been plotted.</p>
+
+<h3>References</h3>
+
+<p>
+Perry, R.I. and S.J. Smith. (1994). 
+Identifying habitat associations of marine fishes using survey data:  an application to the Northwest Atlantic. 
+<EM>Can. J. Fish. Aquat. Sci.</EM>  <B>51:</B> 589&ndash;602.
+</p>
+<p>
+Smith, S.J., R.L. Losier, F.H. Page and K. Hatt. (1994).  
+Associations between haddock, and temperature, salinity and depth  within the Canadian groundfish bottom trawl surveys (1970&ndash;1993) conducted in  
+NAFO Divisions 4VWX and 5Z. Can.  <EM>Tech. Rep. Fish. Aquat. Sci.</EM> <B>1959:</B> vi + 70 p.
+</p>
+<p>
+Smith, S.J. (1996). Analysis of data from bottom trawl surveys. In Assessment of groundfish stocks based on bottom trawl survey results. 
+Lassen, H. (ed.). <EM>NAFO Scientific Council Studies.</EM> <B>28:</B> 25&ndash;53.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="Prepare.strata.data.html">Prepare.strata.data</a></code>, <code><a href="Prepare.strata.file.html">Prepare.strata.file</a></code>, <code><a href="Stratify.html">Stratify</a></code>, <code><a href="Association.test.html">Association.test</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+#plot cumulative frequency curve for Depth.
+
+
+
+Association.plot(Scallop.stratadata, hydro="DEPTH", strata.group=Scallop.strata,
+xlab="Depth (m)")
+
+#add line for Commercial size scallops and Depth.
+
+lines(Association.plot(Scallop.stratadata, hydro="DEPTH", strata.group=Scallop.strata,
+species="Commercial",plot=FALSE),lty=2)
+</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Diagnostic plot for influential observations</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for influential.strata {BIOsurvey}"><tr><td>influential.strata {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Diagnostic plot for influential observations</h2>
+
+
+<h3>Description</h3>
+
+<p>
+Produces a plot showing the proportion that each catch (on abscissa) contributes to the stratified mean (on ordinate).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+influential.strata(object, Plot = TRUE, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>object</code></td>
+<td>
+strata object created by <code><a href="Stratify.html">Stratify</a></code>.</td></tr>
+<tr valign="top"><td><code>Plot</code></td>
+<td>
+logical flag: if TRUE, then influential plot is plotted on current graphics device.  Otherwise x and y coordinates for plot provided.</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+arguments to be passed onto plot function, such as xlab, xlim, etc.  The labels and limits for the y-axis are already set.</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+This function uses the generic function plot to produce this special plot for class strata.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+if plot is FALSE, influential.strata returns a list with components x and y, giving coordinates of the points that would have been plotted. 
+Strata labels are also included.</p>
+
+<h3>References</h3>
+
+<p>
+Smith, S.J. (1996).
+Analysis of bottom trawl survey data, In  Assessment of groundfish
+stocks based on bottom trawl survey results. H. Lassen (Ed.)
+<EM>NAFO Scientific Council Studies</EM> <B>28</B>: 25&ndash;53.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="Stratify.html">Stratify</a></code>,<code><a href="identify.influential.plot.html">Identify.influential.plot</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+
+
+
+influential.strata(Scallop.numbers.2008,Plot=TRUE,xlab="Scallop numbers")
+
+Fluke.influential&lt;-influential.strata(Scallop.numbers.2008,Plot=FALSE)
+</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>

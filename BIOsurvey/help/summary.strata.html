@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Summary method for strata objects</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for summary.strata {BIOsurvey}"><tr><td>summary.strata {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Summary method for strata objects</h2>
+
+
+<h3>Description</h3>
+
+<p>
+Summary of strata object including stratified mean and total, respective standard error and conventional confidence intervals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+## S3 method for class 'strata':
+summary(object, alpha.t = 0.05, effic = FALSE, nopt = FALSE, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>object</code></td>
+<td>
+strata object created by <a href="Stratify.html">Stratify</a></td></tr>
+<tr valign="top"><td><code>alpha.t</code></td>
+<td>
+the alpha level for the student's-t confidence intervals. Default is 0.05.  Confidence intervals also provided.</td></tr>
+<tr valign="top"><td><code>effic</code></td>
+<td>
+logical flag: if TRUE, then design-efficiency estimates for the allocation and stratification components are calculated. Estimated maximum efficiency for optimal allocation
+for current stratification also calculated.</td></tr>
+<tr valign="top"><td><code>nopt</code></td>
+<td>
+logical flag: if TRUE, then optimal sample sizes per stratum are calculated based on current estimates of strata variances.  Compromise allocation for case where there 
+must be a minimum of 2 samples per strata also calculated. This option can only be calculated if sample size greater than 1 in all strata.</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+further arguments passed to or from other methods.</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+Student's-t confidence intervals calculated using Satterthwaite's approximation (Cochran 1977).  Efficiency estimates based on Sukhatme and Sukhatme's (1953) 
+approximation (Smith and Gavaris 1993).  This function is a method for the generic function summary for class strata.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+A data.frame containing the following:
+</p>
+<table summary="R argblock">
+<tr valign="top"><td><code>yst</code></td>
+<td>
+estimate of the stratified mean.</td></tr>
+<tr valign="top"><td><code>se.yst</code></td>
+<td>
+estimate of standard error of mean.</td></tr>
+<tr valign="top"><td><code>Yst</code></td>
+<td>
+estimate of stratified total.</td></tr>
+<tr valign="top"><td><code>df.yst</code></td>
+<td>
+effective degrees of freedom.</td></tr>
+<tr valign="top"><td><code>alpha</code></td>
+<td>
+alpha level for confidence interval.</td></tr>
+<tr valign="top"><td><code>ci.yst</code></td>
+<td>
+lower and upper limits for confidence interval.</td></tr>
+<tr valign="top"><td><code>effic.alloc</code></td>
+<td>
+allocation component of estimated efficiency as a percentage of simple random sampling variance.</td></tr>
+<tr valign="top"><td><code>effic.str</code></td>
+<td>
+strata component of estimated efficiency as a percentage of simple random sampling variance.</td></tr>
+<tr valign="top"><td><code>var.ran</code></td>
+<td>
+estimated variance of the mean for a simple random sample.</td></tr>
+<tr valign="top"><td><code>max.eff</code></td>
+<td>
+estimated maximum efficiency for optimal allocation  for current stratification.</td></tr>
+<tr valign="top"><td><code>nopt</code></td>
+<td>
+A matrix of the optimal and compromise sample sizes (minimum sample size = 2) for each stratum.</td></tr>
+<tr valign="top"><td><code>descrip</code></td>
+<td>
+Simple label ``Stratified Analysis'' for summary object.</td></tr>
+</table>
+
+<h3>References</h3>
+
+<p>
+Cochran, W.G. (1977). <EM>Sampling Techniques.</EM> John Wiley &amp; Sons. New York, N.Y.
+</p>
+<p>
+Smith, S.J. and S. Gavaris. (1993). 
+Improving the precision of fish abundance estimates of Eastern Scotian Shelf cod from bottom trawl surveys. 
+<EM>North American Journal of Fisheries Management</EM>. <B>13</B>: 35&ndash;47.
+</p>
+<p>
+Sukhatme, R.V., and B.V. Sukhatme.  (1970). <EM>Sampling theory of surveys
+with applications.</EM> Iowa State University Press, Ames, Iowa.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="Stratify.html">Stratify</a></code>, <code><a href="print.strata.html">print.strata</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>## Not run: summary(Scallop.numbers.2008,effic=TRUE)</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>

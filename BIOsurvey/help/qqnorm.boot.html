@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Quantile-quantile plot for bootstrap data</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for qqnorm.boot {BIOsurvey}"><tr><td>qqnorm.boot {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Quantile-quantile plot for bootstrap data</h2>
+
+
+<h3>Description</h3>
+
+<p>
+Produce a quantile-quantile plot for bootstrap data from boot objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+## S3 method for class 'boot':
+qqnorm(y, ylab = "", ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>y</code></td>
+<td>
+boot object created by <code><a href="boot.strata.html">boot.strata</a></code></td></tr>
+<tr valign="top"><td><code>ylab</code></td>
+<td>
+text for ylab of plot</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+further arguments passed to or from other methods.</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+Quantile-quantile plot of bootstrap estimates is produced on current graphics device.
+</p>
+
+
+<h3>References</h3>
+
+<p>
+Smith, S.J. (1996). 
+Analysis of data from bottom trawl surveys. In Assessment of groundfish stocks based on bottom trawl survey results. 
+Lassen, H. (ed.). <EM>NAFO Scientific Council Studies.</EM> <B>28</B>: 25&ndash;53.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="boot.strata.html">boot.strata</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>## Not run: 
+qqnorm.boot(Scallop.numbers.2008.boot,ylab="Stratified mean")
+## End(Not run)</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>

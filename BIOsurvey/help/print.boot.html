@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Print method for boot objects</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for print.boot {BIOsurvey}"><tr><td>print.boot {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Print method for boot objects</h2>
+
+
+<h3>Description</h3>
+
+<p>
+This function provides a basic summary of a bootstrap object for stratified means.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+## S3 method for class 'boot':
+print(x, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>x</code></td>
+<td>
+boot object created by <code><a href="boot.strata.html">boot.strata</a></code>.</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+further arguments passed to or from other methods.</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+this function is a method for the generic function print for class boot.
+</p>
+
+
+<h3>Value</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>orig.mean</code></td>
+<td>
+original stratified mean.</td></tr>
+<tr valign="top"><td><code>orig.var</code></td>
+<td>
+original variance of stratified mean.</td></tr>
+<tr valign="top"><td><code>Number of bootstraps</code></td>
+<td>
+number of replications.</td></tr>
+<tr valign="top"><td><code>Bootstrap mean</code></td>
+<td>
+mean of bootstrap stratified means.</td></tr>
+<tr valign="top"><td><code>Average Bootstrap Variance</code></td>
+<td>
+mean variance calculated from each bootstrap resample.</td></tr>
+</table>
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="boot.strata.html">boot.strata</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+print(Scallop.numbers.2008.boot)
+## End(Not run)
+</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Prepare strata information for stratified analysis</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for Prepare.strata.file {BIOsurvey}"><tr><td>Prepare.strata.file {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Prepare strata information for stratified analysis</h2>
+
+
+<h3>Description</h3>
+
+<p>
+This can be a user written function which produces a list object containing, the strata numbers, area of each stratum and total number of samples in each stratum to be used
+for stratum weights.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Prepare.strata.file(data)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>data</code></td>
+<td>
+data object containing at a minimum strata numbers or labels and the total number of samples in a strata.  
+In the scallop data supplied with this package, the latter information is contained in the column "NH".  If the user's file
+contains other heading names, then this function should be rewritten to provide the list object given below.</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+Other information such as comments on method used to calculate total number of samples, etc., can also be added to the list object.  The stratified analysis will be 
+conducted for all of the strata included in this list object.  Modifications to this list object can be used to select subsets of strata to be included in analysis.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+a list object with at least the following components
+</p>
+<table summary="R argblock">
+<tr valign="top"><td><code>Strata</code></td>
+<td>
+Strata numbers or identifiers.</td></tr>
+<tr valign="top"><td><code>NH</code></td>
+<td>
+Total number of samples possible in each stratum</td></tr>
+</table>
+
+<h3>Author(s)</h3>
+
+<p>
+Stephen J. Smith, <a href="mailto:smithsj@mar.dfo-mpo.gc.ca">smithsj@mar.dfo-mpo.gc.ca</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="Prepare.strata.data.html">Prepare.strata.data</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+Scallopstrata&lt;-read.table("Scallopstrata.txt",head=TRUE)
+
+Scallop.strata&lt;-Prepare.strata.file(Scallopstrata)
+## End(Not run)</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>

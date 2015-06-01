@@ -45,6 +45,12 @@
             + s(tmean) + s(z) + s(dZ, k=4, bs="ts" ) + s(substrate.mean, k=4, bs="ts" )             
             + s(plon, plat, bs="tp", by=as.factor(yr)) + as.factor(yr) ) 
       }
+  if ( V=="totno.male.mat" ) {
+        # simple model in case of failures in other attempts
+        out = formula( Y ~  s(weekno, k=4, bs="ts" ) 
+            + s(tmean) + s(z) + s(dZ, k=4, bs="ts" ) + s(substrate.mean, k=4, bs="ts" )             
+            + s(plon, plat, bs="tp", by=as.factor(yr)) + as.factor(yr) ) 
+      }
 
       if(V == 'simple.2015'){
          out = formula( Y ~  s(t, k = 5, bs = 'ds') +  

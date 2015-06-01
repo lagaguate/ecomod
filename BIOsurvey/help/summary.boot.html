@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Summary of boot strata object</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for summary.boot {BIOsurvey}"><tr><td>summary.boot {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Summary of boot strata object</h2>
+
+
+<h3>Description</h3>
+
+<p>
+This function is a method for the generic function summary for class boot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+## S3 method for class 'boot':
+summary(object, CI.method = c("Percentile", "BC", "BCa"), alpha.b = 0.05, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>object</code></td>
+<td>
+boot object created by <code><a href="boot.strata.html">boot.strata</a></code>.</td></tr>
+<tr valign="top"><td><code>CI.method</code></td>
+<td>
+choose one of three confidence interval methods (Efron and Tibshirani, 1993) for the bootstrap estimate of the stratifed mean. Percentile = empirical
+percentiles; BC = bias-corrected; BCa = bias corrected and adjusted.
+The BCa method requires the acceleration estimation provided in boot.strata. This confidence interval method will produce an error statement if accel=NA.</td></tr>
+<tr valign="top"><td><code>alpha.b</code></td>
+<td>
+alpha level for confidence interval.</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+further arguments passed to or from other methods.</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+This function is a method for the generic function summary for class boot.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+This function summarizes a boot object by printing out the original stratified mean, variance of stratified mean, bootstrap stratified mean and the variance of the bootstrap estimate. 
+In addition to the upper and lower confidence limits, the length and shape of the confidence interval are also given.  The shape is calculated as the natural log of 
+the ratio of the upper limit minus the median to the median minus the lower limit (Efron, 1992). A summary of the bootstrap estimates is also provided using <code>quantile</code>.</p>
+
+<h3>References</h3>
+
+<p>
+Efron, B. (1992). 
+Jackknife-after-bootstrap standard errors and influence functions (with discussion). <EM>J. Royal Stat. Soc. Ser. B</EM>  <B>54</B>: 83&ndash;127.
+</p>
+<p>
+Efron, B. and  R.J. Tibshirani.  (1993). 
+<EM>An introduction to the bootstrap</EM>. Chapman &amp; Hall, London.
+</p>
+<p>
+Smith, S.J. (1997). Bootstrap confidence limits for groundfish trawl survey estimates of  mean abundance. 
+<EM>Can. J. Fish. Aquat. Sci.</EM>  <B>54</B>: 616&ndash;630.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="boot.strata.html">boot.strata</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: summary.boot(Scallop.numbers.2008.boot, CI.method="Percentile", alpha.b=0.10)
+</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>R: Calculate stratified estimates</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" type="text/css" href="../../R.css">
+</head><body>
+
+<table width="100%" summary="page for Stratify {BIOsurvey}"><tr><td>Stratify {BIOsurvey}</td><td align="right">R Documentation</td></tr></table>
+<h2>Calculate stratified estimates</h2>
+
+
+<h3>Description</h3>
+
+<p>
+Selects data and calculates within strata estimates of mean and variance.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Stratify(data.obj, strata.group, species, subset)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>data.obj </code></td>
+<td>
+data.frame (class = strata.data) prepared by <code>Prepare.strata.data</code>.
+</td></tr>
+<tr valign="top"><td><code>strata.group </code></td>
+<td>
+List object prepared by <code>Prepare.strata.file</code>.
+</td></tr>
+<tr valign="top"><td><code>species</code></td>
+<td>
+name of element in data.obj specifying what species' catches are to be analysed.
+<br>
+</td></tr>
+<tr valign="top"><td><code>subset</code></td>
+<td>
+expression specifying which subset of observations should be used in the fit.
+This can be a logical vector (which is replicated to have length equal to the 
+number of observations), a numeric vector indicating the observation numbers to be included, or a 
+character vector of the observation names that should be included. All observations are included by default.
+</td></tr>
+</table>
+
+<h3>Details</h3>
+
+<p>
+The data object can contain survey data for more than just the strata of interest.
+Selection of which strata are to be included are specified with strata.group.
+</p>
+<p>
+Missing values (NA's) are allowed for all arguments and are automatically removed from the analysis.
+</p>
+
+
+<h3>Value</h3>
+
+<p>
+stratify returns a list of class strata with required components for further analyses of the data.  If the result is unassigned, print.strata will automatically
+give means, variances, sample sizes and the stratum weight for each stratum.
+</p>
+<table summary="R argblock">
+<tr valign="top"><td><code>yhi</code></td>
+<td>
+the number of animals caught in tow i in strata h.</td></tr>
+<tr valign="top"><td><code>Strata</code></td>
+<td>
+the stratum label for each tow.</td></tr>
+<tr valign="top"><td><code>Nh</code></td>
+<td>
+the total number of population sample units in stratum h.</td></tr>
+<tr valign="top"><td><code>Wh</code></td>
+<td>
+the proportion of the area in stratum h.</td></tr>
+<tr valign="top"><td><code>nh</code></td>
+<td>
+the total number of sampled units in stratum h.</td></tr>
+<tr valign="top"><td><code>descrip</code></td>
+<td>
+the total number of sampled units in stratum h.</td></tr>
+</table>
+
+<h3>References</h3>
+
+<p>
+Cochran, W.G. (1977). <EM>Sampling Techniques.</EM> John Wiley &amp; Sons. New York, N.Y.
+</p>
+<p>
+Smith, S.J. (1996).
+Analysis of bottom trawl survey data, In  Assessment of groundfish
+stocks based on bottom trawl survey results. H. Lassen (Ed.)
+<EM>NAFO Scientific Council Studies</EM> <B>28</B>: 25&ndash;53.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>
+<code><a href="Prepare.strata.data.html">Prepare.strata.data</a></code>,
+<code><a href="print.strata.html">print.strata</a></code>,
+<code><a href="summary.strata.html">summary.strata</a></code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+
+
+Scallop.numbers.2008&lt;-Stratify(Scallop.stratadata,Scallop.strata,
+species=Commercial)
+
+</pre>
+
+
+
+<hr><div align="center">[Package <em>BIOsurvey</em> version 1.0-2 <a href="00Index.html">Index]</a></div>
+
+</body></html>
