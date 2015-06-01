@@ -26,17 +26,18 @@ bottom.contact = function( x, bcp ) {
   x = x[order( x$timestamp ) ,]
   x$ts = as.numeric( difftime( x$timestamp, min(x$timestamp), units="secs" ) )
   
-  # O$Z = x$depth  ## copy of depth data before manipulations ... not used? 
-  
   O$plotdata = x   # save incoming data after creation of time stamps and ordering 
- 
-  x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
-  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
-  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
-  ##--------------------------------
-  # basic depth gating
-  
-  if( !any(x$depth > bcp$depth.min)) return( NULL ) 
+
+
+  if ( exists( "double.depth.sensors", bcp) ) {
+    # two depth sensors were used simultaneously but they are not calibrated!
+    # remarkably hard to filter this out with any reliability while still maintaining current methods
+    # send a trigger to bottom.contact.filter tto operate on this properly
+    oi  = interpolate.xy.robust( x[, c("ts", "depth")], method="loess", trim=0.1, probs=c(0.05, 0.95),  target.r2=0.9 )
+    oo = which( (x$depth - oi) > 0) 
+    x$depth[oo] = NA
+    if (any( is.na( x$depth))) x$depth = interpolate.xy.robust( x[, c("ts", "depth")], method="simple.linear" )
+  }
 
   # simple time-based gating ..
   if (!is.na(bcp$time.gate)) {
@@ -46,36 +47,20 @@ bottom.contact = function( x, bcp ) {
   }
  
   # simple depth-based gating
+  if( !any(x$depth > bcp$depth.min)) return( NULL ) 
   O$good = bottom.contact.gating.depth ( Z=x$depth, good=O$good, bcp=bcp) 
   x$depth[ !O$good ] = NA
-
-  # time and depth-based gating
-  
+ # time and depth-based gating
   mm = modes( x$depth  )
+  
+  if (mm$sd < 0.001) return(NULL)  # there is no depth variation in the data ... likely a bad data series
+  
   mm.i = which( x$depth > (mm$lb2+bcp$depth.range[1]) & x$depth < (mm$ub2 + bcp$depth.range[2]) )
   
   O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
   O$good[mm.i] = TRUE
 
-  # sometimes multiple tows exist in one track ...  this is not completed ... needs some tweaking for strange conditions ...
-  # over-smoothed depth to capture stange tows  
-  nZ = nrow(x)
-  zs = zz = rep( 0, nZ )
-  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas
-  # zz[ which( is.na( x$depth)) ] = 1  # flag missing data
-  dzz = diff(zz)
-  bnds = c(1, which( dzz != 0 ), nZ ) 
-  
-  if ( length (bnds) > 2 ) {
-    # contaminated by noise
-    segs = diff(bnds) # length of each segment
-    longest = which.max( segs ) 
-    gg = bnds[longest]:bnds[(longest+1)]
-    bad = setdiff( 1:nZ, gg)
-    O$good[bad] = FALSE
-  }
-
-
+ 
   x.timerange = range( x$timestamp[O$good], na.rm=TRUE )
   x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
 
@@ -93,6 +78,37 @@ bottom.contact = function( x, bcp ) {
     }
   }
 
+# browser()
+
+  # sometimes multiple tows exist in one track ... 
+  # over-smooth depth to capture stange tows  
+  x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
+  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
+  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
+  
+  nZ = nrow(x)
+  zs = zz = rep( 0, nZ )
+  mm = modes( x$depth ) # naive first estimate of location of most data depths
+  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas
+  inc.depth = abs( diff( x$dsm ) )
+  
+  # also capture strong noise - very obviously wrong data
+   rapid.depth.changes = which( inc.depth > bcp$maxdepthchange )   
+  if ( length( rapid.depth.changes ) > 0 ) {
+    zz[ rapid.depth.changes ] = 1
+    zz[ rapid.depth.changes-1 ] = 1  # include adjecent points to remove
+    zz[ rapid.depth.changes+1 ] = 1
+  }
+  dzz = diff(zz)
+  bnds = c(1, which( dzz != 0 ), nZ ) 
+  if ( length (bnds) > 2 ) {
+    # i.e. , contaminated by noise or multiple tows
+    segs = diff(bnds) # length of each segment
+    longest = which.max( segs ) 
+    gg = bnds[longest]:bnds[(longest+1)]
+    bad = setdiff( 1:nZ, gg)
+    O$good[bad] = FALSE
+  }
 
   ## ------------------------------
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
@@ -124,7 +140,8 @@ bottom.contact = function( x, bcp ) {
       O$error.flag = "Too much data?"   
       return(O)
   }
-  
+ 
+
   # variance gating attempt
   O$variance.method0 = NA
   O$variance.method1 = NA
@@ -134,15 +151,16 @@ bottom.contact = function( x, bcp ) {
 
   if ( ! "try-error" %in% class( res) )  {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-      duration = abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-      if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+      DT = abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+      if ( length(DT) == 1 ) {
+        if ( is.finite(DT) &&  DT > bcp$tdif.min & DT < bcp$tdif.max ) {
         O$variance.method0 = res$bc0
         O$variance.method1 = res$bc1  
         O$variance.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 )
         bad = which( x$timestamp < res$bc0 |  x$timestamp > res$bc1 )
         if (length( bad) > 0) O$good[ bad ] = FALSE
         x$depth[ !O$good ] = NA
-      }
+      } }
     }
   }
 
@@ -181,12 +199,13 @@ bottom.contact = function( x, bcp ) {
   res = try( bottom.contact.modal( sm=sm0, bcp ), silent=TRUE )
     if ( ! "try-error" %in% class( res) ) {
       if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-        duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-        if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+        DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+        if ( length(DT) == 1 ) {
+          if ( is.finite(DT) &&  DT > bcp$tdif.min & DT < bcp$tdif.max ) {
           O$modal.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$modal.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$modal.method.indices = which( x$timestamp >= res$bc0  &  x$timestamp <= res$bc1  ) # x correct
-        }
+        } }
       }
     }  
      
@@ -208,17 +227,21 @@ bottom.contact = function( x, bcp ) {
   O$smooth.method1 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$smooth.method.indices = NA
   sm0 = x[ O$aoi, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
+  
+  # browser()
+
   res = NULL
   res = try( 
     bottom.contact.smooth( sm=sm0, bcp=bcp ) , silent =TRUE)
     if ( ! "try-error" %in% class( res) ) {
       if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-        duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-        if (is.finite(duration) &&  duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+        DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+        if ( length(DT) == 1) { 
+          if ( is.finite(DT) &&  DT > bcp$tdif.min & DT < bcp$tdif.max ) {
           O$smooth.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$smooth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$smooth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
-        }
+        } }
       }
     }  
       
@@ -247,12 +270,13 @@ bottom.contact = function( x, bcp ) {
 
   if ( ! "try-error" %in% class( res) ) {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-      duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-      if ( is.finite(duration) && duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+      DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+      if ( length(DT) == 1 ) {
+        if ( is.finite(DT) && DT > bcp$tdif.min & DT < bcp$tdif.max ) {
         O$maxdepth.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$maxdepth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$maxdepth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
-      }
+      }}
     }
   }  
  
@@ -283,12 +307,13 @@ bottom.contact = function( x, bcp ) {
 
   if ( ! "try-error" %in% class( res) ) {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
-      duration =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
-      if ( is.finite(duration) && duration > bcp$tdif.min & duration < bcp$tdif.max ) {
+      DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
+      if (  length(DT) == 1) {
+          if ( is.finite(DT) && DT > bcp$tdif.min & DT < bcp$tdif.max ) {
         O$linear.method0 = res$bc0 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$linear.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$linear.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
-      }
+      } }
     }
   }  
   
@@ -307,11 +332,11 @@ bottom.contact = function( x, bcp ) {
   O$manual.method0 = NA #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$manual.method1 = NA  ### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   if ( bcp$user.interaction  ) { 
-    print( "Click with mouse on start and stop locations now.")          
+    print( "Click with left mouse on start and stop locations and then press ESC or right click to continue.")          
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
     plot(depth~ts, x, ylim=c(drange[2],drange[1]), xlim=c(trange[1],trange[2]), pch=20, cex=0.1, col="gray" )
-    points( depth~ts, x[O$good,], pch=20, col=mcol, cex=0.2)
+    points( depth~ts, x[O$good,], pch=20, col="orange", cex=0.2)
 
     useridentified = locator( n=2, type="o", col="cyan")
     u.ts0 = which.min( abs( x$ts-useridentified$x[1] ))
@@ -423,7 +448,16 @@ bottom.contact = function( x, bcp ) {
   O$bottom.contact.indices = fin.all
   O$bottom.contact = rep( FALSE, nrow(x) )
   O$bottom.contact[ fin.all ] = TRUE
-  
+
+
+  # estimate surface area if possible using wingspread &/or doorspread
+  O$surface.area = NA
+  if ( exists ( "wingspread", x ) | exists( "doorspread", x ) ) {
+    sa = try( surfacearea.estimate( bcp=bcp, O=O ), silent=TRUE )
+    if ( ! "try-error" %in% class( sa ) ) O$surface.area = sa
+  }
+
+
   # for minilog and seabird data .. we have temperature estimates to make ..
   tmean= NA
   tmeansd = NA
@@ -432,8 +466,10 @@ bottom.contact = function( x, bcp ) {
     tmeansd = sd( x$temperature[fin.all], na.rm=TRUE )
   }
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
-                            n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) 
- 
+                            n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) # this is really for the snow crab system
+
+  
+
   if(debug.plot) {
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )

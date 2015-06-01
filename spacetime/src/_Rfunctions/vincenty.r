@@ -46,6 +46,8 @@
 
 vincenty = function (loc1, loc2, a, f) {
 
+  warning( "Deprecated. Consider using geosphere::distVincetyEllipsoid " )
+
   names(loc1) = c("lon", "lat")
   names(loc2) = c("lon", "lat")
   

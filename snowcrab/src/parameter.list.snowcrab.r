@@ -6,10 +6,13 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
     p$current.assessment.year = current.assessment.year 
 
     p$libs = RLibrary ( c( 
-     "lubridate", "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
+      "geosphere", "lubridate", "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", 
+      "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
     ) )
 
-    p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
+    p$init.files = loadfunctions( c( 
+      "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", 
+      "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
 
     p$annual.results = file.path( project.datadirectory("snowcrab"), "assessments", current.assessment.year ) # output location for year-specific results
     

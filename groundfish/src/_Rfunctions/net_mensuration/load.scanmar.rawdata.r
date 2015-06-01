@@ -1,21 +1,42 @@
 
 
-load.scanmar.rawdata = function( fn, tzone="UTC", yr=NULL ) {
+load.scanmar.rawdata = function( fn, yr=NULL ) {
   # Scanmar is always UTC!!!
+
   scanmar=NULL
   header = readLines(fn, n=10, encoding="UTF-8", skipNul=TRUE)
   datestring = basename(fn)
- 
-  yr_test = substring( datestring, 1, 4 )
-  if (yr_test == as.character(yr)) {
-    # for 1990 to 2014 .. naming method is consistent
-    mon = substring( datestring, 6, 8 )
-    day = substring( datestring, 9, 10 )
+  
+  ds = unlist( strsplit( datestring, "-") )
+
+  if (nchar(ds[1]) == 4 ) { 
+    yr0 = as.numeric( as.character( ds[1] ) )
+    if ( yr0 >= 1990 & yr0 <= 2014 ) { 
+      # most likely year .. from data prior to 2015
+      # for 1990 to 2014 .. naming method is consistent
+      mon = substring( ds[2], 1, 3 )
+      day = gsub( mon, "", ds[2] )
+    } else {
+      print( fn)
+      stop( "Error reading data: unexpected filename encountered" ) 
+    }
   } else {
     # more info added to name in 2015 ... altered parsing
-    ds = unlist( strsplit( datestring, "-") )
-    mon = substring( ds[2], 1, 3 )
-    day = gsub( mon, "", ds[2] )
+    yr0 = as.numeric( unlist( strsplit( ds[1], "\\." ) )[3])
+    if ( yr0 >= 2014 & yr0 < 2100 ) {
+      mon = substring( ds[2], 1, 3 )
+      day = gsub( mon, "", ds[2] ) 
+    } else {
+      print( fn)
+      stop( "Error reading data: unexpected filename encountered" ) 
+    }
+  }
+    
+  if ( !is.null(yr) ) {
+    if ( yr != yr0 ) {
+      print (fn)
+      stop( "Error in parsing year" ) 
+    }
   }
 
   # extract timestamp of "Start Set" --- these are not always reliable .. ignore
@@ -56,12 +77,10 @@ load.scanmar.rawdata = function( fn, tzone="UTC", yr=NULL ) {
   colnames(scanmar) = c("time", "depth", "doorspread", "wingspread", "opening", "clearance",
                         "ltspeed", "gyro", "latitude", "longitude")
   
-  
   numbers = c("depth", "doorspread", "wingspread", "opening", "clearance",
               "ltspeed", "gyro", "latitude", "longitude")
   
   scanmar = factor2number(scanmar, numbers)
-  
 
   scanmar$doorspread = filter.nets("doorspread.range", scanmar$doorspread)
   scanmar$wingspread = filter.nets("wingspread.range", scanmar$wingspread)
@@ -69,30 +88,32 @@ load.scanmar.rawdata = function( fn, tzone="UTC", yr=NULL ) {
   scanmar$opening = filter.nets("opening.range", scanmar$opening)
   scanmar$depth = filter.nets("depth.range", scanmar$depth)
   
-  scanmar$timestamp= paste(yr, mon, day, scanmar$time, sep="-" )
+  scanmar$timestamp= paste(yr0, mon, day, scanmar$time, sep="-" )
   scanmar$timestamp=gsub(":","-",scanmar$timestamp)
   scanmar$timestamp = lubridate::ymd_hms(scanmar$timestamp) # Scanmar is always UTC!!! .. which is the default of ymd_hms
   
-  scanmar$netmensurationfilename = basename(fn)
+  scanmar$nm_id = basename(fn)
   
   test = timestamp.fix ( scanmar$timestamp, threshold.hrs=2 )
   if (!is.null(test))  scanmar$timestamp = test
 
   scanmar = look.for.multiple.sets ( scanmar )
-  scanmar$id = NA  # filled in below if from 2015 and onwards, otherwise this will be filled in later once the position/time is matched to gsinf
+  scanmar$id = NA  # filled in below if from 2015 and onwards, otherwise this will be filled in later once the position/time is matched to gsinf (or, in perley .. Perley.mission.set )
   
-  if (yr >= 2015) {
+  if (yr0 >= 2015) {
     h1 = unlist( strsplit( header[1], "[[:punct:]]" ))
     mission = substring( h1[1], nchar(h1[1])-9, nchar(h1[1]) )
-    set = as.character( h1[2] )
-    header.id = paste( mission, set, sep=".") 
+    set =  as.character( h1[2] ) 
+    header.id.fn = paste( mission, set, sep=".") 
+    header.id = paste( mission, as.character(as.numeric(set)), sep=".") 
 
     f0 = unlist( strsplit( basename( fn), "[[:punct:]]" )) 
     filename.id = paste( f0[1], f0[2], sep=".")
     
     scanmar$id = header.id
 
-    if (header.id != filename.id){ 
+    if (header.id.fn != filename.id){ 
+      print( paste( header.id.fn, " -- ", filename.id) )
       print( "Header and filename do not indicate the same mission & set" )
       print( "Using header id over filename ... please check the file." )
     }

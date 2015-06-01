@@ -1,5 +1,5 @@
 
-bottom.contact.plot = function ( O ) {
+bottom.contact.plot = function ( O, netspread=FALSE ) {
   
   if ( exists("error.flag", O) && !is.na( O$error.flag ) )  {
     x = O$plotdata
@@ -30,8 +30,8 @@ bottom.contact.plot = function ( O ) {
         # points( depth~ts, x[ O$variance.method.indices, ], pch=20, col=mcol, cex=0.2)
         abline (v=x$ts[min(O$variance.method.indices)], col=mcol, lty="solid", lwd=1.2)
         abline (v=x$ts[max(O$variance.method.indices)], col=mcol, lty="solid", lwd=1.2)
-        duration = as.numeric( difftime( O$variance.method1, O$variance.method0, units="mins" ) )
-        legendtext = c( legendtext, paste( "variance gate:   ", round( duration, 2), "" ) )
+        DT = as.numeric( difftime( O$variance.method1, O$variance.method0, units="mins" ) )
+        legendtext = c( legendtext, paste( "variance gate:   ", round( DT, 2), "" ) )
         legendcol = c( legendcol, mcol)
         legendpch =c( legendpch, 20 ) 
     }
@@ -42,8 +42,8 @@ bottom.contact.plot = function ( O ) {
         # points( depth~ts, x[O$modal.method.indices,], col=mcol, pch=20, cex=0.2)       
         abline (v=x$ts[min(O$modal.method.indices)], col=mcol, lty="dashed")
         abline (v=x$ts[max(O$modal.method.indices)], col=mcol, lty="dashed")
-        duration = as.numeric( difftime( O$modal.method1, O$modal.method0, units="mins" ) )
-        legendtext = c( legendtext, paste( "modal:   ", round( duration, 2) ) )
+        DT = as.numeric( difftime( O$modal.method1, O$modal.method0, units="mins" ) )
+        legendtext = c( legendtext, paste( "modal:   ", round( DT, 2) ) )
         legendcol = c( legendcol, mcol)
         legendpch =c( legendpch, 20) 
     }
@@ -54,8 +54,8 @@ bottom.contact.plot = function ( O ) {
           # points( depth~ts, x[O$smooth.method.indices,], col=mcol, pch=20, cex=0.2)   
           abline (v=x$ts[min(O$smooth.method.indices)], col=mcol, lty="dotdash", lwd=1.5)
           abline (v=x$ts[max(O$smooth.method.indices)], col=mcol, lty="dotdash", lwd=1.5)
-          duration = as.numeric( difftime( O$smooth.method1, O$smooth.method0, units="mins" ) )
-          legendtext = c(legendtext, paste( "smooth:   ", round(duration, 2)) )
+          DT = as.numeric( difftime( O$smooth.method1, O$smooth.method0, units="mins" ) )
+          legendtext = c(legendtext, paste( "smooth:   ", round(DT, 2)) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
     }
@@ -65,8 +65,8 @@ bottom.contact.plot = function ( O ) {
           # points( depth~ts, x[O$linear.method.indices,], col=mcol, pch=20, cex=0.2)      
           abline (v=x$ts[min(O$linear.method.indices)], col=mcol, lty="twodash")
           abline (v=x$ts[max(O$linear.method.indices)], col=mcol, lty="twodash")
-          duration = as.numeric( difftime( O$linear.method1, O$linear.method0, units="mins" ) )
-          legendtext = c( legendtext, paste( "linear: ", round( duration, 2) ) )
+          DT = as.numeric( difftime( O$linear.method1, O$linear.method0, units="mins" ) )
+          legendtext = c( legendtext, paste( "linear: ", round( DT, 2) ) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
      }
@@ -77,8 +77,8 @@ bottom.contact.plot = function ( O ) {
           # points( depth~ts, x[O$linear.method.indices,], col=mcol, pch=20, cex=0.2)      
           abline (v=x$ts[min(O$maxdepth.method.indices)], col=mcol, lty="solid")
           abline (v=x$ts[max(O$maxdepth.method.indices)], col=mcol, lty="solid")
-          duration = as.numeric( difftime( O$maxdepth.method1, O$maxdepth.method0, units="mins" ) )
-          legendtext = c( legendtext, paste( "maxdepth: ", round( duration, 2) ) )
+          DT = as.numeric( difftime( O$maxdepth.method1, O$maxdepth.method0, units="mins" ) )
+          legendtext = c( legendtext, paste( "maxdepth: ", round( DT, 2) ) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
      }
@@ -91,8 +91,8 @@ bottom.contact.plot = function ( O ) {
         ii1  =which.min( td1)
           abline (v=x$ts[ ii0], col=mcol, lty="solid", lwd=1.6)
           abline (v=x$ts[ ii1], col=mcol, lty="solid", lwd=1.6)
-          duration = as.numeric( difftime( O$bottom1, O$bottom0, units="mins" ) )
-          legendtext = c( legendtext, paste( "Trimmed mean: ", round( duration, 2) ) )
+          DT = as.numeric( difftime( O$bottom1, O$bottom0, units="mins" ) )
+          legendtext = c( legendtext, paste( "Trimmed mean: ", round( DT, 2) ) )
           legendcol = c( legendcol, mcol)
           legendpch =c( legendpch, 20) 
      }
@@ -124,6 +124,46 @@ bottom.contact.plot = function ( O ) {
       "; depth sd=", signif( O$depth.sd, 3), 
       "; signal=", signif(O$signal2noise, 3) , sep="")  )
 
+    if (netspread & !is.na(O$surface.area) ) {
+      
+      x11()
+      par(mfrow=c(2,2))
+      bts = O$ts[ O$bottom.contact ] 
+
+      dr = range( c( O$plotdata$wingspread[ O$bottom.contact ] , O$surface.area$wing.smoothed, O$surface.area$wing.mean - 2*O$surface.area$wing.sd,  O$surface.area$wing.mean + 2*O$surface.area$wing.sd ) , na.rm=TRUE )
+      plot(  O$plotdata$wingspread[ O$bottom.contact ] ~ bts, pch=20, col="lightgray", cex=0.5, ylim=dr, xlab="", ylab="wingspread, m" ) 
+      abline( h=O$surface.area$wing.mean, lwd=2, col="gray") 
+      abline( h=O$surface.area$wing.mean - 2*O$surface.area$wing.sd, lty="dotted", col="lightgray" ) 
+      abline( h=O$surface.area$wing.mean + 2*O$surface.area$wing.sd, lty="dotted", col="lightgray" ) 
+      lines( O$surface.area$wing.smoothed ~ bts, col="red" )
+      legend( "bottom", legend=c( paste("Mean:", round(O$surface.area$wing.mean,2), "\n", 
+                                        "SD:", round(O$surface.area$wing.sd,2) ))) 
+
+      dr = range( c( O$plotdata$doorspread[ O$bottom.contact ] , O$surface.area$door.smoothed, O$surface.area$door.mean - 2*O$surface.area$door.sd,  O$surface.area$door.mean + 2*O$surface.area$door.sd ) , na.rm=TRUE )
+      plot(  O$plotdata$doorspread[ O$bottom.contact ] ~ bts, pch=20, col="lightgray", cex=0.5, ylim=dr, xlab="", ylab="doorspread, m" ) 
+      abline( h=O$surface.area$door.mean, lwd=2, col="gray") 
+      abline( h=O$surface.area$door.mean - 2*O$surface.area$door.sd, lty="dotted", col="lightgray" ) 
+      abline( h=O$surface.area$door.mean + 2*O$surface.area$door.sd, lty="dotted", col="lightgray" ) 
+      lines( O$surface.area$door.smoothed ~ bts, col="blue" )
+      legend( "bottom", legend=c( paste("Mean:", round(O$surface.area$door.mean,2), "\n", 
+                                        "SD:", round(O$surface.area$door.sd,2) ))) 
+
+   
+      plot( O$surface.area$distances.total ~ bts, type="l", col="red", xlab="", ylab="Cummulative distance (km)" ) 
+      lines( O$surface.area$distances.vertical ~ bts,  col="orange" ) 
+      lines( O$surface.area$distances.horizontal ~ bts,  col="cyan" ) 
+      legend( "topleft", legend=c( paste("Total:", max( round(O$surface.area$distances.total,2) ), "\n", 
+                                         "Horizontal:",  max( round(O$surface.area$distances.horizontal,2)), "\n",
+                                         "Vertical:",  max( round(O$surface.area$distances.vertical,2) )))) 
+
+
+      plot( c( O$surface.area$door.sa.cum, O$surface.area$wing.sa.cum ) ~ c( bts, bts) , type="n", xlab="", ylab="SA (km^2)" ) 
+      lines( O$surface.area$door.sa.cum ~ bts,  col="blue" ) 
+      lines( O$surface.area$wing.sa.cum ~ bts,  col="red" ) 
+      legend( "topleft", legend=c( paste("Door:", max( round(O$surface.area$door.sa.cum, 4) ), "\n", 
+                                         "Wing:",  max( round(O$surface.area$wing.sa.cum,4) )))) 
+    
+    }
 }
 
 

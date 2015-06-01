@@ -201,17 +201,15 @@
             if( ndat > 15 ) {
               # defaults appropriate for more modern scanmar data have > 3500 pings
               bcp = list( 
-                id=id, datasource="snowcrab", nr=rown(M), YR=yr,
-                tdif.min=3, tdif.max=9, time.gate=time.gate,
-                setdepth=rid$setZx[i],  depth.min=20, depth.range=c(-20,30), depthproportion=0.5, 
-                noisefilter.eps.depth=1, noisefilter.sd.multiplier=3, 
-                noisefilter.inla.h=0.005, noisefilter.inla.diagonal=0.01
+                id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
+                tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30)
               )
               
               bcp = bottom.contact.parameters( bcp ) # add other default parameters .. not specified above
            
               bc =  NULL
               bc = bottom.contact( x=M, bcp=bcp )
+              ## bottom.contact.plot (bc)
               if ( !is.null(bc) ) res = bc$res 
             } 
            

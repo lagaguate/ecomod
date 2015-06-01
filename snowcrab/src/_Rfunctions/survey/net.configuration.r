@@ -45,11 +45,8 @@
       time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
       
       bcp = list( 
-        id=N$netmind_uid[1], datasource="snowcrab", nr=rown(M), YR=yr,
-        tdif.min=3, tdif.max=9, time.gate=time.gate,
-        setdepth=rid$setZx[i], depth.min=20, depth.range=c(-20,30), depthproportion=0.5, 
-        noisefilter.eps.depth=1, noisefilter.sd.multiplier=3, 
-        noisefilter.inla.h=0.005, noisefilter.inla.diagonal=0.01
+        id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), YR=yr,
+        tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
       )
       
       bcp = bottom.contact.parameters( bcp ) # add other default parameters
@@ -169,7 +166,7 @@ if(nrow(N)>1) {
       # at maximum tension and not the position at net movemnent up
       # (otherwise, this would introduce a net bias towards smaller swept areas).
       pos = c( "lon", "lat" )
-      distance.from.start = geodist(point=N[1, pos], locations=N[, pos], method="great.circle") #  in km^2
+      distance.from.start = geosphere::distCosine(N[1, pos], N[, pos])/1000  #  in km^2
       end = which.max( distance.from.start)
       if( !is.finite(end) ) end=nrow(N)
       n = N[ 1:end , ]
@@ -181,13 +178,11 @@ if(nrow(N)>1) {
 	      out$netmind_n=end
 
       delta.distance = NULL
-	  n$distance = NA
+	   n$distance = NA
      if(nrow(n)>10) {	
       # integrate area:: piece-wise integration is used as there is curvature of the fishing track (just in case)
-      for( ii in 1:(end-1) ) {
-        gd = geodist( point=n[ ii, pos], locations=n[ ii+1, pos], method="vincenty" ) # km
-        delta.distance = c( delta.distance, gd  )
-      }
+       
+      delta.distance = geosphere::distMeeus ( nms[ 1:(end-1), pos ], nms[ 2:end, pos ] ) / 1000 ## in meters convert to km 
       n$distances = c( 0, cumsum( delta.distance  ) ) # cumsum used to do piecewise integration of distance
 	
       # model/smooth/interpolate the spreads
