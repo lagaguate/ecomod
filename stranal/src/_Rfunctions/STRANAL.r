@@ -10,7 +10,7 @@
 ###                                                                                 ###
 ###       Creation Date:        Nov 5, 2014                                         ###
 ###                                                                                 ###
-###       Modification Date:    May 1, 2015                                         ###
+###       Modification Date:    June 3, 2015                                        ###
 ###                                                                                 ###
 ###       Description:          Replaces the standalone STRANAL application         ###
 ###                             (written in APL), as well as the numbers and        ###
@@ -26,8 +26,8 @@
 #######################################################################################
 year          =2010
 type          =c(1)
-species.code  =10
-strat.list    =c(440:495)
+species.code  =10           #10=cod ; 12=white hake
+strat.list    =c(440:494)
 wingspread    = 41          #e.g. Western IIa=41;  Yankee=34
 towdist       =1.75         #abundant evidence suggests that this varies by set
 
@@ -82,7 +82,7 @@ gstri<-gstri[which(gstri$YEAR==year),]
 these.type  <- paste(unlist(gsub("(.*)","'\\1'",type)),sep="",collapse=",")
 these.strat  <- paste(unlist(gsub("(.*)","'\\1'",strat.list)),sep="",collapse=",")  
 these.missions<-paste(unlist(gsub("(.*)","'\\1'",gstri$MISSION)),sep="",collapse=",")
-
+input_parameters<-list(type=type,strata=strat.list,missions=gstri$MISSION,year=year,species.code=species.code, wingspread=wingspread, towdist=towdist)
 #######################################################################################
 ###                          DATABASE EXTRACTIONS                                   ###
 ###  Do them initially so that they don't need to be run each time                  ###
@@ -155,7 +155,7 @@ tunits<-sqlQuery(channel,tunits_query)
     bottom<-bottom[!duplicated(bottom[c("MISSION","SETNO")]),]
 
 #######################################################################################
-###                          STRATA AREA                                            ###
+###                          STRATA AREA1                                           ###
 #######################################################################################
 strata_area<-tunits[order(tunits$STRAT),c("STRAT","TUNITS","SQNM")]
 strata_tunits<-tunits[order(tunits$STRAT),c("STRAT","TUNITS")]
@@ -186,16 +186,18 @@ nw_by_set$RAW_TOTWGT <-nw_by_set$TOTWGT
 nw_by_set$TOTWGT <- (nw_by_set$TOTWGT*towdist)/nw_by_set$DIST
 nw_by_set$RAW_TOTNO <-nw_by_set$TOTNO 
 nw_by_set$TOTNO <- (nw_by_set$TOTNO*towdist)/nw_by_set$DIST
-nw_by_set<-nw_by_set[order(nw_by_set$STRAT,nw_by_set$SETNO),c("STRAT","SLAT","SLONG","AREA","SETNO","TOTWGT","TOTNO")]
+nw_by_set<-nw_by_set[order(nw_by_set$STRAT,nw_by_set$SETNO),]
+nw_by_set2<-nw_by_set[order(nw_by_set$STRAT,nw_by_set$SETNO),c("STRAT","SLAT","SLONG","AREA","SETNO","TOTWGT","TOTNO")]
 
-nw_by_set<-merge(nw_by_set,strata_tunits)
-nw_by_set$BIOMASS<-nw_by_set$TOTWGT*nw_by_set$TUNITS
-nw_by_set$ABUND<-nw_by_set$TOTNO*nw_by_set$TUNITS
+nw_by_set2<-merge(nw_by_set2,strata_tunits)
 
-nw_by_strata.cnt<-aggregate(list(COUNT=nw_by_set$STRAT), by=list(STRAT=nw_by_set$STRAT), FUN=length)
-nw_by_strata.sum<-aggregate(list(TOT_WGT=nw_by_set$TOTWGT,TOT_NO=nw_by_set$TOTNO), by=list(STRAT=nw_by_set$STRAT), FUN=sum)
-nw_by_strata.mean<-aggregate(list(MEAN_WGT=nw_by_set$TOTWGT,MEAN_NO=nw_by_set$TOTNO,BIOMASS=nw_by_set$BIOMASS,ABUND=nw_by_set$ABUND), by=list(STRAT=nw_by_set$STRAT), FUN=mean)
-nw_by_strata.sterr<-aggregate(list(ST_ERR_WGT=nw_by_set$TOTWGT,ST_ERR_NO=nw_by_set$TOTNO,ST_ERR_BIOMASS=nw_by_set$BIOMASS,ST_ERR_ABUND=nw_by_set$ABUND), by=list(STRAT=nw_by_set$STRAT), FUN=st.err)
+nw_by_set2$BIOMASS<-nw_by_set2$TOTWGT*nw_by_set2$TUNITS
+nw_by_set2$ABUND<-nw_by_set2$TOTNO*nw_by_set2$TUNITS
+
+nw_by_strata.cnt<-aggregate(list(COUNT=nw_by_set2$STRAT), by=list(STRAT=nw_by_set2$STRAT), FUN=length)
+nw_by_strata.sum<-aggregate(list(TOT_WGT=nw_by_set2$TOTWGT,TOT_NO=nw_by_set2$TOTNO), by=list(STRAT=nw_by_set2$STRAT), FUN=sum)
+nw_by_strata.mean<-aggregate(list(MEAN_WGT=nw_by_set2$TOTWGT,MEAN_NO=nw_by_set2$TOTNO,BIOMASS=nw_by_set2$BIOMASS,ABUND=nw_by_set2$ABUND), by=list(STRAT=nw_by_set2$STRAT), FUN=mean)
+nw_by_strata.sterr<-aggregate(list(ST_ERR_WGT=nw_by_set2$TOTWGT,ST_ERR_NO=nw_by_set2$TOTNO,ST_ERR_BIOMASS=nw_by_set2$BIOMASS,ST_ERR_ABUND=nw_by_set2$ABUND), by=list(STRAT=nw_by_set2$STRAT), FUN=st.err)
 
 nw<-merge(nw_by_strata.cnt,nw_by_strata.sum,by="STRAT")
 nw<-merge(nw, nw_by_strata.mean,by="STRAT")
@@ -205,10 +207,38 @@ numbers<-nw[,c("STRAT","COUNT","TOT_NO","MEAN_NO","ABUND","ST_ERR_NO","ST_ERR_AB
 weights<-nw[,c("STRAT","COUNT","TOT_WGT","MEAN_WGT","BIOMASS","ST_ERR_WGT","ST_ERR_BIOMASS")]
 
 #######################################################################################
+###                          STRATA AREAS                                           ###
+###    Strat
+###    Tunits
+###    SQNM
+###    AreaProp
+###    AreaPropStErr
+###    AreaTot
+###    AreaTotStErr
+#######################################################################################
+catchsets<-nw_by_set2
+catchsetskeeps <- c("STRAT","TOTWGT","TOTNO")
+catchsets<-catchsets[catchsetskeeps]
+catchsets$somecatch[catchsets$TOTWGT!=0 | catchsets$TOTNO!=0]<-1
+catchsets$somecatch[is.na(catchsets$somecatch)]<-0
+catchsets<-merge(strata_area,catchsets,by="STRAT",all.y=T)  #dropping strata with no catches
+catchsets<-merge(catchsets,nw_by_strata.cnt,by="STRAT",all.x=T)
+catchsets$Area<-catchsets$SQNM*catchsets$somecatch
+
+catchsets.AreaProp<-aggregate(list(AreaProp=catchsets$somecatch), by=list(STRAT=catchsets$STRAT), FUN=mean)
+catchsets.AreaPropStErr<-aggregate(list(AreaPropStErr=catchsets$somecatch), by=list(STRAT=catchsets$STRAT), FUN=st.err)
+catchsets.AreaTot<-aggregate(list(AreaTot=catchsets$Area), by=list(STRAT=catchsets$STRAT), FUN=mean)
+catchsets.AreaTotStErr<-aggregate(list(AreaTotStErr=catchsets$Area), by=list(STRAT=catchsets$STRAT), FUN=st.err)
+strata.areas<-merge(strata_area,catchsets.AreaProp,by="STRAT")
+strata.areas<-merge(strata.areas,catchsets.AreaPropStErr,by="STRAT")
+strata.areas<-merge(strata.areas,catchsets.AreaTot,by="STRAT")
+strata.areas<-merge(strata.areas,catchsets.AreaTotStErr,by="STRAT")
+
+#######################################################################################
 ###                          SET UP AGELEN                                          ###
 #######################################################################################
 #merge on particular fields by=c("MISSION", "SETNO","SIZE_CLASS")
-agelen<-merge(raw_gscat_gsinf, raw_gsdet, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T)
+agelen<-merge(nw_by_set, raw_gsdet, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T)
 agelen<-merge(agelen,tunits, all.x=T)
 agelen$FLEN<-floor(agelen$FLEN/agelen$BINWIDTH)*agelen$BINWIDTH
 agelen$CAGE<-NA
@@ -279,6 +309,9 @@ length_by_set <- na.zero(dcast(lset, STRAT + SLAT + SLONG + AREA + MISSION + SET
 remove<-c("STRAT","SLAT","SLONG","AREA","MISSION","SETNO")
 length_by_set<-length_by_set[order(length_by_set$STRAT,length_by_set$SETNO),]
 length_total<-merge(strata_tunits,length_by_set)
+#add row_tots to length_by_set
+length_by_set$TOTAL<-rowSums(length_by_set[,7:length(length_by_set)])
+
 
 #separate the length and non-length-related data for the sets of the dataframe
 length_total_pre  <-length_total[,c(1:7)]
@@ -347,7 +380,8 @@ age_length_weight = na.zero(reshape(alw,idvar='FLEN',timevar='AGE',direction='wi
 age_length_weight<-age_length_weight[order(age_length_weight$FLEN),]
 #does not show the avg wgts like stranal, but stranal seems to have incorrect totals
 
-results<-list(strata_area, 
+results<-list(input_parameters,
+              strata_area, 
               age_length_key, 
               length_by_set, 
               length_mean, 
@@ -360,25 +394,35 @@ results<-list(strata_area,
               numbers)
 #r_results              == STRANAL results sheet
 #---------------------------------------
-#strata_area              == Strata Area      (OK)
-#age_length_key           == Age Length Key   (OK)
-#length_by_set            == Length by Set    (OK)
-#length_mean              == Length Mean      (OK)
-#length_mean_se           == Length Mean Standard Error (OK)
-#length_total             == Length Total     (discrepencies > 75)
-#length_total_se          == Length Total Standard Error (OK)
-#age_length_weight        == Age Length Weight  (OK)
-#nw_by_set                == Weight By Set (OK)
-#                         == Numbers By Set (*)
-#weights                  == Weight (BIOMASS) Total
-#                         == Weight (BIOMASS) Total Std Err
-#                         == Weight Mean
-#                         == Weight Mean Std Err
+#strata.areas             == Strata Area                    (OK - totals good)
+#                         == Prop Area                      (OK - totals good)
+#                         == Prop Area Std Err              (OK - totals good)
+#                         == Total Area                     (OK - totals good)
+#                         == Total Area Std Area            (OK - totals good)
+#age_length_key           == Age Length Key                 (OK - totals good)
+#age_length_weight        == Age Length Weight              (OK - stranal avgs not averages)
+#length_by_set            == Length by Set                  (OK - totals good)
+#length_mean              == Length Mean                    (OK - row totals good, column totals different)
+#length_mean_se           == Length Mean Standard Error     (OK - row totals different, column totals different )
+#length_total             == Length Total                   (OK - totals good)
+#length_total_se          == Length Total Standard Error    (OK - totals good)
+#nw_by_set                == Weight By Set                  (OK - col=TOTWGT)
+#                         == Numbers By Set (*)             (*)
+#weights                  == Weight (BIOMASS) Total         (OK - col=BIOMASS)
+#                         == Weight (BIOMASS) Total Std Err (OK - col=ST_ERR_BIOMASS)
+#                         == Weight Mean                    (OK - col=MEAN_WGT)
+#                         == Weight Mean Std Err            (OK - col=ST_ERR_WGT)
+#<>                       == Age Table                      (missing)
+#<>                       == Age By Set                     (missing)
+#<>                       == Age Mean                       (missing)
+#<>                       == Age Mean Std Error             (missing)
+#<>                       == Age Total                      (missing)
+#<>                       == Age Total Standard Error       (missing)
 
-#numbers(*)               == Numbers (ABUNDANCE) Total (*)
+#numbers(*)               == Numbers (ABUNDANCE) Total      (*)
 #                         == Numbers  (ABUNDANCE) Total Std Err (*)
-#                         == Numbers Mean (*)
-#                         == Numbers Mean Std Err (*)
+#                         == Numbers Mean                   (*)
+#                         == Numbers Mean Std Err           (*)
 
 # * not in original STRANAL
 ##########################################BEWARE!#########################################
