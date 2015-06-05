@@ -17,6 +17,18 @@ p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992
 
 # p$netmensuration.years = p$current.year  
 
+# two depth sensors were used simultaneously but they are not calibrated!
+# they are remarkably hard to filter out while still maintaining current methods
+# instead: send a trigger to bottom.contact to operate on this properly
+p$double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
+
+
+# the data for these sets need to be checked?
+p$bc.badlist = c( 
+  "NED2012002.17", "TEL2005545.73","NED2015002.7", "NED2015002.8", "NED2015002.9"
+) 
+
+
 
 # steps required to recreate a local database of all data
 recreate.perley.db = FALSE
@@ -40,18 +52,6 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 # and then re-run the line and it will continue from where it crashed ... update the bc.badlist too
 # doing it year by year is probably wise for now
 # usually insufficient data for these or just flat-lines .. no reliable data
-
-# two depth sensors were used simultaneously but they are not calibrated!
-# they are remarkably hard to filter out while still maintaining current methods
-# instead: send a trigger to bottom.contact to operate on this properly
-p$double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
-
-
-# the data for these sets need to be checked?
-p$bc.badlist = c( 
-  "NED2012002.17", "TEL2005545.73","NED2015002.7", "NED2015002.8", "NED2015002.9"
-) 
-
 
 if (FALSE) { 
   # tests of extreme data conditions :
@@ -178,6 +178,11 @@ g[strange, "id"]
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71") # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.192") # large depth range
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.205") # depth sensor not working
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.208") # GPS not working
+bottom.contact.plot( bc, netspread=TRUE )
+
+
 bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2013022.208") # GPS not working
 bottom.contact.plot( bc, netspread=TRUE )
+plot( longitude ~ latitude, bc$plotdata )
 
