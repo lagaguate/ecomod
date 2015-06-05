@@ -57,6 +57,9 @@
  
     if ( !exists("maxdepthchange", bcp)) bcp$maxdepthchange = 10 # max fluctuation in depth (m) between sensor pings
 
+    # expected distance between GPS pings .. i.e. 10 cm to 0.1 km  --- might need to modify depending upon ping rate 
+    if ( !exists("gps.distance.range.valid.km", bcp)) bcp$gps.distance.range.valid.km =  c( 1e-4, 1e-1 )
+
     if ( !exists("noisefilter.trim", bcp)) bcp$noisefilter.trim = 0.04  # proportion of data to remove/trim based upon adjacent differences that are too extreme and local variance windows
     if ( !exists("noisefilter.var.window", bcp)) bcp$noisefilter.var.window = 5  # 1/2 of moving window used to compute local variance and moving window mean
     if ( !exists("noisefilter.inla.h", bcp)) bcp$noisefilter.inla.h = 0.05
