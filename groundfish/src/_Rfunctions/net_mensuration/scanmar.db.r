@@ -550,7 +550,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
        nm$depth[pp]  = filter.nets("depth.range", nm$depth[pp] )
      }
 
-      probs =c(0.05, 0.95)
+      probs =c(0.005, 0.995)  # only to capture really large extreme, though much has already been removed by fixed range gating 
       
       # simple range gates
       bad = which( nm$wingspread < 2 | nm$wingspread > 25   ) 
