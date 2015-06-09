@@ -46,9 +46,15 @@ loadfunctions("polygons")
 RLibrary( "gridExtra", "PBSmapping", "reshape", "plotrix" ) # Load required packages
 
 year.of.interest = 2015 # define or some other final year
-output.directory = file.path( project.datadirectory("offshoreclams"), "docs" )
+# output.directory = file.path( project.datadirectory("offshoreclams"), "docs" ) # location of output 
 
 
-ClamPDF( year.of.interest, outdir=output.directory )  
+# the following need to be defined first for this to work:
+# oracle.dsn
+# oracle.clam.user
+# oracle.clam.password
+
+ClamPDF( year.of.interest )  
+
 
 

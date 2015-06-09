@@ -1,4 +1,4 @@
-ClamPDF<-function(final.year, outdir =  file.path( project.datadirectory("offshoreclams"), "docs" ) ){
+ClamPDF<-function(final.year, outdir=file.path( project.datadirectory("offshoreclams"), "docs" ) ){
 ################################################################################
 ## actually runs the script, calling the functions as needed.
 ## takes an input value of the final year - e.g. ClamPDF(2015)
@@ -10,7 +10,10 @@ ClamPDF<-function(final.year, outdir =  file.path( project.datadirectory("offsho
 fname = paste("OffShoreClams_",final.year,".pdf",sep="")
 fpath = file.path( outdir, fname)
 
-dir.create( outdir, recursive=TRUE  )
+dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
+
+# open DB connection  .. need to be defined elsewhere .. private file
+RODBCconn <- MakeConnection( ) 
 
 pdf(file = fpath,
     ## onefile = "TRUE",
@@ -19,8 +22,6 @@ pdf(file = fpath,
     title = "Offshore Surfclam fishery Indices for Monitoring",
 )
 
-################################################################################
-RODBCconn <- MakeConnection()
 log.data <- GetLogData(RODBCconn)
 log.data <- ProcessLogData(log.data)
 ## reduce to cut off year
@@ -82,7 +83,9 @@ LoopThroughAppendix(Sel.Bank, bank.txt, cpue.table,
 ################################################################################
 ## Finished 
 ################################################################################
-odbcClose(RODBCconn) ## Close database connection
 dev.off()            ## Close pdf file
+
+odbcClose(RODBCconn) ## Close database connection
+
 }
 
