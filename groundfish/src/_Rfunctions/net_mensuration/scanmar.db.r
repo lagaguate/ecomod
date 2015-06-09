@@ -610,13 +610,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       bad = which.quantile( nm$doorspread, probs=probs, inside=FALSE)
       if (length(bad) > 0 ) nm$doorspread[ bad] = NA
 
-      # door must be wider than wing
-      bad = which (nm$doorspread < nm$wingspread )  
-      if (length(bad) > 0 ) {
-        nm$doorspread[ bad] = NA
-        nm$wingspread[ bad] = NA
-      }
-
       ## NOTE:: droppping data without a set match ... this may be bit sever as there is data for 
       ## forming doorspread/wingspread relationships but as they will not be computed and used in any manner ... dropping is OK
 

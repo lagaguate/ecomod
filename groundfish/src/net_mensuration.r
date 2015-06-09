@@ -86,9 +86,8 @@ scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom con
 # estimate via approximation using speed etc. 
 scanmar.db( DS="sweptarea.redo",  p=p ) 
 
-scanmar.db( DS="scanmar.filtered.redo",  p=p )  # netmind base data filtered for fishing periods .. not really used except for some plots
-
-
+# netmind base data filtered for fishing periods .. not really used except for some plots
+scanmar.db( DS="scanmar.filtered.redo",  p=p )  
 
 create.marport.database = FALSE
 if (create.marport.database ) {
@@ -164,22 +163,38 @@ gr = abs(g$dist*1.78 - (g$wing.sa / g$wing.mean)*1000)
 strange = which ( gr > 1 & g$gear==9 & g$settype==1 )
 g[strange, "id"]
  
- "NED2011002.45"  "NED2011002.53"  "NED2013022.205" "NED2013022.192"
+
+ [1] "NED2014101.49"  "NED2009027.117" "NED2009027.124" "NED2009027.151" "NED2009027.153" "NED2009027.177"
+ [7] "NED2009027.3"   "NED2009027.36"  "NED2009027.43"  "NED2009027.52"  "NED2009027.62"  "NED2009027.93" 
+[13] "NED2010027.219" "NED2010027.42"  "NED2011002.45"  "NED2011002.53"  "NED2013022.205" "NED2013022.192"
+[19] "NED2014018.71" 
 
 
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71") # depth sensor not working
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71")  # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.192") # large depth range
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.205") # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.208") # GPS not working
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.53") # 
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.45") # doorspread failure and almost no wingspread 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.53")  # 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.45")  # doorspread failure and almost no wingspread 
 
 bottom.contact.plot( bc, netspread=TRUE )
 
 
+bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2011002.45") # GPS not working
 bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2013022.208") # GPS not working
+
 bottom.contact.plot( bc, netspread=TRUE )
 plot( longitude ~ latitude, bc$plotdata )
 plot( wingspread ~ ts, bc$plotdata )
 plot( doorspread ~ ts, bc$plotdata )
+
+uu = scanmar.db( DS="sanity.checks",  p=p, YR=2011 )      
+uu = scanmar.db( DS="basedata", p=p, YR=2011 )        # Assimilate Scanmar files in raw data saves *.set.log files
+vv = scanmar.db( DS="basedata.lookuptable", p=p )
+ww = which( vv$id=="NED2011002.45" )
+xx = uu[ which( uu$nm_id == vv$nm_id[ww] ) , ]
+plot( wingspread ~ timestamp, xx )
+plot( doorspread ~ timestamp, xx )
+
+
 
