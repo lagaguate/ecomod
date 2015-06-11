@@ -163,12 +163,9 @@ gr = abs(g$dist*1.78 - (g$wing.sa / g$wing.mean)*1000)
 strange = which ( gr > 1 & g$gear==9 & g$settype==1 )
 g[strange, "id"]
  
-
- [1] "NED2014101.49"  "NED2009027.117" "NED2009027.124" "NED2009027.151" "NED2009027.153" "NED2009027.177"
- [7] "NED2009027.3"   "NED2009027.36"  "NED2009027.43"  "NED2009027.52"  "NED2009027.62"  "NED2009027.93" 
-[13] "NED2010027.219" "NED2010027.42"  "NED2011002.45"  "NED2011002.53"  "NED2013022.205" "NED2013022.192"
-[19] "NED2014018.71" 
-
+ [1] "NED2009027.117" "NED2009027.124" "NED2009027.151" "NED2009027.153" "NED2009027.177" "NED2009027.3"  
+ [7] "NED2009027.36"  "NED2009027.43"  "NED2009027.52"  "NED2009027.62"  "NED2009027.93"  "NED2010027.219"
+[13] "NED2011002.9"   "NED2011002.44"  "NED2011002.45"  "NED2011002.53"  "NED2013022.205" "NED2013022.192"
 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71")  # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.192") # large depth range
@@ -176,12 +173,15 @@ bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.205") # depth se
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.208") # GPS not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.53")  # 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.45")  # doorspread failure and almost no wingspread 
-
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2009027.26") 
 bottom.contact.plot( bc, netspread=TRUE )
 
 
 bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2011002.45") # GPS not working
 bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2013022.208") # GPS not working
+
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2012002.98")  # doorspread failure and almost no wingspread 
+
 
 bottom.contact.plot( bc, netspread=TRUE )
 plot( longitude ~ latitude, bc$plotdata )
