@@ -292,7 +292,10 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gf0$match.level = NA  # -1 = not matched 
  
 
+    print( "Following print out are of potential mismatches:")
+    
     for ( YR in YRS ) {
+      print( YR )
       fnYR = file.path( p$scanmar.dir, "basedata.lookuptable", paste( "scanmar", "basedata.lookuptable", YR, "rdata", sep= "."))
       skipyear = FALSE
       # Incorporation of newer data, combining timestamp
@@ -361,7 +364,11 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
                 time.hr = abs( as.numeric( difftime( nm$timestamp[m], gf$sdate[igg], units="hours" ) ) )
                 fno = NULL
                 fno = data.frame( time.hr = time.hr )
-                fno$distance.km=distance.km[m]
+                if ("try-error" %in% class( distance.km) ) {
+                  fno$distance.km = NA
+                } else {
+                  fno$distance.km=distance.km[m]
+                }
                 fno$depth.diff = difdepth.m [m]
                 fno$nm_id = fni
                 fno$time.inside.interval = time.inside.interval
@@ -370,17 +377,55 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
               }
  
               # res contains best candidate matches, now compute best match choose best match, if any ...
-              uu = which( !is.finite( res$time.hr))
-              if ( length(uu) > 0) {
-                res$time.hr[uu] = NA  # needs to be a separate step .. do not remove
-                res$time.hr[uu] = min( 10, max(res$time.hr, na.rm=TRUE) )
+              u = which( is.finite( res$time.hr))
+              v = which( is.finite( res$distance.km))
+       
+              if (length(u) == 0 && length(v)== 0 ) {
+                # not much we can do .. no time/loction matches)
+                next()
               }
-              
+
+              if (length(u) == 0) {
+                # no time data but some distance data .. retain what we can
+                it = which.min( abs( res$distance.km) )
+                gf$match.level[igg] = NA 
+                gf$nm_id[igg] = res$nm_id[it]
+                gf$timestamp[igg] = gf$sdate[igg] 
+                gf$min.distance[igg] = res[it, "distance.km"]
+                gf$time.difference[igg] = res[it, "time.hr"]
+                gf$depth.difference[igg] = res[it, "depth.diff"] 
+                next()
+              }
+
+              if (length(v) == 0) {
+                # no positional data but some time data .. retain what we can
+                it = which.min( abs( res$time.hr ) )
+                gf$match.level[igg] = NA 
+                gf$nm_id[igg] = res$nm_id[it]
+                gf$timestamp[igg] = gf$sdate[igg] 
+                gf$min.distance[igg] = res[it, "distance.km"]
+                gf$time.difference[igg] = res[it, "time.hr"]
+                gf$depth.difference[igg] = res[it, "depth.diff"] 
+                next()
+              }
+
+              # if here, then both position and time data exist
+                   
+              uu = which( !is.finite( res$time.hr))
               vv = which( !is.finite( res$distance.km))
+  
+              if ( length(uu) > 0) {
+                # assume missing times to be largest value in group to a limit of 5 hr
+                res$time.hr[uu] = NA  # needs to be a separate step .. do not remove
+                res$time.hr[uu] = min( 5, max(res$time.hr, na.rm=TRUE) )
+              } 
+              
               if ( length(vv) > 0) {
+                # assume missing distances to be largest distance in group, to a limit of 10 km
                 res$distance.km[vv] = NA # needs to be a separate step .. do not remove
                 res$distance.km[vv] = min( 10, max(res$distance.km, na.rm=TRUE) )
-              }
+              } 
+              
 
               oo = which(  res$time.inside.interval )
               if (length(oo) > 0) res$match.level[oo] = 0 +  res$distance.km[oo]     
@@ -550,7 +595,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
        nm$depth[pp]  = filter.nets("depth.range", nm$depth[pp] )
      }
 
-      probs =c(0.05, 0.95)
+      probs =c(0.005, 0.995)  # only to capture really large extreme, though much has already been removed by fixed range gating 
       
       # simple range gates
       bad = which( nm$wingspread < 2 | nm$wingspread > 25   ) 
@@ -564,13 +609,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
       bad = which.quantile( nm$doorspread, probs=probs, inside=FALSE)
       if (length(bad) > 0 ) nm$doorspread[ bad] = NA
-
-      # door must be wider than wing
-      bad = which (nm$doorspread < nm$wingspread )  
-      if (length(bad) > 0 ) {
-        nm$doorspread[ bad] = NA
-        nm$wingspread[ bad] = NA
-      }
 
       ## NOTE:: droppping data without a set match ... this may be bit sever as there is data for 
       ## forming doorspread/wingspread relationships but as they will not be computed and used in any manner ... dropping is OK
