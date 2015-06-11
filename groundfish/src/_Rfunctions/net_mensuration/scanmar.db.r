@@ -307,11 +307,16 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gf = gf0[igf,]
       }
          
-      nm=scanmar.db( DS="basedata", p=p, YRS=YR ) 
-      if (is.null( nm))  skipyear = TRUE 
+      bd = scanmar.db( DS="basedata", p=p, YRS=YR ) 
+      if (is.null( bd ))  skipyear = TRUE 
+
+      # extract data at modal depth locations for each profile/log
+      nm = summarize.netmensuration( bd )
+      if (is.null( nm) )  skipyear = TRUE 
 
       if ( ! skipyear ) {
-        
+
+        nnm = nrow( nm) 
         nm$lon=nm$longitude
         nm$lat=nm$latitude
         nm$longitude =NULL
@@ -323,169 +328,170 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         # but have been identified more reliably starting in 2015
         nm$nm_id0 = nm$nm_id   
 
-        # thin the nm data to speed up processing  .. only approximate locations and time stamps are required
-        #keep = seq( from=1, to=nrow(nm), by=60 )  # i.e. ~ every 1 min
-        #nm = nm[keep,]
-
-
         # now switching focus upon gsinf: if gs$nm_id is missing then we require a matching nm identity (filename) 
         # match level 1:: unique element with data within 1 km an 1 hr
         # criteria for exact matches in time (hr) and distance (km) :: 1 nm = 1.852 km, 3
-        
+        depth.eps = 20
+        coords = c("lon", "lat")
         unmatched = which( is.na( gf$nm_id ) )
+        
         if (length(unmatched)>0) {
-          coords = c("lon", "lat")
+          
           for(igg in unmatched) {
             # criteria for matching: distance, time and depth differences
             distance.km = try( abs( as.vector( geosphere::distCosine( nm[ , coords], gf[igg, coords])) )/1000 , silent=TRUE )
+            if ( !"try-error" %in% class( distance.km) ) distance.km = rep( NA, nnm )
+
             diftime.hr = as.numeric( difftime( nm$timestamp, gf$sdate[igg], units="hours" ) )
-            dd = which( abs(diftime.hr) <= 4  )  
             difdepth.m = nm$depth - gf$bottom_depth[igg]
-            ddepth = which( abs(difdepth.m) < 20 )
      
-            if ( length( dd) > 0 ) { 
-              res = NULL  # container for matches
-              # match 2: time-based only
-              # ... lower condifence as there are so many issues with timezones and unsynced clocks
-              fns =  unique( nm$nm_id[dd] ) 
-              fn0 = NULL
-              for ( fni in fns ) {
-                ui = which( nm$nm_id[dd] == fni ) 
-                jj = dd[ui]
-                time.inside.interval = FALSE
-                if (  gf$sdate[igg] >= min(nm$timestamp[jj]) & gf$sdate[igg] <= max(nm$timestamp[jj]) ) time.inside.interval = TRUE
-                if (length( which( is.finite ( nm$depth[jj] ) ) ) > 30 ) {
-                  dmode = modes( nm$depth[jj] )  # fast estimate of location of bottom
-                  mm = which( nm$depth[jj] < dmode$ub2 & nm$depth[jj] > dmode$lb2 ) 
-                  m = median( trunc(jj[mm]) ) # approx midpoint of bottom
-                } else { 
-                  m = median( trunc(jj) ) 
-                }
-                time.hr = abs( as.numeric( difftime( nm$timestamp[m], gf$sdate[igg], units="hours" ) ) )
+            res = NULL  # container for matches
+ 
+            # time-based only: lower condifence as there are so many issues with timezones and unsynced clocks
+            itime = which( diftime.hr > -1.5 & diftime.hr <= 4  )  
+            if ( length( itime ) > 0 ) { 
+              for ( m in itime ) {
                 fno = NULL
-                fno = data.frame( time.hr = time.hr )
-                if ("try-error" %in% class( distance.km) ) {
-                  fno$distance.km = NA
-                } else {
-                  fno$distance.km=distance.km[m]
-                }
-                fno$depth.diff = difdepth.m [m]
-                fno$nm_id = fni
-                fno$time.inside.interval = time.inside.interval
-                fno$match.level = NA 
+                fno = data.frame( nm_id = nm$nm_id[m], stringsAsFactors=FALSE )
+                fno$time.hr = diftime.hr[m] 
+                fno$distance.km = distance.km[m]
+                fno$depth.diff = difdepth.m[m]
                 res = rbind( res, fno )
               }
- 
-              # res contains best candidate matches, now compute best match choose best match, if any ...
-              u = which( is.finite( res$time.hr))
-              v = which( is.finite( res$distance.km))
-       
-              if (length(u) == 0 && length(v)== 0 ) {
-                # not much we can do .. no time/loction matches)
-                next()
-              }
+            }
 
-              if (length(u) == 0) {
-                # no time data but some distance data .. retain what we can
-                it = which.min( abs( res$distance.km) )
-                gf$match.level[igg] = NA 
-                gf$nm_id[igg] = res$nm_id[it]
-                gf$timestamp[igg] = gf$sdate[igg] 
-                gf$min.distance[igg] = res[it, "distance.km"]
-                gf$time.difference[igg] = res[it, "time.hr"]
-                gf$depth.difference[igg] = res[it, "depth.diff"] 
-                next()
-              }
-
-              if (length(v) == 0) {
-                # no positional data but some time data .. retain what we can
-                it = which.min( abs( res$time.hr ) )
-                gf$match.level[igg] = NA 
-                gf$nm_id[igg] = res$nm_id[it]
-                gf$timestamp[igg] = gf$sdate[igg] 
-                gf$min.distance[igg] = res[it, "distance.km"]
-                gf$time.difference[igg] = res[it, "time.hr"]
-                gf$depth.difference[igg] = res[it, "depth.diff"] 
-                next()
-              }
-
-              # if here, then both position and time data exist
-                   
-              uu = which( !is.finite( res$time.hr))
-              vv = which( !is.finite( res$distance.km))
-  
-              if ( length(uu) > 0) {
-                # assume missing times to be largest value in group to a limit of 5 hr
-                res$time.hr[uu] = NA  # needs to be a separate step .. do not remove
-                res$time.hr[uu] = min( 5, max(res$time.hr, na.rm=TRUE) )
-              } 
-              
-              if ( length(vv) > 0) {
-                # assume missing distances to be largest distance in group, to a limit of 10 km
-                res$distance.km[vv] = NA # needs to be a separate step .. do not remove
-                res$distance.km[vv] = min( 10, max(res$distance.km, na.rm=TRUE) )
-              } 
-              
-
-              oo = which(  res$time.inside.interval )
-              if (length(oo) > 0) res$match.level[oo] = 0 +  res$distance.km[oo]     
-    
-              o0 = which( !is.finite(res$match.level) &&  res$time.hr < 0.5 & res$distance.km < 0.5 ) 
-              if (length(o0) > 0) res$match.level[o0] = 0.5 + res$distance.km[o0] + res$time.hr[o0]
-
-              o1 = which( !is.finite(res$match.level) &&  res$time.hr < 2 & res$distance.km < 2 ) 
-              if (length(o1) > 0) res$match.level[o1] = 1 + res$distance.km[o1]  +  res$time.hr[o1]   
-
-              o2 = which( !is.finite(res$match.level) && res$time.hr >= 2  & res$time.hr < 4 & res$distance.km < 2 ) 
-              if (length(o2) > 0) res$match.level[o2] = 2 + res$time.hr[o2]  +  res$distance.km[o2] 
-
-              o3 = which( !is.finite( res$match.level) ) 
-              if (length(o3) > 0) res$match.level[o3] = 3 + res$distance.km[o3]  +  res$time.hr[o3] 
-              
-              o4 = which( !is.finite( res$match.level) ) 
-              if (length(o4) >= 0) res$match.level[o4] = 3 + res$time.hr[o4]   # time only as depth is missing in perley db
-              
-              best.choice = which.min( res$match.level )  
-              if ( length( best.choice ) > 0 ) {
-                if ( res$match.level[best.choice]  < 5 ) {  
-                  # 5 .. in case of time zone issues and some gps timing issues  ... anything higher is too unreliable
-                  gf$match.level[igg] = res$match.level[best.choice]
-                  gf$nm_id[igg] = res$nm_id[best.choice]
-                  gf$timestamp[igg] = gf$sdate[igg] 
-                  gf$min.distance[igg] = res[best.choice, "distance.km"]
-                  gf$time.difference[igg] = res[best.choice, "time.hr"]
-                  gf$depth.difference[igg] = res[best.choice, "depth.diff"] 
-                }
+            # location-based only
+            idist = which( distance.km < 4.5 )  # max = 4.5 km -- 1/2
+            if ( length(idist) > 0 ) {  
+              for ( m in idist ) {
+                fno = NULL
+                fno = data.frame( nm_id = nm$nm_id[m], stringsAsFactors=FALSE )
+                fno$time.hr = diftime.hr[m] 
+                fno$distance.km = distance.km[m]
+                fno$depth.diff = difdepth.m[m]
+                res = rbind( res, fno )
               }
             }
+
+            # depth based only
+            idepth = which( abs(difdepth.m) < depth.eps ) 
+            if ( length(idepth) > 0 ) {  
+              for ( m in idepth ) {
+                fno = NULL
+                fno = data.frame( nm_id = nm$nm_id[m], stringsAsFactors=FALSE )
+                fno$time.hr = diftime.hr[m] 
+                fno$distance.km = distance.km[m]
+                fno$depth.diff = difdepth.m[m]
+                res = rbind( res, fno )
+              }
+            }
+
+            res = unique(res)
+
+            reasonable = which( res$time.hr > -1.5 & res$time.hr <= 4 )
+            if ( length(reasonable) == 0 ) next()
+               
+            res = res[reasonable, ]
+            res$match.level = NA
+
+            if ( length(reasonable) == 1 ) {
+              gf$match.level[igg] = abs(res$time.hr)
+              gf$nm_id[igg] = res$nm_id
+              gf$timestamp[igg] = gf$sdate[igg] 
+              gf$min.distance[igg] = res$distance.km
+              gf$time.difference[igg] = res$time.hr
+              gf$depth.difference[igg] = res$depth.diff
+              next()
+            }
+            if ( length( reasonable) > 1 ) {
+              # make some decisions:
+              
+              ntime = length( which( is.finite( res$time.hr)) )
+              ndist = length( which( is.finite( res$distance.km)) )
+              ndepth = length( which( is.finite( res$depth.diff )) )
+      
+              if ( ntime>0 & ndist>0 ) {
+                # if here, then both position and time data exist
+                if ( ndepth>0) {
+                  jdepth = which( abs( res$depth) < depth.eps ) 
+                  if (length(jdepth) > 0 ) res = res[ jdepth, ]
+                }
+                res$diff = abs( res$distance.km * res$time.hr ) # effective difference .. lower means more likely
+                it = which.min( res$diff )
+                gf$match.level[igg] = 1 + res$diff[it] 
+                gf$nm_id[igg] = res$nm_id[it]
+                gf$timestamp[igg] = gf$sdate[igg] 
+                gf$min.distance[igg] = res[it, "distance.km"]
+                gf$time.difference[igg] = res[it, "time.hr"]
+                gf$depth.difference[igg] = res[it, "depth.diff"] 
+                next()
+              }
+
+              if ( ntime==0 & ndist>0 ) {
+                # no time data but some distance data .. retain what we can
+                if ( ndepth>0) {
+                  jdepth = which( abs( res$depth) < depth.eps ) 
+                  if (length(jdepth) > 0 ) res = res[ jdepth, ]
+                }
+                it = which.min( abs( res$distance.km) )
+                gf$match.level[igg] = 2 + abs( res$distance.km[it] )
+                gf$nm_id[igg] = res$nm_id[it]
+                gf$timestamp[igg] = gf$sdate[igg] 
+                gf$min.distance[igg] = res[it, "distance.km"]
+                gf$time.difference[igg] = res[it, "time.hr"]
+                gf$depth.difference[igg] = res[it, "depth.diff"] 
+                next()
+              }
+
+              if ( ntime>0 & ndist==0 ) {
+                # no positional data but some time data .. retain what we can
+                if ( ndepth>0) {
+                  jdepth = which( abs( res$depth) < depth.eps ) 
+                  if (length(jdepth) > 0 ) res = res[ jdepth, ]
+                }
+                it = which.min( abs( res$time.hr ) )
+                gf$match.level[igg] = 2 +  abs( res$time.hr[it] )  
+                gf$nm_id[igg] = res$nm_id[it]
+                gf$timestamp[igg] = gf$sdate[igg] 
+                gf$min.distance[igg] = res[it, "distance.km"]
+                gf$time.difference[igg] = res[it, "time.hr"]
+                gf$depth.difference[igg] = res[it, "depth.diff"] 
+                next()
+              }
+       
+            } # if len reasonable > n
           } # end for loop  unmatched
         }  # end if
 
         # remove duplicated nm_id's
         uu = which( duplicated( gf$nm_id, incomparables=NA ) ) 
         if ( length(uu) > 0 ) {
-          print( "Duplicated matches:")
+          print( "Duplicated matches found. Rejecting poorer matches:")
           while ( length( uu) > 0 )  {
             did = unique( gf$nm_id[uu] )
             hh = did[1]
             ee = which( gf$nm_id == hh )
-            print( gf[ee,] )
+            print( gf[ee, ] )
+            # browser()
             if (any( is.finite( gf$match.level[ee] ) ) ) {
               ff = which.min( gf$match.level[ee] )
               if ( is.finite(ff)) {
                 gg = setdiff( ee, ee[ff] ) 
+                print( paste("  Dropping match for:",  gf$id[gg] ) )
                 gf$nm_id[gg] = NA
               }
             } else if ( any( is.finite( gf$min.distance[ee] ) ) ) {
               ff = which.min( gf$min.distance[ee] )
               if ( is.finite(ff)) {
                 gg = setdiff( ee, ee[ff] ) 
+                print( paste("  Dropping match for:",  gf$id[gg] ) )
                 gf$nm_id[gg] = NA
               }
             } else if ( any( is.finite( gf$time.difference[ee] ) ) ) {
               ff = which.min( abs( gf$time.difference[ee] ))  # assuming time is correct ! which it is sometimes not ...
               if ( is.finite(ff)) {
                 gg = setdiff( ee, ee[ff] ) 
+                print( paste("  Dropping match for:",  gf$id[gg] ) )
                 gf$nm_id[gg] = NA
               }
             }
@@ -942,6 +948,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
+    # sanity checks on the SA estimates and 
+    # then compute best estimates where data are missing
 
     fn = file.path( p$scanmar.dir, "gsinf.sweptarea.rdata" )
     scanmar.bc.dir =  file.path(p$scanmar.dir, "bottom.contact" )
@@ -954,11 +962,147 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
     if (is.null (YRS) ) YRS = p$netmensuration.years 
     gsinf = scanmar.db( DS="bottom.contact", p=p )
+    gsinf$dist_km = gsinf$dist * 1.852 
+    gsinf$dist_wing = gsinf$wing.sa / gsinf$wing.mean * 1000  # est of length of the tow (km)
+    gsinf$dist_door = gsinf$door.sa / gsinf$door.mean * 1000 # est of length of the tow (km)
+    gsinf$yr = lubridate::year(gsinf$sdate)
 
-    ## g = NED2010027.90
-    # some sanity checks:
+    # fixes for western IIA trawl
+      if (0) {
+        w2a = which( gsinf$geardesc == "Western IIA trawl" )
+        
+        hist( gsinf$wing.mean[w2a], "fd" )
+        rn = quantile( gsinf$wing.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 10 to 20 .. using 10 to 25
+        
+        hist( gsinf$door.mean[w2a], "fd" )
+        rn = quantile( gsinf$door.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 11 to 78 .. using 11 to 80
+    
+        hist( gsinf$wing.sd[w2a], "fd" )
+        rn = quantile( gsinf$wing.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.16 to 3.62 .. using 0.1 to 5
+    
+        hist( gsinf$door.sd[w2a], "fd" )
+        rn = quantile( gsinf$door.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.06 to 17 .. using 0.1 to 25
+     
+        hist( gsinf$wing.sa[w2a], "fd" )
+        rn = quantile( gsinf$wing.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.008 to 0.068 .. using 0.01 to 0.08
+    
+        hist( gsinf$door.sa[w2a], "fd" )
+        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.08 to 0.29 .. using 0.1 to 0.35
+  
+        hist( gsinf$dist_wing[w2a], "fd" )
+        rn = quantile( gsinf$dist_wing[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.002 to 0.004 .. using 0.00175 to 0.0045 * 1000
+    
+        hist( gsinf$dist_door[w2a], "fd" )
+        rn = quantile( gsinf$dist_door[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.002 to 0.004 .. using 0.00175 to 0.0045 * 1000
 
 
+      }
+      # empirical distribution suggests (above)  hard limits of rn, ~ same as gating limits 
+      # .. too extreme means interpolation did not work well .. drop
+      
+      # unreliable net width estimates ... 
+      rn = c( 10, 25 )
+      i = which( (gsinf$wing.mean < rn[1] | gsinf$wing.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$wing.mean[i] = NA
+        gsinf$wing.sa[i] = NA
+        gsinf$wing.sd[i] = NA
+      }
+
+      rn = c( 11, 80 )
+      i = which( (gsinf$door.mean < rn[1] | gsinf$door.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$door.mean[i] = NA
+        gsinf$door.sa[i] = NA
+        gsinf$door.sd[i] = NA
+      }
+
+      # unreliable SD
+      rn = c( 0.1, 5 )
+      i = which( (gsinf$wing.sd < rn[1] | gsinf$wing.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$wing.mean[i] = NA
+        gsinf$wing.sa[i] = NA
+        gsinf$wing.sd[i] = NA
+      }
+
+      rn = c( 0.1, 25 )
+      i = which( (gsinf$door.sd < rn[1] | gsinf$door.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$door.mean[i] = NA
+        gsinf$door.sa[i] = NA
+        gsinf$door.sd[i] = NA
+      }
+
+      # unreliable SA's
+      rn = c( 0.01, 0.08 )
+      i = which( (gsinf$wing.sa < rn[1] | gsinf$wing.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$wing.mean[i] = NA
+        gsinf$wing.sa[i] = NA
+        gsinf$wing.sd[i] = NA
+      }
+
+      rn = c( 0.1, 0.35 )
+      i = which( (gsinf$door.sa < rn[1] | gsinf$door.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$door.mean[i] = NA
+        gsinf$door.sa[i] = NA
+        gsinf$door.sd[i] = NA
+      }
+
+
+      # tow length est
+      rn = c( 0.00175, 0.0045 ) * 1000 # ( km)
+      i = which( (gsinf$dist_wing < rn[1] | gsinf$dist_wing > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$dist_wing[i] = NA
+        gsinf$wing.mean[i] = NA
+        gsinf$wing.sa[i] = NA
+        gsinf$wing.sd[i] = NA
+      }
+
+      rn = c( 0.00175, 0.0045 ) * 1000 # km
+      i = which( (gsinf$dist_door < rn[1] | gsinf$dist_door > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      if ( length(i) > 0) {
+        gsinf$dist_door[i] = NA
+        gsinf$door.mean[i] = NA
+        gsinf$door.sa[i] = NA
+        gsinf$door.sd[i] = NA
+      }
+
+      if (0) {
+        w2a = which( gsinf$geardesc == "Western IIA trawl" )
+        plot(dist~ dist_wing, gsinf)
+        plot(dist~ dist_door, gsinf)
+        plot( wing.mean ~ door.mean, gsinf[w2a,], type="p", col="red" )  ## strange!
+        points( wing.mean ~ door.mean, gsinf[w2a,], col="black", pch=20, subset=which(gsinf$yr<2010) )  ## strange!
+ 
+        boxplot( door.mean ~ yr, gsinf) 
+        boxplot( wing.mean ~ yr, gsinf, ylim=c(5,25) ) 
+   
+        boxplot( door.sa ~ yr, gsinf) 
+        boxplot( wing.sa ~ yr, gsinf) 
+    
+        boxplot( dist_door ~ yr, gsinf) 
+        boxplot( dist_wing ~ yr, gsinf) 
+        
+        plot( dist_wing ~ jitter(dist_km), gsinf, xlim=c(0.75, 3.75), col="red", pch=20, cex=0.4 )
+        dm = lm( dist_wing ~ dist_km -1, gsinf, na.action="na.omit") 
+
+        uu = gsinf
+        vv = scanmar.db( DS="basedata.lookuptable", p=p )
+        ww = which( vv$id=="NED2009027.25" )
+        vv[ww,]
+        xx = uu[ which( uu$nm_id == vv$nm_id[ww] ) , ]
+        plot( wingspread ~ timestamp, xx )
+        plot( doorspread ~ timestamp, xx )
+
+
+      }
+
+
+      #i = 
 
     # estimate swept area for data locations where estimates do not exist or are problematic from bottom contact approach
 
