@@ -477,21 +477,21 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
               ff = which.min( gf$match.level[ee] )
               if ( is.finite(ff)) {
                 gg = setdiff( ee, ee[ff] ) 
-                print( paste("  Dropping:",  gf$nm_id[gg] ) )
+                print( paste("  Dropping match for:",  gf$id[gg] ) )
                 gf$nm_id[gg] = NA
               }
             } else if ( any( is.finite( gf$min.distance[ee] ) ) ) {
               ff = which.min( gf$min.distance[ee] )
               if ( is.finite(ff)) {
                 gg = setdiff( ee, ee[ff] ) 
-                print( paste("  Dropping:",  gf$nm_id[gg] ) )
+                print( paste("  Dropping match for:",  gf$id[gg] ) )
                 gf$nm_id[gg] = NA
               }
             } else if ( any( is.finite( gf$time.difference[ee] ) ) ) {
               ff = which.min( abs( gf$time.difference[ee] ))  # assuming time is correct ! which it is sometimes not ...
               if ( is.finite(ff)) {
                 gg = setdiff( ee, ee[ff] ) 
-                print( paste("  Dropping:",  gf$nm_id[gg] ) )
+                print( paste("  Dropping match for:",  gf$id[gg] ) )
                 gf$nm_id[gg] = NA
               }
             }
