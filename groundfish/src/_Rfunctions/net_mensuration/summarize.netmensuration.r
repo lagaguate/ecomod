@@ -12,11 +12,12 @@ summarize.netmensuration = function( nm) {
     v = w = NULL
     w = which( x$nm_id == iid[ii] )
     v = median( w )
-    if ( length(w) > 30)  {
+    if ( length(w) > 30 )  {
       dd = x$depth[w]
       mm = modes( dd )
       ww = which( dd > mm$lb & dd < mm$ub )
-      v = median (w[ww])
+      xx = which.min( x$timestamp[w[ww]]  )
+      v = w[xx]
     }
     out = c( out, v )
   }

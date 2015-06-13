@@ -282,7 +282,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     }
 
     gf0 = groundfish.db(DS="gsinf")
-    gf0$yr = lubridate::year( gf0$sdate)
+
     gf0$nm_id = NA
     gf0$nm_id0 = NA   # this stores the initial id  ... perley data and >=2015 data have hand matched data .. but many are not matched correctly ..
     gf0$timestamp = gf0$sdate
@@ -290,7 +290,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gf0$time.difference = NA
     gf0$depth.difference = NA
     gf0$match.level = NA  # -1 = not matched 
- 
 
     print( "Following print out are of potential mismatches:")
     
@@ -331,28 +330,29 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         # now switching focus upon gsinf: if gs$nm_id is missing then we require a matching nm identity (filename) 
         # match level 1:: unique element with data within 1 km an 1 hr
         # criteria for exact matches in time (hr) and distance (km) :: 1 nm = 1.852 km, 3
-        depth.eps = 20
+        depth.eps = 25
         coords = c("lon", "lat")
-        unmatched = which( is.na( gf$nm_id ) )
+        unmatched = which( is.na( gf$nm_id) & gf$geardesc=="Western IIA trawl" & gf$settype %in% c(1,2,5) )
         
         if (length(unmatched)>0) {
           
           for(igg in unmatched) {
             # criteria for matching: distance, time and depth differences
             distance.km = try( abs( as.vector( geosphere::distCosine( nm[ , coords], gf[igg, coords])) )/1000 , silent=TRUE )
-            if ( !"try-error" %in% class( distance.km) ) distance.km = rep( NA, nnm )
+            if ( "try-error" %in% class( distance.km) ) distance.km = rep( NA, nnm )
 
-            diftime.hr = as.numeric( difftime( nm$timestamp, gf$sdate[igg], units="hours" ) )
+            diftime.hr = as.numeric( difftime( gf$sdate[igg], nm$timestamp, units="hours" ) ) # gfsdate-nmtimestamp:low is earlier
             difdepth.m = nm$depth - gf$bottom_depth[igg]
      
             res = NULL  # container for matches
  
             # time-based only: lower condifence as there are so many issues with timezones and unsynced clocks
-            itime = which( diftime.hr > -1.5 & diftime.hr <= 4  )  
+            itime = which( diftime.hr > -1.75 & diftime.hr <= 1.75 )  
             if ( length( itime ) > 0 ) { 
               for ( m in itime ) {
                 fno = NULL
                 fno = data.frame( nm_id = nm$nm_id[m], stringsAsFactors=FALSE )
+                fno$nm_id0 = nm$nm_id0[m]
                 fno$time.hr = diftime.hr[m] 
                 fno$distance.km = distance.km[m]
                 fno$depth.diff = difdepth.m[m]
@@ -361,11 +361,12 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
             }
 
             # location-based only
-            idist = which( distance.km < 4.5 )  # max = 4.5 km -- 1/2
+            idist = which( distance.km < 10 )  # max = 4.5 km
             if ( length(idist) > 0 ) {  
               for ( m in idist ) {
                 fno = NULL
                 fno = data.frame( nm_id = nm$nm_id[m], stringsAsFactors=FALSE )
+                fno$nm_id0 = nm$nm_id0[m]
                 fno$time.hr = diftime.hr[m] 
                 fno$distance.km = distance.km[m]
                 fno$depth.diff = difdepth.m[m]
@@ -374,95 +375,87 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
             }
 
             # depth based only
-            idepth = which( abs(difdepth.m) < depth.eps ) 
-            if ( length(idepth) > 0 ) {  
-              for ( m in idepth ) {
-                fno = NULL
-                fno = data.frame( nm_id = nm$nm_id[m], stringsAsFactors=FALSE )
-                fno$time.hr = diftime.hr[m] 
-                fno$distance.km = distance.km[m]
-                fno$depth.diff = difdepth.m[m]
-                res = rbind( res, fno )
-              }
-            }
+     #       idepth = which( abs(difdepth.m) < depth.eps ) 
+     #       if ( length(idepth) > 0 ) {  
+     #         for ( m in idepth ) {
+     #           fno = NULL
+     #           fno = data.frame( nm_id = nm$nm_id[m], stringsAsFactors=FALSE )
+     #           fno$nm_id0 = nm$nm_id0[m]
+     #           fno$time.hr = diftime.hr[m] 
+     #           fno$distance.km = distance.km[m]
+     #           fno$depth.diff = difdepth.m[m]
+     #           res = rbind( res, fno )
+     #         }
+     #       }
 
             res = unique(res)
-
-            reasonable = which( res$time.hr > -1.5 & res$time.hr <= 4 )
+            reasonable = which( res$time.hr > -1.75 & res$time.hr <= 1.75 )  # tow should be 45 min (0.75) adding 1 hour in case of DST 
             if ( length(reasonable) == 0 ) next()
-               
-            res = res[reasonable, ]
-            res$match.level = NA
-
-            if ( length(reasonable) == 1 ) {
-              gf$match.level[igg] = abs(res$time.hr)
-              gf$nm_id[igg] = res$nm_id
-              gf$timestamp[igg] = gf$sdate[igg] 
-              gf$min.distance[igg] = res$distance.km
-              gf$time.difference[igg] = res$time.hr
-              gf$depth.difference[igg] = res$depth.diff
-              next()
-            }
-            if ( length( reasonable) > 1 ) {
+            if ( length(reasonable) > 0 ) {
               # make some decisions:
-              
+              res = res[reasonable, ]
+              res$match.level = NA
+
               ntime = length( which( is.finite( res$time.hr)) )
               ndist = length( which( is.finite( res$distance.km)) )
               ndepth = length( which( is.finite( res$depth.diff )) )
-      
+               
+              if ( ndepth>0 ) {
+                # must keep separated from "reasonable" as it is not always present 
+                jdepth = which( abs( res$depth.diff ) < depth.eps ) 
+                if (length(jdepth) > 0 ) res = res[ jdepth, ]
+              }
+
               if ( ntime>0 & ndist>0 ) {
                 # if here, then both position and time data exist
-                if ( ndepth>0) {
-                  jdepth = which( abs( res$depth) < depth.eps ) 
-                  if (length(jdepth) > 0 ) res = res[ jdepth, ]
-                }
                 res$diff = abs( res$distance.km * res$time.hr ) # effective difference .. lower means more likely
                 it = which.min( res$diff )
-                gf$match.level[igg] = 1 + res$diff[it] 
-                gf$nm_id[igg] = res$nm_id[it]
-                gf$timestamp[igg] = gf$sdate[igg] 
-                gf$min.distance[igg] = res[it, "distance.km"]
-                gf$time.difference[igg] = res[it, "time.hr"]
-                gf$depth.difference[igg] = res[it, "depth.diff"] 
-                next()
+                matchlevel = res$diff[it] 
               }
 
               if ( ntime==0 & ndist>0 ) {
                 # no time data but some distance data .. retain what we can
-                if ( ndepth>0) {
-                  jdepth = which( abs( res$depth) < depth.eps ) 
-                  if (length(jdepth) > 0 ) res = res[ jdepth, ]
-                }
                 it = which.min( abs( res$distance.km) )
-                gf$match.level[igg] = 2 + abs( res$distance.km[it] )
-                gf$nm_id[igg] = res$nm_id[it]
-                gf$timestamp[igg] = gf$sdate[igg] 
-                gf$min.distance[igg] = res[it, "distance.km"]
-                gf$time.difference[igg] = res[it, "time.hr"]
-                gf$depth.difference[igg] = res[it, "depth.diff"] 
-                next()
+                matchlevel = 2 + abs( res$distance.km[it] )
               }
 
               if ( ntime>0 & ndist==0 ) {
                 # no positional data but some time data .. retain what we can
-                if ( ndepth>0) {
-                  jdepth = which( abs( res$depth) < depth.eps ) 
-                  if (length(jdepth) > 0 ) res = res[ jdepth, ]
-                }
                 it = which.min( abs( res$time.hr ) )
-                gf$match.level[igg] = 2 +  abs( res$time.hr[it] )  
+                matchlevel = 2 +  abs( res$time.hr[it] )  
+              }
+              
+              if (length(it)==1 ) {
+                # register the match only if a single solution is found
+                gf$match.level[igg] = matchlevel
                 gf$nm_id[igg] = res$nm_id[it]
+                gf$nm_id0[igg] = res$nm_id0[it]
                 gf$timestamp[igg] = gf$sdate[igg] 
                 gf$min.distance[igg] = res[it, "distance.km"]
                 gf$time.difference[igg] = res[it, "time.hr"]
                 gf$depth.difference[igg] = res[it, "depth.diff"] 
                 next()
               }
-       
+
             } # if len reasonable > n
           } # end for loop  unmatched
         }  # end if
-
+        
+        # last stage ..  return hand matched id's where appropriate
+        yy = which( is.na( gf$nm_id ) | gf$match.level > 3.25 )
+        if (length(yy)>0) {
+          gf$nm_id[yy] =  gf$nm_id0[yy] 
+          if (YR < datalog.year0 ) {
+            # Perley years have many errors 
+            gf$match.level[yy] = gf$match.level[yy] / 2 # high priority .. encourages this solution to be kept
+          }
+          if (YR >= datalog.year0 ) {
+            # more recent years .. carry the actual set/mission on the file log .. lower chance of erroroneous match
+            gf$match.level[yy] =  gf$match.level[yy] / 4 # highest priority .. forces this solution to be kept
+          }
+        }
+      
+  
         # remove duplicated nm_id's
         uu = which( duplicated( gf$nm_id, incomparables=NA ) ) 
         if ( length(uu) > 0 ) {
@@ -498,7 +491,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
             uu = which( duplicated( gf$nm_id, incomparables=NA ) )
           }
         }
-        
+            
       } # end if skipyear
 
       save(gf, file= fnYR, compress= TRUE)
@@ -545,8 +538,67 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     
       nm = scanmar.db( DS="basedata", p=p, YRS=YR ) 
       if (is.null(nm)) next()
-         
+      nm$id = NULL  # this was already processed in the basedata.loopkup 
+
+      nmj = which( is.na( nm$nm_id) )  #required  for ( YR in YRS ) {
+   
+      gf = NULL
+      gf = scanmar.db( DS="basedata.lookuptable", p=p, YRS=YR  )
+      if (is.null(gf)) next()
+
+      gf = gf[, c("id", "nm_id", "sdate", "geardesc", "bottom_depth", "timestamp", "min.distance", "time.difference", "match.level" ) ]
+      gf = gf[ which( !is.na( gf$nm_id) ) , ]
+      
+      # gate and filter the wingspread and door spread data  ... multi-pass quantile trimming
+      # this is a global analysis ... all data required
+    
+      nm = scanmar.db( DS="basedata", p=p, YRS=YR ) 
+      if (is.null(nm)) next()
+      nm$id = NULL
+
       nmj = which( is.na( nm$nm_id) )  #required 
+      if (length( nmj) > 0 ) nm = nm[ -nmj,]
+ 
+      # drop a few vars that are not used and/or unreliable or unneeded
+      nm$ltspeed = NULL
+      nm$ctspeed = NULL
+      nm$gyro = NULL
+      nm$clearance = NULL
+      nm$opening = NULL
+
+      nmnrow0 = nrow( nm)
+      nm = merge(nm, gf, by="nm_id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".gf") )
+      if( nrow(nm) != nmnrow0 ) stop("Merge error") 
+  
+
+      nmj = which( is.na( nm$id.gf ) )  # required ... sign that there is data that merged 
+      if (length( nmj) > 0 ) nm = nm[ -nmj,]
+      
+      nm$id = nm$id.gf 
+
+     # empty variable is not needed (crossed channel with doorspread), also values present look erroneous in NED2005001 1
+      if (YR==2005) {
+        i = which( nm$id=="NED2005001.1" )
+        if (length(i) >0) {
+          nm$doorspread[i] = NA
+          nm$wingspread[i] = NA
+        }
+      }
+
+     # coarse level gating   
+      
+     # ID sets where American trawls were used for comparative surveys
+     oo = which( nm$geardesc == "US 4 seam 3 bridle survey trawl" ) 
+     if (length( oo) > 0 ) {
+       ## additional gating goes here ... currently using the same rules .. 
+       nm$doorspread[oo] = filter.nets("doorspread.range", nm$doorspread[oo] )
+       nm$wingspread[oo]  = filter.nets("wingspread.range", nm$wingspread[oo] )
+ #      nm$clearance[oo]  = filter.nets("clearance.range", nm$clearance[oo] )
+ #      nm$opening[oo]  = filter.nets("opening.range", nm$opening[oo] )
+       nm$depth[oo]  = filter.nets("depth.range", nm$depth[oo] )
+     }
+
+
       if (length( nmj) > 0 ) nm = nm[ -nmj,]
  
       # drop a few vars that are not used and/or unreliable or unneeded
@@ -885,7 +937,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
             return(bc)
           }
 
-          if ( ! is.null(bc) && ( ! ( "try-error" %in% class(bc) ) ) ) { 
+          if ( ! is.null(bc) & ( ! ( "try-error" %in% class(bc) ) ) ) { 
             bottom.contact.plot( bc )
               plotfn = file.path( scanmar.bc.dir, "figures", paste(id, "pdf", sep="." ) )
               print (plotfn)
@@ -902,7 +954,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
               gsinf$bc1.n[gii] =  bc$bottom1.n
              
               if ( exists("surface.area", bc) ) { 
-                if ( is.list( bc$surface.area )  && !is.na( bc$surface.area )  ) {
+                if ( is.list( bc$surface.area )  & !is.na( bc$surface.area )  ) {
                   if ( exists("door.sa", bc$surface.area ) ) gsinf$door.sa[gii] =  bc$surface.area$door.sa
                   if ( exists("wing.sa", bc$surface.area ) ) gsinf$wing.sa[gii] =  bc$surface.area$wing.sa
                   if ( exists("door.mean", bc$surface.area ) ) gsinf$door.mean[gii] =  bc$surface.area$door.mean
@@ -913,7 +965,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
               }
             }
        
-            if ( exists("depth.mean", bc) && !is.finite( bc$depth.mean)) gsinf$bottom_depth[gii] = bc$depth.mean  # over ride as there are many issues with the depth recorded in gsinf ...
+            if ( exists("depth.mean", bc) & !is.finite( bc$depth.mean)) gsinf$bottom_depth[gii] = bc$depth.mean  # over ride as there are many issues with the depth recorded in gsinf ...
             save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
             fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
             save ( bc, file=fn.bc, compress=TRUE )
@@ -962,7 +1014,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
     if (is.null (YRS) ) YRS = p$netmensuration.years 
     gsinf = scanmar.db( DS="bottom.contact", p=p )
-    gsinf$dist_km = gsinf$dist * 1.852 
     gsinf$dist_wing = gsinf$wing.sa / gsinf$wing.mean * 1000  # est of length of the tow (km)
     gsinf$dist_door = gsinf$door.sa / gsinf$door.mean * 1000 # est of length of the tow (km)
     gsinf$yr = lubridate::year(gsinf$sdate)
@@ -972,36 +1023,36 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         w2a = which( gsinf$geardesc == "Western IIA trawl" )
         
         hist( gsinf$wing.mean[w2a], "fd" )
-        rn = quantile( gsinf$wing.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 10 to 20 .. using 10 to 25
+        rn = quantile( gsinf$wing.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 11 to 20 .. using 9 to 22
         
         hist( gsinf$door.mean[w2a], "fd" )
-        rn = quantile( gsinf$door.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 11 to 78 .. using 11 to 80
+        rn = quantile( gsinf$door.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 13 to 79 .. using 11 to 85
     
         hist( gsinf$wing.sd[w2a], "fd" )
         rn = quantile( gsinf$wing.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.16 to 3.62 .. using 0.1 to 5
     
         hist( gsinf$door.sd[w2a], "fd" )
-        rn = quantile( gsinf$door.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.06 to 17 .. using 0.1 to 25
+        rn = quantile( gsinf$door.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.42 to 16 .. using 0.1 to 20
      
         hist( gsinf$wing.sa[w2a], "fd" )
         rn = quantile( gsinf$wing.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.008 to 0.068 .. using 0.01 to 0.08
     
         hist( gsinf$door.sa[w2a], "fd" )
-        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.08 to 0.29 .. using 0.1 to 0.35
+        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.04 to 0.26 .. using 0.1 to 0.30
   
         hist( gsinf$dist_wing[w2a], "fd" )
-        rn = quantile( gsinf$dist_wing[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.002 to 0.004 .. using 0.00175 to 0.0045 * 1000
+        rn = quantile( gsinf$dist_wing[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.03 to 4.2 .. using 1.75 to 4.5 
     
         hist( gsinf$dist_door[w2a], "fd" )
-        rn = quantile( gsinf$dist_door[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.002 to 0.004 .. using 0.00175 to 0.0045 * 1000
+        rn = quantile( gsinf$dist_door[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.03 to 4.3 .. using 1.75 to 4.5 
 
 
       }
       # empirical distribution suggests (above)  hard limits of rn, ~ same as gating limits 
       # .. too extreme means interpolation did not work well .. drop
       
-      # unreliable net width estimates ... 
-      rn = c( 10, 25 )
+      # drop unreliable net width estimates ... 
+      rn = c( 9, 22 )
       i = which( (gsinf$wing.mean < rn[1] | gsinf$wing.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$wing.mean[i] = NA
@@ -1009,7 +1060,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 11, 80 )
+      rn = c( 11, 85 )
       i = which( (gsinf$door.mean < rn[1] | gsinf$door.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
@@ -1026,7 +1077,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 0.1, 25 )
+      rn = c( 0.1, 20 )
       i = which( (gsinf$door.sd < rn[1] | gsinf$door.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
@@ -1053,7 +1104,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
 
       # tow length est
-      rn = c( 0.00175, 0.0045 ) * 1000 # ( km)
+      rn = c( 1.75, 4.5 ) # ( km)
       i = which( (gsinf$dist_wing < rn[1] | gsinf$dist_wing > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$dist_wing[i] = NA
@@ -1062,7 +1113,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 0.00175, 0.0045 ) * 1000 # km
+      rn = c( 1.75, 4.5 ) * 1000 # km
       i = which( (gsinf$dist_door < rn[1] | gsinf$dist_door > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$dist_door[i] = NA
@@ -1072,11 +1123,12 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       }
 
       if (0) {
+        # some test plots
         w2a = which( gsinf$geardesc == "Western IIA trawl" )
-        plot(dist~ dist_wing, gsinf)
-        plot(dist~ dist_door, gsinf)
+        plot(dist_km ~ dist_wing, gsinf)
+        plot(dist_km ~ dist_door, gsinf)
         plot( wing.mean ~ door.mean, gsinf[w2a,], type="p", col="red" )  ## strange!
-        points( wing.mean ~ door.mean, gsinf[w2a,], col="black", pch=20, subset=which(gsinf$yr<2010) )  ## strange!
+        points( wing.mean ~ door.mean, gsinf[w2a,], col="black", pch=20, subset=which(gsinf$yr==2012) )  ## strange!
  
         boxplot( door.mean ~ yr, gsinf) 
         boxplot( wing.mean ~ yr, gsinf, ylim=c(5,25) ) 
@@ -1089,24 +1141,75 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         
         plot( dist_wing ~ jitter(dist_km), gsinf, xlim=c(0.75, 3.75), col="red", pch=20, cex=0.4 )
         dm = lm( dist_wing ~ dist_km -1, gsinf, na.action="na.omit") 
+        abline( dm)
 
-        uu = gsinf
-        vv = scanmar.db( DS="basedata.lookuptable", p=p )
-        ww = which( vv$id=="NED2009027.25" )
-        vv[ww,]
-        xx = uu[ which( uu$nm_id == vv$nm_id[ww] ) , ]
+        bdl = scanmar.db( DS="basedata.lookuptable", p=p )
+        ww = which( bdl$id=="NED2009027.25" )
+        bdl[ww,]
+        xx = gsinf[ which( gsinf$nm_id == bdl$nm_id[ww] ) , ]
         plot( wingspread ~ timestamp, xx )
         plot( doorspread ~ timestamp, xx )
-
-
       }
 
+      # basic sanity checks finished .. 
+      # now estimate swept area for data locations where estimates 
+      # do not exist or are problematic from bottom contact approach
+      
+      # estimate distance of tow track starting with most reliable to least
+      gsinf$distance = gsinf$dist.wing
+      
+      ii = which( !is.finite( gsinf$distance ) ) 
+      if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist.wing[ii]
+    
+      ii = which( !is.finite( gsinf$distance ) ) 
+      if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_km[ii]
+    
+      ii = which( !is.finite( gsinf$distance ) ) 
+      if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_pos[ii]
 
-      #i = 
+todo = FALSE
 
-    # estimate swept area for data locations where estimates do not exist or are problematic from bottom contact approach
+if (todo) {
 
+      # complex model /spatial, year, depth, mission, weather ... etc?
+      # -- model based on depth and relative locations (gam lon/lat, depth, yr ) ... 
+      ii = which( !is.finite( gsinf$distance ) )  
+      if (length(ii) > 0) {
+        gsinf$dist.complex = predict( model ... of depth, year, etc)
+        gsinf$distance[ii] = gsinf$dist.complex
+      }
 
+      # crude model / yearly average ?    
+      ii = which( !is.finite( gsinf$distance ) )  
+      if (length(ii) > 0) {
+        gsinf$dist.crude = predict( model ... of depth, year, etc)
+        gsinf$distance[ii] = gsinf$dist.crude[ii]
+      }
+
+      # wing and door spreads: 
+      # complex model spatial/year, depth, etc. ..
+      gsinf$wing.mean.predicted.complex = predict( model ... of depth, year, etc)
+      gsinf$door.mean.predicted.complex = predict( model ... of depth, year, etc)
+      
+      # simple model
+      gsinf$wing.mean.predicted.crude = predict( model ... of depth, year, etc)
+      gsinf$door.mean.predicted.crude = predict( model ... of depth, year, etc)
+ 
+
+      # estimate SA:
+      gsinf$sa.wing.crude = gsinf$distance * gsinf$wing.mean.predicted      
+      gsinf$sa.door.crude = gsinf$distance * gsinf$door.mean.predicted
+
+      ii = which( !is.finite( gsinf$sa.wing ) )
+      if (length(ii) > 0)  gsinf$sa.wing[ii] = gsinf$sa.wing.crude[ii]
+      
+      ii = which( !is.finite( gsinf$sa.door ) )
+      if (length(ii) > 0)  gsinf$sa.door[ii] = gsinf$sa.door.crude[ii]
+    
+     
+ #     more sanity checks on SA 
+ #     fill in with annual means? 
+}
 
     return(gsinf)
   }
@@ -1128,7 +1231,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       for ( YR in YRS ) {
         sc = scanmar.db( DS="sanity.checks", p=p, YRS=YR )
         ii = scanmar.db( DS="scanmar.filtered.indices", p=p, YRS=YR )
-        if ( !is.null(sc) && !is.null(ii) && length(ii) > 0)  nm = rbind( nm, sc [ii,] )
+        if ( !is.null(sc) & !is.null(ii) & length(ii) > 0)  nm = rbind( nm, sc [ii,] )
       }
       return(nm)
     }

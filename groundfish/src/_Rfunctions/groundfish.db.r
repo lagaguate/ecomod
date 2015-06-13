@@ -408,14 +408,13 @@
         }
       }
       uu = which( gsinf$timediff.gsinf < 0 ) # when tow end is before start
-      gsinf$edate[uu]  = NA  # set these to NA untile they can be corrected manually
+      gsinf$edate[uu]  = NA  # set these to NA until they can be corrected manually
       gsinf$timediff.gsinf[uu] =NA
       print( "Time stamps sdate and etime (renamed as edate) are severely off: edate is before sdate:" )
       print( gsinf[uu,] )
       
       if (FALSE)  hist( as.numeric(  gsinf$timediff.gsinf), breaks=200 ) 
     
-  
       uu = which( gsinf$timediff.gsinf > dminutes(50) & gsinf$timediff.gsinf < dminutes(50+60) ) # assuming 50 min is a max tow length
       if (length(uu)>0) {
         gsinf$edate[uu] = gsinf$edate[uu] - dhours(1) ### this is assuming sdate is correct ... which might not be the case 
@@ -434,6 +433,7 @@
           abline (v=150*60, col="red")  # after 150 min 
         }
     
+      gsinf$yr = lubridate::year( gsinf$sdate)
     
       gsinf$mission = as.character( gsinf$mission )
       gsinf$strat = as.character(gsinf$strat)
@@ -450,7 +450,29 @@
       if (mean(gsinf$lon,na.rm=T) >0 ) gsinf$lon = - gsinf$lon  # make sure form is correct
       if (mean(gsinf$lon.end,na.rm=T) >0 ) gsinf$lon.end = - gsinf$lon.end  # make sure form is correct
 
-      gsinf = convert.degmin2degdec(gsinf)
+      gsinf = convert.degmin2degdec(gsinf, vnames=c("lon", "lat") )
+      gsinf = convert.degmin2degdec(gsinf, vnames=c("lon.end", "lat.end") )
+  
+      gsinf$dist_km = gsinf$dist * 1.852  # nautical mile to km
+      gsinf$dist_pos = geosphere::distMeeus( gsinf[, c("lon","lat")], gsinf[, c("lon.end", "lat.end")])/1000  
+         
+      ii = which( abs( gsinf$dist_km) > 10 ) # 10 km is safely too extreme 
+      if (length(ii)> 0) {
+        gsinf$dist_km[ii] =  gsinf$dist_pos[ii] 
+      }
+
+      ii = which( abs( gsinf$dist_pos) > 10 ) # 10 km is safely too extreme 
+      if (length(ii)> 0) {
+        gsinf$dist_pos[ii] = gsinf$dist_km[ii]
+        # assuming end positions are incorrect. This may not be a correct assumption!
+        gsinf$lon.end[ii] = NA
+        gsinf$lat.end[ii] = NA
+      }
+             
+  
+    ## !! GPS position-based distances do not always match the distance recorded 
+    ## plot( dist_pos ~ dist_km, gsinf, ylim=c(0,60)) 
+
       gsinf$cftow = 1.75/gsinf$dist  # not used
       ft2m = 0.3048
       m2km = 1/1000
@@ -461,10 +483,10 @@
 					gsinf$sakm2[oo] = median (gsinf$sakm2, na.rm=T)
 				pp = which( gsinf$sakm2 > 0.09 )
 					gsinf$sakm2[pp] = median (gsinf$sakm2, na.rm=T)
-      gsinf$bottom_depth = rowMeans( gsinf[, c("dmin", "dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
+      gsinf$bottom_depth = rowMeans( gsinf[, c("dmax", "depth" )], na.rm = TRUE )  * 1.8288  # convert from fathoms to meters
       ii = which( gsinf$bottom_depth < 10 | !is.finite(gsinf$bottom_depth)  )  # error
       gsinf$bottom_depth[ii] = NA
-			gsinf = gsinf[, c("id", "sdate", "edate", "time", "strat", "area", "speed", "dist", 
+			gsinf = gsinf[, c("id", "yr", "sdate", "edate", "time", "strat", "area", "speed", "dist_km", "dist_pos",
                         "cftow", "sakm2", "settype", "gear", "geardesc", "lon", "lat", "lon.end", "lat.end",
                         "surface_temperature","bottom_temperature","bottom_salinity", "bottom_depth")]
       
@@ -879,6 +901,7 @@
       }
       
       gsinf = groundfish.db( "gsinf" ) 
+      
       gshyd = groundfish.db( "gshyd" ) # already contains temp data from gsinf 
       
       set = merge(x=gsinf, y=gshyd, by=c("id"), all.x=T, all.y=F, sort=F) 
@@ -887,12 +910,13 @@
       oo = which( !is.finite( set$sdate)) # NED1999842 has no accompanying gsinf data ... drop it
       if (length(oo)>0) set = set[ -oo  ,]  
 
-      set$chron = as.chron(set$sdate)
-      set$sdate = NULL
-      set$yr = convert.datecodes(set$chron, "year" )
-      set$julian = convert.datecodes(set$chron, "julian")
+      set$chron = as.chron(set$sdate)  ## chron is deprecated 
+      # set$yr = convert.datecodes(set$chron, "year" )
+      # set$julian = convert.datecodes(set$chron, "julian")
+      set$julian = lubridate::yday( set$sdate )
+      # set$sdate = NULL
 
-      set = set[, c("id", "chron", "yr", "julian", "strat", "dist", 
+      set = set[, c("id", "chron", "yr", "julian", "strat", "dist_km", "dist_pos", 
                  "sakm2", "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype")]
 
       set = set[ !duplicated(set$id) ,] 

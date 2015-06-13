@@ -158,14 +158,14 @@ res = merge ( res, rr, by="yr")
 # debugging SA estimates
 
 g = scanmar.db( DS="bottom.contact",  p=p )
-plot( I(dist*1.78) ~ I(wing.sa / wing.mean*1000), g)
-gr = abs(g$dist*1.78 - (g$wing.sa / g$wing.mean)*1000) 
+plot( I(dist*1.852) ~ I(wing.sa / wing.mean*1000), g)
+gr = abs(g$dist*1.852 - (g$wing.sa / g$wing.mean)*1000) 
 strange = which ( gr > 1 & g$gear==9 & g$settype==1 )
 g[strange, "id"]
  
- [1] "NED2009027.117" "NED2009027.124" "NED2009027.151" "NED2009027.153" "NED2009027.177" "NED2009027.3"  
- [7] "NED2009027.36"  "NED2009027.43"  "NED2009027.52"  "NED2009027.62"  "NED2009027.93"  "NED2010027.219"
-[13] "NED2011002.9"   "NED2011002.44"  "NED2011002.45"  "NED2011002.53"  "NED2013022.205" "NED2013022.192"
+ [1] "NED2014018.181" "NED2009027.3"   "NED2009027.25"  "NED2009027.36"  "NED2009027.43"  "NED2009027.52" 
+ [7] "NED2009027.62"  "NED2010027.133" "NED2011002.9"   "NED2011002.44"  "NED2011002.45"  "NED2011002.53" 
+[13] "NED2014101.15" 
 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71")  # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.192") # large depth range
@@ -173,14 +173,17 @@ bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.205") # depth se
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.208") # GPS not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.53")  # 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.45")  # doorspread failure and almost no wingspread 
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2009027.26") 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.114") 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2009027.41") 
+
+
 bottom.contact.plot( bc, netspread=TRUE )
 
 
 bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2011002.45") # GPS not working
 bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2013022.208") # GPS not working
 
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2012002.98")  # doorspread failure and almost no wingspread 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2009002.17")  # doorspread failure and almost no wingspread 
 
 
 bottom.contact.plot( bc, netspread=TRUE )
@@ -191,7 +194,7 @@ plot( doorspread ~ ts, bc$plotdata )
 uu = scanmar.db( DS="sanity.checks",  p=p, YR=2011 )      
 uu = scanmar.db( DS="basedata", p=p, YR=2011 )        # Assimilate Scanmar files in raw data saves *.set.log files
 vv = scanmar.db( DS="basedata.lookuptable", p=p )
-ww = which( vv$id=="NED2011002.45" )
+ww = which( vv$id=="NED2009027.25" )
 xx = uu[ which( uu$nm_id == vv$nm_id[ww] ) , ]
 plot( wingspread ~ timestamp, xx )
 plot( doorspread ~ timestamp, xx )
