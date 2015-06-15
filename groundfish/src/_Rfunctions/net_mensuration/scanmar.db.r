@@ -540,22 +540,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       if (is.null(nm)) next()
       nm$id = NULL  # this was already processed in the basedata.loopkup 
 
-      nmj = which( is.na( nm$nm_id) )  #required  for ( YR in YRS ) {
-   
-      gf = NULL
-      gf = scanmar.db( DS="basedata.lookuptable", p=p, YRS=YR  )
-      if (is.null(gf)) next()
-
-      gf = gf[, c("id", "nm_id", "sdate", "geardesc", "bottom_depth", "timestamp", "min.distance", "time.difference", "match.level" ) ]
-      gf = gf[ which( !is.na( gf$nm_id) ) , ]
-      
-      # gate and filter the wingspread and door spread data  ... multi-pass quantile trimming
-      # this is a global analysis ... all data required
-    
-      nm = scanmar.db( DS="basedata", p=p, YRS=YR ) 
-      if (is.null(nm)) next()
-      nm$id = NULL
-
       nmj = which( is.na( nm$nm_id) )  #required 
       if (length( nmj) > 0 ) nm = nm[ -nmj,]
  
@@ -570,12 +554,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       nm = merge(nm, gf, by="nm_id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".gf") )
       if( nrow(nm) != nmnrow0 ) stop("Merge error") 
   
-
-      nmj = which( is.na( nm$id.gf ) )  # required ... sign that there is data that merged 
-      if (length( nmj) > 0 ) nm = nm[ -nmj,]
-      
-      nm$id = nm$id.gf 
-
      # empty variable is not needed (crossed channel with doorspread), also values present look erroneous in NED2005001 1
       if (YR==2005) {
         i = which( nm$id=="NED2005001.1" )
@@ -597,53 +575,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
  #      nm$opening[oo]  = filter.nets("opening.range", nm$opening[oo] )
        nm$depth[oo]  = filter.nets("depth.range", nm$depth[oo] )
      }
-
-
-      if (length( nmj) > 0 ) nm = nm[ -nmj,]
  
-      # drop a few vars that are not used and/or unreliable or unneeded
-      nm$ltspeed = NULL
-      nm$ctspeed = NULL
-      nm$gyro = NULL
-      nm$clearance = NULL
-      nm$opening = NULL
-
-      nmnrow0 = nrow( nm)
-      nm = merge(nm, gf, by="nm_id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".gf") )
-      if( nrow(nm) != nmnrow0 ) stop("Merge error") 
-  
-
-      nmj = which( is.na( nm$id.gf ) )  # required ... sign that there is data that merged 
-      if (length( nmj) > 0 ) nm = nm[ -nmj,]
-      
-      nm$id = nm$id.gf 
-
-     # empty variable is not needed (crossed channel with doorspread), also values present look erroneous in NED2005001 1
-      if (YR==2005) {
-        i = which( nm$id=="NED2005001.1" )
-        if (length(i) >0) {
-          nm$doorspread[i] = NA
-          nm$wingspread[i] = NA
-          nm$clearance[i] = NA
-          nm$opening[i] = NA
-          nm$ltspeed[i] = NA
-          nm$ctspeed[i] = NA
-        }
-      }
-
-     # coarse level gating   
-      
-     # ID sets where American trawls were used for comparative surveys
-     oo = which( nm$geardesc == "US 4 seam 3 bridle survey trawl" ) 
-     if (length( oo) > 0 ) {
-       ## additional gating goes here ... currently using the same rules .. 
-       nm$doorspread[oo] = filter.nets("doorspread.range", nm$doorspread[oo] )
-       nm$wingspread[oo]  = filter.nets("wingspread.range", nm$wingspread[oo] )
- #      nm$clearance[oo]  = filter.nets("clearance.range", nm$clearance[oo] )
- #      nm$opening[oo]  = filter.nets("opening.range", nm$opening[oo] )
-       nm$depth[oo]  = filter.nets("depth.range", nm$depth[oo] )
-     }
-
      pp = which( nm$geardesc == "Western IIA trawl" )
      if (length(pp) >0 ) {
        nm$doorspread[pp] = filter.nets("doorspread.range", nm$doorspread[pp] )
@@ -711,7 +643,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       if (length(todrop)>0) nm = nm[ ,-todrop]
       
       # check for unbelievable matches based upon distance: these should really be right on top of each other ... 
-      distanceissues = which( nm$min.distance > 2 )   
+      distanceissues = which( abs( nm$min.distance) > 5 )   
       if (length( distanceissues ) >0 ) {
         uu = unique( nm$id[distanceissues] )
         for (u in uu ) {
@@ -723,7 +655,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       }
 
       # check for time zone type issues and assume gf is correct time
-      timeissues = which( nm$time.difference > 2 ) # time.difference is in hours
+      timeissues = which( abs( nm$time.difference) > 2 ) # time.difference is in hours
       if (length(timeissues) >0 ) {
         uu = unique( nm$id[ timeissues ])
         for (u in uu ) {
@@ -1175,25 +1107,25 @@ if (todo) {
       # -- model based on depth and relative locations (gam lon/lat, depth, yr ) ... 
       ii = which( !is.finite( gsinf$distance ) )  
       if (length(ii) > 0) {
-        gsinf$dist.complex = predict( model ... of depth, year, etc)
+#        gsinf$dist.complex = predict( model ... of depth, year, etc)
         gsinf$distance[ii] = gsinf$dist.complex
       }
 
       # crude model / yearly average ?    
       ii = which( !is.finite( gsinf$distance ) )  
       if (length(ii) > 0) {
-        gsinf$dist.crude = predict( model ... of depth, year, etc)
+#        gsinf$dist.crude = predict( model ... of depth, year, etc)
         gsinf$distance[ii] = gsinf$dist.crude[ii]
       }
 
       # wing and door spreads: 
       # complex model spatial/year, depth, etc. ..
-      gsinf$wing.mean.predicted.complex = predict( model ... of depth, year, etc)
-      gsinf$door.mean.predicted.complex = predict( model ... of depth, year, etc)
+#      gsinf$wing.mean.predicted.complex = predict( model ... of depth, year, etc)
+#      gsinf$door.mean.predicted.complex = predict( model ... of depth, year, etc)
       
       # simple model
-      gsinf$wing.mean.predicted.crude = predict( model ... of depth, year, etc)
-      gsinf$door.mean.predicted.crude = predict( model ... of depth, year, etc)
+#      gsinf$wing.mean.predicted.crude = predict( model ... of depth, year, etc)
+#      gsinf$door.mean.predicted.crude = predict( model ... of depth, year, etc)
  
 
       # estimate SA:

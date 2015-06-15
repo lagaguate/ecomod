@@ -47,6 +47,7 @@ scanmar.db( DS="basedata.redo", p=p )        # Assimilate Scanmar files in raw d
 scanmar.db( DS="basedata.lookuptable.redo", p=p ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
 scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 
+
 # WARNING:: the following may crash as INLA does not exit gracefully from some errors
 # and R cannot catch the faults .. restart R or reboot the system (it can happen) 
 # and then re-run the line and it will continue from where it crashed ... update the bc.badlist too
