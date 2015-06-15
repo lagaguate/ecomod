@@ -896,8 +896,10 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
                 }
               }
             }
-       
-            if ( exists("depth.mean", bc) & !is.finite( bc$depth.mean)) gsinf$bottom_depth[gii] = bc$depth.mean  # over ride as there are many issues with the depth recorded in gsinf ...
+      
+            if ( exists("depth.mean", bc)) {
+              if (is.finite( bc$depth.mean)) gsinf$bottom_depth[gii] = bc$depth.mean  # over ride as there are many issues with the depth recorded in gsinf ...
+            }
             save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
             fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
             save ( bc, file=fn.bc, compress=TRUE )
