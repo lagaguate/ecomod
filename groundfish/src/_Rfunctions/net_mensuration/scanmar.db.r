@@ -1126,14 +1126,17 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
       ii = which( !is.finite( gsinf$distance ) ) 
       if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_km[ii]
-        
+  
+      todo = F
+      if (todo) {
+        # estimate distance = speed * duration ... 
+        # when distance is improper due to poor GPS data ... years <= 2009 ? ...  
+      }
+
+
+
 # plot( dist_wing ~ distance, gsinf, xlim=c(0.75, 3.75), col="red", pch=20, cex=0.4 )
-    
-   todo = FALSE
-
-if (todo) {
-
-
+   
       # wing and door spread models: 
       # assume all other nets are performing the same way ... not ideal but there is no data to estimate 
       # influence of warp length should be comparable ... ?
@@ -1170,16 +1173,21 @@ if (todo) {
       gsinf$yr0 = NULL
 
 
-      # estimate SA:
-      gsinf$sa.wing.crude = gsinf$distance * gsinf$wing.mean.predicted      
-      gsinf$sa.door.crude = gsinf$distance * gsinf$door.mean.predicted
+
+   todo = FALSE
+
+if (todo) {
+
+  # estimate SA:
+      gsinf$sa.wing.crude = gsinf$distance * gsinf$wing.mean      
+      gsinf$sa.door.crude = gsinf$distance * gsinf$door.mean
 
       ii = which( !is.finite( gsinf$sa.wing ) )
       if (length(ii) > 0)  gsinf$sa.wing[ii] = gsinf$sa.wing.crude[ii]
       
       ii = which( !is.finite( gsinf$sa.door ) )
       if (length(ii) > 0)  gsinf$sa.door[ii] = gsinf$sa.door.crude[ii]
-    
+  
 
 
       # bottom contact data may be mismatched .. remove to ensure other corrections are OK .. 
