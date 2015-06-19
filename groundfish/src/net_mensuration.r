@@ -20,7 +20,7 @@ p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992
 # two depth sensors were used simultaneously but they are not calibrated!
 # they are remarkably hard to filter out while still maintaining current methods
 # instead: send a trigger to bottom.contact to operate on this properly
-p$double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
+p$id.double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
 
 
 # the data for these sets need to be checked?
@@ -69,7 +69,7 @@ if (FALSE) {
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2014102.35") # constant depth data ...  --
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.12") # missing a tail 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.27") # normal .. lots of data 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.59") # two depth sensors  --
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.59") # two depth sensors  in the same log ! --
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.64") # two depth sensors  --
 
   # to  load a single result and view
@@ -159,23 +159,21 @@ res = merge ( res, rr, by="yr")
 # debugging SA estimates
 
 g = scanmar.db( DS="bottom.contact",  p=p )
-plot( I(dist*1.852) ~ I(wing.sa / wing.mean*1000), g)
-gr = abs(g$dist*1.852 - (g$wing.sa / g$wing.mean)*1000) 
+plot( dist_km~ I(wing.sa / wing.mean*1000), g, ylim=c(0,5) )
+gr = abs(g$dist_km - (g$wing.sa / g$wing.mean)*1000) 
 strange = which ( gr > 1 & g$gear==9 & g$settype==1 )
 g[strange, "id"]
  
- [1] "NED2014018.181" "NED2009027.3"   "NED2009027.25"  "NED2009027.36"  "NED2009027.43"  "NED2009027.52" 
- [7] "NED2009027.62"  "NED2010027.133" "NED2011002.9"   "NED2011002.44"  "NED2011002.45"  "NED2011002.53" 
-[13] "NED2014101.15" 
-
+"NED2014101.23" "NED2014101.49" "NED2011002.44" "NED2014101.13" "NED2014101.15"
+ 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71")  # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.192") # large depth range
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.205") # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.208") # GPS not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.53")  # 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.45")  # doorspread failure and almost no wingspread 
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.114") 
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2009027.41") 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014101.23") 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014101.49") 
 
 
 bottom.contact.plot( bc, netspread=TRUE )

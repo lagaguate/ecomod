@@ -750,6 +750,13 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gsinf0$wing.mean = NA
     gsinf0$door.sd =  NA
     gsinf0$wing.sd =  NA
+    gsinf0$bc.lon0 = NA
+    gsinf0$bc.lon1 = NA
+    gsinf0$bc.lat0 = NA
+    gsinf0$bc.lat0 = NA
+    gsinf0$bc.depth.mean = NA
+    gsinf0$bc.depth.sd = NA
+    gsinf0$bc.error.flag = NA
 
     for ( YR in YRS ) {
       
@@ -857,7 +864,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
           # two depth sensors were used simultaneously but they are not calibrated!
           # remarkably hard to filter this out
           # send a trigger to bottom.contact to operate on this properly
-          if ( id %in% p$double.depth.sensors ) bcp$double.depth.sensors = TRUE 
+          if ( id %in% p$id.double.depth.sensors ) bcp$double.depth.sensors = TRUE 
 
           bc = NULL # 
           bc = try( bottom.contact(mm, bcp ), silent=TRUE )
@@ -884,7 +891,15 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
               gsinf$bc1.sd[gii] = bc$bottom1.sd
               gsinf$bc0.n[gii] =  bc$bottom0.n
               gsinf$bc1.n[gii] =  bc$bottom1.n
-             
+
+              bci = range(bc$bottom.contact.indices, na.rm=TRUE)
+              gsinf$bc.lon0[gii] = bc$plotdata$longitude[ bci[1] ]
+              gsinf$bc.lon1[gii] = bc$plotdata$longitude[ bci[2] ]
+              gsinf$bc.lat0[gii] = bc$plotdata$latitude[ bci[1] ]
+              gsinf$bc.lat0[gii] = bc$plotdata$latitude[ bci[2] ]
+              gsinf$bc.depth.mean[gii] = bc$depth.mean
+              gsinf$bc.depth.sd[gii] = bc$depth.sd
+
               if ( exists("surface.area", bc) ) { 
                 if ( is.list( bc$surface.area )  & !is.na( bc$surface.area )  ) {
                   if ( exists("door.sa", bc$surface.area ) ) gsinf$door.sa[gii] =  bc$surface.area$door.sa
@@ -895,11 +910,10 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
                   if ( exists("wing.sd", bc$surface.area ) ) gsinf$wing.sd[gii] =  bc$surface.area$wing.sd
                 }
               }
+            } else {
+              gsinf$bc.error.flag = bc$error.flag
             }
       
-            if ( exists("depth.mean", bc)) {
-              if (is.finite( bc$depth.mean)) gsinf$bottom_depth[gii] = bc$depth.mean  # over ride as there are many issues with the depth recorded in gsinf ...
-            }
             save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
             fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
             save ( bc, file=fn.bc, compress=TRUE )
@@ -934,7 +948,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
 
   if (DS %in% c("sweptarea", "sweptarea.redo" )) {
-    # sanity checks on the SA estimates and 
+    # merge bottom contact data into the main gsinf table and 
+    # then do some sanity checks on the SA estimates and 
     # then compute best estimates where data are missing
 
     fn = file.path( p$scanmar.dir, "gsinf.sweptarea.rdata" )
@@ -947,7 +962,18 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     }
 
     if (is.null (YRS) ) YRS = p$netmensuration.years 
-    gsinf = scanmar.db( DS="bottom.contact", p=p )
+    gsinf = groundfish.db( DS="gsinf" )
+    gsinf_bc = scanmar.db( DS="bottom.contact", p=p )
+    
+    newvars = setdiff( names( gsinf_bc ), names( gsinf)  )
+    tokeep = c("id", setdiff( names(gsinf_bc), todrop) )
+
+    ng = nrow( gsinf)
+    gsinf = merge( gsinf, gsinf_bc[,tokeep], by="id", all.x=TRUE, all.y=FALSE )
+    if ( ng != nrow(gsinf) ) error("merge error" )
+  
+    
+  
     gsinf$dist_wing = gsinf$wing.sa / gsinf$wing.mean * 1000  # est of length of the tow (km)
     gsinf$dist_door = gsinf$door.sa / gsinf$door.mean * 1000 # est of length of the tow (km)
     gsinf$yr = lubridate::year(gsinf$sdate)
@@ -969,13 +995,13 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         rn = quantile( gsinf$door.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.42 to 16 .. using 0.1 to 20
      
         hist( gsinf$wing.sa[w2a], "fd" )
-        rn = quantile( gsinf$wing.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.008 to 0.068 .. using 0.01 to 0.08
+        rn = quantile( gsinf$wing.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.02 to 0.069 .. using 0.01 to 0.08
     
         hist( gsinf$door.sa[w2a], "fd" )
-        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.04 to 0.26 .. using 0.1 to 0.30
+        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.04 to 0.25 .. using 0.1 to 0.30
   
         hist( gsinf$dist_wing[w2a], "fd" )
-        rn = quantile( gsinf$dist_wing[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.03 to 4.2 .. using 1.75 to 4.5 
+        rn = quantile( gsinf$dist_wing[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.06 to 4.2 .. using 1.75 to 4.5 
     
         hist( gsinf$dist_door[w2a], "fd" )
         rn = quantile( gsinf$dist_door[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.03 to 4.3 .. using 1.75 to 4.5 
@@ -1047,7 +1073,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 1.75, 4.5 ) * 1000 # km
+      rn = c( 1.75, 4.5 )  # km
       i = which( (gsinf$dist_door < rn[1] | gsinf$dist_door > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$dist_door[i] = NA
@@ -1059,7 +1085,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       if (0) {
         # some test plots
         w2a = which( gsinf$geardesc == "Western IIA trawl" )
-        plot(dist_km ~ dist_wing, gsinf)
+        plot(dist_km ~ dist_wing, gsinf, ylim=c(1.5, 4) )
         plot(dist_km ~ dist_door, gsinf)
         plot( wing.mean ~ door.mean, gsinf[w2a,], type="p", col="red" )  ## strange!
         points( wing.mean ~ door.mean, gsinf[w2a,], col="black", pch=20, subset=which(gsinf$yr==2012) )  ## strange!
@@ -1090,45 +1116,59 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       # do not exist or are problematic from bottom contact approach
       
       # estimate distance of tow track starting with most reliable to least
-      gsinf$distance = gsinf$dist.wing
+      gsinf$distance = gsinf$dist_wing
       
       ii = which( !is.finite( gsinf$distance ) ) 
-      if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist.wing[ii]
-    
-      ii = which( !is.finite( gsinf$distance ) ) 
-      if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_km[ii]
-    
+      if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_door[ii]
+      
       ii = which( !is.finite( gsinf$distance ) ) 
       if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_pos[ii]
 
-todo = FALSE
+      ii = which( !is.finite( gsinf$distance ) ) 
+      if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_km[ii]
+        
+# plot( dist_wing ~ distance, gsinf, xlim=c(0.75, 3.75), col="red", pch=20, cex=0.4 )
+    
+   todo = FALSE
 
 if (todo) {
 
-      # complex model /spatial, year, depth, mission, weather ... etc?
-      # -- model based on depth and relative locations (gam lon/lat, depth, yr ) ... 
-      ii = which( !is.finite( gsinf$distance ) )  
-      if (length(ii) > 0) {
-#        gsinf$dist.complex = predict( model ... of depth, year, etc)
-        gsinf$distance[ii] = gsinf$dist.complex
-      }
 
-      # crude model / yearly average ?    
-      ii = which( !is.finite( gsinf$distance ) )  
-      if (length(ii) > 0) {
-#        gsinf$dist.crude = predict( model ... of depth, year, etc)
-        gsinf$distance[ii] = gsinf$dist.crude[ii]
-      }
+      # wing and door spread models: 
+      # assume all other nets are performing the same way ... not ideal but there is no data to estimate 
+      # influence of warp length should be comparable ... ?
+      require(mgcv)
+      gsinf$yr0 = gsinf$yr  # yr will be modified to permit prediction temporarilly 
 
-      # wing and door spreads: 
-      # complex model spatial/year, depth, etc. ..
-#      gsinf$wing.mean.predicted.complex = predict( model ... of depth, year, etc)
-#      gsinf$door.mean.predicted.complex = predict( model ... of depth, year, etc)
+      wm = gam( wing.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/wing.sd^2, data= gsinf[ w2a,] ) 
+      ii = which( !is.finite( gsinf$wing.mean ))
+      if (length(ii)>0) {
+        #      summary(wm)
+        # R-sq.(adj) =  0.746   Deviance explained = 75.8%
+        # GCV = 3.4341  Scale est. = 3.3015    n = 1157
+        jj = which( ! gsinf$yr0 %in% as.numeric(as.character(wm$xlevels[["factor(yr)"]])) )
+        if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
+        gsinf$wing.mean[ii] = predict( wm, newdata=gsinf[ii,], type="response" )
+        gsinf$wing.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
+      }
+      ii = which( !is.finite( gsinf$wing.mean ))
+  
+      wd = gam( door.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/door.sd^2, data= gsinf[ w2a,] ) 
+      ii = which( !is.finite( gsinf$door.mean ))
+      if (length(ii)>0) {
+        #      summary(wd)
+        # R-sq.(adj) =  0.563   Deviance explained =   58%
+        # GCV = 15.384  Scale est. = 14.796    n = 1080
+        jj = which( ! as.character( gsinf$yr0) %in%  wm$xlevels[["factor(yr)"]] )
+        if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
+        gsinf$door.mean[ii] = predict( wd, newdata=gsinf[ii,], type="response" )
+        gsinf$door.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
+      }
       
-      # simple model
-#      gsinf$wing.mean.predicted.crude = predict( model ... of depth, year, etc)
-#      gsinf$door.mean.predicted.crude = predict( model ... of depth, year, etc)
- 
+      # return correct years to data
+      gsinf$yr =gsinf$yr0 
+      gsinf$yr0 = NULL
+
 
       # estimate SA:
       gsinf$sa.wing.crude = gsinf$distance * gsinf$wing.mean.predicted      
@@ -1140,6 +1180,17 @@ if (todo) {
       ii = which( !is.finite( gsinf$sa.door ) )
       if (length(ii) > 0)  gsinf$sa.door[ii] = gsinf$sa.door.crude[ii]
     
+
+
+      # bottom contact data may be mismatched .. remove to ensure other corrections are OK .. 
+      # if there are any ambiguities ... drop
+      # id potential mismatches based upon depth difference
+      # hist( gsinf$bc.depth.mean - gsinf$bottom_depth , "fd" )
+      ii = which ( abs( gsinf$bc.depth.mean - gsinf$bottom_depth) > 25 )
+      if (length(ii) > 0 ) {
+        for (nv in newvars) gsinf[ii, nv] = NA
+      }
+
      
  #     more sanity checks on SA 
  #     fill in with annual means? 
