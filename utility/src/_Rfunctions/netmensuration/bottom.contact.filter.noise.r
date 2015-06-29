@@ -10,6 +10,9 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
    
    
   # do not operate upon depth ... operate upon Z and Z.smoothed
+  x$depth[ 1: fr[1] ] = 0
+  x$depth[ fr[2]:nrow(x) ] = 0
+
   x$depth0 = x$depth
   x$Z = NA
   x$Z[aoi] = x$depth[aoi] 
@@ -76,10 +79,15 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   #dx = range( x$Z[good], na.rm=TRUE )
   #oo = which( x$depth0 > dx[2]  & x$depth0 < dx[1]  )
   #if (length(oo) > 0) x$depth0[ oo] = NA  # remove likely errors
+   
+  browser()
   
-  x$Z.smoothed[ leftt ] = interpolate.xy.robust( x[leftt, c("ts", "depth0")], method="loess",
+  x$Z.smoothed[ leftt ] = interpolate.xy.robust( x[leftt, c("ts", "depth0")], method="sequential.linear")
+  x$Z.smoothed[ leftt ] = interpolate.xy.robust( x[leftt, c("ts", "Z.smoothed")], method="loess",
                                                  trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.9 )
-  x$Z.smoothed[ rightt ] = interpolate.xy.robust( x[rightt, c("ts", "depth0")], method="loess",
+
+  x$Z.smoothed[ rightt ] = interpolate.xy.robust( x[rightt, c("ts", "depth0")], method="sequential.linear")
+  x$Z.smoothed[ rightt ] = interpolate.xy.robust( x[rightt, c("ts", "Z.smoothed")], method="loess",
                                                  trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.9 )
 
   kk = x$depth0 - x$Z.smoothed
@@ -88,10 +96,14 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   if (length(i) > 0 ) {
     good.final = rep( FALSE, nrow(x) )
     good.final [ i]  = TRUE
-    good.final = good.final | good  # or is adding
   }  
- 
+
+
   x$depth0[!good.final] = NA
+
+  # interpolate NA's .. low values to ensure minimal number being dropped
+  x$depth0 = interpolate.xy.robust( x[, c("ts", "depth0")],  method="simple.linear" )
+  x$depth0 = interpolate.xy.robust( x[, c("ts", "depth0")],  trim=0, probs=c(0.015,0.995), method="sequential.linear" )
 
   sminla = try( interpolate.xy.robust( x[, c("ts", "depth0")],  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, method="inla", inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal ), silent=TRUE )
   if ( ! class( sminla) %in% "try-error" ) { 
