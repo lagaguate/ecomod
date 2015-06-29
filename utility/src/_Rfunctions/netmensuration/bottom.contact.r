@@ -20,6 +20,7 @@ bottom.contact = function( x, bcp ) {
 
   if(length (which( (!is.na(x$depth)))) < n.min.required ) return( NULL )
 
+
   ##--------------------------------
   # sort in case time is not in sequence
   # timestamps have frequencies higher than 1 sec .. duplciates are created and this can pose a problem
@@ -28,39 +29,41 @@ bottom.contact = function( x, bcp ) {
   
   O$plotdata = x   # save incoming data after creation of time stamps and ordering 
 
-
+  ## PRE-FILTER 1
   if ( exists( "double.depth.sensors", bcp) ) {
     # two depth sensors were used simultaneously but they are not calibrated!
-    # remarkably hard to filter this out with any reliability while still maintaining current methods
-    # send a trigger to bottom.contact.filter tto operate on this properly
+    # remarkably hard to filter this out with any reliability at a later stage ..
     oi  = interpolate.xy.robust( x[, c("ts", "depth")], method="loess", trim=0.1, probs=c(0.05, 0.95),  target.r2=0.9 )
-    oo = which( (x$depth - oi) > 0) 
+    oo = which( (x$depth - oi) < 0) 
     x$depth[oo] = NA
     if (any( is.na( x$depth))) x$depth = interpolate.xy.robust( x[, c("ts", "depth")], method="simple.linear" )
   }
 
-  # simple time-based gating ..
+  ## PRE-FILTER 2
   if (!is.na(bcp$time.gate)) {
+    # simple time-based gating if a time range is provided..
     bcp$trange.max = (bcp$tdif.max+5)
     O$good = bottom.contact.gating.time ( Zt=x$timestamp, good=O$good, bcp=bcp )
     x$depth[ !O$good ] = NA
   }
  
+  ## PRE-FILTER 3 
   # simple depth-based gating
   if( !any(x$depth > bcp$depth.min)) return( NULL ) 
   O$good = bottom.contact.gating.depth ( Z=x$depth, good=O$good, bcp=bcp) 
   x$depth[ !O$good ] = NA
- # time and depth-based gating
+
+
+  ## PRE-FILTER 4
+  # time and depth-based gating
   mm = modes( x$depth  )
-  
   if (mm$sd < 0.001) return(NULL)  # there is no depth variation in the data ... likely a bad data series
-  
   mm.i = which( x$depth > (mm$lb2+bcp$depth.range[1]) & x$depth < (mm$ub2 + bcp$depth.range[2]) )
-  
   O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
   O$good[mm.i] = TRUE
 
- 
+
+  ## RANGE CHECKS 
   x.timerange = range( x$timestamp[O$good], na.rm=TRUE )
   x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
 
@@ -78,14 +81,14 @@ bottom.contact = function( x, bcp ) {
     }
   }
 
-# browser()
-
+  ## SANITY CHECKS
   # sometimes multiple tows exist in one track ... 
   # over-smooth depth to capture stange tows  
   x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
-  
+  x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="loess", trim=0.05 ) 
+
   nZ = nrow(x)
   zs = zz = rep( 0, nZ )
   mm = modes( x$depth ) # naive first estimate of location of most data depths
@@ -110,7 +113,9 @@ bottom.contact = function( x, bcp ) {
     O$good[bad] = FALSE
   }
 
+
   ## ------------------------------
+  ## MAIN NOISE/INTERPOLATION FILTER
   # Some filtering of noise from data and further focus upon area of interest based upon time and depth if possible
 
   res = NULL
@@ -123,13 +128,11 @@ bottom.contact = function( x, bcp ) {
     x$depth[ !O$good ] = NA
   } 
 
-
   if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return( NULL )
   if(sum(O$good)==0) return( NULL )
   
   x.timerange = range( x$timestamp[O$good], na.rm=TRUE )
   x.dt = difftime( x.timerange[2], x.timerange[1], units="mins" )
-
 
   if ( x.dt < ( bcp$tdif.min ) ) { 
       O$error.flag = "Not enough data?"   
@@ -142,7 +145,8 @@ bottom.contact = function( x, bcp ) {
   }
  
 
-  # variance gating attempt
+  ## FINAL DATA GATING 
+  # variance gating attempt after the data has been cleaned as much as possible
   O$variance.method0 = NA
   O$variance.method1 = NA
   O$variance.method.indices = NA

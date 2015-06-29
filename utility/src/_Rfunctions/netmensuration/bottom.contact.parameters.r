@@ -15,14 +15,12 @@
       
         if ( bcp$nr < 3500 & bcp$nr >= 2000 ) {
           bcp$noisefilter.var.window = 30
-          bcp$noisefilter.target.r2 = 0.8
           bcp$noisefilter.trim = 0.1
           bcp$noisefilter.quants = c(0.1, 0.9)
         } 
 
         if ( bcp$nr < 2000 & bcp$nr >= 1200 ) {
           bcp$noisefilter.var.window = 20
-          bcp$noisefilter.target.r2 = 0.8
           bcp$noisefilter.trim = 0.1
           bcp$noisefilter.quants = c(0.1, 0.9)
         } 

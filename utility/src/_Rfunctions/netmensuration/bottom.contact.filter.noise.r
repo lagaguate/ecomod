@@ -8,7 +8,6 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   fr = range( which(good) )
   aoi = fr[1]:fr[2]
    
-   
   # do not operate upon depth ... operate upon Z and Z.smoothed
   x$Z = NA
   x$Z[aoi] = x$depth[aoi] 
@@ -59,78 +58,107 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
     x$Z[ !good] = NA
   }
 
-
-# last step ... finalize id of good data and then smooth over the raw data
-  outsideofaoi = setdiff(1:nrow(x), aoi )
-  #x$Z[outsideofaoi] = NA
-
-  x$Z.smoothed = x$depth
-  x$Z.smoothed[ outsideofaoi] =NA
-
-  x$Z.smoothed[aoi] = x$sm.win[aoi]  # basis is the moving averge which is the most stable 
-  x$Z.smoothed[ good ] = x$Z[good]  # these Z are the highest probability of good clean data .. return to the data for futher processing
-  x$Z.smoothed[ good ] = interpolate.xy.robust( x[ good, c("ts", "Z.smoothed")], method="loess", 
-      trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.95 )
-  x$Z.smoothed[outsideofaoi] = NA
-  
-  kk = x$depth - x$Z.smoothed
-  i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
-  if (length(i) > 0 ) good [ i]  = TRUE
-
-  # return tails to improve fit of curvature at touchdown and lift-off
-  leftt = 1 : (min( which( good) ) - 1)    
-  rightt = ( 1 + max( which( good) ) ): nrow(x)
-
-  x$ztails = x$depth 
-  x$ztails = interpolate.xy.robust( x[, c("ts", "ztails")], method="sequential.linear",  
-      trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
-  x$ztails = interpolate.xy.robust( x[, c("ts", "ztails")], method="moving.window",  
-      target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )
-
-  x$ztails = interpolate.xy.robust( x[, c("ts", "ztails")], method="local.variance",  
-      target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )
-
-  x$ztails[1] = x$ztails[nrow(x)] = 0# force tails to surface .. helps tails to go in right direction when not enough data retained
-
-  x$Z.smoothed[ leftt ] = interpolate.xy.robust( x[leftt, c("ts", "ztails")], method="loess",
-      trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.5 )   # make it a bit smoother than data
-  
-  x$Z.smoothed[ rightt ] = interpolate.xy.robust( x[rightt, c("ts", "ztails")], method="loess",
-      trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, target.r2=0.5 )
-
-  kk = x$depth - x$Z.smoothed
-  i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
-  if (length(i) > 0 ) good [ i]  = TRUE
-
- 
-  x$depth[!good] = NA
-  x$depth[1] = x$depth[nrow(x)] = 0 # force tails to surface
-# TEL2004529.20 TEL2004529.34
-  
-  sminla = try( interpolate.xy.robust( x[, c("ts", "depth")], method="inla",
-      target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, 
-      inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal ), silent=TRUE )
-  if ( ! class( sminla) %in% "try-error" ) { 
-    x$Z.smoothed  = sminla
-  } else { 
-    x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "depth")], method="loess", 
-        probs=bcp$noisefilter.quants,  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim )
+  # direct range limits of best idea of "bottom"
+  i = which.quantile ( x$Z, probs=bcp$noisefilter.quants, inside=FALSE )   ## assymetrical trim:: trimming shallow end
+  if (length(i) > 0) {
+    good[i] = FALSE
+    x$Z[ !good] = NA
   }
 
-# final tweaks .. order is important  
 
-  # high freq noise still observed on a handful of cases .. smooth via running average again
-  x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "Z.smoothed")], method="moving.window", 
-      target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )
+# last step ... finalize id of good data and then smooth over the raw data
+# return tails to improve fit of curvature at touchdown and lift-off
+  rgood = range( which( good) ) 
+  ngood = abs( diff( rgood)  )
+  buf = trunc(ngood/5)
+  
+  leftt = max( 1, trunc(fr[1] - fr[1]/2) ) : (min(which(good)) + buf)  # add a buffer
+  rightt = (max(which(good)) - buf ) : min( fr[2] + trunc( (nrow(x)-fr[2])/2 ), nrow(x) )   # add a buffer
 
-  # high freq noise still observed on a handful of cases .. smooth via running average again
-  x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "Z.smoothed")], method="smooth.spline",
-      target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )
+  # these Z are the highest probability of good clean data .. return to the data for futher processing
+  x$Z.smoothed = x$Z
+  
+  x$sm2 = x$depth
+  uu = which( is.finite( x$Z))
+  if (length(uu) >  1) {
+    dr = range( uu)
+    vv = min(dr):max(dr)
+    x$sm2[vv] = x$Z[vv]
+  }
 
+  x$sm2[leftt] = interpolate.xy.robust( x[leftt, c("ts", "sm2")],  method="sequential.linear", 
+        trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
+  x$sm2[leftt[1]] = 0 # force tails to surface .. helps tails to go in right direction when not enough data retained
+  x$sm2[leftt] = interpolate.xy.robust( x[leftt, c("ts", "sm2")],  method="loess", 
+        probs=bcp$noisefilter.quants, target.r2=0.5, trim=0.25 )
+ 
+  x$sm2[rightt] = interpolate.xy.robust( x[rightt, c("ts", "sm2")],  method="sequential.linear", 
+        trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
+  x$sm2[rightt[length(rightt)] ] = 0 # force tails to surface .. helps tails to go in right direction when not enough data retained
+  x$sm2[rightt] = interpolate.xy.robust( x[rightt, c("ts", "sm2")],  method="loess", 
+        probs=bcp$noisefilter.quants, target.r2=0.5, trim=0.25 )
+ 
+  kk = x$depth - x$sm2
+  i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
+  if (length(i) > 0 ) {
+    good [ i]  = FALSE
+    x$sm2[ i ] = NA
+  }
+
+
+
+ # zdr = range( x$Z, na.rm=TRUE )  + c(-5, +5) * sd( x$Z, na.rm=TRUE )  
+ # iz  = which( x$Z.smoothed < zdr[1] | x$Z.smoothed > zdr[2]  )
+  
+ # if (length( iz>0))  x$Z.smoothed[ iz] = 0
+  x$Z.smoothed[leftt] = x$sm2[leftt] 
+  x$Z.smoothed[rightt] = x$sm2[rightt] 
+  x$Z.smoothed[1] = x$Z.smoothed[nrow(x)] = 0# force tails to surface .. helps tails to go in right direction when not enough data retained
+  x$Z.smoothed = interpolate.xy.robust( x[, c("ts", "Z.smoothed")], method="simple.linear" )
+  
   kk = x$depth - x$Z.smoothed
-  i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
-  if (length(i) > 0 )     good [ i]  = TRUE
+  i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) # NOTE inside=TRUE here
+  if (length(i) > 0 ) {
+    good [ i]  = TRUE
+    # x$Z.smoothed[ !good ] = NA
+  }
 
-  return( list( depth.smoothed=x$Z.smoothed, good=good ) )
+
+  # construct filtered depth vector (Z) with smoothed estimates where not good
+  x$ZZ  = x$Z.smoothed
+  uu = which( is.finite( x$Z))
+  if (length(uu) >  1) {
+    dr = range( uu)
+    vv = min(dr):max(dr)
+    x$ZZ[vv] = x$Z[vv]
+  }
+
+  sm = x$ZZ
+
+  sm = try( interpolate.xy.robust( x[, c("ts", "ZZ")], method="inla",
+      target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants, 
+      inla.h=bcp$noisefilter.inla.h, inla.diagonal=bcp$inla.diagonal ), silent=TRUE )
+  
+  if ( class( sm ) %in% "try-error" ) { 
+    sm = try( interpolate.xy.robust( x[, c("ts", "ZZ")], method="loess", 
+        probs=bcp$noisefilter.quants,  target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim ),  silent=TRUE )
+  }
+  if ( class( sm ) %in% "try-error" ) { 
+    sm = try( interpolate.xy.robust( x[, c("ts", "ZZ")], method="smooth.spline", 
+        target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window ),  silent=TRUE )
+  }
+  if ( class( sm ) %in% "try-error" ) { 
+    sm = try( interpolate.xy.robust( x[, c("ts", "ZZ")], method="moving.window", 
+        target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window ),  silent=TRUE )
+  }
+ 
+  kk = x$depth - x$sm
+  i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
+  if (length(i) > 0 ) {
+    good[] = FALSE
+    good[i]  = TRUE
+  }
+
+  return( list( depth.smoothed=sm, good=good ) )
 }
 
