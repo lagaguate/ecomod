@@ -164,8 +164,8 @@ gr = abs(g$dist_km - (g$wing.sa / g$wing.mean)*1000)
 strange = which ( gr > 1 & g$gear==9 & g$settype==1 )
 g[strange, "id"]
  
-"NED2014101.23" "NED2014101.49" "NED2011002.44" "NED2014101.13" "NED2014101.15"
- 
+"NED2014101.23" "NED2011002.6"  "NED2014101.13" "NED2014101.15" "NED2015002.20"
+
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71")  # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.192") # large depth range
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.205") # depth sensor not working
@@ -173,7 +173,7 @@ bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.208") # GPS not 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.53")  # 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.45")  # doorspread failure and almost no wingspread 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014101.23") 
-bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014101.49") 
+bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2011002.6") 
 
 
 bottom.contact.plot( bc, netspread=TRUE )

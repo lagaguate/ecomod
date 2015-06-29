@@ -756,6 +756,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gsinf0$bc.lat0 = NA
     gsinf0$bc.depth.mean = NA
     gsinf0$bc.depth.sd = NA
+    gsinf0$bc.error.flag = NA
 
     for ( YR in YRS ) {
       
@@ -909,6 +910,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
                   if ( exists("wing.sd", bc$surface.area ) ) gsinf$wing.sd[gii] =  bc$surface.area$wing.sd
                 }
               }
+            } else {
+              gsinf$bc.error.flag = bc$error.flag
             }
       
             save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
@@ -962,29 +965,15 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gsinf = groundfish.db( DS="gsinf" )
     gsinf_bc = scanmar.db( DS="bottom.contact", p=p )
     
-    newvars = setdiff( names( gsinf) , names( gsinf_bc ) )
+    newvars = setdiff( names( gsinf_bc ), names( gsinf)  )
+    tokeep = c("id", setdiff( names(gsinf_bc), todrop) )
 
     ng = nrow( gsinf)
-    gsinf = merge( gsinf, gsinf_bc, by="id", all.x=TRUE, all.y=FALSE, suffixes=c("", ".bc_drop") )
+    gsinf = merge( gsinf, gsinf_bc[,tokeep], by="id", all.x=TRUE, all.y=FALSE )
     if ( ng != nrow(gsinf) ) error("merge error" )
+  
     
-    todrop = grep( "bc_drop", names(gsinf ) )
-    if (length( todrop)>0) gsinf = gsinf[,-todrop] 
-
-
-
-
-    # id potential mismatches based upon depth difference
-    hist( gsinf$depth.mean - gsinf$bottom_depth , "fd" )
-
-
-
-    ii = which ( abs( gsinf$depth.mean - gsinf$bottom_depth) > 25 )
-    if (length(ii) > 0 ) {
-      # bottom contact data may be mismatched .. remove to ensure other corrections are OK
-      for (nv in newvars) gsinf[ii, nv] = NA
-    }
-
+  
     gsinf$dist_wing = gsinf$wing.sa / gsinf$wing.mean * 1000  # est of length of the tow (km)
     gsinf$dist_door = gsinf$door.sa / gsinf$door.mean * 1000 # est of length of the tow (km)
     gsinf$yr = lubridate::year(gsinf$sdate)
@@ -1137,14 +1126,17 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
       ii = which( !is.finite( gsinf$distance ) ) 
       if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_km[ii]
-        
+  
+      todo = F
+      if (todo) {
+        # estimate distance = speed * duration ... 
+        # when distance is improper due to poor GPS data ... years <= 2009 ? ...  
+      }
+
+
+
 # plot( dist_wing ~ distance, gsinf, xlim=c(0.75, 3.75), col="red", pch=20, cex=0.4 )
-    
-   todo = FALSE
-
-if (todo) {
-
-
+   
       # wing and door spread models: 
       # assume all other nets are performing the same way ... not ideal but there is no data to estimate 
       # influence of warp length should be comparable ... ?
@@ -1181,16 +1173,32 @@ if (todo) {
       gsinf$yr0 = NULL
 
 
-      # estimate SA:
-      gsinf$sa.wing.crude = gsinf$distance * gsinf$wing.mean.predicted      
-      gsinf$sa.door.crude = gsinf$distance * gsinf$door.mean.predicted
+
+   todo = FALSE
+
+if (todo) {
+
+  # estimate SA:
+      gsinf$sa.wing.crude = gsinf$distance * gsinf$wing.mean      
+      gsinf$sa.door.crude = gsinf$distance * gsinf$door.mean
 
       ii = which( !is.finite( gsinf$sa.wing ) )
       if (length(ii) > 0)  gsinf$sa.wing[ii] = gsinf$sa.wing.crude[ii]
       
       ii = which( !is.finite( gsinf$sa.door ) )
       if (length(ii) > 0)  gsinf$sa.door[ii] = gsinf$sa.door.crude[ii]
-    
+  
+
+
+      # bottom contact data may be mismatched .. remove to ensure other corrections are OK .. 
+      # if there are any ambiguities ... drop
+      # id potential mismatches based upon depth difference
+      # hist( gsinf$bc.depth.mean - gsinf$bottom_depth , "fd" )
+      ii = which ( abs( gsinf$bc.depth.mean - gsinf$bottom_depth) > 25 )
+      if (length(ii) > 0 ) {
+        for (nv in newvars) gsinf[ii, nv] = NA
+      }
+
      
  #     more sanity checks on SA 
  #     fill in with annual means? 

@@ -7,7 +7,7 @@ bottom.contact.gating.variance = function( x, good, bcp ) {
   # start from centre and move left and continue until sd of residuals begins to deviate sustantially
   # from centre to left 
  
-  aoi.range = range( which( good ) )
+  aoi.range = range( which( good & is.finite(x$depth) ) )
   aoi.min = aoi.range[1]
   aoi.max = aoi.range[2]
   aoi.mid = trunc( mean( aoi.range ) ) # approximate midpoint
