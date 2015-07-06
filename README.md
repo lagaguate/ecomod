@@ -1,5 +1,5 @@
 
-This is a code repository of various functions, scripts and tools useful for general ecological modelling, population stock assessments and habitat analysis. The code is mostly implemented in the R-language (http://www.r-project.org/) and intended to be run through the free and open-source R-environment. There is some occasional (minimal) reliance upon other languages such as python, JAGS/BUGS, GMT (Generic Mapping Tools), JAVA, Fortran, C, etc. 
+This is a code repository of various functions, scripts and tools useful for general ecological modelling, population stock assessments and habitat analysis. The code is mostly implemented in the R-language (http://www.r-project.org/) and intended to be run through the free and open-source R-environment. There is some occasional (minimal) reliance upon other languages such as Python, JAGS/BUGS, GMT (Generic Mapping Tools), JAVA, Fortran, C, etc. 
 
 Some of these subprojects are inter-related in that they refer to each other's functions and data streams. Others are didactic, demonstrating approach or simply documenting the methods (especially as many data sets are not publicly available). However, all the subprojects are here to further collaboration, communication and transparency, to reduce the replication of effort and to permit other researchers to apply these methods and improve upon them. 
 
@@ -38,7 +38,6 @@ or to load a specific file/function that fuzzy matches the 'functionname' criter
 'loadfunctions()' is a simple function that reads in all files under a particular project directory in a structured manner. 
 
     project.codedirectory( "spacetime" ) # returns the file path to the spacetime code directory under ecomod
-    project.directory( "spacetime" ) # returns the file path to the spacetime data directory under ecomod_data (or whatever you defined as the root data location in your Rprofile )
-    project.datadirectory()  is a synomym for project.directory() ... the latter is depricated 
+    project.datadirectory( "spacetime" ) # returns the file path to the spacetime data directory under ecomod_data (or whatever you defined as the root data location in your Rprofile )
 
 

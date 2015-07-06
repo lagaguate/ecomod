@@ -45,7 +45,7 @@ str(chl)
 
 
 
-out.dir = file.path( project.directory("biochem"), "maps", "test" )
+out.dir = file.path( project.datadirectory("biochem"), "maps", "test" )
 dir.create( out.dir, recursive=T, showWarnings=F )
 outfn = file.path( out.dir, "testmap.png" )
 
@@ -92,7 +92,7 @@ for (m in 1:12) {
 }
 
 # polygon manipulations
-poly.fn = file.path(project.directory("biochem"), "datap", "BotClim_pts_v7_merge.csv"  )
+poly.fn = file.path(project.datadirectory("biochem"), "datap", "BotClim_pts_v7_merge.csv"  )
 poly = read.csv( poly.fn )
 chl$polyarea = NA
 for (pl in 1:length(unique(poly$Shape_Num))) {
