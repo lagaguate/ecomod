@@ -966,20 +966,18 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gsinf_bc = scanmar.db( DS="bottom.contact", p=p )
     
     newvars = setdiff( names( gsinf_bc ), names( gsinf)  )
-    tokeep = c("id", setdiff( names(gsinf_bc), todrop) )
+    tokeep = c("id", newvars )
 
     ng = nrow( gsinf)
     gsinf = merge( gsinf, gsinf_bc[,tokeep], by="id", all.x=TRUE, all.y=FALSE )
     if ( ng != nrow(gsinf) ) error("merge error" )
   
-    
-  
     gsinf$dist_wing = gsinf$wing.sa / gsinf$wing.mean * 1000  # est of length of the tow (km)
     gsinf$dist_door = gsinf$door.sa / gsinf$door.mean * 1000 # est of length of the tow (km)
     gsinf$yr = lubridate::year(gsinf$sdate)
 
-    # fixes for western IIA trawl
       if (0) {
+        # distribution checks for western IIA trawl
         w2a = which( gsinf$geardesc == "Western IIA trawl" )
         
         hist( gsinf$wing.mean[w2a], "fd" )
@@ -995,16 +993,16 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         rn = quantile( gsinf$door.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.42 to 16 .. using 0.1 to 20
      
         hist( gsinf$wing.sa[w2a], "fd" )
-        rn = quantile( gsinf$wing.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.02 to 0.069 .. using 0.01 to 0.08
+        rn = quantile( gsinf$wing.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.02 to 0.064 .. using 0.01 to 0.08
     
         hist( gsinf$door.sa[w2a], "fd" )
-        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.04 to 0.25 .. using 0.1 to 0.30
+        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.04 to 0.25 .. using 0.02 to 0.30
   
         hist( gsinf$dist_wing[w2a], "fd" )
         rn = quantile( gsinf$dist_wing[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.06 to 4.2 .. using 1.75 to 4.5 
     
         hist( gsinf$dist_door[w2a], "fd" )
-        rn = quantile( gsinf$dist_door[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.03 to 4.3 .. using 1.75 to 4.5 
+        rn = quantile( gsinf$dist_door[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.03 to 4.2 .. using 1.75 to 4.5 
 
 
       }
@@ -1054,7 +1052,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 0.1, 0.35 )
+      rn = c( 0.02, 0.30 )
       i = which( (gsinf$door.sa < rn[1] | gsinf$door.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
@@ -1086,7 +1084,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         # some test plots
         w2a = which( gsinf$geardesc == "Western IIA trawl" )
         plot(dist_km ~ dist_wing, gsinf, ylim=c(1.5, 4) )
-        plot(dist_km ~ dist_door, gsinf)
+        plot(dist_km ~ dist_door, gsinf, ylim=c(1.5, 4) )
         plot( wing.mean ~ door.mean, gsinf[w2a,], type="p", col="red" )  ## strange!
         points( wing.mean ~ door.mean, gsinf[w2a,], col="black", pch=20, subset=which(gsinf$yr==2012) )  ## strange!
  
@@ -1106,9 +1104,27 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         bdl = scanmar.db( DS="basedata.lookuptable", p=p )
         ww = which( bdl$id=="NED2009027.25" )
         bdl[ww,]
-        xx = gsinf[ which( gsinf$nm_id == bdl$nm_id[ww] ) , ]
-        plot( wingspread ~ timestamp, xx )
-        plot( doorspread ~ timestamp, xx )
+        xx = bdl[ which( gsinf$nm_id == bdl$nm_id[ww] ) , ]
+## bottom_depth (from sounders) are sometimes wrong .. eg:
+## gsinf[ which( gsinf$id=="NED2015002.40"),]  # VS:
+## gg =groundfish.db("gsinf")
+## gg[ which( gg$id=="NED2015002.40"),]
+## /home/jae/ecomod/groundfish/data/nets/Scanmar/bottom.contact/figures
+## 
+#                 id   yr               sdate               edate time strat area speed dist_km dist_pos    cftow      sakm2 settype gear          geardesc     lon      lat
+#16209 NED2015002.40 2015 2015-03-24 03:10:00 2015-03-24 03:40:00  210   5Z4  524   3.4  3.1484 3.212706 1.029412 0.03934492       1    9 Western IIA trawl -67.235 41.34933
+#        lon.end lat.end surface_temperature bottom_temperature bottom_salinity bottom_depth
+#16209 -67.27133   41.34                 4.1                4.1           33.33      93.2688
+#> gsinf[ which( gsinf$id=="NED2015002.40"),]
+#                 id   yr               sdate               edate time strat area speed dist_km dist_pos    cftow      sakm2 settype gear          geardesc     lon      lat
+#15419 NED2015002.40 2015 2015-03-24 03:10:00 2015-03-24 03:40:00  210   5Z4  524   3.4  3.1484 3.212706 1.029412 0.03934492       1    9 Western IIA trawl -67.235 41.34933
+#        lon.end lat.end surface_temperature bottom_temperature bottom_salinity bottom_depth bottom_duration        bc0.datetime        bc1.datetime   bc0.sd   bc1.sd bc0.n bc1.n
+#15419 -67.27133   41.34                 4.1                4.1           33.33      93.2688        1802.333 2015-03-24 02:11:14 2015-03-24 02:41:16 8.660254 7.571878     3     3
+#        door.sa    wing.sa door.mean wing.mean  door.sd   wing.sd  bc.lon0   bc.lon1  bc.lat0 bc.depth.mean bc.depth.sd bc.error.flag dist_wing dist_door distance  yr0
+#15419 0.1319711 0.04252784   41.5367  13.38397 1.175923 0.4046273 -67.2358 -67.27124 41.34014      48.20323    1.023166          <NA>  3.177521  3.177216 3.177521 2015
+#      sa.wing.crude sa.door.crude  sa.wing  sa.door
+#15419      42.52784      131.9837 42.52784 131.9837
+
       }
 
       # basic sanity checks finished .. 
@@ -1133,10 +1149,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         # when distance is improper due to poor GPS data ... years <= 2009 ? ...  
       }
 
-
-
-# plot( dist_wing ~ distance, gsinf, xlim=c(0.75, 3.75), col="red", pch=20, cex=0.4 )
-   
       # wing and door spread models: 
       # assume all other nets are performing the same way ... not ideal but there is no data to estimate 
       # influence of warp length should be comparable ... ?
@@ -1194,7 +1206,9 @@ if (todo) {
       # if there are any ambiguities ... drop
       # id potential mismatches based upon depth difference
       # hist( gsinf$bc.depth.mean - gsinf$bottom_depth , "fd" )
+      plot( bc.depth.mean ~ bottom_depth, gsinf, xlim=c(0,600) )
       ii = which ( abs( gsinf$bc.depth.mean - gsinf$bottom_depth) > 25 )
+      points( bc.depth.mean ~ bottom_depth, gsinf[ii,], col="red" )
       if (length(ii) > 0 ) {
         for (nv in newvars) gsinf[ii, nv] = NA
       }
@@ -1218,7 +1232,6 @@ if (todo) {
     dir.create (file.path( scanmar.filtered.dir, "results"), recursive=TRUE, showWarnings=FALSE )
     dir.create (file.path( scanmar.filtered.dir, "figures"), recursive=TRUE, showWarnings=FALSE )
 
-
     if(DS=="scanmar.filtered"){
       nm = NULL
       for ( YR in YRS ) {
@@ -1228,7 +1241,6 @@ if (todo) {
       }
       return(nm)
     }
-
 
     if(DS=="scanmar.filtered.indices"){
       res = NULL
