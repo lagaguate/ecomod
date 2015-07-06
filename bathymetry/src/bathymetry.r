@@ -150,7 +150,7 @@
   p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
   bt = bathymetry.db ( p, DS="baseline" )
   # scotianshelf = locator() 
-  scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
+  scotianshelf = read.table( find.ecomod.gis( "scotia.fundy.with.buffer.dat"  ) ) 
   names( scotianshelf) = c("lon", "lat")
   scotianshelf = lonlat2planar( scotianshelf, proj.type=p$internal.projection )
 

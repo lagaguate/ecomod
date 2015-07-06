@@ -85,7 +85,7 @@
   # t0 = t0[ filter.region.polygon( t0, region="isobath1000m" ) , ]
 
    # scotianshelf = locator() 
-    scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
+    scotianshelf = read.table( find.ecomod.gis( "scotia.fundy.with.buffer.dat"  ) ) 
     names( scotianshelf) = c("lon", "lat")
 
     plot( t0$lat ~ t0$lon, pch="." )
@@ -286,7 +286,7 @@ Posterior marginals for linear predictor and fitted values computed
     t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
    
     # scotianshelf = locator() 
-    scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
+    scotianshelf = read.table( find.ecomod.gis( "scotia.fundy.with.buffer.dat"  ) ) 
     names( scotianshelf) = c("lon", "lat")
 
     
@@ -448,7 +448,7 @@ Posterior marginals for linear predictor and fitted values computed
   t0 = hydro.db( p=p, DS="bottom.gridded.all"  )
 
   # scotianshelf = locator() 
-  scotianshelf = read.table( polygon.ecomod( "scotia.fundy.with.buffer.dat"  ) ) 
+  scotianshelf = read.table( find.ecomod.gis( "scotia.fundy.with.buffer.dat"  ) ) 
   names( scotianshelf) = c("lon", "lat")
   
     plot( t0$lat ~ t0$lon, pch="." )
