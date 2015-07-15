@@ -121,99 +121,15 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
       verbose = FALSE
   )
 
-  # field parameters on user scale
-  oo = inla.spde2.result(R, 'i', S0, do.transf=TRUE)
-  
-  extract =  c("mean", "sd", "mode", "0.5quant", "0.025quant", "0.975quant")
-  iRange = exp( oo$summary.log.range.nominal[ extract] ) # or iRange=sqrt(8)/exp(oo$summary.log.kappa$mean) 
-  iVar = exp( oo$summary.log.variance.nominal[extract] ) # spatial variance (~ psill)
-  iKappa = exp( oo$summary.log.kappa[extract]  )
-  iTau = exp(oo$summary.log.tau[extract ] )
+  out = list()
 
-  iNuggetmarginals = inla.tmarginal( function(x) {1/x}, R$marginals.hyperpar[["Precision for the Gaussian observations"]] )
-  iNugmode = inla.mmarginal( iNuggetmarginals ) 
-  iNugmean = inla.emarginal( function(x) {x}, iNuggetmarginals ) 
-  iNugSD =  sqrt( inla.emarginal( function(x) {x^2}, iNuggetmarginals ) - iNugmean^2)
-  iNugQuants = inla.qmarginal( c(0.5, 0.025, 0.975), iNuggetmarginals )
-
-  iNugget = data.frame(cbind( iNugmean, iNugSD, iNugmode, iNugQuants[1], iNugQuants[2], iNugQuants[3] ) )
-  names(iNugget) = extract
-
-  # indices for random field at data locations
-  idat <- inla.stack.index( Z, 'data')$data
-  # correlation between the the posterior mean and the response by
-  cor.predict = cor( z, R$summary.linear.predictor$mean[idat])
-
-  if (plot) {
-    x11(); 
-    plot(M0, asp=1 ) # visualise mesh
-    
-    x11()
-    vn = "b0"
-    v=R$marginals.fixed[[vn]]
-    v =  v[order(v[,1]),]
-    plot( v, type="l", xlab="b0 -- intercept", ylab="Density" )
-    
-    x11()
-    vn = "Precision for the Gaussian observations"  ## i.e, the "nugget" or observation error
-    v = R$marginals.hyperpar[[vn]]
-    # v = v[order(v[,1]),]
-    plot.default( iNuggetmarginals, xlab="Non-spatial observation error ('nugget variance')", type="l", ylab="Density" )
-    abline( v=iNugget$mean, lty="dotted" )
-
-    x11(); 
-    vn = "marginals.variance.nominal"  # spatially stuctured variance .. ~ psill
-    plot( oo[[vn]][[1]], type='l', xlab="Spatial error ('partial sill variance')", ylab='Density')
-    abline(v=iVar$mean, lty="dotted" )
-    
-    x11(); 
-    vn = "marginals.kappa"
-    plot(oo[[vn]][[1]], type='l', xlab=expression(kappa), ylab='Density')
-    abline(v=iKappa$mean, lty="dotted"  )
-    
-    x11(); 
-    vn = "marginals.range.nominal"
-    plot(oo[[vn]][[1]], type='l', xlab='range nominal', ylab='Density')
-    abline(v=iRange$mean, lty="dotted"  ) 
-    
-    x11()
-    require(lattice)
-    loadfunctions( "utility" )
-
-    delta = mean( R$summary.linear.predictor$mean[idat]) -  mean(R$summary.random$i$mean) 
-    pG = inla.mesh.projector( M0, xlim=xrange, ylim=yrange, dims=c(nxout, nyout) )
-    out = inla.mesh.project( pG, R$summary.random$i$mean ) # mean
-    outdf = as.data.frame.table( out)
-    preds$z = outdf[,3] + delta
-    datarange = range( preds$z, na.rm=TRUE )
-    dr = seq( datarange[1], datarange[2], length.out=150)
-    lp = levelplot( z~plon+plat, preds, aspect="iso", main="Posterior mean", at=dr, col.regions=color.code( "seis", dr) ,
-      contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-    print(lp)
-
-    pG = inla.mesh.projector( M0, xlim=xrange, ylim=yrange, dims=c(nxout, nyout) )
-    out = inla.mesh.project( pG, R$summary.random$i$sd ) # SD
-    outdf = as.data.frame.table( out)
-    preds$z = outdf[,3] 
-    datarange = range( preds$z, na.rm=TRUE )
-    dr = seq( datarange[1], datarange[2], length.out=150)
-    lp = levelplot( z~plon+plat, preds, aspect="iso", main="Posterior SD", at=dr, col.regions=color.code( "seis", dr) ,
-      contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-    print(lp)
-
-
-  }
-    
-  inla.summary = rbind( iKappa, iTau, iRange, iVar, iNugget )
-  rownames( inla.summary) = c( "kappa", "tau", "range", "spatial error", "observation error" )
-  colnames( inla.summary) = c( "mean", "sd", "mode", "median", "q025", "q975" )
-                              
-  out = list( vario.empirical=vEm, vario.model=vFitgs, vario.range=vRange, vario.psill=vPsill, vario.nugget=vNugget,
-              kappa0=kappa0, tau0=tau0, inla.summary=inla.summary, correl=cor.predict         
-  ) 
+  out$inla.summary = try( spacetime.inla.extract.parameters( R, S0, vname="i" ) )
+                
+  out$gstat = list( vario.empirical=vEm, vario.model=vFitgs, vario.range=vRange, 
+              vario.psill=vPsill, vario.nugget=vNugget )
 
   if (return.inla) {
-    out$inla = R
+    out$inla.R = R
     out$mesh = M0 
   }
   return(out)

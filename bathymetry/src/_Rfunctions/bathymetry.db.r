@@ -87,6 +87,7 @@
 			if ( "groundfish" %in% additional.data ) {
         # n=13031; range = 0 to 1054
 				loadfunctions("groundfish")
+        warning( "Should use bottom contact estimates as a priority" )
 				gf = groundfish.db( "set.base" )[, c("lon","lat", "sdepth") ]
 				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
         names(gf) = c("lon", "lat", "z")
@@ -362,7 +363,13 @@
         Z = bathymetry.db( p, DS="Z.planar" )
   		  Z = Z[ which(Z$z < 800 & Z$z > 0 ) ,] 
 		  }
+		
+      if ( p$spatial.domain =="SSE" ) {
+        Z = bathymetry.db( p, DS="Z.planar" )
+  		  Z = Z[ which(Z$z < 2000 & Z$z > 0 ) ,] 
+		  }
 
+     
       # ---------
 
 			if ( p$spatial.domain == "snowcrab" ) {
