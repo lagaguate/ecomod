@@ -9,7 +9,6 @@
   
  
   p$project.name = "bathymetry"
-  p$interpolation.function = interpolate.local.2d.depth  # found in spacetime/src/_Rfunctions/
   p$inla.alpha = 2 # 2 = exponential autocorrelation
 
   p = spatial.parameters( type="canada.east", p=p )
@@ -44,11 +43,10 @@
 
   rm( B ); gc()
 
-  p = interpolate.local.2d.depth( p ) 
+  p = interpolate.local.2d.depth( p )  # found in spacetime/src/_Rfunctions/
   
-  P = attach.big.matrix(p$descriptorfile.P)  # predictions
-  S = attach.big.matrix(p$descriptorfile.S)  # statistical outputs
+  P = load( p$outfilename.P )
+  S = load( p$outfilename.S )
 
-  S = load( p$
 
 
