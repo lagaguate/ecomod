@@ -42,30 +42,20 @@
         return( bathy )
       }
  
-			# this data was obtained from CHS via Jerry Black in 13 April 2009 n=9,965,979 -- 
-      fn  = file.path( datadir, "jerry.black.xyz.xz")  # xz compressed file
-      chs.jerry.black = read.table( xzfile(fn), header=T, sep="," )
-			names( chs.jerry.black ) = c("lon", "lat", "z")
-      chs.jerry.black = chs.jerry.black[ which( chs.jerry.black$z < 1000 ), ] # remove some large values that are likely "missing values" 
-      chs.jerry.black$z = - chs.jerry.black$z  
-
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
-      fn = file.path( datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
-      chs15 = read.table( xzfile( con ) ) 
+      fn_nwa = file.path( datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
+      chs15 = read.table( xzfile( fn_nwa ) ) 
       names(chs15) = c("lon", "lat", "z")
-      chs15 = chs15[ which( chs15$z < 1000 ) , ] 
+      # chs15 = chs15[ which( chs15$z < 1000 ) , ] 
       chs15$z = - chs15$z  
- 
-      bathy = rbind( chs15, chs.jerry.black )
-      rm( chs15, chs.jerry.black ); gc()
 
       # Michelle Greenlaw's DEM from 2014
       # range -3000 to 71.5 m; n=155,241,029 .. but mostly interpolated 
       gdem = bathymetry.db( DS="Greenlaw_DEM" )
       gdem$z = - gdem$z
 
-      bathy = rbind( bathy, gdem )
-      rm(gdem) ; gc()
+      bathy = rbind( chs15, gdem )
+      rm(gdem, chs15) ; gc()
 
 	 		# chs and others above use chs depth convention: "-" is below sea level,
 			# in snowcrab and groundfish convention "-" is above sea level
@@ -82,12 +72,17 @@
         bathy = rbind( bathy, sc )
 			  p = p0
         rm (sc); gc()
+       
+      #sc$lon = round(sc$lon,1)
+      #sc$lat = round(sc$lat,1)
+      # contourplot( z~lon+lat, sc, cuts=10, labels=F )
+		
       }
-
-			if ( "groundfish" %in% additional.data ) {
+    	
+      if ( "groundfish" %in% additional.data ) {
         # n=13031; range = 0 to 1054
 				loadfunctions("groundfish")
-        warning( "Should use bottom contact estimates as a priority" )
+        warning( "Should use bottom contact estimates as a priority ?" )
 				gf = groundfish.db( "set.base" )[, c("lon","lat", "sdepth") ]
 				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
         names(gf) = c("lon", "lat", "z")
@@ -95,8 +90,15 @@
         if (length (j) > 0 ) gf = gf[-j,]
  				bathy = rbind( bathy, gf )
         rm (gf); gc()
+        
+        #gf$lon = round(gf$lon,1)
+        #gf$lat = round(gf$lat,1)
+        #contourplot( z~lon+lat, gf, cuts=10, labels=F )
+
 			}
- 
+
+      bathy = bathy[ - which(duplicated( bathy)),]
+
       write.table( bathy, file=p$bathymetry.xyz, col.names=F, quote=F, row.names=F)
       
 			cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
