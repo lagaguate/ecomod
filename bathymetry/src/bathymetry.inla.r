@@ -44,7 +44,7 @@
   p$outfilename.P =  file.path( p$project.root, "data", "predictions.rdata" ) 
   p$outfilename.S =  file.path( p$project.root, "data", "statistics.rdata" ) 
 
-  p$clusters = c(rep( "nyx", 12 ), rep ("tartarus", 12), rep("kaos", 12 ))  # do not use all CPU's as INLA itself is partially run in parllel
+  p$clusters = c(rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ))  # do not use all CPU's as INLA itself is partially run in parllel
 
   p = interpolate.local.2d.depth( p )  # found in spacetime/src/_Rfunctions/
   
