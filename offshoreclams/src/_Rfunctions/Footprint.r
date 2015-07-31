@@ -26,12 +26,13 @@ Footprint <- function(fig.num, BB_Footprint, Sel.Bank){
   mtext("Year", side = 1, line = 2.5)             ## Add Axis titles
   mtext("Catch (t)", side = 2, line = 3.5)
   op2 <- par(new = TRUE)                        ## reset for overlay plot
-  plot(BB_Footprint[, c("Year", "Area Dredged (km²)")], xaxt = "n",
+  #issues with superscript - try "²" and k", m^2, "
+  plot(BB_Footprint[, c("Year", paste0("Area Dredged (km", "\u00B2", ")"))], xaxt = "n",
        type="b", pch = 20, col = "red", lty = 2,
         ylim = c(0, 300), axes = FALSE, ann = FALSE)
   axis(4)                       ## draw new y axis on right
   ## Add Y-axis title
-  mtext(expression(paste("Footprint (k", m^2, ")")), side = 4, line = 2.5) 
+  mtext(expression(paste0("Footprint (km", "\u00B2", ")")), side = 4, line = 2.5) 
   if(Sel.Bank == 1){
     legend(1987, 230, c("Catch", "Footprint"), bty = "n", pch = 20, 
            col = c("green", "red"))
@@ -51,7 +52,7 @@ Footprint <- function(fig.num, BB_Footprint, Sel.Bank){
   axis(1, tcl = -0.5)  ## Major tics and labels for x axis
 
   mtext(bquote(paste("Figure ", .(fig.num),
-                     ". Footprint (k", m^2, ") of the offshore clam fishery ",
+                     ". Footprint (k", "\u00B2", ") of the offshore clam fishery ",
                      "by Year on ", .(bank.txt), ".", sep = "")),
         side = 1, line = 0, adj = 0, outer = TRUE)
  
