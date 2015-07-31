@@ -10,6 +10,7 @@
 *.Rhistory
 *.gz
 *.xls*
+*.pdf
 
 _pkg
 _src
