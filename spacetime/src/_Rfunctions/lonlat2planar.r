@@ -1,5 +1,5 @@
 
-  lonlat2planar = function ( x, proj.type, ndigits=2, newnames = c("plon", "plat") ) {
+  lonlat2planar = function ( x, proj.type, ndigits=2, input_names=c("lon", "lat"), newnames = c("plon", "plat") ) {
     # convert lon/lat to a projected surface using proj
     # proj.type can be an internal code such as "utm20" or a proj4 argument
     # output is in km
@@ -16,7 +16,7 @@
       warning( "Projection not recognised") 
     }
 
-    y = rgdal::project( cbind(x$lon, x$lat), proj4.params@projargs, inv=F ) * m2km
+    y = rgdal::project( as.matrix(x[,input_names]), proj4.params@projargs, inv=F ) * m2km
     
     y = round(y, ndigits )
     colnames(y) = newnames 

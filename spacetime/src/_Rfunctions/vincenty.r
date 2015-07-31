@@ -44,8 +44,12 @@
 # the original fortran code and documentation is copied at the bottom 
 ##################################################################
 
+
+
+
 vincenty = function (loc1, loc2, a, f) {
 
+  ## for history and equations:: see https://github.com/OSGeo/proj.4/wiki/GeodesicCalculations
   warning( "Deprecated. Consider using geosphere::distVincetyEllipsoid " )
 
   names(loc1) = c("lon", "lat")
