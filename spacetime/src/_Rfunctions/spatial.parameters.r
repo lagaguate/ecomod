@@ -60,7 +60,7 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
-    p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
+    p$dres = 1/60/4/10  # this is the 1/10 of the 15 second grid from CHS  .. default use highest resolution
     p$pres = 1/4  # discretize to 1/4 km resolution
     p$lon0=-72
     p$lon1=-52

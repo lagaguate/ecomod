@@ -1,6 +1,6 @@
 
 spacetime.inla.extract.parameters = function( 
-  R, S0, vname="i", Z=NULL,  
+  R, S0, vname="spatial.field", Z=NULL,  
   extract = c("mean", "sd", "mode", "0.5quant", "0.025quant", "0.975quant"),
   plotdata="none" ) {
   
