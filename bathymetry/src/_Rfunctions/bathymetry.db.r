@@ -1,6 +1,6 @@
 
   bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish") ) {
-     
+   
     if ( DS =="Greenlaw_DEM") {
       # DEM created 2014
       # GCS_WGS_1984, UTM_Zone_20N; spheroid:: 6378137.0, 298.257223563
@@ -73,11 +73,10 @@
         bathy = rbind( bathy, sc )
 			  p = p0
         rm (sc); gc()
-       
-      #sc$lon = round(sc$lon,1)
-      #sc$lat = round(sc$lat,1)
-      # contourplot( z~lon+lat, sc, cuts=10, labels=F )
-		
+         
+        #sc$lon = round(sc$lon,1)
+        #sc$lat = round(sc$lat,1)
+        # contourplot( z~lon+lat, sc, cuts=10, labels=F )
       }
     	
       if ( "groundfish" %in% additional.data ) {
@@ -107,6 +106,44 @@
       return ( fn )
     }
 
+ 
+    if ( DS %in% c("z.lonlat.discretized", "z.lonlat.discretized.redo" )) {
+          
+      datadir = project.datadirectory("bathymetry", "data" )
+			dir.create( datadir, showWarnings=F, recursive=T )
+      fn = file.path( datadir, "bathymetry.canada.east.lonlat.discretized.rdata" )
+      
+      if (DS =="z.lonlat.discretized" ) {
+        load( fn)
+        return( bathy )
+      }
+
+      Bdebug = FALSE
+      if (Bdebug) { 
+        # or to debug:
+        p$spatial.domain = "canada.east"
+        B = bathymetry.db ( p, DS="baseline" ) # smaller, interpolated already
+        B = planar2lonlat(x=B, "lambert.conic.canada.east", ndigits=6 )
+      }
+      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) # larger
+    
+      # gridding here needs to have a higher resolution than the internal representation as it is still being trteated as "rawdata"
+      
+      rlon = range(B$lon, na.rm=TRUE)
+      rlat = range(B$lat, na.rm=TRUE)
+      
+      glon = seq( rlon[1], rlon[2], by=p$dres/5 )
+      glat = seq( rlat[1], rlat[2], by=p$dres/5 )
+
+      B$lon = grid.internal( B$lon, glon )
+      B$lat = grid.internal( B$lat, glat )
+      B = B[ which( is.finite( rowSums(B) )), ]
+
+      bathy = block.spatial ( xyz=B[,c("lon", "lat","z")], function.block=block.mean )
+
+      save( bathy, file=fn, compress=TRUE)
+      return(fn)
+    }
 
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
 			
@@ -492,14 +529,33 @@
       # ------------------------------
       # load raw data .. slow so only if needed
       if (p$reload.rawdata) {
-        B = bathymetry.db ( p, DS="z.lonlat.rawdata" ) # larger
-        B = lonlat2planar( B, proj.type=p$internal.projection )
-        # or to debug:
-        # B = bathymetry.db ( p, DS="baseline" ) # smaller
-        # levelplot( z~plon+plat, W, xlab='', ylab='', col.regions=colorRampPalette(c( "white", "darkblue", "black"), space = "Lab")(n), scale=list(draw=FALSE), aspect="iso", cuts=n )
+        # can use the raw data but data density is too clustered .. 
+        # CPU speed / ram requirements are still to high, Jae: 2015
+        # B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  
+        # use the discretized version as it is a bit more functional
+        B = bathymetry.db ( p=p, DS="z.lonlat.discretized" )  
+        
+        B = lonlat2planar( B, proj.type=p$internal.projection, ndigits=6 ) 
+        # 6 digits required to get complete distribution of diffs:  
+        # hist( log(diff( sort( unique( B$plat)) )) )
+ 
+        rlon = range(B$plon, na.rm=TRUE)
+        rlat = range(B$plat, na.rm=TRUE)
+        
+        glon = seq( rlon[1], rlon[2], by=p$pres/5 )
+        glat = seq( rlat[1], rlat[2], by=p$pres/5 )
+
+        # regrid to planar internal system
+        B$plon = grid.internal( B$plon, glon )
+        B$plat = grid.internal( B$plat, glat )
+        B = B[ which( is.finite( rowSums(B) )), ]
+
+        B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
+
         W = filebacked.big.matrix( nrow=nrow(B), ncol=3, type="double", dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.W, descriptorfile=p$descriptorfile.W ) 
         W[] = as.matrix( B[,c("plon", "plat", "z")] )
+        # levelplot( z~plon+plat, W, xlab='', ylab='', col.regions=colorRampPalette(c( "white", "darkblue", "black"), space = "Lab")(n), scale=list(draw=FALSE), aspect="iso", cuts=n )
       }
 
       if (p$reset.outputfiles ) {
@@ -679,9 +735,6 @@
       return(p)
 
     }
-
-   }
-
 
   }  
 

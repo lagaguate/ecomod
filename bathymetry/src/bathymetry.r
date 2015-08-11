@@ -30,11 +30,13 @@
    
     # set up parameter values for inla
     p = bathymetry.db( p=p, DS="parameters.inla" )
+    bathymetry.db ( p, DS="z.lonlat.discretized.redo" ) # used for inla analysis
 
     # initialize bigmemory data objects
     p$reload.rawdata=FALSE 
     p$reset.outputfiles=FALSE
     #p$reset.outputfiles=TRUE
+    
     p = bathymetry.db( p=p, DS="bigmemory.inla" )
 
     # cluster definition
