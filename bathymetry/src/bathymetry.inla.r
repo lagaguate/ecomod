@@ -5,43 +5,61 @@
 
   p=list()
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-  p$libs = RLibrary( "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster",  "bigmemory" )
+  p$libs = RLibrary( "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster",  "bigmemory", "colorspace" )
   
  
   p$project.name = "bathymetry"
   p$project.root = project.datadirectory( p$project.name )
 
-  p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 1/4 km discretization
+  rndseed=101 
+  # set.seed(rndseed )
+
+  p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
   
-  p$n.min = 100
-  p$dist.max = 20 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-  p$dist.mwin = p$dist.max/4 # size of the moving window (km) that aggregates the ** statistics **
-  p$dist.pred =  p$dist.max-5 # size of the moving window (km) where **predictions** are retained
+  p$dist.max = 25 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+  p$dist.mwin = 5 # size of the moving window (km) that aggregates the ** statistics **
+  p$dist.pred =  15 # size of the moving window (km) where **predictions** are retained
  
-  p$inla.mesh.offset = c(2, 5) # km
-  p$inla.mesh.max.edge = c(1, 5) # km
-  p$inla.mesh.cutoff = c(1, 5 ) # km 
+  ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
+  n.filled = ( (p$dist.max*2+1) / p$pres )^2 
+  p$n.min = 100
+  p$n.max = 10000 # numerical time/memory constraint
+
+  p$inla.mesh.offset   = p$pres * c( 8, 16 ) # km
+  p$inla.mesh.max.edge = p$pres * c( 8, 16 ) # km
+  p$inla.mesh.cutoff   = p$pres * c( 3, 16 ) # km 
 
   p$inla.alpha = 2 # bessel function curviness
-  p$inla.nsamples = 500 # posterior similation
+  p$inla.nsamples = 2000 # posterior similations 
+  p$expected.range = 30 # km or higher .. (with dependent var on log scale)
+  p$expected.sigma = 0.1  # spatial standard deviation (partial sill) .. on log scale
+
+  p$Yoffset = 1000 ## data range is from -383 to 5467 m .. shift all to positive valued as this will operate on the logs
 
   p$predict.in.one.go = FALSE # use false, one go is very slow and a resource expensive method
   p$predict.type = "response"  # same scale as observations 
   # p$predict.type = "latent.spatial.field" # random field centered to zero
     
   # initialize bigmemory data objects
-  p = bathymetry.db( p=p, DS="bigmemory.inla", reload.rawdata=FALSE )
+  p$reload.rawdata=FALSE 
+  p$reset.outputfiles=FALSE
+  #p$reset.outputfiles=TRUE
+  p = bathymetry.db( p=p, DS="bigmemory.inla" )
 
   # do not use all CPU's as INLA itself is partially run in parallel
   # RAM reqiurements are a function of data density and mesh density ..
-  p$clusters = c( rep( "hyperion", 3 ), rep( "nyx", 3 ), rep ("tartarus", 3 ), rep("kaos", 3 ) )  
+  # p$clusters = c( rep( "hyperion", 1 ), rep( "nyx", 1 ), rep ("tartarus", 1), rep("kaos", 1 ) )  
+  p$clusters = c( "hyperion", "nyx", "tartarus", "kaos" )  
 
   # p$clusters = "localhost"  # if serial run, send a single cluster host
-  p = make.list( list( jj=sample.int( p$nS ) ), Y=p ) # random order helps use all cpus 
+  
+  S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+  todo = which( !is.finite( S[,3] ))
+  p = make.list( list( jj=sample( todo ) ), Y=p ) # random order helps use all cpus 
 
   p = parallel.run( bathymetry.interpolate.inla, p=p )  
  
-  P = load( p$outfilename.P )
+  P = load( p$outfilename.P )etc.
   S = load( p$outfilename.S )
   # ------------------------------
   # extract stats etc.
@@ -63,9 +81,9 @@
   # variance[ !inside ] = NA
    
   plotdata=FALSE
-      if (plotdata) { 
-        means.grid = matrix( data=means, nrow=length(p$plons), ncol=length(p$plats),byrow=TRUE )
-        lv = levelplot( ( means.grid)~plons+plats, p , xlab='', ylab='', col.regions=topo.colors(200), scale=list(draw=FALSE), aspect="iso" )
+      if (plotdata) {
+        coordsp = expand.grid( plons=p$plons, plats=p$plats )
+        lv = levelplot( log(  means ) ~ plons+plats, coordsp , xlab='', ylab='', col.regions=rev(sequential_hcl(100)), scale=list(draw=FALSE), aspect="iso" )
         print(lv)
       }
 
@@ -114,11 +132,12 @@
       # correlation between the the posterior mean and the response by
       # indices for random field at data locations
       indat = W[ j, varstokeep]
-      idat <- inla.stack.index( DATA, 'bathymetry')$data
+      idat <- inla.stack.index( DATA, 'obs')$data
       cor( indat$z, RES$summary.linear.predictor$mean[idat]) ## 0.9991
 
-      levelplot( ( means.grid) , xlab='', ylab='', col.regions=topo.colors(200), scale=list(draw=FALSE), aspect="iso" )
-      levelplot( ( vars.grid) , xlab='', ylab='', col.regions=topo.colors(200), scale=list(draw=FALSE), aspect="iso" )
+      levelplot( ( means.grid) , xlab='', ylab='', col.regions=rev(sequential_hcl(50)), scale=list(draw=FALSE) , aspect="iso" )
+      levelplot( ( vars.grid) , xlab='', ylab='', col.regions=rev(sequential_hcl(50)), scale=list(draw=FALSE) , aspect="iso" )
+
   }
 
 

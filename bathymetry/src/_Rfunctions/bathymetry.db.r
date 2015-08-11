@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), reload.rawdata=FALSE ) {
+  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish") ) {
      
     if ( DS =="Greenlaw_DEM") {
       # DEM created 2014
@@ -21,8 +21,9 @@
       gdem = getRasterTable(dem) # as a data frame
       names(gdem) = c("plon", "plat", "z")
       gdem = gdem[ is.finite( gdem$z ) , ]
-      gdem = gdem[ which( gdem$z < p$depthrange[2] ) , ] # limit to 3000m depths due to file size
-      gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
+#     p$depthrange = c(-5000, 1000 )  # inverse to chs convention
+#      gdem = gdem[ which( gdem$z < p$depthrange[2] ) , ] # limit to 3000m depths due to file size
+#      gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
       gdem = planar2lonlat( gdem, "utm20", planar.coord.scale=1 )  # plon,plat already in meters
       gdem = gdem[, c("lon", "lat", "z") ]
       save( gdem, file=project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
@@ -493,7 +494,7 @@
      
       # ------------------------------
       # load raw data .. slow so only if needed
-      if (reload.rawdata) {
+      if (p$reload.rawdata) {
         B = bathymetry.db ( p, DS="z.lonlat.rawdata" ) # larger
         B = lonlat2planar( B, proj.type=p$internal.projection )
         # or to debug:
@@ -504,38 +505,42 @@
         W[] = as.matrix( B[,c("plon", "plat", "z")] )
       }
 
-      # ------------------------------
-      # prediction indices in matrix structure 
-    #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
-     #   backingpath=p$tmp.datadir, backingfile=p$backingfile.Pmat, descriptorfile=p$descriptorfile.Pmat ) 
-     # Pmat[] = c(1:(p$nplons*p$nplats))
-        # col=lat=ydir, row=lon=xdir is format of matrix image, etc
-        # Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons ) 
-        # P = as.vector(Pmat)
-        # Pmat[ cbind( round(( P$plon - p$plons[1]) / p$pres ) + 1, round(( P$plat - p$plats[1] ) / p$pres ) + 1 ) ] = P$var
+      if (p$reset.outputfiles ) {
+        # ------------------------------
+        # prediction indices in matrix structure 
+        #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
+        #   backingpath=p$tmp.datadir, backingfile=p$backingfile.Pmat, descriptorfile=p$descriptorfile.Pmat ) 
+        # Pmat[] = c(1:(p$nplons*p$nplats))
+          # col=lat=ydir, row=lon=xdir is format of matrix image, etc
+          # Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons ) 
+          # P = as.vector(Pmat)
+          # Pmat[ cbind( round(( P$plon - p$plons[1]) / p$pres ) + 1, round(( P$plat - p$plats[1] ) / p$pres ) + 1 ) ] = P$var
 
 
-      # ------------------------------
-      # predictions storage matrix (discretized) 
-      P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=0, dimnames=NULL, separated=FALSE, 
-        backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
+        # ------------------------------
+        # predictions storage matrix (discretized) 
+        P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=0, dimnames=NULL, separated=FALSE, 
+          backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
 
-      # ------------------------------
-      # statistics storage matrix ( aggregation window, AW )
-      sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
-                    plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
-      )
-      AW = expand.grid( sbbox$plons, sbbox$plats )
-      attr( AW , "out.attrs") = NULL
-      names( AW ) = c("plon", "plat")
-      statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
-      nstats = length( statsvars ) 
-      S = filebacked.big.matrix( nrow=nrow(AW), ncol=nstats+2, type="double", init=0, dimnames=NULL, separated=FALSE, 
-        backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
-      S[,1] = AW[,1]
-      S[,2] = AW[,2]
+        # ------------------------------
+        # statistics storage matrix ( aggregation window, AW )
+        sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
+                      plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
+        )
+        AW = expand.grid( sbbox$plons, sbbox$plats )
+        attr( AW , "out.attrs") = NULL
+        names( AW ) = c("plon", "plat")
+        statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
+        nstats = length( statsvars ) 
+        S = filebacked.big.matrix( nrow=nrow(AW), ncol=nstats+2, type="double", init=0, dimnames=NULL, separated=FALSE, 
+          backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
+        S[,1] = AW[,1]
+        S[,2] = AW[,2]
+      
+      }
 
-      p$nS = nrow(AW) # nS=1735488
+      S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
+      p$nS = nrow(S) # nS=1735488
       
       return(p)
     }

@@ -28,7 +28,7 @@ parallel.run = function( FUNC, p, export=NULL, rndseed = 1, specific.allocation.
     if ( length(clusters) > 1 ) {
 
       cl = makeCluster( spec=clusters, type=clustertype ) # SOCK works well but does not load balance as MPI 
-      clusterSetRNGStream(cl, iseed=rndseed )
+      # clusterSetRNGStream(cl, iseed=rndseed )
       if ( !is.null(export)) clusterExport( cl, export )
      
       # define allocation of runs to clusters
