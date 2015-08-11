@@ -16,11 +16,16 @@
 		p = spatial.parameters( type="canada.east", p=p )
     p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
     bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+    bathymetry.db ( p, DS="z.lonlat.discretized.redo" ) # used for inla analysis
+    
     if ( !file.exists( p$bathymetry.bin )) {
-      # a GMT binary file of bathymetry .. currently, only the "canada.east" domain is all that is required/available
+      # a GMT binary file of bathymetry .. currently, only the "canada.east" domain 
+      # is all that is required/available
         cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
     }
+  
   }
+
 
 
   process.bathymetry.data.via.inla = FALSE
@@ -30,7 +35,6 @@
    
     # set up parameter values for inla
     p = bathymetry.db( p=p, DS="parameters.inla" )
-    bathymetry.db ( p, DS="z.lonlat.discretized.redo" ) # used for inla analysis
 
     # initialize bigmemory data objects
     p$reload.rawdata=FALSE 
