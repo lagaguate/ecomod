@@ -23,6 +23,45 @@
   }
 
 
+  process.bathymetry.data.via.inla = FALSE
+  if (process.bathymetry.data.via.inla) {
+    ## ----- Adaptive estimation method (test) :
+    # processing bathymetry data with RINLA  .. no GMT dependency 
+   
+    # set up parameter values for inla
+    p = bathymetry.db( p=p, DS="parameters.inla" )
+
+    # initialize bigmemory data objects
+    p$reload.rawdata=FALSE 
+    p$reset.outputfiles=FALSE
+    #p$reset.outputfiles=TRUE
+    p = bathymetry.db( p=p, DS="bigmemory.inla" )
+
+    # cluster definition
+    # do not use all CPU's as INLA itself is partially run in parallel
+    # RAM reqiurements are a function of data density and mesh density ..
+    # p$clusters = c( rep( "hyperion", 1 ), rep( "nyx", 1 ), rep ("tartarus", 1), rep("kaos", 1 ) )  
+    # p$clusters = "localhost"  # if serial run, send a single cluster host
+    p$clusters = c( "hyperion", "nyx", "tartarus", "kaos" )  
+    
+    p = make.list( list( jj=sample( 1:p$nS ) ), Y=p ) # random order helps use all cpus 
+
+    fill.in.all.data.points = FALSE
+    if (fill.in.all.data.points) {
+      S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+      todo = which( !is.finite( S[,3] ))
+      p = make.list( list( jj=sample( todo ) ), Y=p ) # random order helps use all cpus 
+    }
+
+    p = parallel.run( bathymetry.interpolate.inla, p=p ) # no more GMT dependency! :)  
+
+    bathymetry.db( p=p, DS="predictions.redo" )  
+    bathymetry.db( p=p, DS="statistics.redo" )
+    bathymetry.db( p=p, DS="bigmemory.inla.cleanup" )
+
+  }
+
+
   # ------------------
   # too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
   # for the high resolution maps .. the temporary files can be created deleted/overwritten files 

@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), reload.rawdata=FALSE ) {
+  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish") ) {
      
     if ( DS =="Greenlaw_DEM") {
       # DEM created 2014
@@ -21,8 +21,9 @@
       gdem = getRasterTable(dem) # as a data frame
       names(gdem) = c("plon", "plat", "z")
       gdem = gdem[ is.finite( gdem$z ) , ]
-      gdem = gdem[ which( gdem$z < p$depthrange[2] ) , ] # limit to 3000m depths due to file size
-      gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
+#     p$depthrange = c(-5000, 1000 )  # inverse to chs convention
+#      gdem = gdem[ which( gdem$z < p$depthrange[2] ) , ] # limit to 3000m depths due to file size
+#      gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
       gdem = planar2lonlat( gdem, "utm20", planar.coord.scale=1 )  # plon,plat already in meters
       gdem = gdem[, c("lon", "lat", "z") ]
       save( gdem, file=project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
@@ -487,13 +488,10 @@
 #      p$backingfile.Pmat = "predictions_mat.bigmatrix.tmp"
 #      p$descriptorfile.Pmat = "predictions_mat.bigmatrix.desc"
 
-      p$outfilename.P =  file.path( p$project.root, "data", "predictions.rdata" ) 
-      p$outfilename.S =  file.path( p$project.root, "data", "statistics.rdata" ) 
-
      
       # ------------------------------
       # load raw data .. slow so only if needed
-      if (reload.rawdata) {
+      if (p$reload.rawdata) {
         B = bathymetry.db ( p, DS="z.lonlat.rawdata" ) # larger
         B = lonlat2planar( B, proj.type=p$internal.projection )
         # or to debug:
@@ -504,42 +502,187 @@
         W[] = as.matrix( B[,c("plon", "plat", "z")] )
       }
 
-      # ------------------------------
-      # prediction indices in matrix structure 
-    #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
-     #   backingpath=p$tmp.datadir, backingfile=p$backingfile.Pmat, descriptorfile=p$descriptorfile.Pmat ) 
-     # Pmat[] = c(1:(p$nplons*p$nplats))
-        # col=lat=ydir, row=lon=xdir is format of matrix image, etc
-        # Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons ) 
-        # P = as.vector(Pmat)
-        # Pmat[ cbind( round(( P$plon - p$plons[1]) / p$pres ) + 1, round(( P$plat - p$plats[1] ) / p$pres ) + 1 ) ] = P$var
+      if (p$reset.outputfiles ) {
+        # ------------------------------
+        # prediction indices in matrix structure 
+        #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
+        #   backingpath=p$tmp.datadir, backingfile=p$backingfile.Pmat, descriptorfile=p$descriptorfile.Pmat ) 
+        # Pmat[] = c(1:(p$nplons*p$nplats))
+          # col=lat=ydir, row=lon=xdir is format of matrix image, etc
+          # Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons ) 
+          # P = as.vector(Pmat)
+          # Pmat[ cbind( round(( P$plon - p$plons[1]) / p$pres ) + 1, round(( P$plat - p$plats[1] ) / p$pres ) + 1 ) ] = P$var
 
 
-      # ------------------------------
-      # predictions storage matrix (discretized) 
-      P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=0, dimnames=NULL, separated=FALSE, 
-        backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
+        # ------------------------------
+        # predictions storage matrix (discretized) 
+        P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=0, dimnames=NULL, separated=FALSE, 
+          backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
 
-      # ------------------------------
-      # statistics storage matrix ( aggregation window, AW )
-      sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
-                    plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
-      )
-      AW = expand.grid( sbbox$plons, sbbox$plats )
-      attr( AW , "out.attrs") = NULL
-      names( AW ) = c("plon", "plat")
-      statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
-      nstats = length( statsvars ) 
-      S = filebacked.big.matrix( nrow=nrow(AW), ncol=nstats+2, type="double", init=0, dimnames=NULL, separated=FALSE, 
-        backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
-      S[,1] = AW[,1]
-      S[,2] = AW[,2]
+        # ------------------------------
+        # statistics storage matrix ( aggregation window, AW )
+        sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
+                        plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
+        )
+        AW = expand.grid( sbbox$plons, sbbox$plats )
+        attr( AW , "out.attrs") = NULL
+        names( AW ) = c("plon", "plat")
+        statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
+        nstats = length( statsvars ) 
+        S = filebacked.big.matrix( nrow=nrow(AW), ncol=nstats+2, type="double", init=0, dimnames=NULL, separated=FALSE, 
+          backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
+        S[,1] = AW[,1]
+        S[,2] = AW[,2]
+      
+      }
 
-      p$nS = nrow(AW) # nS=1735488
+      S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
+      p$nS = nrow(S) # nS=1735488
       
       return(p)
     }
+   
     
+    if (DS %in% "bigmemory.inla.cleanup" ) { 
+      
+      # load bigmemory data objects pointers
+      p$reload.rawdata=FALSE 
+      p$reset.outputfiles=FALSE
+      p = bathymetry.db( p=p, DS="bigmemory.inla" )
+
+      todelete = file.path( p$tmp.datadir,
+        c( p$backingfile.P, p$descriptorfile.P, 
+           p$backingfile.S, p$descriptorfile.S, 
+           p$backingfile.W, p$descriptorfile.W 
+      )) 
+      
+      for (fn in todelete ) file.remove(fn) 
+      
+      return( todelete )
+
+    }
+
+    # -----------------
+
+    if (DS %in% c( "statistics", "statistics.redo", "predictions", "predictions.redo" )  ) { 
+      
+      # load bigmemory data objects pointers
+      p$reload.rawdata=FALSE 
+      p$reset.outputfiles=FALSE
+      p = bathymetry.db( p=p, DS="bigmemory.inla" )
+
+      fn.P =  file.path( p$project.root, "data", p$spatial.domain, "predictions.rdata" ) 
+      fn.S =  file.path( p$project.root, "data", p$spatial.domain, "statistics.rdata" ) 
+
+      if ( DS=="statistics" ) {
+        stats = NULL
+        if (file.exists( fn.S) ) load( fn.S )
+        return( stats ) 
+      }
+ 
+      if ( DS=="predictions" ) {
+        preds = NULL
+        if (file.exists( fn.P ) ) load( fn.P )
+        return( preds ) 
+      }
+
+      if ( DS =="statsitics.redo" ) {
+        sss = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+               
+        sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
+                      plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
+        )
+        
+        snr = length(sbbox$plons)
+        snc = length(sbbox$plats)
+        
+        stats = list(
+          bbox = sbbox,
+          range = matrix( data=S[,1], nrow=snr, ncol=snc ) ,
+          range.sd = matrix( data=S[,2], nrow=snr, ncol=snc ) ,
+          var.spatial = matrix( data=S[,3], nrow=snr, ncol=snc ) ,
+          var.observation = matrix( data=S[,4], nrow=snr, ncol=snc )
+### add some more here ... curvature / slope, etc
+        )  
+
+        save( stats,  file=fn.S, compress=TRUE )
+        return( fn.S)
+      }
+   
+      if ( DS =="predictions.redo" ) {
+        ppp = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
+
+        # tidy up cases where there are no data:
+        means = ppp[,2] 
+        nd = which( ppp[,1]==0 )
+        if (length(nd)>0) means[nd] = NA # no data .. no mean
+        
+        variance = ppp[,3] 
+        nd = which( ppp[,1] <= 1 )
+        if (length(nd)>0) variance[nd] = NA
+
+        ### need to define domain
+        # inside = inout( pG$lattice$loc, full.domain$loc ) 
+        # means[ !inside ] = NA
+        # variance[ !inside ] = NA
+         
+        plotdata=FALSE
+          if (plotdata) {
+            coordsp = expand.grid( plons=p$plons, plats=p$plats )
+            lv = levelplot( log(  means ) ~ plons+plats, coordsp , xlab='', ylab='', col.regions=rev(sequential_hcl(100)), scale=list(draw=FALSE), aspect="iso" )
+            print(lv)
+          }
+
+        preds = list( 
+          bbox = list( plons=p$plons, plats=p$plats ),
+          m = matrix( data=means, nrow=p$nplons, ncol=p$nplats ) ,
+          v = matrix( data=variance, nrow=p$nplons, ncol=p$nplats )
+        )
+        save( preds, file=fn.P, compress=TRUE )
+        return(fn.P)
+      } 
+    }
+
+    if (DS %in% c( "parameters.inla" )  ) { 
+
+      p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
+      p$libs = RLibrary( "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster",  "bigmemory", "colorspace" )
+      
+      p$project.name = "bathymetry"
+      p$project.root = project.datadirectory( p$project.name )
+      
+      p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
+     
+      p$dist.max = 25 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+      p$dist.mwin = 5 # size of the moving window (km) that aggregates the ** statistics **
+      p$dist.pred =  15 # size of the moving window (km) where **predictions** are retained
+     
+      ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
+      p$n.min = 100
+      p$n.max = 10000 # numerical time/memory constraint
+
+      p$inla.mesh.offset   = p$pres * c( 8, 16 ) # km
+      p$inla.mesh.max.edge = p$pres * c( 8, 16 ) # km
+      p$inla.mesh.cutoff   = p$pres * c( 3, 16 ) # km 
+
+      p$inla.alpha = 2 # bessel function curviness
+      p$inla.nsamples = 2000 # posterior similations 
+      p$expected.range = 30 # km or higher .. (with dependent var on log scale)
+      p$expected.sigma = 0.1  # spatial standard deviation (partial sill) .. on log scale
+
+      p$Yoffset = 1000 ## data range is from -383 to 5467 m .. shift all to positive valued as this will operate on the logs
+
+      p$predict.in.one.go = FALSE # use false, one go is very slow and a resource expensive method
+      p$predict.type = "response"  # same scale as observations 
+      # p$predict.type = "latent.spatial.field" # random field centered to zero
+        
+      return(p)
+
+    }
+
+   }
+
+
   }  
 
 
