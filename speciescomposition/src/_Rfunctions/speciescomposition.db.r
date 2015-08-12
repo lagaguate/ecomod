@@ -126,8 +126,13 @@
 			}
 
       ks = speciescomposition.db( DS="speciescomposition.ordination", p=p )
-      ks = lonlat2planar( ks, proj.type=p$internal.projection, ndigits=2 )
-      ks$platplon = paste( round( ks$plat ), round(ks$plon), sep="_" )
+      ks = lonlat2planar( ks, proj.type=p$internal.projection )
+ 
+      # this forces resolution of p$pres=1km in SSE 
+      ks$plon = grid.internal( ks$plon, p$plons )
+      ks$plat = grid.internal( ks$plat, p$plats )
+	
+      ks$platplon = paste( ks$plat , ks$plon , sep="_" )
       ks$plon = ks$plat = NULL
       ks$lon = ks$lat = NULL
 
@@ -144,8 +149,9 @@
         }
       }
 
+      # baseline is already gridded to internal resolution
       P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
-			P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
+      P0$platplon = paste( P0$plat , P0$plon , sep="_" )  
 
 			SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("", ".P0"))
 			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation

@@ -25,6 +25,10 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
     p$nlats = length(p$lats)
     p$corners = data.frame(lon=c(p$lon0,p$lon1), lat=c(p$lat0,p$lat1))
     p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection )
+    
+    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
@@ -50,6 +54,10 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
     p$nlats = length(p$lats)
     p$corners = data.frame(lon=c(p$lon0,p$lon1), lat=c(p$lat0,p$lat1))
     p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection )
+      
+    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
@@ -64,7 +72,7 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
 		p$internal.projection = "lambert.conic.canada.east"
     p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N "
     p$dres = 1/60/4/2  # CHS is 15 arc second ~ 0.5km/2 
-    p$pres = 0.5/2  # discretize to 0.5 km/2 resolution
+    p$pres = 0.25  # discretize to 0.25 km resolution
     p$lon0=-72
     p$lon1=-52
     p$lat0=40
@@ -74,7 +82,12 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
     p$nlons = length(p$lons)
     p$nlats = length(p$lats)
     p$corners = data.frame(lon=c(p$lon0,p$lon1), lat=c(p$lat0,p$lat1))
-    p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection, ndigits=6 )  # ndigits=2 is default .. as pres is being divided by 2 add another digit
+    p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection ) 
+    
+    # this must be sufficient to capture the p$pres value of 0.25 km resolution
+    p$corners$plon = round( p$corners$plon, 2)  
+    p$corners$plon = round( p$corners$plon, 2)  
+    
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)

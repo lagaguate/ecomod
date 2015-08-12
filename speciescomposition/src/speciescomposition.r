@@ -15,7 +15,7 @@
     "bathymetry", "temperature", "substrate", "habitat", "taxonomy", "bio", "speciescomposition"  ) )
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$data.sources = c("groundfish", "snowcrab") 
-  
+ 
   p$taxa = "maxresolved"
   p$season = "allseasons"
   p$timescale = c( 0,1,2,5,10 ) # yr

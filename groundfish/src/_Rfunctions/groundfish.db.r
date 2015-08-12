@@ -1098,12 +1098,17 @@
      
       set = groundfish.db( "set.partial" )
       set = lonlat2planar(set, proj.type=p$internal.projection ) # get planar projections of lon/lat in km
+      set$plon = grid.internal( set$plon, p$plons )
+      set$plat = grid.internal( set$plat, p$plats )
+      set = set[ which( is.finite( set$plon + set$plat) ), ]
+
       set$z = set$sdepth 
       set$t = set$temp
       set = habitat.lookup( set, DS="baseline", p=p )
       set$z = log(set$z) 
       # return planar coords to correct resolution
-      set = lonlat2planar( set, proj.type=p$internal.projection )
+      # set = lonlat2planar( set, proj.type=p$internal.projection )
+      
       save ( set, file=fn, compress=F )
       return( fn )
     }

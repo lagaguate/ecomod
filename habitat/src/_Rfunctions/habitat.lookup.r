@@ -1,5 +1,5 @@
  
-  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, discretization.scale = 0, truncatequantiles=c(0.005, 0.995) ) {
+  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.005, 0.995) ) {
     
     # wrapping function to provide a common intercae to various habitat related lookup routines
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
@@ -17,9 +17,10 @@
     # spatial information
     if ( !exists("plon", x) ) x = lonlat2planar (x, proj.type=p$internal.projection )
     if ( p$spatial.domain == "snowcrab" ) p$spatial.domain = "SSE"
+      
+    x$plon = grid.internal( x$plon, p$plons )
+    x$plat = grid.internal( x$plat, p$plats )
     x = x[ which(is.finite( x$plon+x$plat ) ) ,]  # don't worry these will be merged back into "res" (above)
-    x$plon = round( x$plon, discretization.scale )
-    x$plat = round( x$plat, discretization.scale )
 
     xnames = names(x)
     
@@ -29,8 +30,9 @@
       print( paste( "Looking up ", DS) )
 
       H = habitat.lookup.datasource( DS, p=p )  # bring in appropriate habitat data source
-      H$plon = round( H$plon, discretization.scale )
-      H$plat = round( H$plat, discretization.scale )
+      H$plon = grid.internal( H$plon, H$plons )
+      H$plat = grid.internal( H$plat, H$plats )
+	    H = H[ which( is.finite( H$plon + H$plat)), ]
       Hnames = names(H)
       out = merge( x, H, by=coords, all.x=T, all.y=F, suffixes=c("", ".duplicated"), sort=FALSE )
       rm(x); gc()
@@ -83,8 +85,10 @@
       for (yr in yrs) { 
         print( yr )
         H = habitat.lookup.datasource( DS, yr=yr, p=p  )  # bring in appropriate habitat data source
-        H$plon = round( H$plon, discretization.scale )
-        H$plat = round( H$plat, discretization.scale )
+
+        H$plon = grid.internal( H$plon, H$plons )
+        H$plat = grid.internal( H$plat, H$plats )
+	      H = H[ which( is.finite( H$plon + H$plat)), ]
         
         ii = which( x$yr == yr )
         if (length( ii) == 0) next()  
@@ -137,9 +141,7 @@
 
       yrs = sort( unique( x$yr ))
 
-      B = bathymetry.db( p=p, DS="baseline" )
-      B$plon = round( B$plon, discretization.scale )
-      B$plat = round( B$plat, discretization.scale )
+      B = bathymetry.db( p=p, DS="baseline" ) # already discretized to internal plons and plats
       B$row = 1:nrow(B)
       B$z = NULL
 

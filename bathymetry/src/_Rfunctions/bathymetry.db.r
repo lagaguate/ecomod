@@ -123,7 +123,8 @@
         # or to debug:
         p$spatial.domain = "canada.east"
         B = bathymetry.db ( p, DS="baseline" ) # smaller, interpolated already
-        B = planar2lonlat(x=B, "lambert.conic.canada.east", ndigits=6 )
+        B = planar2lonlat(x=B, "lambert.conic.canada.east" )
+        p$spatial.domain = "canada.east.highres"
       }
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) # larger
     

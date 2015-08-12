@@ -786,7 +786,9 @@
       set$lat[ilat] = set$slat[ilat]
 
       set = lonlat2planar(set, proj.type=proj.type) # get planar projections of lon/lat in km
-      
+      set$plon = grid.internal( set$plon, p$plons )
+      set$plat = grid.internal( set$plat, p$plats )
+
       set = clean.surface.area( set )
          
       set$slon = NULL
@@ -828,10 +830,10 @@
 
 			# bring in all other habitat variables, use "z" as a proxy of data availability
 			# and then rename a few vars to prevent name conflicts
-		 set = habitat.lookup( set,  p=p, DS="all.data" )
+		  set = habitat.lookup( set,  p=p, DS="all.data" )
 		
       # return planar coords to correct resolution
-      set = lonlat2planar( set, proj.type=p$internal.projection )
+      # set = lonlat2planar( set, proj.type=p$internal.projection )
       
       # complete area designations  
       set = fishing.area.designations(set, type="lonlat")

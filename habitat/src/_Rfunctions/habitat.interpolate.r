@@ -41,7 +41,7 @@
 
 
     P0 = habitat.db( DS="baseline", p=p )  
-    P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )  ## TODO:: make this a generic resolution change
+    P0$platplon = paste( P0$plat , P0$plon, sep="_" )  
     P0 = P0[, c( "platplon", "plon", "plat", "z", "dZ", "ddZ", "substrate.mean" ) ]
     
     if (p$movingdatawindow!=0){ 
@@ -51,9 +51,12 @@
         print( p$runs[iip,])
         
         td = temperature.db( year=yr, p=p, DS="complete")
-        d$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
+        td$plon = grid.internal( td$plon, p$plons )
+        td$plat = grid.internal( td$plat, p$plats )
+ 
+        td$platplon = paste( td$plat, td$plon, sep="_" ) 
         td = td[ , setdiff(names(td), c( "z", "yr", "plon", "plat") )  ]
-        hdat = merge( P0, td, by=c("platplon"), all.x=TRUE, all.y=FALSE )
+        hdat = merge( P0, td, by="platplon", all.x=TRUE, all.y=FALSE )
         rm( td); gc()
         
         hdat$yr = yr # update all other records
@@ -98,9 +101,11 @@
     
         for(yr in p$yearstomodel) {
           td = temperature.db( year=yr, p=p, DS="complete")
-          td$platplon = paste( round( td$plat ), round(td$plon), sep="_" )  ## TODO:: make this a generic resolution change
+          td$plon = grid.internal( td$plon, p$plons )
+          td$plat = grid.internal( td$plat, p$plats )
+          td$platplon = paste( td$plat , td$plon, sep="_" ) 
           td = td[ , setdiff(names(td), c( "z", "yr", "plon", "plat") )  ]
-          hdat = merge( P0, td, by=c("platplon"), all.x=TRUE, all.y=FALSE )
+          hdat = merge( P0, td, by="platplon", all.x=TRUE, all.y=FALSE )
           rm( td); gc()
 
           hdat$yr = yr # update all other records

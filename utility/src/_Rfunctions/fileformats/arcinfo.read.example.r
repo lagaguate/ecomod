@@ -24,7 +24,7 @@
     o <- match(a$att.data$DAUID, "12010030" )
     plot(a)
 
-    r = sapply( a, polygon.area.lon.lat, simplify=T )
+    r = sapply( a, polygon.area.lon.lat,  proj.type="utm20", simplify=T )
     r = cbind( ns$att.data, r )
     save( r, file=file.path( data.dir, "sa.rdata" ), compress=T )
     require (foreign)

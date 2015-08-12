@@ -33,8 +33,12 @@
       oo = which(!is.finite( set$plon+set$plat ) )
       if (length(oo)>0)  set = set[ -oo, ]  # a required field for spatial interpolation
     
-      set = lonlat2planar( set, proj.type=p$internal.projection, ndigits=2 )
-      set$platplon = paste( round( set$plat ), round(set$plon), sep="_" )
+      set = lonlat2planar( set, proj.type=p$internal.projection )
+      set$plon = grid.internal( set$plon, p$plons )
+      set$plat = grid.internal( set$plat, p$plats )
+      set = set[ which( is.finite( set$plon + set$plat) ), ]
+
+      set$platplon = paste( set$plat , set$plon, sep="_" )
   	
       # match sets and other data sources
       det = bio.db( DS="det" ) # kg/km^2, no/km^2

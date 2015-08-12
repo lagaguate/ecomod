@@ -212,6 +212,11 @@
       oo =  which( !duplicated(set$id) )
       if (length(oo) > 0 ) set = set[ oo, ] 
       set = lonlat2planar( set, proj.type=p$internal.projection )  # plon+plat required for lookups
+      
+      set$plon = grid.internal( set$plon, p$plons )
+      set$plat = grid.internal( set$plat, p$plats )
+      set = set[ which( is.finite( set$plon + set$plat) ), ]
+
       set = habitat.lookup( set, DS="depth", p=p )
       set = habitat.lookup( set, DS="temperature", p=p )
       set$oxysat = compute.oxygen.saturation( t.C=set$t, sal.ppt=set$sal, oxy.ml.l=set$oxyml)

@@ -109,7 +109,7 @@
 			print ("Bring in all other habitat variables")
       set = habitat.lookup( set,  p=p, DS="all.data" )
 		
-      # return planar coords to correct resolution
+      # return planar coords to ungridded resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )
      
       set = set[ which( is.finite( set$z + set$t + set$substrate.mean ) ), ]

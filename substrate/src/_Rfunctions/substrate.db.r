@@ -124,15 +124,12 @@
         return( substrate )
       }
     
-      jlons = c( p$plons, p$plons[length(p$plons)]+(p$plons[2]-p$plons[1]) )
-      jlats = c( p$plats, p$plats[length(p$plats)]+(p$plats[2]-p$plats[1]) )
-    
       substrate = substrate.db( p, DS="lonlat.interpolated" ) 
       substrate = lonlat2planar( substrate,  proj.type=p$internal.projection )  # utm20, WGS84 (snowcrab geoid) 
       substrate = substrate[ ,c("plon", "plat", "grainsize" )]
-      
-      substrate$plon = as.numeric(as.character(cut(substrate$plon, jlons, include.lowest=T, right=F, labels=p$plons)))
-      substrate$plat = as.numeric(as.character(cut(substrate$plat, jlats, include.lowest=T, right=F, labels=p$plats)))
+        
+			substrate$plon = grid.internal( substrate$plon, p$plons )
+      substrate$plat = grid.internal( substrate$plat, p$plats )
       
       gc()
       substrate = block.spatial ( xyz=substrate, function.block=block.mean) 
@@ -179,7 +176,7 @@
         #ZZ = bathymetry.db( p, DS="inla" )
         ZZ = bathymetry.db( p, DS="inla" )
        
-        SS = lonlat2planar( SS, proj.type=p$internal.projection, ndigits=7 )
+        SS = lonlat2planar( SS, proj.type=p$internal.projection )
         # levelplot( z~plon+plat, SS, xlab='', ylab='', col.regions=colorRampPalette(c( "white", "darkblue", "black"), space = "Lab")(n), scale=list(draw=FALSE), aspect="iso", cuts=n )
         
         

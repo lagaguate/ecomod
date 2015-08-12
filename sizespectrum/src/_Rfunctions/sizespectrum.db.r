@@ -144,7 +144,7 @@
       }
      
 			P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
-			P0$platplon = paste( round( P0$plat ), round(P0$plon), sep="_" )
+			P0$platplon = paste(  P0$plat, P0$plon, sep="_" )
 
       sm = sizespectrum.db( DS="sizespectrum.stats", p=p )
       smg = groundfish.db( "set.base" )
@@ -156,8 +156,11 @@
 
       sm = merge (sm, smg, by="id", all.x=T, all.y=F, sort= F) 
 
-      sm = lonlat2planar( sm, proj.type=p$internal.projection, ndigits=2 )
-      sm$platplon = paste( round( sm$plat ), round(sm$plon), sep="_" )
+      sm = lonlat2planar( sm, proj.type=p$internal.projection )
+      sm$plon = grid.internal( sm$plon, p$plons )
+      sm$plat = grid.internal( sm$plat, p$plats )
+      
+      sm$platplon = paste( sm$plat, sm$plon, sep="_" )
       
       sm$plon = sm$plat = NULL
       sm$lon  = sm$lat = NULL

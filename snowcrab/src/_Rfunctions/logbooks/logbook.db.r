@@ -237,8 +237,8 @@
       x = logbook.db( DS="logbook.filtered.positions" )
     
       x = lonlat2planar( x,  proj.type=p$internal.projection ) 
-      x$plon = floor(x$plon)
-      x$plat = floor(x$plat)
+      x$plon = grid.internal( x$plon, p$plons )
+      x$plat = grid.internal( x$plat, p$plats )
       yrs = c(T,F)
       for ( Y in yrs ) {
         if (Y) {
@@ -369,7 +369,11 @@
 			logbook = logbook.db(DS="logbook.filtered.positions")
 
       nl0 = nrow( logbook ) 
-      logbook = lonlat2planar( logbook ,  proj.type=p$internal.projection, ndigits=0 )
+      logbook = lonlat2planar( logbook,  proj.type=p$internal.projection )
+      
+      logbook$plon = grid.internal( logbook$plon, p$plons )
+      logbook$plat = grid.internal( logbook$plat, p$plats )
+
 			logbook$chron = logbook$date.landed  # required for temperature lookups
       logbook = logbook[which(logbook$yr<=p$current.assessment.year),]
 			# bring in time invariant features:: depth
@@ -391,7 +395,6 @@
 			logbook = habitat.lookup( logbook, p=p, DS="all.data" )
       logbook$z = log(logbook$z) 
 
-			logbook = lonlat2planar( logbook, proj.type=p$internal.projection )  # return to original resolution
       logbook$chron = NULL
 
 			save( logbook, file=fn, compress=T )
