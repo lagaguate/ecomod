@@ -50,7 +50,8 @@
     "start_long", "lon", 
     "start_lat", "lat", 
     "start_time", "stime", 
-    "board_date", "sdate") 
+    "board_date", "sdate",
+	"setcd_id","set_type") 
 
     lookuptable = matrix( lookuptable, byrow=T, ncol=2 )
 
