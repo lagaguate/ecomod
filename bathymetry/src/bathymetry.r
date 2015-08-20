@@ -4,8 +4,9 @@
   p=list()
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
   p$libs = RLibrary( "chron", "rgdal", "lattice", "parallel" )
+ 
 
-  
+
   # ------------------
   # glue all data sources (spherical coords) 
   # ... right now this is about 17 GB in size when expanded .... SLOW .... 
@@ -14,39 +15,36 @@
   redo.bathymetry.rawdata = FALSE
   if ( redo.bathymetry.rawdata ) { 
 		p = spatial.parameters( type="canada.east", p=p )
-    p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
     bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-    bathymetry.db ( p, DS="z.lonlat.discretized.redo" ) # used for inla analysis
-    
-    if ( !file.exists( p$bathymetry.bin )) {
-      # a GMT binary file of bathymetry .. currently, only the "canada.east" domain 
-      # is all that is required/available
-        cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
-    }
-  
-  }
 
+    # used for inla analysis 
+ 		p = spatial.parameters( type="canada.east.highres", p=p )
+    bathymetry.db ( p, DS="z.lonlat.discretized.redo" ) # to ~5 arc-seconds and about 20 min, 40 GB RAM (2015, Jae)
+  }
 
 
   process.bathymetry.data.via.inla = FALSE
   if (process.bathymetry.data.via.inla) {
     ## ----- Adaptive estimation method (test) :
     # processing bathymetry data with RINLA  .. no GMT dependency 
-   
-    # set up parameter values for inla
-    p = bathymetry.db( p=p, DS="parameters.inla" )
-
+  
     # initialize bigmemory data objects
+     
+    p=list()
+    p$init.files = loadfunctions( "bathymetry" ) 
+
     p$reload.rawdata=FALSE 
     p$reset.outputfiles=FALSE
     #p$reset.outputfiles=TRUE
     
+    p = bathymetry.db( p=p, DS="parameters.inla" )
     p = bathymetry.db( p=p, DS="bigmemory.inla" )
 
     # cluster definition
     # do not use all CPU's as INLA itself is partially run in parallel
-    # RAM reqiurements are a function of data density and mesh density ..
-    # p$clusters = c( rep( "hyperion", 1 ), rep( "nyx", 1 ), rep ("tartarus", 1), rep("kaos", 1 ) )  
+    # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
+    
+    p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     # p$clusters = "localhost"  # if serial run, send a single cluster host
     p$clusters = c( "hyperion", "nyx", "tartarus", "kaos" )  
     
@@ -60,16 +58,24 @@
     }
 
     p = parallel.run( bathymetry.interpolate.inla, p=p ) # no more GMT dependency! :)  
+    
+    if (0) {
+      # debugging visualization
+      pps  =  expand.grid( plons=p$plons, plats=p$plats)
+      P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir ) 
+      levelplot( P[,2] ~plons+plats, pps , col.regions=rev(sequential_hcl(50)), scale=list(draw=FALSE) , aspect="iso" )
+    }
 
     bathymetry.db( p=p, DS="predictions.redo" )  
     bathymetry.db( p=p, DS="statistics.redo" )
     bathymetry.db( p=p, DS="bigmemory.inla.cleanup" )
-
+    
   }
 
 
   # ------------------
-  # too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
+  # GMT-based methods:
+  # NOTE: too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
   # for the high resolution maps .. the temporary files can be created deleted/overwritten files 
   # in the temporary drives 
   redo.isobaths = FALSE

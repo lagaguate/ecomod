@@ -100,8 +100,6 @@
       bathy = bathy[ - which(duplicated( bathy)),]
 
       write.table( bathy, file=p$bathymetry.xyz, col.names=F, quote=F, row.names=F)
-      
-			cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
       save( bathy, file=fn, compress=T )
       return ( fn )
     }
@@ -118,23 +116,16 @@
         return( bathy )
       }
 
-      Bdebug = FALSE
-      if (Bdebug) { 
-        # or to debug:
-        p$spatial.domain = "canada.east"
-        B = bathymetry.db ( p, DS="baseline" ) # smaller, interpolated already
-        B = planar2lonlat(x=B, "lambert.conic.canada.east" )
-        p$spatial.domain = "canada.east.highres"
-      }
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) # larger
     
-      # gridding here needs to have a higher resolution than the internal representation as it is still being trteated as "rawdata"
+      # gridding here needs to have a higher resolution than the internal representation 
+      # as it is still being treated as "rawdata": so use CHS standard of (p$dres=15 arc second)/3 = 5 arc seconds 
       
       rlon = range(B$lon, na.rm=TRUE)
       rlat = range(B$lat, na.rm=TRUE)
       
-      glon = seq( rlon[1], rlon[2], by=p$dres/5 )
-      glat = seq( rlat[1], rlat[2], by=p$dres/5 )
+      glon = seq( rlon[1], rlon[2], by=p$dres ) 
+      glat = seq( rlat[1], rlat[2], by=p$dres )
 
       B$lon = grid.internal( B$lon, glon )
       B$lat = grid.internal( B$lat, glat )
@@ -179,6 +170,12 @@
 			grids  = file.path(tmpdir, make.random.string( ".gmt.depths"))
 			z.dds = file.path(tmpdir, make.random.string( ".gmt.z.dds"))
 			z.d2ds2 = file.path(tmpdir, make.random.string( ".gmt.z.d2ds2"))
+      
+      if ( !file.exists( p$bathymetry.bin )) {
+        # a GMT binary file of bathymetry .. currently, only the "canada.east" domain 
+        # is all that is required/available
+        cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
+      }
 
 			cmd( "blockmean", p$bathymetry.bin, "-bi3 -bo", p$region, b.res, ">", blocked )  
 			cmd( "surface", blocked, "-bi3", p$region, b.res, bathy.tension, paste("-G", grids, sep="") )
@@ -480,6 +477,8 @@
 			return( paste( "Completed:", outfile )  )
     }
  
+
+# ----------------
 	
 
     if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) { 
@@ -536,7 +535,7 @@
         # use the discretized version as it is a bit more functional
         B = bathymetry.db ( p=p, DS="z.lonlat.discretized" )  
         
-        B = lonlat2planar( B, proj.type=p$internal.projection, ndigits=6 ) 
+        B = lonlat2planar( B, proj.type=p$internal.projection ) 
         # 6 digits required to get complete distribution of diffs:  
         # hist( log(diff( sort( unique( B$plat)) )) )
  
@@ -546,7 +545,6 @@
         glon = seq( rlon[1], rlon[2], by=p$pres/5 )
         glat = seq( rlat[1], rlat[2], by=p$pres/5 )
 
-        # regrid to planar internal system
         B$plon = grid.internal( B$plon, glon )
         B$plat = grid.internal( B$plat, glat )
         B = B[ which( is.finite( rowSums(B) )), ]
@@ -599,6 +597,7 @@
       return(p)
     }
    
+# ----------------
     
     if (DS %in% "bigmemory.inla.cleanup" ) { 
       
@@ -703,7 +702,10 @@
     if (DS %in% c( "parameters.inla" )  ) { 
 
       p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-      p$libs = RLibrary( "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster",  "bigmemory", "colorspace" )
+ 
+      p$libs = RLibrary( 
+        "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster", "colorspace" ,
+        "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra")
       
       p$project.name = "bathymetry"
       p$project.root = project.datadirectory( p$project.name )
@@ -711,16 +713,16 @@
       p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
      
       p$dist.max = 25 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-      p$dist.mwin = 5 # size of the moving window (km) that aggregates the ** statistics **
-      p$dist.pred =  15 # size of the moving window (km) where **predictions** are retained
+      p$dist.mwin = 1 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      p$dist.pred = 0.95 # % of dist.max where **predictions** are retained
      
       ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
       p$n.min = 100
-      p$n.max = 10000 # numerical time/memory constraint
+      p$n.max = 20000 # numerical time/memory constraint
 
-      p$inla.mesh.offset   = p$pres * c( 8, 16 ) # km
-      p$inla.mesh.max.edge = p$pres * c( 8, 16 ) # km
-      p$inla.mesh.cutoff   = p$pres * c( 3, 16 ) # km 
+      p$inla.mesh.offset   = p$pres * c( 7, 15 ) # km
+      p$inla.mesh.max.edge = p$pres * c( 7, 15 ) # km
+      p$inla.mesh.cutoff   = p$pres * c( 2, 15 ) # km 
 
       p$inla.alpha = 2 # bessel function curviness
       p$inla.nsamples = 2000 # posterior similations 
