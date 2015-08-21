@@ -46,7 +46,7 @@
     
     p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     # p$clusters = "localhost"  # if serial run, send a single cluster host
-    p$clusters = c( "hyperion", "nyx", "tartarus", "kaos" )  
+    # p$clusters = c( "hyperion", "nyx", "tartarus", "kaos" )  
     
     p = make.list( list( jj=sample( 1:p$nS ) ), Y=p ) # random order helps use all cpus 
 
@@ -63,7 +63,7 @@
       # debugging visualization
       pps  =  expand.grid( plons=p$plons, plats=p$plats)
       P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir ) 
-      levelplot( P[,2] ~plons+plats, pps , col.regions=rev(sequential_hcl(50)), scale=list(draw=FALSE) , aspect="iso" )
+      levelplot( log( P[,2] ) ~plons+plats, pps , col.regions=rev(sequential_hcl(100)), scale=list(draw=FALSE) , aspect="iso" )
     }
 
     bathymetry.db( p=p, DS="predictions.redo" )  

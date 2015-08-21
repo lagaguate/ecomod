@@ -137,10 +137,25 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.0
     while ( nw != nw0 ) {
       count = count + 1
       if (count > nmax ) break() # this is CPU expensive ... try only a few times 
+      FM = formula(  y ~ f(xiid, model="iid", diagonal=inla.diagonal) + f(x, model=inla.model, diagonal=inla.diagonal ) )
       v = NULL
-      v = try( inla( y ~ f(xiid, model="iid", diagonal=inla.diagonal) + f(x, model=inla.model, diagonal=inla.diagonal ), data=z, 
-                    control.inla=list(h=inla.h), control.predictor=list( compute=TRUE) ), silent=TRUE )
+      v = try( inla( FM, data=z, 
+            control.inla=list(h=inla.h), 
+            control.predictor=list( compute=TRUE) ), silent=TRUE )
+      
       if (!( "try-error" %in% class(v) ) ) {
+
+        if ( v$mode$mode.status > 0) {  # make sure Eignevalues of Hessian are appropriate (>0)
+          v = try( inla( FM, data = inputstack, 
+            control.predictor=list (compute=TRUE ), 
+            control.inla = list( h=1e-4, tolerance=1e-10), # increase in case values are too close to zero 
+            control.mode = list( restart=TRUE, result=v ), # restart from previous estimates
+            verbose=FALSE
+          ), silent=TRUE )
+        }
+
+        if ( "try-error" %in% class(v) ) break() 
+
         z$p = v$summary.fitted.values$mean 
         rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
         if (!is.na(rsq)){

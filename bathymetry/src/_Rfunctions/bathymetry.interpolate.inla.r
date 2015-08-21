@@ -33,14 +33,18 @@
       ppp = try( point.in.block( focal, W[,c(1,2)], dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max ) )
       if( is.null(ppp)) next()
       if (class( ppp ) %in% "try-error" ) next()
-
       dist.cur = ppp$dist.to.nmax
       j = ppp$indices
-      
       rm(ppp)
+  
+      if ( (dist.cur/p$dist.max) < 0.1 ) next()
 
       # .. first create projector from mesh to output
-      ppdist = p$dist.pred * dist.cur
+      doff = p$inla.mesh.offset * (dist.cur/p$dist.max) # scale to dist.max
+      mbuffer = sum( doff )
+      ppdist =  dist.cur - mbuffer 
+      if (ppdist < min(p$inla.mesh.max.edge)*5) ppdist = min(p$inla.mesh.max.edge)*5
+
       preds.diffs = seq( from=-ppdist, to=ppdist, by=p$pres )
       preds.diffs = preds.diffs[ which( preds.diffs >= -dist.cur &  preds.diffs <= dist.cur ) ]
    
@@ -70,13 +74,15 @@
 
       rm( Pmat, pm_row, pm_col, pa_plons_cc, pa_plats_cc, pa_plons, pa_plats ) ; gc()
 
-      MESH = inla.mesh.2d ( loc=W[ j, c(1,2)], # locations of data points
-        offset = p$inla.mesh.offset ,  # how much to extend inside and outside of boundary
+      MESH =try(  inla.mesh.2d ( loc=W[ j, c(1,2)], # locations of data points
+        offset = doff ,  # how much to extend inside and outside of boundary
         max.edge= p$inla.mesh.max.edge,  # max size of a triange (in, out)
-        cutoff= p$inla.mesh.cutoff # min distance allowed  /.... use 8 or less for production 
+        cutoff= p$inla.mesh.cutoff # min distance allowed between points 
         # min.angle = c(20),   # min angle (in, out)
         #boundary = inla.nonconvex.hull( W[ j, c(1,2)], resolution=100, concave=p$pres*20 ), 
-      )
+      ), silent=TRUE )
+
+      if ("try-error" %in% class(MESH)) next()  # some meshes seem to go into a loop .. the processes have to be killed manually .. this catches the error and continues
  
       S0 = inla.spde2.matern( MESH,      
         alpha=p$inla.alpha, # alpha is the Bessel smoothness factor .. 1(?) gives exponential correlation function
@@ -125,7 +131,7 @@
           control.results=list(return.marginals.random=FALSE, return.marginals.predictor=FALSE ),
           #control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
           control.predictor=list (A=A, compute=TRUE ), # compute=TRUE on each data location 
-          control.inla = list(h =1e-2), # h=0.01 is step length for gradient calc of hyper params 
+          control.inla = list(h =1e-2), # h=0.01 is default step length for gradient calc of hyper params 
           verbose=FALSE
       ), silent=TRUE )
 
@@ -134,7 +140,7 @@
           control.compute=list(dic=TRUE, config = TRUE), 
           control.results=list(return.marginals.random=FALSE, return.marginals.predictor=FALSE ),
           control.predictor=list (A=A, compute=TRUE ), 
-          control.inla = list(h = 1e-3, tolerance=1e-8, restart=3), 
+          control.inla = list(h = 1e-3, tolerance=1e-8, restart=3), # restart a few times in case posteriors are poorly defined
           verbose=FALSE
         ), silent=TRUE )
       }
@@ -147,13 +153,27 @@
           control.results=list(return.marginals.random=FALSE, return.marginals.predictor=FALSE ),
           control.predictor=list (A=A, compute=TRUE ), 
           control.inla = list( h=1e-4, tolerance=1e-10), # increase in case values are too close to zero 
-          control.mode = list( restart=TRUE, result=RES ),
+          control.mode = list( restart=TRUE, result=RES ), # restart from previous estimates
           verbose=FALSE
         ), silent=TRUE )
       }
 
       if ("try-error" %in% class(RES)) next()
+     
+      if ( RES$mode$mode.status > 0) {  # make sure Eignevalues of Hessian are appropriate (>0)
+        RES = try( inla( FM, data = inputstack, 
+          control.compute=list(dic=TRUE, config = TRUE), 
+          control.results=list(return.marginals.random=FALSE, return.marginals.predictor=FALSE ),
+          control.predictor=list (A=A, compute=TRUE ), 
+          control.inla = list( h=1e-6, tolerance=1e-12), # increase in case values are too close to zero 
+          control.mode = list( restart=TRUE, result=RES ), # restart from previous estimates
+          verbose=FALSE
+        ), silent=TRUE )
+      }
 
+      # if still hessian probelems accept the solution .. it should be close enough
+      if ("try-error" %in% class(RES)) next()
+      
       rm( inputstack, A); gc()
       
       # update statistics

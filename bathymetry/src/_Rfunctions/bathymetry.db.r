@@ -714,24 +714,24 @@
      
       p$dist.max = 25 # length scale (km) of local analysis .. for acceptance into the local analysis/model
       p$dist.mwin = 1 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-      p$dist.pred = 0.95 # % of dist.max where **predictions** are retained
+      p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
      
       ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
       p$n.min = 100
-      p$n.max = 20000 # numerical time/memory constraint
+      p$n.max = 15000 # numerical time/memory constraint
 
-      p$inla.mesh.offset   = p$pres * c( 7, 15 ) # km
-      p$inla.mesh.max.edge = p$pres * c( 7, 15 ) # km
-      p$inla.mesh.cutoff   = p$pres * c( 2, 15 ) # km 
+      p$inla.mesh.offset   = p$pres * c( 5, 25 ) # km
+      p$inla.mesh.max.edge = p$pres * c( 5, 25 ) # km
+      p$inla.mesh.cutoff   = p$pres * c( 2.5, 25 ) # km 
 
       p$inla.alpha = 2 # bessel function curviness
-      p$inla.nsamples = 2000 # posterior similations 
-      p$expected.range = 30 # km or higher .. (with dependent var on log scale)
-      p$expected.sigma = 0.1  # spatial standard deviation (partial sill) .. on log scale
+      p$inla.nsamples = 5000 # posterior similations 
+      p$expected.range = 50 # km , with dependent var on log scale
+      p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
 
       p$Yoffset = 1000 ## data range is from -383 to 5467 m .. shift all to positive valued as this will operate on the logs
 
-      p$predict.in.one.go = FALSE # use false, one go is very slow and a resource expensive method
+      p$predict.in.one.go = FALSE # use false, one go is very very slow and a resource expensive method
       p$predict.type = "response"  # same scale as observations 
       # p$predict.type = "latent.spatial.field" # random field centered to zero
         
