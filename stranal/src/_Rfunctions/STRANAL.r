@@ -1,3 +1,10 @@
+Stranal<-function(year=2011,
+                  type=c(1), 
+                  species.code=12,
+                  strat.list=c(440:495),
+                  wingspread = 41,
+                  towdist =1.75
+                  ){
 #######################################################################################
 #######################################################################################
 #######################################################################################
@@ -8,15 +15,17 @@
 ###                             Mark Fowler                                         ###
 ###                             Adam Cook                                           ###
 ###                                                                                 ###
-###       Creation Date:        Nov 5, 2014                                         ###
+###       Creation Date:        Aug 24, 2015                                        ###
 ###                                                                                 ###
-###       Modification Date:    June 3, 2015                                        ###
+###       Modification Date:    Aug 24, 2015                                        ###
+          stranal.ver = '2015.08.24'
 ###                                                                                 ###
 ###       Description:          Replaces the standalone STRANAL application         ###
 ###                             (written in APL), as well as the numbers and        ###
 ###                             weights analytic from the old VDC                   ###
 ###                                                                                 ###
-###       Comments:             US data needs to be incorporated                    ###
+###       Comments:             GUI being created 
+###                             US data needs to be incorporated                    ###
 #######################################################################################
 #######################################################################################
 #######################################################################################
@@ -24,31 +33,24 @@
 #######################################################################################
 ###                          CONSTANTS/USER PARAMETERS                              ###
 #######################################################################################
-year          =2010
-type          =c(1)
-species.code  =10           #10=cod ; 12=white hake
-strat.list    =c(440:494)
-wingspread    = 41          #e.g. Western IIa=41;  Yankee=34
-towdist       =1.75         #abundant evidence suggests that this varies by set
-
+print(paste0("running Stranal version ",stranal.ver))
 #######################################################################################
 ###                          PACKAGES                                               ###
 #######################################################################################
+if(!require(RODBC)) { install.packages('RODBC',repos="http://cran.r-project.org")}
+if(!require(reshape2)) { install.packages('reshape2',repos="http://cran.r-project.org")}
+if(!require(data.table)) { install.packages('data.table',repos="http://cran.r-project.org")}
+
 library(RODBC)
-library(plyr)
-library(reshape2)
+library(reshape2)       #reqd for melt,dcast
+library(data.table)
 
 #######################################################################################
 ###                          ENVIRONMENT                                            ###
 #######################################################################################
 options(stringsAsFactors = FALSE) 
-loadfunctions("utility")
-options(scipen=999)
-
-#######################################################################################
-###                          DIRECTORY PATHS                                        ###
-#######################################################################################
-wd <- file.path(project.datadirectory('stranal'),'data')
+options(local=TRUE)
+options(scipen=999)  # I don't like scientific notation, this avoids it
 
 #######################################################################################
 ###                          DATABASE CONNECTIONS                                   ###
@@ -66,23 +68,43 @@ st.err <- function(x) {
   sd(x)/sqrt(length(x))
 }
 
-#######################################################################################
-###                          READ IN DATA                                           ###
-#######################################################################################
-#can we surveys from the db? Maintaining this table is not a good approach 
-survey_list<-read.csv(file=file.path(wd,"survey_list.csv"), head=T, sep=",")
-names(survey_list) = toupper(names(survey_list))
-survey_list$MISSION<-paste(survey_list$VESEL,survey_list$YEAR,sprintf("%03d",survey_list$CRUNO),sep="")
+#stolen from https://github.com/jae0/ecomod/blob/master/utility/
+#            src/_Rfunctions/data.manipulation/na.zero.r
+na.zero<-function(x){
+  for(i in 1:length(x[1,])){
+    if(length(which(is.na(x[,i])))>0){
+      x[which(is.na(x[,i])),i]<-0}
+  }
+  return(x)
+} 
 
-#capture relevant missions for use in later filters
-gstri <- subset(survey_list , (survey_list$SERIES %in% c('SUMMER','SPRING','FALL','4VWCOD','GEORGES')))
+
+#######################################################################
+#this gets the surveys from the db rather than a csv - much better for maintenance
+#doesn't have a "series" - unknown impact of this (perhaps nothing?)
+#ensure correct results prior to adopting
+survey_list<-sqlQuery(channel, paste("select * from groundfish.gsmissions"))
+gstri <- subset(survey_list , (survey_list$SEASON %in% c('SUMMER','SPRING','FALL','4VWCOD','GEORGES')))
 gstri<-gstri[which(gstri$YEAR==year),]
+#######################################################################
 
 #convert some information into a format that can be sent to SQL "IN" statments
 these.type  <- paste(unlist(gsub("(.*)","'\\1'",type)),sep="",collapse=",")
 these.strat  <- paste(unlist(gsub("(.*)","'\\1'",strat.list)),sep="",collapse=",")  
 these.missions<-paste(unlist(gsub("(.*)","'\\1'",gstri$MISSION)),sep="",collapse=",")
-input_parameters<-list(type=type,strata=strat.list,missions=gstri$MISSION,year=year,species.code=species.code, wingspread=wingspread, towdist=towdist)
+input_parameters<-list("Stranal version"=stranal.ver,
+                       "Analysis Date"=Sys.time(),
+                       "Experiment Type"=type, 
+                       "Strata"=strat.list, 
+                       "Missions"=gstri$MISSION,
+                       "Year"=year,
+                       "Species code"=species.code, 
+                       "Wingspread"=wingspread, 
+                       "Distance"=towdist,
+                       "Data Source"="DFO",
+                       "ALK Modifications"="No",
+                       "Area"="None")
+
 #######################################################################################
 ###                          DATABASE EXTRACTIONS                                   ###
 ###  Do them initially so that they don't need to be run each time                  ###
@@ -289,6 +311,7 @@ agelen$FLEN<-agelen$FLEN+(agelen$BINWIDTH*.5)-.5
 agelen$LOCTIME<-agelen$TIME
 agelen$TIME<-NULL
 
+allFlen<-sort(unique(agelen$FLEN[!is.na(agelen$FLEN)]))
 #######################################################################################
 ###                          LENGTH ANALYTICS                                       ###
 ###    LENGTH BY SET
@@ -301,43 +324,42 @@ agelen$TIME<-NULL
 lset<-agelen[,c("STRAT","SLAT","SLONG","AREA","MISSION","SETNO","FLEN","CAGE")]
 li = which(lset$CAGE==0)
 lset$FLEN[li] = unique(lset$FLEN)[1]
+##length by set
 lset <- aggregate(CAGE~STRAT+SLAT+SLONG+AREA+MISSION+SETNO+FLEN,data=lset,FUN=sum)
 lset<-lset[with(lset,order(lset$STRAT,lset$MISSION,lset$SETNO,lset$FLEN,lset$SLAT,lset$SLONG,lset$AREA)),]
 lset<-melt(lset, id.vars = c("STRAT","SLAT","SLONG","AREA","MISSION","SETNO","FLEN"))
 
+
 length_by_set <- na.zero(dcast(lset, STRAT + SLAT + SLONG + AREA + MISSION + SETNO  ~ FLEN))
-remove<-c("STRAT","SLAT","SLONG","AREA","MISSION","SETNO")
 length_by_set<-length_by_set[order(length_by_set$STRAT,length_by_set$SETNO),]
 length_total<-merge(strata_tunits,length_by_set)
 #add row_tots to length_by_set
 length_by_set$TOTAL<-rowSums(length_by_set[,7:length(length_by_set)])
-
 
 #separate the length and non-length-related data for the sets of the dataframe
 length_total_pre  <-length_total[,c(1:7)]
 length_total_strat_data       <-length_total[,c(1,8:ncol(length_total))]
 #capture all of the column names of the data
 colNames<-names(length_total_strat_data)
-
 #count sets/strata
 length_total_strat_data.cnt<-aggregate(list(COUNT=length_total_strat_data$STRAT), by=list(STRAT=length_total_strat_data$STRAT), FUN=length)
 
 #add an additional rowname for the column totals 
 length_rownames<-c(length_total_strat_data.cnt[,1],'Total')
-
+length_rownames_noTotal<-c(length_total_strat_data.cnt[,1])
 #mean length
 length_mean<-setNames(aggregate(list(length_total_strat_data[,2:ncol(length_total_strat_data)]), by=list(STRAT=length_total_strat_data$STRAT), FUN=mean), colNames)
   length_mean<-length_mean[,-1] #drop strata column
   length_mean<-cbind(length_mean,RowTotals=rowSums(length_mean)) #add rowsums
-  length_mean<-rbind(length_mean,ColTotals=colSums(length_mean)) #add colsums
-  length_mean<-cbind(STRAT=length_rownames,length_mean)          #add rowname
+  #length_mean<-rbind(length_mean,ColTotals=colSums(length_mean)) #add colsums
+  length_mean<-cbind(STRAT=length_rownames_noTotal,length_mean)        #add rowname
 
 #mean length std error 
 length_mean_se<-setNames(aggregate(list(length_total_strat_data[,2:ncol(length_total_strat_data)]), by=list(STRAT=length_total_strat_data$STRAT), FUN=st.err), colNames)
   length_mean_se<-length_mean_se[,-1] #drop strata column
-  length_mean_se<-cbind(length_mean_se,RowTotals=rowSums(length_mean_se)) #add rowsums
-  length_mean_se<-rbind(length_mean_se,ColTotals=colSums(length_mean_se)) #add colsums
-  length_mean_se<-cbind(STRAT=length_rownames,length_mean_se)            #add rowname
+  #length_mean_se<-cbind(length_mean_se,RowTotals=rowSums(length_mean_se)) #add rowsums
+  #length_mean_se<-rbind(length_mean_se,ColTotals=colSums(length_mean_se)) #add colsums
+  length_mean_se<-cbind(STRAT=length_rownames_noTotal,length_mean_se)            #add rowname
 
 #multiply all length data by tunits for "total length"
 length_total_strat_data_tunits<-cbind(STRAT=length_total_pre[,1],length_total[,c(8:ncol(length_total))]*length_total_pre$TUNITS)
@@ -346,15 +368,16 @@ length_total_strat_data_tunits<-cbind(STRAT=length_total_pre[,1],length_total[,c
 length_total<-setNames(aggregate(list(length_total_strat_data_tunits[,2:ncol(length_total_strat_data_tunits)]), by=list(STRAT=length_total_strat_data_tunits$STRAT), FUN=mean), colNames)
   length_total<-length_total[,-1] #drop strata column
   length_total<-cbind(length_total,RowTotals=rowSums(length_total)) #add rowsums
-  length_total<-rbind(length_total,ColTotals=colSums(length_total)) #add colsums
+  ColTotalsLength=colSums(length_total) #separated this because I use it in age calculations
+  length_total<-rbind(length_total,ColTotals=ColTotalsLength) #add colsums
   length_total<-cbind(STRAT=length_rownames,length_total)          #add rowname
 
 #total length std error 
 length_total_se<-setNames(aggregate(list(length_total_strat_data_tunits[,2:ncol(length_total_strat_data_tunits)]), by=list(STRAT=length_total_strat_data_tunits$STRAT), FUN=st.err), colNames)
   length_total_se<-length_total_se[,-1] #drop strata column
-  length_total_se<-cbind(length_total_se,RowTotals=rowSums(length_total_se)) #add rowsums
-  length_total_se<-rbind(length_total_se,ColTotals=colSums(length_total_se)) #add colsums
-  length_total_se<-cbind(STRAT=length_rownames,length_total_se)          #add rowname
+  #length_total_se<-cbind(length_total_se,RowTotals=rowSums(length_total_se)) #add rowsums
+  #length_total_se<-rbind(length_total_se,ColTotals=colSums(length_total_se)) #add colsums
+  length_total_se<-cbind(STRAT=length_rownames_noTotal,length_total_se)          #add rowname
 
 #######################################################################################
 ###                          AGE LENGTH KEY                                         ###
@@ -362,13 +385,19 @@ length_total_se<-setNames(aggregate(list(length_total_strat_data_tunits[,2:ncol(
 
 alk<-agelen[,c("AGE","FLEN","CAGE","SETNO")]
 alk<-alk[!is.na(alk$AGE), ]
-age_length_key<-na.zero(t(tapply(alk$SETNO, list(alk$AGE, alk$FLEN), function(x) {sum(x/x)})))
-
+age_length_key_naked<-na.zero(t(tapply(alk$SETNO, list(alk$AGE, alk$FLEN), function(x) {sum(x/x)})))
+#age_length_key<-rbind(age_length_key,Age_Totals)  #these results seem fine
+allFlenDF<-data.frame(allFlen) #all possiblem lengths
+rownames(allFlenDF)<-allFlenDF$allFlen
+age_length_key<-merge(allFlenDF,age_length_key_naked,by="row.names", all=TRUE)
+age_length_key<-na.zero(age_length_key[order(age_length_key$allFlen),])
+age_length_key$Row.names<-NULL
+row.names(age_length_key)<-age_length_key[,1]
+age_length_key$allFlen<-NULL
 Length_Totals<-rowSums(age_length_key, dims = 1)
-age_length_key<-cbind(age_length_key,Length_Totals)
-Age_Totals<-colSums(age_length_key, dims = 1)
-
-age_length_key<-rbind(age_length_key,Age_Totals)  #these results seem fine
+age_length_key_totals<-cbind(age_length_key,Length_Totals)
+Age_Totals<-colSums(age_length_key_totals, dims = 1)
+age_length_key_totals<-rbind(age_length_key_totals,Age_Totals)
 
 #age length weight sheet
 alw<-aggregate(FWT~AGE+FLEN,data=agelen,FUN=mean)
@@ -376,115 +405,116 @@ alw<-aggregate(FWT~AGE+FLEN,data=agelen,FUN=mean)
 alw<-alw[order(alw$AGE,alw$FLEN),]
 alw$FWT = alw$FWT / 1000
 age_length_weight = na.zero(reshape(alw,idvar='FLEN',timevar='AGE',direction='wide'))
-#necess for rows in asc order of flen
-age_length_weight<-age_length_weight[order(age_length_weight$FLEN),]
-#does not show the avg wgts like stranal, but stranal seems to have incorrect totals
+#if want to add all ages, should do it here!
+rownames(age_length_weight)<-age_length_weight[,1]
+age_length_weight<-merge(allFlenDF,age_length_weight,by="row.names", all=TRUE)
+age_length_weight<-na.zero(age_length_weight[order(age_length_weight$allFlen),])
+age_length_weight$FLEN<-NULL
+age_length_weight$Row.names<-NULL
+
+#######################################################################################
+###                          AGE CALCULATIONS                                       ###
+#######################################################################################
+lengths<-ColTotalsLength[1:length(ColTotalsLength)-1] #total lengths
+ages_prop<-prop.table(as.matrix(age_length_key),1) #proportions of the different sizes of each age
+ages_prop<-ifelse(is.nan(ages_prop),0,ages_prop)
+ages_prop<-as.data.frame(ages_prop)
+theseages<-c(names(ages_prop))
+age_table<-ages_prop*lengths
+ages_prop$FLEN<-as.numeric(rownames(ages_prop))
+ageset<-lset[,c("STRAT","AREA","MISSION","SETNO","FLEN","value")]
+colnames(ageset)[which(names(ageset) == "value")] <- "CAGE"
+ageset<-ageset[order(ageset$STRAT,ageset$MISSION, ageset$SETNO),]
+
+ages<-merge(ageset,ages_prop, by="FLEN")
+ages$MISSION<-NULL
+ages<-as.data.table(ages)
+
+ages[, (theseages) := lapply(.SD, function(x) x * ages[['CAGE']] ), .SDcols = theseages]
+
+age_by_set<-aggregate(.~STRAT + SETNO + AREA, data=ages, sum)
+age_by_set<-age_by_set[order(age_by_set$STRAT),]
+#mission was removed to allow aggregation, don't need these, but keeping 
+#them in case I need them to add the mission back
+age_by_set$FLEN<-NULL 
+age_by_set$CAGE<-NULL
+
+age_mean<-aggregate(.~STRAT, data=age_by_set, mean)
+age_mean$SETNO<-NULL
+age_mean$AREA<-NULL
+
+age_mean_se<-aggregate(.~STRAT, data=age_by_set, st.err)
+age_mean_se$SETNO<-NULL
+age_mean_se$AREA<-NULL
+
+age_pretotal<-as.data.table(merge(strata_area,age_by_set, by="STRAT"))
+age_pretotal$SQNM<-NULL
+age_pretotal$AREA<-NULL
+age_pretotal[, (theseages) := lapply(.SD, function(x) x * age_pretotal[['TUNITS']] ), .SDcols = theseages]
+age_total<-aggregate(.~STRAT, data=age_pretotal, mean)
+age_total$TUNITS<-NULL
+age_total$SETNO<-NULL
+
+age_total_se<-aggregate(.~STRAT, data=age_pretotal, st.err)
+age_total_se$TUNITS<-NULL
+age_total_se$SETNO<-NULL
+
+#######################################################################################
+###                          RESULTS                                                ###
+#######################################################################################
 
 results<-list(input_parameters,
               strata_area, 
-              age_length_key, 
+              age_length_key_totals, 
+              age_table, 
+              age_length_weight,
+              age_by_set,
+              age_mean,
+              age_mean_se,
+              age_total,
+              age_total_se,
               length_by_set, 
               length_mean, 
               length_mean_se, 
               length_total, 
               length_total_se, 
-              age_length_weight, 
               nw_by_set,
               weights,
               numbers)
 #r_results              == STRANAL results sheet
 #---------------------------------------
-#strata.areas             == Strata Area                    (OK - totals good)
-#                         == Prop Area                      (OK - totals good)
-#                         == Prop Area Std Err              (OK - totals good)
-#                         == Total Area                     (OK - totals good)
-#                         == Total Area Std Area            (OK - totals good)
-#age_length_key           == Age Length Key                 (OK - totals good)
-#age_length_weight        == Age Length Weight              (OK - stranal avgs not averages)
-#length_by_set            == Length by Set                  (OK - totals good)
-#length_mean              == Length Mean                    (OK - row totals good, column totals different)
-#length_mean_se           == Length Mean Standard Error     (OK - row totals different, column totals different )
-#length_total             == Length Total                   (OK - totals good)
-#length_total_se          == Length Total Standard Error    (OK - totals good)
-#nw_by_set                == Weight By Set                  (OK - col=TOTWGT)
-#                         == Numbers By Set (*)             (*)
-#weights                  == Weight (BIOMASS) Total         (OK - col=BIOMASS)
-#                         == Weight (BIOMASS) Total Std Err (OK - col=ST_ERR_BIOMASS)
-#                         == Weight Mean                    (OK - col=MEAN_WGT)
-#                         == Weight Mean Std Err            (OK - col=ST_ERR_WGT)
-#<>                       == Age Table                      (missing)
-#<>                       == Age By Set                     (missing)
-#<>                       == Age Mean                       (missing)
-#<>                       == Age Mean Std Error             (missing)
-#<>                       == Age Total                      (missing)
-#<>                       == Age Total Standard Error       (missing)
+#input_parameters         == QUERY
+#strata.areas             == Strata Area                    (good)
+#                         == Prop Area                      (good)
+#                         == Prop Area Std Err              (good)
+#                         == Total Area                     (good)
+#                         == Total Area Std Area            (good)
+#age_length_key_totals    == Age Length Key                 (good)
+#age_table                == Age Table                      (good - avg lengths not included)             
+#age_length_weight        == Age Length Weight              (good - avg weights not included)
+#length_by_set            == Length by Set                  (good)
+#length_mean              == Length Mean                    (good - column totals not included)
+#length_mean_se           == Length Mean Standard Error     (good - row and column totals not included)
+#length_total             == Length Total                   (good)
+#length_total_se          == Length Total Standard Error    (good - row and column totals not included)
 
+#age_by_set               == Age By Set                     (good)
+#age_mean                 == Age Mean                       (good)
+#age_mean_se              == Age Mean Std Error             (good)
+#age_total                == Age Total                      (good)
+#age_total_se             == Age Total Standard Error       (good)
+#nw_by_set                == Weight By Set                  (good column=TOTWGT)
+#                         == Numbers By Set (*)             (*)
+#weights                  == Weight Mean                    (good - column=MEAN_WGT)
+#                         == Weight Mean Std Err            (good - column=ST_ERR_WGT)
+#                         == Weight (BIOMASS) Total         (good - column=BIOMASS)
+#                         == Weight (BIOMASS) Total Std Err (good - column=ST_ERR_BIOMASS)
 #numbers(*)               == Numbers (ABUNDANCE) Total      (*)
 #                         == Numbers  (ABUNDANCE) Total Std Err (*)
 #                         == Numbers Mean                   (*)
 #                         == Numbers Mean Std Err           (*)
 
 # * not in original STRANAL
-##########################################BEWARE!#########################################
-#################################BEYOND HERE BE DRAGONS!##################################
-##########################################BEWARE!#########################################
-
-
-test<-agelen[,c("AGE","TOTWGT","TOTNO","FLEN")]
-test$MEANWGT<-test$TOTWGT/test$TOTNO
-
-test.mean<-aggregate(list(MEAN_WGT=test$TOTWGT), by=list(FLEN=test$FLEN), FUN=mean)
-test.no<-aggregate(list(NO_WGT=test$TOTNO), by=list(FLEN=test$FLEN), FUN=length)
-test.all<-merge(test.no,test.mean)
-test.all$MMM<-test.all$MEAN_WGT/test.all$NO_WGT
-
-agelen[agelen$STRAT==440,]
-# 
-# #lookup table for numbers of sets and area in nm per strata
-# xxx1_query<-
-#   paste("select strat,setno,sum(setno/setno) recs
-#     from agelen
-#     where year=",year," and to_number(strat)>=",strat.min," and to_number(strat)<=",strat.max,"
-#     group by strat,setno
-#     order by strat,setno",sep="")
-# xxx1<-sqlQuery(channel,xxx1_query)
-# 
-# xxx2_query<-
-#   "select x.strat,sum(x.recs/x.recs) sets, g.area areanm
-#     from xxx1 x, groundfish.gsstratum g
-#     where x.strat=g.strat
-#     group by x.strat,g.area
-#     order by x.strat,g.area"
-# xxx2<-sqlQuery(channel,xxx2_query)
-# 
-# #stratified LF table
-# #cage is the count at length adjusted for real tow distance and sample weight bumped to total weight
-# #sage is stratified numbers at length
-# #summing over sex and size_class (sex would be an option in the application)
-# #adding number of sets per strata to each record for convenient math
-# 
-# ####
-# ####bad join!
-# ####
-# LF_query<-
-#   paste("select vessel,mission,sa.strat,tunits,setno,flen, sum(cage) cage, sum(nvl(cage,0)*tunits) sage, sets
-#     from agelen sa, xxx2 x
-#     where year=",year," and to_number(sa.strat)>=",strat.min," and to_number(sa.strat)<=",strat.max,"
-#     and x.strat=sa.strat(+)
-#     group by sa.strat,tunits,vessel,mission,setno,flen,sets
-#     order by sa.strat,tunits,vessel,mission,setno,flen,sets",sep="")
-# LF<-sqlQuery(channel,LF_query)
-# 
-# #weight by set sheet (not formatted for output)
-# 
-# ####
-# ####bad join!
-# ####
-# setwgt_query<-
-#   paste("select sa.strat,sa.slat,sa.slong,sa.mission,setno,sets,tunits,x.areanm,avg(raw_totwgt*1.75/dist) setwt
-#  from agelen sa, xxx2 x
-# where year=",year," and to_number(sa.strat)>=",strat.min," and to_number(sa.strat)<=",strat.max,"
-# and x.strat=sa.strat(+)
-# group by sa.strat,sa.mission,setno,sa.slat,sa.slong,sa.name,sets,tunits,x.areanm
-# order by sa.strat,sa.mission,setno,sa.slat,sa.slong,sa.name,sets,tunits,x.areanm",sep="")
-# setwgt<-sqlQuery(channel,setwgt_query)
+return(results)
+}
+results<-Stranal(year=2010, species.code=12, strat.list=c(440:495))
