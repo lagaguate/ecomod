@@ -3,8 +3,7 @@
   
   p=list()
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-  p$libs = RLibrary( "chron", "rgdal", "lattice", "parallel" )
- 
+  p$libs = RLibrary( "rgdal", "lattice", "parallel" )
 
 
   # ------------------
@@ -31,45 +30,69 @@
     # initialize bigmemory data objects
      
     p=list()
-    p$init.files = loadfunctions( "bathymetry" ) 
-
-    p$reload.rawdata=FALSE 
-    p$reset.outputfiles=FALSE
-    #p$reset.outputfiles=TRUE
+    p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
+    p$libs = RLibrary( 
+      "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster", "colorspace" ,
+      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra")
     
-    p = bathymetry.db( p=p, DS="parameters.inla" )
-    p = bathymetry.db( p=p, DS="bigmemory.inla" )
+    p$project.name = "bathymetry"
+    p$project.root = project.datadirectory( p$project.name )
+    
+    p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
+   
+    p$dist.max = 25 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+    p$dist.mwin = 1 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+    p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
+   
+    ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
+    p$n.min = 100
+    p$n.max = 15000 # numerical time/memory constraint
+
+    p$inla.mesh.offset   = p$pres * c( 5, 25 ) # km
+    p$inla.mesh.max.edge = p$pres * c( 5, 25 ) # km
+    p$inla.mesh.cutoff   = p$pres * c( 2.5, 25 ) # km 
+
+    p$inla.alpha = 2 # bessel function curviness
+    p$inla.nsamples = 5000 # posterior similations 
+    p$expected.range = 50 # km , with dependent var on log scale
+    p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
+
+    p$Yoffset = 1000 ## data range is from -383 to 5467 m .. shift all to positive valued as this will operate on the logs
+
+    p$modelformula = formula( depth ~ -1 + intercept + f( spatial.field, model=S0 ) )
+    
+    p$predict.in.one.go = FALSE # use false, one go is very very slow and a resource expensive method
+    
+    # if not in one go, then the value must be reconstructed from the correct elements:  
+    p$spacetime.posterior.extract = function(s, rnm) { 
+      # rnm are the rownames that will contain info about the indices ..
+      # optimally the grep search should only be done once but doing so would 
+      # make it difficult to implement in a simple structure/manner ... 
+      # the overhead is minimal relative to the speed of modelling and posterior sampling
+      i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+      i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
+      exp(s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] ) - p$Yoffset 
+    }
+   
+    spacetime.db( p=p, DS="bigmemory.inla.reset.input", 
+                  B=bathymetry.db( p=p, DS="z.lonlat.discretized" ) )
+    spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
 
     # cluster definition
     # do not use all CPU's as INLA itself is partially run in parallel
     # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
-    
-    p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     # p$clusters = "localhost"  # if serial run, send a single cluster host
-    # p$clusters = c( "hyperion", "nyx", "tartarus", "kaos" )  
+    p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
+    nS = spacetime.db( p, DS="statistics.bigmemory.size" )
+    p = make.list( list( jj=sample( 1:nS ) ), Y=p ) # random order helps use all cpus 
+    p = parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
+  
+    spacetime.plot( p=p, "predictions.mean.bigmemory" ) # directly from bigmatrix objects
     
-    p = make.list( list( jj=sample( 1:p$nS ) ), Y=p ) # random order helps use all cpus 
+    spacetime.db( p=p, DS="predictions.redo" )  
+    spacetime.db( p=p, DS="statistics.redo" )
+    spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
 
-    fill.in.all.data.points = FALSE
-    if (fill.in.all.data.points) {
-      S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
-      todo = which( !is.finite( S[,3] ))
-      p = make.list( list( jj=sample( todo ) ), Y=p ) # random order helps use all cpus 
-    }
-
-    p = parallel.run( bathymetry.interpolate.inla, p=p ) # no more GMT dependency! :)  
-    
-    if (0) {
-      # debugging visualization
-      pps  =  expand.grid( plons=p$plons, plats=p$plats)
-      P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir ) 
-      levelplot( log( P[,2] ) ~plons+plats, pps , col.regions=rev(sequential_hcl(100)), scale=list(draw=FALSE) , aspect="iso" )
-    }
-
-    bathymetry.db( p=p, DS="predictions.redo" )  
-    bathymetry.db( p=p, DS="statistics.redo" )
-    bathymetry.db( p=p, DS="bigmemory.inla.cleanup" )
-    
   }
 
 
