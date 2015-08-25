@@ -85,14 +85,27 @@
     p$expected.range = 50 # km , with dependent var on log scale
     p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
 
-    p$Yoffset = 1000 ## data range is from -383 to 5467 m .. shift all to positive valued as this will operate on the logs
+    p$Yoffset = 1000 ## data range is from XXX to YYY .. shift all to positive valued as this will operate on the logs
 
     p$predict.in.one.go = FALSE # use false, one go is very very slow and a resource expensive method
-    p$predict.type = "response"  # same scale as observations 
-    # p$predict.type = "latent.spatial.field" # random field centered to zero
         
     p$modelformula = formula( substrate ~ -1 + intercept + depth + slope + curvature + f( spatial.field, model=S0 ) )
- 
+     
+    # if not in one go, then the value must be reconstructed from the correct elements:  
+    p$spacetime.posterior.extract = function(s, rnm) { 
+      # rnm are the rownames that will contain info about the indices ..
+      # optimally the grep search should only be done once but doing so would 
+      # make it difficult to implement in a simple structure/manner ... 
+      # the overhead is minimal relative to the speed of modelling and posterior sampling
+      i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+      i_depth = grep("depth", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+      i_slope = grep("slope", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+      i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
+      
+      exp( s$latent[i_intercept,1] + s$latent[ i_depth,1] + s$latent[ i_slope,1]  
+          + s$latent[ i_spatial.field,1] ) - p$Yoffset 
+    }
+   
     spacetime.db( p=p, DS="bigmemory.inla.reset.input", 
                   B=bathymetry.db( p=p, DS="z.lonlat.discretized" ) )
     spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
