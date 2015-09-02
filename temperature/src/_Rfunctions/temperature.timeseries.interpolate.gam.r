@@ -50,16 +50,16 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
 
         # data transformations and creation of new variables where required for raw data 
         if ( p$tsmethod %in% c( "harmonics.1", "harmonics.2", "harmonics.3"  ) ) {
-          x$tiyr =  x$yr + x$weekno/52
-          x$cos.w  = cos( x$tiyr )
-          x$sin.w  = sin( x$tiyr )
+          x$tiyr =  2*pi* ( x$yr + x$weekno/52 )
+          x$cos.w  = cos( 2*pi*x$tiyr )
+          x$sin.w  = sin( 2*pi*x$tiyr )
          
           years.with.data = unique( x$yr)
           no.years = which( !( z$yr %in% years.with.data) )
           # z$tiyr0 = z$yr + z$weekno/52 
           z$yr[ no.years ] = median( years.with.data) 
             # alter years to be within model range
-          z$tiyr = z$yr + z$weekno/52 
+          z$tiyr = 2*pi* ( z$yr + z$weekno/52 )
           z$cos.w  = cos( z$tiyr )
           z$sin.w  = sin( z$tiyr )
           
