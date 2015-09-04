@@ -116,6 +116,8 @@
         return( bathy )
       }
 
+      print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
+
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) # larger
     
       # gridding here needs to have a higher resolution than the internal representation 

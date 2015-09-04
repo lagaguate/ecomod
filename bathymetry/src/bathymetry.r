@@ -16,10 +16,7 @@
 		p = spatial.parameters( type="canada.east", p=p )
     bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
 
-    # used for inla analysis 
- 		p = spatial.parameters( type="canada.east.highres", p=p )
-    bathymetry.db ( p, DS="z.lonlat.discretized.redo" ) # to ~5 arc-seconds and about 20 min, 40 GB RAM (2015, Jae)
-  }
+ }
 
 
   process.bathymetry.data.via.inla = FALSE
@@ -48,9 +45,11 @@
     p$n.min = 100
     p$n.max = 15000 # numerical time/memory constraint
 
-    p$inla.mesh.offset   = p$pres * c( 5, 25 ) # km
-    p$inla.mesh.max.edge = p$pres * c( 5, 25 ) # km
-    p$inla.mesh.cutoff   = p$pres * c( 2.5, 25 ) # km 
+    p$inla.mesh.max.edge = c(  0.02,   0.04 )    # proportion of 2*p$dist.max or equivalent: c(inside,outside)
+    p$inla.mesh.offset   = c(  0.02,   0.04 )   # how much to extend inside and outside of boundary: proportion of dist.max
+    p$inla.mesh.cutoff   = c(  0.004,   0.01)    ## min distance allowed between points: proportion of dist.max 
+    p$inla.mesh.hull.radius = c( 0.02, 0.04 )    # fraction of lengthscale
+    p$inla.mesh.hull.resolution = 125 
 
     p$inla.alpha = 2 # bessel function curviness
     p$inla.nsamples = 5000 # posterior similations 
@@ -59,7 +58,7 @@
 
     p$Yoffset = 1000 ## data range is from -383 to 5467 m .. shift all to positive valued as this will operate on the logs
 
-    p$modelformula = formula( depth ~ -1 + intercept + f( spatial.field, model=S0 ) )
+    p$modelformula = formula( ydata ~ -1 + intercept + f( spatial.field, model=S0 ) )
     
     p$predict.in.one.go = FALSE # use false, one go is very very slow and a resource expensive method
     
@@ -73,10 +72,17 @@
       i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
       exp(s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] ) - p$Yoffset 
     }
-   
-    spacetime.db( p=p, DS="bigmemory.inla.reset.input", 
-                  B=bathymetry.db( p=p, DS="z.lonlat.discretized" ) )
-    spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
+  
+    reset.input = FALSE
+    if (reset.input) {
+      bathymetry.db ( p, DS="z.lonlat.discretized.redo" )  # Warning: req ~ 20 min, 40 GB RAM (2015, Jae)
+      spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=bathymetry.db( p=p, DS="z.lonlat.discretized" ) )
+    }
+
+    reset.output = FALSE
+    if (reset.output) {
+      spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
+    }
 
     # cluster definition
     # do not use all CPU's as INLA itself is partially run in parallel
