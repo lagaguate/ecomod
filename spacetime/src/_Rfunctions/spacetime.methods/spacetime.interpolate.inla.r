@@ -141,10 +141,6 @@
       S[dd,5] = inla.summary["spatial error", "mode"]
       S[dd,6] = inla.summary["observation error", "mode"]
 
-      ### TODO compute slope and curvature here ...
-      ### S[dd,7] = local.slope( )
-      ### S[dd,8] = local.curvature( )
-      
       # ----------------
       # predict upon grid
 
@@ -174,9 +170,11 @@
         rm( posterior ); gc() 
         
         # merge in lattice coordinates for pa (and remove missing locations .. below)
-        pa = merge(pa0, pa, all.x=TRUE, all.y=FALSE, sort=FALSE)
+        pa = merge(pa0, pa, by=c("plons", "plats"), all.x=TRUE, all.y=FALSE, sort=FALSE)
         rm(pa0); gc()
       } 
+   
+      if (0) levelplot( xmean ~ plons+plats, pa, aspect="iso" )
 
       # merge mean, variance estimates of predictions with those from other locations via the
       # incremental method of mean (and variance) estimation after Knuth ; see 
@@ -186,7 +184,7 @@
       if (length(good) < 1) next()
       pa = pa[good,]
       ii = pa$i
-
+      
       P[ii,1] = P[ii,1] + 1 # n
       P[ii,2] = P[ii,2] + ( pa$xmean - P[ii,2] )/P[ii,1] # update mean 
       P[ii,3] = P[ii,3] + ( pa$xsd - P[ii,3] ) /P[ii,1] # update sd

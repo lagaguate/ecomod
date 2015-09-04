@@ -32,7 +32,7 @@
       # create file backed bigmemory objects
       
       if ( DS=="bigmemory.inla.reset.input" ) {
-        spacetime.db( p=p, DS="inputdata.bigmemory.intialize" )
+        spacetime.db( p=p, DS="inputdata.bigmemory.intialize", B=B )
       }
       
       if ( DS=="bigmemory.inla.reset.output" ) {  # only outputs reset ... not input bigmemory object
@@ -60,8 +60,8 @@
       rlon = range(B$plon, na.rm=TRUE)
       rlat = range(B$plat, na.rm=TRUE)
       
-      glon = seq( rlon[1], rlon[2], by=p$pres/5 )
-      glat = seq( rlat[1], rlat[2], by=p$pres/5 )
+      glon = seq( rlon[1], rlon[2], by=p$pres )
+      glat = seq( rlat[1], rlat[2], by=p$pres )
 
       B$plon = grid.internal( B$plon, glon )
       B$plat = grid.internal( B$plat, glat )

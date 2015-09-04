@@ -121,7 +121,7 @@
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) # larger
     
       # gridding here needs to have a higher resolution than the internal representation 
-      # as it is still being treated as "rawdata": so use CHS standard of (p$dres=15 arc second)/3 = 5 arc seconds 
+      # as it is still being treated as "rawdata": so use CHS standard of p$dres=15 arc seconds 
       
       rlon = range(B$lon, na.rm=TRUE)
       rlat = range(B$lat, na.rm=TRUE)

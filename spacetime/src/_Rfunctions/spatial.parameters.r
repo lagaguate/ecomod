@@ -72,8 +72,8 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
     p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N "
-    p$dres = 1/60/4/3  # CHS is 15 arc second ~0.5km .. so this is 5 arc sec ~ 0.5km/3 ~ 0.15 km
-    p$pres = 0.2  # discretize to 0.2 km resolution
+    p$dres = 1/60/4  # CHS is 15 arc second ~ 0.25 km
+    p$pres = 0.25  # discretize to 0.25 km resolution
     p$lon0=-72
     p$lon1=-52
     p$lat0=40

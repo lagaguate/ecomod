@@ -7,36 +7,16 @@ point.in.block = function( focal, dta, dist.max, n.min=100, n.max=100000 ) {
 
   j = which( dlon  <= dist.max  & dlat <= dist.max  ) # faster to take a block 
   ndat = length(j)
-  # print( ndat )
   if ( ndat < n.min ) return(NULL)
   
   # shrink distance until target number of cases ... assuming uniform density and compute in tems of ratio of radii: 
-  dist.cur =  dist.max
-  n.eps = n.max * 0.1 # small buffer
-  fraction = 0.5
   stuck = 0
-  while ( ndat > ( n.max + n.eps ) ) {
-    ndat.good = ndat
-    dist.good = dist.cur
-    dist.cur = dist.good * fraction
-    j.good = j
-    j = which( dlon <= dist.cur  & dlat <= dist.cur ) # faster to take a block 
+  for ( fraction in c( 1.0, 0.8, 0.6, 0.4, 0.2, 0.1 ) )  {
+    dist.cur = dist.max * fraction
+    j = which( dlon <= dist.cur & dlat <= dist.cur ) # faster to take a block 
     ndat = length(j)
-    if ( ndat == ndat.good ) stuck = stuck + 1
-    if ( ndat <( n.max-n.eps)  ) {
-      # overshot ... reset and use a smaller fraction
-      fraction = 0.8
-      dist.cur = dist.good
-      ndat = ndat.good
-      j = j.good
-      stuck = stuck +1 
-    }
-    if ( stuck > 2 ) {
-      fraction = fraction + 0.025 
-    } 
-    if (stuck > 5 ) {
-      break()
-    }
+    threshold = runif( 1, min=-0.1, max=0.1 )
+    if ( ndat <= ( n.max + threshold ) ) break() 
     print( paste( "  ... finding smaller N / distance:", ndat, dist.cur, fraction ))
   }
 
