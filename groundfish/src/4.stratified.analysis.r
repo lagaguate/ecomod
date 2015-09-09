@@ -1,11 +1,11 @@
  p = list()
  p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
- p$init.files = c(p$init.files,loadfunctions( "BIOsurvey") 
+ p$init.files = c(p$init.files,loadfunctions( "BIOsurvey") )
 
-p$strat=440:495
+p$strat=490:495
 p$series =c('summer')# p$series =c('4vswcod');p$series =c('georges')
-p$years.to.estimate = c(1970:2014)
-p$species = c(202,204,300,320)
+p$years.to.estimate = c(1970:2015)
+p$species = c(2550)
 p$vessel.correction = T
 p$vessel.correction.fixed = 1.2
 p$length.based = F
@@ -49,24 +49,24 @@ out = groundfish.analysis(DS='ab.redo',p=p)
 
 
 #figure stratified analysis Note--the values after comments are the other options
-p$add.reference.lines = T
+p$add.reference.lines = F
 p$time.series.start.year = 1970
-p$time.series.end.year = 2013
+p$time.series.end.year = 2015
 p$reference.start.year = 1999
 p$reference.end.year = 2013
 p$add.primary.line = F # the center estimate for reference point
-p$metric = 'weights' #weights
-p$measure = 'stratified.total' #'stratified.total'
+p$metric = 'numbers' #weights
+p$measure = 'stratified.mean' #'stratified.total'
 
 p$reference.measure = 'median' # mean, geomean 
-p$file.name = 'winterskate-4vsw.png'
+p$file.name = 'lfa35-38 lobster.png'
        
 #stock reference lines based on primary measure as above
-  p$add.upper.lower = T
+  p$add.upper.lower = F
         p$upper.reference.line = 0.8
         p$lower.reference.line = 0.4
         
-        p$figure.title = 'Winter skate 4VsW'
+        p$figure.title = 'Lobster 35-38'
         p$y.maximum = NULL # NULL # if ymax is too high for one year
 	p$show.truncated.numbers = F #if using ymax and want to show the numbers that are cut off as values on figure
 
@@ -74,7 +74,8 @@ p$file.name = 'winterskate-4vsw.png'
         p$running.median = T
 		p$running.length = 3
 		p$running.mean = F #can only have rmedian or rmean
-
+p$error.polygon=F
+p$error.bars=T
 		
 
      ref.out=   figure.stratified.analysis(x=aout,p=p)
