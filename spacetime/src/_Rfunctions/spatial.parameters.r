@@ -1,10 +1,11 @@
 
 
-spatial.parameters = function( p=NULL, type="SSE" ) {
+spatial.parameters = function( p=NULL, type=NULL ) {
 
   if (is.null(p)) p=list()
-  
+
   if ( ! exists("spatial.domain", p) ) p$spatial.domain = type
+  if ( ! is.null(type)) p$spatial.domain = type  # type has priority over p$spatial.domain
    
   if ( p$spatial.domain %in% c("SSE", "snowcrab") ) {
     # source raw data for bathymetry:
@@ -71,7 +72,7 @@ spatial.parameters = function( p=NULL, type="SSE" ) {
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
     p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N "
-    p$dres = 1/60/4/2  # CHS is 15 arc second ~ 0.5km/2 
+    p$dres = 1/60/4  # CHS is 15 arc second ~ 0.25 km
     p$pres = 0.25  # discretize to 0.25 km resolution
     p$lon0=-72
     p$lon1=-52
