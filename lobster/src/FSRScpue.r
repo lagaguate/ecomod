@@ -2,7 +2,6 @@ loadfunctions("lobster")
 
 RLibrary("plyr","lattice")
 
-loadfunctions("lobster")
 
 #LATEST DATA EXPORT FROM FSRS DATABASE:
 #lobster.db("fsrs.redo")
@@ -37,7 +36,7 @@ subareas<-read.csv(file.path( project.datadirectory("lobster"), "data","LFA2733s
 FSRSvesday.dat<-merge(FSRSvesday.dat,subareas,all.x=T)
 FSRSvesday.dat$SYEAR<-as.numeric(substr(FSRSvesday.dat$S_LABEL,1,4))
 
-pdf(file.path( project.datadirectory("lobster"), "R","FSRScpue.pdf"))
+pdf(file.path( project.directory("lobster"), "R","FSRScpue.pdf"))
 
 #---------------------------------------------------------------------------LFA27
 
@@ -700,28 +699,75 @@ pdf(file.path( project.datadirectory("lobster"), "R","FSRScpue.pdf"))
 		mtext("CPUE (No. Lobsters/Trap)",2,2,outer=T,las=0)
 		mtext("LFA 33 west",3,1,outer=T,las=0)
 
+#---------------------------------------------------------------------------LFA34
+
+	FSRS.LFA34.dat<-subset(FSRSvesday.dat,LFA==34)
+
+	# Create column for week of season (WOS)
+	season<-unique(FSRS.LFA34.dat$S_LABEL)
+	for(i in 1:length(season)){
+		FSRS.LFA34.dat$WOS[FSRS.LFA34.dat$S_LABEL==season[i]]<-floor((FSRS.LFA34.dat$HAUL_DATE[FSRS.LFA34.dat$S_LABEL==season[i]]-min(FSRS.LFA34.dat$HAUL_DATE[FSRS.LFA34.dat$S_LABEL==season[i]]))/7)+1
+	}
+
+
+	LFA34.week<-ddply(FSRS.LFA34.dat,.(SYEAR, VESSEL_CD,WOS),summarize,SHORTS=sum(SHORTS),LEGALS=sum(LEGALS),TRAPS=sum(TOTAL_TRAPS))
+
+	LFA34.week$s.cpue=LFA34.week$SHORTS/LFA34.week$TRAPS
+	LFA34.week$l.cpue=LFA34.week$LEGALS/LFA34.week$TRAPS
+	LFA34.week$logTRAPS=log(LFA34.week$TRAPS)
+
+	LFA34.year<-ddply(FSRS.LFA34.dat,.(LFA,SYEAR),summarize,SHORTS=sum(SHORTS),LEGALS=sum(LEGALS),TRAPS=sum(TOTAL_TRAPS))
+
+	LFA34.year$s.cpue=LFA34.year$SHORTS/LFA34.year$TRAPS
+	LFA34.year$l.cpue=LFA34.year$LEGALS/LFA34.year$TRAPS
+
+	# Generalized linear model for sub-legals
+	LFA34.glm1=glm(SHORTS~as.factor(VESSEL_CD) + as.factor(SYEAR) + WOS + offset(logTRAPS) ,data=LFA34.week, family=poisson(link="log"))
+	summary(LFA34.glm1)
+
+		# determine most representative vessel for predictions
+		vessels<-unique(LFA34.week$VESSEL_CD)
+		vesselCoefs<-c(0,LFA34.glm1$coef[2:length(vessels)])
+		v<-which(abs(vesselCoefs-median(vesselCoefs))==min(abs(vesselCoefs-median(vesselCoefs))))[1]
+		
+		# predicted number
+		newdata<-data.frame(WOS=mean(LFA34.week$WOS),SYEAR=sort(unique(LFA34.week$SYEAR)),logTRAPS=mean(LFA34.week$logTRAPS),VESSEL_CD=vessels[v])
+		pred<-predict(LFA34.glm1,newdata=newdata,se.fit=T)
+		pred.total.short<-exp(pred$fit)
+		pred.short.cpue<-exp(pred$fit)/exp(newdata$logTRAPS[1])
+		LFA34.year$pred.s.cpue<-pred.short.cpue
+
+
+	# Generalized linear model for legals
+	LFA34.glm2=glm(LEGALS~as.factor(VESSEL_CD) + as.factor(SYEAR) + WOS + offset(logTRAPS) ,data=LFA34.week, family=poisson(link="log"))
+	summary(LFA34.glm2)
+
+		# determine most representative vessel for predictions
+		vessels<-unique(LFA34.week$VESSEL_CD)
+		vesselCoefs<-c(0,LFA34.glm2$coef[2:length(vessels)])
+		v<-which(abs(vesselCoefs-median(vesselCoefs))==min(abs(vesselCoefs-median(vesselCoefs))))[1]
+		
+		# predicted number
+		newdata<-data.frame(WOS=mean(LFA34.week$WOS),SYEAR=sort(unique(LFA34.week$SYEAR)),logTRAPS=mean(LFA34.week$logTRAPS),VESSEL_CD=vessels[v])
+		pred<-predict(LFA34.glm2,newdata=newdata,se.fit=T)
+		pred.total.legal<-exp(pred$fit)
+		pred.legal.cpue<-exp(pred$fit)/exp(newdata$logTRAPS[1])
+		LFA34.year$pred.l.cpue<-pred.legal.cpue
+
+
+	par(mfrow=c(2,1),mar=c(0,1,0,1),omi=c(0.5,0.8,0.5,0.2),las=1)
+	plot(s.cpue~SYEAR, LFA34.year,ylim=c(0,7),xaxt='n')
+	axis(1,lab=F)
+	lines(pred.s.cpue~SYEAR, LFA34.year)
+	legend('topleft',c('unstandardized','predicted'),pch=c(1,NA),lty=c(NA,1),title="Sub-Legal",bty='n',inset=c(0,0.05),cex=0.8)
+	plot(l.cpue~SYEAR, LFA34.year,ylim=c(0,3.2))
+	lines(pred.l.cpue~SYEAR, LFA34.year)
+	legend('topleft',c('unstandardized','predicted'),pch=c(1,NA),lty=c(NA,1),title="Legal",bty='n',inset=c(0,0.05),cex=0.8)
+	mtext("CPUE (No. Lobsters/Trap)",2,2,outer=T,las=0)
+	mtext("LFA 34",3,1,outer=T,las=0)
+
 dev.off()
 
-FSRScpue.dat<-merge(rbind(LFA27north.year,LFA27south.year,LFA33east.year,LFA33west.year),rbind(LFA28.year,LFA29.year,LFA30.year,LFA31A.year,LFA31B.year,LFA32.year),all=T)
+FSRScpue.dat<-merge(rbind(LFA27north.year,LFA27south.year,LFA33east.year,LFA33west.year),rbind(LFA28.year,LFA29.year,LFA30.year,LFA31A.year,LFA31B.year,LFA34.year),all=T)
 write.csv(FSRScpue.dat,file.path( project.datadirectory("lobster"), "data","FSRScpue.csv"),row.names=F)
-
-
-#---------------------------------------------------------------------------Plots for Update
-	
-	FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRScpue.csv"))
-	require(lattice)
-
-	wd=9
-	ht=6
-	wd.r=0.7
-	ht.r=0.62
-
-	windows(wd,ht)
-	xyplot(pred.s.cpue~SYEAR|LFA, data=subset(FSRScpue.dat,LFA%in%c('28','29','30','31A','31B','32')), ylab="CPUE (No. Lobsters / Trap Haul)",xlab= "Year", main="", as.table=T,type='b',ylim=c(0,4.5))
-	windows(wd*wd.r,ht*ht.r)
-	xyplot(pred.s.cpue~SYEAR|subarea, data=subset(FSRScpue.dat,LFA=='27'), ylab="CPUE (No. Lobsters / Trap Haul)",xlab= "Year", as.table=T,type='b',ylim=c(0,4.5))
-	windows(wd*wd.r,ht*ht.r)
-	xyplot(pred.s.cpue~SYEAR|subarea, data=subset(FSRScpue.dat,LFA=='33'), ylab="CPUE (No. Lobsters / Trap Haul)",xlab= "Year", as.table=T,type='b',ylim=c(0,4.5))
-
-
 

@@ -1,7 +1,8 @@
 
-  lobster.db = function( DS="complete.redo") {
+  lobster.db = function( DS="complete.redo",yrs=1995:2014) {
 
 
+  require(lubridate)
     fn.root =  file.path( project.datadirectory("lobster"), "data", "ODBCDump")
     dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
     
@@ -22,6 +23,7 @@
         lobster.db( DS="vlog.redo")
         lobster.db( DS="fsra.redo")
         lobster.db( DS="scallop.redo")
+        lobster.db( DS="survey.redo")
       }
     }
 
@@ -51,8 +53,8 @@
     if (DS %in% c("atSea.redo", "atSea") ) {
 
      if (DS=="atSea.redo") {
-        require(RODBC)
-        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+       require(RODBC)
+       con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
         
         # atSea
         atSea = sqlQuery(con, "select * from FRAILC.LOBSTER_ATSEA_VW")
@@ -133,7 +135,7 @@
       load(file.path( fn.root, "fsrs.rdata"), .GlobalEnv)
      }
 
-     ## lobster catch from scallop survey traps 
+     ## lobster catch from scallop survey  
     if (DS %in% c("scallop.redo", "scallop") ) {
 
      if (DS=="scallop.redo") {
@@ -151,7 +153,54 @@
       load(file.path( fn.root, "scallopCatch.rdata"), .GlobalEnv)
       load(file.path( fn.root, "scallopTows.rdata"), .GlobalEnv)
     }
+    ## lobster catch from scallop survey  
+    if (DS %in% c("survey.redo", "survey") ) {
+
+      if (DS=="survey.redo") {
+        # survey
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        surveyCatch<-sqlQuery(con, "select * from lobster.ILTSSETS_MV")
+        surveyMeasurements<-sqlQuery(con, "select * from lobster.ILTSDETAILS_MV")
+        with(surveyMeasurements,paste(TRIPNO,SET_NO,sep=''))->surveyMeasurements$SET_ID
+        with(surveyCatch,paste(TRIP_ID,SET_NO,sep=''))->surveyCatch$SET_ID
+        surveyCatch$SET_LONG<-surveyCatch$SET_LONG*-1
+        surveyCatch$HAUL_LONG<-surveyCatch$HAUL_LONG*-1
+        surveyCatch$YEAR<-year(surveyCatch$BOARD_DATE)
+        surveyMeasurements$SET_LON<-surveyMeasurements$SET_LON*-1
+        surveyMeasurements$HAUL_LON<-surveyMeasurements$HAUL_LON*-1
+        save( surveyCatch, file=file.path( fn.root, "surveyCatch.rdata"), compress=T)
+        save( surveyMeasurements, file=file.path( fn.root, "surveyMeasurements.rdata"), compress=T)
+        gc()  # garbage collection
+      }
+      load(file.path( fn.root, "surveyCatch.rdata"), .GlobalEnv)
+      load(file.path( fn.root, "surveyMeasurements.rdata"), .GlobalEnv)
+    }
   }
 
 
-
+# to get data from PC's .Rdata files
+#
+#       surveySets.lst<-list()
+#        surveyLobsters.lst<-list()
+#        for(i in 1:length(yrs)){
+#          load(file.path( project.datadirectory("lobster"), "data", "ISDB",paste("lobster_",yrs[i],".Rdata",sep='')))
+#          trips<-subset(data$istrips,select=c("TRIP_ID","BOARD_DATE","LANDING_DATE"))
+#          sets<-subset(data$isfishsets,select=c("TRIP_ID","FISHSET_ID","SET_NO"))
+#          sets$TRIPSET_ID<-paste(sets$TRIP_ID,sets$SET_NO,sep='.')
+#          sets$YEAR<-yrs[i]
+#          data$issetprofile$TRIP_ID<-NA
+#          for(j in 1:nrow(trips)){
+#            data$issetprofile$TRIP_ID[ data$issetprofile$SETDATE>=trips$BOARD_DATE[j]&data$issetprofile$SETDATE<=trips$LANDING_DATE[j]]<-trips$TRIP_ID[j]
+#          }
+#          data$issetprofile$TRIPSET_ID<-paste(data$issetprofile$TRIP_ID,data$issetprofile$SET_NO,sep='.')
+#          profile.start<-subset(data$issetprofile,PNTCD_ID==2,c("TRIPSET_ID","SETDATE","SETTIME","DEPTH","LATITUDE","LONGITUDE"))
+#          names(profile.start)[-1]<-paste('start',names(profile.start)[-1],sep='.')
+#          profile.end<-subset(data$issetprofile,PNTCD_ID==3,c("TRIPSET_ID","SETDATE","SETTIME","DEPTH","LATITUDE","LONGITUDE"))
+#          names(profile.end)[-1]<-paste('end',names(profile.end)[-1],sep='.')
+#          catches<-subset(data$iscatches,SPECCD_ID==2550,c("FISHSET_ID","CATCH_ID","SET_NO","EST_NUM_CAUGHT","EST_COMBINED_WT"))
+#          surveySets.lst[[i]]<-merge(merge(sets,merge(profile.start,profile.end,all=T),all=T),catches,all=T)
+#          surveyLobsters.lst[[i]]<-subset(data$isfish,select=c("FISH_ID","CATCH_ID","FISH_NO","SEXCD_ID","FISH_LENGTH"))
+#        }
+#        surveySets<-do.call("rbind",surveySets.lst)
+#        surveyLobsters<-do.call("rbind",surveyLobsters.lst)
