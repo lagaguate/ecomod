@@ -67,18 +67,20 @@
     p$project.root = project.datadirectory( p$project.name )
       
     p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
-     
-    p$dist.max = 25 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+   
+    p$dist.max = 50 # length scale (km) of local analysis .. for acceptance into the local analysis/model
     p$dist.mwin = 1 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-    p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
-     
+    p$dist.pred = 0.90 # % of dist.max where **predictions** are retained (to remove edge effects)
+   
     ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
     p$n.min = 100
     p$n.max = 15000 # numerical time/memory constraint
 
-    p$inla.mesh.offset   = p$pres * c( 5, 25 ) # km
-    p$inla.mesh.max.edge = p$pres * c( 5, 25 ) # km
-    p$inla.mesh.cutoff   = p$pres * c( 2.5, 25 ) # km 
+    p$inla.mesh.max.edge = c(  0.02,   0.04 )    # proportion of 2*p$dist.max or equivalent: c(inside,outside)
+    p$inla.mesh.offset   = c(  0.02,   0.04 )   # how much to extend inside and outside of boundary: proportion of dist.max
+    p$inla.mesh.cutoff   = c(  0.004,   0.01)    ## min distance allowed between points: proportion of dist.max 
+    p$inla.mesh.hull.radius = c( 0.025, 0.05 )    # fraction of lengthscale
+    p$inla.mesh.hull.resolution = 120
 
     p$inla.alpha = 2 # bessel function curviness
     p$inla.nsamples = 5000 # posterior similations 
@@ -86,7 +88,6 @@
     p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
 
     p$Yoffset = 1000 ## data range is from XXX to YYY .. shift all to positive valued as this will operate on the logs
-
     p$predict.in.one.go = FALSE # use false, one go is very very slow and a resource expensive method
         
     p$modelformula = formula( substrate ~ -1 + intercept + depth + slope + curvature + f( spatial.field, model=S0 ) )
@@ -105,10 +106,18 @@
       exp( s$latent[i_intercept,1] + s$latent[ i_depth,1] + s$latent[ i_slope,1]  
           + s$latent[ i_spatial.field,1] ) - p$Yoffset 
     }
-   
-    spacetime.db( p=p, DS="bigmemory.inla.reset.input", 
-                  B=bathymetry.db( p=p, DS="z.lonlat.discretized" ) )
-    spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
+    
+    reset.input = FALSE
+    if (reset.input) {
+      # depends upon bathymetry
+      substrate.db ( p=p, DS="substrate.spacetime.input.redo" )  # Warning: req ~ 15 min, 30 GB RAM (2015, Jae)
+      spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=substrate.db( p=p, DS="substrate.spacetime.input" ) )
+    }
+
+    reset.output = FALSE
+    if (reset.output) {
+      spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
+    }
 
     # cluster definition
     # do not use all CPU's as INLA itself is partially run in parallel
@@ -118,11 +127,11 @@
     nS = spacetime.db( p, DS="statistics.bigmemory.size" )
     p = make.list( list( jj=sample( 1:nS ) ), Y=p ) # random order helps use all cpus 
     p = parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
-    
+  
     spacetime.plot( p=p, "predictions.mean.bigmemory" ) # directly from bigmatrix objects
- 
-    spacetime.db( p=p, DS="predictions.redo" ) # finalize predictions  
-    spacetime.db( p=p, DS="statistics.redo" )  # finalize statistics
+    
+    spacetime.db( p=p, DS="predictions.redo" )  
+    spacetime.db( p=p, DS="statistics.redo" )
     spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
 
   }

@@ -104,40 +104,7 @@
       return ( fn )
     }
 
- 
-    if ( DS %in% c("z.lonlat.discretized", "z.lonlat.discretized.redo" )) {
-          
-      datadir = project.datadirectory("bathymetry", "data" )
-			dir.create( datadir, showWarnings=F, recursive=T )
-      fn = file.path( datadir, "bathymetry.canada.east.lonlat.discretized.rdata" )
-      
-      if (DS =="z.lonlat.discretized" ) {
-        load( fn)
-        return( bathy )
-      }
 
-      print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
-
-      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) # larger
-    
-      # gridding here needs to have a higher resolution than the internal representation 
-      # as it is still being treated as "rawdata": so use CHS standard of p$dres=15 arc seconds 
-      
-      rlon = range(B$lon, na.rm=TRUE)
-      rlat = range(B$lat, na.rm=TRUE)
-      
-      glon = seq( rlon[1], rlon[2], by=p$dres ) 
-      glat = seq( rlat[1], rlat[2], by=p$dres )
-
-      B$lon = grid.internal( B$lon, glon )
-      B$lat = grid.internal( B$lat, glat )
-      B = B[ which( is.finite( rowSums(B) )), ]
-
-      bathy = block.spatial ( xyz=B[,c("lon", "lat","z")], function.block=block.mean )
-
-      save( bathy, file=fn, compress=TRUE)
-      return(fn)
-    }
 
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
 			
@@ -480,7 +447,7 @@
     }
  
 
-# ----------------
+  # ----------------
 	
 
     if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) { 
@@ -506,6 +473,29 @@
       save( id, file=fn, compress=T )
       return(fn)
     }     
+
+    # ----------------
+ 
+    if ( DS %in% c("bathymetry.spacetime.input", "bathymetry.spacetime.input.redo" )) {
+          
+      datadir = project.datadirectory("bathymetry", "data" )
+			dir.create( datadir, showWarnings=F, recursive=T )
+      
+      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "rdata", sep=".") )
+      
+      if (DS =="bathymetry.spacetime.input" ) {
+        load( fn)
+        return( B )
+      }
+      print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
+      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) 
+      B = lonlat2planar( B, proj.type=p$internal.projection ) 
+      B$plon = grid.internal( B$plon, p$plons )
+      B$plat = grid.internal( B$plat, p$plats )
+      B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
+      save( B, file=fn, compress=TRUE)
+      return(fn)
+    }
 
   }  
 

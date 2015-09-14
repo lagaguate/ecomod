@@ -1,7 +1,9 @@
 
   spacetime.db = function( DS, p, B=NULL ) {
-    
-    # B is the xyz data to work upon
+    #// usage: low level function to convert data into bigmemory obects to permit parallel
+    #// data access and maipulation
+    #// B is the xyz data to work upon
+    #/+
 
     if (DS %in% "bigmemory.inla.filenames" ) { 
 
@@ -47,31 +49,11 @@
     # ------------------
 
     if (DS == "inputdata.bigmemory.intialize" ) { 
-
       # create file backed bigmemory objects
-      # load bigmemory data objects pointers
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-   
-      # load raw data .. slow so only if needed
-      B = lonlat2planar( B, proj.type=p$internal.projection ) 
-      # 6 digits required to get complete distribution of diffs:  
-      # hist( log(diff( sort( unique( B$plat)) )) )
-
-      rlon = range(B$plon, na.rm=TRUE)
-      rlat = range(B$plat, na.rm=TRUE)
-      
-      glon = seq( rlon[1], rlon[2], by=p$pres )
-      glat = seq( rlat[1], rlat[2], by=p$pres )
-
-      B$plon = grid.internal( B$plon, glon )
-      B$plat = grid.internal( B$plat, glat )
-      B = B[ which( is.finite( rowSums(B) )), ]
-      B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
-
-      W = filebacked.big.matrix( nrow=nrow(B), ncol=3, type="double", dimnames=NULL, separated=FALSE, 
+      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )  # load bigmemory data objects pointers
+      W = filebacked.big.matrix( nrow=nrow(B), ncol=ncol(B), type="double", dimnames=NULL, separated=FALSE, 
         backingpath=p$tmp.datadir, backingfile=p$backingfile.W, descriptorfile=p$descriptorfile.W ) 
-      W[] = as.matrix( B[,c("plon", "plat", "z")] )
-     
+      W[] = as.matrix( B[] )
       return( describe(W) )
     }
    
@@ -180,8 +162,10 @@
 
 
       if ( DS =="statistics.redo" ) {
-        sss = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
-               
+        S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+        bad = which( S[,3] == p$fail.flag )
+        S[ bad, (3:ncol(S[]))] = NA
+
         sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
                       plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
         )
