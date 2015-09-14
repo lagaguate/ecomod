@@ -3,11 +3,10 @@
 
 ###########################RUN THE FOLLOWING CODE PRIOR TO FUNCTION   #######################################################################################
 ########				options(stringsAsFactors=F)																								            #
-########						 source("C:/Users/CookA/Desktop/Scripts/MPA stomach data/maps of species richness distrbutions.r")                          #
-########							load("C:\\Documents and Settings\\cooka\\Desktop\\Scripts\\GOMS 2009\\bathy1.RData")                                    #
-########							require(PBSmapping) ;require(mgcv);require(RColorBrewer); require(reshape)                                              #
+########							load("R:\\Science\\Population Ecology Division\\Shared\\!PED_Staff\\Adam Cook\\rmaps\\bathy\\bathy1.RData")             #
+########							require(PBSmapping) ;require(mgcv);require(RColorBrewer); require(reshape); require(RODBC)                              #
 ########							isob<-c(100,200)                                                                                                        #
-########                            source("R:\\Science\\Population Ecology Division\\Shared\\Adam Cook\\rmaps\\convert.dd.dddd.r")                         #
+########                            source("R:\\Science\\Population Ecology Division\\Shared\\!PED_Staff\\Adam Cook\\rmaps\\convert.dd.dddd.r")             #
 ########							bathy.poly<-list(NULL)                                                                                                  #
 ########							for(i in 1:length(isob)){                                                                                               #
 ########								bathy.cl<-contourLines(bathy.1,levels=isob[i])                                                                      #
@@ -16,11 +15,10 @@
 ########								attr(bathy.poly[[i]],"projection")<-"LL"                                                                            #
 ########							}                                                                                                                       #
 ########							ilty=c(2,1)                                                                                                             #
-########							atl<-read.table("R:\\Science\\Population Ecology Division\\Shared\\Adam Cook\\rmaps\\atlanticsHigh.ll", header=T)       #
+########				atl<-read.table("R:\\Science\\Population Ecology Division\\Shared\\!PED_Staff\\Adam Cook\\rmaps\\atlanticsHigh.ll", header=T)       #
 ########							atl.1<-thinPolys(atl,0.01)                                                                                              #
 ########							attr(atl.1,"projection")<-"LL"                                                                                          #
-########							require(RODBC)                                                                                                          #
-########							channel<-odbcDriverConnect("MSORCL32.dll")                                                                              #
+########				print('channel needs to be defined as your RODBC connection')																		#
 ########                                                                                                                                                    #
 #############################################################################################################################################################
 
@@ -33,7 +31,7 @@
 
 
 
-s.rich<-function(data.source,species, effort.corrected=T,res=0.27, sizes='R',IQR.mult=1.5) {
+speciesRichnessStomachMaps<-function(data.source,species, effort.corrected=T,res=0.27, sizes='R',IQR.mult=1.5) {
 
 	if(grepl('INV',toupper(species))) {s1=1700; s2=9000; spp='Invertebrate'}
 	if(grepl('FI',toupper(species))) {s1=1; s2=1100; spp='Finfish'}
