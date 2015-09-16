@@ -1,6 +1,8 @@
 
 loadfilelist = function( ...) {
-  print ( "Depricated .. use 'LoadFiles' instead ")
+  #// Deprecated .. use '_ecomodSetup/LoadFiles' instead
+  #// Source files
+  print ( "Deprecated .. use 'LoadFiles' instead ")
   LoadFiles( ... )
 }
 

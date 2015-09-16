@@ -51,3 +51,4 @@ require(PBSmapping)
 	# from ecomod_data/bathymetry/interpolated/canada.east.Z.interpolated.lonlat.grid.rdata
 	createBathyLines(input.fp=file.path( project.datadirectory("lobster"), "data", "maps","bathy"), input.fn="bathy",redo=F,dneg=F)
 
+	createBathyLines(input.fp=file.path( project.datadirectory("lobster"), "data", "maps","bathy"), input.fn="bathy",redo=F,dneg=F, interval=1,batch=10,range=c(1,100),save.by=100,output.fn="bathy1Poly")

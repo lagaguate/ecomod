@@ -35,9 +35,13 @@ or to load a specific file/function that fuzzy matches the 'functionname' criter
     loadfunctions( "snowcrab", functionname="current.assessment.year.r")  
     
 
-'loadfunctions()' is a simple function that reads in all files under a particular project directory in a structured manner. 
+loadfunctions() is a simple function that reads in all files under a particular project directory in a structured manner. 
 
     project.codedirectory( "spacetime" ) # returns the file path to the spacetime code directory under ecomod
     project.datadirectory( "spacetime" ) # returns the file path to the spacetime data directory under ecomod_data (or whatever you defined as the root data location in your Rprofile )
 
+To search for functions or key words with ecomod, use the following:
+
+    ecomod.help( "functionname" ) # find help for a given function ( anything that follows:  #// )
+    ecomod.search( "habitat" )   # search for every file for 'habitat' and return file name and line number
 

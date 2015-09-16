@@ -141,88 +141,34 @@
       return ( paste( filename.planar.grid, filename.planar, sep="\n" ) )
     } 
   
+    # ---------------
     
-    
-    if (DS %in% "bigmemory.inla" ) { 
-
-      # create file backed bigmemory objects
-
-      p$tmp.datadir = file.path( p$project.root, "tmp" )
-      if( !file.exists(p$tmp.datadir)) dir.create( p$tmp.datadir, recursive=TRUE, showWarnings=FALSE )
-
-      # input data stored as a bigmatrix to permit operations with min memory usage
-      p$backingfile.W = "input.bigmatrix.tmp"
-      p$descriptorfile.W = "input.bigmatrix.desc"
-
-      p$backingfile.P = "predictions.bigmatrix.tmp"
-      p$descriptorfile.P = "predictions.bigmatrix.desc"
-
-      p$backingfile.S = "statistics.bigmatrix.tmp"
-      p$descriptorfile.S = "statstics.bigmatrix.desc"
-     
-#      p$backingfile.Pmat = "predictions_mat.bigmatrix.tmp"
-#      p$descriptorfile.Pmat = "predictions_mat.bigmatrix.desc"
-
-      p$outfilename.P =  file.path( p$project.root, "data", "predictions.rdata" ) 
-      p$outfilename.S =  file.path( p$project.root, "data", "statistics.rdata" ) 
-
-     
-      # ------------------------------
-      # load raw data .. slow so only if needed
-      if (p$reload.rawdata) {
-        SS = substrate.db ( p, DS="lonlat.highres" )  # signif=7 for lat, lon  
+    if (DS %in% c("substrate.spacetime.input.redo", "substrate.spacetime.input") ) { 
+   
+      datadir = project.datadirectory("substrate", "data" )
+			dir.create( datadir, showWarnings=F, recursive=T )
+      fn = file.path( datadir, paste( "substrate", "spacetime", p$spatial.domain, "rdata", sep=".") )
+      
+      if (DS =="substrate.spacetime.input" ) {
+        load( fn)
+        return( substrate )
+      }
+      
+      SS = substrate.db ( p, DS="lonlat.highres" )  # signif=7 for lat, lon  
+      SS = lonlat2planar( SS, proj.type=p$internal.projection ) 
+      
+      # no need to discretize, however to bring in other covariates (depth) use discretization in planar coords 
+      SS$plon = grid.internal( SS$plon, p$plons )
+      SS$plat = grid.internal( SS$plat, p$plats )
+      SS = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
  
-        # add depth and related stats
-        #ZZ = bathymetry.db( p, DS="inla" )
-        ZZ = bathymetry.db( p, DS="inla" )
-       
-        SS = lonlat2planar( SS, proj.type=p$internal.projection )
-        # levelplot( z~plon+plat, SS, xlab='', ylab='', col.regions=colorRampPalette(c( "white", "darkblue", "black"), space = "Lab")(n), scale=list(draw=FALSE), aspect="iso", cuts=n )
-        
-        
-        W = filebacked.big.matrix( nrow=nrow(SS), ncol=3, type="double", dimnames=NULL, separated=FALSE, 
-          backingpath=p$tmp.datadir, backingfile=p$backingfile.W, descriptorfile=p$descriptorfile.W ) 
-        W[] = as.matrix( SS[,c("plon", "plat", "grainsize")] )
-      }
+      # add depth and related stats .. dependencies for inla-based modelling
+      ZZ = bathymetry.db( p, DS="inla" )
 
-      if (p$reset.outputfiles ) {
-        # ------------------------------
-        # prediction indices in matrix structure 
-        #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
-        #   backingpath=p$tmp.datadir, backingfile=p$backingfile.Pmat, descriptorfile=p$descriptorfile.Pmat ) 
-        # Pmat[] = c(1:(p$nplons*p$nplats))
-          # col=lat=ydir, row=lon=xdir is format of matrix image, etc
-          # Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons ) 
-          # P = as.vector(Pmat)
-          # Pmat[ cbind( round(( P$plon - p$plons[1]) / p$pres ) + 1, round(( P$plat - p$plats[1] ) / p$pres ) + 1 ) ] = P$var
-
-
-        # ------------------------------
-        # predictions storage matrix (discretized) 
-        P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=0, dimnames=NULL, separated=FALSE, 
-          backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
-
-        # ------------------------------
-        # statistics storage matrix ( aggregation window, AW )
-        sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
-                      plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
-        )
-        AW = expand.grid( sbbox$plons, sbbox$plats )
-        attr( AW , "out.attrs") = NULL
-        names( AW ) = c("plon", "plat")
-        statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
-        nstats = length( statsvars ) 
-        S = filebacked.big.matrix( nrow=nrow(AW), ncol=nstats+2, type="double", init=0, dimnames=NULL, separated=FALSE, 
-          backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
-        S[,1] = AW[,1]
-        S[,2] = AW[,2]
+      substrate = merge ( SS, ZZ, by=c("plon", "plat"), all.x=TRUE, all.y=FALSE, sort=FALSE )
       
-      }
-
-      S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
-      p$nS = nrow(S) 
-      
-      return(p)
+      save (substrate, file=fn, compress=TRUE)
+      return(fn)
     }
     
   }

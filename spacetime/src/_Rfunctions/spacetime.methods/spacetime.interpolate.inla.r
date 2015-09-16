@@ -1,5 +1,5 @@
  
-  spacetime.interpolate.inla = function( ip=NULL, p ) {
+  spacetime.interpolate.inla = function( ip=NULL, p, debugrun=FALSE ) {
 
     # ip is the first parameter passed in the parallel mode
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
@@ -30,19 +30,21 @@
       # inla.setOption(inla.call="/usr/lib/R/library/INLA/bin/linux/inla64" ) 
       focal = t(S[dd,])
       if (focal[3] != 0) next()
+      S[dd,3] = p$fail.flag   # this is a flag such that if a run fails (e.g. in mesh generation), it does not get revisited
+      # .. it gets over-written below if successful
 
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
       # slow ... need to find a faster solution
       ppp = NULL
-      ppp = try( point.in.block( focal[1,c(1,2)], W[,c(1,2)], dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max ) )
+      ppp = try( point.in.block( focal[1,c(1,2)], W[,c(1,2)], dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, shrink=TRUE ) )
       if( is.null(ppp)) next()
       if (class( ppp ) %in% "try-error" ) next()
       dist.cur = ppp$dist.to.nmax
       j = ppp$indices
       rm(ppp)
-  
-      if ( (dist.cur/p$dist.max) < 0.1 ) next()
-
+ 
+      if ( debugrun)  cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, "n=", length(j), "dist=", dist.cur, "\n" ), file=p$debug.file, append=TRUE ) 
+      
       # .. first create projector from mesh to output
       doff = p$inla.mesh.offset * (dist.cur/p$dist.max) # scale to dist.max
       mbuffer = sum( doff )
@@ -72,22 +74,28 @@
 
       rm( Pmat, pm_row, pm_col, pa_plons_cc, pa_plats_cc, pa_plons, pa_plats ) ; gc()
 
-      locs = W[ j, c(1,2)]
-      ydata = log( W[j,3] + p$Yoffset ) 
+      locs = W[ j, c(1,2)] + runif( length(j)*2, min=-p$pres*0.025, max=p$pres*0.025 ) 
+
+      ydata = log( W[j,3] + p$Yoffset )
+      rm(j); gc()
+
       lengthscale=dist.cur*2 
    
+      # note using convex hull boundaries below makes the solutions hang for unkown reasons ... do not use(yet)
+      # also sending direct distances rather than proportion seems to cause issues..
       M = NULL
       M =try(  
         inla.mesh.2d ( 
             loc=locs, # locations of data points
-            max.edge= p$inla.mesh.max.edge * lengthscale,  # max size of a triange (in, out) proportion of dist.max
-            offset = p$inla.mesh.offset * lengthscale,  # how much to extend inside and outside of boundary: proportion of dist.max
-            cutoff = p$inla.mesh.cutoff * lengthscale, # min distance allowed between points: proportion of dist.max 
-            boundary = list( 
-              inla.nonconvex.hull(locs, convex=p$inla.mesh.hull.radius[1]*lengthscale, resolution=p$inla.mesh.hull.resolution ) ,  
-              inla.nonconvex.hull(locs, convex=p$inla.mesh.hull.radius[2]*lengthscale, resolution=p$inla.mesh.hull.resolution ) ) 
+            max.edge = p$inla.mesh.max.edge * lengthscale,  # max size of a triange (in, out) proportion of dist.max
+            offset = -p$inla.mesh.offset ,  # how much to extend inside and outside of boundary: proportion of dist.max
+            cutoff = -p$inla.mesh.cutoff, # min distance allowed between points: proportion of dist.max 
+            #boundary = list( 
+            #  inla.nonconvex.hull(locs, convex=p$inla.mesh.hull.radius[1]*lengthscale, resolution=p$inla.mesh.hull.resolution ) ,  
+            #  inla.nonconvex.hull(locs, convex=p$inla.mesh.hull.radius[2]*lengthscale, resolution=p$inla.mesh.hull.resolution ) ) 
         ), silent=TRUE 
       )
+
       if ( "try-error" %in% class(M)) next()
       if ( is.null(M) ) next()  # some meshes seem to go into an infinite loop 
  
@@ -107,7 +115,7 @@
         effects = list( 
           c( list(intercept=rep(1,M$n )), 
              inla.spde.make.index(name='spatial.field', n.spde=S0$n.spde)),
-          covar=rep(1, length(j)))
+          covar=rep(1, length(ydata)))
       )
       rm( Aobs ) 
 

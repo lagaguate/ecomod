@@ -22,7 +22,7 @@
 # stippling = adds stippling to land (purely for visual effect)
 # lol = adds water colored border to coastline (purely for visual effect)
 
-LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs', bathy.source='topex', isobaths=c(seq(10,100,10),seq(100,1000,100)),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,gridlab=F,...){
+LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs',bathy.source='topex',isobaths=seq(100,1000,100),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,labels='lfa',LT=T,plot.rivers=T,...){
 
 		
 	require(PBSmapping)|| stop("Install PBSmapping Package")
@@ -82,15 +82,17 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 	
 	
 	# Bathymetry
-	
+		sn<-ifelse(sum(isobaths/10)==sum(round(isobaths/10)),"",1)
+		#browser()
 		if(!is.null(isobaths)){
 			bath.lst<-list()
 			for(i in unique(ceiling(isobaths/1000))){
-	 			load(file.path( project.datadirectory("lobster"), "data","maps", bathy.source, paste0("bathyPoly",i,".rdata")))
+	 			load(file.path( project.datadirectory("lobster"), "data","maps", bathy.source, paste0("bathy",sn,"Poly",i,".rdata")))
 	 			bath.lst[[i]]<-bathy.poly
 	 		}
  			bathy.poly<-do.call(rbind,bath.lst)
- 			bathy.poly<-subset(bathy.poly,Z%in%isobaths)
+ 		#browser()
+			bathy.poly<-subset(bathy.poly,Z%in%isobaths)
 			attr(bathy.poly,"projection") <- "LL"
 			addLines(bathy.poly,polyProps=data.frame(PID=unique(bathy.poly$PID),col=bathcol))
 			#browser()
@@ -114,23 +116,34 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 	# Boundries
 	if(boundaries=='LFAs'){
 		
-		LFAgrid<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","LFAgridPolys.csv"))
-		if(area=='31a')area<-31.1
-		if(area=='31b')area<-31.2
+		LFAs<-read.csv(file.path(project.datadirectory('lobster'),'data','maps','Polygons_LFA.csv'))
+		LFAgrid<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","GridPolys.csv"))
+		if(area=='31a')area<-311
+		if(area=='31b')area<-312
 
 		if(!is.na(as.numeric(area))){
 			lfa<-as.numeric(area)
 			grids<-subset(LFAgrid,PID==lfa)
-			addPolys(grids)
-			if(gridlab){
+			addPolys(grids,border=rgb(0,0,0,0.2))
+			if(labels=='grid'){
 				grids$label<-grids$SID
-        		grids.dat<-merge(calcCentroid(grids),grids[c("PID","SID","label")])[!duplicated(grids[c("PID","SID","label")]),]
-				addLabels(grids.dat,col=rgb(0.5,0.5,0.5,0.8),cex=1)
+        		grids.dat<-merge(calcCentroid(grids),grids[c("PID","SID","label")])
+				#addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.8),cex=1)
 			}
 		}
 		else {
 			addPolys(LFAgrid,border=rgb(0,0,0,0.2))
 		}
+		#browser()
+		addPolys(LFAs)
+		if(labels=='lfa'){
+			LFAgrid$label<-LFAgrid$PID
+			LFAgrid$label[LFAgrid$label==311]<-'31A'
+			LFAgrid$label[LFAgrid$label==312]<-'31B'
+    		LFAgrid.dat<-merge(calcCentroid(LFAgrid,1),LFAgrid[c("PID","label")])
+			#addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.8),cex=1.5)
+		}
+
 	}
 	if(boundaries=='scallop'){
 		
@@ -145,8 +158,10 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 	addLines(EEZ,lty=4,lwd=2)
 	
 	# plots land
-	addPolys(coast,col=land.col)
-	addLines(rivers)
+	if(LT){
+		addPolys(coast,col=land.col)
+		if(plot.rivers)addLines(rivers)
+	}
 	
 	if(stippling)addStipples (coast, pch='.')
 	
@@ -183,6 +198,10 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 		gridlines<-makeGrid(x,y,byrow=TRUE,addSID=TRUE,projection="LL",zone=NULL)
 		addLines(gridlines,col='grey80',lwd=1)
 	}
+	write.csv(subset(LFAgrid.dat,!duplicated(label)))		
+	if(labels=='lfa')addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0,0,0,0.5),cex=1.5,font=2)
+	if(labels=='grid')addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=1)
+
 
 	box(lwd=2)
 	

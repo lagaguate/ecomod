@@ -31,7 +31,7 @@
 
 
 
-interpolation<-function(contour.dat,ticks,nstrata,str.max,str.min,place=0,aspr,interp.method='gstat',res=0.01,maxdist=Inf,nmax=8,idp=0.5,mod.type="Sph",smooth=F,smooth.fun=median,smooth.procedure=1,sres=1/60.1,no.data='0',blank=T,blank.dist,blank.eff=0,blank.type=1,log.dat=F,covariate.dat=NULL,subset.poly=NULL,regrid=F,subset.eff=NA,subscale=res){
+interpolation<-function(contour.dat,ticks,nstrata,str.max,str.min,place=0,aspr,interp.method='gstat',res=0.01,maxdist=Inf,nmax=8,idp=0.5,mod.type="Sph",smooth=F,smooth.fun=median,smooth.procedure=1,sres=1/60.1,no.data='0',blank=T,blank.dist,blank.eff=0,blank.type=2,log.dat=F,covariate.dat=NULL,subset.poly=NULL,regrid=F,subset.eff=NA,subscale=res){
 	
 
 	print("contour start")
@@ -191,7 +191,7 @@ tick.def<-function(char,nstrata=4,min.str=0,max.str,place=0){
 # blank.bank.r ("Y:/Development/Georges/Survey Design/r/fn/blank.bank.r"): 
 # incorporates blanking distance by including zeros spaced eqully at the average nearest nieghbour distance, default blanking distance is the nearest neighbour distance of the most isolated point
 
-blank.bank<-function(surv.dat,blank.dist,aspr=aspr, type=1, eff=0,scale=0.1){
+blank.bank<-function(surv.dat,blank.dist,aspr=aspr, type=1, eff=0,scale=0.5,type.scaler=0.5){
 	
 	require(spatstat)
 #    browser()
@@ -203,8 +203,8 @@ blank.bank<-function(surv.dat,blank.dist,aspr=aspr, type=1, eff=0,scale=0.1){
     W<-owin(c(xmin-scale,xmax+scale),c(ymin-scale,ymax+scale))
     surv.ppp<-as.ppp(surv.pts,W)
     if(missing(blank.dist))blank.dist<-max(nndist(surv.ppp))
-    if(type==1)dims<-c(round((ymax-ymin)/mean(nndist(surv.ppp))*aspr),round((xmax-xmin)/mean(nndist(surv.ppp))))
-    if(type==2)dims<-c(round((ymax-ymin)/blank.dist*aspr),round((xmax-xmin)/blank.dist))
+    if(type==1)dims<-c(round((ymax-ymin)/(mean(nndist(surv.ppp))*type.scaler)*aspr),round((xmax-xmin)/(mean(nndist(surv.ppp))*type.scaler)))
+    if(type==2)dims<-c(round((ymax-ymin)/(blank.dist*type.scaler)*aspr),round((xmax-xmin)/(blank.dist*type.scaler)))
     blank.map<-distmap(surv.ppp,dim=dims)
     blank.dat<-data.frame(X=sort(rep(blank.map$xcol,blank.map$dim[1])),Y=rep(blank.map$yrow,blank.map$dim[2]),dist=as.vector(blank.map$v))
     blank.dat<-subset(blank.dat,dist>blank.dist,c('X','Y'))
