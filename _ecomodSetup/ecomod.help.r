@@ -36,20 +36,27 @@ ecomod.help = function( h="ecomod.help", filepattern="\\.r$") {
   docs.names = names( docs)
 
   mm = grep( h, docs.names, ignore.case=TRUE )
+  
   if (length(mm) == 0) return( "Function not found. Try refreshing local help with: ecomod.help('refresh')) ")
 
-    cat("\n")
-    cat( "Function is found at:" )
-    cat("\n\n")
-    cat( paste( " ", docs.names[mm], collapse="\n") )
-    cat( "\n\n" )
-    cat( "Help documentation:")
-    cat( "\n\n  " )
+  fname = paste(tempfile(), "hmtl", sep=".")
+  fn = file(fname, "w")
+  cat("\n", file=fn )
+  cat( "Function is found at:", file=fn  )
+  cat("\n\n", file=fn )
+  cat( paste( " ", docs.names[mm], collapse="\n"), file=fn  )
+  cat( "\n\n", file=fn  )
+  cat( "Help documentation:", file=fn )
+  cat( "\n\n  ", file=fn  )
 
-    out = paste( docs[[mm]],  collapse="\n  "  )
-    cat( ( out) )
-    cat( "\n" )
-    cat( "\n" )
+  out = paste( docs[[mm]],  collapse="\n  "  )
+  cat( ( out), file=fn  )
+  cat( "\n", file=fn  )
+  cat( "\n", file=fn  )
+   
+  close(fn)
+
+  browseURL( fname )
 }
 
 
