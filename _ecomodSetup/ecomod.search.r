@@ -25,15 +25,23 @@ ecomod.search = function(  h="ecomod.help", ... ) {
   rr = which( lapply( res, length ) > 0)
 
   if (length( rr) > 0 ) {
-    cat( "\nFile names and [line number] where matches were found: \n" )
-    cat( "\n" )
+    
+    fname = paste(tempfile(), "hmtl", sep=".")
+    fn = file(fname, "w")
+
+    cat( "\nFile names and [line number] where matches were found: \n", file=fn  )
+    cat( "\n", file=fn  )
     for ( r in rr ) {
       output = res[r]
-      cat( paste( names( output), ":" ))
-      cat("\n\n")
-      cat( paste(" ", unlist(output), sep="\n" ) )
-      cat("\n\n")
+      cat( paste( names( output), ":" ), file=fn )
+      cat("\n\n", file=fn )
+      cat( paste(" ", unlist(output), sep="\n" ), file=fn  )
+      cat("\n\n", file=fn )
     }
+      
+    close(fn)
+    browseURL( fname )
+
   } else {
     cat( "No matches were found \n") 
   }
