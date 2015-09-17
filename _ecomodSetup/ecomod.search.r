@@ -8,8 +8,8 @@ ecomod.search = function(  h="ecomod.help", ... ) {
     return("Pass keyword or a regular expression (?regex)") 
   }
 
-  if ( !file.exists( fn.code) ) ecomod.help( "refresh" )
   fn.code = file.path( ecomod.workdirectory, "ecomod.help.sourcecode.rdata" )
+  if ( !file.exists( fn.code) ) ecomod.help( "refresh" )
   load( fn.code )
 
     extractData = function(X, h, ... ) { 
@@ -25,23 +25,19 @@ ecomod.search = function(  h="ecomod.help", ... ) {
   rr = which( lapply( res, length ) > 0)
 
   if (length( rr) > 0 ) {
-    
     fname = paste(tempfile(), "hmtl", sep=".")
     fn = file(fname, "w")
-
-    cat( "\nFile names and [line number] where matches were found: \n", file=fn  )
-    cat( "\n", file=fn  )
-    for ( r in rr ) {
-      output = res[r]
-      cat( paste( names( output), ":" ), file=fn )
-      cat("\n\n", file=fn )
-      cat( paste(" ", unlist(output), sep="\n" ), file=fn  )
-      cat("\n\n", file=fn )
-    }
-      
+      cat( "\nFile names and [line number] where matches were found: \n", file=fn  )
+      cat( "\n", file=fn  )
+      for ( r in rr ) {
+        output = res[r]
+        cat( paste( names( output), ":" ), file=fn )
+        cat("\n\n", file=fn )
+        cat( paste(" ", unlist(output), sep="\n" ), file=fn  )
+        cat("\n\n", file=fn )
+      }
     close(fn)
     browseURL( fname )
-
   } else {
     cat( "No matches were found \n") 
   }

@@ -74,7 +74,7 @@
 
       rm( Pmat, pm_row, pm_col, pa_plons_cc, pa_plats_cc, pa_plons, pa_plats ) ; gc()
 
-      locs = W[ j, c(1,2)] + runif( length(j)*2, min=-p$pres*0.025, max=p$pres*0.025 ) 
+      locs = W[ j, c(1,2)] + runif( length(j)*2, min=-p$pres*0.05, max=p$pres*0.05 ) # add 10% noise 
 
       ydata = log( W[j,3] + p$Yoffset )
       rm(j); gc()

@@ -20,7 +20,5 @@ iprof = grep( "ecomod.rprofile.r", ecomod.startupfiles )
 
 for ( sf in ecomod.startupfiles[-iprof] ) source( sf )
 
-ecomod.help( "refresh" ) ## refresh local help database
-
 ecomod.startupfiles  ## this is a global variable
 
