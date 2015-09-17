@@ -14,6 +14,7 @@
     sdsource = stomach.db( "sdsource.redo" )
     sdsto = stomach.db( "sdsto.redo" )
     sdtech = stomach.db( "sdtech.redo" )
+    sdprey = stomach.db( "prey.species.codes.redo" )
   }
   
   tx = taxonomy.db("gstaxa")
@@ -21,6 +22,7 @@
   sddet = stomach.db( "sddet" )
   sdinf = stomach.db( "sdinf" )
   sditem = stomach.db( "sditem" )
+  sdprey = stomach.db( "prey.species.codes" )
   
   S = stomach.db( "sdsto" )
   S$fishid = paste( S$mission, S$setno, S$fshno )
