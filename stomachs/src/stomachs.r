@@ -24,6 +24,11 @@
   sditem = stomach.db( "sditem" )
   sdprey = stomach.db( "prey.species.codes" )
   
+
+  sdsto = merge(sdsto,sdprey, by='preyspeccd')
+
+  #use speccd2 for species identification as it removes duplicate species names and errors
+
   S = stomach.db( "sdsto" )
   S$fishid = paste( S$mission, S$setno, S$fshno )
   S = S[!duplicated(S$fishid) ,]

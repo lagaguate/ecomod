@@ -165,8 +165,11 @@
       require(RODBC)
       connect=odbcConnect( oracle.taxonomy.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
       sdprey = sqlQuery(connect, "select * from mfd_stomach.prey_spec_details" )  
+
       odbcClose(connect)
       names(sdprey) =  tolower( names(sdprey) )
+      ik = which(names(sdprey)=='speccd')
+      names(sdprey)[ik] = 'preyspeccd'
       save(sdprey, file=fn, compress=T)
       return (sdprey)
     }
