@@ -138,6 +138,7 @@
   ### END GMT-based methods
 
 
+  # --------------------------
 
 
   ### START INLA-based methods
@@ -147,12 +148,7 @@
   if (process.bathymetry.data.via.inla) {
     ## ----- Adaptive estimation method (test) :
     # processing bathymetry data with RINLA  .. no GMT dependency 
-    redo.bathymetry.rawdata = FALSE
-    if ( redo.bathymetry.rawdata ) { 
-      p = spatial.parameters( type="canada.east", p=p )
-      bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-    }
-
+  
     # initialize bigmemory data objects
     p=list()
     p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
@@ -164,7 +160,13 @@
     p$project.root = project.datadirectory( p$project.name )
     
     p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
- 
+  
+    
+    redo.bathymetry.rawdata = FALSE
+    if ( redo.bathymetry.rawdata ) { 
+      bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+    }
+
     p$dist.max = 50 # length scale (km) of local analysis .. for acceptance into the local analysis/model
     p$dist.mwin = 1 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$dist.pred = 0.90 # % of dist.max where **predictions** are retained (to remove edge effects)
@@ -224,6 +226,9 @@
 #    p$clusters = c( "hyperion",  "nyx", "tartarus", "kaos", "tethys" ) 
     p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 5) )
     nS = spacetime.db( p, DS="statistics.bigmemory.size" )
+      
+    p = make.list( list( jj=sample( 1:nS ) ), Y=p ) # random order helps use all cpus 
+    p = parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
     
     if (0) {
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
@@ -240,10 +245,7 @@
       levelplot(  P[,2]  ~plons+plats, pps , aspect="iso" )
    
     }
-    
-    p = make.list( list( jj=sample( 1:nS ) ), Y=p ) # random order helps use all cpus 
-    p = parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
-  
+
     spacetime.plot( p=p, "predictions.mean.bigmemory" ) # directly from bigmatrix objects
     
     spacetime.db( p=p, DS="predictions.redo" )  
