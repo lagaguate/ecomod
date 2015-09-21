@@ -1,9 +1,9 @@
 
 variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FALSE, edge=c(1/3, 1), return.inla=FALSE ) {
   
-  # estimate empirical variograms and then model them using a number of different approaches
-  # returns empirical variogram and parameter estimates, and optionally the models themselves
-  # expect xyz = c(lon, lat, variable)
+  #\\ estimate empirical variograms and then model them using a number of different approaches
+  #\\ returns empirical variogram and parameter estimates, and optionally the models themselves
+  #\\ expect xyz = c(lon, lat, variable)
 
   require(sp)
   require(gstat)
