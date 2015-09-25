@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta content='IE=edge' http-equiv='X-UA-Compatible'>
+<meta content='GitLab Community Edition' name='description'>
+<title>STRANAL/images/06_area.png | master | Mike McMahon / PED_Analytics | GitLab</title>
+<link href="/assets/favicon-5738a6efe01f3282080df5f467da72a9.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+<link href="/assets/application-a81ca6d11d79fbf86ca08c8f1359de4d.css" media="all" rel="stylesheet" />
+<link href="/assets/print-47fe51cdf70398e5e54b544e0f5cc718.css" media="print" rel="stylesheet" />
+<script src="/assets/application-30bdeb208dee0386a7a7298371bab417.js"></script>
+<meta content="authenticity_token" name="csrf-param" />
+<meta content="eTrrU6DRoB9xXogQgUEpjQ0UudeFva2HbusIe5e5534=" name="csrf-token" />
+<script type="text/javascript">
+//<![CDATA[
+window.gon={};gon.default_issues_tracker="gitlab";gon.api_version="v3";gon.relative_url_root="";gon.default_avatar_url="http://gitlab.ssc.etg.gc.ca/assets/no_avatar-0b64d25ac5f63e6f0caee99e819105ba.png";gon.max_file_size=10;gon.current_user_id=261;gon.api_token="sy3NTigs5S6q3-CxpC-S";
+//]]>
+</script>
+<meta content='width=device-width, initial-scale=1, maximum-scale=1' name='viewport'>
+<meta content='#474D57' name='theme-color'>
+<link href="/assets/touch-icon-iphone-4c0496ac9f88e7961644c66b289a6614.png" rel="apple-touch-icon" type="image/vnd.microsoft.icon" />
+<link href="/assets/touch-icon-ipad-d64abe7a8e8be6e02245d2ed79da6ff9.png" rel="apple-touch-icon" sizes="76x76" type="image/vnd.microsoft.icon" />
+<link href="/assets/touch-icon-iphone-retina-54af16810ab006406b4df81f8a92fe8d.png" rel="apple-touch-icon" sizes="120x120" type="image/vnd.microsoft.icon" />
+<link href="/assets/touch-icon-ipad-retina-72774a950890a9e3811ab91f186cc11f.png" rel="apple-touch-icon" sizes="152x152" type="image/vnd.microsoft.icon" />
+<meta content='/assets/msapplication-tile-0cf7066c37c04d40809fdcc2bf53a754.png' name='msapplication-TileImage'>
+<meta content='#30353E' name='msapplication-TileColor'>
+
+
+
+
+<style>
+  [data-user-is] {
+    display: none !important;
+  }
+  
+  [data-user-is="261"] {
+    display: block !important;
+  }
+  
+  [data-user-is="261"][data-display="inline"] {
+    display: inline !important;
+  }
+  
+  [data-user-is-not] {
+    display: block !important;
+  }
+  
+  [data-user-is-not][data-display="inline"] {
+    display: inline !important;
+  }
+  
+  [data-user-is-not="261"] {
+    display: none !important;
+  }
+</style>
+
+</head>
+
+<body class='ui_charcoal' data-page='projects:blob:show'>
+<script>
+  window.project_uploads_path = "/mcmahon/PED_Analytics/uploads";
+  window.markdown_preview_path = "/mcmahon/PED_Analytics/markdown_preview";
+</script>
+
+<header class='header-expanded navbar navbar-fixed-top navbar-gitlab'>
+<div class='container'>
+<div class='header-logo'>
+<a class="home" data-placement="bottom" data-toggle="tooltip" href="/" id="js-shortcuts-home" title="Dashboard"><img alt="Logo" src="/assets/logo-ca207549507c811d027110077cf86e90.svg" />
+<div class='gitlab-text-container'>
+<h3>GitLab</h3>
+</div>
+</a></div>
+<div class='header-content'>
+<button class='navbar-toggle' type='button'>
+<span class='sr-only'>Toggle navigation</span>
+<i class="fa fa-bars"></i>
+</button>
+<div class='navbar-collapse collapse'>
+<ul class='nav navbar-nav pull-right'>
+<li class='hidden-sm hidden-xs'>
+<div class='search'>
+<form accept-charset="UTF-8" action="/search" class="navbar-form pull-left" method="get"><div style="display:none"><input name="utf8" type="hidden" value="&#x2713;" /></div>
+<input class="search-input form-control" id="search" name="search" placeholder="Search in this project" type="search" />
+<input id="group_id" name="group_id" type="hidden" />
+<input id="project_id" name="project_id" type="hidden" value="964" />
+<input id="search_code" name="search_code" type="hidden" value="true" />
+<input id="repository_ref" name="repository_ref" type="hidden" value="master" />
+
+<div class='search-autocomplete-opts hide' data-autocomplete-path='/search/autocomplete' data-autocomplete-project-id='964' data-autocomplete-project-ref='master'></div>
+</form>
+
+</div>
+<script>
+  $('.search-input').on('keyup', function(e) {
+    if (e.keyCode == 27) {
+      $('.search-input').blur()
+    }
+  })
+</script>
+
+</li>
+<li class='visible-sm visible-xs'>
+<a data-placement="bottom" data-toggle="tooltip" href="/search" title="Search"><i class="fa fa-search"></i>
+</a></li>
+<li class='hidden-xs'>
+<a data-placement="bottom" data-toggle="tooltip" href="/help" title="Help"><i class="fa fa-question-circle fa-fw"></i>
+</a></li>
+<li>
+<a data-placement="bottom" data-toggle="tooltip" href="/explore" title="Explore"><i class="fa fa-globe fa-fw"></i>
+</a></li>
+<li>
+<a data-placement="bottom" data-toggle="tooltip" href="/s/mcmahon" title="Your snippets"><i class="fa fa-clipboard fa-fw"></i>
+</a></li>
+<li class='hidden-xs'>
+<a data-placement="bottom" data-toggle="tooltip" href="/projects/new" title="New project"><i class="fa fa-plus fa-fw"></i>
+</a></li>
+<li>
+<a data-placement="bottom" data-toggle="tooltip" href="/profile" title="Profile settings"><i class="fa fa-cog fa-fw"></i>
+</a></li>
+<li>
+<a class="logout" data-method="delete" data-placement="bottom" data-toggle="tooltip" href="/users/sign_out" rel="nofollow" title="Sign out"><i class="fa fa-sign-out"></i>
+</a></li>
+</ul>
+</div>
+<h1 class='title'><span><a href="/u/mcmahon">Mike McMahon</a> / <a href="/mcmahon/PED_Analytics">PED_Analytics</a></span></h1>
+</div>
+</div>
+</header>
+
+
+<div class='page-sidebar-expanded page-with-sidebar'>
+
+<div class='sidebar-wrapper nicescroll'>
+<ul class='nav nav-sidebar'>
+<li class=""><a class="back-link" data-placement="right" href="/" title="Back to dashboard"><i class="fa fa-caret-square-o-left fa-fw"></i>
+<span>
+Back to Dashboard
+</span>
+</a></li><li class='separate-item'></li>
+<li class="home"><a class="shortcuts-project" data-placement="right" href="/mcmahon/PED_Analytics" title="Project"><i class="fa fa-home fa-fw"></i>
+<span>
+Project
+</span>
+</a></li><li class=""><a class="shortcuts-project-activity" data-placement="right" href="/mcmahon/PED_Analytics/activity" title="Project Activity"><i class="fa fa-dashboard fa-fw"></i>
+<span>
+Activity
+</span>
+</a></li><li class="active"><a class="shortcuts-tree" data-placement="right" href="/mcmahon/PED_Analytics/tree/master" title="Files"><i class="fa fa-files-o fa-fw"></i>
+<span>
+Files
+</span>
+</a></li><li class=""><a class="shortcuts-commits" data-placement="right" href="/mcmahon/PED_Analytics/commits/master" title="Commits"><i class="fa fa-history fa-fw"></i>
+<span>
+Commits
+</span>
+</a></li><li class=""><a class="shortcuts-network" data-placement="right" href="/mcmahon/PED_Analytics/network/master" title="Network"><i class="fa fa-code-fork fa-fw"></i>
+<span>
+Network
+</span>
+</a></li><li class=""><a class="shortcuts-graphs" data-placement="right" href="/mcmahon/PED_Analytics/graphs/master" title="Graphs"><i class="fa fa-area-chart fa-fw"></i>
+<span>
+Graphs
+</span>
+</a></li><li class=""><a data-placement="right" href="/mcmahon/PED_Analytics/milestones" title="Milestones"><i class="fa fa-clock-o fa-fw"></i>
+<span>
+Milestones
+</span>
+</a></li><li class=""><a class="shortcuts-issues" data-placement="right" href="/mcmahon/PED_Analytics/issues" title="Issues"><i class="fa fa-exclamation-circle fa-fw"></i>
+<span>
+Issues
+<span class='count issue_counter'>0</span>
+</span>
+</a></li><li class=""><a class="shortcuts-merge_requests" data-placement="right" href="/mcmahon/PED_Analytics/merge_requests" title="Merge Requests"><i class="fa fa-tasks fa-fw"></i>
+<span>
+Merge Requests
+<span class='count merge_counter'>0</span>
+</span>
+</a></li><li class=""><a class="team-tab tab" data-placement="right" href="/mcmahon/PED_Analytics/project_members" title="Members"><i class="fa fa-users fa-fw"></i>
+<span>
+Members
+</span>
+</a></li><li class=""><a data-placement="right" href="/mcmahon/PED_Analytics/labels" title="Labels"><i class="fa fa-tags fa-fw"></i>
+<span>
+Labels
+</span>
+</a></li><li class=""><a class="shortcuts-wiki" data-placement="right" href="/mcmahon/PED_Analytics/wikis/home" title="Wiki"><i class="fa fa-book fa-fw"></i>
+<span>
+Wiki
+</span>
+</a></li><li class="separate-item"><a data-placement="right" href="/mcmahon/PED_Analytics/edit" title="Settings"><i class="fa fa-cogs fa-fw"></i>
+<span>
+Settings
+</span>
+</a></li></ul>
+
+<div class='collapse-nav'>
+<a class="toggle-nav-collapse" href="#" title="Open/Close"><i class="fa fa-angle-left"></i></a>
+
+</div>
+<a class="sidebar-user" href="/u/mcmahon"><img alt="User activity" class="avatar avatar s32" src="/assets/no_avatar-0b64d25ac5f63e6f0caee99e819105ba.png" />
+<div class='username'>
+mcmahon
+</div>
+</a></div>
+<div class='content-wrapper'>
+<div class='container-fluid'>
+<div class='content'>
+<div class='flash-container'>
+</div>
+
+<div class='clearfix'>
+
+<div class='tree-ref-holder'>
+<form accept-charset="UTF-8" action="/mcmahon/PED_Analytics/refs/switch" class="project-refs-form" method="get"><div style="display:none"><input name="utf8" type="hidden" value="&#x2713;" /></div>
+<select class="project-refs-select select2 select2-sm" id="ref" name="ref"><optgroup label="Branches"><option selected="selected" value="master">master</option></optgroup><optgroup label="Tags"></optgroup></select>
+<input id="destination" name="destination" type="hidden" value="blob" />
+<input id="path" name="path" type="hidden" value="STRANAL/images/06_area.png" />
+</form>
+
+
+</div>
+<div class='tree-holder' id='tree-holder'>
+<ul class='breadcrumb repo-breadcrumb'>
+<li>
+<i class='fa fa-angle-right'></i>
+<a href="/mcmahon/PED_Analytics/tree/master">PED_Analytics
+</a></li>
+<li>
+<a href="/mcmahon/PED_Analytics/tree/master/STRANAL">STRANAL</a>
+</li>
+<li>
+<a href="/mcmahon/PED_Analytics/tree/master/STRANAL/images">images</a>
+</li>
+<li>
+<a href="/mcmahon/PED_Analytics/blob/master/STRANAL/images/06_area.png"><strong>
+06_area.png
+</strong>
+</a></li>
+</ul>
+<ul class='blob-commit-info well hidden-xs'>
+<li class='commit js-toggle-container'>
+<div class='commit-row-title'>
+<strong class='str-truncated'>
+<a class="commit-row-message" href="/mcmahon/PED_Analytics/commit/16bb6441eccc10d8cc489ceb1101326a4ffa9dfc">Added readme</a>
+</strong>
+<div class='pull-right'>
+<a class="commit_short_id" href="/mcmahon/PED_Analytics/commit/16bb6441eccc10d8cc489ceb1101326a4ffa9dfc">16bb6441</a>
+</div>
+<div class='notes_count'>
+</div>
+</div>
+<div class='commit-row-info'>
+<a class="commit-author-link has_tooltip" data-original-title="mike.mcmahon@dfo-mpo.gc.ca" href="/u/mcmahon"><img alt="" class="avatar s24" src="/assets/no_avatar-0b64d25ac5f63e6f0caee99e819105ba.png" width="24" /> <span class="commit-author-name">Mike McMahon</span></a>
+authored
+<div class='committed_ago'>
+<time class="time_ago js-timeago" data-placement="top" data-toggle="tooltip" datetime="2015-09-14T20:36:02Z" title="Sep 14, 2015 4:36pm">2015-09-14 17:36:02 -0300</time> &nbsp;
+</div>
+<a class="pull-right" href="/mcmahon/PED_Analytics/tree/16bb6441eccc10d8cc489ceb1101326a4ffa9dfc">Browse Code »</a>
+</div>
+</li>
+
+</ul>
+<div class='tree-content-holder' id='tree-content-holder'>
+<article class='file-holder'>
+<div class='file-title'>
+<i class="fa fa-file-image-o fa-fw"></i>
+<strong>
+06_area.png
+</strong>
+<small>
+7.82 KB
+</small>
+<div class='file-actions hidden-xs'>
+<div class='btn-group tree-btn-group'>
+
+<a class="btn btn-sm" href="/mcmahon/PED_Analytics/raw/master/STRANAL/images/06_area.png" target="_blank">Raw</a>
+<a class="btn btn-sm" href="/mcmahon/PED_Analytics/commits/master/STRANAL/images/06_area.png">History</a>
+<a class="btn btn-sm" href="/mcmahon/PED_Analytics/blob/b9aec90a268d0a509f64ff147a556b4c75429041/STRANAL/images/06_area.png">Permalink</a>
+</div>
+<button class="remove-blob btn btn-sm btn-remove" data-target="#modal-remove-blob" data-toggle="modal" name="button" type="submit">Remove
+</button>
+</div>
+</div>
+<div class='file-content image_file'>
+<img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKwAAAGECAIAAAAk21xgAAAABmJLR0QAAAAA&#x000A;AAD5Q7t/AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAe6UlEQVR4nO2dWXQc1ZmA&#x000A;SznJ25yBmB0DASYkIR6yKayZM0MyLzMnL5ixk4mJbcUQgzcwxnhfANuSjSSb&#x000A;1bZsy5YtGwtLxgSbkGQEQWCRsEQkwYssGQOWrL1b3drckupGc5eq6lq6uu9t&#x000A;ddVtl/57vqNTqq5e71f/Xf5alBFrUUNrUGgdCuWjUAEKrUehDfSvmQIr+Wmx&#x000A;zsFabtbE6XoqKU/qPOHCahNu2zylvULnatS5Su1cqXYuVzuWqh2L1Y7H1fbH&#x000A;1I5H1Y5H1PaH1fa5avtstX2W2oZ5SG17MDXtDzmYhRluM5jNxxzMUOtsK3MG&#x000A;zbTMiZ2bzbBVumIs0RrdgMKFKFyMwhtR+BnU/Szqfk4j/CxZY2dTWmy0UsxN&#x000A;kYVQIR9PO9iQSO71+nrn9uwpBagrH3WtJVp0PkmFoDZ0LlI7DBXmmVTg8yCB&#x000A;CrPMcKswx4zhAWPQik0FTQL6s7KKx1X+AuregiJbUaQERbYRuksSsZWyZXRs&#x000A;TsqLLryQiudd0J0mfifE2MD0rLCxDxRTqzZQG9aQCKGpsIRGhQVqx3xrSDA8&#x000A;mJm2ByIhwSnB7CQSGB4o1ICN5HuSH3cLrfjtKLITRXeh6G4U3YMiu3XK3NnF&#x000A;wU5BSl3YkZTt7lChyRc0wYS2rdS2NJ7IjN9M9CI2bEKhYhIemAqdT6idK2gD&#x000A;sYi0Du2GB0yCtD3IYNPgKgHzgEqg7frb6I/I6r4cRfeinpfU6EtqxMa+ROxN&#x000A;RbkIe9zZnZQyd3bp7IzTXaqz07SBGfJcsj8Q+ZgNZhUKaRuxFrcOugc0HrSz&#x000A;doEFgwdNEsxMoUIiD0wSZDok0F4CkYBGPBYASsm3rb0vR6HlnsVN0ZdRT+W5&#x000A;g3cpE5c29xxAdl7mpsLKfh7q1ucoBQVYRI1oSva5sFen3Moeym4t4MXXr9uY&#x000A;oxTXlhtPJPKdWjBZufVI/Q49KjAPNurxYK0eD3BvcaHa/igJBm1ziAckEsx0&#x000A;4GvTkKKL0DJbQZHN1AASA85V3Y5rv7h2vxqtaK66U1HuPNL4yrmDP1ImLm/u&#x000A;PYh6qjiodOC0x5VzB+9UJi5ppupQCZ520ciNJFbti2OXg6Gtx+87qWqzLh95&#x000A;rhqlkezolJx75jcb8SD8POklkGCwHnWto8OHVWrHMtoo0GDQZrQIrOJ/PXoP&#x000A;0msaKOTfxB5QCbaQQBctRQ2PTSYG7FOj+Gu/rPZUqT2vYJqJBCuaeg6qialy&#x000A;p1KEA5hmIsHSJrpMJSgk6/GHSUaFO/t1XoqTrFHDFBTn3H741H7Tc+nTSYu2&#x000A;tjgHB4NS2lPeQjuMz6JQkd5PxEOG1bSTuFhtX0h6Bm3zTGNFJsGvBUJC6qZB&#x000A;1ANzVLB4oGhhQGsI7qsj4leQPbgXG3BI7fkNlWBG0UTWSNx1uOEQXb+pWGs2&#x000A;cPlVHdVF7dloWplXxyxpXD45vgabsePIvfomE5c1maRpxu2OXopqK6kE04u0&#x000A;F5xeF61UMQ3L9FdTJlVuU6MHTBSa3n1aHfHjabymKH9aDtl4q9qwxPTcLaR2&#x000A;a6fFn5G/XltD2sEKolfDUn37qXWkPSqvK8iZdGATiqwi7cW7L9DxgtEiGBIs&#x000A;MbUItDlonWmSwKmCcEgYTRfB1jTYJCgjbcHEx2koxjtiFZYA9f6GSvBv5Fer&#x000A;2qX27CL1V/CMvrCJ2nCI1BYJFTvpyo0sfugriRZFtfHIQau2mC6X4u0nVe0w&#x000A;xxXigW4G/sWZDax2aZUX0lczbLjz8Cm6bFHhgL59CZPAIkQtDQ8Niycrd9Dd&#x000A;XQ8PtVNz6JrmqjuoDRX69iTY0PaIBAPyE+U/hSKrdQmepYPGp8n0Fxku2iSg&#x000A;LQKToBVX/AMZ9GB0XYTZti6Cog0KNAkWEQl6K+0STFzV1IOXX6VRYWVT46rJ&#x000A;yo8ON7zKJFAbV07GEaKW/m1gIeEVtXGF/m9xcQ5eYNVcbNpZadGE0FqWuATR&#x000A;SiJBfiGtY325Ns/27KJaS/Uzb/R9faupIissO732XFz9BabPc7tJgv3Ugw3F&#x000A;OdgMQ4Lyc1W3UQm2m/qGxXQeaZ0+Z7BMl2B+Igky5cGoRo+OwGBuDhoW0j5B&#x000A;hUo8qDI1B24SsHZBr+9aVut6jZJWAP9LQ73WIuDmoIjWimsHgkqwtMlc8XYJ&#x000A;cLtwwLHrE2hPlu30W49MZBJsoG+3X4/8U+ss/YPNeDMlv0CN7lMbFk0mErxE&#x000A;JSiI9wZIzGDNAe4zljdXYgme0PsErDlgfYK1Wsewk3YMNQnmxZsDLEHrAxqu&#x000A;Hvg9ejSigkJnBrEEO/EwicRqEhUraDetqm79XYcbX9U7hqTK9WUa+ScubzIi&#x000A;PNl9aWOvBXPaopMuntHv0yI5fYvpdbTr54RU5D1LmmiPj1b806plmYb3/A0J&#x000A;+4B0m/WkdkmNYgk2sx296KjR48PPzTfNW6yjj5Lph+ZKPCy67XA9HgL8Muee&#x000A;hU3aNvEnFh3F2++mfYJiFFlJm4PnLFMFXasRbgs6l1pGB6xjaJMghQoSRo/G&#x000A;6GAnmyM6d/AOc6xGvYfoEHFFM2kdXtGXD6Le4o2WPiAbHxaZVpKaRj2FxppJ&#x000A;VSXIukYhgcc2nbCBPYoDEu09bGBjP7q8ngzYLFEd76DmQeDm1++NPzap8kUU&#x000A;zacjfn2SwJgCIWVKHf6+dECkl9uOnNqDoms35uAFbbZAe6kDz5FZo+4nN+b8&#x000A;8Eg9HiIuJy/7zjN6W0B7hV1GGHiMThbNpWFgFjXggUQSyPXAMnpUyJDXaBHw&#x000A;79Kzl46PX6a7ZqVL3Dbvvi/HSTxm2594qGbDdczGMyPpnHNMMpNIpwK7d1JK&#x000A;LZOGdN6Q7u7PmLbfTbcvRUd/nnPPvGa8z5D59efoXHshNWANbQtWqp20N9Dx&#x000A;KJ0unEPDwIO6BC5krmmwIuYBmzHcTLuHpXq+oJxOqtDOkVbBFYTENbovToqK&#x000A;EZ0MTjL1uyvxNLBlMniHie0mtqndJTpbTRgrV5H4/66xPX76NnRq3mTlB0fq&#x000A;N9MkC20IwnSaiKSzcUOwgjYEj1MDHqYGPKRNE8Wr/H4ODzITEkRzjwr5Pt00&#x000A;exTR0wdEhTIyk0qigjHL5px53WOdeS1zsEtnp5XSOCmyQUkSQm7ZIGdukyQk&#x000A;VcKLavcLJp6nPEdhy+ZH8cbmZCbLJW7Sx4QFeivAugKL9RjAGgKWMjDq/n7T&#x000A;QiIVZDcNin4AwSYtiRzZoqfRsA079KoqtdbKNiu2/HKSZDFPRjhJ/tecCH7G&#x000A;TuLjFciBCGq4iBAqpDyts4GynsKWjYfolvRZ+nEMhdohBWQ0qMV/1LUcdRrH&#x000A;E8y3tAJtdEzYOkNt/ZXpr4sHKUaPaTYN/B4oaihfDRWo5HAS8yEFz9P6SFhn&#x000A;jrpJdryJ7bAR/kNCbAeAmEl4gNO6RAcsrVVDa9TQU4QuzJOUJyirKatMsDXs&#x000A;UbblU8Zz9cOTVuHIj3d9RJp/VveP6U3AXD1nONNqgMGMZB542UVIqYKifWHy&#x000A;e61j+wQKP43YHhAyKDJhrifnwTnmGspPdPRYkmPCeI4GW0VZGYfUygq9bjDL&#x000A;9L/LSDtNaouxmLKI8jhloV6LjIX6erYN254+F0f7zsUIoz1rgTYhSGYC5tJs&#x000A;oVH9uCJtdY/Jo8zg8kDG6FEhCdCulfpOwPRfQ5zowqxTu/Lp33X0X8wairFj&#x000A;PaF22litww7HW0len7Say8kIigyiGEsTYVSVUVtmHjdVnsECnUcp8008oh/6&#x000A;N08/6msuCdftc7Rfp22WHrof1Ja1X41tw7afZ8L0Cm1GepCN/Waobfebqh9X&#x000A;+XT61zDA4FcpmgYZHihkXyF7zDJaTytItXWtoKwkkLpcRdcbsBpdqrOE7m2L&#x000A;rZhrzrTDtbN9yGC+lYd15iXCqEJWDbP1WnzIdgDPMOHXhNYHhlvvNzGDkkdo&#x000A;mT7cMnW45ZcmppKV7FFty/sttGnQyr7fWt/T1ZZpasv0+L9x8hJ5IK1poEI4&#x000A;JTACIA16FFqvxkKCenXG0gWOen3EWqm0CtsMZuvMcqlLAyP/9kAc8sPNMDW6&#x000A;ecavP0yYRtCq9j7KFMr/Es79nDJ5+Nyk4XP/Y2ISXUkfZVtqz7ovTuvU4dZf&#x000A;YtTWqSr+22Jwn74wjX6MaVacKvA1DX6NHhUWV1Hf71D/OxzUuPM2oY/xR523&#x000A;rLxppdrB/zn4g53e3+v8zoxKeEPntyZej9NzhHKY8ppKEiIGr+nr6TbmZ1le&#x000A;xHjZN1Dvb3Xe0KEfpu/3HBjfyPmVbTh/JQ7633RD7WO8hXpfMyR4DPW98WrF&#x000A;4qVzLwXGFIcqFjIPqAT97+BVEShjrOBKxyEBJBjTRZdgFkgwdguudNxFAAnG&#x000A;dGES4PECSDB2i02CGpBgDBazBAtAgrFZdAkeAgnGbgEJoIAEUJgEfdVMgvmo&#x000A;/+2UEjwA5UIrvBK0PSggQW7JCHChABIAIAHgkwTV5IJHZZXua5wbAD7ihwRl&#x000A;Z0a+sNaxeU1ZeGTkzEgNSCAP7yWoHvmizlrHzjUlIIFMRCV4RFQCvKOvttax&#x000A;c00uSCAVEQlmiktQTUK9pY6da0oS/Av4iagEYs0B3ulZ1daYegC2NbkggWxE&#x000A;m4NHhSSosV4bGVezc42xJUggCxEJRKaNbW/jrGOIBNmDT5NFSSQgQ0SjhEem&#x000A;yP5FxiDeNgfABYFgc9AO08YBRECCVi0SpD6eACS4sOCW4E3WMQQJAoioBFxH&#x000A;FoEEFxYiEnCfdwASXFhwS/CWSs9FTCsSmDPFlSR/aBsQGqPEmmr5v8gYRFSC&#x000A;dCKBJZVMJVht/hDVprSC7SHAF7yXwJY4dkpgAuYNpSDSJ6BXKhGVwJ44NjUH&#x000A;9vrGD8GMoQxEI8HjYhK4JI4xU+rswR/rAn0CKfBK0P+W2j5XWAK3xDHDvHL1&#x000A;GU0XwH9EJJiDJViE+t8dTSrZ/N6GBCQqgAHy4JbgjywSLBaSwMAZCciuz3oA&#x000A;1ZA8lIyIBA9jCZag/qOjkSCeOHZMEsBUgSy4JXhbbX8ES7AsPQmAbEZAgo5H&#x000A;FbUTS1ALEgQMbglqmATLQYLgISLBApAgmHBL8I7a8Ri51D1IEDxEJFioqF0r&#x000A;0cB7IEHA4JbgXbVzEZZgNRr4U4ZTydUwPryAJFiskNvKiEuQPJU8xXqCOqSS&#x000A;/YdbgqOoc6lC7jk08GdPU8kggf9wS1CLOpcp5M5UA+97lEqGDIIsRCRYoZBb&#x000A;lQlJwJdK1maOwQBJiEiwUiE3rhv4wItUMgH6BJLgluA91LlKIbcxHPgw46nk&#x000A;JGsAH+CVYOBPuFMoLEGS2o2nkg0gpywJbgn+zCQoRAMfeZdKhrZACtwSvI+6&#x000A;1irkzrdpSQBkMwIShNYpangjOv8XkCBgcEvwgRoqwBJsQufrQIKAwS3Bh2p4&#x000A;g6J2P4vOfwwSBAxuCT5Sw4VYgudBguAhIEGoCEvwAjr/V5AgYPBKcP4vuFOI&#x000A;JdicjgSJLmdtuUwVXOBaKtwS1KnhZxQ1sgWd/9voU8mWi13DBa5lwy3Bx2r4&#x000A;OQVFtqHY30eTSl59hvzr/BwggUS4Jfgr6n4RS7ADxT4ZTSqZLNQlOI4IJJAI&#x000A;twR/Q91bsAS7UOzYaFLJeEGLBNacIUggEV4JYn/HTYGCortR7MRoUsm2a94b&#x000A;wQAkkAi3BJ/gpgBLsA/FTo7yAtdmCeAC19kAtwTHUbQMS7AfxepHk0WMX4cA&#x000A;moOsgVuCEyharqCeA6OUINeUO4YLXGcJ3BKcxE2BomIJBhtgxjBgcEtQr0b3&#x000A;YwleQbFGkCBgcEtwSo0ewBL8BsVOgwQBg1uCBrWnSlF7D6PYpyBBwOCWoFHt&#x000A;OYQleB0NngEJAga3BJ+qva9hCX6HBj8DCQIGrwSDZ3AUwBL8AQ1+nvFUMlzg&#x000A;Wi7cEnym9r6hqH1vosEvMptKhgtcS4dbgs9R3x8Utf+PaOisF6lkBswbSoFb&#x000A;gi9QXzWWoAYNNXmRSibABa4lwS3BWdT/loIG3kVDzV6kknPhAtfy4JTgH0NN&#x000A;/xiowZHgqJAE/KlkuMC1RHgjwVAT6n8HS/AeGjqX8VQyXJ5CLtwSNKP+o1iC&#x000A;P6OhlgynkuFkZNlwS3AODbyHJXgfDbV6mEqGqYKslqAFDfxJUQc+SE8CIJsR&#x000A;keB9LMGHaKgNJAgY3BK0ooEPsAQfgQTBg1uCNjTwoYLO16HhdpAgYPDOEwy3&#x000A;/eP8XxS1r0YdFJsxBLIfkRnDt5XBtgXDfXDD7KAhcueT+crAmbuGuisynEqG&#x000A;C1zLhlMCNbp/+IvblYHTuUPdL2U2lQwXuJYOtwT7hj//vtLf+IOh8D5PU8kg&#x000A;gf9wS7CXStDwvcHwXo9SyZBBkAWvBBEswfeUvobvDIbLM55Khgtcy4VbgvLh&#x000A;z76LJbhFSAL+VDIB+gRZLkG0fPhzIsGEwfAeL85KNraHw8v8R0SCW5TeUzcP&#x000A;hnZ7cVaytgZyyjIQaA6IBPXfHAyVeZdKhrZACvwSDH32r1iCb6QnAZDNcEuw&#x000A;Z+izCSBBMBGJBBOUnpNfj3XtAgkChlgk6DlxY6xrJ0gQMEQkuBlLcANIEDzE&#x000A;JIgevz7WVQoSBAwBCT7/NpbgunQkSHmBa+c2gI+INgfXxrp2ZPisZOc2gL9w&#x000A;S7CbSXCNsAQ8qWTb/ZQBfxGU4Pj4WNf2jKeS7fdTBrJUAtYcHL9aTAKeVLL7&#x000A;/ZQBfxCV4KpY17bMppKT308Z8AHR5uBKIQl4UsnJ76cMZJcEZ76FJbhCSAID&#x000A;nlQyRAJZ+C1BriOVnHAbwE/EJIhiCTpLYMYwYIj0CbAExy4HCYKHiATfxBJc&#x000A;BhIEDzEJeo5DJAgg3BKUgQSBRVSCy2JdIEHQEJXg0ljX1gynkmleMUFyGfAL&#x000A;EQm+gSW4JA0JUqSS6Ro42FwiIhLclJYEKVPJIIFsPJcgdSrZ1BzAjKEUPJZA&#x000A;5ALXU+rgJCQ5iEowTkgCsbOSIX2Q/RKcYRJ0boGzkgOGtxI4azdJKpk8BENE&#x000A;GQhKcOyro5QgN8lZyWCAJEQk+Hr6EgDZDLcEu5gEF4MEwUNEgn8BCYIJSAAI&#x000A;StB7HPoEAQQkAIQkuDFdCVKelZzwPGXAL4QlGOwSloAnlQwThRLxXoJUqeTk&#x000A;l7wGfMBzCVKmkpPdPRkIggQcqeQkyWXAH7yVgCeVnDy5DPgAtwQ7mQQXC0nA&#x000A;eVZykuQy4AMiEtwgLIFBklRyskteA77gtwS5ic5KdjtPGfAHnyQAshkRCa4H&#x000A;CYIJSACABABIAOSKStBz7CKQIHgISxDr3JzZVDJcwk46fkjAc4FrAtwNTRLe&#x000A;S8B9r2TIKctCuGMoKgH/vZLhHDRZeDw64D8rGdoCeXgrAf9ZydAWSMRbCfjP&#x000A;Soa2QCK8EnSXDn36NU9Sybns8hTQFsjDbwlyXVLJ0BZIxCcJgGwGJABAAgAk&#x000A;AHJBAiAXJAByxSS4Ll0JUp2VXDNiHzQCfiImQc+xdCRInkqOTxhD+kAS3kuQ&#x000A;KpUcnzzGfoAEMhBtDoQvUpE6lWw6MxVORJSCsARepJKNiWQ4B00K3krAea9k&#x000A;W0iQ/qOMNbyVgPOsZKPi4axkKXjcHOgkSSXXWO9+AZHAf/yWINeZSjbd+QQ6&#x000A;hlLwSQIgmwEJAJAAAAmAXJAAyAUJgFwxCa5NVwJTKjnxOci2XDPgL35IYEkl&#x000A;G+iJYzJtcAZOPpGJ9xJYU8kGtpwySCARbgl2pCmBLZVsYFsDEkjEYwkcqeT4&#x000A;euvxIyCBRMQk6DsxbnB090pmOI8vAgkkIiLBNcISuF2PKGXrAPiJtxIYmOs4&#x000A;4TnIIIFEJEhgOwc5fq/kETjaWA5iEvSmKwGQzYAEAEgAgARALkgA5HJLMNy9&#x000A;Y/D0eJAgmPgiQapUsjFKhKONpeCHBMlTyXjBfFQBnHfgPyJ9gvFK38lLBkOC&#x000A;EvClkhkwbygFzyXgTCUT4NR0SXA3B9uJBL0nLhFrDrhTyblwj1x58EswePpq&#x000A;YQn4U8nxcxQB3/FWAs5UMskrggHy4JUgvD3WeJV4c6CTLJUMlyqSjUgkyJAE&#x000A;yVLJMFUgAzEJ+k5eOhgqgRnDgMHdHGwDCQILvwSxxitBgmACEgACEpxvuAIk&#x000A;CCacEgyFS0CCwMIvwcCpy9OVIHkquRrGhxeIBCEqQX/9ZWlIkDyVPMV69XNI&#x000A;JfuPSCS4jEgwJCqBYCoZJPAfkUiQlgT8qWTIIMiCX4L++kvFJeBLJWszx2CA&#x000A;JDglGAxtJRL0nRSTgD+VTIA+gST4Jeg7eQmRQKhjyH9WcvL1gKfwStBFJeiv&#x000A;v1y4Y+ioXdc7I0NOWRL8EvSeGJcZCZKkkqEtkIJPEgDZjEBzABIEFW4JtvQe&#x000A;/ypIEExAAoBXglinJsEVQ6FtIEHA4Jeg59jFIEEw8UWClBe4LoFrXMvEDwlS&#x000A;nJWcZBvAF7gl2Bz95KK0JOBJJbtsA/iDmAQDp64UlYAnley2DeAPHkvAk0p2&#x000A;2wbwC28l4Eklu20D+Aa/BJG//zOVICwgAU8q2XW8AARDAgOeVDJEAlmINAcZ&#x000A;ksCWSk64DeAnYhKcb7gqPQmAbAYkAMQlGA5vBwkCBkgAgAQASADkig8RccdQ&#x000A;XILkqeRKkj/UChxyHlQJUqSSqQRwsLlERJuDq4Wbg5SpZJBANp5LkDqVbGoO&#x000A;YMZQCvwS9By7SFwCkQtck5wChAQZeCuB2FnJkD6QhJgEscbxw+EdcFZywPBW&#x000A;goS165ZKJle7hyGiDCRI4HpWMhggCdE+QZoSANkMSACABIB4n+AakCB4gAQA&#x000A;SAD4JEHKs5KrYZQYdAl4UskwUSgR7yVIlUp2yyMAvuG5BClTyWShTmsN4H4H&#x000A;UhCTYPD0tWIScKSS8UNaJIBrG0tC5OplF1MJukszm0q2pRUgGPiPtxJwnpVs&#x000A;lgB6iP7jrQQGSVLJ8fulQ3MgCQkSOM9KNrLJEAakICZBrBF3DNORAMhmRCPB&#x000A;delFAiCbAQkAkAAACYBckADI9UmCpKlkuISddPyQgOcC14nXAL7gvQTc90qG&#x000A;nLIsBCX49GuiEvDfKxnOQZOFxxLwn5UMbYE8+I8nSEcC/rOSoS2QiOBBJYIS&#x000A;8J+VDG2BRLyVwCD5Wcmud08GfEFMgqEz13uUSoa2QCLCEqiRnTBjGDD4Rwcg&#x000A;QWABCQDBeQIhCT6aqcDfC+KvVxKwVweyH1xTHkYC4ELB40iQ8OLVztsiw42S&#x000A;5eF9JHBct5gcXX7GPm1gWwP4jB+RwHk+CUwbZw8+RQLnIUMgQVbh0+jAdvFq&#x000A;kCB78HV04HYSqtsawDf8mycACbIToUjQc2wUkcB28WqQIKsQleAGoUjgvHh1&#x000A;fI2+0rlG+o8ypkgjEvBKIP27AfyI9Am+KhwJgOxHcHQgIkGu7MwY/PUmiygi&#x000A;AZQLq2ReAijBKyABFJAACkgAJQISQImABFAiIAGUiCbBVpBgTBeQAApIAEWX&#x000A;oO/EOCzBjSDB2CwgARS7BLtAgjFYQAIoescQJBjLBSSAAhJAAQmgREACKBGQ&#x000A;AEoEJIASYRKEQIKxXZgEfScvAQnGbtFmDEGCsVxAAihGxxAkGMMFJIACEkBJ&#x000A;Q4KRYJVZs2bB96VDxJK+k5cKSNAUlFJWVsYjgeyPmbHi9n3TlCD5NhdK4ZfA&#x000A;n8/jdQEJEhSQgBWQACQACUCCrJLgqmu+U/1mjRev7FZAAlayRoLKvC995Yov&#x000A;ffkSJecrt+bXxdcqxn91+bcqSl5lBt/TYwnoB2bF9JUyVMy/DG9JIsFQqKS/&#x000A;/jKpEuBvpNx60ZXfOdfSdvdP/mvWBMOD+FdN50unKh5KYDO2Lj8/k/ZGgicB&#x000A;+cHw74WbA/zixIM7b/t2zj30R9O+qrZFpotnEnj0ec0lYBLovxiTgHlw07gb&#x000A;ZpXXaF8134MgQItXErg7QEIeK9rj+he0NxrxpkTb0L4iwxIMypeAfh1DAubB&#x000A;+O9NrH6zMM/8Q2S6eChBigoyqpBaYVSrtkQq3PoCpiqvzKNLwZPAGgkMD+7+&#x000A;yX/8NOe7+ZWO3yRDxf9IYAoFhgTGV9OXnU83dTH1fSJgElj7BEZBCJ092zz+&#x000A;y7RdiO8lmSx+9wniq41YwS+B7fUyL0HfSfmjg7xxJgmwAcPDw7FY7PSnn910&#x000A;J24XapwhcvTFw9GBKcyTwkYHRsXFv0wiCRI3B+4NBHfJbgki2jyBzYD+/v5o&#x000A;NHriRP3dPyEeOH+JURZv5wnMMVz72PqqW/PykkQCbdmtY+hJc0BHB5fLlkDv&#x000A;E9gMCIfDHR0dH3/8N+ZBZt8RZgxZyS4JEhrQ0tJy9uzZ99//EHuQ2XcECVjJ&#x000A;LgkMA06damQG4Io3k9l3BAlYyS4JDAP+6aIb9+6rxDHgx/95b8XLh7x4uwhI&#x000A;oBe9Y5gdEhgG4OZ/wi3/zloBvODF20VAAr3QSLCtv/6KrJDAMAD/+98//cWr&#x000A;r77e2NiIFzwKBiABK1kkAW7yDQNwwQvfmvCj+vr6t99+55bv3u3FO4IErKQj&#x000A;QZlf5fu5P8YGfPLJJzd+/YcevQWPBB69tZSSGQlm+VimTcsbd9lNN0+4Y/LP&#x000A;fuHdu2TP9/WnZEACKMErIAEUKkF428CpK0GCsVtAAiggARSQAEoEJIASoRIM&#x000A;h7eDBGO6MAnON1yljIyMgARjszAJsAAgwdgtFglwOVT+M7wKGFMc3H0vq33F&#x000A;ONIXx4OAslMiw92lbqjuD3ER3iHIdhtG1cclYAX3EwPKDZng+vQY/PRrrpy+&#x000A;LinXuhFrvCYJ5xvGG8QaLZxvuNpW6f8PVdglywC56F8AAAAASUVORK5CYII='>
+</div>
+
+</article>
+</div>
+
+</div>
+<div class='modal' id='modal-remove-blob'>
+<div class='modal-dialog'>
+<div class='modal-content'>
+<div class='modal-header'>
+<a class='close' data-dismiss='modal' href='#'>×</a>
+<h3 class='page-title'>Remove 06_area.png</h3>
+<p class='light'>
+From branch
+<strong>master</strong>
+</p>
+</div>
+<div class='modal-body'>
+<form accept-charset="UTF-8" action="/mcmahon/PED_Analytics/blob/master/STRANAL/images/06_area.png" class="form-horizontal js-requires-input" method="post"><div style="display:none"><input name="utf8" type="hidden" value="&#x2713;" /><input name="_method" type="hidden" value="delete" /><input name="authenticity_token" type="hidden" value="eTrrU6DRoB9xXogQgUEpjQ0UudeFva2HbusIe5e5534=" /></div>
+<div class='form-group commit_message-group'>
+<label class="control-label" for="commit_message">Commit message
+</label><div class='col-sm-10'>
+<div class='commit-message-container'>
+<div class='max-width-marker'></div>
+<textarea class="form-control" id="commit_message" name="commit_message" placeholder="Removed this file because..." required="required" rows="3">
+</textarea>
+</div>
+</div>
+</div>
+
+<div class='form-group'>
+<div class='col-sm-offset-2 col-sm-10'>
+<button class="btn btn-remove btn-remove-file" name="button" type="submit">Remove file</button>
+<a class="btn btn-cancel" data-dismiss="modal" href="#">Cancel</a>
+</div>
+</div>
+</form>
+
+</div>
+</div>
+</div>
+</div>
+
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+  GitLab.GfmAutoComplete.dataSource = "/mcmahon/PED_Analytics/autocomplete_sources?type=NilClass&type_id=master%2FSTRANAL%2Fimages%2F06_area.png"
+  GitLab.GfmAutoComplete.setup();
+</script>
+
+
+</body>
+</html>
+
