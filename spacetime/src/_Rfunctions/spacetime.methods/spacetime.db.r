@@ -124,6 +124,15 @@
     }
 
     # -----------------
+    
+    if (DS == "statistics.box")  {
+      sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
+                    plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
+      )
+      return(sbbox)
+    }
+
+    # -----------------
 
     if (DS %in% c( "statistics", "statistics.redo", "statistics.bigmemory.initialize", "statistics.bigmemory.size"   )  ) { 
       
@@ -140,10 +149,8 @@
  
       if ( DS=="statistics.bigmemory.initialize" ) {
         # statistics storage matrix ( aggregation window, AW )
-        sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
-                      plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
-        )
-        AW = expand.grid( sbbox$plons, sbbox$plats )
+
+        AW = expand.grid( p$sbbox$plons, p$sbbox$plats )
         attr( AW , "out.attrs") = NULL
         names( AW ) = c("plon", "plat")
         statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
@@ -165,16 +172,12 @@
         S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
         bad = which( S[,3] == p$fail.flag )
         S[ bad, (3:ncol(S[]))] = NA
-
-        sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
-                      plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
-        )
-        
-        snr = length(sbbox$plons)
-        snc = length(sbbox$plats)
+     
+        snr = length(p$sbbox$plons)
+        snc = length(p$sbbox$plats)
         
         stats = list(
-          bbox = sbbox,
+          bbox = p$sbbox,
           range = matrix( data=S[,1], nrow=snr, ncol=snc ) ,
           range.sd = matrix( data=S[,2], nrow=snr, ncol=snc ) ,
           var.spatial = matrix( data=S[,3], nrow=snr, ncol=snc ) ,

@@ -41,5 +41,5 @@
   samples = xtabs( n ~ yr + sp, S )
   write.table( samples, file="clipboard", sep="," )
   
-  
-  
+  #assortment of diet analysis functions, requires RODBC connection and data access
+  diet.analysis()
