@@ -68,7 +68,8 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             if(iip==1) v0=v
             if(v0!=v) {
               lle = 'all'
-              if(p$length.based) lle = 'by.length'
+              if(p$length.based & !p$sex.based) lle = 'by.length'
+              if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               save(out,file=file.path(loc,fn))
@@ -93,10 +94,15 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   se$z = (se$dmin+se$dmax) / 2  
               vars.2.keep = c('mission','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
                 se = se[,vars.2.keep]
-        if(!p$length.based) {
-                          vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
-                          ca = ca[,vars.2.keep]
-                        }
+        
+        p$lb = p$length.based        
+
+        if(p$by.sex & !p$length.based) p$size_class=c(0,1000); p$length.based=T
+        
+        if(!p$lb) { vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
+                    ca = ca[,vars.2.keep]
+                }
+        
         if(p$length.based){
                   dp = de[which(de$spec %in% v0),]
                   ids = paste(se$mission,se$setno,sep="~")
@@ -104,7 +110,10 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   dp = dp[which(dp$ids %in% ids),]
                   flf = p$size.class[1]:p$size.class[2]
                   dp$clen2 = ifelse(dp$flen %in% flf,dp$clen,0)
-                if(any(!is.finite(dp$fwt))) {
+
+              if(p$by.sex) dp$clen2 = ifelse(dp$fsex == p$sex, dp$clen2, 0) 
+
+              if(any(!is.finite(dp$fwt))) {
                   io = which(!is.finite(dp$fwt))
                   fit = nls(fwt~a*flen^b,de[which(de$spec==v0 & is.finite(de$fwt)),],start=list(a=0.001,b=3.3))
                   ab = coef(fit)

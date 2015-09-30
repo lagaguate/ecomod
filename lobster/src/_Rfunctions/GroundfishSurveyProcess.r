@@ -1,4 +1,4 @@
-GroundfishSurveyProcess<-function(size.range=c(0,220),Strata=c(485,490,495),Years=1976:2014,bin.size=5,Lengths=F){
+GroundfishSurveyProcess<-function(size.range=c(0,220),Sex = NULL, Strata=c(485,490,495),Years=1976:2014,bin.size=5,Lengths=F){
 
   nbins<-length(seq(size.range[1],size.range[2],bin.size))-1
   p<-list()
@@ -9,9 +9,9 @@ GroundfishSurveyProcess<-function(size.range=c(0,220),Strata=c(485,490,495),Year
   p$species = 2550
   p$vessel.correction = T
   p$vessel.correction.fixed = 1.2
-  p$length.based = F
+  p$length.based = T
   p$size.class= size.range
-  p$by.sex = F
+  if(!is.null(Sex)) {p$by.sex = T; p$sex = Sex}
   p$functional.groups = F
   p$alpha = 0.05
   p<-make.list(list(v=p$species, yrs=p$years.to.estimate),Y=p)
