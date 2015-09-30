@@ -1,8 +1,8 @@
-GoundfishSurveyProcess<-function(size.range=c(0,220),Strata=c(485,490,495),Years=1976:2014,bin.size=5,Lengths=F){
+GroundfishSurveyProcess<-function(size.range=c(0,220),Strata=c(485,490,495),Years=1976:2014,bin.size=5,Lengths=F){
 
   nbins<-length(seq(size.range[1],size.range[2],bin.size))-1
   p<-list()
-  p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
+  p$init.files = c(loadfunctions( "groundfish", functionname="load.groundfish.environment.r"), loadfunctions('BIOsurvey')) 
   p$strat = Strata
   p$series = c('summer')# p$series =c('4vswcod');p$series =c('georges')
   p$years.to.estimate = Years
@@ -24,7 +24,6 @@ GoundfishSurveyProcess<-function(size.range=c(0,220),Strata=c(485,490,495),Years
     for(i in 1:nbins){
       p$size.class= c(size.range[1]+bin.size*(i-1),size.range[1]+bin.size*i)
       bout<-groundfish.analysis(DS='stratified.estimates.redo',p=p)
-      browser()
       LF[,i]<-bout$n.yst
     }
   }

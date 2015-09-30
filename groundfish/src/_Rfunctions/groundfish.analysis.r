@@ -98,7 +98,6 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                           ca = ca[,vars.2.keep]
                         }
         if(p$length.based){
-        
                   dp = de[which(de$spec %in% v0),]
                   ids = paste(se$mission,se$setno,sep="~")
                   dp$ids = paste(dp$mission,dp$setno,sep="~")
@@ -125,7 +124,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   ca1$totwgt = ca1$totwgt * ca1$pw
                   ca1$totno = ca1$totno * ca1$pn
                   vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
-                  ca1 = ca1[,vars.2.keep]
+                  ca = ca1[,vars.2.keep]
               }
                       if(p$vessel.correction) {
                             ca$id = ca$mission
@@ -143,6 +142,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                              print('Into Needler Years No Need for Vessel Correction')
                            }
                            }
+                           if(nrow(ca)>=1) {
 		        ca = aggregate(cbind(totwgt,totno)~mission+setno,data=ca,FUN=sum)
                           sc = merge(se,ca,by=c('mission','setno'),all.x=T)
                           sc[,c('totwgt','totno')] = na.zero(sc[,c('totwgt','totno')])
@@ -167,7 +167,11 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                 out[mp,] = c(yr,v,ssW[[1]],ssW[[2]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
                 ssN[[1]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
                 print(out[mp,'v'])  
+              } else {
+                out[mp,] = c(yr,v,rep(0,14)) 
+                print(out[mp,'v'])  
               }
+            }
               lle = 'all'
               if(p$length.based) lle = 'by.length'
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")

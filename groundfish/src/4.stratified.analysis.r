@@ -1,15 +1,15 @@
  p = list()
  p$init.files = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
  p$init.files = c(p$init.files,loadfunctions( "BIOsurvey") )
-
+fp = file.path(project.datadirectory('groundfish'),"analysis")
 p$strat=490:495
 p$series =c('summer')# p$series =c('4vswcod');p$series =c('georges')
 p$years.to.estimate = c(1970:2015)
-p$species = c(2550)
+p$species = c(11)
 p$vessel.correction = T
 p$vessel.correction.fixed = 1.2
 p$length.based = F
-p$size.class= c(30,60)
+p$size.class= c(82,300)
 p$by.sex = F
 
 #out = groundfish.db(DS='gsdet.spec.redo',p=p)
@@ -49,7 +49,7 @@ out = groundfish.analysis(DS='ab.redo',p=p)
 
 
 #figure stratified analysis Note--the values after comments are the other options
-p$add.reference.lines = F
+p$add.reference.line = F
 p$time.series.start.year = 1970
 p$time.series.end.year = 2015
 p$reference.start.year = 1999
@@ -59,14 +59,14 @@ p$metric = 'numbers' #weights
 p$measure = 'stratified.mean' #'stratified.total'
 
 p$reference.measure = 'median' # mean, geomean 
-p$file.name = 'lfa35-38 lobster.png'
+p$file.name = 'legal-lfa35-38 lobster.png'
        
 #stock reference lines based on primary measure as above
   p$add.upper.lower = F
         p$upper.reference.line = 0.8
         p$lower.reference.line = 0.4
         
-        p$figure.title = 'Lobster 35-38'
+        p$figure.title = 'Legal Sized Lobster 35-38'
         p$y.maximum = NULL # NULL # if ymax is too high for one year
 	p$show.truncated.numbers = F #if using ymax and want to show the numbers that are cut off as values on figure
 
