@@ -1,6 +1,7 @@
 
 CPUEgam<-function(data,mf){
 
+	RLibrary("mgcv")
 	model<-gam(mf,data=data)
 
 	pred.data<-subset(data,!is.na(CPUE))

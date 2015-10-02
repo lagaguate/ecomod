@@ -113,7 +113,7 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRS
 		SCALSURV3.dat<-ScallopSurveyProcess(SPA="3",Years=Yrs,size.range=range(bins),bin.size=diff(bins)[1])
 		SCALSURV29.dat<-ScallopSurveyProcess(SPA="29",Years=Yrs,size.range=range(bins),bin.size=diff(bins)[1])
 		ScalSurvey$ScallopSurvey3<-t(sapply(Yrs,function(y){colMeans(subset(SCALSURV3.dat,YEAR==y,paste0("CL",bins[-length(bins)])),na.rm=T)}))
-		ScalSurvey$ScallopSurvey29<-t(sapply(Yrs,function(y){colMeans(subset(SCALSURV29.dat,YEAR==y,paste0("CL",bins[-length(bins)])),na.rm=T)}))
+		ScalSurvey$ScallopSudata.frame(PID=1,POS=1:nrow(x),X=x$SET_LONG,Y=x$SET_LAT)rvey29<-t(sapply(Yrs,function(y){colMeans(subset(SCALSURV29.dat,YEAR==y,paste0("CL",bins[-length(bins)])),na.rm=T)}))
 		BubblePlotCLF(ScalSurvey,inch=0.2,bg=rgb(0,1,0,0.1),yrs=Yrs,bins=bins,filen="ScalSurveyLFA34",prop=T)
 		BarPlotCLF(ScalSurvey,yrs=Yrs,bins=bins,col='grey',filen="ScalSurveyLFA34",rel=T)
 		
@@ -123,7 +123,7 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRS
 		lobster.db('atSea')
 		Yrs<-1982:2014
 		atSea.LFA34.dat<-addSYEAR(subset(atSea,LFA==34))
-		atSea.LFA34.dat$YEAR<-year(atSea.LFA34.dat$SDATE)
+		atSea.LFA34.dat$YEARdata.frame(PID=1,POS=1:nrow(x),X=x$SET_LONG,Y=x$SET_LAT)<-year(atSea.LFA34.dat$SDATE)
 		atSea.LFA34.dat$SYEAR[month(atSea.LFA34.dat$SDATE)<12&atSea.LFA34.dat$YEAR<2001]<-atSea.LFA34.dat$YEAR[month(atSea.LFA34.dat$SDATE)<12&atSea.LFA34.dat$YEAR<2001]
 		atSea.LFA34.dat$SYEAR[month(atSea.LFA34.dat$SDATE)==12&atSea.LFA34.dat$YEAR<2000]<-atSea.LFA34.dat$YEAR[month(atSea.LFA34.dat$SDATE)==12&atSea.LFA34.dat$YEAR<2000]-1
 		atSea.LFA34.dat$Q<-quarter(atSea.LFA34.dat$SDATE)
