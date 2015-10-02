@@ -77,7 +77,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
               print(fn)
               rm(out)
               rm(strata.files)
-              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
+              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA, n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
               strata.files = list()
               mp=1
               np = np + 1
@@ -174,10 +174,10 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   bsN = summary(boot.strata(sN,method='BWR',nresamp=1000),ci.method='BC')       
                   nt  = sum(sW$Nh)/1000
                 out[mp,] = c(yr,v,ssW[[1]],ssW[[2]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
-                ssN[[1]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
+                ssN[[1]],ssN[[2]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
                 print(out[mp,'v'])  
               } else {
-                out[mp,] = c(yr,v,rep(0,14)) 
+                out[mp,] = c(yr,v,rep(0,15)) 
                 print(out[mp,'v'])  
               }
             }
