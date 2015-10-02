@@ -111,7 +111,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   flf = p$size.class[1]:p$size.class[2]
                   dp$clen2 = ifelse(dp$flen %in% flf,dp$clen,0)
 
-              if(p$by.sex) dp$clen2 = ifelse(dp$fsex == p$sex, dp$clen2, 0) 
+              if(p$by.sex) dp$clen2 = ifelse(dp$fsex %in% p$sex, dp$clen2, 0) 
 
               if(any(!is.finite(dp$fwt))) {
                   io = which(!is.finite(dp$fwt))
