@@ -68,7 +68,8 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             if(iip==1) v0=v
             if(v0!=v) {
               lle = 'all'
-              if(p$length.based) lle = 'by.length'
+              if(p$length.based & !p$sex.based) lle = 'by.length'
+              if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               save(out,file=file.path(loc,fn))
@@ -76,7 +77,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
               print(fn)
               rm(out)
               rm(strata.files)
-              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
+              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA, n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
               strata.files = list()
               mp=1
               np = np + 1
@@ -93,10 +94,15 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   se$z = (se$dmin+se$dmax) / 2  
               vars.2.keep = c('mission','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
                 se = se[,vars.2.keep]
-        if(!p$length.based) {
-                          vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
-                          ca = ca[,vars.2.keep]
-                        }
+        
+        p$lb = p$length.based        
+
+        if(p$by.sex & !p$length.based) p$size_class=c(0,1000); p$length.based=T
+        
+        if(!p$lb) { vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
+                    ca = ca[,vars.2.keep]
+                }
+        
         if(p$length.based){
                   dp = de[which(de$spec %in% v0),]
                   ids = paste(se$mission,se$setno,sep="~")
@@ -104,7 +110,10 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   dp = dp[which(dp$ids %in% ids),]
                   flf = p$size.class[1]:p$size.class[2]
                   dp$clen2 = ifelse(dp$flen %in% flf,dp$clen,0)
-                if(any(!is.finite(dp$fwt))) {
+
+              if(p$by.sex) dp$clen2 = ifelse(dp$fsex %in% p$sex, dp$clen2, 0) 
+
+              if(any(!is.finite(dp$fwt))) {
                   io = which(!is.finite(dp$fwt))
                   fit = nls(fwt~a*flen^b,de[which(de$spec==v0 & is.finite(de$fwt)),],start=list(a=0.001,b=3.3))
                   ab = coef(fit)
@@ -165,10 +174,10 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   bsN = summary(boot.strata(sN,method='BWR',nresamp=1000),ci.method='BC')       
                   nt  = sum(sW$Nh)/1000
                 out[mp,] = c(yr,v,ssW[[1]],ssW[[2]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
-                ssN[[1]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
+                ssN[[1]],ssN[[2]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
                 print(out[mp,'v'])  
               } else {
-                out[mp,] = c(yr,v,rep(0,14)) 
+                out[mp,] = c(yr,v,rep(0,15)) 
                 print(out[mp,'v'])  
               }
             }
