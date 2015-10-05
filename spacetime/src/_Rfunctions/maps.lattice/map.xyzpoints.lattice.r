@@ -25,7 +25,7 @@ map.xyzpoints.lattice = function( x, y, z, ncolors=100, color.code.type="seis", 
       }
       np = length( xypoints )   
       if (np>0) { 
-        for (i in 1:np) panel.xyplot ( xylines[[i]][,1] , xylines[[i]][,2], pch=21, cex=cex/100 )     
+        for (i in 1:np) panel.xyplot ( xypoints[[i]][,1] , xypoints[[i]][,2], pch=21, cex=cex/100 )     
       }
     } )
  
