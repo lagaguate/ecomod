@@ -278,9 +278,8 @@
         levelplot( xsd   ~ plons+plats, pa, aspect="iso", 
                   labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
       }
-
       
-      good = which( is.finite(pa$i) & is.finite(pa$xmean) ) 
+      good = which( is.finite(pa$i) & is.finite(pa$xmean) & is.finite(pa$xsd) ) 
       if (length(good) < 1) next()
       pa = pa[good,]
       ii = pa$i
@@ -295,8 +294,10 @@
       # update means: inverse-variance weighting   https://en.wikipedia.org/wiki/Inverse-variance_weighting
       xm = P[ii,2] 
       xs = P[ii,3]
+
       mi = which( !is.finite( xm ) )  # missing values in P[,2]
       mf = which(  is.finite( xm) )   # finite values already in P[,2]
+
       if (length( mi) > 0 ) P[ii[mi],2] = pa$xmean[mi] 
       if (length( mf) > 0 ) {
         meanupdate = ( xm/ xs^2 + pa$xmean / pa$xsd^2 ) / ( xs^(-2) + pa$xsd^(-2) )
@@ -306,7 +307,7 @@
 
       # update SD estimates of predictions with those from other locations via the
       # incremental  method ("online algorithm") of mean estimation after Knuth ; see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance 
-      xsd = pa$xsd - P[ii,3] 
+      xsd = pa$xsd - xs 
       si = which( !is.finite( xsd ) )  # missing values in P[,3]
       sf = which(  is.finite( xsd ) )  # finite values already in P[,3]
       if (length( si) > 0 ) P[ii[si],3] = pa$xsd[si] 
@@ -316,7 +317,7 @@
       }
 
       if(0) {
-        pps  =  expand.grid( plons=p$plons, plats=p$plats)
+        pps = expand.grid( plons=p$plons, plats=p$plats)
         # zz = which(pps$plons > -50 & pps$plons < 50 & pps$plats < 50 & pps$plats > -50 ) # & P[,2] > 0   )
         zz = which(pps$plons > min(pa$plons) & pps$plons < max(pa$plons) & pps$plats < max(pa$plats) & pps$plats > min(pa$plats) ) 
         x11()
