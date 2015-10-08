@@ -47,8 +47,8 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 	if(area=='36')		{ ylim=c(44.5,45.7); 	xlim=c(-67.2,-65)	}
 	if(area=='37')		{ ylim=c(44,45);		xlim=c(-67.3,-66.4) }
 	if(area=='38')		{ ylim=c(44,45);		xlim=c(-67.3,-66.4) }
-	if(area=='40')		{ ylim=c(43.7,45.2); 	xlim=c(-60.5,-57)	}
-	if(area=='41')		{ ylim=c(44.5,47.5);	xlim=c(-58,-55)		}
+	if(area=='40')		{ ylim=c(42.25,43);		xlim=c(-66.5,-65.25)}
+	if(area=='41')		{ ylim=c(41.1,44); 		xlim=c(-68,-63.5)	}
 	
 
 	coast<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","gshhs",paste0("shoreline",mapRes,".csv")))
@@ -118,21 +118,24 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 		
 		LFAs<-read.csv(file.path(project.datadirectory('lobster'),'data','maps','Polygons_LFA.csv'))
 		LFAgrid<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","GridPolys.csv"))
+		LFA41<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","LFA41Offareas.csv"))
 		if(area=='31a')area<-311
 		if(area=='31b')area<-312
-
-		if(!is.na(as.numeric(area))){
-			lfa<-as.numeric(area)
-			grids<-subset(LFAgrid,PID==lfa)
-			addPolys(grids,border=rgb(0,0,0,0.2))
-			if(labels=='grid'){
-				grids$label<-grids$SID
-        		grids.dat<-merge(calcCentroid(grids),grids[c("PID","SID","label")])
-				#addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.8),cex=1)
+			
+		lfa<-as.numeric(area)
+		if(lfa%in%LFAgrid$PID){
+			if(!is.na(lfa)){
+				grids<-subset(LFAgrid,PID==lfa)
+				addPolys(grids,border=rgb(0,0,0,0.2))
+				if(labels=='grid'){
+					grids$label<-grids$SID
+	        		grids.dat<-merge(calcCentroid(grids),grids[c("PID","SID","label")])
+					#addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.8),cex=1)
+				}
 			}
-		}
-		else {
-			addPolys(LFAgrid,border=rgb(0,0,0,0.2))
+			else {
+				addPolys(LFAgrid,border=rgb(0,0,0,0.2))
+			}
 		}
 		#browser()
 		addPolys(LFAs)
@@ -145,11 +148,10 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 		}
 
 	}
+
 	if(boundaries=='scallop'){
-		
 		SFA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SFA.csv"))
 		addLines(SFA)
-
 		SPA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SPA.csv"))
 		addPolys(SPA)
 	}
@@ -198,7 +200,6 @@ LobsterMap<-function(area='custom',ylim=c(42.5,48),xlim=c(-67.4,-57.8),mapRes='H
 		gridlines<-makeGrid(x,y,byrow=TRUE,addSID=TRUE,projection="LL",zone=NULL)
 		addLines(gridlines,col='grey80',lwd=1)
 	}
-	write.csv(subset(LFAgrid.dat,!duplicated(label)))		
 	if(labels=='lfa')addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0,0,0,0.5),cex=1.5,font=2)
 	if(labels=='grid')addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=1)
 

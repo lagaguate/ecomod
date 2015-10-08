@@ -37,7 +37,7 @@ loadfunctions('lobster')
 
 	KgPTH<- cpueLFA34.dat$cpue
 	yrs<-sort(as.numeric(cpueLFA34.dat$year))
-	rmKgPTH<-ma(KgPTH)
+	rmKgPTH<-mavg(KgPTH)
 
 	# Plot Commercial CPUE Figure 3
 
@@ -51,10 +51,24 @@ loadfunctions('lobster')
 	abline(h=median(KgPTH[1:11]*0.8),col=rgb(0,0,1,0.5))
 	text(max(yrs)+.5,median(KgPTH[2:15]*0.8)*.85,"Upper Stock Reference",col=rgb(0,0,1,0.5),pos=2,cex=0.8)
 	dev.off()
+	
+	pdf(file.path( project.datadirectory("lobster"), "R","LFA34CommercialCPUEandEffort.pdf"),5,8)
+	par(mfrow=c(2,1))
+	plot(yrs,KgPTH,pch=16,ylim=c(0,max(KgPTH)),xlab='',ylab='CPUE (Kg/TH)',las=1, main="LFA 34 - Commercial Log CPUE",xaxt='n')
+	#axis(1)
+	#axis(1,yrs,lab=F,tck=-0.01)
+	axis(1,yrs,lab=paste(yrs-1,substr(yrs,3,4),sep='-'),las=2)
+	#arrows(yrs, KgPTH+KgPTHse, yrs, KgPTH-KgPTHse ,code=3,angle=90,length=0.1)
+	lines(yrs[-(1:2)],rmKgPTH[!is.na(rmKgPTH)],lty=2,col='orange',lwd=2)
+	abline(h=median(KgPTH[1:11]*0.8),col=rgb(0,0,1,0.5))
+	text(max(yrs)+.5,median(KgPTH[2:15]*0.8)*.85,"Upper Stock Reference",col=rgb(0,0,1,0.5),pos=2,cex=0.8)
+	plot(yrs,cpueLFA34.dat$effort/10^6,pch=16,ylim=c(0,30),xlab='',ylab='Trap Hauls (millions)',las=1, main="LFA 34 - Commercial Log Effort",xaxt='n',type='b')
+	axis(1,yrs,lab=paste(yrs-1,substr(yrs,3,4),sep='-'),las=2)
+	dev.off()
 
 	## ITQ-ILTS Survey
 	# get data
-	surveyLobsters34<-LobsterSurveyProcess(lfa="34",yrs=1996:2014,mths=c("Jul","Jun"),bin.size=5)
+	surveyLobsters34<-LobsterSurveyProcess(lfa="34",yrs=1996:2015,mths=c("Jul","Jun"),bin.size=5)
 	#surveyLobsters<-read.csv(file.path(project.datadirectory('lobster'),"data","surveyLobsters.csv")) 
 	#surveyLobsters34<-subset(surveyLobsters,!is.na(NUM_STANDARDIZED)&LFA==34&HAULCCD_ID==1&YEAR>1995&MONTH%in%c("Jul","Jun"))
 

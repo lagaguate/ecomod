@@ -93,7 +93,11 @@ dev.off()
 
 
 
-###############
+############### FSRS
 
 
+FSRSvesday.dat$lat<-convert.dd.dddd(FSRSvesday.dat$LATITUDE)
+FSRSvesday.dat$lon<-convert.dd.dddd(FSRSvesday.dat$LONGITUDE)
 
+LobsterMap()
+points(lat~lon,FSRSvesday.dat,pch=16,col=rgb(0,0,0,0.1))

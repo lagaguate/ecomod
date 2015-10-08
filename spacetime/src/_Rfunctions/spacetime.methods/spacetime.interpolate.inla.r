@@ -30,20 +30,20 @@
     for ( iip in ip ) {
       dd = p$runs[ iip, "jj" ]
       
-      cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "start \n" ), file=p$debug.file, append=TRUE ) 
+      if ( debugrun) cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "start \n" ), file=p$debug.file, append=TRUE ) 
     
       # dd=498439
       # inla.setOption(inla.call="/home/jae/tmp/inla.Xeon" ) 
       # inla.setOption(inla.call="/usr/lib/R/library/INLA/bin/linux/inla64" ) 
       focal = t(S[dd,])
-      if ( is.na( focal[3] ) ) next()
-      S[dd,3:ncolS] = NA   # this is a flag such that if a run fails (e.g. in mesh generation), it does not get revisited
+      if ( is.nan( focal[3] ) ) next()
+      S[dd,3:ncolS] = NaN   # this is a flag such that if a run fails (e.g. in mesh generation), it does not get revisited
       # .. it gets over-written below if successful
 
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
       # slow ... need to find a faster solution
       ppp = NULL
-      ppp = try( point.in.block( focal[1,c(1,2)], W[,c(1,2)], dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, shrink=TRUE ) )
+      ppp = try( point.in.block( focal[1,c(1,2)], W[,c(1,2)], dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, resize=TRUE ) )
       if( is.null(ppp)) next()
       if (class( ppp ) %in% "try-error" ) next()
       dist.cur = ppp$dist.to.nmax
@@ -52,7 +52,9 @@
  
       ndata = length(j)
       
-      if ( debugrun)  cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, "n=", ndata, "dist=", dist.cur, "\n" ), file=p$debug.file, append=TRUE ) 
+      if ( debugrun)  {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, "n=", ndata, "dist=", dist.cur, "\n" ), file=p$debug.file, append=TRUE ) 
+      }
       
       # .. first create projector from mesh to output
       doff = p$inla.mesh.offset * (dist.cur/p$dist.max) # scale to dist.max
@@ -83,34 +85,34 @@
 
       rm( Pmat, pm_row, pm_col, pa_plons_cc, pa_plats_cc, pa_plons, pa_plats ) ; gc()
 
-      if ( debugrun)  cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, " \n" ), file=p$debug.file, append=TRUE ) 
-      
+      if ( debugrun)  {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, " \n" ), file=p$debug.file, append=TRUE ) 
+      }
+
       locs = W[ j, c(1,2)] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise ) # add  noise  to prevent a race condition
 
       lengthscale=dist.cur*2 
    
-      # note using convex hull boundaries below makes the solutions hang for unkown reasons ... do not use(yet)
-      # also sending direct distances rather than proportion seems to cause issues..
-      MESH = NULL
-      MESH =try(  
-        inla.mesh.2d ( 
-            loc=locs, # locations of data points
-            max.edge = p$inla.mesh.max.edge * lengthscale,  # max size of a triange (in, out) proportion of dist.max
-            offset = -p$inla.mesh.offset ,  # how much to extend inside and outside of boundary: proportion of dist.max
-            cutoff = -p$inla.mesh.cutoff, # min distance allowed between points: proportion of dist.max 
-            boundary = list( 
-              inla.nonconvex.hull(locs, convex=-p$inla.mesh.hull.radius[1], resolution=p$inla.mesh.hull.resolution ) ,  
-              inla.nonconvex.hull(locs, convex=-p$inla.mesh.hull.radius[2], resolution=p$inla.mesh.hull.resolution ) ) 
-        ), silent=TRUE 
-      )
-      if ( debugrun) cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "mesh finished \n" ), file=p$debug.file, append=TRUE ) 
+      # also sending direct distances rather than proportion seems to cause issues.. 
+      MESH = spacetime.mesh( locs=locs, 
+        lengthscale=lengthscale, 
+        max.edge=p$inla.mesh.max.edge * lengthscale, 
+        bnd.offset=p$inla.mesh.offset, 
+        cutoff=p$inla.mesh.cutoff, 
+        convex=p$inla.mesh.hull.radius, 
+        resolution=p$inla.mesh.hull.resolution )
+      
+ 
+      if ( is.null(MESH)) {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "mesh try error \n" ), file=p$debug.file, append=TRUE ) 
+        next()
+      }
+
       if ( debugrun) {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "mesh finished \n" ), file=p$debug.file, append=TRUE ) 
         plot( MESH )  # or ... spacetime.plot( p=p, "mesh", MESH=MESH )
       }
 
-      if ( "try-error" %in% class(MESH)) next()
-      if ( is.null(MESH) ) next()  # some meshes seem to go into an infinite loop 
- 
       SPDE = inla.spde2.matern( MESH,      
         alpha=p$inla.alpha, # alpha is the Bessel smoothness factor .. 1(?) gives exponential correlation function
         B.tau=matrix(c(log(tau0),-1,+1),nrow=1,ncol=3),
@@ -149,23 +151,67 @@
       }
      
       RES = NULL
-      RES = spacetime.inla.call( FM=p$modelformula, DATA=DATA, SPDE=SPDE )
-      if (is.null(RES)) next()
+      RES = spacetime.inla.call( FM=p$modelformula, DATA=DATA, SPDE=SPDE, FAMILY=p$spacetime.family )
+
+      if (is.null(RES)) {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "inla call error \n" ), 
+            file=p$debug.file, append=TRUE ) 
+        # inla.spde2.matern creates files to disk that are not cleaned up:
+        spdetmpfn = SPDE$f$spde2.prefix
+        fns = list.files( dirname( spdetmpfn ), all.files=TRUE, full.names=TRUE, recursive=TRUE, include.dirs=TRUE )  
+        oo = grep( basename(spdetmpfn), fns )
+        if(length(oo)>0) file.remove( sort(fns[oo], decreasing=TRUE) )
+        next()
+      }
 
       if ( debugrun) {
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "computations finished \n" ), 
             file=p$debug.file, append=TRUE ) 
         print( summary(RES)) 
       }
+    
+      # extract summary statistics from a spatial (SPDE) analysis and update the output file
+          
+      # random field (spatial) parameters on user scale
+      oo = inla.spde2.result(RES, p$spatial.field.name, SPDE, do.transf=TRUE)
+     
+      inames = c( "mode", "mean", "sd", "quant0.025", "quant0.25", "quant0.5",  "quant0.75", "quant0.975", "low", "high" )
 
-      # update statistics
-      inla.summary = spacetime.inla.extract.parameters( RES, SPDE, vname=p$spatial.field.name )
+      # Range parameter .. ie, sqrt(8)/exp(oo$summary.log.kappa$mean) 
+      im = oo$marginals.range.nominal[[1]]
+      iRange = c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im )) )
+
+      # "Spatial variance/error ('partial sill variance')"
+      im = oo$marginals.variance.nominal[[1]]
+      iVar =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im )) )
+      
+      # kappa
+      im = oo$marginals.kappa[[1]]
+      iKappa =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im ) ) )
+
+      # tau
+      im = oo$marginals.tau[[1]]
+      iTau =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im ) ) )
+
+      ## Non-spatial ("observation") error ('nugget variance')
+      iprec = grep ( "Precision.*observ.*", names(RES$marginals.hyperpar), ignore.case=TRUE )
+      im = inla.tmarginal( function(x) {1/x}, RES$marginals.hyperpar[[ iprec ]] )
+      iNugget =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im ) ) )
+
+      inla.summary = as.matrix( rbind( iKappa, iTau, iRange, iVar, iNugget ) )
+      rownames( inla.summary) = c( "kappa", "tau", "range", "spatial error", "observation error" )
+      colnames( inla.summary) = inames
+
+      rm( oo, im, iRange, iVar, iKappa, iTau, iNugget)
+      gc()
   
-      if ( debugrun) {
+      if (0) {
+        # low level debugging .. and looking at posterior marginals
         idat =  inla.stack.index( DATA, 'data')$data # indices of data locations
         spacetime.plot( p=p, "range", RES=RES, MESH=MESH, SPDE=SPDE, vname=p$spatial.field.name, idat=idat )
         spacetime.plot( p=p, "nugget", RES=RES, MESH=MESH, SPDE=SPDE, vname=p$spatial.field.name, idat=idat )
         spacetime.plot( p=p, "partial.sill", RES=RES, MESH=MESH, SPDE=SPDE, vname=p$spatial.field.name, idat=idat )
+        spacetime.plot( p=p, "fixed.intercept", RES=RES, MESH=MESH, SPDE=SPDE, vname=p$spatial.field.name, idat=idat )
         rm (idat)
       }
        
@@ -183,13 +229,18 @@
       S[dd,5] = inla.summary["spatial error", "mode"]
       S[dd,6] = inla.summary["observation error", "mode"]
 
-      if ( debugrun)  cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "statistics saved  \n" ), file=p$debug.file, append=TRUE ) 
+      if ( debugrun)  {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "statistics saved  \n" ), 
+            file=p$debug.file, append=TRUE ) 
+      }
+
       # ----------------
       # predict upon grid
 
       if ( p$predict.in.one.go ) {
         # precomputed ... very slow and expensive in RAM/CPU ..not really used/useful as it is way too slow 
         # just extract from tag indices
+        ## probably want to add inverse link function here on top of or replace spacetime.link :: see inla.link.*
         pa$xmean = p$spacetime.invlink( RES$summary.fitted.values[ i_data, "mean"] )
         pa$xsd   = p$spacetime.invlink( RES$summary.fitted.values[ i_data, "sd"] )
         rm(RES); gc() 
@@ -201,8 +252,9 @@
         posterior.samples = inla.posterior.sample(n=p$inla.nsamples, RES)
         rm(RES, MESH); gc()
 
-        rnm = rownames(posterior.samples[[1]]$latent )
+        rnm = rownames(posterior.samples[[1]]$latent )  
         posterior = sapply( posterior.samples, p$spacetime.posterior.extract, rnm=rnm )
+        ## probably want to add inverse link function here on top of or replace spacetime.link :: see inla.link.*
         posterior = p$spacetime.invlink( posterior )   # return to original scale
         rm(posterior.samples); gc()
 
@@ -214,29 +266,71 @@
         pa = merge(pa0, pa, by=c("plons", "plats"), all.x=TRUE, all.y=FALSE, sort=FALSE)
         rm(pa0); gc()
       } 
-   
-      if (0) levelplot( xmean ~ plons+plats, pa, aspect="iso" )
+     
+      if ( debugrun) {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "predictions completed \n" ), 
+            file=p$debug.file, append=TRUE ) 
+      }
 
-      # merge mean, variance estimates of predictions with those from other locations via the
-      # incremental method of mean (and variance) estimation after Knuth ; see 
-      # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance (online algorithm)
+      if (0) {
+        levelplot( xmean ~ plons+plats, pa, aspect="iso", 
+                  labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        levelplot( xsd   ~ plons+plats, pa, aspect="iso", 
+                  labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+      }
       
-      good = which( is.finite(pa$i) & is.finite(pa$xmean) ) 
+      good = which( is.finite(pa$i) & is.finite(pa$xmean) & is.finite(pa$xsd) ) 
       if (length(good) < 1) next()
       pa = pa[good,]
       ii = pa$i
       
-      P[ii,1] = P[ii,1] + 1 # n
-      P[ii,2] = P[ii,2] + ( pa$xmean - P[ii,2] )/P[ii,1] # update mean 
-      P[ii,3] = P[ii,3] + ( pa$xsd - P[ii,3] ) /P[ii,1] # update sd
+      # update counts
+      cx = P[ii,1]
+      ci = which( !is.finite( cx ) )
+      cf = which( is.finite( cx ) )
+      if ( length( ci) > 0 ) P[ii[ci],1] = 1
+      if ( length( cf) > 0 ) P[ii[cf],1] = P[ii[cf],1] + 1 
 
-      rm( ii, good, pa ); gc()
+      # update means: inverse-variance weighting   https://en.wikipedia.org/wiki/Inverse-variance_weighting
+      xm = P[ii,2] 
+      xs = P[ii,3]
+
+      mi = which( !is.finite( xm ) )  # missing values in P[,2]
+      mf = which(  is.finite( xm) )   # finite values already in P[,2]
+
+      if (length( mi) > 0 ) P[ii[mi],2] = pa$xmean[mi] 
+      if (length( mf) > 0 ) {
+        meanupdate = ( xm/ xs^2 + pa$xmean / pa$xsd^2 ) / ( xs^(-2) + pa$xsd^(-2) )
+        jj = which( is.finite( meanupdate ) )
+        P[ii[jj],2] = meanupdate[jj]
+      }
+
+      # update SD estimates of predictions with those from other locations via the
+      # incremental  method ("online algorithm") of mean estimation after Knuth ; see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance 
+      xsd = pa$xsd - xs 
+      si = which( !is.finite( xsd ) )  # missing values in P[,3]
+      sf = which(  is.finite( xsd ) )  # finite values already in P[,3]
+      if (length( si) > 0 ) P[ii[si],3] = pa$xsd[si] 
+      if (length( sf) > 0 ) {
+        u = ii[sf]
+        P[u,3] = P[u,3] + xsd[sf] / P[u,1]
+      }
+
+      if(0) {
+        pps = expand.grid( plons=p$plons, plats=p$plats)
+        # zz = which(pps$plons > -50 & pps$plons < 50 & pps$plats < 50 & pps$plats > -50 ) # & P[,2] > 0   )
+        zz = which(pps$plons > min(pa$plons) & pps$plons < max(pa$plons) & pps$plats < max(pa$plats) & pps$plats > min(pa$plats) ) 
+        x11()
+        levelplot( ( P[zz,2] ) ~ plons + plats, pps[zz,], aspect="iso", 
+                  labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+      }
+
+      rm( ii, good, pa, xs, xm, mi, mf, si, sf ); gc()
       
-      if ( debugrun)  cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "predictions saved  \n" ), file=p$debug.file, append=TRUE ) 
-      
-      cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "end \n" ), file=p$debug.file, append=TRUE ) 
-     
+      if ( debugrun) cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "end \n" ), file=p$debug.file, append=TRUE ) 
+           
     }
+    return( "complete" )
   } ## end core interpolation function definition
   
 

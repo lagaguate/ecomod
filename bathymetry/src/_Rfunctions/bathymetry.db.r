@@ -487,6 +487,7 @@
         load( fn)
         return( B )
       }
+
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) 
       B = lonlat2planar( B, proj.type=p$internal.projection ) 
@@ -496,6 +497,77 @@
       save( B, file=fn, compress=TRUE)
       return(fn)
     }
+
+
+    # ----------------
+
+
+    if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
+      #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the 
+      #//   spacetime interpolated method formatted and finalised for production use 
+      
+      datadir = project.datadirectory("bathymetry", "data" )
+			dir.create( datadir, showWarnings=F, recursive=T )
+      
+      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "rdata", sep=".") )
+      
+      if (DS =="bathymetry.spacetime.finalize" ) {
+        load( fn)
+        return( B )
+      }
+ 
+      preds = spacetime.db( p=p, DS="predictions" )  
+
+      BP = preds$means
+      rm(preds); gc()
+      nr = nrow( BP )
+      nc = ncol( BP )
+
+      # first order central differences but the central term drops out:
+      # diffr = ( ( BP[ 1:(nr-2), ] - BP[ 2:(nr-1), ] ) + ( BP[ 2:(nr-1), ] - BP[ 3:nr, ] ) ) / 2
+      # diffc = ( ( BP[ ,1:(nc-2) ] - BP[ ,2:(nc-1) ] ) + ( BP[ ,2:(nc-1) ] - BP[ ,3:nc ] ) ) / 2 
+      diffr = ( ( BP[ 1:(nr-2), ] - BP[ 3:nr, ] ) ) / 2
+      diffc = ( ( BP[ ,1:(nc-2) ] - BP[ ,3:nc ] ) ) / 2 
+      
+      dZ = diffr[ ,2:(nc-1) ] + diffc[ 2:(nr-1), ] 
+      dZ = rbind( dZ[1,], dZ, dZ[nrow(dZ)] )  # top and last rows are copies .. dummy value to keep dim correct
+      dZ = cbind( dZ[,1], dZ, dZ[,ncol(dZ)] )
+  
+      # gradients
+      ddiffr = ( ( dZ[ 1:(nr-2), ] - dZ[ 3:nr, ] ) ) / 2
+      ddiffc = ( ( dZ[ ,1:(nc-2) ] - dZ[ ,3:nc ] ) ) / 2 
+      
+      ddZ = ddiffr[ ,2:(nc-1) ] + ddiffc[ 2:(nr-1), ] 
+      ddZ = rbind( ddZ[1,], ddZ, ddZ[nrow(ddZ)] )  # top and last rows are copies .. dummy value to keep dim correct
+      ddZ = cbind( ddZ[,1], ddZ, ddZ[,ncol(ddZ)] )
+      
+      BP$plon = grid.internal( BP$plon, p$plons )
+      BP$plat = grid.internal( BP$plat, p$plats )
+      BP = block.spatial ( xyz=BP[,c("plon", "plat", "Z")], function.block=block.mean )
+      
+      dZ$plon = grid.internal( dZ$plon, p$plons )
+      dZ$plat = grid.internal( dZ$plat, p$plats )
+      dZ = block.spatial ( xyz=dZ[,c("plon", "plat", "dZ")], function.block=block.mean )
+      
+      ddZ$plon = grid.internal( ddZ$plon, p$plons )
+      ddZ$plat = grid.internal( ddZ$plat, p$plats )
+      ddZ = block.spatial ( xyz=ddZ[,c("plon", "plat", "ddZ")], function.block=block.mean )
+
+      B = spacetime.db( p=p, DS="statistics" )  
+      
+      # compute gradients and curvature
+      
+      # estimate mean trends in gradients and curvature
+
+
+      # merge into statistics
+      BS = spacetime.db( p=p, DS="statistics" )
+   
+      B = merge( BS, BP, ) 
+      save( B, file=fn, compress=TRUE)
+      return(fn)
+    }
+
 
   }  
 

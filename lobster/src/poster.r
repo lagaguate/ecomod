@@ -12,8 +12,12 @@ ContLegend("bottomright",lvls=catchgrids$lvls/1000,Cont.data=catchgrids,title="C
 
 dev.off()
 lfas<-c("27", "28", "29", "30", "31A", "31B", "32", "33", "34", "35", "36", "38")
-daily.dat<-CPUEplot(logsInSeason,lfa=lfas,yrs=2001:2014)
+#daily.dat<-CPUEplot(logsInSeason,lfa=lfas,yrs=2001:2014)
+
+pdf(file.path( project.datadirectory("lobster"), "R","CPUE.pdf"),9,11)
+daily.dat<-CPUEplot(logsInSeason,lfa=lfas[1:6],yrs=2001:2014)
 
 
-
+daily.dat<-CPUEplot(logsInSeason,lfa=lfas[7:12],yrs=2001:2014)
+dev.off()
 
