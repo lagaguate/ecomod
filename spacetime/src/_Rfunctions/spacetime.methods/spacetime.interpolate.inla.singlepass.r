@@ -5,10 +5,20 @@
     #\\   lengthscale is the range (prior) 
     #\\   method="fast" using an indirect estimate based upon posterior projections of the input
     #\\   method="direct" uses direct (more accurate) estimation similar to an MCMC approach in bugs 
+ 
+    # identity links by default
+    spacetime.link = function(X) {X}
+    spacetime.invlink = function(X) {X}
+
+    if (link=="log" ) {
+      spacetime.link = function(X) {log(X)}
+      spacetime.invlink = function(X) {exp(X)}
+    }
+    
     locs = as.matrix( locs)
 
     if (is.null(lengthscale)) lengthscale = max( diff(range( locs[,1])), diff(range( locs[,2]) )) / 10  # in absence of range estimate take 1/10 of domain size
-    sigmahat = sd( dat )
+    sigmahat = sd( spacetime.link(dat) )
 
     # priors in internal/inla scale 
     kappa0 = sqrt(8)/ lengthscale
@@ -19,14 +29,6 @@
     locs = locs + runif( ndata*2, min=-noise, max=noise ) # add  noise  to prevent a race condition .. inla does not like uniform grids
    
    
-    # identity links by default
-    spacetime.link = function(X) {X}
-    spacetime.invlink = function(X) {X}
-
-    if (link=="log" ) {
-      spacetime.link = function(X) {log(X)}
-      spacetime.invlink = function(X) {exp(X)}
-    }
 
     MESH = spacetime.mesh( locs, lengthscale=lengthscale ) 
    
