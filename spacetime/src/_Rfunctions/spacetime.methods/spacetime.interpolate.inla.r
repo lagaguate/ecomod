@@ -25,7 +25,7 @@
 
     # priors 
     kappa0 = sqrt(8)/p$expected.range
-    tau0 = 1/(sqrt(4*pi)*kappa0*p$expected.sigma)
+    tau0 = 1/(sqrt(4*pi)*kappa0* p$spacetime.link( p$expected.sigma) )
 
     for ( iip in ip ) {
       dd = p$runs[ iip, "jj" ]
@@ -282,39 +282,50 @@
       good = which( is.finite(pa$i) & is.finite(pa$xmean) & is.finite(pa$xsd) ) 
       if (length(good) < 1) next()
       pa = pa[good,]
-      ii = pa$i
+      good2 = which( duplicated( pa$i) )
+      if (length(good2) >  0  ) pa = pa[ -good2, ]
       
-      # update counts
-      cx = P[ii,1]
-      ci = which( !is.finite( cx ) )
-      cf = which( is.finite( cx ) )
-      if ( length( ci) > 0 ) P[ii[ci],1] = 1
-      if ( length( cf) > 0 ) P[ii[cf],1] = P[ii[cf],1] + 1 
+      
+ 
+      # update P (predictions)
+      
+      # column indices
+      counts = 1
+      means = 2
+      stdevs = 3
+       
+      ii = pa$i
+      test = rowSums( P[ii,] )
+      u = which( is.finite( test ) )  # update
+      if ( length( u ) > 0 ) {
+        ui = ii[f]  # locations of P to modify
 
-      # update means: inverse-variance weighting   https://en.wikipedia.org/wiki/Inverse-variance_weighting
-      xm = P[ii,2] 
-      xs = P[ii,3]
+        # update counts
+        P[ ui, counts ] = P[ ui, counts ] + 1 
+        
+        # update SD estimates of predictions with those from other locations via the
+        # incremental  method ("online algorithm") of mean estimation after Knuth ; 
+        # see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        stdev_update =  P[ ui, stdevs ] + ( pa$xsd -  P[ ui, stdevs ] ) / P[ui, counts]
+   
+        # update means: inverse-variance weighting   https://en.wikipedia.org/wiki/Inverse-variance_weighting
+        means_update = ( P[ ui, means ] / P[ ui, stdevs ]^2 + pa$xmean / pa$xsd^2 ) / ( P[ ui, stdevs]^(-2) + pa$xsd^(-2) )
 
-      mi = which( !is.finite( xm ) )  # missing values in P[,2]
-      mf = which(  is.finite( xm) )   # finite values already in P[,2]
-
-      if (length( mi) > 0 ) P[ii[mi],2] = pa$xmean[mi] 
-      if (length( mf) > 0 ) {
-        meanupdate = ( xm/ xs^2 + pa$xmean / pa$xsd^2 ) / ( xs^(-2) + pa$xsd^(-2) )
-        jj = which( is.finite( meanupdate ) )
-        P[ii[jj],2] = meanupdate[jj]
+        # actual updates occur after everything has been computed first
+        P[ ui, stdevs ] = stdev_update  
+        P[ ui, means ]  = means_update
       }
 
-      # update SD estimates of predictions with those from other locations via the
-      # incremental  method ("online algorithm") of mean estimation after Knuth ; see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance 
-      xsd = pa$xsd - xs 
-      si = which( !is.finite( xsd ) )  # missing values in P[,3]
-      sf = which(  is.finite( xsd ) )  # finite values already in P[,3]
-      if (length( si) > 0 ) P[ii[si],3] = pa$xsd[si] 
-      if (length( sf) > 0 ) {
-        u = ii[sf]
-        P[u,3] = P[u,3] + xsd[sf] / P[u,1]
+      # do this as a second pass in case NA's were introduced by the update .. unlikely (paranoid), but just in case 
+      test = rowSums( P[ii,] )
+      f = which( !is.finite( test ) ) # first time
+      if ( length( f ) > 0 ) {
+        fi = ii[f] 
+        P[ fi, counts ] = 1
+        P[ fi, means ] = pa$xmean[f]
+        P[ fi, stdevs ] = pa$xsd[f]
       }
+
 
       if(0) {
         pps = expand.grid( plons=p$plons, plats=p$plats)
