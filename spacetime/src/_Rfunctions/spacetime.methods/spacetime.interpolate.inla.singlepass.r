@@ -92,6 +92,7 @@
       # direct method
       locsout$xmean = spacetime.invlink( RES$summary.fitted.values[ i_data, "mean"] )
       locsout$xsd   = spacetime.invlink( RES$summary.fitted.values[ i_data, "sd"] )
+      rm(RES, MESH); gc()
     }   
 
     if (method=="fast") {
@@ -117,6 +118,7 @@
       names(locsout) = c( "plon", "plat" )
       locsout$xmean = c( inla.mesh.project( pG, field=apply( posterior, 1, mean, na.rm=TRUE )  ))
       locsout$xsd   = c( inla.mesh.project( pG, field=apply( posterior, 1, sd, na.rm=TRUE )  ))
+      rm (pG)
     }
 
 

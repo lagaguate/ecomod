@@ -310,7 +310,6 @@
    
         # update means: inverse-variance weighting   https://en.wikipedia.org/wiki/Inverse-variance_weighting
         means_update = ( P[ ui, means ] / P[ ui, stdevs ]^2 + pa$xmean[u] / pa$xsd[u]^2 ) / ( P[ ui, stdevs]^(-2) + pa$xsd[u]^(-2) )
-
         # actual updates occur after everything has been computed first
         P[ ui, stdevs ] = stdev_update  
         P[ ui, means ]  = means_update
