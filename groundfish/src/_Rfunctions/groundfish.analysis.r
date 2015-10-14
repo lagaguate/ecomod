@@ -59,7 +59,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
         io = which(is.na(cas$sampwgt) & !is.na(cas$totwgt)) 
         cas[io,'sampwgt'] <- cas[io,'totwgt']
         strata.files = list()
-     out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
+     out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
     mp=0
     np=1
     for(iip in ip) {
@@ -69,6 +69,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             if(v0!=v) {
               lle = 'all'
               if(p$length.based & !p$sex.based) lle = 'by.length'
+              
               if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
@@ -87,7 +88,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             print ( p$runs[iip,] )
             if(p$functional.groups) vv = p$yy[[which(names(p$yy)==v0)]] 
             iv = which(cas$spec %in% vv)
-            iy = which(years(set$sdate) %in% yr)
+            iy = which(year(set$sdate) %in% yr)
     
                 se = set[iy,]
                 ca = cas[iv,]
@@ -96,7 +97,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                 se = se[,vars.2.keep]
         
         p$lb = p$length.based        
-
+#browser()
         if(p$by.sex & !p$length.based) p$size_class=c(0,1000); p$length.based=T
         
         if(!p$lb) { vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
@@ -110,7 +111,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   dp = dp[which(dp$ids %in% ids),]
                   flf = p$size.class[1]:p$size.class[2]
                   dp$clen2 = ifelse(dp$flen %in% flf,dp$clen,0)
-
+#browser()
               if(p$by.sex) dp$clen2 = ifelse(dp$fsex %in% p$sex, dp$clen2, 0) 
 
               if(any(!is.finite(dp$fwt))) {
