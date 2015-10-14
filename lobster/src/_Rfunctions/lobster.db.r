@@ -27,7 +27,7 @@
       }
     }
 
-    ## Commercial Logs and slips
+    ## Inshore Commercial Logs and slips
     if (DS %in% c("logs.redo", "logs") ) {
 
      if (DS=="logs.redo") {
@@ -40,12 +40,66 @@
        
         # slips
         slips = sqlQuery(con, "select * from marfissci.lobster_sd_slip")
-        save( logs, file=file.path( fn.root, "slip.rdata"), compress=T)
+        save( slips, file=file.path( fn.root, "slip.rdata"), compress=T)
         gc()  # garbage collection
         odbcClose(con)
       }
       load (file.path( fn.root, "slip.rdata"), .GlobalEnv)
       load (file.path( fn.root, "logs.rdata"), .GlobalEnv)
+      
+    }
+
+    ## Offshore Commercial Logs
+    if (DS %in% c("logs41.redo", "logs41") ) {
+
+     if (DS=="logs41.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # logs from LFA 41 Cheryl's query for adjusted catch and assigning subareas
+        query41<-"select b.mon_doc_id, b.vr_number, b.vessel_name, b.captain, b.licence_id, 
+                b.FV_FISHED_DATETIME, 
+                round((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100),4) DDLAT,
+                round((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100),4) DDLON,
+                b.NUM_OF_TRAPS, b.EST_WEIGHT_LOG_LBS, 
+                b.EST_WEIGHT_LOG_LBS*a.ratio adjcatch,
+                case        when mflib.simplepoly.inside((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100), 
+                -1*((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100)), 'CROWELL_BASIN_EXT')>0
+                            then 'CROWELL'
+                            when mflib.simplepoly.inside((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100), 
+                -1*((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100)), 'SW_BROWNS_EXT')>0
+                            then 'SWBROWNS'
+                            when mflib.simplepoly.inside((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100), 
+                -1*((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100)), 'SE_BROWNS_EXT')>0
+                            then 'SEBROWNS'
+                            when mflib.simplepoly.inside((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100), 
+                -1*((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100)), 'GEORGES_BASIN_EXT')>0
+                            then 'GBASIN'
+                            when mflib.simplepoly.inside((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100), 
+                -1*((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100)), 'GEORGES_BANK_EXT')>0
+                            then 'GBANK'
+                            else 'UNKNOWN'
+                            end OFFAREA
+                from (
+                select slip_lbs/est_lbs ratio, mon_doc_id from (
+                select a.est_lbs, sum(b.slip_weight_lbs) slip_lbs, a.mon_doc_id  from (
+                select sum(est_weight_log_lbs) est_lbs, mon_doc_id 
+                from marfissci.lobster_md_log
+                group by mon_doc_id
+                ) a, marfissci.lobster_md_slip b
+                where a.mon_doc_id = b.mon_doc_id
+                group by a.est_lbs, a.mon_doc_id
+                )) a, marfissci.lobster_md_log b
+                where a.mon_doc_id = b.mon_doc_id
+                and b.licence_id in (141926, 141930)"
+                
+        logs41 = sqlQuery(con, query41)
+        logs41$DDLON<-logs41$DDLON*-1
+        save( logs41, file=file.path( fn.root, "logs41.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
+      }
+      load (file.path( fn.root, "logs41.rdata"), .GlobalEnv)
       
     }
 
@@ -153,7 +207,7 @@
       load(file.path( fn.root, "scallopCatch.rdata"), .GlobalEnv)
       load(file.path( fn.root, "scallopTows.rdata"), .GlobalEnv)
     }
-    ## lobster catch from scallop survey  
+    ## lobster survey  
     if (DS %in% c("survey.redo", "survey") ) {
 
       if (DS=="survey.redo") {
