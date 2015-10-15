@@ -17,8 +17,11 @@
     p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
     
     # data file definitions
-    P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
     W = attach.big.matrix(p$descriptorfile.W, path=p$tmp.datadir )  # input data
+    dlocs = W[,1:2]  # make a local copy to force into RAM
+    dvar  = W[,3]
+
+    P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
     S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )  # statistical outputs
 
     ncolS = ncol(S)
@@ -43,7 +46,7 @@
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
       # slow ... need to find a faster solution
       ppp = NULL
-      ppp = try( point.in.block( focal[1,c(1,2)], W[,c(1,2)], dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, resize=TRUE ) )
+      ppp = try( point.in.block( focal[1,c(1,2)], dlocs, dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, resize=TRUE ) )
       if( is.null(ppp)) next()
       if (class( ppp ) %in% "try-error" ) next()
       dist.cur = ppp$dist.to.nmax
@@ -89,7 +92,7 @@
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, " \n" ), file=p$debug.file, append=TRUE ) 
       }
 
-      locs = W[ j, c(1,2)] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise ) # add  noise  to prevent a race condition
+      locs = dlocs[ j, ] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise ) # add  noise  to prevent a race condition
 
       lengthscale=dist.cur*2 
    
@@ -125,7 +128,7 @@
       # data stack 
       Aobs = inla.spde.make.A( mesh=MESH, loc=locs )
       DATA = inla.stack( tag="obs",
-        data = list( ydata=p$spacetime.link ( W[j,3] ) ), 
+        data = list( ydata=p$spacetime.link ( dvar[j] ) ), 
         A = list( Aobs, 1), # projection matrix A to translate from mesh nodes to data nodes
         effects = list( 
           c( list(intercept=rep(1,MESH$n )), 
@@ -256,6 +259,7 @@
         posterior = sapply( posterior.samples, p$spacetime.posterior.extract, rnm=rnm )
         ## probably want to add inverse link function here on top of or replace spacetime.link :: see inla.link.*
         posterior = p$spacetime.invlink( posterior )   # return to original scale
+        
         rm(posterior.samples); gc()
 
         pa0$xmean = c( inla.mesh.project( pG, field=apply( posterior, 1, mean, na.rm=TRUE )  ))
@@ -296,9 +300,9 @@
        
       ii = pa$i
       test = rowSums( P[ii,] )
-      u = which( is.finite( test ) )  # update
+      u = which( is.finite( test ) )  # these have data already .. update
       if ( length( u ) > 0 ) {
-        ui = ii[f]  # locations of P to modify
+        ui = ii[u]  # locations of P to modify
 
         # update counts
         P[ ui, counts ] = P[ ui, counts ] + 1 
@@ -306,10 +310,10 @@
         # update SD estimates of predictions with those from other locations via the
         # incremental  method ("online algorithm") of mean estimation after Knuth ; 
         # see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        stdev_update =  P[ ui, stdevs ] + ( pa$xsd -  P[ ui, stdevs ] ) / P[ui, counts]
+        stdev_update =  P[ ui, stdevs ] + ( pa$xsd[u] -  P[ ui, stdevs ] ) / P[ui, counts]
    
         # update means: inverse-variance weighting   https://en.wikipedia.org/wiki/Inverse-variance_weighting
-        means_update = ( P[ ui, means ] / P[ ui, stdevs ]^2 + pa$xmean / pa$xsd^2 ) / ( P[ ui, stdevs]^(-2) + pa$xsd^(-2) )
+        means_update = ( P[ ui, means ] / P[ ui, stdevs ]^2 + pa$xmean[u] / pa$xsd[u]^2 ) / ( P[ ui, stdevs]^(-2) + pa$xsd[u]^(-2) )
 
         # actual updates occur after everything has been computed first
         P[ ui, stdevs ] = stdev_update  

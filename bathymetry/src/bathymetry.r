@@ -236,7 +236,7 @@
     # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
     # p$clusters = "localhost"  # if serial run, send a single cluster host
     # p$clusters = c( "hyperion",  "nyx", "tartarus", "kaos", "tethys" ) 
-    p$clusters = c( rep( "hyperion", 5 ), rep( "nyx", 15 ), rep ("tartarus", 15), rep("kaos", 15 ), rep("tethys", 5 ) )
+    p$clusters = c( rep( "hyperion", 6 ), rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ), rep("tethys", 6 ) )
     nS = spacetime.db( p, DS="statistics.bigmemory.size" )
       
     p = make.list( list( jj=sample( 1:nS ) ), Y=p ) # random order helps use all cpus 
@@ -278,7 +278,12 @@
       dr = seq( datarange[1], datarange[2], length.out=150)
       levelplot( log( P[,2] ) ~ plons + plats, pps, aspect="iso", main="mean", at=dr, col.regions=rev(color.code( "seis", dr)) ,
         contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-    
+   
+      x11()
+       datarange = ( c( 1, 50 ))
+       dr = seq( datarange[1], datarange[2], length.out=150)
+       levelplot(  P[,3]  ~ plons + plats, pps, aspect="iso", main="mean", at=dr, col.regions=rev(color.code( "seis", dr)) , contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+
       # redo incomplete
       p = make.list( list( jj=sample( j ) ), Y=p ) 
       p = parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
