@@ -283,16 +283,13 @@
                   labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
       }
       
-      good = which( is.finite(pa$i) & is.finite(pa$xmean) & is.finite(pa$xsd) ) 
+      good = which( is.finite( rowSums(pa) ) )
       if (length(good) < 1) next()
       pa = pa[good,]
-      good2 = which( duplicated( pa$i) )
-      if (length(good2) >  0  ) pa = pa[ -good2, ]
-      
-      
+  #     good2 = which( duplicated( pa$i) )
+  #     if (length(good2) >  0  ) pa = pa[ -good2, ]
  
       # update P (predictions)
-      
       # column indices
       counts = 1
       means = 2
