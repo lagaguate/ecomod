@@ -1,5 +1,5 @@
-CREATE OR REPLACE FORCE VIEW 
-  GSDET_SPECIAL_Lobster AS 
+CREATE OR REPLACE FORCE table 
+  GSDET_SPECIAL_Lobster_table AS 
   select G.MISSION,G.SETNO,G.SPEC,G.SIZE_CLASS,G.SPECIMEN_ID,G.FLEN,G.FWT, G.FSEX,  G.CLEN, 
   max(case when key= 'Spermatophore Presence' then value else NULL END) Sperm_Plug,
    max(case when key= 'Abdominal Width' then value else NULL END) Ab_width,
@@ -17,7 +17,7 @@ group by G.MISSION,G.SETNO,G.SPEC,G.SIZE_CLASS,G.SPECIMEN_ID,G.FLEN,G.FWT, G.FSE
 
 
 select a.mission, a.setno, b.strat, a.spec, a.size_class, a.specimen_id, a.flen, a.fwt, a.fsex, sperm_plug,ab_width,egg_st,clutch_full
-from gsdet_special_lobster a, groundfish.gsinf b
+from gsdet_special_lobster_table a, groundfish.gsinf b
 where a.mission=b.mission and a.setno=b.setno 
 group by a.mission, a.setno, b.strat, a.spec, a.size_class, a.specimen_id, a.flen, a.fwt, a.fsex, sperm_plug,ab_width,egg_st,clutch_full
 order by a.setno;

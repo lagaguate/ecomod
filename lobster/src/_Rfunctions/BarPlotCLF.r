@@ -1,16 +1,14 @@
-BarPlotCLF<-function(CLF,yrs=2005:2014,bins=seq(0,220,5),filen='',rows=length(yrs),pdf=T,xl,rel=T,mean.line=F,ylp=0.1,ymax,LS=82.5,recline=NULL,wd=10,ht=12,ylab="Mean N / standard tow",...){
+BarPlotCLF<-function(CLF,yrs=2005:2014,bins=seq(0,220,5),filen='',rows=length(yrs),pdf=T,xl,rel=T,mean.line=F,ylp=0.1,ymax,LS=82.5,sample.size=NULL,recline=NULL,wd=10,ht=12,ylab="Mean N / standard tow",...){
 	
 	mids<-bins[-1]-diff(bins)/2
 	
 	if(!missing(ymax)&&length(ymax)==1)ymax<-rep(ymax,length(CLF))
 	
 	if(pdf) pdf(file.path(project.datadirectory('lobster'),'R',paste0('CLF',filen,'.pdf')), width = wd, height = ht)
-	par(mfrow=c(rows,ceiling(length(yrs)/rows)), mar = c(0,2,0,0.5), omi = c(0.85, 0.75, 0.75, 0.5))
+	par(mfcol=c(rows,ceiling(length(yrs)/rows)), mar = c(0,2,0,0.5), omi = c(0.85, 0.75, 0.75, 0.5))
 	
 	for(i in 1:length(CLF)){
 	#browser()
-		if('n'%in%names(CLF[[i]]))sample.size<-CLF[[i]]$n
-		else sample.size<-NULL
 	
 		if(missing(xl))xlm<-range(bins)
 		else if(!missing(xl))xlm<-xl

@@ -49,18 +49,79 @@
       names(chs15) = c("lon", "lat", "z")
       # chs15 = chs15[ which( chs15$z < 1000 ) , ] 
       chs15$z = - chs15$z  
+    
+      # temporary break up of data to make it functional in smaller RAM systems
+      chs1000_5000 = chs15[ which( chs15$z > 1000 ), ]
+      u =  which(duplicated( chs1000_5000))
+      if (length(u)>0) chs1000_5000 = chs1000_5000[-u,]
+
+      chs0_1000 = chs15[ which( chs15$z <= 1000 ), ]
+      u =  which(duplicated( chs0_1000 ))
+      if (length(u)>0) chs0_1000 = chs0_1000[-u,]
+
+      rm ( chs15); gc()
+
+      fn0 = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000.rdata" )
+      fn1 = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000.rdata" )
+      
+      save ( chs0_1000, file=fn0 ) 
+      save ( chs1000_5000, file=fn1 ) 
+
+      rm ( chs0_1000, chs1000_5000 )
+      gc()
+
+      # pei = which( chs15$lon < -60.5 & chs15$lon > -64.5 & chs15$lat>45.5 & chs15$lat<48.5 )
+      # levelplot( z~lon+lat, data=chs15[pei,] )
+
 
       # Michelle Greenlaw's DEM from 2014
       # range -3000 to 71.5 m; n=155,241,029 .. but mostly interpolated 
       gdem = bathymetry.db( DS="Greenlaw_DEM" )
       gdem$z = - gdem$z
 
-      bathy = rbind( chs15, gdem )
-      rm(gdem, chs15) ; gc()
+      # pei = which( gdem$lon < -60.5 & gdem$lon > -65 & gdem$lat>45.5 & gdem$lat<49 )
+      # levelplot( z~I(round(lon,3))+I(round(lat,3)), data=gdem[pei,] )
 
-	 		# chs and others above use chs depth convention: "-" is below sea level,
+      # bad boundaries in gdem:
+      # southern Gulf of St lawrence has edge effects
+      bd1 = rbind( c( -62, 46.5 ),
+                   c( -61, 47.5 ),
+                   c( -65, 47.5 ),
+                   c( -65, 46.2 ),
+                   c( -64, 46.2 ),
+                   c( -62, 46.5 ) )
+
+      a = which( point.in.polygon( gdem$lon, gdem$lat, bd1[,1], bd1[,2] ) != 0 )
+      gdem = gdem[- a,]
+      
+      # remove also the northern and eastern margins for edge effects
+      gdem = gdem[ which( gdem$lat <  47.1) ,]
+      gdem = gdem[ which( gdem$lon < -56.5) ,]
+
+      fn0g = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_gdem.rdata" )
+      fn1g = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_1000_5000_gdem.rdata" )
+     
+      # temporary break up of data to make it functional in smaller RAM systems
+      gdem1000_5000 = gdem[ which( gdem$z > 1000 ), ]
+      # u =  which(duplicated( gdem1000_5000))
+      # if (length(u)>0) gdem1000_5000 = gdem1000_5000[-u,]
+      save ( gdem1000_5000, file=fn1g ) 
+      rm( gdem1000_5000 ); gc()
+
+      gdem0_1000 = gdem[ which( gdem$z <= 1000 ), ]
+      # u =  which(duplicated( gdem0_1000 ))
+      # if (length(u)>0) gdem0_1000 = gdem0_1000[-u,]
+      save ( gdem0_1000, file=fn0g ) 
+      rm( gdem0_1000 )
+      rm( gdem) ;gc()
+      gc()
+
+   
+      # chs and others above use chs depth convention: "-" is below sea level,
 			# in snowcrab and groundfish convention "-" is above sea level
 			# retain postive values at this stage to help contouring near coastlines
+
+      bathy = NULL
 
 			if ( "snowcrab" %in% additional.data ) {
         # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
@@ -97,10 +158,59 @@
 
 			}
 
-      bathy = bathy[ - which(duplicated( bathy)),]
+      u =  which(duplicated( bathy ))
+      if (length(u)>0) bathy = bathy[ -u, ]
+      rm (u)
+
+      bathy0 = bathy[ which(bathy$z <= 1000), ]
+      bathy1 = bathy[ which(bathy$z  > 1000), ]
+      rm(bathy)
+
+      gc()
+
+      load( fn0)
+      bathy0 = rbind( bathy0, chs0_1000 )
+      rm(chs0_1000) ;gc()
+
+      load( fn0g )
+      bathy0 = rbind( bathy0, gdem0_1000 ) 
+      rm ( gdem0_1000 ) ;gc()
+     
+      u =  which(duplicated( bathy0 ))
+      if (length(u)>0) bathy0 = bathy0[ -u, ]
+ 
+      fn0b = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.temporary_0_1000_bathy.rdata" )
+      save ( bathy0, file=fn0b )
+      rm (bathy0); gc()
+
+    # ---
+    
+      load( fn1 )
+      bathy1 = rbind( bathy1, chs1000_5000 )
+      rm (  chs1000_5000 ) ; gc()
+     
+      load( fn1g )
+      bathy1 = rbind( bathy1, gdem1000_5000 )
+      rm ( gdem1000_5000 ) ; gc()
+
+      u =  which(duplicated( bathy1 ))
+      if (length(u)>0) bathy1 = bathy1[ -u, ]
+      rm (u)
+
+      load( fn0b )
+
+      bathy = rbind( bathy0, bathy1 )
+      rm( bathy1, bathy0 ) ; gc()
 
       write.table( bathy, file=p$bathymetry.xyz, col.names=F, quote=F, row.names=F)
       save( bathy, file=fn, compress=T )
+      
+      file.remove( fn0)
+      file.remove( fn1)
+      file.remove( fn0g )
+      file.remove( fn1g )
+      file.remove( fn0b )
+      
       return ( fn )
     }
 
@@ -487,6 +597,7 @@
         load( fn)
         return( B )
       }
+
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) 
       B = lonlat2planar( B, proj.type=p$internal.projection ) 
@@ -496,6 +607,77 @@
       save( B, file=fn, compress=TRUE)
       return(fn)
     }
+
+
+    # ----------------
+
+
+    if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
+      #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the 
+      #//   spacetime interpolated method formatted and finalised for production use 
+      
+      datadir = project.datadirectory("bathymetry", "data" )
+			dir.create( datadir, showWarnings=F, recursive=T )
+      
+      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "rdata", sep=".") )
+      
+      if (DS =="bathymetry.spacetime.finalize" ) {
+        load( fn)
+        return( B )
+      }
+ 
+      preds = spacetime.db( p=p, DS="predictions" )  
+
+      BP = preds$means
+      rm(preds); gc()
+      nr = nrow( BP )
+      nc = ncol( BP )
+
+      # first order central differences but the central term drops out:
+      # diffr = ( ( BP[ 1:(nr-2), ] - BP[ 2:(nr-1), ] ) + ( BP[ 2:(nr-1), ] - BP[ 3:nr, ] ) ) / 2
+      # diffc = ( ( BP[ ,1:(nc-2) ] - BP[ ,2:(nc-1) ] ) + ( BP[ ,2:(nc-1) ] - BP[ ,3:nc ] ) ) / 2 
+      diffr = ( ( BP[ 1:(nr-2), ] - BP[ 3:nr, ] ) ) / 2
+      diffc = ( ( BP[ ,1:(nc-2) ] - BP[ ,3:nc ] ) ) / 2 
+      
+      dZ = diffr[ ,2:(nc-1) ] + diffc[ 2:(nr-1), ] 
+      dZ = rbind( dZ[1,], dZ, dZ[nrow(dZ)] )  # top and last rows are copies .. dummy value to keep dim correct
+      dZ = cbind( dZ[,1], dZ, dZ[,ncol(dZ)] )
+  
+      # gradients
+      ddiffr = ( ( dZ[ 1:(nr-2), ] - dZ[ 3:nr, ] ) ) / 2
+      ddiffc = ( ( dZ[ ,1:(nc-2) ] - dZ[ ,3:nc ] ) ) / 2 
+      
+      ddZ = ddiffr[ ,2:(nc-1) ] + ddiffc[ 2:(nr-1), ] 
+      ddZ = rbind( ddZ[1,], ddZ, ddZ[nrow(ddZ)] )  # top and last rows are copies .. dummy value to keep dim correct
+      ddZ = cbind( ddZ[,1], ddZ, ddZ[,ncol(ddZ)] )
+      
+      BP$plon = grid.internal( BP$plon, p$plons )
+      BP$plat = grid.internal( BP$plat, p$plats )
+      BP = block.spatial ( xyz=BP[,c("plon", "plat", "Z")], function.block=block.mean )
+      
+      dZ$plon = grid.internal( dZ$plon, p$plons )
+      dZ$plat = grid.internal( dZ$plat, p$plats )
+      dZ = block.spatial ( xyz=dZ[,c("plon", "plat", "dZ")], function.block=block.mean )
+      
+      ddZ$plon = grid.internal( ddZ$plon, p$plons )
+      ddZ$plat = grid.internal( ddZ$plat, p$plats )
+      ddZ = block.spatial ( xyz=ddZ[,c("plon", "plat", "ddZ")], function.block=block.mean )
+
+      B = spacetime.db( p=p, DS="statistics" )  
+      
+      # compute gradients and curvature
+      
+      # estimate mean trends in gradients and curvature
+
+
+      # merge into statistics
+      BS = spacetime.db( p=p, DS="statistics" )
+   
+      B = merge( BS, BP, ) 
+      save( B, file=fn, compress=TRUE)
+      return(fn)
+    }
+
 
   }  
 

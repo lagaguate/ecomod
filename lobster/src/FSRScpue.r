@@ -35,6 +35,7 @@ str(FSRSvesday.dat)
 subareas<-read.csv(file.path( project.datadirectory("lobster"), "data","LFA2733subarea.csv"))
 FSRSvesday.dat<-merge(FSRSvesday.dat,subareas,all.x=T)
 FSRSvesday.dat$SYEAR<-as.numeric(substr(FSRSvesday.dat$S_LABEL,1,4))
+write.csv(FSRSvesday.dat,file.path( project.datadirectory("lobster"), "data","FSRSrectraps.csv"),row.names=F)
 
 pdf(file.path( project.directory("lobster"), "R","FSRScpue.pdf"))
 

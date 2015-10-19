@@ -85,6 +85,7 @@
         return( preds ) 
       }
 
+
       if ( DS=="predictions.bigmemory.initialize" ) {
         # prediction indices in matrix structure 
         #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
@@ -96,10 +97,11 @@
         # Pmat[ cbind( round(( P$plon - p$plons[1]) / p$pres ) + 1, round(( P$plat - p$plats[1] ) / p$pres ) + 1 ) ] = P$var
 
         # predictions storage matrix (discretized) 
-        P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=0, dimnames=NULL, separated=FALSE, 
+        P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=NA, dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
         return( describe(P)) 
       }
+
 
       if ( DS =="predictions.redo" ) {
         ppp = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
@@ -109,22 +111,24 @@
         nd = which( ppp[,1]==0 )
         if (length(nd)>0) means[nd] = NA # no data .. no mean
         
-        variance = ppp[,3] 
+        stdev = ppp[,3] 
         nd = which( ppp[,1] <= 1 )
-        if (length(nd)>0) variance[nd] = NA
+        if (length(nd)>0) stdev[nd] = NA
 
         preds = list( 
           bbox = list( plons=p$plons, plats=p$plats ),
-          m = matrix( data=means, nrow=p$nplons, ncol=p$nplats ) ,
-          v = matrix( data=variance, nrow=p$nplons, ncol=p$nplats )
+          means = matrix( data=means, nrow=p$nplons, ncol=p$nplats ) ,
+          stdev = matrix( data=stdev, nrow=p$nplons, ncol=p$nplats )
         )
         save( preds, file=fn.P, compress=TRUE )
         return(fn.P)
       } 
     }
 
+
     # -----------------
     
+
     if (DS == "statistics.box")  {
       sbbox = list( plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$dist.mwin ), 
                     plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$dist.mwin )
@@ -148,17 +152,17 @@
       }
  
       if ( DS=="statistics.bigmemory.initialize" ) {
-        # statistics storage matrix ( aggregation window, AW )
+        # statistics storage matrix ( aggregation window, coords )
 
-        AW = expand.grid( p$sbbox$plons, p$sbbox$plats )
-        attr( AW , "out.attrs") = NULL
-        names( AW ) = c("plon", "plat")
+        coords = expand.grid( p$sbbox$plons, p$sbbox$plats )
+        attr( coords , "out.attrs") = NULL
+        names( coords ) = c("plon", "plat")
         statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
         nstats = length( statsvars ) + 2  # +2 is for coords  
-        S = filebacked.big.matrix( nrow=nrow(AW), ncol=nstats, type="double", init=0, dimnames=NULL, separated=FALSE, 
+        S = filebacked.big.matrix( nrow=nrow(coords), ncol=nstats, type="double", init=NA, dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
-        S[,1] = AW[,1]
-        S[,2] = AW[,2]
+        S[,1] = coords[,1]
+        S[,2] = coords[,2]
         return( describe( S) ) 
       }
 
@@ -169,22 +173,49 @@
 
 
       if ( DS =="statistics.redo" ) {
+        #\\ spacetime.db( "statsitics.redo") .. statistics are stored at a different resolution than the final grid
+        #\\   this fast (simple)-interpolates the solutions to the final grid
+    
         S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
-        bad = which( S[,3] == p$fail.flag )
-        S[ bad, (3:ncol(S[]))] = NA
-     
-        snr = length(p$sbbox$plons)
-        snc = length(p$sbbox$plats)
-        
-        stats = list(
-          bbox = p$sbbox,
-          range = matrix( data=S[,1], nrow=snr, ncol=snc ) ,
-          range.sd = matrix( data=S[,2], nrow=snr, ncol=snc ) ,
-          var.spatial = matrix( data=S[,3], nrow=snr, ncol=snc ) ,
-          var.observation = matrix( data=S[,4], nrow=snr, ncol=snc )
-### add some more here ... curvature / slope, etc
-        )  
+        ss = as.data.frame( S[] )
+        statnames0 = c( "range", "range.sd", "spatial.var", "observation.var"  )
+        statnames  = c( "range", "range.sd", "spatial.sd", "observation.sd"  )
+        datalink   = c( "log", "log", "log", "log" )  # a log-link seems appropriate for these data
+        names(ss) = c( "plon", "plat", statnames0 )
+        rm (S)
 
+        ss$spatial.sd = sqrt( ss$spatial.var )
+        ss$observation.sd = sqrt( ss$observation.var )
+
+        ss$spatial.var = NULL
+        ss$observation.var = NULL
+
+        # interpolate statistics where necessary and add to predictions/results: 
+        locsout = expand.grid( p$plons, p$plats )
+        attr( locsout , "out.attrs") = NULL
+        names( locsout ) = c("plon", "plat")
+
+        stats = matrix( NA, ncol=length(statnames), nrow=nrow( locsout) )  # output data
+
+        range0 = median( ss$range, na.rm=TRUE )
+          
+          for ( ii in 1:length(statnames) ) {
+            vn = statnames[ii]
+            oo = which( is.finite( ss[,vn] ) & ss[,vn] > 0 )  # zero's are 
+            if ( length(oo) < 30 ) next() 
+            dat = ss[oo,vn]
+            locs = ss[oo, c("plon", "plat") ]
+            RES = spacetime.interpolate.inla.singlepass ( dat, locs, locsout, 
+              res=p$pres, lengthscale=range0, method="fast", link=datalink[ii] ) # method="direct" is very slow but smoother
+            if ( !is.null(RES)) {
+              stats[,ii] = RES$xmean
+              rm( RES); gc()
+            }
+          }
+
+        if (0) levelplot( stats[,1] ~ plon+plat, locsout, aspect="iso") 
+        if (0) levelplot( RES$xmean ~ plon+plat, locsout, aspect="iso") 
+        
         save( stats,  file=fn.S, compress=TRUE )
         return( fn.S)
       }

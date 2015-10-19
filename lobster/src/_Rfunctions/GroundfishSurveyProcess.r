@@ -12,11 +12,16 @@ GroundfishSurveyProcess<-function(size.range=c(0,220),Sex = NULL, Strata=c(485,4
   p$length.based = T
   p$size.class= size.range
   if(!is.null(Sex)) {p$by.sex = T; p$sex = Sex}
+  else{p$by.sex = F}
+ # browser()
   p$functional.groups = F
   p$alpha = 0.05
   p<-make.list(list(v=p$species, yrs=p$years.to.estimate),Y=p)
 
-  index<-groundfish.analysis(DS='stratified.estimates.redo',p=p)$n.yst
+ grfanal<-groundfish.analysis(DS='stratified.estimates.redo',p=p)
+ index<-grfanal$n.yst
+ se<-grfanal$n.yst.se
+
   LF=NULL
   if(Lengths){
     p$length.based = T
@@ -28,6 +33,6 @@ GroundfishSurveyProcess<-function(size.range=c(0,220),Sex = NULL, Strata=c(485,4
     }
   }
 
-  list(index=index,LF=LF)
+  list(index=index,se=se,LF=LF)
 
 }

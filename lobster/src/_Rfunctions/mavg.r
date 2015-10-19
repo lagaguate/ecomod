@@ -1,1 +1,1 @@
-mavg<-function(x,n=3){filter(x,rep(1/n,n),sides=2)}
+mavg<-function(x,n=3){stats::filter(x,rep(1/n,n),sides=2)}

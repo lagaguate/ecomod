@@ -160,29 +160,30 @@
     p$project.root = project.datadirectory( p$project.name )
     
     p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
-  
     
     redo.bathymetry.rawdata = FALSE
     if ( redo.bathymetry.rawdata ) { 
       bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
     }
 
-    p$dist.max = 50 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-    p$dist.mwin = 1 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-    p$dist.pred = 0.90 # % of dist.max where **predictions** are retained (to remove edge effects)
+    p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+    p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+    p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
    
     ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
-    p$n.min = 100
-    p$n.max = 10000 # numerical time/memory constraint
+    p$n.min = 30
+    p$n.max = 6000 # numerical time/memory constraint
 
     # the following parameters are for inside and outside ... do not make them exact multiples as this seems to make things hang ..
-    p$inla.mesh.max.edge = c(  0.025,   0.04 )    # proportion of 2*p$dist.max or equivalent: c(inside,outside)
-    p$inla.mesh.offset   = c(  0.025,   0.05 )   # how much to extend inside and outside of boundary: proportion of dist.max
-    p$inla.mesh.cutoff   = c(  0.005,   0.05 )    ## min distance allowed between points: proportion of dist.max 
-    p$inla.mesh.hull.radius = c( 0.04, 0.08 ) ## radius of boundary finding algorythm
+    p$inla.mesh.max.edge = c(  0.025,   0.04 )    # proportion of 2*p$dist.max or equivalent: c(inside,outside) -- must be positive valued
+    p$inla.mesh.offset   = c( - 0.025,  - 0.05 )   # how much to extend inside and outside of boundary: proportion of dist.max .. neg val = proportion
+    p$inla.mesh.cutoff   = c( - 0.05,   - 0.5 )    ## min distance allowed between points: proportion of dist.max ; neg val = proportion
+
+    p$inla.mesh.hull.radius = c( -0.04, - 0.08 ) ## radius of boundary finding algorythm ; neg val = proportion
+
     p$inla.mesh.hull.resolution = 125  ## resolution for discretization to find boundary
 
-    p$spacetime.noise = 0.005  # add a little noise to coordinates to prevent a race condition
+    p$spacetime.noise = 0.001  # add a little noise to coordinates to prevent a race condition
 
     p$inla.alpha = 2 # bessel function curviness
     p$inla.nsamples = 5000 # posterior similations 
@@ -199,9 +200,10 @@
 
     p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
 
-    p$spacetime.link = function( X ) { log(X) + 1000 }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
-    p$spacetime.invlink = function( X ) { exp(X - 1000 )   }
-   
+    p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
+    p$spacetime.invlink = function( X ) { exp(X) - 1000 }
+  
+    p$spacetime.family = "gaussian"
     
     # if not in one go, then the value must be reconstructed from the correct elements:  
     p$spacetime.posterior.extract = function(s, rnm) { 
@@ -234,38 +236,53 @@
     # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
     # p$clusters = "localhost"  # if serial run, send a single cluster host
     # p$clusters = c( "hyperion",  "nyx", "tartarus", "kaos", "tethys" ) 
-    p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 4 ), rep ("tartarus", 4), rep("kaos", 4 ), rep("tethys", 4 ) )
+    p$clusters = c( rep( "hyperion", 6 ), rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ), rep("tethys", 6 ) )
     nS = spacetime.db( p, DS="statistics.bigmemory.size" )
       
     p = make.list( list( jj=sample( 1:nS ) ), Y=p ) # random order helps use all cpus 
     
     # spacetime.interpolate.inla( p=p, debugrun=TRUE ) 
-    z = parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
+    parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
     
     if (0) {
+      # low level check of results
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
       
       # predictions
       S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
-      levelplot( S[,3]  ~ S[,1] + S[,2] , aspect="iso" )  # S[,3] = range
-      
-      # problematic and skipped
-      i = which( is.na( S[,3] ) )
+     
+      # S[,3] is the range estimate
+      x11()
+      datarange = log( c( 5, 800 ))
+      dr = seq( datarange[1], datarange[2], length.out=150)
+      levelplot( log(S[,3])  ~ S[,1] + S[,2] , aspect="iso", at=dr, col.regions=color.code( "seis", dr) ,
+        contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2  )  
+
+      # problematic and/or no data (i.e., land) and skipped
+      i = which( is.nan( S[,3] ) )
       length(i)
        
       # not yet completed
-      j = which( S[,3]==0 ) 
+      j = which( is.na( S[,3] ) ) 
       length(j)
 
       # completed 
-      k = which( !is.na(S[,3]) & S[,3] != 0 ) # not yet done
+      k = which( is.finite (S[,3])  ) # not yet done
       length(k)
 
       #predictions 
       P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
       pps  =  expand.grid( plons=p$plons, plats=p$plats)
-      levelplot(  P[,2]  ~plons+plats, pps , aspect="iso" )
-
+   
+      datarange = log( c( 5, 5000 ))
+      dr = seq( datarange[1], datarange[2], length.out=150)
+      levelplot( log( P[,2] ) ~ plons + plats, pps, aspect="iso", main="mean", at=dr, col.regions=rev(color.code( "seis", dr)) ,
+        contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+   
+      x11()
+       datarange = ( c( 1, 50 ))
+       dr = seq( datarange[1], datarange[2], length.out=150)
+       levelplot(  P[,3]  ~ plons + plats, pps, aspect="iso", main="mean", at=dr, col.regions=rev(color.code( "seis", dr)) , contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
 
       # redo incomplete
       p = make.list( list( jj=sample( j ) ), Y=p ) 
@@ -279,7 +296,7 @@
     spacetime.db( p=p, DS="statistics.redo" )
     spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
 
-    bathymetry.db( p=p, DS="inla" )  # create a completed bathymtry db for use with ecomod
+    bathymetry.db( p=p, DS="inla.finalize.redo" )  # create a completed bathymtry db for use with ecomod
 
   }
 
