@@ -52,7 +52,7 @@ library(data.table)
 ###                          ENVIRONMENT                                        
 options(stringsAsFactors = FALSE) 
 # MMM - necessary?
-options(local=TRUE)  
+#options(local=TRUE)  
 # MMM - I don't like scientific notation, this avoids it
 options(scipen=999)  
 
@@ -131,10 +131,13 @@ the database may not currently be available.")
 ################################################################################
 #New improved, NMFS-friendly pick lists
 gui<-function(){
-#list available stratum area tables
+
 get.stratum.tables<-function(agency.gui){
-  if (agency.gui=="NMFS"){
-    stratum.tables<-c("USNEFSC.DFO5ZJM", 
+  if (agency.gui=="DFO"){
+    stratum.tables<-c("GROUNDFISH.GSSTRATUM")
+  }else{
+    stratum.tables<-c("GROUNDFISH.GSSTRATUM",
+                      "USNEFSC.DFO5ZJM", 
                       "USNEFSC.DFO5ZGHNO", 
                       "USNEFSC.NMFS5ZJM", 
                       "USNEFSC.NMFS5ZGHNO", 
@@ -146,74 +149,101 @@ return(stratum.tables)
 }
 
 
-#list available survey types
 get.type<-function(agency.gui) {
-  if (agency.gui=="NMFS"){
-   the.type="111" 
-  }else{
-  the.type <- sqlQuery(channel, 
-                       paste("select XTYPEDESC, XTYPE 
+  if (agency.gui=="DFO"){
+    the.type <- sqlQuery(channel, 
+                         paste("select XTYPEDESC, XTYPE 
                              from groundfish.GSXTYPE
                              ORDER BY XTYPE",sep=""))
-  the.type<-paste( the.type[,1], " (", the.type[,2],")",sep="") 
+    the.type<-paste( the.type[,1], " (", the.type[,2],")",sep="") 
+  }else{
+    the.type="111" 
   }
   return(the.type)
 }
-#list available years
-#NMFS -- 
-# --10=  NMFS NEFSC BOTTOM TRAWL SURVEY
-# --11 = '36 YANKEE TRAWL'
-# --41 = Modified 41 Yankee Trawl (Accepted Code)
-# --45 = Modified 41 Yankee Trawl (Erroneously Coded on Several Cruises)
+
 get.year<-function(agency.gui) {
-  if (agency.gui=="NMFS"){
+  if (agency.gui=="DFO"){
+    year.query = "select distinct YEAR 
+                             from groundfish.gsmissions
+                             ORDER BY YEAR DESC"  
+  }else{  
+    #10=  NMFS NEFSC BOTTOM TRAWL SURVEY
+    #11 = '36 YANKEE TRAWL'
+    #41 = Modified 41 Yankee Trawl (Accepted Code)
+    #45 = Modified 41 Yankee Trawl (Erroneously Coded on Several Cruises)
     year.query = "SELECT DISTINCT Year
                     FROM USNEFSC.USS_MSTR_CRUISE
                     WHERE PURPOSE_CODE='10' AND 
                     SVGEAR In ('11','41','45')
                     ORDER BY Year DESC"
-  }else{
-    year.query = "select distinct YEAR 
-                             from groundfish.gsmissions
-                             ORDER BY YEAR DESC"    
   }
   the.year = sqlQuery(channel, year.query)
   the.year<-paste( the.year[,1],sep=",") 
   return(the.year)
 }
-#list available missions
-#not sure if I want to offer filter by season (would need additional dialog box)
-# removed gear restriction from NMFS
-#--AND SVGEAR In ('11','41','45')
+
 get.missions<-function(agency.gui,year.gui){
-  if (agency.gui=="NMFS"){
+  if (agency.gui=="DFO"){
+    mission.query=paste("select MISSION, VESEL, CRUNO, YEAR, SEASON
+                        from groundfish.gsmissions 
+                         WHERE SEASON IN 
+                         ('SUMMER','SPRING','FALL','4VWCOD','GEORGES')
+                         AND YEAR = ",year.gui, sep="") 
+  }else{
+    # removed gear restriction from NMFS
+    #--AND SVGEAR In ('11','41','45')
     mission.query=paste("SELECT CRUISE6 AS MISSION, SVVESSEL AS VESEL, 
                           CRUISE AS CRUNO, YEAR, SEASON
                           FROM USNEFSC.USS_MSTR_CRUISE
                           WHERE PURPOSE_CODE='10' 
                           AND SEASON IN ('SPRING','SUMMER','FALL','WINTER')
                           AND YEAR = ",year.gui, sep="")
-  }else{
-    mission.query=paste("select MISSION, VESEL, CRUNO, YEAR, SEASON
-                        from groundfish.gsmissions 
-                         WHERE SEASON IN 
-                         ('SUMMER','SPRING','FALL','4VWCOD','GEORGES')
-                         AND YEAR = ",year.gui, sep="") 
   }
-  return(sqlQuery(channel, mission.query))
+  missions.data<-sqlQuery(channel, mission.query)
+  missions<-select.list(paste( missions.data$MISSION, " (", missions.data$SEASON,")",sep=""), 
+              multiple=F, graphics=T, 
+              title='Please choose a mission:') 
+  mission.id<-as.numeric(gsub("\\s?\\(.*?\\)", "", missions))
+  missions.data<-missions.data[missions.data$MISSION==mission.id,]
+  mission.info<-list(mission.id,missions.data)
+  return(mission.info)
 }
 
-#list available strata (filtered by selected year and type)
+get.species<-function(agency.gui, by.sex.gui) {
+  if (agency.gui=="DFO"){
+    if (isTRUE(by.sex.gui)){
+      species.query.tweak<-"AND LFSEXED = 'Y' "
+    } else{
+      species.query.tweak<-""
+    }
+    species.query=paste("SELECT DISTINCT(SPEC), initcap(CNAME) CNAME, 
+                        LGRP, LFSEXED 
+                        FROM GROUNDFISH.GSSPEC 
+                        WHERE SPEC <> 9999 
+                        ", species.query.tweak, " 
+                        ORDER BY initcap(CNAME)",sep="")
+  }else{ 
+    #not ideal - hard coded spp from uss_catch table with more than 1 catchsex
+    if (isTRUE(by.sex.gui)){
+      species.query.tweak<-"AND SPEC IN ('015','022','026','075','108')"
+    } else{
+      species.query.tweak<-""
+    }
+    species.query=paste("SELECT US.SPEC, INITCAP(US.CNAME) CNAME, 
+                        US.LGRP, US.LFSEXED 
+                        FROM USNEFSC.USSPEC US
+                        WHERE  
+                        US.SPEC <> 9999
+                        ", species.query.tweak,"
+                        ORDER BY initcap(US.CNAME)",sep="")
+  }
+  the.species = sqlQuery(channel, species.query)
+  return(the.species)
+  }
+
 get.strata<-function(agency.gui, year.gui, missions.gui, stratum.table.gui,type.gui) {
- if (agency.gui =="NMFS"){
-  strata.query=paste0("SELECT DISTINCT STRAT 
-                        FROM ",stratum.table.gui," 
-                        ORDER BY STRAT")
-  the.strata <- sqlQuery(channel,strata.query)
-  #have to do nmfs strat differently, since they may need leading zeros
-  the.strata<-sprintf("%05d", the.strata$STRAT)
-  the.strata<-paste(the.strata,sep=",") 
-  }else{
+ if (agency.gui =="DFO"){
     dfo.strata.query.year.tweak=paste0("AND to_char(sdate,'yyyy') = ",year.gui)
     dfo.strata.query.type.tweak=paste0("AND type IN (",type.gui,")")
     dfo.strata.query.mission.tweak=paste0("AND MISSION IN (",missions.gui,")")
@@ -226,25 +256,22 @@ get.strata<-function(agency.gui, year.gui, missions.gui, stratum.table.gui,type.
                                   ORDER BY STRAT")
     the.strata <- sqlQuery(channel,strata.query)
     the.strata<-paste(the.strata[,1],sep=",") 
+  }else{
+  strata.query=paste0("SELECT STRAT 
+                        FROM ",stratum.table.gui,"
+                        WHERE LENGTH(STRAT)=5
+                        ORDER BY STRAT")
+  the.strata <- sqlQuery(channel,strata.query)
+  #have to do nmfs strat differently, since they leading zeros
+  the.strata<-sprintf("%05d", the.strata$STRAT)
+  the.strata<-paste(the.strata,sep=",") 
   }
   return(the.strata)
 }   
 
 #list available areas (given selected year, type and strata)
 get.area<-function(agency.gui,year.gui,type.gui,strata.gui ) {
-  if (agency.gui =="NMFS"){
-    nmfs.area.query.year.tweak=paste0("AND GMT_YEAR = ", year.gui)
-    nmfs.area.query.type.tweak=paste0("AND SHG <=",type.gui)
-    #stratum needs have leading zero removed
-    nmfs.area.query.strata.tweak=paste0("AND ltrim(STRATUM, '0') IN (", strata.gui,")")
-    
-   area.query=paste0("SELECT distinct AREA 
-                from USS_STATION
-                WHERE 1=1  
-                ",nmfs.area.query.year.tweak,"
-                ",nmfs.area.query.type.tweak,"
-                ",nmfs.area.query.strata.tweak)
-  }else{
+  if (agency.gui =="DFO"){
     dfo.area.query.year.tweak=paste0("AND to_char(sdate,'yyyy') = ",year.gui)
     dfo.area.query.type.tweak=paste0("AND type IN (",type.gui,")")
     dfo.area.query.strata.tweak=paste0("AND strat IN (",strata.gui,")")
@@ -255,16 +282,25 @@ get.area<-function(agency.gui,year.gui,type.gui,strata.gui ) {
                                 ",dfo.area.query.type.tweak,"
                                 ",dfo.area.query.strata.tweak,"
                                 ORDER BY AREA")
+  }else{
+    nmfs.area.query.year.tweak=paste0("AND GMT_YEAR = ", year.gui)
+    nmfs.area.query.type.tweak=paste0("AND SHG <=",type.gui)
+    #stratum needs have leading zero removed
+    nmfs.area.query.strata.tweak=paste0("AND STRATUM IN (", strata.gui,")")
+   area.query=paste0("SELECT distinct AREA 
+                from USS_STATION
+                WHERE 1=1  
+                ",nmfs.area.query.year.tweak,"
+                ",nmfs.area.query.type.tweak,"
+                ",nmfs.area.query.strata.tweak)
   }
   the.area <- sqlQuery(channel, area.query)
   the.area<-paste( the.area[,1],sep=",") 
   return(the.area)
 }
 
-
-
 ################################################################################
-#prompt user for agency
+#Agency-specific questions/inputs, that call the get.x() functions above
 agency.gui<-select.list(c("DFO","NMFS"), 
                         multiple=F, graphics=T, 
                         title='Please choose an agency:')
@@ -274,13 +310,11 @@ by.sex.gui<-select.list(c("Unsexed Analysis","Sexed Analysis"),
                         title='Analysis by Sex?')
 if (by.sex.gui=="Sexed Analysis") by.sex.gui=T else by.sex.gui=F
 
-#This section holds agency-specific questions/inputs
 if (agency.gui=='DFO'){
-     stratum.table.gui=""
+    stratum.table.gui="GROUNDFISH.GSSTRATUM"
     type.gui<-select.list(get.type(agency.gui), 
                               multiple=F, graphics=T, 
                               title='Please select the type of trawl:')
-    #grab the (numeric) type from the selection
     type.gui<-as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', type.gui) )
     wingspread.gui = as.numeric(select.list(c("41","34"),
                                         preselect=c("41"),
@@ -296,43 +330,8 @@ if (agency.gui=='DFO'){
                                       multiple=F, graphics=T, 
                                       title='wingspread (ft)'))
 }
-#get df of species info, including LGRP
-#list available species
-the.species<-function(agency.gui, by.sex.gui) {
-  #MMM - this is not ideal - I investigated the uss_catch table to find which tables
-  #had species with more than 1 catchsex, and manually paste them into
-  if (agency.gui=="NMFS"){
-    if (isTRUE(by.sex.gui)){
-      species.query.tweak<-"AND SPEC IN ('015','022','026','075','108')"
-    } else{
-      species.query.tweak<-""
-    }
-    
-    species.query=paste("SELECT US.SPEC, INITCAP(US.CNAME) CNAME, US.LGRP, US.LFSEXED 
-                        FROM USNEFSC.USSPEC US
-                        WHERE  
-                        US.SPEC <> 9999 ",species.query.tweak,"
-                        ORDER BY initcap(US.CNAME)",sep="")
-  }else{
-    if (isTRUE(by.sex.gui)){
-      species.query.tweak<-"AND LFSEXED = 'Y' "
-    } else{
-      species.query.tweak<-""
-    }
-    species.query=paste("SELECT DISTINCT(SPEC), initcap(CNAME) CNAME, 
-                        LGRP, LFSEXED 
-                        FROM GROUNDFISH.GSSPEC 
-                        WHERE SPEC <> 9999 "
-                        , species.query.tweak, " 
-                        ORDER BY initcap(CNAME)",sep="")
-  }
-  the.species = sqlQuery(channel, species.query)
-  #the.species = paste( the.species[,2], " (", the.species[,1],")",sep="")
-  return(the.species)
-  }
 
-the.species<-the.species(agency.gui, by.sex.gui)
-#prompt user for species (filter selection if sexed species are required) 
+the.species<-get.species(agency.gui, by.sex.gui)
 species.gui<-select.list(paste( the.species$CNAME, " (", the.species$SPEC,")",sep=""),
                          multiple=F, graphics=T, 
                          title=ifelse(isTRUE(by.sex.gui),
@@ -345,23 +344,19 @@ species.name.gui<-gsub("\\s?\\(.*?\\)", "", species.gui)
 species.lgrp.gui<-the.species[which(the.species$SPEC == species.code.gui), ][3]
 species.lfsexed.gui<-the.species[which(the.species$SPEC == species.code.gui), ][4]
 
-#prompt user for year
 year.gui<-select.list(paste(get.year(agency.gui),sep=","),
                       multiple=F, graphics=T, 
                       title='Choose a year:')
 
-
-mission.df<-get.missions(agency.gui,year.gui)
-missions.gui<-SQL.in(unique(mission.df$MISSION))
+mission.info<-get.missions(agency.gui,year.gui)
+missions.gui<-SQL.in(mission.info[[1]])
+mission.df<-mission.info[[2]]
 
 strata.gui<-select.list(paste(get.strata(agency.gui,year.gui,missions.gui,stratum.table.gui,type.gui),sep=","),
                     multiple=T, graphics=T, 
                     title='Choose the strata:')
-##if being sent to NMFS, stratum needs leading zer
 strata.gui = SQL.in(strata.gui)
 
-#prompt user for area (filtered by those matching existing selections 
-#for year, type and strata) 
 area.gui<-select.list(paste(get.area(agency.gui,year.gui,type.gui,strata.gui),sep=","), 
                       multiple=T, graphics=T, 
                       preselect=c(get.area(agency.gui,year.gui,type.gui,strata.gui)),
@@ -386,9 +381,12 @@ GUI.results<-list(wingspread.gui,
                   mission.df,
                   agency.gui,
                   species.lgrp.gui,
-                  species.lfsexed.gui)
+                  species.lfsexed.gui,
+                  stratum.table.gui)
 return(GUI.results)
 }
+#end of GUI
+################################################################################
   GUI.results<-gui()
   wingspread = GUI.results[[1]]
   towdist = GUI.results[[2]]
@@ -404,14 +402,14 @@ return(GUI.results)
   agency.gui = GUI.results[[12]] 
   species.lgrp.gui = GUI.results[[13]] 
   species.lfsexed.gui = GUI.results[[14]] 
-
+  stratum.table.gui = GUI.results[[15]] 
 
 ################################################################################
 ###                          DATABASE EXTRACTIONS                               
 
 #limit extraction by the users' selections
 if (agency.gui=='DFO'){
-raw_gscat_query <- 
+raw.gscat.query <- 
   paste("select mission,setno,size_class,totwgt,sampwgt,totno,calwt
           from 
           groundfish.gscat 
@@ -421,17 +419,13 @@ raw_gscat_query <-
 
 }else{
   #nmfs does not have a size class  
-
-}
-raw_gscat<-sqlQuery(channel,raw_gscat_query)
-
-
-# catchsex is inconsistent in old STRANAL - testing using "unsexed" found that 
-# sometimes catchsex 1 OR 2 was chosen - not a combination of the 3 (0, 1 and 2)
-# problem was found in cruise6=199502, spp=15
-#AND catchsex in ('0','1','2')
-raw.gscat.query <- 
-  paste("select cruise6 mission,to_number(station) setno, sum(expcatchwt) totwgt,sum(expcatchnum) totno
+  # catchsex is inconsistent in old STRANAL - testing using "unsexed" found that 
+  # sometimes catchsex 1 OR 2 was chosen - not a combination of the 3 (0, 1 and 2)
+  # problem was found in cruise6=199502, spp=15
+  #AND catchsex in ('0','1','2')
+  #adding fake values for calwt(0), size_class(1), and sampwgt(0) so data format matches CDN data
+  raw.gscat.query <- 
+    paste("select cruise6 mission,to_number(station) setno, 1 size_class, sum(expcatchwt) totwgt, 0 sampwgt, sum(expcatchnum) totno, 0 calwt
           from 
           usnefsc.uss_catch 
           WHERE 
@@ -440,71 +434,11 @@ raw.gscat.query <-
           AND STRATUM   IN (",these.strat,")
           group by 
           cruise6, to_number(station)", sep="")
-raw.gscat.data<-sqlQuery(channel,raw.gscat.query )
-
-#distance was assumed to be 1.75, but appears to be dopdistb
-raw.gsinf.query<-
-  paste("SELECT CRUISE6 mission,to_number(station) setno, begin_est_towdate sdate, est_time time, STRATUM strat, 
-    area,  BEGLAT slat, BEGLON slon, mindepth dmin, maxdepth dmax, avgdepth depth, towdur dur, dopdistb dist 
-        FROM USNEFSC.USS_STATION 
-        WHERE CRUISE6 in (",these.missions,")
-        AND STRATUM in (",these.strat,")"
-        , sep="")
-raw.gsinf.data<-sqlQuery(channel,raw.gsinf.query )
-cat.inf<-merge(raw.gscat.data,raw.gsinf.data, all.y=T)
-#need to determine how to limit missions similar to STRANAL
-#in the meantime, for testing, using this...
-cat.inf<-cat.inf[cat.inf$MISSION=='199502',]
-
-
-
-raw.gsdet.query<-
-  paste("
-select cruise6 mission, to_number(station) setno, age, length, avg(indwt) fwt,
-decode(",species.lgrp.gui,",1,length,2,.5+2*floor(length/2),3,1+3*floor(length/3),length) flen,
-",species.lgrp.gui," binwidth,'N' bysex
-from usnefsc.uss_detail
-where to_number(svspp)=",species.code,"
-AND CRUISE6 in (",these.missions,")
-AND STRATUM in (",these.strat,")
-group by cruise6,station,age,length", sep="")
-raw.gsdet.data<-sqlQuery(channel,raw.gsdet.query )
-#need to determine how to limit missions similar to STRANAL
-#in the meantime, for testing, using this...
-raw.gsdet.data<-raw.gsdet.data[raw.gsdet.data$MISSION=='199502',]
-
-
-
-raw.gsdetLF.query<-
-  paste("
-select cruise6 mission, to_number(station) setno,length, sum(expnumlen) clen
-from usnefsc.uss_lengths
-where to_number(svspp)=",species.code,"
-AND CRUISE6 in (",these.missions,")
-AND STRATUM in (",these.strat,")
-group by cruise6,station,length", sep="")
-raw.gsdetLF.data<-sqlQuery(channel,raw.gsdetLF.query )
-#need to determine how to limit missions similar to STRANAL
-#in the meantime, for testing, using this...
-raw.gsdetLF.data<-raw.gsdetLF.data[raw.gsdetLF.data$MISSION=='199502',]
-
-
-stock_all_raw_age<-merge(raw.gsdetLF.data,raw.gsdet.data, all = TRUE)
-
-
-
-
-
-
-
-
-
-
-
-
+}
+raw.gscat<-sqlQuery(channel,raw.gscat.query)
 #added mission, strat and type filters
 if (agency.gui=='DFO'){
-raw_gsinf_query<-
+  raw.gsinf.data<-
   #no area filter??
   paste("select i.mission, i.setno,sdate,time,strat,
          area,slat,slong,dmin,dmax,depth,dur,dist
@@ -515,11 +449,21 @@ raw_gsinf_query<-
           AND strat IN (",these.strat,")
           AND type IN (",these.type,")", sep="")
 }else{
+  #distance was assumed to be 1.75, but appears to be dopdistb
+  raw.gsinf.query<-
+    paste("SELECT CRUISE6 mission,to_number(station) setno, begin_est_towdate sdate, est_time time, STRATUM strat, 
+    area,  BEGLAT slat, BEGLON slong, mindepth dmin, maxdepth dmax, avgdepth depth, towdur dur, dopdistb dist 
+        FROM USNEFSC.USS_STATION 
+        WHERE CRUISE6 in (",these.missions,")
+        AND STRATUM in (",these.strat,")"
+          , sep="")
+
 }
-raw_gsinf<-sqlQuery(channel,raw_gsinf_query)
+raw.gsinf<-sqlQuery(channel,raw.gsinf.query )
+if (agency.gui=="NMFS") raw.gsinf$STRAT<-sprintf("%05d", raw.gsinf$STRAT)
 
 if (agency.gui=='DFO'){
-raw_gsdet_query<-
+  raw.gsdet.query<-
   paste("select mission,setno,size_class,fsex,age,fwt,
           decode(",species.lgrp.gui,",1,flen,2,.5+2*floor(flen/2),3,1+3*floor(flen/3),flen) flen,
           lgrp binwidth,lfsexed bysex, clen
@@ -529,73 +473,72 @@ raw_gsdet_query<-
           WHERE MISSION IN (",these.missions,")
           AND G.SPEC=",species.code,"
         ", sep="")
-  raw_gsdet<-sqlQuery(channel,raw_gsdet_query)
+  raw.gsdet<-sqlQuery(channel,raw.gsdet.query)
 }else{
-  nmfs_detail_query<-paste("select cruise6 mission, station setno,age,
-                        length, avg(indwt) fwt
-                        from usnefsc.uss_detail
-                        where to_number(svspp)=",species.code,"
-                        and sex in ('0','1','2')
-                        group by cruise6,station,age,length", sep="")
-  nmfs_detail<-sqlQuery(channel,nmfs_detail_query)
-  nmfs_lf_query<-paste("select cruise6 mission, station setno,length, 
-                      sum(expnumlen) clen
-                      from usnefsc.uss_lengths
-                      where to_number(svspp)=",species.code,"
-                      and catchsex in ('0','1','2')
-                      group by cruise6,station,length",sep="")
-  nmfs_lf<-sqlQuery(channel,nmfs_lf_query)
-
-  stock_all_raw_age<-merge(nmfs_detail,nmfs_lf)
-#   stock_all_raw_age$FLEN<-1,
-#   if(x==1){
-#     FLEN<-l.length
-#   }else if(x==2){
-#     FLEN<-.5+2*floor(l.length/2)
-#   }else if(x==3){
-#     FLEN<-1+3*floor(l.length/3)
-#   }else{
-#     FLEN<-l.length
-#   }
-
+  #missing fsex, sizeclass,clen
+  raw.gsdet.query<-
+        paste("
+        select cruise6 mission, to_number(station) setno, age, length, avg(indwt) fwt,
+        decode(",species.lgrp.gui,",1,length,2,.5+2*floor(length/2),3,1+3*floor(length/3),length) flen,
+        ",species.lgrp.gui," binwidth,'N' bysex
+        from usnefsc.uss_detail
+        where to_number(svspp)=",species.code,"
+        AND CRUISE6 in (",these.missions,")
+        AND STRATUM in (",these.strat,")
+        group by cruise6,station,age,length", sep="")
+      raw.gsdet<-sqlQuery(channel,raw.gsdet.query )
   
+  raw.lf.query<-
+      paste("select cruise6 mission, catchsex fsex, station setno,length, 
+      sum(expnumlen) clen, 1 size_class
+      from usnefsc.uss_lengths
+      where to_number(svspp)=",species.code,"
+      and cruise6 in (",these.missions,")
+      and catchsex in ('0','1','2')
+      group by cruise6,station,length, catchsex",sep="")
+  raw.lf<-sqlQuery(channel,raw.lf.query)
+
+  #merge keeping correct values?
+  raw.gsdet<-merge(raw.lf,raw.gsdet,all.x=T) 
 }
 
-#calculate strat areas into tunits (access to GROUNDFISH.GS_STRATUM reqd?)
+#calculate strat areas into tunits
 #US nautical mile is 6080.2ft
-strata_area_query<-
+strata.area.query<-
   paste("SELECT strat, area SQNM, 
          nvl(area,0)/(",towdist,"*(",wingspread,"/6080.2)) tunits 
           FROM 
-          GROUNDFISH.GSSTRATUM 
+          ",stratum.table.gui,"
           WHERE 
           strat IN (",these.strat,")", sep="")
-strata_area<-sqlQuery(channel,strata_area_query)
-strata_area<-strata_area[order(strata_area$STRAT),c("STRAT","TUNITS","SQNM")]
 
-#strata_tunits<-tunits[order(tunits$STRAT),c("STRAT","TUNITS")]
+strata.area<-sqlQuery(channel,strata.area.query)
+if (agency.gui=="NMFS") strata.area$STRAT<-sprintf("%05d", strata.area$STRAT)
+strata.area<-strata.area[order(strata.area$STRAT),c("STRAT","TUNITS","SQNM")]
+
 ################################################################################
 ###                          STRATA AREA1                                       
 ################################################################################
-    #hydrographic data at trawl depth - Not required for STRANAL
-    #ctd made from joining dataframe mission.df to extraction from gshyd
-    #added mission filter to reduce extraction size
-    gshyd_source_query<-
-      paste("select mission, setno, sdepth, gear, temp, sal, bid
-                  from 
-                  groundfish.gshyd
-                  where 
-                  gear in (1,2) 
-                  and mission IN (",these.missions,") 
-                  and bid='B' 
-                  and temp is not null",sep="")
-    gshyd_source<-sqlQuery(channel,gshyd_source_query)
-    pre<-merge(gshyd_source,mission.df, by='MISSION', all.x=F)
-    bot<-pre[which(pre$GEAR==1),]
-    ctd<-pre[which(pre$GEAR==2),]
-    
-    bottom<-rbind(ctd, bot)
-    bottom<-bottom[!duplicated(bottom[c("MISSION","SETNO")]),]
+
+#     #hydrographic data at trawl depth - Not required for STRANAL
+#     #ctd made from joining dataframe mission.df to extraction from gshyd
+#     #added mission filter to reduce extraction size
+#     gshyd_source_query<-
+#       paste("select mission, setno, sdepth, gear, temp, sal, bid
+#                   from 
+#                   groundfish.gshyd
+#                   where 
+#                   gear in (1,2) 
+#                   and mission IN (",these.missions,") 
+#                   and bid='B' 
+#                   and temp is not null",sep="")
+#     gshyd_source<-sqlQuery(channel,gshyd_source_query)
+#     pre<-merge(gshyd_source,mission.df, by='MISSION', all.x=F)
+#     bot<-pre[which(pre$GEAR==1),]
+#     ctd<-pre[which(pre$GEAR==2),]
+#     
+#     bottom<-rbind(ctd, bot)
+#     bottom<-bottom[!duplicated(bottom[c("MISSION","SETNO")]),]
 
 
 #done with our database connection - close it
@@ -620,8 +563,8 @@ odbcClose(channel)
 ###        ABUNDANCE
 ###        ABUNDANCE STANDARD ERROR
 ################################################################################
-nw_by_set_pre<-merge(raw_gsinf, raw_gscat, all.x=T)
-nw_by_set_pre<-merge(nw_by_set_pre,mission.df, all.x=T)
+nw_by_set_pre<-merge(raw.gsinf, raw.gscat, all.x=T)
+nw_by_set_pre<-merge(raw.gsinf, raw.gscat, all.x=T)
 nw_by_set_pre[which(is.na(nw_by_set_pre$TOTWGT)),
               c('SAMPWGT','TOTWGT','TOTNO','CALWT')] <- 0
 nw_by_set_pre$SIZE_CLASS[which(is.na(nw_by_set_pre$SIZE_CLASS))] <- 1
@@ -630,9 +573,9 @@ nw_by_set_pre$TOTWGT <- (nw_by_set_pre$TOTWGT*towdist)/nw_by_set_pre$DIST
 nw_by_set_pre$RAW_TOTNO <-nw_by_set_pre$TOTNO 
 nw_by_set_pre$TOTNO <- (nw_by_set_pre$TOTNO*towdist)/nw_by_set_pre$DIST
 nw_by_set_pre<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),]
-
+#removed season from below
 set_info<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),
-                        c("MISSION","SEASON","STRAT","SETNO","SDATE","AREA",
+                        c("MISSION","STRAT","SETNO","SDATE","AREA",
                           "SLAT","SLONG","DMIN","DMAX","DEPTH","DUR","DIST" )]
 nw_by_set<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),
             c("STRAT","MISSION","SETNO","TOTNO","TOTWGT")]
@@ -640,7 +583,7 @@ nw_by_set<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),
 nw_by_set_pre2<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),
                 c("STRAT","SLAT","SLONG","AREA","SETNO","TOTWGT","TOTNO")]
 
-nw_by_set_pre2<-merge(nw_by_set_pre2,subset(strata_area,select=-c(SQNM)))
+nw_by_set_pre2<-merge(nw_by_set_pre2,subset(strata.area,select=-c(SQNM)))
 #unexpected sqnm
 
 nw_by_set_pre2$BIOMASS<-nw_by_set_pre2$TOTWGT*nw_by_set_pre2$TUNITS
@@ -680,7 +623,7 @@ catchsetskeeps <- c("STRAT","TOTWGT","TOTNO")
 catchsets<-catchsets[catchsetskeeps]
 catchsets$somecatch[catchsets$TOTWGT!=0 | catchsets$TOTNO!=0]<-1
 catchsets$somecatch[is.na(catchsets$somecatch)]<-0
-catchsets<-merge(strata_area,catchsets,by="STRAT",all.y=T)  
+catchsets<-merge(strata.area,catchsets,by="STRAT",all.y=T)  
 catchsets<-merge(catchsets,nw_by_strata.cnt,by="STRAT",all.x=T)
 catchsets$Area<-catchsets$SQNM*catchsets$somecatch
 catchsets.AreaProp<-aggregate(list(AreaProp=catchsets$somecatch), 
@@ -707,14 +650,14 @@ catchsets.AreaTotStErr<-aggregate(list(AreaTotStErr=catchsets$Area),
 ###    AreaTot
 ###    AreaTotStErr
 
-strata.areas<-merge(strata_area,catchsets.AreaProp,by="STRAT")
-strata.areas<-merge(strata.areas,catchsets.AreaPropStErr,by="STRAT")
-strata.areas<-merge(strata.areas,catchsets.AreaTot,by="STRAT")
-strata.areas<-na.zero(merge(strata.areas,catchsets.AreaTotStErr,by="STRAT"))
+strata.areas<-merge(strata.area,catchsets.AreaProp,by="STRAT",all.x=T)
+strata.areas<-merge(strata.areas,catchsets.AreaPropStErr,by="STRAT",all.x=T)
+strata.areas<-merge(strata.areas,catchsets.AreaTot,by="STRAT",all.x=T)
+strata.areas<-na.zero(merge(strata.areas,catchsets.AreaTotStErr,by="STRAT",all.x=T))
 ################################################################################
 ###                          SET UP AGELEN                                      
-agelen<-merge(nw_by_set_pre, raw_gsdet, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T)
-agelen<-merge(agelen,strata_area, all.x=T)
+agelen<-merge(nw_by_set_pre, raw.gsdet, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T)
+agelen<-merge(agelen,strata.area, all.x=T)
 agelen$FLEN<-floor(agelen$FLEN/agelen$BINWIDTH)*agelen$BINWIDTH
 agelen$CAGE<-NA
 
@@ -753,14 +696,16 @@ iy = which(agelen$SAMPWGT==0)
   if (length(stNA)>0){
     agelen$CAGE[stNA]<-NA
   }
+
+#removing hyd data not necessary for STRANAL
+  #agelen<-merge(agelen,bottom, all.x=T)  
+  #agelen$SDEPTH[is.na(agelen$SDEPTH)]<--99.9  
+  #agelen$TEMP[is.na(agelen$TEMP)]<--99.99     
+  #agelen$SAL[is.na(agelen$SAL)]<--99.999  
 #defaults
-agelen<-merge(agelen,bottom, all.x=T)  
 agelen$DEPTH[is.na(agelen$DEPTH)]<--99
 agelen$DMIN[is.na(agelen$DMIN)]<--99
 agelen$DMAX[is.na(agelen$DMAX)]<--99
-agelen$SDEPTH[is.na(agelen$SDEPTH)]<--99.9  
-agelen$TEMP[is.na(agelen$TEMP)]<--99.99     
-agelen$SAL[is.na(agelen$SAL)]<--99.999  
 agelen$FLEN<-agelen$FLEN+(agelen$BINWIDTH*.5)-.5
 agelen$LOCTIME<-agelen$TIME
 agelen$TIME<-NULL
@@ -803,7 +748,7 @@ if (isTRUE(by.sex)){
   length_by_set <- na.zero(dcast(lset, STRAT + MISSION + SETNO ~ FLEN ))
 }
 length_by_set<-length_by_set[order(length_by_set$STRAT,length_by_set$SETNO),]
-length_total<-merge(subset(strata_area,select=-c(SQNM)),length_by_set)
+length_total<-merge(subset(strata.area,select=-c(SQNM)),length_by_set)
 #unexpected sqnm
 #add row_tots to length_by_set
 length_by_set$TOTAL<-rowSums(length_by_set[,4:length(length_by_set)])
@@ -956,7 +901,7 @@ setnames(age_mean_se,
         old=names(age_mean_se[,2:ncol(age_mean_se)]), 
         new=c(paste0("age_",theseages,"_se")))
 
-age_pretotal<-as.data.table(merge(strata_area,age_by_set, by="STRAT"))
+age_pretotal<-as.data.table(merge(strata.area,age_by_set, by="STRAT"))
 age_pretotal$SQNM<-NULL
 age_pretotal[, (theseages) := lapply(.SD, 
                               function(x) x * age_pretotal[['TUNITS']] ), 
