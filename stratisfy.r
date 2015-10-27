@@ -663,6 +663,8 @@ agelen$CAGE<-NA
 
 #if sampwgt is 0 or NA and totwgt is not null or 0 
 #then replace sample weigt with total weight 
+
+
 iu = which(agelen$SAMPWGT ==0)
 iw = which(is.na(agelen$SAMPWGT))
 ii = which(agelen$TOTWGT>0)
@@ -696,7 +698,6 @@ iy = which(agelen$SAMPWGT==0)
   if (length(stNA)>0){
     agelen$CAGE[stNA]<-NA
   }
-
 #removing hyd data not necessary for STRANAL
   #agelen<-merge(agelen,bottom, all.x=T)  
   #agelen$SDEPTH[is.na(agelen$SDEPTH)]<--99.9  
@@ -709,7 +710,7 @@ agelen$DMAX[is.na(agelen$DMAX)]<--99
 agelen$FLEN<-agelen$FLEN+(agelen$BINWIDTH*.5)-.5
 agelen$LOCTIME<-agelen$TIME
 agelen$TIME<-NULL
-
+#write.csv(agelen,"agelen.csv")
 allFlen<-sort(unique(agelen$FLEN[!is.na(agelen$FLEN)]))
 ################################################################################
 ###                          LENGTH ANALYTICS                                   
@@ -721,24 +722,31 @@ allFlen<-sort(unique(agelen$FLEN[!is.na(agelen$FLEN)]))
 all.c<-c("STRAT", "MISSION", "SETNO")
 if (isTRUE(by.sex)){
     order.c<-c("STRAT","MISSION","SETNO","FSEX")
-    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN","CAGE","FSEX") 
-    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN","FSEX")
+    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","CLEN","CAGE","FSEX") 
+    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FSEX")
   }else{
     order.c<-c("STRAT","MISSION","SETNO")
-    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN","CAGE")
-    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN")
+    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","CLEN","CAGE")
+    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO")
 }
+
 lset<-na.zero(agelen[,sex.c])
-li = which(lset$CAGE==0)
-lset$FLEN[li] = unique(lset$FLEN)[1]
-lset<-aggregate(lset$CAGE,
+#SHOULD THIS USE CLEN, NOT CAGE?
+#li = which(lset$CAGE==0) 
+li = which(lset$CLEN==0) 
+lset$CLEN[li] = unique(lset$CLEN)[1]
+# lset<-aggregate(lset$CAGE,
+#                 lset[fields],
+#                 FUN=sum)
+lset<-aggregate(lset$CLEN,
                 lset[fields],
                 FUN=sum)
 lset<-lset[with(lset,order(get(order.c))),]
 lset<-melt(lset,id.vars=fields)
-
 #not very slick - would like to be able to dynamically send columns to dcast
 if (isTRUE(by.sex)){  
+  
+  lset$FSEX[is.na(lset$FSEX)]<-'UNK' #MMM Oct 28, 2015
   lset$FSEX[lset$FSEX==0]<-'UNK'
   lset$FSEX[lset$FSEX==1]<-'MALE'
   lset$FSEX[lset$FSEX==2]<-'FEMALE'
@@ -971,3 +979,4 @@ return(results)
 # example function calls can be found at 
 #http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/
 #c844101a518ba68a4f0914460adcb4e0178536bb/stranal/README.md#Running
+#test<-stratisfy(user=oracle.personal.username,password=oracle.personal.password)
