@@ -479,8 +479,7 @@ if (agency.gui=='DFO'){
   raw.gsdet.query<-
         paste("
         select cruise6 mission, to_number(station) setno, age, length, avg(indwt) fwt,
-        decode(",species.lgrp.gui,",1,length,2,.5+2*floor(length/2),3,1+3*floor(length/3),length) flen,
-        ",species.lgrp.gui," binwidth,'N' bysex
+        decode(",species.lgrp.gui,",1,length,2,.5+2*floor(length/2),3,1+3*floor(length/3),length) flen
         from usnefsc.uss_detail
         where to_number(svspp)=",species.code,"
         AND CRUISE6 in (",these.missions,")
@@ -499,7 +498,10 @@ if (agency.gui=='DFO'){
   raw.lf<-sqlQuery(channel,raw.lf.query)
 
   #merge keeping correct values?
-  raw.gsdet<-merge(raw.lf,raw.gsdet,all.x=T) 
+  raw.gsdet<-merge(raw.gsdet,raw.lf, all.y=T) 
+  raw.gsdet$FLEN[is.na(raw.gsdet$FLEN)] <- raw.gsdet$LENGTH[is.na(raw.gsdet$FLEN)]
+  raw.gsdet$BYSEX<-'N'
+  raw.gsdet$BINWIDTH<-as.character(species.lgrp.gui)
 }
 
 #calculate strat areas into tunits
@@ -564,7 +566,7 @@ odbcClose(channel)
 ###        ABUNDANCE STANDARD ERROR
 ################################################################################
 nw_by_set_pre<-merge(raw.gsinf, raw.gscat, all.x=T)
-nw_by_set_pre<-merge(raw.gsinf, raw.gscat, all.x=T)
+nw_by_set_pre<-merge(nw_by_set_pre, mission.df, all.x=T)
 nw_by_set_pre[which(is.na(nw_by_set_pre$TOTWGT)),
               c('SAMPWGT','TOTWGT','TOTNO','CALWT')] <- 0
 nw_by_set_pre$SIZE_CLASS[which(is.na(nw_by_set_pre$SIZE_CLASS))] <- 1
@@ -661,10 +663,10 @@ agelen<-merge(agelen,strata.area, all.x=T)
 agelen$FLEN<-floor(agelen$FLEN/agelen$BINWIDTH)*agelen$BINWIDTH
 agelen$CAGE<-NA
 
+
+if (agency.gui=="DFO"){
 #if sampwgt is 0 or NA and totwgt is not null or 0 
 #then replace sample weigt with total weight 
-
-
 iu = which(agelen$SAMPWGT ==0)
 iw = which(is.na(agelen$SAMPWGT))
 ii = which(agelen$TOTWGT>0)
@@ -698,6 +700,11 @@ iy = which(agelen$SAMPWGT==0)
   if (length(stNA)>0){
     agelen$CAGE[stNA]<-NA
   }
+}else{
+  agelen$CAGE<-agelen$CLEN
+}
+
+
 #removing hyd data not necessary for STRANAL
   #agelen<-merge(agelen,bottom, all.x=T)  
   #agelen$SDEPTH[is.na(agelen$SDEPTH)]<--99.9  
@@ -710,7 +717,6 @@ agelen$DMAX[is.na(agelen$DMAX)]<--99
 agelen$FLEN<-agelen$FLEN+(agelen$BINWIDTH*.5)-.5
 agelen$LOCTIME<-agelen$TIME
 agelen$TIME<-NULL
-#write.csv(agelen,"agelen.csv")
 allFlen<-sort(unique(agelen$FLEN[!is.na(agelen$FLEN)]))
 ################################################################################
 ###                          LENGTH ANALYTICS                                   
@@ -722,25 +728,22 @@ allFlen<-sort(unique(agelen$FLEN[!is.na(agelen$FLEN)]))
 all.c<-c("STRAT", "MISSION", "SETNO")
 if (isTRUE(by.sex)){
     order.c<-c("STRAT","MISSION","SETNO","FSEX")
-    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","CLEN","CAGE","FSEX") 
-    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FSEX")
+    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN","CAGE","FSEX") 
+    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN","FSEX")
   }else{
     order.c<-c("STRAT","MISSION","SETNO")
-    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","CLEN","CAGE")
-    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO")
+    sex.c<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN","CAGE")
+    fields<-c("STRAT","SLAT","SLONG","AREA", "MISSION","SETNO","FLEN")
 }
 
 lset<-na.zero(agelen[,sex.c])
 #SHOULD THIS USE CLEN, NOT CAGE?
-#li = which(lset$CAGE==0) 
-li = which(lset$CLEN==0) 
-lset$CLEN[li] = unique(lset$CLEN)[1]
-# lset<-aggregate(lset$CAGE,
-#                 lset[fields],
-#                 FUN=sum)
-lset<-aggregate(lset$CLEN,
-                lset[fields],
-                FUN=sum)
+li = which(lset$CAGE==0) 
+lset$FLEN[li] = unique(lset$FLEN)[1]
+ lset<-aggregate(lset$CAGE,
+                 lset[fields],
+                 FUN=sum)
+
 lset<-lset[with(lset,order(get(order.c))),]
 lset<-melt(lset,id.vars=fields)
 #not very slick - would like to be able to dynamically send columns to dcast
