@@ -453,6 +453,12 @@ if (agency.gui=='DFO'){
           i.MISSION IN (",these.missions,")
           AND strat IN (",these.strat,")
           AND type IN (",these.type,")", sep="")
+<<<<<<< HEAD:stranal/STRANAL.r
+raw_gsinf<-sqlQuery(channel,raw_gsinf_query)
+#Provide data to build age:length keys and age composition. 
+#converted to ANSI join
+raw_gsdet_query<-
+=======
 }else{
   #distance was assumed to be 1.75, but appears to be dopdistb
   raw.gsinf.query<-
@@ -469,6 +475,7 @@ if (agency.gui=="NMFS") raw.gsinf$STRAT<-sprintf("%05d", raw.gsinf$STRAT)
 
 if (agency.gui=='DFO'){
   raw.gsdet.query<-
+>>>>>>> refs/heads/NMFS:stratisfy/stratisfy.r
   paste("select mission,setno,size_class,fsex,age,fwt,
           decode(",species.lgrp.gui,",1,flen,2,.5+2*floor(flen/2),3,1+3*floor(flen/3),flen) flen,
           lgrp binwidth,lfsexed bysex, clen
