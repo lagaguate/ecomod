@@ -1,5 +1,6 @@
 # stratisfy.r
-#### Sept 14, 2015
+### (aka an R-based version of STRANAL)
+#### Oct 29, 2015
 ---
 
 [Introduction and Approach](#Intro)  
@@ -15,7 +16,7 @@
 ## <a name="Intro"></a>  Introduction and Approach
 STRANAL (or "Stratified Analysis") has been used by Fisheries Biologists at DFO and NMFS to assist with assessments since before 2006.  While the original application still works well, it was written in <a href="https://en.wikipedia.org/wiki/APL_(programming_language)">APL</a>, and the number of people who are able to modify and enhance STRANAL is dwindling.  As a result, the application has been converted into R, and language commonly used within DFO.  For clarity, the R version of this application has been coined "Stratisfy" to differentiate it from the original, as well as to salute the original creator of STRANAL, Stratis Gavaris.
 
-Anyone can make a script that does what they need it to do at a particular moment in time, and within a given environment.  The approach taken by this project has been to ensure **maximum flexibility**.  This means that the script should run regardless of:  
+The approach taken by this project has been to ensure **maximum flexibility**.  This means that the script should run regardless of:  
  * working directory  
  * OS  
  * mechanism for running R (i.e. R vs R Studio)  
@@ -25,50 +26,38 @@ Anyone can make a script that does what they need it to do at a particular momen
 
 ## <a name="Limitations"></a>  Current Limitations
 As of right now, the Stratisfy does not yet include:
-~~*  Sex-specific Analysis~~
-*  Querying of NMFS data  
+
+*  ~~Sex-specific Analysis~~
+*  ~~Querying of NMFS data~~ (Not yet perfect correlation with STRANAL results, but not convinced that the problems are with stratisfy)
 *  ALK Modifications (including User-specified age/length table)
 
 ## <a name="Running"></a>  Running the Script
-stratisfy.r is currently a single function ("stratisfy").  Simply load the function into R, and run the function, most likely saving the results to a variable.  The script can be run with all of the parameters sent to it directly, or it can prompt the user for input via a Graphical User Interface (GUI).  If a correct Oracle username and password are not provided, the user will be prompted to provide them (even if GUI=F).
+stratisfy.r is currently a single function ("stratisfy").  Simply load the function into R, and run it, most likely saving the results to a variable.  It can only be run via the built-in Graphical User Interface (GUI).  If a correct Oracle username and password are not provided, you will be prompted to provide them.  I decided against allowing this script to be run via the command line, since:
 
-### Command Line
-If a GUI is not desired, the script can be run like the following:
+  1.  Using pick-lists ensures that inputs are valid and in the format that the script expects;
+  2.  Only valid options are shown to the user. 
+
+The script can be run like the following:
 
 ```R
-# run using all defaults 
+# run using all defaults - this will prompt you for your oracle username and password
 results<-stratisfy()
 
-# run without a GUI, send all parameters parameters, including credentials
-results<-stratisfy(user='mcmahonm', 
-                 password='mypassword',
-                 year=2012,
-                 type=c(1),
-                 species.code=11,
-                 strat.list=c(440:495),
-                 wingspread = 41,
-                 towdist =1.75
-                 )
-```
-### GUI
-If a GUI is desired, it can be called as follows:
-```R
-# run using a GUI (i.e. prompt user for input)
-results<-stratisfy(GUI=T)
+# run with your oracle username and password
+results<-stratisfy(user='mcmahonm', password='mypassword')
 
-# run using a GUI, but send Oracle username and password
-results<-stratisfy(user='mcmahonm', 
-                 password='mypassword', 
-                 GUI=T) 
+# my preference follows - by saving your username and password into your .rprofile file, you don't need to enter your username or password at all
+results<-stratisfy(user=oracle.personal.username,password=oracle.personal.password)
 ```
 When run with GUI=T, the user will be prompted for:  
-1. <a href='http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/01_sexed.png'>Sexed/Unsexed Analysis</a>  
-2. <a href='http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/images/02_year.png'>Year</a>  
-3. <a href='http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/images/03_type.png'>Survey Type</a>  
-4. <a href='http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/images/04_spp.png'>Species</a> (use SPEC from GROUNDFISH.GSSPEC)  
-5. <a href='http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/images/05_strata.png'>Desired strata</a>  
-6. <a href='http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/images/06_area.png'>Desired areas</a>  
-7. <a href='http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/images/07_wingspread.png'>Wingspread (ft)</a>  
+
+![Sexed/Unsexed Analysis](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/01_sexed.png)
+![Year](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/02_year.png)
+![Survey Type](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/03_type.png)
+![Species](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/04_spp.png)
+![Desired strata](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/05_strata.png)
+![Desired areas](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/06_area.png)
+![Wingspread (ft)](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/07_wingspread.png)
 
 ## <a name="Results"></a>  Results
 When the script is run, the result is a list, composed almost entirely of data frames.  For the most part, these data.frames correspon with the worksheets that were output by the APL version of the application.  The following table outlines:

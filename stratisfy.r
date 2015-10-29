@@ -1,28 +1,15 @@
-stratisfy<-function(user=-1,
-                  password=-1,
-                  year=as.numeric(format(Sys.Date(), "%Y"))-1,
-                  type=c(1), 
-                  species.code=220,
-                  strat.list=c(440:495),
-                  wingspread = 41,
-                  towdist =1.75,
-                  by.sex=FALSE,
-                  agency="DFO"
-                  #, GUI=T
-                  ){
-  user=oracle.personal.user
-  password=oracle.personal.password
+stratisfy<-function(user=-1, password=-1 #these are your Oracle credentials
+                    ){
 ################################################################################
 ###                                                                             
-###       Title:                Stratisfy                                         
+###       Title:                stratisfy.r                                         
 ###                                                                             
 ###       Author:               Mike McMahon                                    
 ###                             Mark Fowler                                     
 ###                             Adam Cook                                       
 ###                                                                             
-###       Creation Date:        Sept 9, 2015                                    
-###       Modification Date:    Sept 9, 2015                                    
-          stratisfy.ver = '2015.09.25'
+###       Modification Date:    Oct 29, 2015                                    
+          stratisfy.ver = '2015.10.29'
 ###                                                                             
 ###       Description:          Replaces the standalone STRANAL application     
 ###                             (written in APL), as well as the numbers and    
@@ -972,12 +959,9 @@ results<-list(
   age_length_weight=age_length_weight,
   age_by_set=age_by_set,  
   ages=ages)
-# for more information about the results, please see 
-#http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/
-#c844101a518ba68a4f0914460adcb4e0178536bb/stranal/README.md#Results
 return(results)
 }
-# example function calls can be found at 
-#http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/
-#c844101a518ba68a4f0914460adcb4e0178536bb/stranal/README.md#Running
+# for more information about the results, please see 
+#http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/README.md#Results
+# here's an example of how to run this
 #test<-stratisfy(user=oracle.personal.username,password=oracle.personal.password)
