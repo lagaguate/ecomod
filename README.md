@@ -50,12 +50,11 @@ results<-stratisfy(user='mcmahonm', password='mypassword')
 # need to enter your username or password at all
 results<-stratisfy(user=oracle.personal.username,password=oracle.personal.password)
 ```
-When run with GUI=T, the user will be prompted for:  
-
+When the script is run, the user will be prompted for:  
 ![Sexed/Unsexed Analysis](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/raw/master/stratisfy/images/01_sexed.png)
 ![Year](./images/02_year.png)
-![Survey Type](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/03_type.png)
-![Species](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/04_spp.png)
+![Survey Type](/images/03_type.png)
+![Species](images/04_spp.png)
 ![Desired strata](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/05_strata.png)
 ![Desired areas](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/06_area.png)
 ![Wingspread (ft)](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/07_wingspread.png)
