@@ -46,13 +46,14 @@ results<-stratisfy()
 # run with your oracle username and password
 results<-stratisfy(user='mcmahonm', password='mypassword')
 
-# my preference follows - by saving your username and password into your .rprofile file, you don't need to enter your username or password at all
+# by saving your username and password into your .rprofile file, you don't 
+# need to enter your username or password at all
 results<-stratisfy(user=oracle.personal.username,password=oracle.personal.password)
 ```
 When run with GUI=T, the user will be prompted for:  
 
-![Sexed/Unsexed Analysis](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/01_sexed.png)
-![Year](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/02_year.png)
+![Sexed/Unsexed Analysis](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/raw/master/stratisfy/images/01_sexed.png)
+![Year](images/02_year.png)
 ![Survey Type](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/03_type.png)
 ![Species](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/04_spp.png)
 ![Desired strata](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/05_strata.png)
