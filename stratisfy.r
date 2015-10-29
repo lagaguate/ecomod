@@ -204,7 +204,12 @@ get.missions<-function(agency.gui,year.gui){
   missions<-select.list(paste( missions.data$MISSION, " (", missions.data$SEASON,")",sep=""), 
               multiple=F, graphics=T, 
               title='Please choose a mission:') 
-  mission.id<-as.numeric(gsub("\\s?\\(.*?\\)", "", missions))
+ 
+  if (agency.gui=="DFO"){
+    mission.id<-gsub("\\s?\\(.*?\\)", "", missions)
+  }else{
+    mission.id<-as.numeric(gsub("\\s?\\(.*?\\)", "", missions))
+  }
   missions.data<-missions.data[missions.data$MISSION==mission.id,]
   mission.info<-list(mission.id,missions.data)
   return(mission.info)
@@ -438,7 +443,7 @@ raw.gscat.query <-
 raw.gscat<-sqlQuery(channel,raw.gscat.query)
 #added mission, strat and type filters
 if (agency.gui=='DFO'){
-  raw.gsinf.data<-
+  raw.gsinf.query<-
   #no area filter??
   paste("select i.mission, i.setno,sdate,time,strat,
          area,slat,slong,dmin,dmax,depth,dur,dist
@@ -455,8 +460,8 @@ if (agency.gui=='DFO'){
     area,  BEGLAT slat, BEGLON slong, mindepth dmin, maxdepth dmax, avgdepth depth, towdur dur, dopdistb dist 
         FROM USNEFSC.USS_STATION 
         WHERE CRUISE6 in (",these.missions,")
-        AND STRATUM in (",these.strat,")"
-          , sep="")
+        AND STRATUM in (",these.strat,")
+        AND to_number(SHG) <= ",these.type, sep="")
 
 }
 raw.gsinf<-sqlQuery(channel,raw.gsinf.query )
@@ -497,11 +502,9 @@ if (agency.gui=='DFO'){
       group by cruise6,station,length, catchsex",sep="")
   raw.lf<-sqlQuery(channel,raw.lf.query)
 
-  #merge keeping correct values?
-  raw.gsdet<-merge(raw.gsdet,raw.lf, all.y=T) 
+  raw.gsdet<-merge(raw.gsdet,raw.lf, all.x=T) 
   raw.gsdet$FLEN[is.na(raw.gsdet$FLEN)] <- raw.gsdet$LENGTH[is.na(raw.gsdet$FLEN)]
-  raw.gsdet$BYSEX<-'N'
-  raw.gsdet$BINWIDTH<-as.character(species.lgrp.gui)
+
 }
 
 #calculate strat areas into tunits
@@ -518,33 +521,8 @@ strata.area<-sqlQuery(channel,strata.area.query)
 if (agency.gui=="NMFS") strata.area$STRAT<-sprintf("%05d", strata.area$STRAT)
 strata.area<-strata.area[order(strata.area$STRAT),c("STRAT","TUNITS","SQNM")]
 
-################################################################################
-###                          STRATA AREA1                                       
-################################################################################
-
-#     #hydrographic data at trawl depth - Not required for STRANAL
-#     #ctd made from joining dataframe mission.df to extraction from gshyd
-#     #added mission filter to reduce extraction size
-#     gshyd_source_query<-
-#       paste("select mission, setno, sdepth, gear, temp, sal, bid
-#                   from 
-#                   groundfish.gshyd
-#                   where 
-#                   gear in (1,2) 
-#                   and mission IN (",these.missions,") 
-#                   and bid='B' 
-#                   and temp is not null",sep="")
-#     gshyd_source<-sqlQuery(channel,gshyd_source_query)
-#     pre<-merge(gshyd_source,mission.df, by='MISSION', all.x=F)
-#     bot<-pre[which(pre$GEAR==1),]
-#     ctd<-pre[which(pre$GEAR==2),]
-#     
-#     bottom<-rbind(ctd, bot)
-#     bottom<-bottom[!duplicated(bottom[c("MISSION","SETNO")]),]
-
-
 #done with our database connection - close it
-odbcClose(channel)
+#odbcClose(channel)
 
 
 ################################################################################
@@ -570,11 +548,19 @@ nw_by_set_pre<-merge(nw_by_set_pre, mission.df, all.x=T)
 nw_by_set_pre[which(is.na(nw_by_set_pre$TOTWGT)),
               c('SAMPWGT','TOTWGT','TOTNO','CALWT')] <- 0
 nw_by_set_pre$SIZE_CLASS[which(is.na(nw_by_set_pre$SIZE_CLASS))] <- 1
+
+nw_by_set_pre[which(is.na(nw_by_set_pre$DIST)|(nw_by_set_pre$DIST==0)), c('DIST')] <-towdist
+
 nw_by_set_pre$RAW_TOTWGT <-nw_by_set_pre$TOTWGT
 nw_by_set_pre$TOTWGT <- (nw_by_set_pre$TOTWGT*towdist)/nw_by_set_pre$DIST
 nw_by_set_pre$RAW_TOTNO <-nw_by_set_pre$TOTNO 
 nw_by_set_pre$TOTNO <- (nw_by_set_pre$TOTNO*towdist)/nw_by_set_pre$DIST
 nw_by_set_pre<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),]
+
+# nw_by_set_pre[which(is.nan(nw_by_set_pre$TOTWGT)), c('TOTWGT')] <- 0
+# nw_by_set_pre[which(is.nan(nw_by_set_pre$TOTNO)), c('TOTNO')] <- 0
+ nw_by_set_pre[which(!is.finite(nw_by_set_pre$TOTWGT)), c('TOTWGT')] <-1
+ nw_by_set_pre[which(!is.finite(nw_by_set_pre$TOTNO)), c('TOTNO')] <- 1
 #removed season from below
 set_info<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),
                         c("MISSION","STRAT","SETNO","SDATE","AREA",
@@ -657,9 +643,21 @@ strata.areas<-merge(strata.areas,catchsets.AreaPropStErr,by="STRAT",all.x=T)
 strata.areas<-merge(strata.areas,catchsets.AreaTot,by="STRAT",all.x=T)
 strata.areas<-na.zero(merge(strata.areas,catchsets.AreaTotStErr,by="STRAT",all.x=T))
 ################################################################################
-###                          SET UP AGELEN                                      
+###                          SET UP AGELEN  
+#remove records without weight or totalno
+# nw_by_set_pre<-nw_by_set_pre[nw_by_set_pre$TOTNO>0|nw_by_set_pre$TOTWGT>0,]
 agelen<-merge(nw_by_set_pre, raw.gsdet, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T)
 agelen<-merge(agelen,strata.area, all.x=T)
+if (by.sex==F){
+agelen$BYSEX<-'N'
+}else{
+agelen$BYSEX<-'Y'
+}
+agelen$BINWIDTH<-as.character(species.lgrp.gui)
+
+#FLEN AND BINWIDTH commonly NA here
+agelen[which(is.na(agelen$BINWIDTH)), c('BINWIDTH')] <- as.numeric(species.lgrp.gui)
+# agelen[which(is.na(agelen$FLEN)), c('FLEN')] <- 1
 agelen$FLEN<-floor(agelen$FLEN/agelen$BINWIDTH)*agelen$BINWIDTH
 agelen$CAGE<-NA
 
@@ -703,13 +701,6 @@ iy = which(agelen$SAMPWGT==0)
 }else{
   agelen$CAGE<-agelen$CLEN
 }
-
-
-#removing hyd data not necessary for STRANAL
-  #agelen<-merge(agelen,bottom, all.x=T)  
-  #agelen$SDEPTH[is.na(agelen$SDEPTH)]<--99.9  
-  #agelen$TEMP[is.na(agelen$TEMP)]<--99.99     
-  #agelen$SAL[is.na(agelen$SAL)]<--99.999  
 #defaults
 agelen$DEPTH[is.na(agelen$DEPTH)]<--99
 agelen$DMIN[is.na(agelen$DMIN)]<--99
