@@ -52,6 +52,9 @@ results<-stratisfy(user=oracle.personal.username,password=oracle.personal.passwo
 ```
 When the script is run, the user will be prompted for:  
 ![Sexed/Unsexed Analysis](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/raw/master/stratisfy/images/01_sexed.png)
+![Year](./images/01_sexed.png)
+![Survey Type](/images/01_sexed.png)
+![Species](images/01_sexed.png)
 ![Year](./images/02_year.png)
 ![Survey Type](/images/03_type.png)
 ![Species](images/04_spp.png)
