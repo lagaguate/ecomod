@@ -526,18 +526,15 @@ nw_by_set_pre[which(is.na(nw_by_set_pre$TOTWGT)),
               c('SAMPWGT','TOTWGT','TOTNO','CALWT')] <- 0
 nw_by_set_pre$SIZE_CLASS[which(is.na(nw_by_set_pre$SIZE_CLASS))] <- 1
 
-nw_by_set_pre[which(is.na(nw_by_set_pre$DIST)|(nw_by_set_pre$DIST==0)), c('DIST')] <-towdist
+nw_by_set_pre$DIST[which(is.na(nw_by_set_pre$DIST)|(nw_by_set_pre$DIST==0))] <-towdist
 
 nw_by_set_pre$RAW_TOTWGT <-nw_by_set_pre$TOTWGT
 nw_by_set_pre$TOTWGT <- (nw_by_set_pre$TOTWGT*towdist)/nw_by_set_pre$DIST
+nw_by_set_pre$TOTWGT[which(!is.finite(nw_by_set_pre$TOTWGT))] <-1
 nw_by_set_pre$RAW_TOTNO <-nw_by_set_pre$TOTNO 
 nw_by_set_pre$TOTNO <- (nw_by_set_pre$TOTNO*towdist)/nw_by_set_pre$DIST
+nw_by_set_pre$TOTNO[which(!is.finite(nw_by_set_pre$TOTNO))] <- 1
 nw_by_set_pre<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),]
-
-# nw_by_set_pre[which(is.nan(nw_by_set_pre$TOTWGT)), c('TOTWGT')] <- 0
-# nw_by_set_pre[which(is.nan(nw_by_set_pre$TOTNO)), c('TOTNO')] <- 0
- nw_by_set_pre[which(!is.finite(nw_by_set_pre$TOTWGT)), c('TOTWGT')] <-1
- nw_by_set_pre[which(!is.finite(nw_by_set_pre$TOTNO)), c('TOTNO')] <- 1
 #removed season from below
 set_info<-nw_by_set_pre[order(nw_by_set_pre$STRAT,nw_by_set_pre$SETNO),
                         c("MISSION","STRAT","SETNO","SDATE","AREA",
