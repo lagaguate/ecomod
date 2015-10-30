@@ -1,6 +1,6 @@
-# stratisfy.r
-### (aka an R-based version of STRANAL)
-#### Oct 29, 2015
+# **Stratisfy**
+### (an R-based version of STRANAL)
+#### Oct 30, 2015
 ---
 
 [Introduction and Approach](#Intro)  
@@ -8,27 +8,27 @@
 [Running the Script](#Running)  
 [Results](#Results)  
 [Changes from APL Version Results](#Changes)  
-[R version of STRANAL](#R-vers)  
-[Historic Documentation](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/c844101a518ba68a4f0914460adcb4e0178536bb/stranal/README_archived.md) 
+[Development of stratisfy](#R-vers)  
+[Historic Documentation](README_archived.md) 
 
 ---
 
 ## <a name="Intro"></a>  Introduction and Approach
-STRANAL (or "Stratified Analysis") has been used by Fisheries Biologists at DFO and NMFS to assist with assessments since before 2006.  While the original application still works well, it was written in <a href="https://en.wikipedia.org/wiki/APL_(programming_language)">APL</a>, and the number of people who are able to modify and enhance STRANAL is dwindling.  As a result, the application has been converted into R, and language commonly used within DFO.  For clarity, the R version of this application has been coined "Stratisfy" to differentiate it from the original, as well as to salute the original creator of STRANAL, Stratis Gavaris.
+STRANAL (or "Stratified Analysis") has been used by Fisheries Biologists at DFO and NMFS to assist with assessments since before 2006.  While the original application still works well, it was written in <a href="https://en.wikipedia.org/wiki/APL_(programming_language)">APL</a>, and the number of people who are able to modify and enhance STRANAL is dwindling &lt;cough&gt; Jim Gale &lt;cough&gt;.  As a result, we have translated the application into R, a language known to many within the Population Ecology Division.  For clarity, the R version of this application has been coined **"Stratisfy"** to differentiate it from the original, as well as to salute the original creator of STRANAL, Stratis Gavaris.
 
 The approach taken by this project has been to ensure **maximum flexibility**.  This means that the script should run regardless of:  
  * working directory  
  * OS  
  * mechanism for running R (i.e. R vs R Studio)  
- 
 
- If options need to be set, or packages installed, the script should either do it, or prompt the user to do so.  The easier it is to run, the more collaboration we can expect.  The hope is that users will be better able to collaborate and enhance Stratisfy now that the code is readily accessible.  
+ If options need to be set, or packages installed, the script should either do it, or prompt the user to do so.  The easier it is to run, the more collaboration we can expect.  The hope is that users will be better able to collaborate and enhance Stratisfy now that the code is readily accessible.  Additionally, since it is now a script rather than an application, its operation is transparent, and PED staff can maintain it without IMTS support.
 
 ## <a name="Limitations"></a>  Current Limitations
 As of right now, the Stratisfy does not yet include:
 
 *  ~~Sex-specific Analysis~~
 *  ~~Querying of NMFS data~~ (Not yet perfect correlation with STRANAL results, but not convinced that the problems are with stratisfy)
+* Vessel Net Conversion
 *  ALK Modifications (including User-specified age/length table)
 
 ## <a name="Running"></a>  Running the Script
@@ -50,17 +50,30 @@ results<-stratisfy(user='mcmahonm', password='mypassword')
 # need to enter your username or password at all
 results<-stratisfy(user=oracle.personal.username,password=oracle.personal.password)
 ```
-When the script is run, the user will be prompted for:  
-![Sexed/Unsexed Analysis](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/raw/master/stratisfy/images/01_sexed.png)
-![Year](./images/01_sexed.png)
-![Survey Type](/images/01_sexed.png)
-![Species](images/01_sexed.png)
-![Year](./images/02_year.png)
-![Survey Type](/images/03_type.png)
-![Species](images/04_spp.png)
-![Desired strata](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/05_strata.png)
-![Desired areas](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/06_area.png)
-![Wingspread (ft)](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/tree/master/stratisfy/images/07_wingspread.png)
+When the script is run, the user will be prompted for the following:
+*  Agency
+*  Sexed or Unsexed Analysis
+*  Survey Type (Only for Agency == 'DFO')
+*  Wingspread (ft)
+*  Species (choices depend on selected values of 'agency' and 'sexed/unsexed')
+*  Year
+*  Mission (choices depend on selected value of 'year')
+*  Strata (choices depend on selected value of 'year', 'mission' and 'type')
+*  Areas (choices depend on selected value of 'year', 'type' and 'strata')
+*  Tow Distance (not really a choice - only 1.75nm is available - other distances could be added)
+
+<!--
+![Agency](images/01_agency.png)
+![Sexed/Unsexed Analysis](images/02_sexed.png)
+![Survey Type](images/03_type.png)
+![Wingspread (ft)](images/04_wingspread.png)
+![Species](images/05_spp.png)
+![Year](images/06_year.png)
+![Mission](images/07_mission.png)
+![Desired strata](images/08_strata.png)
+![Desired areas](images/09_area.png)
+![Tow Distance (nm)](images/10_towdist.png)
+-->
 
 ## <a name="Results"></a>  Results
 When the script is run, the result is a list, composed almost entirely of data frames.  For the most part, these data.frames correspon with the worksheets that were output by the APL version of the application.  The following table outlines:
@@ -89,7 +102,7 @@ When the script is run, the result is a list, composed almost entirely of data f
 |age&#95;by&#95;set					|&quot;Age By Set&quot;																													| 	results[[15]]	|	STRAT; MISSION; SETNO; &lt;ages&gt;																													|
 |ages								|&quot;Age Mean&quot;; &quot;Age Mean Std Error&quot;; &quot;Age Total&quot;; &quot;Age Total Standard Error&quot;                      | 	results[[16]]	|	STRAT; COUNT; age&#95;&lt;ages&gt;&#95;mean; age&#95;&lt;ages&gt;&#95;se; age&#95;&lt;ages&gt;&#95;tot; age&#95;&lt;ages&gt;&#95;tot&#95;se		 	|
 
-<a name="TableNotes"></a>*values like &lt;length bins&gt; or &lt;ages&gt; have actual numeric values in place of "length_bins" or "ages"
+<a name="TableNotes"></a>*values like &lt;length bins&gt; or &lt;ages&gt; have actual numeric values
 
 ## <a name="Changes"></a>  Changes from APL Version Results:
 Some of the available results combine results that was previously available on mutiple sheets:
@@ -115,15 +128,17 @@ Some of the available results were not available in the APL version:
 *  "numbers" (i.e. results[[11]])
 *  "nw_by_set" (i.e. results[[9]])	is a combination of "weight by set", as well as a new "numbers by set" result
 
-<!-- **"Numbers and Weights"** was a popular analytic produced by the VDC (PED - Maritimes>Research Surveys> 01 CDN Ecosystem> <a href="http://marvdc.bio.dfo.ca:7778/pls/vdc/mwprojectweb.dispatch?link_id=486">Numbers and Weights</a>).  This is now available via R through this script. -->
+**"Numbers and Weights"** was a popular analytic produced by the VDC (PED - Maritimes>Research Surveys> 01 CDN Ecosystem> <a href="http://marvdc.bio.dfo.ca:7778/pls/vdc/mwprojectweb.dispatch?link_id=486">Numbers and Weights</a>).  The values generated by that are now available via stratisy as "numbers" and "weights" (i.e. results[[11]] and results[[10]], respectively).
 
-## <a name="R-vers"></a>  Stratisfy (the R version of STRANAL)
+## <a name="R-vers"></a>  Development of stratisfy
+*Mike McMahon Oct 2015*  
+> I have made the initial effort to support the extraction of USNEFSC data.  There is not yet 100% agreement with the APL STRANAL application.
+
 *Mike McMahon Sept 2015*  
-> Mark Fowler did the initial conversion of the APL code to R.  It was quite  interactive, and involved jumping between SQL and R.  I converted  the code to a single R file, removing requirements for write-access to a schema,  as well as the need for temporary tables.
-> SQL was replaced with merges wherever possible, and filters limit the extractions to only the desired missions, strata and species.  
+> Mark Fowler did an initial conversion of the APL code to R.  It required write-access to an Oracle schema for generating temporary tables, and required jumping between SQL and R.  I retained much of the SQL, but drastically changed the approach.  It is now a single R file that walks users through a series of pick-lists that generally limits the extractions to only the desired missions, strata and species.  
 
 *Mark Fowler Aug 2014*  
-(Marks' original script is [here](http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/c844101a518ba68a4f0914460adcb4e0178536bb/stranal/archived/STRANALgithub.txt)).
+(Marks' original script is [here](archived/STRANAL.txt), and the original script for running USNEFSC data is [here](archived/STRANALUS.txt).
 > Interactive scripting, jumping around between SQL and R 
 > Current example is 4X Haddock in 1974. This was truthed against the 
 > original APL version of STRANAL by Stratis Gavaris.  

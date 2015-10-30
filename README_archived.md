@@ -1,7 +1,3 @@
-[arch_login]: http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/arch_GUI.png "Login screen"
-[arch_GUI]: http://gitlab.ssc.etg.gc.ca/mcmahon/PED_Analytics/blob/eab519dfead1ce94f544182f2ea3500b9dcac999/STRANAL/images/arch_login.png "GUI"
-
-
 #Historic Documentation 
 
 **The APL version of STRANAL had documentation associated with it, and that has been captured here.  Please note that the documentation provided on this page relates only to the APL version of STRANAL, and is included here so as to illustrate its evolution.  **
@@ -57,11 +53,11 @@ Downloads
 
 ##<a name="How"></a>How to Use STRANAL?
 From Windows desktop select Start > Programs > STRANAL > STRANAL 4.1. The database logon form will be displayed. 
-![Database login screen][arch_login]
+![Database login screen](images/arch_login.png)
 
 User Name and Password is your Oracle account name and password for the database supplied in the Database field. The Database refers to the database instance where access to related DFO and NMFS bottom trawl data is available. Enter the information and click on the OK button or click the Cancel button to stop the application. The logon information and data access is checked and if accepted the main selection form is displayed with the DFO data initial selected by default.
 
-![GUI][arch_GUI]
+![GUI](images/arch_GUI.png)
 
 Refer to the GUI Components section for details on specifying analysis criteria.
 
