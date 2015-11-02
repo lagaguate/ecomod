@@ -11,6 +11,8 @@ loadfunctions("lobster")
 ####### 2014 CATCH with survey location LFA 34
 
 loadfunctions('lobster')
+logsInSeason<-read.csv(file.path( project.datadirectory("lobster"), "data","logsInSeason.csv"))
+
 catchgrids<-lobGridPlot(subset(logsInSeason,LFA=='34'&SYEAR==2014,c("LFA","GRID_NUM","WEIGHT_KG")),lvls=c(1000,50000,100000,200000,400000,600000,800000,1000000),FUN=sum,border=NA)
 	
 pdf(file.path( project.datadirectory("lobster"), "R","LFA34.pdf"),8,11)
@@ -28,12 +30,17 @@ dev.off()
 loadfunctions('lobster')
 catchgrids<-lobGridPlot(subset(logsInSeason,SYEAR==2014,c("LFA","GRID_NUM","WEIGHT_KG")),lvls=c(100,50000,100000,200000,400000,600000,800000,1000000),FUN=sum,border=NA)
 	
-pdf(file.path( project.datadirectory("lobster"), "R",".pdf"),8,11)
+pdf(file.path( project.datadirectory("lobster"), "R","GridLandings.pdf"),11,8)
 
 LobsterMap(poly.lst=catchgrids[1:2],title="2014 Lobster Catch")
 ContLegend("bottomright",lvls=catchgrids$lvls/1000,Cont.data=catchgrids,title="Catch (t)",inset=0.02,cex=0.8,bg='white')
 
 dev.off()
+
+
+
+############# LFA 41
+
 
 
 
@@ -101,3 +108,5 @@ FSRSvesday.dat$lon<-convert.dd.dddd(FSRSvesday.dat$LONGITUDE)
 
 LobsterMap()
 points(lat~lon,FSRSvesday.dat,pch=16,col=rgb(0,0,0,0.1))
+
+

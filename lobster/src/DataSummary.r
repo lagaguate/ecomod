@@ -321,3 +321,21 @@ tagging.dat$SizeDiff<-tagging.dat$CapSize-tagging.dat$TagSize
 tagging.dat
 
 
+### atSea
+
+		lobster.db('atSea')
+
+		atSea$YEAR<-year(atSea$STARTDATE)
+
+		atSeaSamples<-sapply(sort(unique(atSea$LFA)),function(x){with(subset(atSea,LFA==x&!is.na(CARLENGTH)),tapply(CARLENGTH,YEAR,length))})
+
+### FSRS
+
+		FSRS.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRSrectraps.csv"))
+		FSRS.dat$total<-FSRS.dat$SHORTS+FSRS.dat$LEGALS
+
+
+		FSRSsamples<-sapply(sort(unique(FSRS.dat$LFA)),function(x){with(subset(FSRS.dat,LFA==x),tapply(total,SYEAR,sum))})
+		names(FSRSsamples)<-sort(unique(FSRS.dat$LFA))
+
+
