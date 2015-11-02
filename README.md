@@ -95,9 +95,9 @@ When the script is run, the result is a list, composed almost entirely of data f
 |length&#95;total&#95;se			|&quot;Length Total Standard Error&quot;																								| 	results[[8]] 	|	STRAT; &lt;length bins&gt;																															|
 |nw&#95;by&#95;set					|&quot;Weight By Set&quot;; &lt;New&gt;																									| 	results[[9]] 	|	STRAT; MISSION; SETNO; TOTNO; TOTWGT																												|
 |weights							|&quot;Weight Mean&quot;;  &quot;Weight Mean Std Err&quot;;  &quot;Weight Total&quot;; &quot;Weight Total Std Err&quot;					| 	results[[10]]	|	STRAT; COUNT; TOT&#95;WGT; MEAN&#95;WGT; BIOMASS; ST&#95;ERR&#95;WGT; ST&#95;ERR&#95;BIOMASS														|
-|numbers							|&lt;New&gt;																															| 	results[[11]]	|	STRAT; COUNT; TOT&#95;NO; MEAN&#95;NO; ABUND; ST&#95;ERR&#95;NO; ST&#95;ERR&#95;ABUND																|
-|age&#95;table						|&quot;Age Table&quot;																													| 	results[[12]]	|	&lt;ages&gt;; Length&#95;Totals*&lt;length bins&gt;																									|
-|age&#95;length&#95;key&#95;totals  |&quot;Age Length Key&quot;																												| 	results[[13]]	|	&lt;ages&gt;*&lt;length bins&gt;																													|
+|numbers							|&lt;New&gt;																															| 	results[[11]]	|	STRAT; COUNT; TOT&#95;NO; MEAN&#95;NO; ABUND; ST&#95;ERR&#95;NO; ST&#95;ERR&#95;ABUND																|                                                 |
+|age&#95;length&#95;key&#95;totals  |&quot;Age Length Key&quot;                                                       |   results[[12]] | &lt;ages&gt;*&lt;length bins&gt;        
+|age&#95;table						|&quot;Age Table&quot;																													| 	results[[13]]	|	&lt;ages&gt;; Length&#95;Totals*&lt;length bins&gt;																									|
 |age&#95;length&#95;weight			|&quot;Age Length Weight&quot;																											| 	results[[14]]	|	allFlen; FWT.&lt;ages&gt;*&lt;length bins&gt;																										|
 |age&#95;by&#95;set					|&quot;Age By Set&quot;																													| 	results[[15]]	|	STRAT; MISSION; SETNO; &lt;ages&gt;																													|
 |ages								|&quot;Age Mean&quot;; &quot;Age Mean Std Error&quot;; &quot;Age Total&quot;; &quot;Age Total Standard Error&quot;                      | 	results[[16]]	|	STRAT; COUNT; age&#95;&lt;ages&gt;&#95;mean; age&#95;&lt;ages&gt;&#95;se; age&#95;&lt;ages&gt;&#95;tot; age&#95;&lt;ages&gt;&#95;tot&#95;se		 	|

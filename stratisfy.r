@@ -38,7 +38,7 @@ library(data.table)     #necessary?
 options(stringsAsFactors = FALSE) #necessary?
 options(scipen=999)  # this avoids scientific notation
 ################################################################################
-###                          FUNCTIONS (general)                                         
+###                          FUNCTIONS (general)            
 
 st.err <- function(x) {
   sd(x)/sqrt(length(x))
@@ -165,7 +165,8 @@ gui<-function(){
                                     from groundfish.gsmissions 
                                      WHERE SEASON IN 
                                      ('SUMMER','SPRING','FALL','4VWCOD','GEORGES')
-                                     AND YEAR = ",year.gui, sep="") 
+                                     AND YEAR = ",year.gui,"
+                                    ORDER BY MISSION", sep="") 
               }else{
                 # removed gear restriction from NMFS
                 #--AND SVGEAR In ('11','41','45')
@@ -174,7 +175,8 @@ gui<-function(){
                                       FROM USNEFSC.USS_MSTR_CRUISE
                                       WHERE PURPOSE_CODE='10' 
                                       AND SEASON IN ('SPRING','SUMMER','FALL','WINTER')
-                                      AND YEAR = ",year.gui, sep="")
+                                      AND YEAR = ",year.gui,"
+                                      ORDER BY CRUISE6", sep="")
               }
               missions.data<-sqlQuery(channel, mission.query)
               missions<-select.list(paste( missions.data$MISSION, " (", missions.data$SEASON,")",sep=""), 
@@ -287,6 +289,7 @@ gui<-function(){
             by.sex.gui<-select.list(c("Unsexed Analysis","Sexed Analysis"),
                                     multiple=F, graphics=T, 
                                     title='Analysis by Sex?')
+            
             if (by.sex.gui=="Sexed Analysis") by.sex.gui=T else by.sex.gui=F
             
             if (agency.gui=='DFO'){
@@ -295,6 +298,7 @@ gui<-function(){
                                           multiple=F, graphics=T, 
                                           title='Please select the type of trawl:')
                 type.gui<-as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', type.gui) )
+
                 wingspread.gui = as.numeric(select.list(c("41","34"),
                                                     preselect=c("41"),
                                                     multiple=F, graphics=T, 
@@ -799,9 +803,10 @@ length_total_se<-setNames(aggregate(list(
 alk<-agelen[,c("AGE","FLEN","CAGE","SETNO")]
 alk<-alk[!is.na(alk$AGE), ]
 if (nrow(alk)<1){     #only try age calculations if we have ages
+  print("age calculations unavailable - no ages in data")
   age_by_set<-"can't do age_by_set - no ages in data"
   ages<-"can't do ages - no ages in data"
-  age_length_key_totals<-"can't do age_length_key_totals - no ages in data"
+  age.length.key.totals<-"can't do age.length.key.totals - no ages in data"
   age_table<-"can't do age_table - no ages in data"
   age_length_weight<-"can't do age_length_weight - no ages in data"
 }else{
@@ -822,28 +827,37 @@ age.length.key<-na.zero(
     )
   )
 )
-Length_Totals<-rowSums(age_length_key, dims = 1)
-age_length_key_totals<-cbind(age_length_key,Length_Totals)
-Age_Totals<-colSums(age_length_key_totals, dims = 1)
-age_length_key_totals<-rbind(age_length_key_totals,Age_Totals)
+Length_Totals<-rowSums(age.length.key, dims = 1)
+
+age.length.key.totals<-cbind(age.length.key,Length_Totals) 
+
+Age_Totals<-colSums(age.length.key.totals, dims = 1)
+age.length.key.totals<-rbind(age.length.key.totals,Age_Totals)
+
 alw<-aggregate(FWT~AGE+FLEN,data=agelen,FUN=mean)
 alw<-alw[order(alw$AGE,alw$FLEN),]
 alw$FWT = alw$FWT / 1000
 age_length_weight = na.zero(reshape(
                             alw,idvar='FLEN',timevar='AGE',direction='wide'))
+age_length_weight<-age_length_weight[order(age_length_weight$FLEN),]
 rownames(age_length_weight)<-age_length_weight[,1]
-age_length_weight<-merge(allFlenDF,age_length_weight,by="row.names", all=TRUE)
-age_length_weight<-na.zero(age_length_weight[order(age_length_weight$allFlen),])
 age_length_weight$FLEN<-NULL
-age_length_weight$Row.names<-NULL
 ################################################################################
 ###                          AGE CALCULATIONS                                   
+
 lengths<-ColTotalsLength[1:length(ColTotalsLength)-1] 
-ages_prop<-prop.table(as.matrix(age_length_key),1) 
+lengths1<-as.data.frame(lengths)
+lengths1$FLEN<-names(lengths)
+lengths1<-merge(ages_prop,lengths1,all.x=T)
+
+
+ages_prop<-prop.table(as.matrix(age.length.key),1) 
 ages_prop<-ifelse(is.nan(ages_prop),0,ages_prop)
 ages_prop<-as.data.frame(ages_prop)
 theseages<-c(names(ages_prop))
-age_table<-ages_prop*lengths
+
+age_table<-na.zero(ages_prop*lengths1$lengths)
+
 ages_prop$FLEN<-as.numeric(rownames(ages_prop))
 ageset<-lset[,c("STRAT","MISSION","SETNO","FLEN","value")]
 colnames(ageset)[which(names(ageset) == "value")] <- "CAGE"
@@ -932,8 +946,8 @@ results<-list(
   nw_by_set=nw_by_set,   
   weights=weights,
   numbers=numbers, 
+  age.length.key.totals=age.length.key.totals,
   age_table=age_table, 
-  age_length_key_totals=age_length_key_totals,
   age_length_weight=age_length_weight,
   age_by_set=age_by_set,  
   ages=ages)
