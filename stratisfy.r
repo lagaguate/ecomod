@@ -155,6 +155,11 @@ gui<-function(){
                                 ORDER BY Year DESC"
               }
               the.year = sqlQuery(channel, year.query)
+              US_Conn<-grepl("TNS:Connect timeout occurred", as.character(the.year[1]))
+              if (US_Conn){
+                print("ERROR -- Can't connect to US database")
+                return()
+              }
               the.year<-paste( the.year[,1],sep=",") 
               return(the.year)
             }
