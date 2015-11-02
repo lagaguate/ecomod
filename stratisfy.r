@@ -948,7 +948,7 @@ results<-list(
   length_mean_se=length_mean_se, 
   length_total=length_total, 
   length_total_se=length_total_se,
-  nw_by_set=nw_by_set,   
+  nw=nw,   
   weights=weights,
   numbers=numbers, 
   age.length.key.totals=age.length.key.totals,

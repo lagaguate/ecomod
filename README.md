@@ -93,7 +93,7 @@ When the script is run, the result is a list, composed almost entirely of data f
 |length&#95;mean&#95;se				|&quot;Length Mean Standard Error&quot;																									| 	results[[6]] 	|	STRAT; &lt;length bins&gt;																															|
 |length&#95;total					|&quot;Length Total&quot;																												| 	results[[7]] 	|	STRAT; &lt;length bins&gt;																															|
 |length&#95;total&#95;se			|&quot;Length Total Standard Error&quot;																								| 	results[[8]] 	|	STRAT; &lt;length bins&gt;																															|
-|nw&#95;by&#95;set					|&quot;Weight By Set&quot;; &lt;New&gt;																									| 	results[[9]] 	|	STRAT; MISSION; SETNO; TOTNO; TOTWGT																												|
+|nw					|&quot;Weight By Set&quot;; &lt;New&gt;																									| 	results[[9]] 	|	STRAT; MISSION; SETNO; TOTNO; TOTWGT																												|
 |weights							|&quot;Weight Mean&quot;;  &quot;Weight Mean Std Err&quot;;  &quot;Weight Total&quot;; &quot;Weight Total Std Err&quot;					| 	results[[10]]	|	STRAT; COUNT; TOT&#95;WGT; MEAN&#95;WGT; BIOMASS; ST&#95;ERR&#95;WGT; ST&#95;ERR&#95;BIOMASS														|
 |numbers							|&lt;New&gt;																															| 	results[[11]]	|	STRAT; COUNT; TOT&#95;NO; MEAN&#95;NO; ABUND; ST&#95;ERR&#95;NO; ST&#95;ERR&#95;ABUND																|                                                 |
 |age&#95;length&#95;key&#95;totals  |&quot;Age Length Key&quot;                                                       |   results[[12]] | &lt;ages&gt;*&lt;length bins&gt;        
