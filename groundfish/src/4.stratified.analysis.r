@@ -11,6 +11,7 @@ p$vessel.correction.fixed = 1.2
 p$length.based = F
 p$size.class= c(82,300)
 p$by.sex = F
+p$sex = 1# male female berried c(1,2,3)
 
 #out = groundfish.db(DS='gsdet.spec.redo',p=p)
 p$alpha = 0.05

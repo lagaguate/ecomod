@@ -128,8 +128,10 @@
       # August 2015 added in setcd_id from observer system to address the MPA survey sets (type=11) and regular fix station sets (type=4)
       set = snowcrab.db( DS="set.odbc")
       names( set ) = rename.snowcrab.variables(names( set))
-      setvars = c("trip", "set", "station", "stime", "observer", "cfa", "lon", "lat", "towquality", "Zx", "Tx", "gear", "sa","set_type" )  
-      set$trip = as.character(set$trip)
+      setvars = c("trip", "set", "station", "stime", "observer", "cfa", "lon", "lat", "towquality", "Zx", "Tx", "gear", "sa")#,"iset_type" )  
+      print('need to addin the mpa station index')
+
+	set$trip = as.character(set$trip)
       set$set  = as.integer(set$set)
  
 
