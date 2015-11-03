@@ -8,15 +8,17 @@ stratisfy<-function(user=-1, password=-1 #these are your Oracle credentials
 ###                             Mark Fowler                                     
 ###                             Adam Cook                                       
 ###                                                                             
-###       Modification Date:    Oct 30, 2015                                    
-          stratisfy.ver = '2015.10.30'
+###       Modification Date:    Nov 2, 2015                                    
+          stratisfy.ver = '2015.11.02'
 ###                                                                             
 ###       Description:          Replaces the standalone STRANAL application     
 ###                             (written in APL), as well as the numbers and    
 ###                             weights analytic from the old VDC               
 ###                                                                             
-###       TODO:  US data needs to be incorporated                
-###              sexed data needs to be incorporated             
+###       TODO:  US data needs to be QC'd                
+###              Net conversion needs to be implemented
+###              ALK Modifications need to be implemented
+###              Custom Age\Length Tables to be implemented
 ################################################################################
 ###                          PACKAGES                                           
 if(!require(RODBC)) { 
@@ -31,7 +33,7 @@ if(!require(data.table)) {
 
 library(RODBC)
 library(reshape2)       #reqd for melt,dcast
-library(data.table)     #necessary?
+library(data.table)     
 
 ################################################################################
 ###                          ENVIRONMENT                                        
