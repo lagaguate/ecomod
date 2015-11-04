@@ -67,83 +67,89 @@ loadfunctions('lobster')
 	dev.off()
 
 	## ITQ-ILTS Survey
-	# get data
+	
 	surveyLobsters34<-LobsterSurveyProcess(lfa="34",yrs=1996:2015,mths=c("Jul","Jun"),bin.size=5)
+
+	## Plot Survey Index Figure 4
+	plotSurveyIndex(surveyLobsters34)
+
+	# get data
 	#surveyLobsters<-read.csv(file.path(project.datadirectory('lobster'),"data","surveyLobsters.csv")) 
 	#surveyLobsters34<-subset(surveyLobsters,!is.na(NUM_STANDARDIZED)&LFA==34&HAULCCD_ID==1&YEAR>1995&MONTH%in%c("Jul","Jun"))
 
-	# STATIONS assigned based on proximity
-	ITQspat34<-subset(surveyLobsters34,select=c("SET_ID","SET_LONG","SET_LAT","HAUL_LONG","HAUL_LAT","STATION"))
-	names(ITQspat34)[2:5]<-c("X1","Y1","X2","Y2")
-	ITQspat34$EID<-1:nrow(ITQspat34)
-	pdf(file.path( project.datadirectory("lobster"), "R","LFA34ITQSurveyStations.pdf"),8,11)
-	ITQspat34ns<-assignStation(ITQspat34,lines=T)
-	dev.off()
-	write.csv(ITQspat34ns$events,file.path(project.datadirectory('lobster'),'data',"surveyTows.csv"),row.names=F)
-	write.csv(ITQspat34ns$stations,file.path(project.datadirectory('lobster'),'data',"surveyStations.csv"),row.names=F)
+	## STATIONS assigned based on proximity
+	#ITQspat34<-subset(surveyLobsters34,select=c("SET_ID","SET_LONG","SET_LAT","HAUL_LONG","HAUL_LAT","STATION"))
+	#names(ITQspat34)[2:5]<-c("X1","Y1","X2","Y2")
+	#ITQspat34$EID<-1:nrow(ITQspat34)
+	#pdf(file.path( project.datadirectory("lobster"), "R","LFA34ITQSurveyStations.pdf"),8,11)
+	#ITQspat34ns<-assignStation(ITQspat34,lines=T)
+	#dev.off()
+	##write.csv(ITQspat34ns$events,file.path(project.datadirectory('lobster'),'data',"surveyTows.csv"),row.names=F)
+	##write.csv(ITQspat34ns$stations,file.path(project.datadirectory('lobster'),'data',"surveyStations.csv"),row.names=F)
 
-	# add assigned stations to data
-	surveyLobsters34<-merge(surveyLobsters34,subset(ITQspat34ns$events,select=c("SET_ID","SID")),all=T)
+	## add assigned stations to data
+	#surveyLobsters34<-merge(surveyLobsters34,subset(ITQspat34ns$events,select=c("SET_ID","SID")),all=T)
 
-	# create a reduced station list for stations that were sampled in at least 15 of 19 year (red) and also in the last two years (green)
-	unlist(lapply(with(surveyLobsters34,tapply(YEAR,SID,unique)),length))->stnreps
-	redStns<-which(stnreps>14)
-	greenStns<-redStns[redStns%in%subset(surveyLobsters34,YEAR>2012)$SID]
-	write.csv(subset(ITQspat34ns$stations,SID%in%greenStns),file.path(project.datadirectory('lobster'),'data',"survey32Stations.csv"),row.names=F)
-	write.csv(subset(ITQspat34ns$stations,SID%in%redStns),file.path(project.datadirectory('lobster'),'data',"surveyStations.csv"),row.names=F)
-	
-	
-	# Plot Map of Stations Figure 5
-	#ITQpolys<-read.csv(file.path(project.datadirectory('lobster'),'data',"ITQareas.csv"))
-	pdf(file.path( project.datadirectory("lobster"), "R","LFA34ITQ25SurveyStations.pdf"),8,11)
-	LobsterMap('34',mapRes="UR",title=paste("LFA 34 ITQ Survey Reduced Stations",i),isobath=seq(50,500,50),bathcol=rgb(0,0,1,0.2),bathy.source='bathy')
-	#points(Y~X,subset(ITQspat34ns$stations,SID%in%redStns),pch=1,cex=1.2,col='red')#,col=rgb(0,0,0,0.5))
-	#points(Y~X,subset(ITQspat34ns$stations,SID%in%redStns),pch=16,cex=0.7,col='red')#,col=rgb(0,0,0,0.5))
-	points(Y~X,subset(ITQspat34ns$stations,SID%in%greenStns),pch=1,cex=1.2,col='red')#,col=rgb(0,0,0,0.5))
-	points(Y~X,subset(ITQspat34ns$stations,SID%in%greenStns),pch=16,cex=0.7,col='red')#,col=rgb(0,0,0,0.5))
-	#addPolys(ITQpolys,border='grey')
-	dev.off()
+	## create a reduced station list for stations that were sampled in at least 15 of 19 year (red) and also in the last two years (green)
+	#unlist(lapply(with(surveyLobsters34,tapply(YEAR,SID,unique)),length))->stnreps
+	#redStns<-which(stnreps>14)
+	#greenStns<-redStns[redStns%in%subset(surveyLobsters34,YEAR>2012)$SID]
+	#write.csv(subset(ITQspat34ns$stations,SID%in%greenStns),file.path(project.datadirectory('lobster'),'data',"survey32Stations.csv"),row.names=F)
+	#write.csv(subset(ITQspat34ns$stations,SID%in%redStns),file.path(project.datadirectory('lobster'),'data',"surveyStations.csv"),row.names=F)
+	#greenStns<-read.csv(file.path(project.datadirectory('lobster'),'data',"survey32Stations.csv"))$SID
+	#
+	## Plot Map of Stations Figure 5
+	##ITQpolys<-read.csv(file.path(project.datadirectory('lobster'),'data',"ITQareas.csv"))
+	#pdf(file.path( project.datadirectory("lobster"), "R","LFA34ITQ25SurveyStations.pdf"),8,11)
+	#LobsterMap('34',mapRes="UR",title=paste("LFA 34 ITQ Survey Reduced Stations",i),isobath=seq(50,500,50),bathcol=rgb(0,0,1,0.2),bathy.source='bathy')
+	##points(Y~X,subset(ITQspat34ns$stations,SID%in%redStns),pch=1,cex=1.2,col='red')#,col=rgb(0,0,0,0.5))
+	##points(Y~X,subset(ITQspat34ns$stations,SID%in%redStns),pch=16,cex=0.7,col='red')#,col=rgb(0,0,0,0.5))
+	#points(Y~X,subset(ITQspat34ns$stations,SID%in%greenStns),pch=1,cex=1.2,col='red')#,col=rgb(0,0,0,0.5))
+	#points(Y~X,subset(ITQspat34ns$stations,SID%in%greenStns),pch=16,cex=0.7,col='red')#,col=rgb(0,0,0,0.5))
+	##addPolys(ITQpolys,border='grey')
+	#dev.off()
 
 
 	## Plot Survey Index Figure 4
 
-	trend.dat<-surveyLobsters34
+	#trend.dat<-surveyLobsters34
 
-	LPT<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,mean,na.rm=T))
-	yrs<-as.numeric(names(LPT))
-	LPTsd<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,sd,na.rm=T))
-	LPTn<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,length))
-	LPTse<-LPTsd/sqrt(LPTn)
-	ma<-function(x,n=3){filter(x,rep(1/n,n),sides=2)}
-	rmLPT<-ma(LPT)
 
-	pdf(file.path( project.datadirectory("lobster"), "R","LFA34LobsterAbundanceTrend.pdf"),8,6)
+	#LPT<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,mean,na.rm=T))
+	#yrs<-as.numeric(names(LPT))
+	#LPTsd<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,sd,na.rm=T))
+	#LPTn<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,length))
+	#LPTse<-LPTsd/sqrt(LPTn)
+	#ma<-function(x,n=3){filter(x,rep(1/n,n),sides=2)}
+	#rmLPT<-ma(LPT)
 
-	plot(yrs,LPT,pch=16,ylim=c(0,max(LPT+LPTse)),xlab='',ylab='Mean N / Standard Tow',las=1, main="LFA 34 - ITQ Survey")
-	axis(1,yrs,lab=F,tck=-0.01)
-	arrows(yrs, LPT+LPTse, yrs, LPT-LPTse ,code=3,angle=90,length=0.1)
-	lines(yrs[-(1:2)],rmLPT[!is.na(rmLPT)],lty=2,col='orange',lwd=2)
-	abline(h=median(LPT[2:15]*0.8),col=rgb(0,0,1,0.5))
-	text(max(yrs)+.5,median(LPT[2:15]*0.8)*.85,"Upper Stock Reference",col=rgb(0,0,1,0.5),pos=2,cex=0.8)
+	##pdf(file.path( project.datadirectory("lobster"), "R","LFA34LobsterAbundanceTrend.pdf"),8,6)
 
-	redstn.trend.dat<-subset(surveyLobsters34,SID%in%greenStns)
-	
-	LPT<- with(redstn.trend.dat,tapply(NUM_STANDARDIZED,YEAR,mean,na.rm=T))
-	yrs<-as.numeric(names(LPT))
-	LPTsd<- with(redstn.trend.dat,tapply(NUM_STANDARDIZED,YEAR,sd,na.rm=T))
-	LPTn<- with(redstn.trend.dat,tapply(NUM_STANDARDIZED,YEAR,length))
-	LPTse<-LPTsd/sqrt(LPTn)
-	rmLPT<-ma(LPT)
-	write.csv(data.frame(SYEAR=yrs,N=LPTn,LPT=LPT,LPT.SE=LPTse),file.path(project.datadirectory('lobster'),'data',"LFA34SurveyIndex.csv"),row.names=F)
+	#plot(yrs,LPT,pch=16,ylim=c(0,max(LPT+LPTse)),xlab='',ylab='Mean N / Standard Tow',las=1, main="LFA 34 - ITQ Survey")
+	#axis(1,yrs,lab=F,tck=-0.01)
+	#arrows(yrs, LPT+LPTse, yrs, LPT-LPTse ,code=3,angle=90,length=0.1)
+	#lines(yrs[-(1:2)],rmLPT[!is.na(rmLPT)],lty=2,col='orange',lwd=2)
+	#abline(h=median(LPT[2:15]*0.8),col=rgb(0,0,1,0.5))
+	#text(max(yrs)+.5,median(LPT[2:15]*0.8)*.85,"Upper Stock Reference",col=rgb(0,0,1,0.5),pos=2,cex=0.8)
 
-	plot(yrs,LPT,pch=16,ylim=c(0,max(LPT+LPTse)),xlab='',ylab='Mean N / Standard Tow',las=1, main="LFA 34 - ITQ Survey - Reduced Stations")
-	axis(1,yrs,lab=F,tck=-0.01)
-	arrows(yrs, LPT+LPTse, yrs, LPT-LPTse ,code=3,angle=90,length=0.1)
-	lines(yrs[-(1:2)],rmLPT[!is.na(rmLPT)],lty=2,col='orange',lwd=2)
-	abline(h=median(LPT[2:15]*0.8),col=rgb(0,0,1,0.5))
-	text(max(yrs)+.5,median(LPT[2:15]*0.8)*.85,"Upper Stock Reference",col=rgb(0,0,1,0.5),pos=2,cex=0.8)
+	#redstn.trend.dat<-subset(surveyLobsters34,SID%in%greenStns)
+	#
+	#LPT<- with(redstn.trend.dat,tapply(NUM_STANDARDIZED,YEAR,mean,na.rm=T))
+	#yrs<-as.numeric(names(LPT))
+	#LPTsd<- with(redstn.trend.dat,tapply(NUM_STANDARDIZED,YEAR,sd,na.rm=T))
+	#LPTn<- with(redstn.trend.dat,tapply(NUM_STANDARDIZED,YEAR,length))
+	#LPTse<-LPTsd/sqrt(LPTn)
+	#rmLPT<-ma(LPT)
+	##write.csv(data.frame(SYEAR=yrs,N=LPTn,LPT=LPT,LPT.SE=LPTse),file.path(project.datadirectory('lobster'),'data',"LFA34SurveyIndex.csv"),row.names=F)
 
-	dev.off()
+	#plot(yrs,LPT,pch=16,ylim=c(0,max(LPT+LPTse)),xlab='',ylab='Mean N / Standard Tow',las=1, main="LFA 34 - ITQ Survey - Reduced Stations")
+	#axis(1,yrs,lab=F,tck=-0.01)
+	#arrows(yrs, LPT+LPTse, yrs, LPT-LPTse ,code=3,angle=90,length=0.1)
+	#lines(yrs[-(1:2)],rmLPT[!is.na(rmLPT)],lty=2,col='orange',lwd=2)
+	#abline(h=median(LPT[2:15]*0.8),col=rgb(0,0,1,0.5))
+	#text(max(yrs)+.5,median(LPT[2:15]*0.8)*.85,"Upper Stock Reference",col=rgb(0,0,1,0.5),pos=2,cex=0.8)
+
+#	dev.off()
 
 	####### EXTRAS
 
@@ -151,13 +157,13 @@ loadfunctions('lobster')
 	
 	# Lobster Survey
 	CLFsurvey<-list()
-	CLFsurvey$LobsterSurvey<-t(sapply(2005:2014,function(y){colMeans(subset(surveyLobsters34,YEAR==y&SID%in%greenStns,paste0("CL",seq(5,220,5))),na.rm=T)}))
+	CLFsurvey$LobsterSurvey<-t(sapply(2005:2015,function(y){colMeans(subset(surveyLobsters34,YEAR==y,paste0("CL",seq(0,215,5))),na.rm=T)}))
 	
 	# Scallop Survey
 	SCALSURV34.dat<-ScallopSurveyProcess(SPA=c("3","29"))
-	CLFsurvey$ScallopSurvey<-t(sapply(2005:2014,function(y){colMeans(subset(SCALSURV34.dat,YEAR==y,paste0("CL",seq(5,220,5))),na.rm=T)}))
-	BubblePlotCLF(CLFsurvey,inch=0.2,bg=rgb(0,1,0,0.1),yrs=2005:2014,bins=seq(0,220,5),filen="SurveyLFA34",prop=lT)
-	BarPlotCLF(CLFsurvey,yrs=2005:2014,bins=seq(0,220,5),col='grey',filen="SurveyLFA34",rel=F,ymax=c(25,1))
+	CLFsurvey$ScallopSurvey<-t(sapply(2005:2015,function(y){colMeans(subset(SCALSURV34.dat,YEAR==y,paste0("CL",seq(5,220,5))),na.rm=T)}))
+	#BubblePlotCLF(CLFsurvey,inch=0.2,bg=rgb(0,1,0,0.1),yrs=2005:2015,bins=seq(0,220,5),filen="SurveyLFA34",prop=lT)
+	BarPlotCLF(CLFsurvey,yrs=2005:2015,bins=seq(0,220,5),col='grey',filen="SurveyLFA34",rel=F,ymax=c(18.5,.6))
 
 	# at sea sampling
 	lobster.db('atSea')
@@ -225,6 +231,22 @@ loadfunctions('lobster')
 		points(SET_LAT~SET_LONG,interp.data,pch=16,cex=0.5)#,col=rgb(0,0,0,0.5))
 		ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="#/standard tow",inset=0.02,cex=0.8,bg='white')
 	}
+		# interpolate abundance
+		interp.data<-na.omit(subset(surveyLobsters34,YEAR==2015,c('SET_ID','SET_LONG','SET_LAT','NUM_STANDARDIZED')))
+		lob.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.2)
+
+		# define contour lines
+		print(lob.contours$str.def)
+		lvls=c(1, 5, 10, 20, 50, 100, 200, 500)
+
+		# generate contour lines
+		cont.lst<-contour.gen(lob.contours$image.dat,lvls,subset(LFAs,LFA==34),col="YlGn",colorAdj=1)
+
+		# plot Map
+		LobsterMap('34',mapRes="UR",contours=cont.lst,title=paste("LFA 34 Lobster Density",i),isobath=seq(50,500,50),bathcol=rgb(0,0,1,0.2),bathy.source='bathy')
+		points(SET_LAT~SET_LONG,surveyLobsters,subset=YEAR==2015,pch=16,cex=0.5)#,col=rgb(0,0,0,0.5))
+		ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="#/standard tow",inset=0.02,cex=0.8,bg='white')
+
 	dev.off()
 
 	## berried females

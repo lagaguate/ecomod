@@ -92,15 +92,19 @@
                 group by a.est_lbs, a.mon_doc_id
                 )) a, marfissci.lobster_md_log b
                 where a.mon_doc_id = b.mon_doc_id
-                and b.licence_id in (141926, 141930)"
-                
+                and b.licence_id in (141926, 141929, 141930)"
+         
+        slipquery41<-"select  to_char(landing_date_time, 'yyyy'), sum(slip_weight_lbs) from marfissci.lobster_md_slip where licence_id in (141926,141929,141930) group by  to_char(landing_date_time, 'yyyy')"        
+        slip41 = sqlQuery(con, slipquery41)
         logs41 = sqlQuery(con, query41)
         logs41$DDLON<-logs41$DDLON*-1
         save( logs41, file=file.path( fn.root, "logs41.rdata"), compress=T)
+        save( slip41, file=file.path( fn.root, "slip41.rdata"), compress=T)
         gc()  # garbage collection
         odbcClose(con)
       }
       load (file.path( fn.root, "logs41.rdata"), .GlobalEnv)
+      load (file.path( fn.root, "slip41.rdata"), .GlobalEnv)
       
     }
 
