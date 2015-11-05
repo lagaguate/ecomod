@@ -1,19 +1,20 @@
  
-  spacetime.interpolate.inla.singlepass = function( dat, locs, locsout, res=1, lengthscale=NULL, method="fast", link="identity" ) {
-    #\\ low-lelvel function -- single pass/fast spatial interpolator using inla 
+  spacetime.interpolate.inla.singlepass = function( dat, locs, locsout, lengthscale=NULL, method="fast", link="identity", nsamples=5000 ) {
+    #\\ low-level function -- single pass/fast spatial interpolator using inla 
     #\\   but no bigmemory objects and no stats, etc. .. prediction only, serial mode only
     #\\   lengthscale is the range (prior) 
     #\\   method="fast" using an indirect estimate based upon posterior projections of the input
-    #\\   method="direct" uses direct (more accurate) estimation similar to an MCMC approach in bugs 
+    #\\   method="direct" uses direct (more accurate) estimation but way too slow and resource 
+    #\\     intensive to be useful for production runs .. used only to check the fast method 
  
-    # identity links by default
+    # identity links by default .. add more if needed here
     spacetime.link = function(X) {X}
     spacetime.invlink = function(X) {X}
 
     if (link=="log" ) {
       spacetime.link = function(X) {log(X)}
       spacetime.invlink = function(X) {exp(X)}
-    }
+    } 
     
     locs = as.matrix( locs)
 
@@ -27,16 +28,10 @@
     ndata = length(dat)
     noise = lengthscale * 1e-9 
     locs = locs + runif( ndata*2, min=-noise, max=noise ) # add  noise  to prevent a race condition .. inla does not like uniform grids
-   
-   
 
     MESH = spacetime.mesh( locs, lengthscale=lengthscale ) 
    
-    if ( is.null( MESH) ) {
-      return( "Mesh Error" )
-    }
-
-    if ( 0 ) plot( MESH )  
+    if ( is.null( MESH) ) return( "Mesh Error" )
 
     SPDE = inla.spde2.matern( MESH,      
       alpha=2 , # alpha is the Bessel smoothness factor .. 1(?) gives exponential correlation function
@@ -84,14 +79,13 @@
    
     rm( SPDE, DATA ); gc() 
  
-
-    # ----------------
     # predict upon grid
 
     if ( method=="direct" ) {
-      # direct method
-      locsout$xmean = spacetime.invlink( RES$summary.fitted.values[ i_data, "mean"] )
-      locsout$xsd   = spacetime.invlink( RES$summary.fitted.values[ i_data, "sd"] )
+      # direct method ... way too slow to use for production runs
+      preds = as.data.frame( locsout )
+      preds$xmean = spacetime.invlink( RES$summary.fitted.values[ i_data, "mean"] )
+      preds$xsd   = spacetime.invlink( RES$summary.fitted.values[ i_data, "sd"] )
       rm(RES, MESH); gc()
     }   
 
@@ -106,30 +100,43 @@
         return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
       }
 
-      pG = inla.mesh.projector( MESH, locs=as.matrix( locsout ), dims=c(p$nplons, p$nplats) )
-      posterior.samples = inla.posterior.sample(n=5000, RES)
+      # note: locsout seems to be treated as token locations and really its range and dims controls output 
+      pG = inla.mesh.projector( MESH, loc=as.matrix( locsout ) )
+      posterior.samples = inla.posterior.sample(n=nsamples, RES)
       rm(RES, MESH); gc()
       
       rnm = rownames(posterior.samples[[1]]$latent )  
       posterior = sapply( posterior.samples, posterior.extract, rnm=rnm )
       posterior = spacetime.invlink( posterior )   # return to original scale
       rm(posterior.samples); gc()
+  
+      if ( exists( "predict.quantiles", p ) ) {
+          # robustify the predictions by trimming extreme values .. will have minimal effect upon mean
+          # but variance estimates should be useful/more stable as the tails are sometimes quite long 
+          for (ii in 1:nrow(posterior )) {
+            qnt = quantile( posterior[ii,], probs=p$predict.quantiles, na.rm=TRUE ) 
+            toolow = which( posterior[ii,] < qnt[1] )
+            toohigh = which (posterior[ii,] > qnt[2] )
+            if (length( toolow) > 0 ) posterior[ii,toolow] = qnt[1]
+            if (length( toohigh) > 0 ) posterior[ii,toohigh] = qnt[2]
+          }
+      }
 
-      names(locsout) = c( "plon", "plat" )
-      locsout$xmean = c( inla.mesh.project( pG, field=apply( posterior, 1, mean, na.rm=TRUE )  ))
-      locsout$xsd   = c( inla.mesh.project( pG, field=apply( posterior, 1, sd, na.rm=TRUE )  ))
+      # posterior projection is imperfect right now .. not matching the actual requested locations
+      preds = data.frame( plon=pG$loc[,1], plat = pG$loc[,2])
+      preds$xmean = c( inla.mesh.project( pG, field=apply( posterior, 1, mean, na.rm=TRUE )  ))
+      preds$xsd   = c( inla.mesh.project( pG, field=apply( posterior, 1, sd, na.rm=TRUE )  ))
       rm (pG)
     }
 
-
     if (0) {
-      levelplot( log( xmean)  ~ plon+plat, locsout, aspect="iso", 
+      levelplot( log( xmean)  ~ plon+plat, preds, aspect="iso", 
                 labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-      levelplot( log (xsd )  ~ plon+plat, locsout, aspect="iso", 
+      levelplot( log (xsd )  ~ plon+plat, preds, aspect="iso", 
                 labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
     }
 
-    return( locsout )
+    return( preds )
   } 
   
 
