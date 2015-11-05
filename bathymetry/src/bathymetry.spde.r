@@ -4,7 +4,7 @@
   # initialize bigmemory data objects
   p=list()
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-  p$libs = RLibrary( "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster", "colorspace" ,
+  p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", "sp", "raster", "colorspace" ,
     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra", "splancs")
   
   p$project.name = "bathymetry"
@@ -105,16 +105,10 @@
     k = which( is.finite (S[,3])  ) # not yet done
     length(k)
 
-  
+
 
   # world coastline data base
-  require(maps)
-  require(mapdata)
-  require(maptools)
-  require(rgdal)
-  require(sp)
-  library(latticeExtra)
-     
+
   
   # generate landmask
     if (index.redo) {
@@ -190,81 +184,8 @@
   bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )  
 
   # as the interpolation process is so expensive, regrid based off the above run
+  --- TODO --- 
   bathymetry.db( p=p, DS="finalized", regrid=c( "SSE", "snowcrab", "mpa" ) ) # if you want more, will need to add to the list and modify the selection criteria
 
 
 
-
-  # world bathymetry data base
-  # request at: https://www.bodc.ac.uk/data/online_delivery/gebco/ [ jae.choi@dfo ] ... / gate.gate
-  # etopo1_bedrock.xyz ---> 1 min resolution at http://maps.ngdc.noaa.gov/viewers/wcs-client/
- WSEN: -72,36,-45.,53
-
-
-###required packages
-library(RNetCDF)
-library(maps)
-library(mapdata)
-library(marmap)
-
-
-###Data
-#data locations
-bathy_fname <- "galapagos_gebco_08_-92_-2_-88_2.nc" # from https://www.bodc.ac.uk/data/online_delivery/gebco/gebco_08_grid/
-coast_fname <- "galapagos_18563.dat" # from
- 
-#load bathy data
-nc <- open.nc(bathy_fname)
-print.nc(nc)
-tmp <- read.nc(nc)
-z <- array(tmp$z, dim=tmp$dim)
-
-
-#z[which(z > 0)] <- NaN
-z <- z[,rev(seq(ncol(z)))]
-xran <- tmp$x_range
-yran <- tmp$y_range
-zran <- tmp$z_range
-lon <- seq(tmp$x[1], tmp$x[2], tmp$spac[1])
-lat <- seq(tmp$y[1], tmp$y[2], tmp$spac[1])
-rm(tmp)
-close.nc(nc)
- 
-#load coast data
-coast <- read.table(coast_fname)
-names(coast) <- c("lon", "lat")
- 
-###Plot
-#make palette
-ocean.pal <- colorRampPalette(
- c("#000000", "#000413", "#000728", "#002650", "#005E8C",
- "#0096C8", "#45BCBB", "#8AE2AE", "#BCF8B9", "#DBFBDC")
-)
- 
-land.pal <- colorRampPalette(
- c("#467832", "#887438", "#B19D48", "#DBC758", "#FAE769",
- "#FAEB7E", "#FCED93", "#FCF1A7", "#FCF6C1", "#FDFAE0")
-)
- 
-zbreaks <- seq(-8000, 8000, by=10)
-cols <-c(ocean.pal(sum(zbreaks<=0)-1), land.pal(sum(zbreaks>0)))
- 
-#compare coastlines to package 'mapdata'
-png("coastline_compare.png", width=7.5, height=6, units="in", res=400)
-#quartz(width=7.5, height=6)
-layout(matrix(1:2, 1,2), widths=c(6,1.5), heights=c(6))
- 
-par(mar=c(2,2,1,1), ps=10)
-image(lon, lat, z=z, col=cols, breaks=zbreaks, useRaster=TRUE, ylim=c(-1.5,0.5), xlim=c(-92,-90))
-lines(coast, col=1)
-map("world", col=2, ylim=c(-2,2), xlim=c(-93,-88), add=TRUE)
-map("worldHires", col=3, ylim=c(-2,2), xlim=c(-93,-88), add=TRUE)
-legend("bottomleft", legend=c("World Vector Shoreline", "maps: world", "mapdata: worldHires"), lty=1, col=c(1:3), bg="white") 
- 
-par(mar=c(2,0,1,5))
-image(x=1, y=zbreaks, z=matrix(zbreaks, 1, length(zbreaks)), col=cols, breaks=zbreaks, useRaster=TRUE, xlab="", ylab="", axes=FALSE)
-axis(4, at=seq(-8000, 8000, 1000), las=2)
-mtext("[meters]", side=4, line=3)
-box()
- 
-dev.off()

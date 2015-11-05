@@ -3,30 +3,77 @@
    
     datadir = project.datadirectory("bathymetry", "data" )
 		dir.create( datadir, showWarnings=F, recursive=T )
-  
+
+    #\\ Note inverted convention: depths are positive valued
+    #\\ i.e., negative valued for above sea level and positive valued for below sea level
+
+
+    if ( DS=="gebco") {
+      library(RNetCDF)
+      # request at: https://www.bodc.ac.uk/data/online_delivery/gebco/ [ jae.choi@dfo ] ... / gate.gate
+      # extent: (WSEN) = -72,36,-45.,53
+      # and saved as: ecomod_data/bathymetry/data/gebco.{xyz,nc}  # still waiting
+      # and xz compressed
+      fn = file.path( datadir, "bathymetry.gebco.rdata" )
+      if (file.exists (fn) ) {
+        load(fn)
+        return(gebco)
+      }
+
+      fn_local = file.path( datadir, "gebco.xyz.xz") # xz compressed file
+      nc <- open.nc(bathy_fname)
+      read.nc(nc)
+      array(tmp$z, dim=tmp$dim)
+      gebco = read.table( xzfile( fn_local ) ) 
+      names(gebco) = c("lon", "lat", "z")
+      gebco$z = - gebco$z  
+      # levelplot( log(z+ min(gebco$z) ))~lon+lat, gebco, aspect="iso")
+      save( gebco, file=fn, compress=TRUE )
+
+    }
+
+
+
+    if ( DS=="etopo1") {
+      # etopo1_bedrock.xyz ---> 1 min resolution 
+      # extent: (WSEN) = -72,36,-45.,53
+      # download manually from:  http://maps.ngdc.noaa.gov/viewers/wcs-client/
+      # and saved as: ecomod_data/bathymetry/data/etopo1_bedrock.xyz
+      # and xz compressed
+      fn = file.path( datadir, "bathymetry.etopo1.rdata" )
+      if (file.exists (fn) ) {
+        load(fn)
+        return(etopo1)
+      }
+      fn_local = file.path( datadir, "etopo1_bedrock.xyz.xz") # xz compressed file
+      etopo1 = read.table( xzfile( fn_local ) ) 
+      names(etopo1) = c("lon", "lat", "z")
+      etopo1$z = - etopo1$z  
+      # levelplot( log(z+ min(etopo1$z) ))~lon+lat, etopo1, aspect="iso")
+      save( etopo1, file=fn, compress=TRUE )
+    }
+
+
     if ( DS =="Greenlaw_DEM") {
       # DEM created 2014
       # GCS_WGS_1984, UTM_Zone_20N; spheroid:: 6378137.0, 298.257223563
       # 322624071 "grid points
       # 50 m  horizontal resolution
       # depth range: -5053.6 to 71.48 m 
-      fn = project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata" )
+      fn = file.path( datadir, "bathymetry.greenlaw.rdata" )
       if (file.exists (fn) ) {
         load(fn)
         return(gdem)
       }
 
       require(rgdal)
-      demfile.adf = project.datadirectory( "bathymetry", "data", "greenlaw_DEM", "mdem_50", "w001001.adf" )  # in ArcInfo adf format
+      demfile.adf = file.path( datadir, "greenlaw_DEM", "mdem_50", "w001001.adf" )  # in ArcInfo adf format
       dem = new( "GDALReadOnlyDataset", demfile.adf )
       # gdem = asSGDF_GROD( dem, output.dim=dim(dem) ) # regrid to another dim
       # gdem = getRasterData(dem) # in matrix format
       gdem = getRasterTable(dem) # as a data frame
       names(gdem) = c("plon", "plat", "z")
       gdem = gdem[ is.finite( gdem$z ) , ]
-#     p$depthrange = c(-5000, 1000 )  # inverse to chs convention
-#      gdem = gdem[ which( gdem$z < p$depthrange[2] ) , ] # limit to 3000m depths due to file size
-#      gdem = gdem[ which( gdem$z > p$depthrange[1] ) , ] # limit to 3000m depths due to file size
       gdem = planar2lonlat( gdem, "utm20", planar.coord.scale=1 )  # plon,plat already in meters
       gdem = gdem[, c("lon", "lat", "z") ]
       save( gdem, file=project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
@@ -41,7 +88,9 @@
         load( fn)
         return( bathy )
       }
- 
+      
+      print( "This is going to taker a lot of RAM!")
+
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
       fn_nwa = file.path( datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
       chs15 = read.table( xzfile( fn_nwa ) ) 
@@ -81,7 +130,7 @@
       # pei = which( gdem$lon < -60.5 & gdem$lon > -65 & gdem$lat>45.5 & gdem$lat<49 )
       # levelplot( z~I(round(lon,3))+I(round(lat,3)), data=gdem[pei,] )
 
-      # bad boundaries in gdem:
+      # bad boundaries in Greenlaw's gdem:
       # southern Gulf of St lawrence has edge effects
       bd1 = rbind( c( -62, 46.5 ),
                    c( -61, 47.5 ),
@@ -120,7 +169,7 @@
 			# in snowcrab and groundfish convention "-" is above sea level
 			# retain postive values at this stage to help contouring near coastlines
 
-      bathy = NULL
+      bathy = bathymetry.db( DS="etopo1" )
 
 			if ( "snowcrab" %in% additional.data ) {
         # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
@@ -669,32 +718,4 @@
 
 
 
-  block.data.frame = function( X, byvars, function.block=block.mean ) {
   
-    vnames0 = names( X ) 
-    vnames = setdiff( vnames0, byvars )
-    nv = length( vnames )
-
-    bk = apply( X[,byvars], 1, paste0, collapse="_" )
-    bku = unique( bk )
-    nbku = length( bku )
-    bkq = matrix( unlist( strsplit( bk, "_") ), nrow=nbku, byrow=TRUE )
-    # bkq = 
-    out = matrix(NA, nrow=nbku, ncol=nv )  
-
-    for ( i in 1:nbku ) {
-      rn = which( bk == bku[i] )
-      for (j in 1:nv) {
-        out[i,j] = function.block( X[rn,j] )  
-      }
-    }
-    out = as.data.frame( cbind( bkq, out ) ) 
-   
-    
-    out[,xi] = as.numeric(as.character( out[,xi] ))
-     out[,yi] = as.numeric(as.character( out[,yi] ))
-     out = out[ which( is.finite( out[, zi] )) ,]  
-     names(out) = c(byvars, vars )
-    return( out )
- }
-
