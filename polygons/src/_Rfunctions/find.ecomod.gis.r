@@ -1,16 +1,16 @@
-#MMM - Sept 2014 
-# Modified code to allow specification of filename with 
-# extension.  Cases exist where 2 files have the same name, but 
-# different extensions (e.g.StAnnsMPA.csv vs StAnnsMPA.dat) - the 
-# original code could never get an exact match since it ignored the 
-# extension.
+#//MMM - Sept 2014 
+#// Modified code to allow specification of filename with 
+#// extension.  Cases exist where 2 files have the same name, but 
+#// different extensions (e.g.StAnnsMPA.csv vs StAnnsMPA.dat) - the 
+#// original code could never get an exact match since it ignored the 
+#// extension.
 #
-#Also changed so that in the case of a single closest match, the data 
-#for the lone match is simply returned
+#//Also changed so that in the case of a single closest match, the data 
+#//for the lone match is simply returned
 
 find.ecomod.gis = function( 
     polyname, 
-    loc = project.datadirectory("polygons", "data"),  ## NOTE:: should make this into datadirectory once data sharing has been resolved( Jae )
+    loc = project.datadirectory("polygons", "data"),  
     ignorelist=c("archive", "retired"), 
     acceptable.extensions = c( "dat", "csv", "xy", "shp","ll" ),
     returndata=FALSE ,

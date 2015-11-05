@@ -1,6 +1,9 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish") ) {
+  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), regrid=FALSE ) {
    
+    datadir = project.datadirectory("bathymetry", "data" )
+		dir.create( datadir, showWarnings=F, recursive=T )
+  
     if ( DS =="Greenlaw_DEM") {
       # DEM created 2014
       # GCS_WGS_1984, UTM_Zone_20N; spheroid:: 6378137.0, 298.257223563
@@ -32,10 +35,6 @@
 
     if (  DS %in% c("z.lonlat.rawdata.redo", "z.lonlat.rawdata") ) {
 			# raw data minimally modified all concatenated
-      
-      datadir = project.datadirectory("bathymetry", "data" )
-			dir.create( datadir, showWarnings=F, recursive=T )
-      
       fn = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.rdata" )
       
       if (DS =="z.lonlat.rawdata" ) {
@@ -455,84 +454,36 @@
       return ("interpolated files complete, load via another call for the saved files")
     }
 
-
+    # ------------
+    
     if (DS %in% c("baseline", "baseline.redo") ) {
       # form prediction surface in planar coords for SS snowcrab area
-      outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
+      outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", 
+          paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
 
       if ( DS=="baseline" ) {
         load( outfile )
         return (Z)
       }
-
-	
-      # ---------
-			
-      if ( p$spatial.domain == "canada.east" ) {
-     		p = spatial.parameters( type=p$spatial.domain, p=p )
-        Z = bathymetry.db( p, DS="Z.planar" )
-				Z = Z[ which(Z$z < 1000 & Z$z > 0 ) ,] 
-			}
-
-      # ---------
-		
-			if ( p$spatial.domain =="SSE" ) {
-        Z = bathymetry.db( p, DS="Z.planar" )
-  		  Z = Z[ which(Z$z < 800 & Z$z > 0 ) ,] 
-		  }
-		
-      if ( p$spatial.domain =="SSE" ) {
-        Z = bathymetry.db( p, DS="Z.planar" )
-  		  Z = Z[ which(Z$z < 2000 & Z$z > 0 ) ,] 
-		  }
-
      
-      # ---------
-
-			if ( p$spatial.domain == "snowcrab" ) {
- 
-        # NOTE::: snowcrab baseline == SSE baseline, except it is a subset 
-        # begin with the SSE conditions 
-        p0 = p 
-        p = spatial.parameters( type="SSE", p=p )
-        Z = bathymetry.db( p, DS="baseline" )
-        p = p0
-
-        kk = which( Z$z < 350 & Z$z > 10  )
-	  	  if (length( kk) > 0) Z = Z[ kk, ]
-        jj = filter.region.polygon( Z[,c(1:2)], region="cfaall", planar=T,  proj.type=p$internal.projection ) 
-        if (length( jj) > 0) Z = Z[ jj, ]
-        # filter out area 4X   
-        corners = data.frame( cbind( 
-          lon = c(-63, -65.5, -56.8, -66.3 ),  
-          lat = c( 44.75, 43.8, 47.5, 42.8 )  
-        ) )
-        corners = lonlat2planar( corners, proj.type=p$internal.projection )
-        dd1 = which( Z$plon < corners$plon[1] & Z$plat > corners$plat[1]  ) 
-        if (length( dd1) > 0) Z = Z[- dd1, ]
-        dd2 = which( Z$plon < corners$plon[2] & Z$plat > corners$plat[2]  ) 
-        if (length( dd2) > 0) Z = Z[- dd2, ]
-        dd3 = which( Z$plon > corners$plon[3] ) # east lim
-        if (length( dd3) > 0) Z = Z[- dd3, ]
-        dd4 = which( Z$plon < corners$plon[4] )  #west lim
-        if (length( dd4) > 0) Z = Z[- dd4, ]
-        dd5 = which( Z$plat > corners$plat[3]  ) # north lim
-        if (length( dd5) > 0) Z = Z[- dd5, ]
-        dd6 = which( Z$plat < corners$plat[4]  )  #south lim 
-        if (length( dd6) > 0) Z = Z[- dd6, ]
-         
+      if ( p$spatial.domain == "snowcrab" ) {
+        # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions 
+        Z = bathymetry.db( p=spatial.parameters( type="SSE", p=p ), DS="baseline" )
+      } else {
+        Z = bathymetry.db( p=p, DS="Z.planar" )
       }
-			
-      # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
-			
-      save (Z, file=outfile, compress=T )
-
-			return( paste( "Baseline data file completed:", outfile )  )
-    }
  
+      Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) 
+      save (Z, file=outfile, compress=T )
+			return( paste( "Baseline data file completed:", outfile )  )
+      # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
+    }
+
+    # --------------
 
     if (DS %in% c( "complete", "complete.redo") ) {
-      # form prediction surface in planar coords for SS snowcrab area
+      #\\ DS="complete(.redo)" creates or returns the prediction surface in planar coords for SS snowcrab area
+      #\\   derived from GMT-bsaed methods
       
       outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
       if (p$spatial.domain == "snowcrab" ) outfile=gsub( p$spatial.domain, "SSE", outfile )
@@ -561,8 +512,8 @@
 	
 
     if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) { 
-      # create a lookuptable for SSE -> snowcrab domains
-      # both share the same initial domains + resolutions
+      #\\ DS="lookuptable.sse.snowcrab(.redo)" creates/returns a lookuptable for SSE -> snowcrab domains
+      #\\   both share the same initial domains + resolutions and so it is faster to operate upon the indices
       fn = file.path( project.datadirectory("bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata") 
       if (DS== "lookuptable.sse.snowcrab" ) { 
         if (file.exists(fn)) load(fn)
@@ -587,17 +538,12 @@
     # ----------------
  
     if ( DS %in% c("bathymetry.spacetime.input", "bathymetry.spacetime.input.redo" )) {
-          
-      datadir = project.datadirectory("bathymetry", "data" )
-			dir.create( datadir, showWarnings=F, recursive=T )
-      
-      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "rdata", sep=".") )
-      
+      #\\ DS="bathymetry.spacetime.input" is a low-level call that creates the input data table in a bigmemory table  
+      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "input", "rdata", sep=".") )
       if (DS =="bathymetry.spacetime.input" ) {
         load( fn)
         return( B )
       }
-
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) 
       B = lonlat2planar( B, proj.type=p$internal.projection ) 
@@ -615,74 +561,140 @@
     if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
       #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the 
       #//   spacetime interpolated method formatted and finalised for production use 
-      
-      datadir = project.datadirectory("bathymetry", "data" )
-			dir.create( datadir, showWarnings=F, recursive=T )
-      
-      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "rdata", sep=".") )
-      
+      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "finalized", "rdata", sep=".") )
       if (DS =="bathymetry.spacetime.finalize" ) {
-        load( fn)
+        B = NULL
+        if ( file.exists ( fn) ) load( fn)
         return( B )
       }
  
       preds = spacetime.db( p=p, DS="predictions" )  
-
-      BP = preds$means
+      nr = p$nplons
+      nc = p$nplats
+    
+      BP = expand.grid( plon=p$plons, plat=p$plats ) # coords of full prediction area
+      attr( BP, "out.attrs") = NULL
+      BP$z = preds[,2] # really Z.mean but for historical compatibility "z" 
+      BP$Z.predictionSD = preds[,3]
+    #   BP$Z.n = preds[,1]
       rm(preds); gc()
-      nr = nrow( BP )
-      nc = ncol( BP )
 
-      # first order central differences but the central term drops out:
-      # diffr = ( ( BP[ 1:(nr-2), ] - BP[ 2:(nr-1), ] ) + ( BP[ 2:(nr-1), ] - BP[ 3:nr, ] ) ) / 2
-      # diffc = ( ( BP[ ,1:(nc-2) ] - BP[ ,2:(nc-1) ] ) + ( BP[ ,2:(nc-1) ] - BP[ ,3:nc ] ) ) / 2 
-      diffr = ( ( BP[ 1:(nr-2), ] - BP[ 3:nr, ] ) ) / 2
-      diffc = ( ( BP[ ,1:(nc-2) ] - BP[ ,3:nc ] ) ) / 2 
+      # tidy up cases where there are no data .. should not be necessary
+      nd = which( BP$zn==0 )
+      if (length(nd)>0) {
+        BP$z[nd] = NA # no data .. no mean
+        BP$Z.predictionSD[nd] = NA 
+      }
+
+      Bmn = matrix( data=BP$z, nrow=nr, ncol=nc )  # means
       
-      dZ = diffr[ ,2:(nc-1) ] + diffc[ 2:(nr-1), ] 
+      # first order central differences but the central term drops out:
+      # diffr = ( ( Bmn[ 1:(nr-2), ] - Bmn[ 2:(nr-1), ] ) + ( Bmn[ 2:(nr-1), ] - Bmn[ 3:nr, ] ) ) / 2
+      # diffc = ( ( Bmn[ ,1:(nc-2) ] - Bmn[ ,2:(nc-1) ] ) + ( Bmn[ ,2:(nc-1) ] - Bmn[ ,3:nc ] ) ) / 2 
+      diffr =  Bmn[ 1:(nr-2), ] - Bmn[ 3:nr, ]  
+      diffc =  Bmn[ ,1:(nc-2) ] - Bmn[ ,3:nc ]  
+      rm (Bmn); gc()
+
+      dZ = ( diffr[ ,2:(nc-1) ] + diffc[ 2:(nr-1), ] ) / 2 
       dZ = rbind( dZ[1,], dZ, dZ[nrow(dZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       dZ = cbind( dZ[,1], dZ, dZ[,ncol(dZ)] )
+      BP$dZ = abs(c(dZ))
   
       # gradients
-      ddiffr = ( ( dZ[ 1:(nr-2), ] - dZ[ 3:nr, ] ) ) / 2
-      ddiffc = ( ( dZ[ ,1:(nc-2) ] - dZ[ ,3:nc ] ) ) / 2 
-      
-      ddZ = ddiffr[ ,2:(nc-1) ] + ddiffc[ 2:(nr-1), ] 
+      ddiffr =  dZ[ 1:(nr-2), ] - dZ[ 3:nr, ] 
+      ddiffc =  dZ[ ,1:(nc-2) ] - dZ[ ,3:nc ]  
+      rm( dZ ); gc()
+
+      ddZ = ( ddiffr[ ,2:(nc-1) ] + ddiffc[ 2:(nr-1), ] ) / 2
       ddZ = rbind( ddZ[1,], ddZ, ddZ[nrow(ddZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       ddZ = cbind( ddZ[,1], ddZ, ddZ[,ncol(ddZ)] )
-      
-      BP$plon = grid.internal( BP$plon, p$plons )
-      BP$plat = grid.internal( BP$plat, p$plats )
-      BP = block.spatial ( xyz=BP[,c("plon", "plat", "Z")], function.block=block.mean )
-      
-      dZ$plon = grid.internal( dZ$plon, p$plons )
-      dZ$plat = grid.internal( dZ$plat, p$plats )
-      dZ = block.spatial ( xyz=dZ[,c("plon", "plat", "dZ")], function.block=block.mean )
-      
-      ddZ$plon = grid.internal( ddZ$plon, p$plons )
-      ddZ$plat = grid.internal( ddZ$plat, p$plats )
-      ddZ = block.spatial ( xyz=ddZ[,c("plon", "plat", "ddZ")], function.block=block.mean )
-
-      B = spacetime.db( p=p, DS="statistics" )  
-      
-      # compute gradients and curvature
-      
-      # estimate mean trends in gradients and curvature
-
+      BP$ddZ = abs(c(ddZ))
 
       # merge into statistics
       BS = spacetime.db( p=p, DS="statistics" )
-   
-      B = merge( BS, BP, ) 
+      B = cbind( BP, BS ) 
+      names(B) = c( names(BP), "Z.rangeMode", "Z.rangeSD", "Z.spatialSD", "Z.observationSD" )
+
       save( B, file=fn, compress=TRUE)
       return(fn)
+
+      if (0) {
+        aoi = which( B$z > 5 & B$z < 3000 & B$Z.rangeMode < 500)  
+        levelplot( log(z) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) ) 
+        levelplot( log(Z.rangeMode) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) ) 
+        levelplot( Z.rangeSD ~ plon + plat, B[aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) ) 
+
+      }
     }
 
+    # -------------
+    
+    if ( DS == "finalized") {
+     #// bathymetry.db( DS="finalized" .. ) returns the final form of the bathymetry data after
+     #// regridding and selection to area of interest as specificied by regrid=c("SSE", etc)
+      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "finalized", "rdata", sep=".") )
+      if ( ! regrid ) {
+        Z = NULL
+        if ( file.exists ( fn) ) load( fn)
+        return( Z )
+      } else {
+        Z0 = bathymetry.db( p=p, DS="bathymetry.spacetime.finalize" )
+        Z0 = planar2lonlat ( Z0, proj.type=spatial.parameters( type="canada.east.highres" )$internal.projection )   
+        Z0$plon = NULL
+        Z0$plat = NULL
+        vnames = setdiff( names( Z0), c("lon", "lat") )
+      
+        for (gr in regrid ) {
+          fn = file.path( datadir, paste( "bathymetry", "spacetime", gr, "finalized", "rdata", sep=".") )
+          Z = filter.bathymetry( DS=gr, Z=Z0 ) 
+          # regrid to correct resolution:
+          pst = spatial.parameters( type=gr )
+          Z = lonlat2planar( Z, proj.type= pst$internal.projection )   
+          Z$lon = NULL
+          Z$lat = NULL
+          Z$plon = grid.internal( Z$plon, pst$plons )
+          Z$plat = grid.internal( Z$plat, pst$plats )
+          Z = Z[ which( is.finite( Z$plon+Z$plat)) ,]
 
-  }  
+          Z = block.data.frame( Z, byvars=c("plon", "plat"), block.mean )
+          save (Z, file=fn, compress=T )
+          # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
+        }
+      }
+      return ( "Completed subsets" )
+    }
+
+  }  # end bathymetry.db
 
 
 
 
+  block.data.frame = function( X, byvars, function.block=block.mean ) {
+  
+    vnames0 = names( X ) 
+    vnames = setdiff( vnames0, byvars )
+    nv = length( vnames )
 
+    bk = apply( X[,byvars], 1, paste0, collapse="_" )
+    bku = unique( bk )
+    nbku = length( bku )
+    bkq = matrix( unlist( strsplit( bk, "_") ), nrow=nbku, byrow=TRUE )
+    # bkq = 
+    out = matrix(NA, nrow=nbku, ncol=nv )  
+
+    for ( i in 1:nbku ) {
+      rn = which( bk == bku[i] )
+      for (j in 1:nv) {
+        out[i,j] = function.block( X[rn,j] )  
+      }
+    }
+    out = as.data.frame( cbind( bkq, out ) ) 
+   
+    
+    out[,xi] = as.numeric(as.character( out[,xi] ))
+     out[,yi] = as.numeric(as.character( out[,yi] ))
+     out = out[ which( is.finite( out[, zi] )) ,]  
+     names(out) = c(byvars, vars )
+    return( out )
+ }
 

@@ -21,10 +21,10 @@
     dlocs = W[,1:2]  # make a local copy to force into RAM
     dvar  = W[,3]
 
+    # storage of indices  .. keep here :: more memory usage but fewer operation
+    Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons )  
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
     S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )  # statistical outputs
-
-    ncolS = ncol(S)
 
     # priors 
     kappa0 = sqrt(8)/p$expected.range
@@ -40,7 +40,7 @@
       # inla.setOption(inla.call="/usr/lib/R/library/INLA/bin/linux/inla64" ) 
       focal = t(S[dd,])
       if ( is.nan( focal[3] ) ) next()
-      S[dd,3:ncolS] = NaN   # this is a flag such that if a run fails (e.g. in mesh generation), it does not get revisited
+      S[dd,3] = NaN   # this is a flag such that if a run fails (e.g. in mesh generation), it does not get revisited
       # .. it gets over-written below if successful
 
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
@@ -58,8 +58,8 @@
       if ( debugrun)  {
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, "n=", ndata, "dist=", dist.cur, "\n" ), file=p$debug.file, append=TRUE ) 
       }
-      
-      # .. first create projector from mesh to output
+     
+      # prediction locations
       doff = p$inla.mesh.offset * (dist.cur/p$dist.max) # scale to dist.max
       mbuffer = sum( doff )
       ppdist =  dist.cur - mbuffer 
@@ -68,25 +68,21 @@
       preds.diffs = seq( from=-ppdist, to=ppdist, by=p$pres )
       preds.diffs = preds.diffs[ which( preds.diffs >= -dist.cur &  preds.diffs <= dist.cur ) ]
    
-      npreds = length(preds.diffs )
-
       pa_plons = focal[1] + preds.diffs
       pa_plats = focal[2] + preds.diffs
-      pa0 = expand.grid( plons=pa_plons, plats=pa_plats ) # coords of full prediction area
-      attr( pa0, "out.attrs") = NULL
 
       # range checks.. cc=clipped
       pa_plons_cc = pa_plons[ which( pa_plons >= min(p$plons) & pa_plons <= max(p$plons) ) ]
       pa_plats_cc = pa_plats[ which( pa_plats >= min(p$plats) & pa_plats <= max(p$plats) ) ]
-      pa = expand.grid( plons=pa_plons_cc, plats=pa_plats_cc ) # coords of clipped prediction area
+      
+      pa = expand.grid( plon=pa_plons_cc, plat=pa_plats_cc ) # coords of clipped prediction area
       attr( pa, "out.attrs") = NULL
-      pm_row = round(( pa$plons - p$plons[1]) / p$pres ) + 1
-      pm_col = round(( pa$plats - p$plats[1]) / p$pres ) + 1  
+      pm_row = round(( pa$plon - p$plons[1]) / p$pres ) + 1
+      pm_col = round(( pa$plat - p$plats[1]) / p$pres ) + 1  
 
-      Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons )  # storage of indices  .. keep here to remove from memory when not needed
       pa$i = Pmat[ cbind(pm_row, pm_col) ]
 
-      rm( Pmat, pm_row, pm_col, pa_plons_cc, pa_plats_cc, pa_plons, pa_plats ) ; gc()
+      rm( pm_row, pm_col, pa_plons_cc, pa_plats_cc, pa_plons, pa_plats ) ; gc()
 
       if ( debugrun)  {
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, " \n" ), file=p$debug.file, append=TRUE ) 
@@ -140,7 +136,7 @@
       # prediction stack
       predict.in.one.go = FALSE
       if( predict.in.one.go) {
-        Apreds = inla.spde.make.A(MESH, loc=as.matrix(pa[, c("plons", "plats")]) )
+        Apreds = inla.spde.make.A(MESH, loc=as.matrix(pa[, c("plon", "plat")]) )
         PREDS = inla.stack( tag="preds",
           data=list( ydata=NA),
           A=list(Apreds),
@@ -225,17 +221,6 @@
       if(length(oo)>0) file.remove( sort(fns[oo], decreasing=TRUE) )
       
       rm( SPDE, DATA ); gc() 
- 
-      # S[,(1,2)] are plon, plat
-      S[dd,3] = inla.summary["range", "mode"]
-      S[dd,4] = inla.summary["range", "sd"]
-      S[dd,5] = inla.summary["spatial error", "mode"]
-      S[dd,6] = inla.summary["observation error", "mode"]
-
-      if ( debugrun)  {
-        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "statistics saved  \n" ), 
-            file=p$debug.file, append=TRUE ) 
-      }
 
       # ----------------
       # predict upon grid
@@ -250,8 +235,7 @@
       
       } else { 
         
-        # project from MESH upon the full pa0
-        pG = inla.mesh.projector( MESH, locs=as.matrix( pa0 ), dims=c(npreds, npreds) )
+        pG = inla.mesh.projector( MESH, loc=as.matrix( pa[,c("plon", "plat" )]  ) )
         posterior.samples = inla.posterior.sample(n=p$inla.nsamples, RES)
         rm(RES, MESH); gc()
 
@@ -261,33 +245,40 @@
         posterior = p$spacetime.invlink( posterior )   # return to original scale
         
         rm(posterior.samples); gc()
+ 
+        if ( exists( "predict.quantiles", p ) ) {
+          # robustify the predictions by trimming extreme values .. will have minimal effect upon mean
+          # but variance estimates should be useful/more stable as the tails are sometimes quite long 
+          for (ii in 1:nrow(posterior )) {
+            qnt = quantile( posterior[ii,], probs=p$predict.quantiles, na.rm=TRUE ) 
+            toolow = which( posterior[ii,] < qnt[1] )
+            toohigh = which (posterior[ii,] > qnt[2] )
+            if (length( toolow) > 0 ) posterior[ii,toolow] = qnt[1]
+            if (length( toohigh) > 0 ) posterior[ii,toohigh] = qnt[2]
+          }
+        }
 
-        pa0$xmean = c( inla.mesh.project( pG, field=apply( posterior, 1, mean, na.rm=TRUE )  ))
-        pa0$xsd   = c( inla.mesh.project( pG, field=apply( posterior, 1, sd, na.rm=TRUE )  ))
+        pa$xmean = c( inla.mesh.project( pG, field=apply( posterior, 1, mean, na.rm=TRUE )  ))
+        pa$xsd   = c( inla.mesh.project( pG, field=apply( posterior, 1, sd, na.rm=TRUE )  ))
         rm( posterior ); gc() 
-        
-        # merge in lattice coordinates for pa (and remove missing locations .. below)
-        pa = merge(pa0, pa, by=c("plons", "plats"), all.x=TRUE, all.y=FALSE, sort=FALSE)
-        rm(pa0); gc()
       } 
-     
+  
+
       if ( debugrun) {
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "predictions completed \n" ), 
             file=p$debug.file, append=TRUE ) 
       }
 
       if (0) {
-        levelplot( xmean ~ plons+plats, pa, aspect="iso", 
+        levelplot( xmean ~ plon+plat, pa, aspect="iso", 
                   labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-        levelplot( xsd   ~ plons+plats, pa, aspect="iso", 
+        levelplot( xsd   ~ plon+plat, pa, aspect="iso", 
                   labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
       }
       
       good = which( is.finite( rowSums(pa) ) )
       if (length(good) < 1) next()
       pa = pa[good,]
-  #     good2 = which( duplicated( pa$i) )
-  #     if (length(good2) >  0  ) pa = pa[ -good2, ]
  
       # update P (predictions)
       # column indices
@@ -312,12 +303,15 @@
         # update means: inverse-variance weighting   https://en.wikipedia.org/wiki/Inverse-variance_weighting
         means_update = ( P[ ui, means ] / P[ ui, stdevs ]^2 + pa$xmean[u] / pa$xsd[u]^2 ) / ( P[ ui, stdevs]^(-2) + pa$xsd[u]^(-2) )
 
-        # actual updates occur after everything has been computed first
-        P[ ui, stdevs ] = stdev_update  
-        P[ ui, means ]  = means_update
+        mm = which(is.finite( means_update + stdev_update ))
+        if( length(mm)> 0) {
+          # actual updates occur after everything has been computed first
+          P[ ui[mm], stdevs ] = stdev_update[mm]  
+          P[ ui[mm], means ]  = means_update[mm]
+        }
       }
 
-      # do this as a second pass in case NA's were introduced by the update .. unlikely (paranoid), but just in case 
+      # do this as a second pass in case NA's were introduced by the update .. unlikely , but just in case 
       test = rowSums( P[ii,] )
       f = which( !is.finite( test ) ) # first time
       if ( length( f ) > 0 ) {
@@ -326,14 +320,25 @@
         P[ fi, means ] = pa$xmean[f]
         P[ fi, stdevs ] = pa$xsd[f]
       }
+      
+      # save statistics last as this is an indicator of completion of all tasks .. restarts would be broken otherwise
+      # S[,(1,2)] are plon, plat
+      S[dd,3] = inla.summary["range", "mode"]
+      S[dd,4] = inla.summary["range", "sd"]
+      S[dd,5] = inla.summary["spatial error", "mode"]
+      S[dd,6] = inla.summary["observation error", "mode"]
 
+      if ( debugrun)  {
+        cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "statistics saved  \n" ), 
+            file=p$debug.file, append=TRUE ) 
+      }
 
       if(0) {
-        pps = expand.grid( plons=p$plons, plats=p$plats)
-        # zz = which(pps$plons > -50 & pps$plons < 50 & pps$plats < 50 & pps$plats > -50 ) # & P[,2] > 0   )
-        zz = which(pps$plons > min(pa$plons) & pps$plons < max(pa$plons) & pps$plats < max(pa$plats) & pps$plats > min(pa$plats) ) 
+        pps = expand.grid( plon=p$plons, plat=p$plats)
+        # zz = which(pps$plon > -50 & pps$plon < 50 & pps$plats < 50 & pps$plats > -50 ) # & P[,2] > 0   )
+        zz = which(pps$plon > min(pa$plon) & pps$plon < max(pa$plon) & pps$plat < max(pa$plat) & pps$plat > min(pa$plat) ) 
         x11()
-        levelplot( ( P[zz,2] ) ~ plons + plats, pps[zz,], aspect="iso", 
+        levelplot( ( P[zz,2] ) ~ plon + plat, pps[zz,], aspect="iso", 
                   labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
       }
 
