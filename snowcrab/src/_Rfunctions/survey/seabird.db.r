@@ -172,6 +172,7 @@
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
    
           print(id)
+          if(id=='seabird.S18112012.2.339.6.24.24') browser()
           bc = NULL
           bc = bottom.contact( x=M, bcp=bcp )
 
@@ -184,14 +185,15 @@
           res = data.frame(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA)
           if (!is.null(bc)) res=bc$res 
 
-          if (all (is.finite( bc$smooth.method) ) ) {
+          if (all (is.finite( bc$smooth.method) ) & all(!is.null(bc)) ) {
             ## --- NOTE smooth (1)  seems to work best ... focus upon these methods with seabird data ... 
             ##  likely due to greater precision and data density relative to minilog
-            res$t0 = bc$smooth.method[1]
-            res$t1 = bc$smooth.method[2]
-            res$t0 = as.POSIXct(bc$smooth.method[1],origin='1970-01-01', tz=tzone )
-            res$t1 = as.POSIXct(bc$smooth.method[2],origin='1970-01-01', tz=tzone )
-            res$dt = bc$smooth.method[2] -  res$smooth.method[1]
+            
+            res$t0 = bc$smooth.method0
+            res$t1 = bc$smooth.method1
+            res$t0 = as.POSIXct(bc$smooth.method0,origin='1970-01-01', tz=tzone )
+            res$t1 = as.POSIXct(bc$smooth.method1,origin='1970-01-01', tz=tzone )
+            res$dt = bc$smooth.method1 -  bc$smooth.method0
           } else if(any(is.na( res ))) {
               ## not sure what this step is trying to accomplish ? ... JC 
               ir = which(is.na( res ))

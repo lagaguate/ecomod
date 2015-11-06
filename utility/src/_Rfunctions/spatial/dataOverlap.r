@@ -24,8 +24,8 @@ dataOverlap<-function(data1,data2,distance.Theshold=0.1,dnames=c("EID","X","Y","
 		ppp<-as.ppp(subset(z,select=c('X','Y')),W)
 		z$nndist<-nndist(ppp)
 		z<-convUL(z)
-		z$Overlap[z$nndist>=distance.Theshold)]<-F
-		z$Overlap[z$nndist<distance.Theshold)]<-T
+		z$Overlap[z$nndist>=distance.Theshold]<-F
+		z$Overlap[z$nndist<distance.Theshold]<-T
 		Add.lst[[i]]<-subset(z,source==1)
 		}
 

@@ -1,5 +1,5 @@
-groundfish.analysis <- function(DS='stratified.estimates',p=p, ip=NULL) {
-    loc = file.path( project.datadirectory("groundfish"), "analysis" )
+groundfish.analysis <- function(DS='stratified.estimates',out.dir = 'groundfish', p=p, ip=NULL) {
+    loc = file.path( project.datadirectory(out.dir), "analysis" )
     
     dir.create( path=loc, recursive=T, showWarnings=F )
          if(p$series=='summer')  {mns = c('June','July','August')     ; strat = c(440:495)}
@@ -24,6 +24,9 @@ if(DS %in% c('species.set.data')) {
                 al = lapply(strata.files,"[[",2)
                 al = do.call('rbind',al)
                 al$Sp= strsplit(op,"\\.")[[1]][3] 
+                b = strsplit(op,"\\.")
+                b = b[[1]][grep('length',b[[1]])+1]
+                al$group = b    
                 outa = rbind(al,outa)
                 }
                 return(outa)
@@ -35,8 +38,11 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             a = dir(loc)
             a = a[grep('stratified',a)]
             a = a[grep(paste(p$species,collapse="|"),a)]
-            for(op in a) {
+          for(op in a) {
                 load(file.path(loc,op))
+                b = strsplit(op,"\\.")
+                b = b[[1]][grep('length',b[[1]])+1]
+                out$group = b    
                 outa = rbind(out,outa)
                 }
                 return(outa)
@@ -68,7 +74,8 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             if(iip==1) v0=v
             if(v0!=v) {
               lle = 'all'
-              if(p$length.based & !p$sex.based) lle = 'by.length'
+
+              if(p$length.based & !p$sex.based) lle = paste(p$size_class[1],p$size_class[2],sep="-")
               
               if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
@@ -92,13 +99,13 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
     
                 se = set[iy,]
                 ca = cas[iv,]
-                  se$z = (se$dmin+se$dmax) / 2  
-              vars.2.keep = c('mission','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
+                  se$z = (se$dmin+se$dmax) / 2
+                vars.2.keep = c('mission','slat','slon','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
                 se = se[,vars.2.keep]
         
         p$lb = p$length.based        
-#browser()
-        if(p$by.sex & !p$length.based) p$size_class=c(0,1000); p$length.based=T
+
+        if(p$by.sex & !p$length.based) {p$size_class=c(0,1000); p$length.based=T}
         
         if(!p$lb) { vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
                     ca = ca[,vars.2.keep]
@@ -183,7 +190,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
               }
             }
               lle = 'all'
-              if(p$length.based) lle = 'by.length'
+              if(p$length.based) lle = paste(p$size.class[1],p$size.class[2],sep="-")
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
              print(fn)
