@@ -20,7 +20,7 @@
       p$descriptorfile.P = "predictions.bigmatrix.desc"
 
       p$backingfile.S = "statistics.bigmatrix.tmp"
-      p$descriptorfile.S = "statstics.bigmatrix.desc"
+      p$descriptorfile.S = "statistics.bigmatrix.desc"
      
 #      p$backingfile.Pmat = "predictions_mat.bigmatrix.tmp"
 #      p$descriptorfile.Pmat = "predictions_mat.bigmatrix.desc"
@@ -77,7 +77,7 @@
       
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      fn.P =  file.path( p$project.root, "data", p$spatial.domain, "predictions.rdata" ) 
+      fn.P =  file.path( p$project.root, "data", paste( p$spatial.domain, "predictions", "rdata", sep="." ) ) 
 
       if ( DS=="predictions" ) {
         preds = NULL
@@ -104,22 +104,9 @@
 
 
       if ( DS =="predictions.redo" ) {
-        ppp = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
-
-        # tidy up cases where there are no data:
-        means = ppp[,2] 
-        nd = which( ppp[,1]==0 )
-        if (length(nd)>0) means[nd] = NA # no data .. no mean
         
-        stdev = ppp[,3] 
-        nd = which( ppp[,1] <= 1 )
-        if (length(nd)>0) stdev[nd] = NA
-
-        preds = list( 
-          bbox = list( plons=p$plons, plats=p$plats ),
-          means = matrix( data=means, nrow=p$nplons, ncol=p$nplats ) ,
-          stdev = matrix( data=stdev, nrow=p$nplons, ncol=p$nplats )
-        )
+        preds = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
+        preds = preds[]
         save( preds, file=fn.P, compress=TRUE )
         return(fn.P)
       } 
@@ -143,7 +130,7 @@
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
 
-      fn.S =  file.path( p$project.root, "data", p$spatial.domain, "statistics.rdata" ) 
+      fn.S =  file.path( p$project.root, "data", paste( p$spatial.domain, "statistics", "rdata", sep=".") ) 
 
       if ( DS=="statistics" ) {
         stats = NULL
@@ -198,22 +185,23 @@
         stats = matrix( NA, ncol=length(statnames), nrow=nrow( locsout) )  # output data
 
         range0 = median( ss$range, na.rm=TRUE )
-          
-          for ( ii in 1:length(statnames) ) {
-            vn = statnames[ii]
-            oo = which( is.finite( ss[,vn] ) & ss[,vn] > 0 )  # zero's are 
-            if ( length(oo) < 30 ) next() 
-            dat = ss[oo,vn]
-            locs = ss[oo, c("plon", "plat") ]
-            RES = spacetime.interpolate.inla.singlepass ( dat, locs, locsout, 
-              res=p$pres, lengthscale=range0, method="fast", link=datalink[ii] ) # method="direct" is very slow but smoother
-            if ( !is.null(RES)) {
-              stats[,ii] = RES$xmean
-              rm( RES); gc()
-            }
+        
+        for ( ii in 1:length(statnames) ) {
+          vn = statnames[ii]
+          oo = which( is.finite( ss[,vn] ) & ss[,vn] > 0 )  # zero's are 
+          if ( length(oo) < 30 ) next() 
+          dat = ss[oo,vn]
+          locs = ss[oo, c("plon", "plat") ]
+          RES = spacetime.interpolate.inla.singlepass ( dat, locs, locsout, lengthscale=range0, method="fast", link=datalink[ii] )
+          if ( !is.null(RES)) {
+            stats[,ii] = RES$xmean
+            rm( RES); gc()
           }
+        }
 
-        if (0) levelplot( stats[,1] ~ plon+plat, locsout, aspect="iso") 
+        #    datarange = ( c( 1, 8 ))
+        #    dr = seq( datarange[1], datarange[2], length.out=150)
+        if (0) levelplot( log(stats[,1]) ~ plon+plat, locsout, aspect="iso", at=dr, col.regions=rev(color.code( "seis", dr))) 
         if (0) levelplot( RES$xmean ~ plon+plat, locsout, aspect="iso") 
         
         save( stats,  file=fn.S, compress=TRUE )
