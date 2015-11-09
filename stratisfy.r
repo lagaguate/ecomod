@@ -8,8 +8,8 @@ stratisfy<-function(user=-1, password=-1 #these are your Oracle credentials
 ###                             Mark Fowler                                     
 ###                             Adam Cook                                       
 ###                                                                             
-###       Modification Date:    Nov 2, 2015                                    
-          stratisfy.ver = '2015.11.02'
+###       Modification Date:    Nov 9, 2015                                    
+          stratisfy.ver = '2015.11.09'
 ###                                                                             
 ###       Description:          Replaces the standalone STRANAL application     
 ###                             (written in APL), as well as the numbers and    
@@ -259,36 +259,6 @@ gui<-function(){
               return(the.strata)
             }   
             
-            #list available areas (given selected year, type and strata)
-            get.area<-function(agency.gui,year.gui,type.gui,strata.gui ) {
-              if (agency.gui =="DFO"){
-                dfo.area.query.year.tweak=paste0("AND to_char(sdate,'yyyy') = ",year.gui)
-                dfo.area.query.type.tweak=paste0("AND type IN (",type.gui,")")
-                dfo.area.query.strata.tweak=paste0("AND strat IN (",strata.gui,")")
-                area.query <- paste0("select distinct AREA
-                                            from groundfish.gsinf
-                                            WHERE 1=1
-                                            ",dfo.area.query.year.tweak,"
-                                            ",dfo.area.query.type.tweak,"
-                                            ",dfo.area.query.strata.tweak,"
-                                            ORDER BY AREA")
-              }else{
-                nmfs.area.query.year.tweak=paste0("AND GMT_YEAR = ", year.gui)
-                nmfs.area.query.type.tweak=paste0("AND SHG <=",type.gui)
-                #stratum needs have leading zero removed
-                nmfs.area.query.strata.tweak=paste0("AND STRATUM IN (", strata.gui,")")
-               area.query=paste0("SELECT distinct AREA 
-                            from USS_STATION
-                            WHERE 1=1  
-                            ",nmfs.area.query.year.tweak,"
-                            ",nmfs.area.query.type.tweak,"
-                            ",nmfs.area.query.strata.tweak)
-              }
-              the.area <- sqlQuery(channel, area.query)
-              the.area<-paste( the.area[,1],sep=",") 
-              return(the.area)
-            }
-            
             agency.gui<-select.list(c("DFO","NMFS"), 
                                     multiple=F, graphics=T, 
                                     title='Please choose an agency:')
@@ -352,12 +322,6 @@ gui<-function(){
                                 preselect=pre,
                                 title='Choose the strata:')
             strata.gui = SQL.in(strata.gui)
-            
-            area.gui<-select.list(paste(get.area(agency.gui,year.gui,type.gui,strata.gui),sep=","), 
-                                  multiple=T, graphics=T, 
-                                  preselect=c(get.area(agency.gui,year.gui,type.gui,strata.gui)),
-                                  title=paste0("Choose the area(s):"))
-            area.gui<-SQL.in(area.gui)
             #prompt user for tow distance (default and only current option is 1.75)
             #would be nice to allow user selection consistent with other pop-ups (not scan)  
             towdist.gui = as.numeric(select.list(c("1.75"),
@@ -372,7 +336,6 @@ gui<-function(){
                               species.name.gui, 
                               type.gui,
                               strata.gui, 
-                              area.gui,
                               missions.gui,
                               mission.df,
                               agency.gui,
@@ -392,13 +355,12 @@ gui<-function(){
   species.name = GUI.results[[6]]
   these.type = GUI.results[[7]]
   these.strat = GUI.results[[8]]
-  these.areas = GUI.results[[9]] 
-  these.missions = GUI.results[[10]]
-  mission.df = GUI.results[[11]] 
-  agency.gui = GUI.results[[12]] 
-  species.lgrp.gui = GUI.results[[13]] 
-  species.lfsexed.gui = GUI.results[[14]] 
-  stratum.table.gui = GUI.results[[15]] 
+  these.missions = GUI.results[[9]]
+  mission.df = GUI.results[[10]] 
+  agency.gui = GUI.results[[11]] 
+  species.lgrp.gui = GUI.results[[12]] 
+  species.lfsexed.gui = GUI.results[[13]] 
+  stratum.table.gui = GUI.results[[14]] 
 
 ################################################################################
 ###                          DATABASE EXTRACTIONS                               
@@ -937,8 +899,7 @@ input_parameters<-list("Stratisfy version"=paste0( stratisfy.ver ),
   "Wingspread"=wingspread, 
   "Distance"=towdist,
   "Data Source"=agency.gui,
-  "ALK Modifications"="No",
-  "Area"="None")
+  "ALK Modifications"="No")
 ################################################################################
 ###                          RESULTS                                            
 results<-list(
