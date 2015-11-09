@@ -168,17 +168,15 @@ gui<-function(){
             
             get.missions<-function(agency.gui,year.gui){
               if (agency.gui=="DFO"){
-                mission.query=paste("select MISSION, VESEL, CRUNO, YEAR, SEASON
+                mission.query=paste("select MISSION, VESEL, CRUNO, YEAR
                                     from groundfish.gsmissions 
-                                     WHERE SEASON IN 
-                                     ('SUMMER','SPRING','FALL','4VWCOD','GEORGES')
-                                     AND YEAR = ",year.gui,"
+                                     WHERE YEAR = ",year.gui,"
                                     ORDER BY MISSION", sep="") 
               }else{
                 # removed gear restriction from NMFS
                 #--AND SVGEAR In ('11','41','45')
                 mission.query=paste("SELECT CRUISE6 AS MISSION, SVVESSEL AS VESEL, 
-                                      CRUISE AS CRUNO, YEAR, SEASON
+                                      CRUISE AS CRUNO, YEAR
                                       FROM USNEFSC.USS_MSTR_CRUISE
                                       WHERE PURPOSE_CODE='10' 
                                       AND SEASON IN ('SPRING','SUMMER','FALL','WINTER')
@@ -186,7 +184,7 @@ gui<-function(){
                                       ORDER BY CRUISE6", sep="")
               }
               missions.data<-sqlQuery(channel, mission.query)
-              missions<-select.list(paste( missions.data$MISSION, " (", missions.data$SEASON,")",sep=""), 
+              missions<-select.list(missions.data$MISSION, 
                           multiple=F, graphics=T, 
                           title='Please choose a mission:') 
              
