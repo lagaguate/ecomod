@@ -12,10 +12,12 @@
     }
 
     if(DS =='esonar2netmind.conversion') {
+      
       if(is.null(Y) | any(Y < 2014)) stop('This only begins in 2014')
           for(y in Y) {
           esonar.raw.location = file.path(netmind.rawdata.location,y)
           flist = list.files(path=esonar.raw.location, full.names=T, recursive=FALSE)
+        
         for(fl in  flist){
           esonar2netmind(fl)
         }

@@ -5,7 +5,7 @@
 p$strat=440:495
 p$series =c('summer')# p$series =c('4vswcod');p$series =c('georges')
 p$years.to.estimate = c(1970:2014)
-#p$species = c(202,204,300,320)
+p$species = 11
 p$vessel.correction = T
 p$vessel.correction.fixed = 1.2
 p$length.based = F
@@ -17,7 +17,7 @@ p$alpha = 0.05
 
 #out = groundfish.analysis(DS='ab.redo',p=p)
 #MPA functional groups 
-p$functional.groups = T
+p$functional.groups = F
 yy = list()
 yy[['FPBSM']] = c(14,19,42,118,143,149,300,320)
 yy[['FPBL']] = c(10,12,15,16,30,31,40,141,200,204,216,220,400,704)
@@ -35,7 +35,7 @@ yy[['IFBC']] = c(8322,8323,8324,8325,8326,8329,8330)
 yy[['IFBnC']] = c(1823,4304,4312,4317,4321,4322,4331,4332,8335,8356,8601)
 yy[['ID']] = c(6115,6201,6211,6213,6600,6611)
 #p$species = c(10,11,12,13,14,16,23,30,31,40,41,42,43,50,60,200,201,202,203,204,300,320,400,610,640)
-p$species = c('FPBSM','FPBL','FPPSML','FBBS','FBBM','FBBL','FPlPSM','FZBSM','FZPSM','IBBS','IBBM','IZSML',
+#p$species = c('FPBSM','FPBL','FPPSML','FBBS','FBBM','FBBL','FPlPSM','FZBSM','FZPSM','IBBS','IBBM','IZSML',
   'IFBC','IFBnC','ID')
 p$yy = yy
 
@@ -54,3 +54,4 @@ st.out = groundfish.analysis(DS='species.set.data',p=p)
       st.out = convert.degmin2degdec(st.out)
       st.out$yr = as.numeric(substr(st.out$mission,4,7))
      
+load(file.path(project.datadirectory('groundfish'),'analysis','strata.files.FBBL.summer.strata.440.495.length.all.rdata'	))

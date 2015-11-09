@@ -14,6 +14,7 @@
     sdsource = stomach.db( "sdsource.redo" )
     sdsto = stomach.db( "sdsto.redo" )
     sdtech = stomach.db( "sdtech.redo" )
+    sdprey = stomach.db( "prey.species.codes.redo" )
   }
   
   tx = taxonomy.db("gstaxa")
@@ -21,7 +22,13 @@
   sddet = stomach.db( "sddet" )
   sdinf = stomach.db( "sdinf" )
   sditem = stomach.db( "sditem" )
+  sdprey = stomach.db( "prey.species.codes" )
   
+
+  sdsto = merge(sdsto,sdprey, by='preyspeccd')
+
+  #use speccd2 for species identification as it removes duplicate species names and errors
+
   S = stomach.db( "sdsto" )
   S$fishid = paste( S$mission, S$setno, S$fshno )
   S = S[!duplicated(S$fishid) ,]
@@ -34,5 +41,5 @@
   samples = xtabs( n ~ yr + sp, S )
   write.table( samples, file="clipboard", sep="," )
   
-  
-  
+  #assortment of diet analysis functions, requires RODBC connection and data access
+  diet.analysis()

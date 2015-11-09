@@ -1,7 +1,9 @@
-assignStation <- function(events,maxdist=0.01,res=0.005,expwin=0.05,map='34',lines=F,...){
+assignStation <- function(events,maxdist=0.01,res=0.005,expwin=0.05,map=NULL,lines=F,...){
 
 	require(spatstat)
 	require(PBSmapping)
+
+	events<-as.EventData(events)
 
 	if(lines==T){
 		events$X<-with(events,apply(cbind(X1,X2),1,mean))
@@ -16,7 +18,6 @@ assignStation <- function(events,maxdist=0.01,res=0.005,expwin=0.05,map='34',lin
 
 	W <- owin(c(xmin,xmax),c(ymin,ymax))
 	if(lines==F)events.ppp <- as.ppp(subset(events,select=c('X','Y')),W)
-	#browser()
 	if(lines==T){
 		events.ppp <- as.psp(subset(events,select=c('X1','Y1','X2','Y2')),window=W)
 		d1<-data.frame(PID=1,SID=1:nrow(events),POS=1,subset(events,select=c("X1","Y1")))
@@ -33,6 +34,7 @@ assignStation <- function(events,maxdist=0.01,res=0.005,expwin=0.05,map='34',lin
 	polys <- CP$PolySet
 	
 	if(!is.null(map)){
+		loadfunctions('lobster')
 		LobsterMap(map,...)
 		addPolys(polys,col=rgb(0,0,1,0.3))
 		if(lines==F)addPoints(events,pch='.',col='red')
@@ -43,7 +45,7 @@ assignStation <- function(events,maxdist=0.01,res=0.005,expwin=0.05,map='34',lin
 	events<-merge(events,key[c('EID','SID')],all=T)
 	stations<-calcCentroid(polys)[,-1]
 
-	list(events=events,stations=stations)
+	return(list(events=events,stations=stations))
 
 
 }

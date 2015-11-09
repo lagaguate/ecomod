@@ -1,9 +1,9 @@
 
 variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FALSE, edge=c(1/3, 1), return.inla=FALSE ) {
   
-  # estimate empirical variograms and then model them using a number of different approaches
-  # returns empirical variogram and parameter estimates, and optionally the models themselves
-  # expect xyz = c(lon, lat, variable)
+  #\\ estimate empirical variograms and then model them using a number of different approaches
+  #\\ returns empirical variogram and parameter estimates, and optionally the models themselves
+  #\\ expect xyz = c(lon, lat, variable)
 
   require(sp)
   require(gstat)
@@ -83,7 +83,7 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   xyz$b0 = 1  # intercept for inla
   
   M0.domain = inla.nonconvex.hull( locs0 )
-  M0 = inla.mesh.2d (
+  MESH = inla.mesh.2d (
     loc=locs0, # locations of data points
     boundary = M0.domain,
     max.edge = edge * vRange
@@ -92,46 +92,77 @@ variogram.ecomod = function( xyz, crs="+proj=utm +zone=20 +ellps=WGS84", plot=FA
   kappa0 = sqrt(8) / vRange
   tau0 = 1/ ( sqrt(4*pi) * kappa0 * vPsill )
 
-  S0 = inla.spde2.matern( M0, alpha=2, 
+  SPDE = inla.spde2.matern( MESH, alpha=2, 
     B.tau = cbind(log(tau0), -1,1 ),     # parameter basis functions
     B.kappa = cbind( log(kappa0), 0, 1 ), # parameter basis functions
     theta.prior.mean = c(0,  0),    # theta1 controls variance .. vague; theta2 controls range   .. means 0
     theta.prior.prec = c(0.1, 1)  #  precisions are vague for theta1;  for range .. theta2 prec 1 ==> 95% prior prob that range is smaller than domain size
   ) 
 
-  i <- inla.spde.make.index('i', n.spde=S0$n.spde )  
+  spatial.field <- inla.spde.make.index('spatial.field', n.spde=SPDE$n.spde )  
 
   # projection matrix A to translate from mesh nodes to data nodes
-  A = inla.spde.make.A( mesh=M0, loc=locs0 )
+  A = inla.spde.make.A( mesh=MESH, loc=locs0 )
 
   # data stack for occurence (PA)
   Z = inla.stack( 
       tag="data",
-      data=list( z=z ) ,
+      data=list( z=log(z) ) ,
       A=list(A, 1 ),
-      effects=list( i=i, xyz )  # b0 is the intercept
+      effects=list( spatial.field=spatial.field, xyz )  # b0 is the intercept
   )
 
-  R <- inla(  z ~ 0 + b0+ f( i, model=S0, diagonal=1e-2), 
+  RES <- inla(  z ~ 0 + b0+ f( spatial.field, model=SPDE ), family="gaussian",
       data=inla.stack.data(Z), 
       control.compute=list(dic=TRUE),
       control.results=list(return.marginals.random=TRUE, return.marginals.predictor=TRUE ),
-      control.predictor=list(A=inla.stack.A(Z), compute=TRUE) , 
+      control.fixed = list(expand.factor.strategy='inla') ,
+      control.predictor=list(A=inla.stack.A(Z), compute=TRUE, link=1 ) , 
+      control.inla = list( h=1e-4, tolerance=1e-10),
       # control.inla=list(strategy="laplace", npoints=21, stencil=7 ) ,
       verbose = FALSE
   )
+      oo = inla.spde2.result(RES, "spatial.field", SPDE, do.transf=TRUE)
+     
+      inames = c( "mode", "mean", "sd", "quant0.025", "quant0.25", "quant0.5",  "quant0.75", "quant0.975", "low", "high" )
+
+      # Range parameter .. ie, sqrt(8)/exp(oo$summary.log.kappa$mean) 
+      im = oo$marginals.range.nominal[[1]]
+      iRange = c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im )) )
+
+      # "Spatial variance/error ('partial sill variance')"
+      im = oo$marginals.variance.nominal[[1]]
+      iVar =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im )) )
+      
+      # kappa
+      im = oo$marginals.kappa[[1]]
+      iKappa =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im ) ) )
+
+      # tau
+      im = oo$marginals.tau[[1]]
+      iTau =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im ) ) )
+
+      ## Non-spatial ("observation") error ('nugget variance')
+      iprec = grep ( "Precision.*observ.*", names(RES$marginals.hyperpar), ignore.case=TRUE )
+      im = inla.tmarginal( function(x) {1/x}, RES$marginals.hyperpar[[ iprec ]] )
+      iNugget =  c( mode=inla.mmarginal( im ), inla.zmarginal( im, silent=TRUE ), as.data.frame(inla.hpdmarginal( 0.95, im ) ) )
+
+      inla.summary = as.matrix( rbind( iKappa, iTau, iRange, iVar, iNugget ) )
+      rownames( inla.summary) = c( "kappa", "tau", "range", "spatial error", "observation error" )
+      colnames( inla.summary) = inames
 
   out = list()
 
-  out$inla.summary = try( spacetime.inla.extract.parameters( R, S0, vname="i" ) )
-                
+  out$inla.summary = inla.summary
+     
   out$gstat = list( vario.empirical=vEm, vario.model=vFitgs, vario.range=vRange, 
               vario.psill=vPsill, vario.nugget=vNugget )
 
   if (return.inla) {
-    out$inla.R = R
-    out$mesh = M0 
+    out$inla.RES = RES
+    out$mesh = MESH 
   }
+
   return(out)
 }
 

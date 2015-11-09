@@ -5,7 +5,7 @@
 
     minilog.dir = project.datadirectory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
-    years.with.sets.combined = 2014 #the years where minilog not downloaded after each tow
+    years.with.sets.combined = 2014:p$current.assessment.year #the years where minilog not downloaded after each tow
 
     if (!is.null(Y)) {
       iY = which( Y>=1999 )  # no historical data prior to 1999
@@ -92,7 +92,6 @@
 
         basedata = NULL
         metadata = NULL
-
         for (f in 1:length(fs)) {
           if(!yr %in% years.with.sets.combined) j = load.minilog.rawdata( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
           if(yr %in% years.with.sets.combined) j = load.minilog.rawdata.one.file.per.day( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
@@ -192,7 +191,22 @@
 
           bad.list = c( 
             'minilog.S20052000.10.NA.NA.NA.13', 
-            'minilog.S19092004.8.389.NA.NA.321' 
+            'minilog.S19092004.8.389.NA.NA.321',
+            'minilog.S19062000.8.NA.NA.NA.165' ,
+            "minilog.S07092002.12.NA.NA.NA.245",
+            "minilog.S08092002.10.NA.NA.NA.254",
+            'minilog.S12102002.8.NA.15.59.349',
+            'minilog.S28052002.10.NA.19.30.445',
+            "minilog.S24112009.4.370.NA.NA.276",
+              "minilog.S08092010.3.178.NA.NA.170",
+"minilog.S21102010.9.341.14.51.252",
+ "minilog.S25092010.8.36.NA.NA.33",
+ "minilog.S27102010.3.918.8.11.423"
+
+
+
+
+
           ) 
           
           if (! ( id %in% bad.list ) ) { 
@@ -206,7 +220,7 @@
               )
               
               bcp = bottom.contact.parameters( bcp ) # add other default parameters .. not specified above
-           
+           #if(id==) browser()
               bc =  NULL
               bc = bottom.contact( x=M, bcp=bcp )
               ## bottom.contact.plot (bc)
@@ -231,7 +245,7 @@
             #            res$t0 = bc$smooth.method[2]
             #            res$dt = bc$smooth.method[2] -  bc$smooth.method[1]
           }
-
+        
           miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
         }
         

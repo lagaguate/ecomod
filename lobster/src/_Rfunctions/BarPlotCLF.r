@@ -1,21 +1,19 @@
-BarPlotCLF<-function(CLF,yrs=2005:2014,bins=seq(0,220,5),filen='',rows=length(yrs),pdf=T,xl,rel=T,mean.line=F,ylp=0.1,ymax,LS=82.5,recline=NULL,wd=10,ht=12,ylab="Mean N / standard tow",...){
+BarPlotCLF<-function(CLF,yrs=2005:2014,CLFyrs=yrs,bins=seq(0,220,5),filen='',rows=length(yrs),pdf=T,xl,rel=T,mean.line=F,ylp=0.1,ymax,LS=82.5,sample.size=NULL,recline=NULL,wd=10,ht=12,bx=F,ylab="Mean N / standard tow",...){
 	
 	mids<-bins[-1]-diff(bins)/2
 	
 	if(!missing(ymax)&&length(ymax)==1)ymax<-rep(ymax,length(CLF))
 	
 	if(pdf) pdf(file.path(project.datadirectory('lobster'),'R',paste0('CLF',filen,'.pdf')), width = wd, height = ht)
-	par(mfrow=c(rows,ceiling(length(yrs)/rows)), mar = c(0,2,0,0.5), omi = c(0.85, 0.75, 0.75, 0.5))
+	par(mfcol=c(rows,ceiling(length(yrs)/rows)), mar = c(0,2,0,0.5), omi = c(0.85, 0.75, 0.75, 0.5))
 	
 	for(i in 1:length(CLF)){
 	#browser()
-		if('n'%in%names(CLF[[i]]))sample.size<-CLF[[i]]$n
-		else sample.size<-NULL
 	
 		if(missing(xl))xlm<-range(bins)
 		else if(!missing(xl))xlm<-xl
 		
-		for(y in 1:length(yrs)){
+		for(y in which(yrs==CLFyrs)){
 			tmp<-hist(mids,plot=F,breaks=bins)
 			tmp$counts<-CLF[[i]][y,] 
 			yl2<-ifelse(missing(ymax),max(tmp$counts)*1.2,ymax[i])
@@ -32,7 +30,7 @@ BarPlotCLF<-function(CLF,yrs=2005:2014,bins=seq(0,220,5),filen='',rows=length(yr
 				axis(2,seq(0,max(tmp$counts),l=6),lab=seq(0,100,20),las=1)
 				axis(4,seq(0,max(tmp$counts),l=6),lab=F,las=1)
 			}
-			if(y==length(yrs)){
+			if(y==max(which(yrs==CLFyrs))){
 				axis(1)
 				if(mean.line){
 					lines(tmp$mids,colMeans(CLF[[i]][-nrow(CLF[[i]]),]),lwd=1)
@@ -42,13 +40,14 @@ BarPlotCLF<-function(CLF,yrs=2005:2014,bins=seq(0,220,5),filen='',rows=length(yr
 			if(!is.null(LS))abline(v=LS,lwd=2,col='red')
 			if(!is.null(recline))abline(v=recline,lty=2)
 			
-			mtext(as.character(yrs[y]), 3, -3, adj=ylp,outer = F,cex=1)
+			mtext(as.character(CLFyrs[y]), 3, -3, adj=ylp,outer = F,cex=1)
 			if(!is.null(sample.size))mtext(paste("N =",sample.size[y]), 3, -3, adj=0.9,outer = F,cex=1)
 		}
 		mtext(names(CLF)[i], 3, 3, outer = T, cex = 1.5)	
 		mtext("Carapace Length (mm)", 1, 3, outer = T, cex = 1.5)	
 		if(rel==F)mtext(ylab, 2, 2, outer = T, cex = 1.5)	
 		if(rel==T)mtext("Relative frequency (%)", 2, 2, outer = T, cex = 1.25)	
+		if(bx)box()
 
 	}
 if(pdf)dev.off()	

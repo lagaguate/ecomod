@@ -40,7 +40,7 @@ bottom.contact = function( x, bcp ) {
   }
 
   ## PRE-FILTER 2
-  if (!is.na(bcp$time.gate)) {
+  if (all(!is.na(bcp$time.gate))) {
     # simple time-based gating if a time range is provided..
     bcp$trange.max = (bcp$tdif.max+5)
     O$good = bottom.contact.gating.time ( Zt=x$timestamp, good=O$good, bcp=bcp )

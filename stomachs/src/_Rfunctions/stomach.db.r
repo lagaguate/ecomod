@@ -1,8 +1,11 @@
 
   stomach.db = function( DS="stomachs" ) {
 
+fn.root =   project.datadirectory("stomachs", "data")
+dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
+
     if ( DS %in% c("sddet", "sddet.redo"  ) ) {
-      fn =  project.datadirectory("stomachs", "data", "sddet.rdata" ) 
+      fn =  file.path(fn.root, "sddet.rdata" ) 
       if ( DS == "sddet" ) {
         load( fn )
         return( sddet )
@@ -17,7 +20,7 @@
     }
   
     if ( DS %in% c("sdinf", "sdinf.redo"  ) ) {
-      fn =  project.datadirectory("stomachs", "data", "sdinf.rdata" ) 
+      fn =  file.path(fn.root, "sdinf.rdata" ) 
       if ( DS == "sdinf" ) {
         load( fn )
         return( sdinf )
@@ -33,7 +36,7 @@
   
   
     if ( DS %in% c("sdtrips", "sdtrips.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sdtrips.rdata" ) 
+      fn = file.path(fn.root, "sdtrips.rdata" ) 
       if ( DS == "sdtrips" ) {
         load( fn )
         return( sdtrips )
@@ -49,7 +52,7 @@
   
   
      if ( DS %in% c("sddigest", "sddigest.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sddigest.rdata" ) 
+      fn = file.path(fn.root, "sddigest.rdata" ) 
       if ( DS == "sddigest" ) {
         load( fn )
         return( sddigest )
@@ -64,7 +67,7 @@
     }
     
     if ( DS %in% c("sdfullness", "sdfullness.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sdfullness.rdata" ) 
+      fn = file.path(fn.root, "sdfullness.rdata" ) 
       if ( DS == "sdfullness" ) {
         load( fn )
         return( sdfullness )
@@ -80,7 +83,7 @@
     
     
     if ( DS %in% c("sditem", "sditem.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sditem.rdata" ) 
+      fn = file.path(fn.root, "sditem.rdata" ) 
       if ( DS == "sditem" ) {
         load( fn )
         return( sditem )
@@ -95,7 +98,7 @@
     }
     
     if ( DS %in% c("sdpred", "sdpred.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sdpred.rdata" ) 
+      fn = file.path(fn.root, "sdpred.rdata" ) 
       if ( DS == "sdpred" ) {
         load( fn )
         return( sdpred )
@@ -110,7 +113,7 @@
     }
   
     if ( DS %in% c("sdsource", "sdsource.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sdsource.rdata" ) 
+      fn = file.path(fn.root, "sdsource.rdata" ) 
       if ( DS == "sdsource" ) {
         load( fn )
         return( sdsource )
@@ -125,7 +128,7 @@
     }
   
     if ( DS %in% c("sdsto", "sdsto.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sdsto.rdata" ) 
+      fn = file.path(fn.root, "sdsto.rdata" ) 
       if ( DS == "sdsto" ) {
         load( fn )
         return( sdsto )
@@ -141,7 +144,7 @@
   
  
     if ( DS %in% c("sdtech", "sdtech.redo"  ) ) {
-      fn = project.datadirectory("stomachs", "data", "sdtech.rdata" ) 
+      fn = file.path(fn.root, "sdtech.rdata" ) 
       if ( DS == "sdtech" ) {
         load( fn )
         return( sdtech )
@@ -155,7 +158,25 @@
       return (sdtech)
     }
   
- 
+
+    if ( DS %in% c("prey.species.codes", "prey.species.codes.redo"  ) ) {
+      fn =  file.path(fn.root, "prey.species.codes.rdata" ) 
+      if ( DS == "prey.species.codes" ) {
+        load( fn )
+        return( sdprey )
+      }
+      require(RODBC)
+      connect=odbcConnect( oracle.taxonomy.server, uid=oracle.personal.user, pwd=oracle.personal.password, believeNRows=F)
+      sdprey = sqlQuery(connect, "select * from mfd_stomach.prey_spec_details" )  
+
+      odbcClose(connect)
+      names(sdprey) =  tolower( names(sdprey) )
+      ik = which(names(sdprey)=='speccd')
+      names(sdprey)[ik] = 'preyspeccd'
+      save(sdprey, file=fn, compress=T)
+      return (sdprey)
+    }
+   
   
   }
 

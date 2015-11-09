@@ -1,5 +1,5 @@
-groundfish.analysis <- function(DS='stratified.estimates',p=p, ip=NULL) {
-    loc = file.path( project.datadirectory("groundfish"), "analysis" )
+groundfish.analysis <- function(DS='stratified.estimates',out.dir = 'groundfish', p=p, ip=NULL) {
+    loc = file.path( project.datadirectory(out.dir), "analysis" )
     
     dir.create( path=loc, recursive=T, showWarnings=F )
          if(p$series=='summer')  {mns = c('June','July','August')     ; strat = c(440:495)}
@@ -24,6 +24,9 @@ if(DS %in% c('species.set.data')) {
                 al = lapply(strata.files,"[[",2)
                 al = do.call('rbind',al)
                 al$Sp= strsplit(op,"\\.")[[1]][3] 
+                b = strsplit(op,"\\.")
+                b = b[[1]][grep('length',b[[1]])+1]
+                al$group = b    
                 outa = rbind(al,outa)
                 }
                 return(outa)
@@ -35,8 +38,11 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             a = dir(loc)
             a = a[grep('stratified',a)]
             a = a[grep(paste(p$species,collapse="|"),a)]
-            for(op in a) {
+          for(op in a) {
                 load(file.path(loc,op))
+                b = strsplit(op,"\\.")
+                b = b[[1]][grep('length',b[[1]])+1]
+                out$group = b    
                 outa = rbind(out,outa)
                 }
                 return(outa)
@@ -59,7 +65,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
         io = which(is.na(cas$sampwgt) & !is.na(cas$totwgt)) 
         cas[io,'sampwgt'] <- cas[io,'totwgt']
         strata.files = list()
-     out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
+     out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
     mp=0
     np=1
     for(iip in ip) {
@@ -68,7 +74,10 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             if(iip==1) v0=v
             if(v0!=v) {
               lle = 'all'
-              if(p$length.based) lle = 'by.length'
+
+              if(p$length.based & !p$sex.based) lle = paste(p$size_class[1],p$size_class[2],sep="-")
+              
+              if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               save(out,file=file.path(loc,fn))
@@ -76,7 +85,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
               print(fn)
               rm(out)
               rm(strata.files)
-              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
+              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA, n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
               strata.files = list()
               mp=1
               np = np + 1
@@ -86,26 +95,33 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             print ( p$runs[iip,] )
             if(p$functional.groups) vv = p$yy[[which(names(p$yy)==v0)]] 
             iv = which(cas$spec %in% vv)
-            iy = which(years(set$sdate) %in% yr)
+            iy = which(year(set$sdate) %in% yr)
     
                 se = set[iy,]
                 ca = cas[iv,]
-                  se$z = (se$dmin+se$dmax) / 2  
-              vars.2.keep = c('mission','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
+                  se$z = (se$dmin+se$dmax) / 2
+                vars.2.keep = c('mission','slat','slon','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
                 se = se[,vars.2.keep]
-        if(!p$length.based) {
-                          vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
-                          ca = ca[,vars.2.keep]
-                        }
-        if(p$length.based){
         
+        p$lb = p$length.based        
+
+        if(p$by.sex & !p$length.based) {p$size_class=c(0,1000); p$length.based=T}
+        
+        if(!p$lb) { vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
+                    ca = ca[,vars.2.keep]
+                }
+        
+        if(p$length.based){
                   dp = de[which(de$spec %in% v0),]
                   ids = paste(se$mission,se$setno,sep="~")
                   dp$ids = paste(dp$mission,dp$setno,sep="~")
                   dp = dp[which(dp$ids %in% ids),]
                   flf = p$size.class[1]:p$size.class[2]
                   dp$clen2 = ifelse(dp$flen %in% flf,dp$clen,0)
-                if(any(!is.finite(dp$fwt))) {
+#browser()
+              if(p$by.sex) dp$clen2 = ifelse(dp$fsex %in% p$sex, dp$clen2, 0) 
+
+              if(any(!is.finite(dp$fwt))) {
                   io = which(!is.finite(dp$fwt))
                   fit = nls(fwt~a*flen^b,de[which(de$spec==v0 & is.finite(de$fwt)),],start=list(a=0.001,b=3.3))
                   ab = coef(fit)
@@ -125,7 +141,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   ca1$totwgt = ca1$totwgt * ca1$pw
                   ca1$totno = ca1$totno * ca1$pn
                   vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
-                  ca1 = ca1[,vars.2.keep]
+                  ca = ca1[,vars.2.keep]
               }
                       if(p$vessel.correction) {
                             ca$id = ca$mission
@@ -143,6 +159,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                              print('Into Needler Years No Need for Vessel Correction')
                            }
                            }
+                           if(nrow(ca)>=1) {
 		        ca = aggregate(cbind(totwgt,totno)~mission+setno,data=ca,FUN=sum)
                           sc = merge(se,ca,by=c('mission','setno'),all.x=T)
                           sc[,c('totwgt','totno')] = na.zero(sc[,c('totwgt','totno')])
@@ -165,11 +182,15 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   bsN = summary(boot.strata(sN,method='BWR',nresamp=1000),ci.method='BC')       
                   nt  = sum(sW$Nh)/1000
                 out[mp,] = c(yr,v,ssW[[1]],ssW[[2]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
-                ssN[[1]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
+                ssN[[1]],ssN[[2]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
+                print(out[mp,'v'])  
+              } else {
+                out[mp,] = c(yr,v,rep(0,15)) 
                 print(out[mp,'v'])  
               }
+            }
               lle = 'all'
-              if(p$length.based) lle = 'by.length'
+              if(p$length.based) lle = paste(p$size.class[1],p$size.class[2],sep="-")
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
              print(fn)

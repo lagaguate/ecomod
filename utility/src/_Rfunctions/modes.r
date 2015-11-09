@@ -41,11 +41,16 @@ modes = function( Z, eps=0, ... ) {
   for ( p1lb in pl1:1) if ( ddZ[p1lb] >= eps ) break() # left
   for ( p1ub in pr1:length(ddZ) ) if ( ddZ[p1ub] >=  eps ) break() # right
 
-  inflection.x = c( p1lb, p1ub ) 
-  inflection.y = u$x[ inflection.x ]
-  kd.mode = u$x[ p1 ]
-  
+      inflection.x = c( p1lb, p1ub ) 
+      inflection.y = u$x[ inflection.x ]
+      kd.mode = u$x[ p1 ]
+
   kd.sd0 = sd( Z[ Z > inflection.y[1] & Z < inflection.y[2] ] )
+
+if(is.na(kd.sd0))   { #exception handling AMC Nov2.2015
+  res = data.frame( cbind( mode=kd.mode, sd=NA, lb=NA, ub=NA,lb1=NA,ub1=NA,lb2=NA,ub2=NA )) 
+return(res)
+}
 
   # expand the are of interest before computing SD
   ylb = inflection.y[1] - kd.sd0
