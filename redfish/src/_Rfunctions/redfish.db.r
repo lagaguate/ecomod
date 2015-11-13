@@ -32,7 +32,6 @@ redfish.db <- function(DS='logbook.redo',p=p, yrs = 2004:2015) {
 													from mfd_obfmi.marfis_catch_effort
 															where species_code = '120'
 	                    and year_fished in (",YR,")",sep=""))
-)
 				save( LOGS, file=fny, compress=T)
 				gc()  # garbage collection
 				print(YR)
@@ -42,5 +41,3 @@ redfish.db <- function(DS='logbook.redo',p=p, yrs = 2004:2015) {
 		}
 
 
-
-}
