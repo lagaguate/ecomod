@@ -22,7 +22,7 @@
 # stippling = adds stippling to land (purely for visual effect)
 # lol = adds water colored border to coastline (purely for visual effect)
 
-LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs',bathy.source='topex',isobaths=seq(100,1000,100),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,labels='lfa',LT=T,plot.rivers=T,...){
+LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs',bathy.source='topex',isobaths=seq(100,1000,100),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,labels='lfa',LT=T,plot.rivers=T,addSummerStrata=F,...){
 
 		
 	require(PBSmapping)|| stop("Install PBSmapping Package")
@@ -112,8 +112,21 @@ LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',lan
 	}
 	
 	
+#groundfish survey summer strata	
+	if(addSummerStrata) {
+			  loadfunctions('polygons')
+			  a = find.ecomod.gis('summer_strata_labels',return.one.match=F)
+			  a = read.csv(a,header=T)
+			  names(a)[4] <- 'label'
+			  b = find.ecomod.gis('strat.gf',return.one.match=F)
+			  b = read.table(b)
+			  names(b) <- c('X','Y','PID')
+			  b = within(b,{POS <- ave(PID,list(PID),FUN=seq_along)})
+			  addPolys(b,lty=1,border='red')
+			  addLabels(a,cex=0.6)
+			}
+  # Boundries
 	
-	# Boundries
 	if(boundaries=='LFAs'){
 		
 		LFAs<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","LFAPolys.csv"))
@@ -200,8 +213,8 @@ LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',lan
 		gridlines<-makeGrid(x,y,byrow=TRUE,addSID=TRUE,projection="LL",zone=NULL)
 		addLines(gridlines,col='grey80',lwd=1)
 	}
-	if(labels=='lfa')addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0,0,0,0.5),cex=1.5,font=2)
-	if(labels=='grid')addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=1)
+	if(labels=='lfa') addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0,0,0,0.5),cex=1.5,font=2)
+	if(labels=='grid') addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=1)
 
 
 	box(lwd=2)

@@ -19,6 +19,11 @@ if(DS %in% c('species.set.data')) {
             a = dir(loc)
             a = a[grep('strata.files',a)]
             a = a[grep(paste(p$species,collapse="|"),a)]
+            if(p$strata.files.return){
+                  it = grep(paste(p$size.class,collapse="-"),a)
+                  load(file.path(loc,a[it]))
+                  return(strata.files)
+                  }
             for(op in a) {
                 load(file.path(loc,op))
                 al = lapply(strata.files,"[[",2)
@@ -26,8 +31,11 @@ if(DS %in% c('species.set.data')) {
                 al$Sp= strsplit(op,"\\.")[[1]][3] 
                 b = strsplit(op,"\\.")
                 b = b[[1]][grep('length',b[[1]])+1]
-                al$group = b    
-                outa = rbind(al,outa)
+                al = rename.df(al,c('totwgt','totno'),c(paste('totwgt',b,sep="."),paste('totno',b,sep=".")))
+                if(is.null(outa)) {outa = rbind(al,outa) 
+                  } else {
+                 outa = merge(outa,al[,c('mission','setno',paste('totwgt',b,sep="."),paste('totno',b,sep="."))],by=c('mission','setno'))
+                }
                 }
                 return(outa)
               }
@@ -100,9 +108,10 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                 se = set[iy,]
                 ca = cas[iv,]
                   se$z = (se$dmin+se$dmax) / 2
-                vars.2.keep = c('mission','slat','slon','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
+                vars.2.keep = c('mission','slat','slong','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','type')  
                 se = se[,vars.2.keep]
-        
+                se$slong = convert.dd.dddd(se$slong)
+                se$slat = convert.dd.dddd(se$slat)
         p$lb = p$length.based        
 
         if(p$by.sex & !p$length.based) {p$size_class=c(0,1000); p$length.based=T}
@@ -178,9 +187,14 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
 
                   ssW = summary(sW)
                   ssN = summary(sN) 
+               bsW = NA
+               bsN = NA
+               nt = NA
+               if(p$bootstrapped.ci) {
                   bsW = summary(boot.strata(sW,method='BWR',nresamp=1000),ci.method='BC')
                   bsN = summary(boot.strata(sN,method='BWR',nresamp=1000),ci.method='BC')       
                   nt  = sum(sW$Nh)/1000
+                }
                 out[mp,] = c(yr,v,ssW[[1]],ssW[[2]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
                 ssN[[1]],ssN[[2]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
                 print(out[mp,'v'])  
@@ -196,7 +210,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
              print(fn)
               save(out,file=file.path(loc,fn))
               save(strata.files,file=file.path(loc,fn.st))
-             #if(p$strata.files.return) return(strata.files)
+             if(p$strata.files.return) return(strata.files)
              return(out)
 
    }
