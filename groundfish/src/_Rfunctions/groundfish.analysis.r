@@ -19,7 +19,7 @@ if(DS %in% c('species.set.data')) {
             a = dir(loc)
             a = a[grep('strata.files',a)]
             a = a[grep(paste(p$species,collapse="|"),a)]
-            if(p$strata.files.return){
+            if(exists('strata.files.return',p)){
                   it = grep(paste(p$size.class,collapse="-"),a)
                   load(file.path(loc,a[it]))
                   return(strata.files)

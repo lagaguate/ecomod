@@ -1,5 +1,5 @@
 
-  figure.timeseries.R0 = function( outdir,infile=NULL, all.areas=T ,specific.area=NULL) {
+  figure.timeseries.t = function( outdir,infile=NULL, all.areas=T ,specific.area=NULL) {
  
     set = snowcrab.db( DS="set.merge.det")
   
@@ -14,7 +14,7 @@
     n.regions = length(regions)
     n.areas = length(areas)
 
-    v = "R0.mass"
+    v = "t"
 
     td =  get.time.series ( from.file=T )
     if(!is.null(infile)) td = infile
@@ -36,7 +36,7 @@
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
           layout=c(1,n.regions), xlim=xlim, ylim=ylim,
-              main="Fishable Biomass", xlab="Year", ylab=list("Geometric mean t / km^2"),
+              main="Survey Temperature", xlab="Year", ylab=list("Geometric mean Temperature"),
               cex.lab=cex.lab, cex.axis=cex.axis, cex.main = cex.main,
               panel = function(x, y, subscripts, ub, lb, ...) {
              larrows(x, lb[subscripts],

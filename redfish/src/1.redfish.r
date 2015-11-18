@@ -28,8 +28,8 @@
 			p$vessel.correction = T
 			p$vessel.correction.fixed = 1.2
 			p$length.based = T
-			#p$size.class= c(0,22)
-			p$size.class= c(23,70)
+			p$size.class= c(0,22)
+			#p$size.class= c(23,70)
 			p$by.sex = F
 			p$sex = 1# male female berried c(1,2,3)
 			p$functional.groups = F
@@ -113,8 +113,9 @@ for(l in len) {
 #habitat associations
 p$strata.files.return =T
 p$plot.name = 'unit3redfish.habitat.associations.pdf'
-
-figure.habitat.associations(aout,p=p,out.dir='redfish')
+aout = groundfish.analysis(DS = 'species.set.data',p=p,out.dir='redfish')
+#figure.habitat.associations(aout,p=p,out.dir='redfish',f.name='unit3redfish.habitat.associations.22-70')
+figure.habitat.associations(aout,p=p,out.dir='redfish',f.name='unit3redfish.habitat.associations.0-22')
 
 
 #figure stratified analysis
@@ -167,10 +168,12 @@ figure.habitat.associations(aout,p=p,out.dir='redfish')
 	vars.to.keep = c('slong','slat','totno.0-22','totno.23-70')
 	
 	for(y in yrs) {
-		LobsterMap(ylim=c(42,46.5),xlim=c(-68,-60),boundaries='uu',labels='nn',addSummerStrata=F)
+	pdf(file.path(fp,paste('piecharts',y,y+combined.yrs,sep=".")))
+		LobsterMap(ylim=c(42,46.5),xlim=c(-68,-58),boundaries='uu',labels='nn',addSummerStrata=F)
 		n = aout[which(aout$yr %in% seq(y,y+combined.yrs)),vars.to.keep]
 		n$slong = n$slong*-1
 		z = as.matrix(n[,grep('totno',names(n))])
 		
-		draw.pie(x=n$slong,y=n$slat,z=z,radius=2)
+		draw.pie(x=n$slong,y=n$slat,z=z,radius=.2)
+		dev.off()
 	}
