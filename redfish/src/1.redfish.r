@@ -6,20 +6,6 @@
 	  fp = file.path(project.datadirectory('redfish'),"analysis")
 	  dir.create(fp, recursive = TRUE, showWarnings = FALSE )
 
-
-	 rebuild.groundfish.data = F
-	 if(rebuild.groundfish.data) { 
-			  odbc.data.yrs=1970:2015
-			  groundfish.db( DS="odbc.redo", datayrs=odbc.data.yrs )  
-			  groundfish.db( DS="gsgears.redo" )
-			  groundfish.db( DS="gscat.redo" )
-			  groundfish.db( DS="gsdet.redo" )
-			  groundfish.db( DS="gsinf.redo" )
-			  groundfish.db( DS="gshyd.profiles.redo" )
-			  groundfish.db( DS="gshyd.redo" )
-			  groundfish.db( DS="gshyd.georef.redo" )  # not used here but used in temperature re-analysis
-			   }
-
 	#set the parameters for doing the stratified analysis
 			p$strat=456:495  #unit III
 			p$series =c('summer')# p$series =c('4vswcod');p$series =c('georges')
@@ -36,6 +22,22 @@
 			p$bootstrapped.ci = F
 			p = make.list(list(v=p$species, yrs=p$years.to.estimate),Y=p)
 			p$runs = p$runs[order(p$runs$v),]
+			p$strata.files.return = F
+
+	 rebuild.groundfish.data = F
+	 if(rebuild.groundfish.data) { 
+			  odbc.data.yrs=1970:2015
+			  groundfish.db( DS="odbc.redo", datayrs=odbc.data.yrs )  
+			  groundfish.db( DS="gsgears.redo" )
+			  groundfish.db( DS="gscat.redo" )
+			  groundfish.db( DS="gsdet.redo" )
+			  groundfish.db( DS="gsinf.redo" )
+			  groundfish.db( DS="gshyd.profiles.redo" )
+			  groundfish.db( DS="gshyd.redo" )
+			  groundfish.db( DS="gshyd.georef.redo" )  # not used here but used in temperature re-analysis
+			   }
+
+
 
 
 	#set up the frame to do the analysis
@@ -53,12 +55,21 @@ for(l in len) {
 	aout$len.group = l
 	oo = rbind(oo,aout)
    }
-   save(oo,file = file.path(project.datadirectory('redfish'),'analysis','stratified.at.length.redfish.rdata'))
-
-		out = reshape(oo[,c('yr','len.group','n.Yst')], timevar= 'len.group',idvar='yr',direction='wide')
+#   save(oo,file = file.path(project.datadirectory('redfish'),'analysis','stratified.at.length.redfish.rdata'))
+load(file.path(project.datadirectory('redfish'),'analysis','stratified.at.length.redfish.rdata'))
+		out = reshape(oo[,c('yr','len.group','n.yst')], timevar= 'len.group',idvar='yr',direction='wide')
 		pdf(file.path(project.datadirectory('redfish'),'figures','UnitIIIbubbles.pdf'))
 		matrixBubbles(t(out[,2:46]),xr=1:46,yr=1:45,maxinch=0.2,xlab='Year',ylab='Length',yc.colors=T,ttl='Unit III Redfish')
+		#lines(1:10,ht[7:16],lwd=3,col='red')
+		#lines(28:37,ht[7:16],lwd=3,col='red')
+
 		dev.off()
+
+
+#mean weight at length
+	p$size.class=c(23,25)			
+aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= 'redfish')
+	
 
 #vonB
 
@@ -67,7 +78,7 @@ for(l in len) {
 		vB = vonB(dat = dat, ODBC=F, conditional.bootstrap=T)
 		savePlot(file.path(project.datadirectory('redfish'),'figures','vonB.png'),type='png')
 
-#combining bubbles and vonBert
+#combining bubbles and vonBert across year groupings
 
 		matrixBubbles(t(out[1:12,2:46]),xr=1:46,yr=1:12,maxinch=0.2,xlab='Year',ylab='Length',yc.colors=T,ttl='Unit III Redfish')
 		 v = vB[[1]]
@@ -173,7 +184,15 @@ figure.habitat.associations(aout,p=p,out.dir='redfish',f.name='unit3redfish.habi
 		n = aout[which(aout$yr %in% seq(y,y+combined.yrs)),vars.to.keep]
 		n$slong = n$slong*-1
 		z = as.matrix(n[,grep('totno',names(n))])
-		
+		title(paste(y,y+combined.yrs,sep="-")	)
 		draw.pie(x=n$slong,y=n$slat,z=z,radius=.2)
 		dev.off()
 	}
+
+#fishery footprint maps
+
+#make fishing area
+	loadfunctions(c('polygons','redfish'))
+	red = redfish.db('filter.region.unit3')
+
+

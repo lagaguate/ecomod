@@ -3,7 +3,8 @@ redfish.db <- function(DS='logbook.redo',p=p, yrs = 2004:2015) {
    fn.root =  file.path( project.datadirectory("redfish"), "data", "logbook")
    dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
 
- if (DS=="logbook") {
+ if (DS %in% c("logbook",'logbook.redo' ) {
+ 		if(DS=='logbook'){
 				out = NULL
 				fl = list.files( path=fn.root, pattern="*.rdata", full.names=T ) 
         for ( fny in fl ) {
@@ -11,7 +12,7 @@ redfish.db <- function(DS='logbook.redo',p=p, yrs = 2004:2015) {
 					out = rbind( out, LOGS )
 				}
 				return (out)
-			}
+		}
 
 #default is logbook.redo
 
@@ -39,5 +40,16 @@ redfish.db <- function(DS='logbook.redo',p=p, yrs = 2004:2015) {
 			odbcClose(con)
 			return (yrs)
 		}
+if(DS=='filter.region.unit3') {
+		A = read.csv(find.ecomod.gis('unit3redfish'),header=T)
+		A$X = as.numeric(substr(A$X,5,15))
 
+		re = redfish.db(DS='logbook')
+		re = makePBS(re,polygon=F)
+		re = re[complete.cases(re[,c('X','Y','EID')]),]
+		rei = findPolys(re,A,maxRows=4e5,includeBdry=1)
+		re = re[which(re$EID %in% rei$EID),]
+		
+		return(re)		 
+	}
 

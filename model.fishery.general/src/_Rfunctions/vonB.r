@@ -113,9 +113,13 @@ if(conditional.bootstrap) {
 	ht <- parameters1[1,1]*(1-exp(-parameters1[2,1]*(A-parameters1[3,1])))     # von Bertalanffy equation #
 	lines(A,ht,lwd=2,col='blue')
 	if(conditional.bootstrap) {
-			for(i in 1:nrow(bs.par)){
-			ht <- bs.par[i,1]*(1-exp(-bs.par[i,2]*(A-bs.par[i,3])))     # von Bertalanffy equation #
-			lines(A,ht,lwd=0.5,col='grey40')
+	
+			Linf  = quantile(bs.par[,1],probs=c(0.025,0.975))
+			k  = quantile(bs.par[,2],probs=c(0.025,0.975))
+			t0 = quantile(bs.par[,3],probs=c(0.025,0.975))
+			for(i in 1:length(Linf)){
+				ht <- Linf[i]*(1-exp(-k[i]*(A-t0[i])))     # von Bertalanffy equation #
+				lines(A,ht,lwd=1,col='grey40',lty=2)
 				}
 			}
 

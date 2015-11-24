@@ -39,7 +39,23 @@ if(DS %in% c('species.set.data')) {
                 }
                 return(outa)
               }
- 
+if(DS %in% c('mean.wt.at.length')) {
+  p$strata.files.return=T  
+  de = groundfish.db(DS='gsdet.odbc')
+  de$id = paste(de$mission,de$setno,sep=".")
+  aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= out.dir)
+  a = NULL
+  for(i in 1:length(aout)) {
+      a = aout[[c(i,2)]]
+      a$id = paste(a$mission,a$setno,sep=".")
+      browser()
+
+  }
+#not finished need to finish this weighting....mean per strata, number of sets per strata containing the length and number of sampling units
+
+
+}
+
 if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
           if(DS=='stratified.estimates'){
             outa = NULL 
@@ -80,24 +96,26 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
             mp = mp+1
             v = p$runs[iip,"v"]
             if(iip==1) v0=v
-            if(v0!=v) {
-              lle = 'all'
-
-              if(p$length.based & !p$sex.based) lle = paste(p$size_class[1],p$size_class[2],sep="-")
-              
-              if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
-              fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
-              fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
-              save(out,file=file.path(loc,fn))
-              save(strata.files,file=file.path(loc,fn.st))
-              print(fn)
-              rm(out)
-              rm(strata.files)
-              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA, n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
-              strata.files = list()
-              mp=1
-              np = np + 1
-            } 
+            if(v0!=v) { # if this species loop is done save the file and reset data frame to continue with next spp
+                    lle = 'all'
+                    if(p$length.based & !p$sex.based) lle = paste(p$size_class[1],p$size_class[2],sep="-")
+                    if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
+                  
+                    fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
+                    fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
+                  
+                    save(out,file=file.path(loc,fn))
+                    save(strata.files,file=file.path(loc,fn.st))
+                  
+                    print(fn)
+                    rm(out)
+                    rm(strata.files)
+                  
+                    out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA, n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
+                    strata.files = list()
+                    mp=1
+                    np = np + 1
+                  } 
             vv = v0 = v
             yr = p$runs[iip,"yrs"]
             print ( p$runs[iip,] )
@@ -184,7 +202,7 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                   strata.files[[mp]]  = list(st,sc1)
                   sW = Stratify(sc,st,sc$totwgt)        
                   sN = Stratify(sc,st,sc$totno)
-
+                    
                   ssW = summary(sW)
                   ssN = summary(sN) 
                bsW = NA

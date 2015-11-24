@@ -4,10 +4,13 @@ matrixBubbles <- function (dmat,xr,yr,ttl,xlab,ylab,maxinch,colors,zeroflag=T,yc
 	nx = length(xr)                                                                                                               
 	ny= length(yr)                                                       
 	npts = nx * ny                                                                                                                
-	dmat<-as.matrix(dmat)
+	dmat <- as.matrix(dmat)
+	io = which(dmat>quantile(dmat,0.99)) #prune the largest samples to a smaller size i.e. max bubbles are the lowest 99%
+	
+	dmat[io] <- quantile(dmat,0.99)
 	if(length(dmat) != npts) return("length error")                                                                               
 	mat3 = matrix(0,nrow = npts,ncol = 4)                                                                                         
-	sca = maxinch/max(abs(dmat))                                                                                                  
+	sca = maxinch/max(abs(dmat))
 	if(yc.colors) {
 		v<-eval(parse(text=ch.col))
 		mat<-matrix(v,nrow=ny,ncol=nx,T)
