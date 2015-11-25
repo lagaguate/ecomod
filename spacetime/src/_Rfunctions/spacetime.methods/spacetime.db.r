@@ -161,8 +161,8 @@
 
       if ( DS =="statistics.redo" ) {
         #\\ spacetime.db( "statsitics.redo") .. statistics are stored at a different resolution than the final grid
-        #\\   this fast (simple)-interpolates the solutions to the final grid
-    
+        #\\   this fast interpolates the solutions to the final grid
+        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
         S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
         ss = as.data.frame( S[] )
         statnames0 = c( "range", "range.sd", "spatial.var", "observation.var"  )
@@ -170,42 +170,80 @@
         datalink   = c( "log", "log", "log", "log" )  # a log-link seems appropriate for these data
         names(ss) = c( "plon", "plat", statnames0 )
         rm (S)
-
         ss$spatial.sd = sqrt( ss$spatial.var )
         ss$observation.sd = sqrt( ss$observation.var )
-
         ss$spatial.var = NULL
         ss$observation.var = NULL
+        
+        # trim quaniles in case of extreme values
+        for ( v in statnames ) {
+          vq = quantile( ss[,v], probs= c(0.025, 0.975), na.rm=TRUE )
+          ii = which( ss[,v] < vq[1] )
+          if ( length(ii)>0) ss[ii,v] = vq[1]
+          jj = which( ss[,v] > vq[2] )
+          if ( length(jj)>0) ss[jj,v] = vq[2]
+        }
 
-        # interpolate statistics where necessary and add to predictions/results: 
         locsout = expand.grid( p$plons, p$plats )
         attr( locsout , "out.attrs") = NULL
         names( locsout ) = c("plon", "plat")
 
         stats = matrix( NA, ncol=length(statnames), nrow=nrow( locsout) )  # output data
-
-        range0 = median( ss$range, na.rm=TRUE )
         
-        for ( ii in 1:length(statnames) ) {
-          vn = statnames[ii]
-          oo = which( is.finite( ss[,vn] ) & ss[,vn] > 0 )  # zero's are 
-          if ( length(oo) < 30 ) next() 
-          dat = ss[oo,vn]
-          locs = ss[oo, c("plon", "plat") ]
-          RES = spacetime.interpolate.inla.singlepass ( dat, locs, locsout, lengthscale=range0, method="fast", link=datalink[ii] )
-          if ( !is.null(RES)) {
-            stats[,ii] = RES$xmean
-            rm( RES); gc()
-          }
-        }
+        for ( iv in 1:length(statnames) ) {
+          vn = statnames[iv]
+          # interpolate to larger grid (on log-scale)
+          isurf = fields::interp.surface( 
+            list( x=p$sbbox$plons, y=p$sbbox$plats, 
+                  z=matrix( log( ss[,vn] ), nrow=length(p$sbbox$plons), ncol=length( p$sbbox$plats) )),
+            loc = locsout )
 
-        #    datarange = ( c( 1, 8 ))
-        #    dr = seq( datarange[1], datarange[2], length.out=150)
-        if (0) levelplot( log(stats[,1]) ~ plon+plat, locsout, aspect="iso", at=dr, col.regions=rev(color.code( "seis", dr))) 
-        if (0) levelplot( RES$xmean ~ plon+plat, locsout, aspect="iso") 
-        
+          # (gaussian) kernel-based smooth on the log-scale
+          RES = fields::image.smooth(  
+            matrix( isurf, nrow=length(p$plons), ncol=length( p$plats) ) , 
+            theta = p$dist.mwin, xwidth= p$dist.mwin*10, ywidth= p$dist.mwin*10 ) # 10 SD of the normal kernel
+          if ( !is.null( RES )) stats[,iv] = exp( RES$z ) # return to user scale
+
+          method = FALSE
+          if (method=="inla.fast") { # faster but not fast enough for prime time yet
+            # interpolation using inla is also an option 
+            # but will require a little more tweaking as it was a bit slow
+            range0 = median( ss$range, na.rm=TRUE )
+            oo = which( is.finite( ss[,vn] ) ) 
+            if ( length(oo) < 30 ) next() 
+            RES = spacetime.interpolate.inla.singlepass ( 
+              ss[oo,vn], ss[oo, c("plon", "plat") ], locsout, 
+              lengthscale=range0, method="fast", link=datalink[iv] )
+            if ( !is.null( RES )) stats[,iv] = RES$xmean
+            rm (RES); gc()
+          }          
+        }        
         save( stats,  file=fn.S, compress=TRUE )
         return( fn.S)
+
+        plotdata=FALSE
+        if (plotdata) {
+          p$spatial.domain="canada.east"  # force isobaths to work in levelplot
+          datarange = log( c( 5, 800 ))
+          dr = seq( datarange[1], datarange[2], length.out=150)
+          oc = landmask( db="worldHires", regions=c("Canada", "US"), 
+                         return.value="not.land", tag="predictions" )
+          toplot = cbind( locsout, z=as.vector(stats[,"range"]) )[oc,]
+          levelplot( z ~ plon + plat, toplot, aspect="iso", at=dr, col.regions=color.code( "seis", dr) ,
+            contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2,
+            panel = function(x, y, subscripts, ...) {
+              panel.levelplot (x, y, subscripts, aspect="iso", rez=c(5,5), ...)
+              #coastline
+              cl = landmask( return.value="coast.lonlat",  ylim=c(36,53), xlim=c(-72,-45) )
+              cl = lonlat2planar( data.frame( cbind(lon=cl$x, lat=cl$y)), proj.type=p$internal.crs )
+              panel.xyplot( cl$plon, cl$plat, col = "black", type="l", lwd=0.8 )
+              zc = isobath.db( p=p, depths=c( 300 ) )  
+              zc = lonlat2planar( zc, proj.type=p$internal.crs) 
+              panel.xyplot( zc$plon, zc$plat, col = "gray", pch=".", cex=0.1 )
+            }
+          ) 
+          p$spatial.domain="canada.east.highres"
+        }
       }
     } 
   }
