@@ -16,7 +16,9 @@
     if ( !exists("inla.nsamples", stp)) stp$inla.nsamples = 5000 # posterior similations 
     if ( !exists("predict.in.one.go", stp)) stp$predict.in.one.go = FALSE # use false, one go is very very slow and a resource expensive method
     if ( !exists("predict.quantiles", stp)) stp$predict.quantiles = c(0.025, 0.975 )  # posterior predictions robustified by trimming extreme values 
-   
+    
+    if ( !exists("debug.file", stp)) stp$debug.file = file.path( ecomod.workdirectory, "inla.debug.out" )
+
    return(stp)
   
   }

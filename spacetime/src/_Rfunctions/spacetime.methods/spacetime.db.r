@@ -125,7 +125,8 @@
 
     # -----------------
 
-    if (DS %in% c( "statistics", "statistics.redo", "statistics.bigmemory.initialize", "statistics.bigmemory.size"   )  ) { 
+    if (DS %in% c( "statistics", "statistics.redo", "statistics.bigmemory.initialize", 
+                   "statistics.bigmemory.size" , "statistics.bigmemory.status"  )  ) { 
       
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
@@ -158,6 +159,22 @@
         return( nrow(S) )
       }
 
+      if ( DS=="statistics.bigmemory.status" ) { 
+        S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )
+        # problematic and/or no data (i.e., land) and skipped
+        i = which( is.nan( S[,3] ) )
+     
+        # not yet completed
+        j = which( is.na( S[,3] ) ) 
+
+        # completed 
+        k = which( is.finite (S[,3])  ) # not yet done
+
+        return( list(problematic=i, incomplete=j, completed=k, n.total=nrow(S[]), 
+                     n.incomplete=length(j), n.problematic=length(i), n.complete=length(k)) ) 
+      }
+
+
 
       if ( DS =="statistics.redo" ) {
         #\\ spacetime.db( "statsitics.redo") .. statistics are stored at a different resolution than the final grid
@@ -189,20 +206,18 @@
         names( locsout ) = c("plon", "plat")
 
         stats = matrix( NA, ncol=length(statnames), nrow=nrow( locsout) )  # output data
-        
+       
         for ( iv in 1:length(statnames) ) {
           vn = statnames[iv]
-          # interpolate to larger grid (on log-scale)
-          isurf = fields::interp.surface( 
-            list( x=p$sbbox$plons, y=p$sbbox$plats, 
-                  z=matrix( log( ss[,vn] ), nrow=length(p$sbbox$plons), ncol=length( p$sbbox$plats) )),
-            loc = locsout )
-
+          # create a "surface" and interpolate to larger grid using
           # (gaussian) kernel-based smooth on the log-scale
-          RES = fields::image.smooth(  
-            matrix( isurf, nrow=length(p$plons), ncol=length( p$plats) ) , 
-            theta = p$dist.mwin, xwidth= p$dist.mwin*10, ywidth= p$dist.mwin*10 ) # 10 SD of the normal kernel
-          if ( !is.null( RES )) stats[,iv] = exp( RES$z ) # return to user scale
+          z = log( matrix( ss[,vn], nrow=length(p$sbbox$plons), ncol=length( p$sbbox$plats) ) )
+          RES = NULL
+          RES = spacetime.interpolate.kernel.density( x=p$sbbox$plons, y=p$sbbox$plats, z=z, 
+            locsout=locsout,  nxout=length(p$sbbox$plons), nyout=length( p$sbbox$plats),
+            theta=p$dist.mwin, xwidth=p$dist.mwin*10, ywidth=p$dist.mwin*10 ) # 10 SD of the normal kernel
+          # 10 SD of the normal kernel
+          if ( !is.null( RES )) stats[,iv] = exp( RES$z ) # return to correct scale
 
           method = FALSE
           if (method=="inla.fast") { # faster but not fast enough for prime time yet
