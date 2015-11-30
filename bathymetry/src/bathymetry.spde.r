@@ -5,7 +5,7 @@
          
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
   p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", "sp", "raster", "colorspace" ,
-    "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra", "splancs")
+    "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra", "splancs", "fields")
   
   p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
   
@@ -20,7 +20,7 @@
   p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
   p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
   p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
-  p$expected.range = 50 # km , with dependent var on log scale
+  p$expected.range = 50 #+units=km km , with dependent var on log scale
   p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
@@ -61,7 +61,7 @@
   p$clusters = rep( "localhost", 6 )
   # p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 2 ) )
   sS = spacetime.db( p, DS="statistics.bigmemory.status" )
-  sS$n.incomplete
+  sS$n.incomplete / (sS$n.problematic + sS$n.incomplete +sS$n.complete)
 
   p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
   parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
@@ -81,8 +81,11 @@
   bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )  
 
   # as the interpolation process is so expensive, regrid based off the above run
-  --- TODO --- 
-  bathymetry.db( p=p, DS="finalized", regrid=c( "SSE", "snowcrab", "mpa" ) ) # if you want more, will need to add to the list and modify the selection criteria
+  # if you want more, will need to add to the list and modify the selection criteria
+  bathymetry.db( p=p, DS="finalized.redo", grids.new=c( "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
 
+  # test outputs/ access methods
+  plot( bathymetry.db( p, DS="finalized", return.format="brick" )$z ) # raster brick
+  spplot( bathymetry.db( p, DS="finalized", return.format="sp" ), "z" ) # spatial points/grid data frame
 
 

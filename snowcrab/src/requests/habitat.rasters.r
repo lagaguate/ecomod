@@ -18,7 +18,7 @@ require(gstat)
   fn.res = file.path( loc.sol, paste( "PS.simulation.means", 'R0.mass', yr, "rdata", sep="." ) )
 	load(fn.res)
 	d = PS[,c('plon','plat','habitat.mean')]
-	d = planar2lonlat(x=d,proj.type=p$internal.projection,planar.coord.scale=1000)
+	d = planar2lonlat(x=d,proj.type=p$internal.projection )
 	names(d) = c('plon','plat','z','x','y')
 	e = extent(d[,4:5])
 	r = raster(e,resolution=0.005,crs="+proj=longlat +datum=WGS84")
