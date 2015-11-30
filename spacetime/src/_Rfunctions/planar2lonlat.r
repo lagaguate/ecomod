@@ -7,7 +7,7 @@
     # when planar.coord.scale=1 .. it means no conversion as it is already in m ## deprecated use +units=m
     
      ## use of this is deprecated
-
+    if ( !is.null( planar.coord.scale)) stop( "Use of planar.coord.scale is deprecated, use +units=km (default) in proj4 CRS")
     #x$plon = x$plon * planar.coord.scale
     #x$plat = x$plat * planar.coord.scale  
    
