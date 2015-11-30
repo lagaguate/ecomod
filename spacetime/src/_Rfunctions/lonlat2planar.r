@@ -14,7 +14,13 @@
       warning( "Projection not recognised") 
     }
 
-    y = rgdal::project( as.matrix(x[,input_names]), proj4.params@projargs, inv=F ) 
+    crsX = CRSargs( proj4.params)
+    if ( ! grepl("units", crsX) ) {
+      print (crsX)
+      stop( "The proj4 CRS requires an explicit +units=km ")
+    }
+
+    y = rgdal::project( as.matrix(x[,input_names]), crsX , inv=F ) 
     colnames(y) = newnames 
     for (i in 1:length( newnames)) {
       if ( newnames[i] %in% colnames(x) ) x[, newnames[i]] = NULL   
