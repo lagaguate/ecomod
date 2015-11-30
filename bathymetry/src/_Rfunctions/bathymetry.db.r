@@ -1,12 +1,11 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), regrid=FALSE ) {
+  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), grids.new=NULL, return.format="dataframe" ) {
    
     datadir = project.datadirectory("bathymetry", "data" )
 		dir.create( datadir, showWarnings=F, recursive=T )
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
-
 
     if ( DS=="gebco") {
       library(RNetCDF)
@@ -74,7 +73,9 @@
       gdem = getRasterTable(dem) # as a data frame
       names(gdem) = c("plon", "plat", "z")
       gdem = gdem[ is.finite( gdem$z ) , ]
-      gdem = planar2lonlat( gdem, "utm20", planar.coord.scale=1 )  # plon,plat already in meters
+      gdem$plon = gdem$plon / 1000
+      gdem$plat = gdem$plat / 1000
+      gdem = planar2lonlat( gdem, "utm20" )  # plon,plat in meters but crs for utm20 in km
       gdem = gdem[, c("lon", "lat", "z") ]
       save( gdem, file=project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
     }
@@ -85,7 +86,7 @@
       fn = file.path( datadir, "bathymetry.canada.east.lonlat.rawdata.rdata" )
       
       if (DS =="z.lonlat.rawdata" ) {
-        load( fn)
+        load( fn )
         return( bathy )
       }
       
@@ -250,9 +251,12 @@
       bathy = rbind( bathy0, bathy1 )
       rm( bathy1, bathy0 ) ; gc()
 
-      write.table( bathy, file=p$bathymetry.xyz, col.names=F, quote=F, row.names=F)
       save( bathy, file=fn, compress=T )
       
+      fn.xz = xzfile( paste( p$bathymetry.xyz, ".xz", sep="" ) )
+      write.table( bathy, file=fn.xz, col.names=F, quote=F, row.names=F)
+      system( paste( "xz",  p$bathymetry.xyz ))  # compress for space
+
       file.remove( fn0)
       file.remove( fn1)
       file.remove( fn0g )
@@ -301,7 +305,10 @@
       if ( !file.exists( p$bathymetry.bin )) {
         # a GMT binary file of bathymetry .. currently, only the "canada.east" domain 
         # is all that is required/available
+        fnxz = paste(p$bathymetry.xyz, ".xz", sep="")
+        cmd( "xz --decompress", fnxz )
         cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
+        cmd( "xz --compress", p$bathymetry.xyz )
       }
 
 			cmd( "blockmean", p$bathymetry.bin, "-bi3 -bo", p$region, b.res, ">", blocked )  
@@ -678,37 +685,55 @@
 
     # -------------
     
-    if ( DS == "finalized") {
+    if ( DS %in% c( "finalized", "finalized.redo" ) ) {
      #// bathymetry.db( DS="finalized" .. ) returns the final form of the bathymetry data after
-     #// regridding and selection to area of interest as specificied by regrid=c("SSE", etc)
-      fn = file.path( datadir, paste( "bathymetry", "spacetime", p$spatial.domain, "finalized", "rdata", sep=".") )
-      if ( ! regrid ) {
-        Z = NULL
-        if ( file.exists ( fn) ) load( fn)
-        return( Z )
-      } else {
-        Z0 = bathymetry.db( p=p, DS="bathymetry.spacetime.finalize" )
-        Z0 = planar2lonlat ( Z0, proj.type=spatial.parameters( type="canada.east.highres" )$internal.projection )   
-        Z0$plon = NULL
-        Z0$plat = NULL
-        vnames = setdiff( names( Z0), c("lon", "lat") )
+     #// regridding and selection to area of interest as specificied by girds.new=c("SSE", etc)
+      Z = NULL
       
-        for (gr in regrid ) {
-          fn = file.path( datadir, paste( "bathymetry", "spacetime", gr, "finalized", "rdata", sep=".") )
-          Z = filter.bathymetry( DS=gr, Z=Z0 ) 
-          # regrid to correct resolution:
-          pst = spatial.parameters( type=gr )
-          Z = lonlat2planar( Z, proj.type= pst$internal.projection )   
-          Z$lon = NULL
-          Z$lat = NULL
-          Z$plon = grid.internal( Z$plon, pst$plons )
-          Z$plat = grid.internal( Z$plat, pst$plats )
-          Z = Z[ which( is.finite( Z$plon+Z$plat)) ,]
+      if ( DS=="finalized" ) {
+        domain = NULL
+        if ( is.null(domain)) {
+          if ( exists("spatial.domain", p)) {
+            domain = p$spatial.domain 
+          } else if ( !is.null(grids.new)) {
+            if( length( grids.new )== 1 ) {
+              domain = grids.new
+        } } }
+        fn = file.path( datadir, paste( "bathymetry", "spacetime", domain, "finalized", "rdata", sep=".") )
+        if ( file.exists ( fn) ) load( fn)
+        if ( return.format %in% c("raster", "brick")) return( Z )
+        if ( return.format == "dataframe" ) {
+          Z = as( Z, "SpatialPointsDataFrame" ) 
+          return( Z )
+        } 
+        if ( return.format == "dataframe.filtered" ) {
+          Z = as( Z, "SpatialPointsDataFrame" ) 
+          Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) 
+          return( Z )
+        } 
+      }
 
-          Z = block.data.frame( Z, byvars=c("plon", "plat"), block.mean )
-          save (Z, file=fn, compress=T )
-          # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
-        }
+      p0 = p  # the originating parameters
+      Z0 = bathymetry.db( p=p0, DS="bathymetry.spacetime.finalize" )
+      coordinates( Z0 ) = ~ plon + plat 
+      crs(Z0) = crs( p0$interal.crs )
+      
+      out = list()
+      
+      grids = unique( c( p$spatial.domain, grids.new ))
+
+      for (gr in grids ) {
+        p1 = spatial.parameters( type=gr )
+        for (vn in names(Z0)) {
+          # bilinear interpolation: test vn="z"
+          out[[vn]] = projectRaster( 
+            from =rasterize( Z0, spatial.parameters.to.raster(p0), field=vn, fun=mean), 
+            to   =spatial.parameters.to.raster( p1) )
+        } 
+        Z = brick(out)
+        fn = file.path( datadir, paste( "bathymetry", "spacetime", p1$spatial.domain, "finalized", "rdata", sep=".") )
+        save (Z, file=fn, compress=T )
+        print(fn)
       }
       return ( "Completed subsets" )
     }

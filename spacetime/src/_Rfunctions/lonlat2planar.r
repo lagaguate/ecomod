@@ -1,11 +1,9 @@
 
   lonlat2planar = function ( x, proj.type, input_names=c("lon", "lat"), newnames = c("plon", "plat") ) {
-    # convert lon/lat to a projected surface using proj
-    # proj.type can be an internal code such as "utm20" or a proj4 argument
-    # output is in km
+    #\\ convert lon/lat to a projected surface using proj
+    #\\ proj.type can be an internal code such as "utm20" or a proj4 argument
+    #\\ output scale is defined in the +units=km (default for ecomod) or +units=m (default for proj)
 
-    m2km = 1/1000
-    
     # first try an internal conversion /lookup for CRS  
     proj4.params = try( CRS( lookup.projection.params(proj.type) ), silent=TRUE )
     
@@ -16,7 +14,13 @@
       warning( "Projection not recognised") 
     }
 
-    y = rgdal::project( as.matrix(x[,input_names]), proj4.params@projargs, inv=F ) * m2km
+    crsX = CRSargs( proj4.params)
+    if ( ! grepl("units", crsX) ) {
+      print (crsX)
+      stop( "The proj4 CRS requires an explicit +units=km ")
+    }
+
+    y = rgdal::project( as.matrix(x[,input_names]), crsX , inv=F ) 
     colnames(y) = newnames 
     for (i in 1:length( newnames)) {
       if ( newnames[i] %in% colnames(x) ) x[, newnames[i]] = NULL   

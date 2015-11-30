@@ -13,7 +13,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "utm20"
-    p$internal.crs =  "+proj=utm +ellps=WGS84 +zone=20"
+    p$internal.crs =  "+proj=utm +ellps=WGS84 +zone=20 +units=km"
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
     p$pres = 1
     p$lon0=-68
@@ -33,6 +33,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
+    p$nplats = length(p$plats)
   }
 
 
@@ -42,7 +43,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
-    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N "
+    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N +units=km "
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. ~ 0.25 km
     p$pres = 1  # km
     p$lon0=-72
@@ -71,7 +72,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
-    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N "
+    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N +units=km"
     p$dres = 1/60/4  # CHS is 15 arc second ~ 0.25 km
     p$pres = 0.5  # discretize to 0.5 km resolution
     p$lon0=-72

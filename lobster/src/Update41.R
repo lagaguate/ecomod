@@ -55,6 +55,12 @@ loadfunctions(c('lobster','groundfish','BIOsurvey'))
 	LobsterMap('41',poly.lst=list(LFA41areas,data.frame(PID=1:5,border='red')))		
 
 
+	############## byCatch
+
+	atSea41bycatch<-subset(atSea,LFA==41&SPECIESCODE!=2550&SAMCODE=="ISDB")
+	str(atSea41bycatch)
+
+	atSea41bycatch$QUARTER<-quarter(atSea41bycatch$STARTDATE)
 
 ##______________________##
 ##                      ##
@@ -111,16 +117,89 @@ loadfunctions(c('lobster','groundfish','BIOsurvey'))
 
 
 
-### landings
+
+##______________________##
+##                      ##
+##       	LOGS 	    ##
+##______________________##
+##                      ##
+
 
 lobster.db('logs41')
 logs41$YEAR<-year(logs41$FV_FISHED_DATETIME)
+
+logs41$SYEAR<-year(logs41$FV_FISHED_DATETIME)
+logs41$LFA<-41
+logs41$WEIGHT_KG<-logs41$ADJCATCH*0.4536
+logs41$DATE_FISHED<-logs41$FV_FISHED_DATETIME
+
+
 lbs<-with(logs41,tapply(ADJCATCH,YEAR,sum,na.rm=T))
 names(slip41)<-c("Year","Landings.slip")
 slip41$Landings.slip<-slip41$Landings.slip*0.0004536
 landat<-merge(data.frame(Year=names(lbs),Landings.t=lbs*0.0004536),slip41,all=T)
 	
+	# Total landings
 	pdf(file.path( project.datadirectory("lobster"), "R","LFA41updateFig2.pdf"),8,5)
-
-barplot(landat$Landings.slip,names=landat$Year,ylim=c(0,1000),ylab="Landings (t)",cex.names=0.8,cex.axis=0.8)
+	with(subset(landat,Year<2015),barplot(Landings.slip,names=Year,ylim=c(0,1000),ylab="Landings (t)",cex.names=0.8,cex.axis=0.8))
 	dev.off()
+
+	# Spatial Catch
+	pdf(file.path( project.datadirectory("lobster"), "R","LFA41spatialcatch.pdf"))
+	for(y in 2002:2015){
+		logs41.dat<-na.omit(subset(logs41,YEAR==y,c('MON_DOC_ID','DDLON','DDLAT','WEIGHT_KG')))
+		names(logs41.dat)<-c("EID","X","Y","Z")
+		logs41.dat$EID<-1:nrow(logs41.dat)
+
+		lvls=c(10,50,100,500,1000,5000,10000,50000)
+		LFA41polys<-gridPlot(logs41.dat,lvls=lvls,border=NA,FUN=sum,grid.size=1/60)
+		LobsterMap('41',poly.lst=LFA41polys[1:2],title=y)
+		addPolys(LFA41areas)
+		ContLegend('bottomright',bty='n',lvls=lvls,Cont.data=LFA41polys,title='kg')
+
+
+	}
+	dev.off()
+
+	# CPUE
+	CPUEplot(logs41,lfa=41,graphic='pdf',wd=10,ht=8,lab='LFA41')
+
+
+## Jonah crab
+
+
+lobster.db('logs41jonah')
+logs41jonah$YEAR<-year(logs41jonah$DATE_FISHED)
+
+logs41jonah$SYEAR<-year(logs41jonah$DATE_FISHED)
+logs41jonah$LFA<-41
+logs41jonah$WEIGHT_KG<-logs41jonah$ADJCATCH_LBS*0.4536
+
+
+lbs<-with(logs41jonah,tapply(ADJCATCH_LBS,YEAR,sum,na.rm=T))
+JClandat<-data.frame(Year=names(lbs),Landings.t=lbs*0.0004536)
+	
+	pdf(file.path( project.datadirectory("lobster"), "R","LFA41_JC.pdf"),8,5)
+	barplot(JClandat$Landings.t,names=JClandat$Year,ylim=c(0,1000),ylab="Landings (t)",cex.names=0.8,cex.axis=0.8)
+	dev.off()
+
+	# Spatial Catch
+	pdf(file.path( project.datadirectory("lobster"), "R","LFA41spatialcatch_JC.pdf"))
+	for(y in 2002:2008){
+		logs41jonah.dat<-na.omit(subset(logs41jonah,YEAR==y,c('DOC_ID','DDLON','DDLAT','WEIGHT_KG')))
+		names(logs41jonah.dat)<-c("EID","X","Y","Z")
+		logs41jonah.dat$EID<-1:nrow(logs41jonah.dat)
+
+		lvls=c(10,50,100,500,1000,5000,10000,50000)
+		LFA41polys<-gridPlot(logs41jonah.dat,lvls=lvls,border=NA,FUN=sum,grid.size=1/60)
+		LobsterMap('41',poly.lst=LFA41polys[1:2],title=y)
+		addPolys(LFA41areas)
+		ContLegend('bottomright',bty='n',lvls=lvls,Cont.data=LFA41polys,title='kg')
+
+
+	}
+	dev.off()
+
+	# CPUE
+	CPUEplot(logs41jonah,lfa=41,graphic='pdf',wd=10,ht=8,lab='LFA41_JC')
+

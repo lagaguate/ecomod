@@ -40,6 +40,8 @@
       # inla.setOption(inla.call="/usr/lib/R/library/INLA/bin/linux/inla64" ) 
       focal = t(S[dd,])
       if ( is.nan( focal[3] ) ) next()
+      if ( !is.na( focal[3] ) ) next()
+      
       S[dd,3] = NaN   # this is a flag such that if a run fails (e.g. in mesh generation), it does not get revisited
       # .. it gets over-written below if successful
 
