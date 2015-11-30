@@ -3,12 +3,13 @@ assignStation <- function(events,maxdist=0.01,res=0.005,expwin=0.05,map=NULL,lin
 	require(spatstat)
 	require(PBSmapping)
 
-	events<-as.EventData(events)
 
 	if(lines==T){
 		events$X<-with(events,apply(cbind(X1,X2),1,mean))
 		events$Y<-with(events,apply(cbind(Y1,Y2),1,mean))
 	}
+
+	events<-as.EventData(events)
 
 	xmax <- max(events$X)+diff(range(events$X))*expwin
 	xmin <- min(events$X)-diff(range(events$X))*expwin

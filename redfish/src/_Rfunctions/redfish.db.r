@@ -3,12 +3,14 @@ redfish.db <- function(DS='logbook.redo',p=p, yrs = 2004:2015) {
    fn.root =  file.path( project.datadirectory("redfish"), "data", "logbook")
    dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
 
- if (DS %in% c("logbook",'logbook.redo' ) {
+ if (DS %in% c("logbook",'logbook.redo')) {
  		if(DS=='logbook'){
 				out = NULL
 				fl = list.files( path=fn.root, pattern="*.rdata", full.names=T ) 
         for ( fny in fl ) {
 					load (fny)
+					names(LOGS) = tolower(names(LOGS))
+					LOGS$fishing_year = ifelse(LOGS$month_fished %in% c(1,2,3),LOGS$year_fished-1,LOGS$year_fished)
 					out = rbind( out, LOGS )
 				}
 				return (out)
@@ -51,5 +53,7 @@ if(DS=='filter.region.unit3') {
 		re = re[which(re$EID %in% rei$EID),]
 		
 		return(re)		 
-	}
+		}
+ # end gridded fishieries data
+}
 

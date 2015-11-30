@@ -21,7 +21,7 @@ figure.stratified.analysis <- function(x,p,out.dir='groundfish') {
 		names(xp) = c('year','mean','se','lower','upper')
 		xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 		xpp = xp[which(xp$year>=time.series.start.year & xp$year<=time.series.end.year),  ]
-
+browser()
 		ylim=c(min(xpp$lower),max(xpp$upper))
 		if(exists('y.maximum')) {
 			yl = ylim[2];

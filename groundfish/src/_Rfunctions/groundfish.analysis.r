@@ -42,18 +42,36 @@ if(DS %in% c('species.set.data')) {
 if(DS %in% c('mean.wt.at.length')) {
   p$strata.files.return=T  
   de = groundfish.db(DS='gsdet.odbc')
+  de = de[which(de$spec %in% p$spec & de$flen %in% p$size.class[1]:p$size.class[2]),]
   de$id = paste(de$mission,de$setno,sep=".")
   aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= out.dir)
   a = NULL
-  for(i in 1:length(aout)) {
-      a = aout[[c(i,2)]]
-      a$id = paste(a$mission,a$setno,sep=".")
-      browser()
-
-  }
-#not finished need to finish this weighting....mean per strata, number of sets per strata containing the length and number of sampling units
-
-
+  out = data.frame(yr = p$years.to.estimate, meanWt = NA)
+    for(i in 1:length(aout)) {
+      #this is really gross coding, I am very sorry, brain not working, weighted mean per strat by totno, population weighted for annual total.
+        a = aout[[c(i,2)]]
+        a$id = paste(a$mission,a$setno,sep=".")
+        d = de[which(de$id %in% a$id),]
+     if(length(na.omit(d$fwt))>3){ 
+      if(any(d$mission=='TEL2005605' & d$spec==23)) {l = which(d$fshno==69); d$fwt[l] <- NA}
+          d = aggregate(fwt~id,data=d,FUN=mean)
+        a = merge(a,d,by=c('id'),all.x=T)  
+        b = aggregate(totno~strat,data=a,FUN=sum)
+        a = merge(a,b,by='strat')
+        a$wt = a$totno.x/a$totno.y
+        b = as.data.frame(sapply(split(a,a$strat),function(x) weighted.mean(x$fwt,w=x$wt)))
+        b$strat = rownames(b)
+        names(b) = c('fwt','strat')
+        g = aggregate(totno.x~strat,data=a,FUN=mean)
+        h = data.frame(strat=aout[[c(i,1,1)]],NH=aout[[c(i,1,2)]])
+        b = merge(b,g,by='strat')
+        b = merge(b,h,by='strat')
+        b$wt = b$totno.x * b$NH
+        b = weighted.mean(b$fwt,w=b$wt,na.rm=T)
+        out[i,'meanWt']  = b 
+      }
+    }
+return(out)
 }
 
 if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
@@ -92,6 +110,8 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
      out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
     mp=0
     np=1
+    effic.out = data.frame(yr=NA,strat.effic.wt=NA,alloc.effic.wt=NA,strat.effic.n=NA,alloc.effic.n=NA)
+    nopt.out =  list()
     for(iip in ip) {
             mp = mp+1
             v = p$runs[iip,"v"]
@@ -194,20 +214,26 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                           sc$totwgt = sc$totwgt * 1.75 / sc$dist 
                           io = which(stra$strat %in% unique(sc$strat))
                           st = stra[io,c('strat','NH')]
+                  st = st[order(st$strat),]
                   st = Prepare.strata.file(st)
                   sc1= sc
                   sc = sc[which(sc$type==1),]
                   sc = Prepare.strata.data(sc)
-                 
                   strata.files[[mp]]  = list(st,sc1)
                   sW = Stratify(sc,st,sc$totwgt)        
                   sN = Stratify(sc,st,sc$totno)
-                    
                   ssW = summary(sW)
                   ssN = summary(sN) 
-               bsW = NA
-               bsN = NA
-               nt = NA
+               if(p$strata.efficiencies) {
+                  ssW = summary(sW,effic=T,nopt=T)
+                  ssN = summary(sN,effic=T,nopt=T)
+              effic.out[mp,] = c(yr,ssW$effic.str,ssW$effic.alloc,ssN$effic.str,ssN$effic.alloc)
+              nopt.out[[mp]] = list(yr,ssW$n.opt,ssN$n.opt)
+               } 
+               if(!p$strata.efficiencies) {
+                      bsW = NA
+                      bsN = NA
+                      nt = NA
                if(p$bootstrapped.ci) {
                   bsW = summary(boot.strata(sW,method='BWR',nresamp=1000),ci.method='BC')
                   bsN = summary(boot.strata(sN,method='BWR',nresamp=1000),ci.method='BC')       
@@ -221,6 +247,10 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                 print(out[mp,'v'])  
               }
             }
+          }
+  if(p$strata.efficiencies) {
+                 return(list(effic.out,nopt.out))
+              }
               lle = 'all'
               if(p$length.based) lle = paste(p$size.class[1],p$size.class[2],sep="-")
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
