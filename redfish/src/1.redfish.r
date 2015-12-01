@@ -60,13 +60,20 @@ if(redo.stratied.figure) {
 				p$reference.start.year = 1999
 				p$reference.end.year = 2013
 				p$add.primary.line = F # the center estimate for reference point
-				p$metric =  'weights' #'numbers'#
+				p$metric =  'numbers' #'weights' #'numbers'#
 				p$measure = 'stratified.mean' #'stratified.total'
 
 				p$reference.measure = 'median' # mean, geomean 
-				#p$file.name = 'unit3redfish.weight<22cm.png'
-				p$file.name = 'unit3redfish.numbers.>22cm.png'
+				
+				#p$file.name = 'unit3redfish.numbers.less.22cm.png'
+				#a = aout[which(aout$group=='0-22'),]
+				#p$file.name = 'unit3redfish.weights.greater.22cm.png'
+				#a = aout[which(aout$group=='23-70'),]
+				
 				p$file.name = 'unit3redfish.weights.all.png'
+				a = aout[which(aout$group=='all'),]
+				
+				p$file.name = 'unit3redfish.numbers.all.png'
 				       
 				#stock reference lines based on primary measure as above
 				  p$add.upper.lower = F
@@ -85,7 +92,7 @@ if(redo.stratied.figure) {
 				        p$error.bars=T
 						
 
-				     ref.out=   figure.stratified.analysis(x=aout,p=p,out.dir='redfish')
+				     ref.out=   figure.stratified.analysis(x=a,p=p,out.dir='redfish')
 
 				sfp = file.path(fp,'analysis','saved p files')
 			dir.create(sfp,recursive=T,showWarnings=F)
@@ -107,7 +114,18 @@ if(redo.strata.efficiencies) {
 			dev.off()
 }
 
-
+if(abundance.distribution.plot) {
+	aout= groundfish.analysis(DS='stratified.estimates',p=p,out.dir= 'redfish') #returns all the redfish stratified data
+	a = aout[which(aout$group=='all'),]
+	a$pc =  "."
+	pdf(file.path(project.datadirectory('redfish'),'figures','abundance.area.relationship.pdf'))
+	with(a, plot((dwao),log(n.Yst),type='b',pch=a$pc,xlab='DWAO',ylab='log(Abundance)'))
+	b = a[which(a$yr %in% seq(1970,2015, by=15)),]
+	d = a[-which(a$yr %in% seq(1970,2015, by=15)),]
+	text(labels=b$yr,x=b$dwao,y=log(b$n.Yst))
+	points(d$dwao,log(d$n.Yst),pch=16)
+	dev.off()
+}
 
 
 #make the map of strata that need extra allocations, this comes from teh redo.strata.efficiencies above
@@ -191,7 +209,7 @@ if(make.length.freq.comps) {
 		a = outc[i,2:51]
 		s = outs[i,2:51]
 		pdf(file.path(project.datadirectory('redfish'),'figures',paste('length.freqs',outc[i,1],'pdf',sep=".")))
-		plot(1:50,a/sum(a),type='l',lwd=3,col='grey40',cex.axis=2,xlab=c('Length (cm)'),ylab='Proportion',cex.lab=1.8)
+		plot(1:50,a/sum(a),type='l',lwd=3,col='grey30',cex.axis=2,xlab=c('Length (cm)'),ylab='Proportion',cex.lab=1.8)
 		lines(1:50,s/sum(s),type='l',lwd=3,col='black')
 		legend('topleft',bty='n',legend=outc[i,1],cex=2.5)
 		dev.off()		

@@ -50,7 +50,7 @@
     figure.timeseries.recruits( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
  #Timeseries: geometric mean density of R0
-    figure.timeseries.R0( outdir=file.path(p$annual.results, "timeseries", "survey") )
+      figure.timeseries.R0( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
 #To represent the reduced set of stations in 2014
     figure.timeseries.R0.reduced.stations( outdir=file.path(p$annual.results, "timeseries", "survey") )

@@ -1,5 +1,5 @@
 figure.stratified.analysis <- function(x,p,out.dir='groundfish') {
-	fn=file.path(project.datadirectory(out.dir),'analysis','figures')
+	fn=file.path(project.datadirectory(out.dir),'figures')
 	dir.create(fn,showWarnings=F)
 	if(is.character(x)) {
 		#if using file name
@@ -21,7 +21,6 @@ figure.stratified.analysis <- function(x,p,out.dir='groundfish') {
 		names(xp) = c('year','mean','se','lower','upper')
 		xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 		xpp = xp[which(xp$year>=time.series.start.year & xp$year<=time.series.end.year),  ]
-browser()
 		ylim=c(min(xpp$lower),max(xpp$upper))
 		if(exists('y.maximum')) {
 			yl = ylim[2];
@@ -42,9 +41,10 @@ browser()
 		  lines(rmean.yr,rmean,lty=1,lwd=3,col='salmon')
 		}
 		if(running.median){
-		  print(paste(3,'Year Running Median'))
-		  rmean = smooth(xpp$mean,kind='3RS3R',endrule='Tukey')
-      		  rmean.yr = xpp$year[1:length(xpp$year)]
+		  print(paste(running.length,'Year Running Median'))
+		  #rmean = smooth(xpp$mean,kind='3RS3R',endrule='Tukey')
+      	rmean = runmed(xpp$mean,k=running.length,endrule='median')
+        rmean.yr = xpp$year[1:length(xpp$year)]
 		  lines(rmean.yr,rmean,lty=1,lwd=3,col='salmon')
 		}
 
@@ -86,7 +86,7 @@ browser()
 	if(legend){
 	if(!running.mean & !running.median)	legend(legend.placement,lty=c(1,1),lwd=c(4,4),col=c('darkgreen','blue'),c('80% reference period','40% reference period'),bty='n',cex=0.8)
 	if(running.mean)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(running.length,'yr Running Mean',sep="")),bty='n',cex=0.8)
-	if(running.median)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(3,'yr Running Median',sep="")),bty='n',cex=0.8)
+	if(running.median)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(running.length,'yr Running Median',sep="")),bty='n',cex=0.8)
 	}
   title(figure.title)
 		
