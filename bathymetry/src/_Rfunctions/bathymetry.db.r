@@ -28,11 +28,10 @@
       gebco$z = - gebco$z  
       # levelplot( log(z+ min(gebco$z) ))~lon+lat, gebco, aspect="iso")
       save( gebco, file=fn, compress=TRUE )
-
     }
 
-
-
+    # --------------
+    
     if ( DS=="etopo1") {
       # etopo1_bedrock.xyz ---> 1 min resolution 
       # extent: (WSEN) = -72,36,-45.,53
@@ -52,6 +51,7 @@
       save( etopo1, file=fn, compress=TRUE )
     }
 
+    # --------------
 
     if ( DS =="Greenlaw_DEM") {
       # DEM created 2014
@@ -80,6 +80,7 @@
       save( gdem, file=project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
     }
 
+    # --------------
 
     if (  DS %in% c("z.lonlat.rawdata.redo", "z.lonlat.rawdata") ) {
 			# raw data minimally modified all concatenated
@@ -267,6 +268,7 @@
     }
 
 
+    # --------------
 
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
 			
@@ -370,7 +372,8 @@
       Z$plat = grid.internal( Z$plat, p$plats )
   
       gc()
-      Z = block.spatial ( xyz=Z, function.block=block.mean ) 
+      Z = bloc    fn = file.path( datadir, paste( "bathymetry", "spde_complete", domain, "grd", sep=".") )
+k.spatial ( xyz=Z, function.block=block.mean ) 
       
       # create Z in planar xyz format 
       save( Z, file=fn.planar, compress=T ) 
@@ -537,14 +540,21 @@
 
     # --------------
 
-    if (DS %in% c( "complete", "complete.redo") ) {
+    if (DS %in% c( "complete", "complete.gmt", "complete.gmt.redo") ) {
       #\\ DS="complete(.redo)" creates or returns the prediction surface in planar coords for SS snowcrab area
-      #\\   derived from GMT-bsaed methods
-      
+      #\\  derived from GMT-bsaed methods
+      if  (DS=="complete") {
+        Z = bathymetry.db( p=p, DS="spde_complete", return.format == "dataframe.filtered" )
+        return (Z)
+      }
+
+      # following methods are now deprecated and here on for backaward compatibility 
+      # to access use DS="complete.gmt"
+
       outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
       if (p$spatial.domain == "snowcrab" ) outfile=gsub( p$spatial.domain, "SSE", outfile )
 
-      if ( DS=="complete" ) {
+      if ( DS=="complete.gmt" ) {
         if (file.exists( outfile) ) load( outfile )
         if (p$spatial.domain == "snowcrab" ) {
           id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
@@ -685,32 +695,32 @@
 
     # -------------
     
-    if ( DS %in% c( "finalized", "finalized.redo" ) ) {
-     #// bathymetry.db( DS="finalized" .. ) returns the final form of the bathymetry data after
+    if ( DS %in% c( "spde_complete", "spde_complete.redo" ) ) {
+     #// bathymetry.db( DS="spde_complete" .. ) returns the final form of the bathymetry data after
      #// regridding and selection to area of interest as specificied by girds.new=c("SSE", etc)
       Z = NULL
       
-      if ( DS=="finalized" ) {
+      if ( DS=="spde_complete" ) {
         domain = NULL
         if ( is.null(domain)) {
           if ( exists("spatial.domain", p)) {
             domain = p$spatial.domain 
-          } else if ( !is.null(grids.new)) {
+          } else if ( !is.null(grids.new)) { # over-rides p$spatial domain
             if( length( grids.new )== 1 ) {
               domain = grids.new
         } } }
-        fn = file.path( datadir, paste( "bathymetry", "spacetime", domain, "finalized", "rdata", sep=".") )
+        fn = file.path( datadir, paste( "bathymetry", "spde_complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
-        if ( return.format %in% c("raster", "brick")) return( Z )
-        if ( return.format == "dataframe" ) {
-          Z = as( Z, "SpatialPointsDataFrame" ) 
+        if ( return.format == "dataframe" ) { ## default
+          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
           return( Z )
         } 
         if ( return.format == "dataframe.filtered" ) {
-          Z = as( Z, "SpatialPointsDataFrame" ) 
+          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
           Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) 
           return( Z )
         } 
+        if ( return.format %in% c("raster", "brick")) return( brick(Z) )
       }
 
       p0 = p  # the originating parameters
@@ -718,7 +728,7 @@
       coordinates( Z0 ) = ~ plon + plat 
       crs(Z0) = crs( p0$interal.crs )
       
-      out = list()
+      Z = list()
       
       grids = unique( c( p$spatial.domain, grids.new ))
 
@@ -726,13 +736,12 @@
         p1 = spatial.parameters( type=gr )
         for (vn in names(Z0)) {
           # bilinear interpolation: test vn="z"
-          out[[vn]] = projectRaster( 
+          Z[[vn]] = projectRaster( 
             from =rasterize( Z0, spatial.parameters.to.raster(p0), field=vn, fun=mean), 
             to   =spatial.parameters.to.raster( p1) )
         } 
-        Z = brick(out)
-        fn = file.path( datadir, paste( "bathymetry", "spacetime", p1$spatial.domain, "finalized", "rdata", sep=".") )
-        save (Z, file=fn, compress=T )
+        fn = file.path( datadir, paste( "bathymetry", "spde_complete", p1$spatial.domain, "rdata", sep=".") )
+        save (Z, file=fn, compress=TRUE)
         print(fn)
       }
       return ( "Completed subsets" )

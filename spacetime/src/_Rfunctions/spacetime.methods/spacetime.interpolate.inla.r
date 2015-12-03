@@ -18,6 +18,8 @@
     
     # data file definitions
     W = attach.big.matrix(p$descriptorfile.W, path=p$tmp.datadir )  # input data
+    # vars = all.terms( p$modelformula )
+
     dlocs = W[,1:2]  # make a local copy to force into RAM
     dvar  = W[,3]
 

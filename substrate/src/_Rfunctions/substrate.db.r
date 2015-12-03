@@ -19,7 +19,7 @@
         return ( substrate )
       }
       proj4.params = "+proj=utm +zone=20 +datum=NAD83 +units=m"
-      substrate = readAsciiGrid( rawdata.file, proj4string=CRS( proj4.params ) )
+      substrate = sp::read.asciigrid( rawdata.file, proj4string=CRS( proj4.params ), colname="grainsize" )
       save( substrate, file=filename, compress=T )
       return(filename)
     }
@@ -152,19 +152,14 @@
         return( substrate )
       }
       
-      SS = substrate.db ( p, DS="lonlat.highres" )  # signif=7 for lat, lon  
-      SS = lonlat2planar( SS, proj.type=p$internal.projection ) 
+      # depth and related stats .. dependencies for inla-based modelling
+      ZZ = bathymetry.db( p, DS="spde_complete" )  # SpatialPointsDataFrame
       
-      # no need to discretize, however to bring in other covariates (depth) use discretization in planar coords 
-      SS$plon = grid.internal( SS$plon, p$plons )
-      SS$plat = grid.internal( SS$plat, p$plats )
-      SS = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
- 
-      # add depth and related stats .. dependencies for inla-based modelling
-      ZZ = bathymetry.db( p, DS="inla" )
-
-      substrate = merge ( SS, ZZ, by=c("plon", "plat"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-      
+      # "raw data" .. though interpolated already by Kostolev et al. into a SpatialGridDataFrame
+      SS = as( projectRaster( 
+          from=substrate.db( p=p, DS="substrate.initial" ), 
+          to=spatial.parameters.to.raster( p) ), "SpatialGridDataFrame" ) 
+      substrate = over( ZZ, SS ) # SpatialPointsDataFrame
       save (substrate, file=fn, compress=TRUE)
       return(fn)
     }
