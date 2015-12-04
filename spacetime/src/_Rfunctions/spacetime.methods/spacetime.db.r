@@ -76,7 +76,7 @@
     if (DS %in% c( "predictions", "predictions.redo", "predictions.bigmemory.initialize" )  ) { 
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      rootdir = file.path( p$project.root, "data", "interpolated" )
+      rootdir = file.path( p$project.root, "interpolated" )
       dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
       fn.P =  file.path( rootdir, paste( "spacetime", "predictions", p$spatial.domain, "rdata", sep=".") ) 
       if ( DS=="predictions" ) {
@@ -125,7 +125,7 @@
       
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      rootdir = file.path( p$project.root, "data", "interpolated" )
+      rootdir = file.path( p$project.root, "interpolated" )
       dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
       fn.S =  file.path( rootdir, paste( "spacetime", "statistics", p$spatial.domain, "rdata", sep=".") ) 
 

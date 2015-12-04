@@ -70,8 +70,8 @@
   # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if serial process
 
 
- # for debugging:
   bathymetry.db( DS="landmasks.create", p=p ) # need do only once, unless resolution is being changed
+ # for debugging during parallel run:
  # bathymetry.figures( DS="statistics", p=p ) # need do only once, unless resolution is being changed
  # bathymetry.figures( DS="predictions", p=p ) # need do only once, unless resolution is being changed
  # bathymetry.figures( DS="predictions.errors", p=p ) # need do only once, unless resolution is being changed
