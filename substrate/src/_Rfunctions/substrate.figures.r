@@ -13,14 +13,8 @@ substrate.figures = function( DS=NULL, p=NULL ) {
     levelplot( log( P[oc,2] ) ~ plons + plats, pps[oc,], aspect="iso", main=NULL, at=dr, col.regions=rev(color.code( "seis", dr)) ,
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE),
         panel = function(x, y, subscripts, ...) {
-        panel.levelplot (x, y, subscripts, aspect="iso", rez=c(1,1), ...)
-        #coastline
-        cl = landmask( return.value="coast.lonlat",  ylim=c(36,53), xlim=c(-72,-45)  )
-        cl = lonlat2planar( data.frame( cbind(lon=cl$x, lat=cl$y)), proj.type=p$internal.crs )
-        panel.xyplot( cl$plon, cl$plat, col = "steelblue", type="l", lwd=0.8 )
-   #     zc = isobath.db( p=p, depths=c(200, 400 ) )  
-   #     zc = lonlat2planar( zc, proj.type=p$internal.crs) 
-   #     panel.xyplot( zc$plon, zc$plat, col = "steelblue", pch=".", cex=0.1 )
+          panel.levelplot (x, y, subscripts, aspect="iso", rez=c(1,1), ...)
+          sp.lines( isobath.db( p=p, DS="isobath", depths=c(0, 200, 400 ) ), col = "steelbue", pch=".", cex=0.1 )
       }
     )
   }
@@ -36,14 +30,8 @@ substrate.figures = function( DS=NULL, p=NULL ) {
     levelplot( log( P[oc,3] ) ~ plons + plats, pps[oc,], aspect="iso", main=NULL, at=dr, col.regions=rev(color.code( "seis", dr)) ,
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE),
         panel = function(x, y, subscripts, ...) {
-        panel.levelplot (x, y, subscripts, aspect="iso", rez=c(1,1), ...)
-        #coastline
-        cl = landmask( return.value="coast.lonlat",  ylim=c(36,53), xlim=c(-72,-45)  )
-        cl = lonlat2planar( data.frame( cbind(lon=cl$x, lat=cl$y)), proj.type=p$internal.crs )
-        panel.xyplot( cl$plon, cl$plat, col = "steelblue", type="l", lwd=0.8 )
-   #     zc = isobath.db( p=p, depths=c(200, 400 ) )  
-   #     zc = lonlat2planar( zc, proj.type=p$internal.crs) 
-   #     panel.xyplot( zc$plon, zc$plat, col = "steelblue", pch=".", cex=0.1 )
+          panel.levelplot (x, y, subscripts, aspect="iso", rez=c(1,1), ...)
+          sp.lines( isobath.db( p=p, DS="isobath", depths=c(0, 200, 400 ) ), col = "steelbue", pch=".", cex=0.1 )
       }
     )
   }
@@ -60,13 +48,7 @@ substrate.figures = function( DS=NULL, p=NULL ) {
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2,
       panel = function(x, y, subscripts, ...) {
         panel.levelplot (x, y, subscripts, aspect="iso", rez=c(5,5), ...)
-        #coastline
-        cl = landmask( return.value="coast.lonlat",  ylim=c(36,53), xlim=c(-72,-45) )
-        cl = lonlat2planar( data.frame( cbind(lon=cl$x, lat=cl$y)), proj.type=p$internal.crs )
-        panel.xyplot( cl$plon, cl$plat, col = "black", type="l", lwd=0.8 )
-        zc = isobath.db( p=p, depths=c( 300 ) )  
-        zc = lonlat2planar( zc, proj.type=p$internal.crs) 
-        panel.xyplot( zc$plon, zc$plat, col = "gray", pch=".", cex=0.1 )
+        sp.lines( isobath.db( p=p, DS="isobath", depths=c(0, 300 ) ), col = "gray", pch=".", cex=0.1 )
       }
     ) 
   }

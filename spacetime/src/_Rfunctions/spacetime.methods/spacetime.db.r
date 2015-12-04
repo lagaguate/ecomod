@@ -74,18 +74,16 @@
     # -----------------
 
     if (DS %in% c( "predictions", "predictions.redo", "predictions.bigmemory.initialize" )  ) { 
-      
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      fn.P =  file.path( p$project.root, "data", paste( p$spatial.domain, "predictions", "rdata", sep="." ) ) 
-
+      rootdir = file.path( p$project.root, "data", "interpolated" )
+      dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
+      fn.P =  file.path( rootdir, paste( "spacetime", "predictions", p$spatial.domain, "rdata", sep=".") ) 
       if ( DS=="predictions" ) {
         preds = NULL
         if (file.exists( fn.P ) ) load( fn.P )
         return( preds ) 
       }
-
-
       if ( DS=="predictions.bigmemory.initialize" ) {
         # prediction indices in matrix structure 
         #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
@@ -101,10 +99,7 @@
           backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
         return( describe(P)) 
       }
-
-
       if ( DS =="predictions.redo" ) {
-        
         preds = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
         preds = preds[]
         save( preds, file=fn.P, compress=TRUE )
@@ -130,8 +125,9 @@
       
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-
-      fn.S =  file.path( p$project.root, "data", paste( p$spatial.domain, "statistics", "rdata", sep=".") ) 
+      rootdir = file.path( p$project.root, "data", "interpolated" )
+      dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
+      fn.S =  file.path( rootdir, paste( "spacetime", "statistics", p$spatial.domain, "rdata", sep=".") ) 
 
       if ( DS=="statistics" ) {
         stats = NULL
@@ -173,8 +169,6 @@
         return( list(problematic=i, incomplete=j, completed=k, n.total=nrow(S[]), 
                      n.incomplete=length(j), n.problematic=length(i), n.complete=length(k)) ) 
       }
-
-
 
       if ( DS =="statistics.redo" ) {
         #\\ spacetime.db( "statsitics.redo") .. statistics are stored at a different resolution than the final grid
@@ -251,13 +245,9 @@
             contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2, resol=resol,
             panel = function(x, y, subscripts, ...) {
               panel.levelplot (x, y, subscripts, aspect="iso", rez=resol, ...)
-              #coastline
               cl = landmask( return.value="coast.lonlat",  ylim=c(36,53), xlim=c(-72,-45) )
               cl = lonlat2planar( data.frame( cbind(lon=cl$x, lat=cl$y)), proj.type=p$internal.crs )
               panel.xyplot( cl$plon, cl$plat, col = "black", type="l", lwd=0.8 )
-              # zc = isobath.db( p=p, depths=c( 200 ) )  
-              # zc = lonlat2planar( zc, proj.type=p$internal.crs) 
-              # panel.xyplot( zc$plon, zc$plat, col = "gray", pch=".", cex=0.1 )
             }
           ) 
           p$spatial.domain="canada.east.highres"

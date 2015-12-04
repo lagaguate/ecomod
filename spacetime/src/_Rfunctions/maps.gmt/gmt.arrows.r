@@ -29,7 +29,7 @@
           
       for (d in isobaths ){
         isob = NULL
-        isob = isobath.db( p=params, depths=d )
+        isob = isobath.db( p=params, DS="gmt", depths=d )
         if (is.null(isob)) next()
         write.table( isob, file=gmt.isobathdata, quote=FALSE, col.names=FALSE, row.names=FALSE )
         cmd( "gmt psxy", gmt.isobathdata, region, gmtproj, isobath.options, ps.append, outfile )

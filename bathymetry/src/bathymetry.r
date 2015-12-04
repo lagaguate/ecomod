@@ -71,7 +71,7 @@
 
 
  # for debugging:
- # bathymetry.figures( DS="landmasks.create", p=p ) # need do only once, unless resolution is being changed
+  bathymetry.db( DS="landmasks.create", p=p ) # need do only once, unless resolution is being changed
  # bathymetry.figures( DS="statistics", p=p ) # need do only once, unless resolution is being changed
  # bathymetry.figures( DS="predictions", p=p ) # need do only once, unless resolution is being changed
  # bathymetry.figures( DS="predictions.errors", p=p ) # need do only once, unless resolution is being changed
@@ -91,7 +91,29 @@
   bathymetry.db( p=p, DS="spde_complete.redo", grids.new=c( "canada.east.highres", "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
 
   # test outputs/ access methods
-  plot( bathymetry.db( p, DS="spde_complete", return.format="brick" )$z ) # raster brick
-  spplot( bathymetry.db( p, DS="spde_complete"), "z" ) # default return value is a spatial points/grid data frame
+  # plot( bathymetry.db( p, DS="spde_complete", return.format="brick" )$z ) # raster brick
+  # spplot( bathymetry.db( p, DS="spde_complete"), "z" ) # default return value is a spatial points/grid data frame
+
+  
+  ### NOTE:  bathymetry.db ( p, DS="complete" ) is a synonym for   bathymetry.db( p=p, DS="spde_complete" )
+	
+  # filtering of areas and or depth to reduce file size, in planar coords only
+  for (domain in c("canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab" ) ) {
+    bathymetry.db ( p=spatial.parameters( type=domain ), DS="baseline" ) 
+  }
+
+  # "snowcrab" subsets do exist but are simple subsets of SSE 
+  # so only the lookuptable below is all that is important as far as bathymetry is concerned
+  # both share the same initial domains + resolutions
+   
+  bathymetry.db( p=spatial.parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
+ 
+
+  coast = isobath.db( p=p, DS="coastLine.redo", return.lonlat=TRUE ) # flatten into one
+  coast = isobath.db( p=p, DS="coastPolygon.redo", return.lonlat=TRUE )
+  plygn = isobath.db( p=p, DS="isobath.redo", 
+    depths=c(0, 10, 20, 50, 75, 100, 200, 300, 400, 500, 600, 700, 800, 900, 
+             1000, 1200, 1400, 1500, 2000, 2500, 3000, 4000, 5000 ), return.lonlat=TRUE  )
+
 
 
