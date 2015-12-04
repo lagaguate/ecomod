@@ -74,18 +74,16 @@
     # -----------------
 
     if (DS %in% c( "predictions", "predictions.redo", "predictions.bigmemory.initialize" )  ) { 
-      
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      fn.P =  file.path( p$project.root, "data", paste( p$spatial.domain, "predictions", "rdata", sep="." ) ) 
-
+      rootdir = file.path( p$project.root, "interpolated" )
+      dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
+      fn.P =  file.path( rootdir, paste( "spacetime", "predictions", p$spatial.domain, "rdata", sep=".") ) 
       if ( DS=="predictions" ) {
         preds = NULL
         if (file.exists( fn.P ) ) load( fn.P )
         return( preds ) 
       }
-
-
       if ( DS=="predictions.bigmemory.initialize" ) {
         # prediction indices in matrix structure 
         #  Pmat = filebacked.big.matrix( ncol=p$nplats, nrow=p$nplons, type="integer", dimnames=NULL, separated=FALSE, 
@@ -101,10 +99,7 @@
           backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
         return( describe(P)) 
       }
-
-
       if ( DS =="predictions.redo" ) {
-        
         preds = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
         preds = preds[]
         save( preds, file=fn.P, compress=TRUE )
@@ -130,8 +125,9 @@
       
       # load bigmemory data objects pointers
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-
-      fn.S =  file.path( p$project.root, "data", paste( p$spatial.domain, "statistics", "rdata", sep=".") ) 
+      rootdir = file.path( p$project.root, "interpolated" )
+      dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
+      fn.S =  file.path( rootdir, paste( "spacetime", "statistics", p$spatial.domain, "rdata", sep=".") ) 
 
       if ( DS=="statistics" ) {
         stats = NULL
@@ -174,8 +170,6 @@
                      n.incomplete=length(j), n.problematic=length(i), n.complete=length(k)) ) 
       }
 
-
-
       if ( DS =="statistics.redo" ) {
         #\\ spacetime.db( "statsitics.redo") .. statistics are stored at a different resolution than the final grid
         #\\   this fast interpolates the solutions to the final grid
@@ -206,7 +200,8 @@
         names( locsout ) = c("plon", "plat")
 
         stats = matrix( NA, ncol=length(statnames), nrow=nrow( locsout) )  # output data
-       
+        colnames(stats)=statnames
+
         for ( iv in 1:length(statnames) ) {
           vn = statnames[iv]
           # create a "surface" and interpolate to larger grid using
@@ -214,13 +209,13 @@
           z = log( matrix( ss[,vn], nrow=length(p$sbbox$plons), ncol=length( p$sbbox$plats) ) )
           RES = NULL
           RES = spacetime.interpolate.kernel.density( x=p$sbbox$plons, y=p$sbbox$plats, z=z, 
-            locsout=locsout,  nxout=length(p$sbbox$plons), nyout=length( p$sbbox$plats),
+            locsout=locsout,  nxout=length(p$plons), nyout=length( p$plats),
             theta=p$dist.mwin, xwidth=p$dist.mwin*10, ywidth=p$dist.mwin*10 ) # 10 SD of the normal kernel
           # 10 SD of the normal kernel
           if ( !is.null( RES )) stats[,iv] = exp( RES$z ) # return to correct scale
 
           method = FALSE
-          if (method=="inla.fast") { # faster but not fast enough for prime time yet
+          if (method=="inla.fast") { # fast, but not fast enough for prime time yet
             # interpolation using inla is also an option 
             # but will require a little more tweaking as it was a bit slow
             range0 = median( ss$range, na.rm=TRUE )
@@ -233,28 +228,26 @@
             rm (RES); gc()
           }          
         }        
+        
         save( stats,  file=fn.S, compress=TRUE )
         return( fn.S)
 
-        plotdata=FALSE
+        plotdata=FALSE ## to debug
         if (plotdata) {
           p$spatial.domain="canada.east"  # force isobaths to work in levelplot
-          datarange = log( c( 5, 800 ))
+          datarange = log( c( 5, 1200 ))
           dr = seq( datarange[1], datarange[2], length.out=150)
           oc = landmask( db="worldHires", regions=c("Canada", "US"), 
-                         return.value="not.land", tag="predictions" )
-          toplot = cbind( locsout, z=as.vector(stats[,"range"]) )[oc,]
-          levelplot( z ~ plon + plat, toplot, aspect="iso", at=dr, col.regions=color.code( "seis", dr) ,
-            contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2,
+                         return.value="not.land", tag="predictions" )  ## resolution of "predictions" which is the final grid size
+          toplot = cbind( locsout, z=(stats[,"range"]) )[oc,]
+          resol = c(p$dist.mwin,p$dist.mwin)
+          levelplot( log(z) ~ plon + plat, toplot, aspect="iso", at=dr, col.regions=color.code( "seis", dr) ,
+            contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2, resol=resol,
             panel = function(x, y, subscripts, ...) {
-              panel.levelplot (x, y, subscripts, aspect="iso", rez=c(5,5), ...)
-              #coastline
+              panel.levelplot (x, y, subscripts, aspect="iso", rez=resol, ...)
               cl = landmask( return.value="coast.lonlat",  ylim=c(36,53), xlim=c(-72,-45) )
               cl = lonlat2planar( data.frame( cbind(lon=cl$x, lat=cl$y)), proj.type=p$internal.crs )
               panel.xyplot( cl$plon, cl$plat, col = "black", type="l", lwd=0.8 )
-              zc = isobath.db( p=p, depths=c( 300 ) )  
-              zc = lonlat2planar( zc, proj.type=p$internal.crs) 
-              panel.xyplot( zc$plon, zc$plat, col = "gray", pch=".", cex=0.1 )
             }
           ) 
           p$spatial.domain="canada.east.highres"

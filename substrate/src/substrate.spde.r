@@ -1,19 +1,16 @@
-  # Bathymetry data: processing bathymetry data with RINLA  .. no GMT dependency 
-
-  p = list( project.name = "bathymetry" )
+ 
+# process Substrate information using SPDE /RINLA .. no GMT dependency
+    
+  p = list( project.name = "substrate" )
   p$project.root = project.datadirectory( p$project.name )
          
-  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-  p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", "sp", "raster", "colorspace" ,
-    "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra", "splancs", "fields")
+  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "substrate" ) )
+  p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", 
+                     "sp", "raster", "colorspace" ,  "splancs", "fields",
+                     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
   
   p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
-  
-  redo.bathymetry.rawdata = FALSE
-  if ( redo.bathymetry.rawdata ) { 
-    bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-  }
-
+   
   p = spacetime.parameters(p)  # load spde defaults
   p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
   p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
@@ -24,7 +21,13 @@
   p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
-  p$modelformula = formula( ydata ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
+  p$debug.file = file.path( ecomod.workdirectory, "inla.debug.out" )
+  
+  p$modelformula = formula( ydata ~ -1 + intercept + depth + slope + curvature + f( spatial.field, model=S0 ) )
+  p$spacetime.link = function( X ) { log(X) + 1000 } 
+  p$spacetime.invlink = function( X ) { exp(X) - 1000  }
+
+
   p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
   p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
   p$spacetime.invlink = function( X ) { exp(X) - 1000 }
@@ -37,17 +40,18 @@
     # make it difficult to implement in a simple structure/manner ... 
     # the overhead is minimal relative to the speed of modelling and posterior sampling
     i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
-    i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
-    return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
+    i_depth = grep("depth", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+    i_slope = grep("slope", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+    i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
+    return( p$spacetime.invlink( s$latent[i_intercept,1] + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_spatial.field,1] ) )
   }
- 
+   
   reset.input = FALSE
   if (reset.input) {
-    # faster if you do this step on kaos (the fileserver)
-    bathymetry.db ( p, DS="bathymetry.spacetime.input.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae)
-    spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=bathymetry.db( p=p, DS="bathymetry.spacetime.input" ) )
+    # depends upon bathymetry
+    substrate.db ( p=p, DS="substrate.spacetime.input.redo" )  # Warning: req ~ 15 min, 30 GB RAM (2015, Jae)
+    spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=substrate.db( p=p, DS="substrate.spacetime.input" ) )
   }
-  
   reset.output = FALSE
   if (reset.output) {
     spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
@@ -67,25 +71,22 @@
   parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
   # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if serial process
 
- # bathymetry.figures( DS="landmasks.create", p=p ) # need do only once, unless resolution is being changed
-  bathymetry.figures( DS="statistics", p=p ) # need do only once, unless resolution is being changed
-  bathymetry.figures( DS="predictions", p=p ) # need do only once, unless resolution is being changed
-  bathymetry.figures( DS="predictions.errors", p=p ) # need do only once, unless resolution is being changed
+  # for debugging:
+  # substrate.figures( DS="statistics", p=p ) # need do only once, unless resolution is being changed
+  # substrate.figures( DS="predictions", p=p ) # need do only once, unless resolution is being changed
+  # substrate.figures( DS="predictions.errors", p=p ) # need do only once, unless resolution is being changed
   
   # save to file and clean up 
   spacetime.db( p=p, DS="predictions.redo" )  
   spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
   spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
 
-  # compute slope and curvature and then assimilate results in bathymetry.db
-  bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )  
-
   # as the interpolation process is so expensive, regrid based off the above run
   # if you want more, will need to add to the list and modify the selection criteria
-  bathymetry.db( p=p, DS="finalized.redo", grids.new=c( "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
+  substrate.db( p=p, DS="finalized.redo", grids.new=c( "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
 
   # test outputs/ access methods
-  plot( bathymetry.db( p, DS="finalized", return.format="brick" )$z ) # raster brick
-  spplot( bathymetry.db( p, DS="finalized", return.format="sp" ), "z" ) # spatial points/grid data frame
-
+  plot( substrate.db( p, DS="finalized", return.format="brick" )$z ) # raster brick
+  spplot( substrate.db( p, DS="finalized", return.format="sp" ), "z" ) # spatial points/grid data frame
+   
 

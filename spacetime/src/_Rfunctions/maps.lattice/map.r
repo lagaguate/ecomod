@@ -68,13 +68,8 @@
         }
 
         if (depthcontours) {
-          zc = isobath.db( p=pp, depths=c(100, 300,  500, 700 ) )  
-          zc = lonlat2planar( zc, proj.type= projection )
-          panel.xyplot( zc$plon, zc$plat, col = "darkgrey", pch=".", cex=0.6 )
-
-          zc = isobath.db( p=pp, depths=c(200, 400, 600 ) )  
-          zc = lonlat2planar( zc, proj.type= projection )
-          panel.xyplot( zc$plon, zc$plat, col = "grey", pch=".", cex=0.6 )
+          sp.lines( isobath.db( p=pp, depths=c(100, 300,  500, 700 ) ), col = "darkgrey", pch=".", cex=0.6 )
+          sp.lines( isobath.db( p=pp, depths=c(200, 400, 600 ) ), col = "grey", pch=".", cex=0.6 )
         }
 
         if ( cfa.regions ) {
@@ -108,9 +103,7 @@
         }
                   
         #coastline
-        zc = isobath.db( p=pp, depths=c(0)  ) 
-        zc = lonlat2planar( zc, proj.type= projection )
-        panel.xyplot( zc$plon, zc$plat, col = "black", pch=".", cex=1 )
+        sp.lines( isobath.db( p=pp, depths=c(0) ), col = "black", pch=".", cex=1 )
 
         if (is.null(leg) ) {
 				  xoffset = 30
