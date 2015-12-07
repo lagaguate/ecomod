@@ -1,4 +1,4 @@
-figure.habitat.associations <- function(data,p,out.dir='groundfish',f.name) {
+figure.habitat.associations <- function(data,p,out.dir='groundfish',f.name,plot=T) {
 	print('2014 data not included temp and sal not in database')
 	options(stringsAsFactors=F)
 out.d = out.s = out.t = list()
@@ -29,8 +29,8 @@ for(i in 1:(length(data)-2)) {
 		for(i in c(1:10,12)) {
 			ss[,i]<-as.numeric(ss[,i])
 		}
-		
-		pdf(file=file.path(project.datadirectory(out.dir),"analysis","figures",paste(f.name,'.pdf',sep="")))
+		if(plot){
+		pdf(file=file.path(project.datadirectory(out.dir),"figures",paste(f.name,'.pdf',sep="")))
 		vars<-unique(ss$VAR)
 		par(mfcol=c(3,1))
 		par(mar=c(0,4,4,1))
@@ -62,7 +62,8 @@ for(i in 1:(length(data)-2)) {
 		with(a3,points(VAL~YEAR,pch=SYM, cex=1.5))
 		with(a3,lines(MED.HAB~YEAR,col='blue'))
 		dev.off()
-		return(ss)
 		}
-
+		return(ss)
+		
+		}
 

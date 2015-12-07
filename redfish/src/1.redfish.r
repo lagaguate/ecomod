@@ -188,8 +188,8 @@ if(make.map.allocation) {
 #commercial numbers at length by cm
 
 if(redo.commercial.bubbles) {
-				load(file.path(project.datadirectory('redfish'),'data','commercial.numbers.at.length.rdata')) #This is from pcomeau
-				out=a
+				load(file.path(project.datadirectory('redfish'),'data','commercial.numbers.at.length.updated.dec2015.rdata')) #This is from pcomeau
+				out=b
 				pdf(file.path(project.datadirectory('redfish'),'figures','UnitIIIcommercialbubbles.pdf'))
 				matrixBubbles(t(out[,2:46]),xr=1:45,yr=1:45,maxinch=0.2,xlab='Year',ylab='Length',yc.colors=T,ttl='Unit III Redfish')
 				dev.off()	
@@ -199,8 +199,8 @@ if(redo.commercial.bubbles) {
 #make the numbers at length freqs for commercial and survey standardized to one for each year
 if(make.length.freq.comps) {
 	#commercial
-			load(file.path(project.datadirectory('redfish'),'data','commercial.numbers.at.length.rdata')) #This is from pcomeau
-				outc=a
+			load(file.path(project.datadirectory('redfish'),'data','commercial.numbers.at.length.updated.dec2015.rdata')) #This is from pcomeau
+				outc=b
 	#survey
 	load(file.path(project.datadirectory('redfish'),'analysis','stratified.at.length.redfish.rdata')) #This matches PComeau's #s
 				outs = reshape(oo[,c('yr','len.group','n.yst')], timevar= 'len.group',idvar='yr',direction='wide')
@@ -209,7 +209,7 @@ if(make.length.freq.comps) {
 		a = outc[i,2:51]
 		s = outs[i,2:51]
 		pdf(file.path(project.datadirectory('redfish'),'figures',paste('length.freqs',outc[i,1],'pdf',sep=".")))
-		plot(1:50,a/sum(a),type='l',lwd=3,col='grey30',cex.axis=2,xlab=c('Length (cm)'),ylab='Proportion',cex.lab=1.8)
+		plot(1:50,a/sum(a),type='l',lwd=3,col='grey50',cex.axis=2,xlab=c('Length (cm)'),ylab='Proportion',cex.lab=1.8)
 		lines(1:50,s/sum(s),type='l',lwd=3,col='black')
 		legend('topleft',bty='n',legend=outc[i,1],cex=2.5)
 		dev.off()		
@@ -218,6 +218,22 @@ if(make.length.freq.comps) {
 
 }
 
+
+if(redo.relativeF) {
+	a = read.csv(file.path(project.datadirectory('redfish'),'data','landings.newdec2015.csv')) #This matches PComeau's #s
+	b= groundfish.analysis(DS='stratified.estimates',p=p,out.dir= 'redfish') #returns all the redfish stratified data
+	a = as.numeric(a[1,])
+	b = b[which(b$group=='23-70'),c('yr','w.Yst')]
+	b$int = NA 
+	for(i in 2:nrow(b)) {
+			b[i,'int'] = (b[i,'w.Yst'] - b[i-1,'w.Yst'])*8/12 + b[i-1,'w.Yst']
+	}
+	b = cbind(b,c(NA,a))
+	names(b)[4] = 'landings'
+	b$rF = b$landings / b$int
+
+	with(b[which(b$yr>1981),],plot(yr,rF, xlab='Year',ylab='Relative F',type='b',pch=16))
+	savePlot(file.path(project.datadirectory('redfish'),'figures','relativeFunsmoothed.png'),type='png')}
 
 #mean weight at length
 if(redo.mean.wt.at.length) {
@@ -272,7 +288,7 @@ if(redo.perry.smith.habitats) {
 			p$strata.files.return =T
 			p$plot.name = 'unit3redfish.habitat.associations.pdf'
 			aout = groundfish.analysis(DS = 'species.set.data',p=p,out.dir='redfish')
-			figure.habitat.associations(aout,p=p,out.dir='redfish',f.name='unit3redfish.habitat.associations.22-70')
+			figure.habitat.associations(aout,p=p,out.dir='redfish',f.name='unit3redfish.habitat.associations.22-70',plot=F)
 			#figure.habitat.associations(aout,p=p,out.dir='redfish',f.name='unit3redfish.habitat.associations.0-22')
 			}
 
