@@ -60,14 +60,14 @@ if(redo.stratied.figure) {
 				p$reference.start.year = 1999
 				p$reference.end.year = 2013
 				p$add.primary.line = F # the center estimate for reference point
-				p$metric =  'numbers' #'weights' #'numbers'#
-				p$measure = 'stratified.mean' #'stratified.total'
+				p$metric =  'weights' #'weights' #'numbers'#
+				p$measure = 'stratified.total' #'stratified.total'
 
 				p$reference.measure = 'median' # mean, geomean 
 				
 				#p$file.name = 'unit3redfish.numbers.less.22cm.png'
 				#a = aout[which(aout$group=='0-22'),]
-				#p$file.name = 'unit3redfish.weights.greater.22cm.png'
+				p$file.name = 'unit3redfish.weights.total.greater.22cm.png'
 				#a = aout[which(aout$group=='23-70'),]
 				
 				p$file.name = 'unit3redfish.weights.all.png'
