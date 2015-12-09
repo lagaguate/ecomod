@@ -10,12 +10,6 @@
   
   ## highres = 0.5 km discretization  .. do NOT change .. instead use "spde_complete" below to project onto other grids
   p = spatial.parameters( type="canada.east.highres", p=p ) 
-  
-  redo.bathymetry.rawdata = FALSE
-  if ( redo.bathymetry.rawdata ) { 
-    bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-  }
-
   p = spacetime.parameters(p)  # load spde defaults
   p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
   p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
@@ -25,8 +19,9 @@
   p$expected.range = 50 #+units=km km , with dependent var on log scale
   p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+  p$variables = list( Y="z", X=NULL, LOCS=c("plon", "plat") )  
 
-  p$modelformula = formula( ydata ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
+  p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
   p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
   p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
   p$spacetime.invlink = function( X ) { exp(X) - 1000 }
@@ -42,7 +37,12 @@
     i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
     return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
   }
- 
+   
+  redo.bathymetry.rawdata = FALSE
+  if ( redo.bathymetry.rawdata ) { 
+    bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+  }
+
   reset.input = FALSE
   if (reset.input) {
     # faster if you do this step on kaos (the fileserver)
@@ -99,7 +99,7 @@
 	
   # filtering of areas and or depth to reduce file size, in planar coords only
   for (domain in c("canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab" ) ) {
-    bathymetry.db ( p=spatial.parameters( type=domain ), DS="baseline" ) 
+    bathymetry.db ( p=spatial.parameters( type=domain ), DS="baseline.redo" ) 
   }
 
   # "snowcrab" subsets do exist but are simple subsets of SSE 
@@ -108,12 +108,32 @@
    
   bathymetry.db( p=spatial.parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
  
+  # to recreate new polygons, run the following:
+  bathyclines.redo = FALSE
+  depths = c(0, 10, 20, 50, 75, 100, 200, 300, 400, 500, 600, 700, 800, 900, 
+               1000, 1200, 1400, 1500, 2000, 2500, 3000, 4000, 5000 )
+  if( bathyclines.redo ) {
+    coast = isobath.db( p=p, DS="coastLine.redo", return.lonlat=TRUE ) # flatten into one
+    coast = isobath.db( p=p, DS="coastPolygon.redo", return.lonlat=TRUE )
+    plygn = isobath.db( p=p, DS="isobath.redo", depths=depth, return.lonlat=TRUE  )
+  }
+  
+  plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
 
-  coast = isobath.db( p=p, DS="coastLine.redo", return.lonlat=TRUE ) # flatten into one
-  coast = isobath.db( p=p, DS="coastPolygon.redo", return.lonlat=TRUE )
-  plygn = isobath.db( p=p, DS="isobath.redo", 
-    depths=c(0, 10, 20, 50, 75, 100, 200, 300, 400, 500, 600, 700, 800, 900, 
-             1000, 1200, 1400, 1500, 2000, 2500, 3000, 4000, 5000 ), return.lonlat=TRUE  )
+  plot( plygn[ as.character(c(0))], xlim=c(-68,-52), ylim=c(41,50), col="blue" )  # ie. coastline
+  lines( plygn[ as.character(c( 100, 200, 300 ))], col="lightgray" ) # for multiple polygons
+  lines( plygn[ as.character(c( 500, 1000))], col="gray" ) # for multiple polygons
+  # plot( plygn, xlim=c(-68,-52), ylim=c(41,50))  # all isobaths commented as it is slow ..
 
 
+  # or to get in projected (planar) coords as defined by p$spatial domain
+  plygn = isobath.db( p=p, DS="isobath", depths=c(100)  ) # as SpatialLines
+  plot(plygn)
+
+  plygn_aslist = coordinates( plygn) 
+  plot( 0,0, type="n", xlim=c(-200,200), ylim=c(-200,200)  )
+  lapply( plygn_aslist[[1]], points, pch="." )
+
+  plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
+  plot(plygn_as_xypoints, pch=".")
 

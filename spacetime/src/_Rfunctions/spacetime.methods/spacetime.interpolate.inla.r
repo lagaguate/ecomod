@@ -15,14 +15,21 @@
    
     # load bigmemory data objects pointers
     p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-    
+ 
+    options(bigmemory.allow.dimnames=TRUE)
+  
     # data file definitions
-    W = attach.big.matrix(p$descriptorfile.W, path=p$tmp.datadir )  # input data
-    # vars = all.terms( p$modelformula )
+    Y = attach.big.matrix(p$descriptorfile.Y, path=p$tmp.datadir )  # input data -- dependent vars
+    colnames(Y) = p$variables$Y
+    
+    LOCS = attach.big.matrix(p$descriptorfile.LOCS, path=p$tmp.datadir )  # input data -- location vars
+    colnames(LOCS) = p$variables$LOCS
 
-    dlocs = W[,1:2]  # make a local copy to force into RAM
-    dvar  = W[,3]
-
+    if ( !is.null( p$variables$X ) ) { 
+      X = attach.big.matrix(p$descriptorfile.X, path=p$tmp.datadir )  # input data  -- independent vars
+      colnames(X) = p$variables$X
+    } 
+    
     # storage of indices  .. keep here :: more memory usage but fewer operation
     Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons )  
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
@@ -50,7 +57,7 @@
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
       # slow ... need to find a faster solution
       ppp = NULL
-      ppp = try( point.in.block( focal[1,c(1,2)], dlocs, dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, resize=TRUE ) )
+      ppp = try( point.in.block( focal[1,c(1,2)], LOCS[], dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, resize=TRUE ) )
       if( is.null(ppp)) next()
       if (class( ppp ) %in% "try-error" ) next()
       dist.cur = ppp$dist.to.nmax
@@ -72,6 +79,8 @@
       preds.diffs = seq( from=-ppdist, to=ppdist, by=p$pres )
       preds.diffs = preds.diffs[ which( preds.diffs >= -dist.cur &  preds.diffs <= dist.cur ) ]
    
+  p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
+ 
       pa_plons = focal[1] + preds.diffs
       pa_plats = focal[2] + preds.diffs
 
@@ -92,7 +101,7 @@
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, " \n" ), file=p$debug.file, append=TRUE ) 
       }
 
-      locs = dlocs[ j, ] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise ) # add  noise  to prevent a race condition
+      locs = LOCS[j,] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise ) # add  noise  to prevent a race condition
 
       lengthscale=dist.cur*2 
    
@@ -127,31 +136,37 @@
   
       # data stack 
       Aobs = inla.spde.make.A( mesh=MESH, loc=locs )
-      DATA = inla.stack( tag="obs",
-        data = list( ydata=p$spacetime.link ( dvar[j] ) ), 
-        A = list( Aobs, 1), # projection matrix A to translate from mesh nodes to data nodes
-        effects = list( 
-          c( list(intercept=rep(1,MESH$n )), 
-             inla.spde.make.index(name=p$spatial.field.name, n.spde=SPDE$n.spde)),
-          covar=rep(1, ndata ))
-      )
-      rm( Aobs ) 
+      
+      # effects .. a list of two elements: first is for SPDE and second is for covariates
+      EFFS_data = list()
+      EFFS_data[["spde"]] = c( list(intercept=rep(1,MESH$n )), inla.spde.make.index(name=p$spatial.field.name, SPDE$n.spde)) 
+      if ( !is.null( p$variables$X) ) EFFS_data[["covar"]] = as.list( as.data.frame( X[j,]))
+
+      ydata = list()
+      ydata[[ p$variables$Y ]] = p$spacetime.link ( Y[j] )
+      # DATA$A is projection matrix to translate from mesh nodes to data nodes
+      DATA = inla.stack( tag="obs", 
+        data=ydata, 
+        A=list( Aobs, 1), 
+        effects=EFFS_data )
+      rm (ydata); gc()
 
       # prediction stack
       predict.in.one.go = FALSE
       if( predict.in.one.go) {
+        EFFS_data = list()
+        EFFS_data[["spde"]] = c( list(intercept=rep(1, MESH$n)), inla.spde.make.index( name=p$spatial.field.name, MESH$n))
+        if ( !is.null( p$variables$X) ) EFFS_data[["covar"]] = as.list(as.data.frame(X[,j])) 
         Apreds = inla.spde.make.A(MESH, loc=as.matrix(pa[, c("plon", "plat")]) )
-        PREDS = inla.stack( tag="preds",
-          data=list( ydata=NA),
-          A=list(Apreds),
-          effects=list(
-            c( list(intercept=rep(1, MESH$n)),
-               inla.spde.make.index( name=p$spatial.field.name, MESH$n)))
-        )
-        rm (Apreds) 
+        ydata_preds = list()
+        ydata_preds[[ p$variables$Y ]] = NA
+        PREDS = inla.stack( tag="preds", data=ydata_preds, A=list(Apreds), effects=EFFS_preds )
+        rm (Apreds, EFFS_preds) 
         DATA = inla.stack(DATA, PREDS)
         i_data = inla.stack.index( DATA, "preds")$data
       }
+       
+      rm( Aobs, EFFS_data ) 
      
       RES = NULL
       RES = spacetime.inla.call( FM=p$modelformula, DATA=DATA, SPDE=SPDE, FAMILY=p$spacetime.family )
