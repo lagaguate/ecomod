@@ -13,12 +13,13 @@ figure.stratified.analysis <- function(x,p,out.dir='groundfish') {
 		m='Yst' ; mm = 'n'; lev='Stratified Total'; mt= 'Number'; div = 1000
 		if(grepl('mean',measure)) {m = 'yst'; lev = 'Stratified Mean'; div =1}
 		if(grepl('weight',metric)) {mm = 'w'; mt = 'Weight'}
-
 		n1 = names(x)[grep(m,names(x))]
 		n2 = names(x)[grep(mm,names(x))]
 		n = intersect(n1,n2)
 		xp = x[,c('yr',n)]
-		names(xp) = c('year','mean','se','lower','upper')
+		if(ncol(xp)==5) names(xp) = c('year','mean','se','lower','upper')
+		if(ncol(xp)==4) names(xp) = c('year','mean','lower','upper')
+		
 		xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 		xpp = xp[which(xp$year>=time.series.start.year & xp$year<=time.series.end.year),  ]
 		ylim=c(min(xpp$lower),max(xpp$upper))
