@@ -23,10 +23,11 @@
 
   p$debug.file = file.path( ecomod.workdirectory, "inla.debug.out" )
   
-  p$modelformula = formula( ydata ~ -1 + intercept + depth + slope + curvature + f( spatial.field, model=S0 ) )
+  p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
+  p$modelformula = formula( substrate ~ -1 + intercept + f( log(z), model="rw2") + f( dZ, model="rw2") + f(ddZ, model="rw2") 
+                           + f( range.modal, model="rw2" ) + f( spatial.field, model=SPDE ) )
   p$spacetime.link = function( X ) { log(X) + 1000 } 
   p$spacetime.invlink = function( X ) { exp(X) - 1000  }
-
 
   p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
   p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
@@ -40,16 +41,19 @@
     # make it difficult to implement in a simple structure/manner ... 
     # the overhead is minimal relative to the speed of modelling and posterior sampling
     i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
-    i_depth = grep("depth", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
-    i_slope = grep("slope", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+    i_depth = grep("z", rnm, fixed=TRUE ) # matching the model index  .. etc
+    i_slope = grep("dZ", rnm, fixed=TRUE ) # matching the model index  .. etc
+    i_curv  = grep("ddZ", rnm, fixed=TRUE ) # matching the model index  .. etc
     i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
-    return( p$spacetime.invlink( s$latent[i_intercept,1] + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_spatial.field,1] ) )
+    return( p$spacetime.invlink( 
+      s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] 
+      + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_curv,1] ) ) 
   }
    
   reset.input = FALSE
   if (reset.input) {
     # depends upon bathymetry
-    substrate.db ( p=p, DS="substrate.spacetime.input.redo" )  # Warning: req ~ 15 min, 30 GB RAM (2015, Jae)
+    substrate.db ( p=p, DS="substrate.spacetime.input.redo" )  
     spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=substrate.db( p=p, DS="substrate.spacetime.input" ) )
   }
   reset.output = FALSE

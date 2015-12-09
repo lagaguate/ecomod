@@ -91,7 +91,7 @@
         return( bathy )
       }
       
-      print( "This is going to taker a lot of RAM!")
+      print( "This is going to take a lot of RAM!")
 
 			# this data was obtained from CHS via David Greenberg in 2004; range = -5467.020, 383.153; n=28,142,338
       fn_nwa = file.path( datadir, "nwa.chs15sec.xyz.xz") # xz compressed file
@@ -555,9 +555,14 @@
         Z = bathymetry.db( p=spatial.parameters( type="SSE", p=p ), DS="spde_complete", return.format == "dataframe.filtered"  )
         
       } else {
-        Z = bathymetry.db( p=spatial.parameters( type="SSE", p=p ), DS="spde_complete", return.format == "dataframe.filtered"  )
+        Z = bathymetry.db( p=p , DS="spde_complete", return.format == "dataframe.filtered"  )
       }
+      names0 = names( Z)
+      Z = as.data.frame(Z)
+      names(Z) = c( names0, "plon", "plat")
       Z = Z[, c("plon", "plat", "z")] 
+   
+      Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) ## extra filters based upon depth and locations 
       save (Z, file=outfile, compress=T )
 			return( paste( "Baseline data file completed:", outfile )  )
       # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
@@ -659,7 +664,7 @@
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" )
     }
 
-
+  #-------------------------
 
     if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
       #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the 

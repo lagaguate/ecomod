@@ -13,8 +13,14 @@
       if( !file.exists(p$tmp.datadir)) dir.create( p$tmp.datadir, recursive=TRUE, showWarnings=FALSE )
 
       # input data stored as a bigmatrix to permit operations with min memory usage
-      p$backingfile.W = "input.bigmatrix.tmp"
-      p$descriptorfile.W = "input.bigmatrix.desc"
+      p$backingfile.Y = "input.Y.bigmatrix.tmp"
+      p$descriptorfile.Y = "input.Y.bigmatrix.desc"
+
+      p$backingfile.X = "input.X.bigmatrix.tmp"
+      p$descriptorfile.X = "input.X.bigmatrix.desc"
+
+      p$backingfile.LOCS = "input.LOCS.bigmatrix.tmp"
+      p$descriptorfile.LOCS = "input.LOCS.bigmatrix.desc"
 
       p$backingfile.P = "predictions.bigmatrix.tmp"
       p$descriptorfile.P = "predictions.bigmatrix.desc"
@@ -51,10 +57,48 @@
     if (DS == "inputdata.bigmemory.intialize" ) { 
       # create file backed bigmemory objects
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )  # load bigmemory data objects pointers
-      W = filebacked.big.matrix( nrow=nrow(B), ncol=ncol(B), type="double", dimnames=NULL, separated=FALSE, 
-        backingpath=p$tmp.datadir, backingfile=p$backingfile.W, descriptorfile=p$descriptorfile.W ) 
-      W[] = as.matrix( B[] )
-      return( describe(W) )
+
+      nr = nrow(B)
+      
+      fn.Y = file.path(p$tmp.datadir, p$backingfile.Y )
+      fn.X = file.path(p$tmp.datadir, p$backingfile.X )
+      fn.LOC = file.path(p$tmp.datadir, p$backingfile.LOC )
+      if ( file.exists( fn.Y) ) file.remove( fn.Y) 
+      if ( file.exists( fn.X) ) file.remove( fn.X) 
+      if ( file.exists( fn.LOC) ) file.remove( fn.LOC) 
+
+ 
+      # dependent variable
+      Y = filebacked.big.matrix( nrow=nr, ncol=1, type="double", dimnames=NULL, separated=FALSE, 
+        backingpath=p$tmp.datadir, backingfile=p$backingfile.Y, descriptorfile=p$descriptorfile.Y )
+      if ( "data.frame" %in% class(B) ) {
+        Y[] = as.matrix( B[ , p$variables$Y ] )
+      } else if ( "SpatialGridDataFrame" %in% class(B) ) {
+        Y[] = as.matrix( slot(B, "data")[, p$variables$Y ]  )
+      }
+
+      # independent variables/ covariates
+      if ( !is.null(  p$variables$X ) ) {
+        nc = length( p$variables$X )
+        X = filebacked.big.matrix( nrow=nr, ncol=nc, type="double", dimnames=NULL, separated=FALSE, 
+          backingpath=p$tmp.datadir, backingfile=p$backingfile.X, descriptorfile=p$descriptorfile.X ) 
+        if ( "data.frame" %in% class(B) ) {
+          X[] = as.matrix( B[ , p$variables$X ] )
+        } else if ( "SpatialGridDataFrame" %in% class(B) ) {
+          X[] = as.matrix( slot(B, "data")[, p$variables$X ]  )
+        }
+      }        
+      
+      # coordinates
+      LOCS = filebacked.big.matrix( nrow=nr, ncol=2, type="double", dimnames=NULL, separated=FALSE, 
+          backingpath=p$tmp.datadir, backingfile=p$backingfile.LOCS, descriptorfile=p$descriptorfile.LOCS ) 
+      if ( "data.frame" %in% class(B) ) {
+        LOCS[] = as.matrix( B[ , p$variables$X ] )
+      } else if ( "SpatialGridDataFrame" %in% class(B) ) {
+        LOCS[] = as.matrix( coordinates(B) )
+      }
+      
+      return( "complete" )
     }
    
     # ----------------
@@ -65,7 +109,9 @@
       todelete = file.path( p$tmp.datadir,
         c( p$backingfile.P, p$descriptorfile.P, 
            p$backingfile.S, p$descriptorfile.S, 
-           p$backingfile.W, p$descriptorfile.W 
+           p$backingfile.Y, p$descriptorfile.Y, 
+           p$backingfile.X, p$descriptorfile.X, 
+           p$backingfile.LOCS, p$descriptorfile.LOCS 
       )) 
       for (fn in todelete ) file.remove(fn) 
       return( todelete )

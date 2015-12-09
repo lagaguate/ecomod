@@ -151,15 +151,12 @@
         load( fn)
         return( substrate )
       }
-      
-      # depth and related stats .. dependencies for inla-based modelling
-      ZZ = bathymetry.db( p, DS="spde_complete" )  # SpatialPointsDataFrame
-      
-      # "raw data" .. though interpolated already by Kostolev et al. into a SpatialGridDataFrame
-      SS = as( projectRaster( 
-          from=substrate.db( p=p, DS="substrate.initial" ), 
-          to=spatial.parameters.to.raster( p) ), "SpatialGridDataFrame" ) 
-      substrate = over( ZZ, SS ) # SpatialPointsDataFrame
+
+      substrate = bathymetry.db( p, DS="spde_complete", return.format = "list" ) 
+      substrate$substrate = projectRaster( 
+          from=raster( substrate.db( p=p, DS="substrate.initial" ) ), 
+          to=spatial.parameters.to.raster( p) )
+      substrate = as( brick(substrate), "SpatialGridDataFrame" )
       save (substrate, file=fn, compress=TRUE)
       return(fn)
     }

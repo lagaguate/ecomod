@@ -1,5 +1,5 @@
  
-  spacetime.interpolate.inla.singlepass = function( dat, locs, locsout, lengthscale=NULL, method="fast", link="identity", nsamples=5000 ) {
+  spacetime.interpolate.inla.singlepass = function( FM, dat, locs, locsout, indep=NULL, lengthscale=NULL, method="fast", link="identity", nsamples=5000 ) {
     #\\ low-level function -- single pass/fast spatial interpolator using inla 
     #\\   but no bigmemory objects and no stats, etc. .. prediction only, serial mode only
     #\\   lengthscale is the range (prior) 
@@ -40,33 +40,45 @@
       theta.prior.mean=c(0, 0), # thetas are the internal representations of prior offsets for tau and kappa (i.e.,range and sigma)
       theta.prior.prec=c(0.1, 0.1) # precision of thetas
     ) 
- 
+    
+    # FM = formula( ydata ~ -1 + intercept + f( spatial.field, model=SPDE ) ) 
+    FM = formula( FM ) 
+    varY = as.character( FM[2] )
+    
+    EFFS_data = list()
+    EFFS_data[["spde"]] = c( list( intercept=rep(1,MESH$n )), 
+           inla.spde.make.index(name="spatial.field", n.spde=SPDE$n.spde) )
+    if ( !is.null( indep) ) EFFS_data[["covar"]] = as.list( as.data.frame( indep )) 
+
+    ydata = list()
+    ydata[[ varY ]] = spacetime.link ( Y[j] )
+
     # data stack 
     DATA = inla.stack( tag="obs",
-      data = list( ydata= spacetime.link( dat ) ), 
+      data = ydata, 
       A = list( inla.spde.make.A( mesh=MESH, loc=locs ), 1), # projection matrix A to translate from mesh nodes to data nodes
-      effects = list( 
-        c( list(intercept=rep(1,MESH$n )), 
-           inla.spde.make.index(name="spatial.field", n.spde=SPDE$n.spde)),
-        covar=rep(1, ndata ))
-    )
+      effects = EFFS_data ) 
      
     if ( method=="direct") {
       # direct method
-        Apreds = inla.spde.make.A(MESH, loc=as.matrix( locsout ) )
-        PREDS = inla.stack( tag="preds",
-          data=list( ydata=NA),
-          A=list(Apreds),
-          effects=list(
-            c( list(intercept=rep(1, MESH$n)),
-               inla.spde.make.index( name="spatial.field", MESH$n)))
-        )
-        DATA = inla.stack(DATA, PREDS)
-        
-        i_data = inla.stack.index( DATA, "preds")$data
+      EFFS_data = list()
+      EFFS_data[["spde"]] = c( list( intercept=rep(1,MESH$n )), 
+           inla.spde.make.index(name="spatial.field", n.spde=SPDE$n.spde) )
+      if ( !is.null( indep) ) EFFS_data[["covar"]] = as.list( as.data.frame( indep )) 
+      ydata = list()
+      ydata[[ varY ]] = NA
+      Apreds = inla.spde.make.A(MESH, loc=as.matrix( locsout ) )
+      PREDS = inla.stack( tag="preds",
+        data=list( ydata=NA),
+        A=list(Apreds),
+        effects=list(
+          c( list(intercept=rep(1, MESH$n)),
+             inla.spde.make.index( name="spatial.field", MESH$n)))
+      )
+      DATA = inla.stack(DATA, PREDS)
+      i_data = inla.stack.index( DATA, "preds")$data
     }
 
-    FM = formula( ydata ~ -1 + intercept + f( spatial.field, model=SPDE ) ) 
       
     RES = NULL
     RES = spacetime.inla.call( FM=FM, DATA=DATA, SPDE=SPDE, FAMILY="gaussian" )
