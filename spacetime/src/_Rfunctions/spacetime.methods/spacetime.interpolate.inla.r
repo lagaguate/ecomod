@@ -79,8 +79,6 @@
       preds.diffs = seq( from=-ppdist, to=ppdist, by=p$pres )
       preds.diffs = preds.diffs[ which( preds.diffs >= -dist.cur &  preds.diffs <= dist.cur ) ]
    
-  p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
- 
       pa_plons = focal[1] + preds.diffs
       pa_plats = focal[2] + preds.diffs
 

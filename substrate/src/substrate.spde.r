@@ -1,4 +1,9 @@
- 
+
+
+### TODO:: add data collected by snow crab survey and any others for that matter 
+###
+
+
 # process Substrate information using SPDE /RINLA .. no GMT dependency
     
   p = list( project.name = "substrate" )
@@ -21,11 +26,9 @@
   p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
-  p$debug.file = file.path( ecomod.workdirectory, "inla.debug.out" )
-  
   p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
   p$modelformula = formula( substrate ~ -1 + intercept + f( log(z), model="rw2") + f( dZ, model="rw2") + f(ddZ, model="rw2") 
-                           + f( range.modal, model="rw2" ) + f( spatial.field, model=SPDE ) )
+                           + f( Z.rangeMode, model="rw2" ) + f( spatial.field, model=SPDE ) )
   p$spacetime.link = function( X ) { log(X) + 1000 } 
   p$spacetime.invlink = function( X ) { exp(X) - 1000  }
 
@@ -44,10 +47,11 @@
     i_depth = grep("z", rnm, fixed=TRUE ) # matching the model index  .. etc
     i_slope = grep("dZ", rnm, fixed=TRUE ) # matching the model index  .. etc
     i_curv  = grep("ddZ", rnm, fixed=TRUE ) # matching the model index  .. etc
+    i_range = grep("Z.rangeMode", rnm, fixed=TRUE ) # matching the model index  .. etc
     i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
     return( p$spacetime.invlink( 
       s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] 
-      + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_curv,1] ) ) 
+      + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_curv,1] ) + s$latent[ i_range,1]  ) 
   }
    
   reset.input = FALSE

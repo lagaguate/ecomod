@@ -9,7 +9,7 @@ timestamp.fix = function( tstamp, threshold.hrs=2 ) {
   threshold.seconds = hr2sec * threshold.hrs
 
   r = range(tstamp, na.rm=TRUE)
-  y = as.duration(new_interval(r[1],r[2]))  # in seconds
+  y = as.duration(interval(r[1],r[2]))  # in seconds
     
   if ( y > threshold.seconds ) { # as duration is in seconds
     # if there is a timestamp problem, the problematic records are those with hour values that are soon after midnight 

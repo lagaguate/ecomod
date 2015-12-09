@@ -139,7 +139,10 @@
         # Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons ) 
         # P = as.vector(Pmat)
         # Pmat[ cbind( round(( P$plon - p$plons[1]) / p$pres ) + 1, round(( P$plat - p$plats[1] ) / p$pres ) + 1 ) ] = P$var
-
+   
+        fn.P = file.path(p$tmp.datadir, p$backingfile.P )
+        if ( file.exists( fn.P) ) file.remove( fn.P) 
+    
         # predictions storage matrix (discretized) 
         P = filebacked.big.matrix( nrow=p$nplon * p$nplat, ncol=3, type="double", init=NA, dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.P, descriptorfile=p$descriptorfile.P ) 
@@ -189,6 +192,10 @@
         names( coords ) = c("plon", "plat")
         statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
         nstats = length( statsvars ) + 2  # +2 is for coords  
+   
+        fn.S = file.path(p$tmp.datadir, p$backingfile.S )
+        if ( file.exists( fn.S) ) file.remove( fn.S) 
+    
         S = filebacked.big.matrix( nrow=nrow(coords), ncol=nstats, type="double", init=NA, dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
         S[,1] = coords[,1]
