@@ -7,7 +7,8 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return
     fn.iso = file.path( project.datadirectory("bathymetry", "isobaths" ), "isobaths.rdata" ) 
     isobaths = NULL
     notfound = NULL
-    if (file.exists(fn.iso)) {
+      
+    if ( DS != "isobath.redo" & file.exists(fn.iso) ) {
       load(fn.iso)
       notfound = setdiff( as.character(depths), names(isobaths) )
       if (length( notfound)==0) {
@@ -15,6 +16,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return
         if (DS=="isobath") return( isobaths[ as.character(depths) ] )
       }
     }
+    
     p1 = spatial.parameters( type="canada.east.highres" )
     depths = sort( unique(c(depths, notfound) ))
     addcoast = FALSE
@@ -22,7 +24,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return
       addcoast = TRUE
       depths = setdiff(depths, 0)
     }
-    Z = bathymetry.db( p=p1, DS="spde_complete", return.format="list" )$z
+    Z = bathymetry.db( p=p1, DS="spde_complete", return.format="list" )$z  #planar coords
 
     cl = contourLines( x=p$plons, y=p$plats, t(as.matrix( flip( Z, direction="y") )), levels=depths )
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=CRS( p1$internal.crs ) )
@@ -33,7 +35,8 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return
     isobaths = spTransform( isobaths, CRS("+init=epsg:4326") )  ## longlat  as storage format
     if (addcoast) {
       # add coastline .. contour is too jagged.. used mapdata coastline 
-      isobaths = rbind( isobath.db( p=p1, DS="coastLine", return.lonlat=TRUE ), isobaths )
+      coast = isobath.db( p=p1, DS="coastLine", return.lonlat=TRUE ) 
+      isobaths = rbind( coast, isobaths )
     }
     save( isobaths, file=fn.iso, compress=TRUE) # save spherical
     if (!return.lonlat) isobaths = spTransform( isobaths, CRS(p$internal.crs))

@@ -110,12 +110,15 @@
  
   # to recreate new polygons, run the following:
   bathyclines.redo = FALSE
-  depths = c(0, 10, 20, 50, 75, 100, 200, 300, 400, 500, 600, 700, 800, 900, 
-               1000, 1200, 1400, 1500, 2000, 2500, 3000, 4000, 5000 )
+  depths = c(0, 10, 20, 50, 75, 100, 200, 250, 300, 400, 500, 600, 700, 750, 800, 900, 
+               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
   if( bathyclines.redo ) {
+    # note these polygons are created at the resolution specified in p$spatial.domain .. 
+    # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ). 
+    # For lower one specify an appropriate p$spatial.domain
     coast = isobath.db( p=p, DS="coastLine.redo", return.lonlat=TRUE ) # flatten into one
     coast = isobath.db( p=p, DS="coastPolygon.redo", return.lonlat=TRUE )
-    plygn = isobath.db( p=p, DS="isobath.redo", depths=depth, return.lonlat=TRUE  )
+    plygn = isobath.db( p=p, DS="isobath.redo", depths=depths, return.lonlat=TRUE  )
   }
   
   plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
