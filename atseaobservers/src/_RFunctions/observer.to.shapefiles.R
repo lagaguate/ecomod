@@ -7,23 +7,41 @@ library(sp) #coordinates; crs; proj4string
 library(rgdal)
 library(sqldf)
 channel<-odbcConnect("PTRAN",uid=oracle.observer.username,pwd=oracle.observer.password)
-sought=6600
-ddmm<-201201
+SQL.in <- function(x) {
+  paste(unlist(gsub("(.*)","'\\1'",x)),sep="",collapse=",")
+}
+SQL.in.noquotes <- function(x) {
+  paste(unlist(gsub("(.*)","\\1",x)),sep="",collapse=",")
+}
+ddmm<-201412
 if (GUI ==F){
   sought=sought
+  where=NULL
   } else {
-  get.species<-function(){
-                  species.query="SELECT DISTINCT COMMON, SPECSCD_ID
-                  FROM SPECIESSOUGHTCODES
-                  ORDER BY COMMON"
-                  the.species = sqlQuery(channel, species.query)
-                  return(the.species)
-  }
-  the.species<-get.species()
-  sought.GUI<-select.list(paste( the.species$COMMON, " (", the.species$SPECSCD_ID,")",sep=""),
-                           multiple=F, graphics=T, 
+    level.1<-select.list(c("By Species","By Gear"),
+                         multiple=F, graphics=T, 
+                         title="Data View?")
+    
+    
+    if (level.1=="By Species"){ 
+      the.species<-get.species()
+      sought.GUI<-select.list(paste( the.species$COMMON, " (", the.species$SPECSCD_ID,")",sep=""),
+                           multiple=T, graphics=T, 
                            title="Choose a species")
-sought<-as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', sought.GUI))
+      sought<-as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', sought.GUI))
+      sought<-SQL.in(sought)
+      where<-paste0("AND f.specscd_id IN (",sought,")")
+      name<-'speciesname'
+    }else if (level.1=="By Gear"){
+      the.gear<-get.gear()
+      gear.GUI<-select.list(paste( the.gear$DESCRIPTION, " (", the.gear$GEARCD_ID,")",sep=""),
+                            multiple=T, graphics=T, 
+                            title="Choose a gear")
+      gear<-as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', gear.GUI))
+      gear<-SQL.in.noquotes(gear)
+      where<-paste0("AND g.gearcd_id IN (",gear,")")
+      name<-'gearname'
+}
 }
 ISD_INF_query<-paste0("SELECT SUBSTR(v.vessel_name,1,15) vessel,
   t.tripcd_id,
@@ -123,11 +141,14 @@ to_char(t.board_date,'YYYY') year,
   AND t.trip_id     =f.trip_id
   AND g.gear_id     =f.gear_id
   AND f.setcd_id    = a.setcd_id
-  AND f.specscd_id IN (",sought,")
-  AND t.board_date > to_date('",ddmm,"','YYYYMM')")
+  AND t.board_date > to_date('",ddmm,"','YYYYMM')
+  ",where)
 
 ISD_INF<-sqlQuery(channel,ISD_INF_query)
-
+if (nrow(ISD_INF)<1){
+  stop("Error: No data can be found for your selection")
+return(NULL)
+}
 p1.dat<-sqldf("SELECT FISHSET_ID, 1 ORD, P1LONG X, P1LAT Y FROM ISD_INF")
 p1.dat<-p1.dat[complete.cases(p1.dat),]
 p2.dat<-sqldf("SELECT FISHSET_ID, 2 ORD, P2LONG X, P2LAT Y FROM ISD_INF")
@@ -175,10 +196,18 @@ set.all.unq<-unique(set.all$FISHSET_ID)
 #It will be fancy when it converts p1-p4 to datetime fields so that soaktime and duration can be checked
 # and can handle the ocassional null value for edatetime
 set.all.attrib<-sqldf("SELECT year,
-FISHSET_ID,
-gearcd_id,
+                              FISHSET_ID,
+                              gearcd_id,
+specscd_id,
                              trip,
-
+p1longddmm,
+p1latddmm,
+p2longddmm,
+p2latddmm,
+p3longddmm,
+p3latddmm,
+p4longddmm,
+p4latddmm,
                              set_no,
                              nafarea_id,
                              stratum_id  FROM ISD_INF")
@@ -247,21 +276,21 @@ crs.geo <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
 #generate the line objects (use fishset_id as ID)
 set.all.shp<-SpatialLinesDataFrame(SpatialLines(set.all.lines), set.all.attrib, match.ID = T)
 proj4string(set.all.shp) <- crs.geo
-writeOGR(set.all.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_All_",sought,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
+writeOGR(set.all.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_All_",name,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
 
 if (d.cnt>1){
   set.deploy.shp<-SpatialLinesDataFrame(SpatialLines(set.deploy.lines), set.all.attrib[set.all.attrib$FISHSET_ID %in% set.deploy.unq, ], match.ID = T)
   proj4string(set.deploy.shp) <- crs.geo
-  writeOGR(set.deploy.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_Deploy_",sought,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
+  writeOGR(set.deploy.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_Deploy_",name,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
 }
 if (t.cnt>1){
   set.tow.shp<-SpatialLinesDataFrame(SpatialLines(set.tow.lines),       set.all.attrib[set.all.attrib$FISHSET_ID %in% set.tow.unq, ], match.ID = T)
   proj4string(set.tow.shp) <- crs.geo
-  writeOGR(set.tow.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_Tow_",sought,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
+  writeOGR(set.tow.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_Tow_",name,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
 }
 if (r.cnt>1){
   set.retrieve.shp<-SpatialLinesDataFrame(SpatialLines(set.retrieve.lines), set.all.attrib[set.all.attrib$FISHSET_ID %in% set.retrieve.unq, ], match.ID = T)
   proj4string(set.retrieve.shp) <- crs.geo
-  writeOGR(set.retrieve.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_Retrieve_",sought,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
+  writeOGR(set.retrieve.shp, dsn=project.datadirectory("atseaobservers"),  paste0("Sets_Retrieve_",name,"_",ddmm), driver="ESRI Shapefile",overwrite_layer=T)
 }
 }
