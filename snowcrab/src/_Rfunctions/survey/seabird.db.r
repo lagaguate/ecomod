@@ -142,7 +142,7 @@
         rid = seabird.db( DS="set.seabird.lookuptable" )
         rid = data.frame( seabird_uid=rid$seabird_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="seabird_uid", all.x=TRUE, all.y=FALSE )
-        rid = rid[ rid$yr== yr ,] 
+        rid = rid[ which(rid$yr== yr) ,] 
  
         if (nrow(rid) == 0 ) next()
         #prune down the rids to only a subset
