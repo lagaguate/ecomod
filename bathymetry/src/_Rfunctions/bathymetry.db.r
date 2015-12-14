@@ -712,7 +712,8 @@
       dZ = ( diffr[ ,2:(nc-1) ] + diffc[ 2:(nr-1), ] ) / 2 
       dZ = rbind( dZ[1,], dZ, dZ[nrow(dZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       dZ = cbind( dZ[,1], dZ, dZ[,ncol(dZ)] )
-      BP$dZ = abs(c(dZ))
+
+      BP$dZ =  abs(c(dZ)) 
   
       # gradients
       ddiffr =  dZ[ 1:(nr-2), ] - dZ[ 3:nr, ] 
@@ -722,7 +723,7 @@
       ddZ = ( ddiffr[ ,2:(nc-1) ] + ddiffc[ 2:(nr-1), ] ) / 2
       ddZ = rbind( ddZ[1,], ddZ, ddZ[nrow(ddZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       ddZ = cbind( ddZ[,1], ddZ, ddZ[,ncol(ddZ)] )
-      BP$ddZ = abs(c(ddZ))
+      BP$ddZ = abs(c(ddZ)) 
 
       # merge into statistics
       BS = spacetime.db( p=p, DS="statistics" )
