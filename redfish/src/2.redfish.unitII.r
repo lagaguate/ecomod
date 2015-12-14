@@ -2,7 +2,7 @@
 	
 
 	        
-	  fp = file.path(project.datadirectory('redfish'),"analysis")
+	  fp = file.path(project.datadirectory('redfish.unitII'),"analysis")
 	  dir.create(fp, recursive = TRUE, showWarnings = FALSE )
 
 	#set the parameters for doing the stratified analysis
@@ -354,3 +354,5 @@ fp = file.path(project.datadirectory('redfish'),"figures")
 				dev.off()
 	}
 	
+
+	#day night catchability and post stratification of the survey to examine ---is it worthwhile??
