@@ -27,19 +27,18 @@
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
   p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
+  p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
   p$modelformula = formula( substrate ~ -1 + intercept 
-    + f( inla.group(log(z+0.01), method="quantile" ), model="rw2") 
-    + f( inla.group(log(dZ+0.01), method="quantile"), model="rw2") 
-    + f( inla.group( log(ddZ+0.01), method="quantile"), model="rw2") 
-    + f( inla.group( log(Z.rangeMode+0.01), method="quantile"), model="rw2" ) 
+    + f( inla.group(log(z+0.01) ), model="rw2") 
+    + f( inla.group(log(dZ+0.01)), model="rw2") 
+    + f( inla.group( log(ddZ+0.01) ), model="rw2") 
+    + f( inla.group( log(Z.rangeMode+0.01)), model="rw2" ) 
     + f( spatial.field, model=SPDE ) )
   
-  p$predictions = c( "predictions.direct", "statistics" ) # "random.field", etc. for now: "predictions.projected" works only for simple models. This contains smooth terms 
- 
   p$spacetime.link = function( X ) { log(X) + 1000 } 
   p$spacetime.invlink = function( X ) { exp(X) - 1000  }
-  p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
   p$spacetime.family = "gaussian"
+  p$spacetime.outputs = c( "predictions.direct", "statistics" ) # "random.field", etc. for now: "predictions.projected" works only for simple models. This contains smooth terms 
   
   # if not in one go, then the value must be reconstructed from the correct elements:  
   p$spacetime.posterior.extract = function(s, rnm) { 

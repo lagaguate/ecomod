@@ -20,14 +20,12 @@
   p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
   p$variables = list( Y="z", X="none", LOCS=c("plon", "plat") )  # X is covariates. .. is none, must specify "none"
-
-  p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
-  p$predictions = c( "predictions.projected", "statistics" ) # "random.field", etc.
-
   p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
-  p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
-  p$spacetime.invlink = function( X ) { exp(X) - 1000 }
+  p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
+  p$spacetime.link = function( X ) { log(X + 2000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
+  p$spacetime.invlink = function( X ) { exp(X) - 2000 }
   p$spacetime.family = "gaussian"
+  p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
     
   # if not in one go, then the value must be reconstructed from the correct elements:  
   p$spacetime.posterior.extract = function(s, rnm) { 
