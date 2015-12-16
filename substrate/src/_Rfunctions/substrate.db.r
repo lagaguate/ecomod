@@ -18,8 +18,8 @@
         load( filename )   
         return ( substrate )
       }
-      proj4.params = "+proj=utm +zone=20 +datum=NAD83 +units=m"
-      substrate = sp::read.asciigrid( rawdata.file, proj4string=CRS( proj4.params ), colname="grainsize" )
+      proj4.params = "+proj=utm +zone=20 +datum=NAD83 +units=m" #resolution is 500m X 500m
+      substrate = sp::read.asciigrid( rawdata.file, proj4string=CRS( proj4.params ), colname="grainsize" )  ## mm
       save( substrate, file=filename, compress=T )
       return(filename)
     }
@@ -157,6 +157,13 @@
           from=raster( substrate.db( p=p, DS="substrate.initial" ) ), 
           to=spatial.parameters.to.raster( p) )
       substrate = as( brick(substrate), "SpatialGridDataFrame" )
+      
+      #substrate$grainsize = log( substrate$gainsize )
+      #substrate$z = log( substrate$z )
+      #substrate$dZ = log( substrate$dZ )
+      #substrate$ddZ = log( substrate$ddZ )
+      #substrate$Z.rangeMode = log( substrate$Z.rangeMode )
+
       save (substrate, file=fn, compress=TRUE)
       return(fn)
     }
