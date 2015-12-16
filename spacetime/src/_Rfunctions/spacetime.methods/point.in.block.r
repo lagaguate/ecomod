@@ -1,6 +1,7 @@
 point.in.block = function( focal, dta, dist.max, n.min=100, n.max=10000, resize=FALSE) {
 
-  #find all points in data dta inside of a block of distance bdist from a focal point focal 
+  #\\ find all points in data dta inside of a block of distance bdist from a focal point focal 
+  #\\ col 1 = (p)lon  and  col2 = (p)lat
 
   dlon = abs( focal[1] - dta[,1] ) 
   dlat = abs( focal[2] - dta[,2] ) 
@@ -33,7 +34,7 @@ point.in.block = function( focal, dta, dist.max, n.min=100, n.max=10000, resize=
       j = j[ .Internal( sample2( length(j), n.max )) ] 
     } else {
       # reduce size of distance/block     
-      fractions=c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1 ) 
+      fractions=c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05 ) 
        for ( f in fractions )  {
           dist.cur = dist.max * f
           j = which( dlon <= dist.cur & dlat <= dist.cur ) # faster to take a block 
