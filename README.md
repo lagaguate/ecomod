@@ -16,8 +16,8 @@ To use ecomod, the following standard for directory structures for source code a
 
     ecomod ("ecomod.directory", see below)
         |___ project name 1 
-      	|___ src (location of main scripts, sequentially numbered if sequence is important )
-      	    |___  _Rfunctions (location of functions supporting the project, there can be subdirectories if desired) 
+      	    |___ src (location of main scripts, sequentially numbered if sequence is important )
+      	        |___  _Rfunctions (location of functions supporting the project, there can be subdirectories if desired) 
         |___ project name 2 (etc)
       
     ecomod_data ("ecomod.datadirectory", see below)
