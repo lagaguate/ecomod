@@ -161,13 +161,12 @@
         rid = set[ ii,] 
       # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
         Stats = NULL
-      
         for ( i in 1:nii  ){ 
+          print(i)
           id = rid$netmind_uid[i]
           print(rid[i,])
           N = basedata[ basedata$netmind_uid==id,]
           if (nrow(N) == 0 ) next()
-          
           l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i] )
           l$netmind_uid = id
           l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])

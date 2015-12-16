@@ -172,7 +172,7 @@
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
    
           print(id)
-          if(id=='seabird.S18112012.2.339.6.24.24') browser()
+          #if(id=='seabird.S18112012.2.339.6.24.24') browser()
           bc = NULL
           bc = bottom.contact( x=M, bcp=bcp )
 

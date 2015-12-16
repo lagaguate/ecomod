@@ -49,7 +49,7 @@ bottom.contact = function( x, bcp ) {
  
   ## PRE-FILTER 3 
   # simple depth-based gating
-  if( !any(x$depth > bcp$depth.min)) return( NULL ) 
+  if( !any(x$depth > bcp$depth.min,na.rm=T)) return( NULL ) 
   O$good = bottom.contact.gating.depth ( Z=x$depth, good=O$good, bcp=bcp) 
   x$depth[ !O$good ] = NA
 
@@ -57,7 +57,7 @@ bottom.contact = function( x, bcp ) {
   ## PRE-FILTER 4
   # time and depth-based gating
   mm = modes( x$depth  )
-  if (mm$sd < 0.001) return(NULL)  # there is no depth variation in the data ... likely a bad data series
+  if (mm$sd < 0.001 || is.na(mm$sd)) return(NULL)  # there is no depth variation in the data ... likely a bad data series
   mm.i = which( x$depth > (mm$lb2+bcp$depth.range[1]) & x$depth < (mm$ub2 + bcp$depth.range[2]) )
   O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
   O$good[mm.i] = TRUE

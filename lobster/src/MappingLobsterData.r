@@ -41,8 +41,23 @@ dev.off()
 
 ############# LFA 41
 
+bycatch41<-read.csv(file.path(project.datadirectory('lobster'),'data',"LFA41bycatch2015.csv"))
+bycatch41$LONGITUDE<-abs(bycatch41$LONGITUDE)*-1
+bycatch41$EID<-1:nrow(bycatch41)
 
+ylim=c(41.1,44); 		xlim=c(-68,-63.5)
 
+byData<-na.omit(subset(bycatch41,SPECCD_ID==15&OFFAREA!="UNKNOWN"&LONGITUDE<(-63.5),c('EID','LONGITUDE','LATITUDE','EST_DISCARD_WT')))
+byContours<-interpolation(byData,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.03)
+	
+lvls=c(1, 2, 5, 10, 20, 50)
+
+cont.lst<-contour.gen(byContours$image.dat,lvls,col="YlGn",colorAdj=1)
+
+# plot Map
+LobsterMap("41",mapRes="HR",contours=cont.lst,title="Cusk bycatch LFA 41")
+#points(LATITUDE~LONGITUDE,byData,pch=16,cex=0.5)#,col=rgb(0,0,0,0.5))
+ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="Est. discards (Kg)",inset=0.02,cex=0.8,bty='n')
 
 grids<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","GridPolys.csv"))
 

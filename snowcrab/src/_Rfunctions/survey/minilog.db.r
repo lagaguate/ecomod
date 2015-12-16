@@ -224,7 +224,7 @@
               bc =  NULL
               bc = bottom.contact( x=M, bcp=bcp )
               ## bottom.contact.plot (bc)
-              if ( !is.null(bc) ) res = bc$res 
+              if ( !is.null(bc$res) ) res = bc$res 
             } 
            
             if( ndat == 0) {

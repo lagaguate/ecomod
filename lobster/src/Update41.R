@@ -55,12 +55,7 @@ loadfunctions(c('lobster','groundfish','BIOsurvey'))
 	LobsterMap('41',poly.lst=list(LFA41areas,data.frame(PID=1:5,border='red')))		
 
 
-	############## byCatch
 
-	atSea41bycatch<-subset(atSea,LFA==41&SPECIESCODE!=2550&SAMCODE=="ISDB")
-	str(atSea41bycatch)
-
-	atSea41bycatch$QUARTER<-quarter(atSea41bycatch$STARTDATE)
 
 ##______________________##
 ##                      ##
@@ -125,19 +120,19 @@ loadfunctions(c('lobster','groundfish','BIOsurvey'))
 ##                      ##
 
 
-lobster.db('logs41')
-logs41$YEAR<-year(logs41$FV_FISHED_DATETIME)
+	lobster.db('logs41')
+	logs41$YEAR<-year(logs41$FV_FISHED_DATETIME)
 
-logs41$SYEAR<-year(logs41$FV_FISHED_DATETIME)
-logs41$LFA<-41
-logs41$WEIGHT_KG<-logs41$ADJCATCH*0.4536
-logs41$DATE_FISHED<-logs41$FV_FISHED_DATETIME
+	logs41$SYEAR<-year(logs41$FV_FISHED_DATETIME)
+	logs41$LFA<-41
+	logs41$WEIGHT_KG<-logs41$ADJCATCH*0.4536
+	logs41$DATE_FISHED<-logs41$FV_FISHED_DATETIME
 
 
-lbs<-with(logs41,tapply(ADJCATCH,YEAR,sum,na.rm=T))
-names(slip41)<-c("Year","Landings.slip")
-slip41$Landings.slip<-slip41$Landings.slip*0.0004536
-landat<-merge(data.frame(Year=names(lbs),Landings.t=lbs*0.0004536),slip41,all=T)
+	lbs<-with(logs41,tapply(ADJCATCH,YEAR,sum,na.rm=T))
+	names(slip41)<-c("Year","Landings.slip")
+	slip41$Landings.slip<-slip41$Landings.slip*0.0004536
+	landat<-merge(data.frame(Year=names(lbs),Landings.t=lbs*0.0004536),slip41,all=T)
 	
 	# Total landings
 	pdf(file.path( project.datadirectory("lobster"), "R","LFA41updateFig2.pdf"),8,5)
@@ -165,19 +160,19 @@ landat<-merge(data.frame(Year=names(lbs),Landings.t=lbs*0.0004536),slip41,all=T)
 	CPUEplot(logs41,lfa=41,graphic='pdf',wd=10,ht=8,lab='LFA41')
 
 
-## Jonah crab
+	## Jonah crab
 
 
-lobster.db('logs41jonah')
-logs41jonah$YEAR<-year(logs41jonah$DATE_FISHED)
+	lobster.db('logs41jonah')
+	logs41jonah$YEAR<-year(logs41jonah$DATE_FISHED)
 
-logs41jonah$SYEAR<-year(logs41jonah$DATE_FISHED)
-logs41jonah$LFA<-41
-logs41jonah$WEIGHT_KG<-logs41jonah$ADJCATCH_LBS*0.4536
+	logs41jonah$SYEAR<-year(logs41jonah$DATE_FISHED)
+	logs41jonah$LFA<-41
+	logs41jonah$WEIGHT_KG<-logs41jonah$ADJCATCH_LBS*0.4536
 
 
-lbs<-with(logs41jonah,tapply(ADJCATCH_LBS,YEAR,sum,na.rm=T))
-JClandat<-data.frame(Year=names(lbs),Landings.t=lbs*0.0004536)
+	lbs<-with(logs41jonah,tapply(ADJCATCH_LBS,YEAR,sum,na.rm=T))
+	JClandat<-data.frame(Year=names(lbs),Landings.t=lbs*0.0004536)
 	
 	pdf(file.path( project.datadirectory("lobster"), "R","LFA41_JC.pdf"),8,5)
 	barplot(JClandat$Landings.t,names=JClandat$Year,ylim=c(0,1000),ylab="Landings (t)",cex.names=0.8,cex.axis=0.8)
@@ -203,3 +198,183 @@ JClandat<-data.frame(Year=names(lbs),Landings.t=lbs*0.0004536)
 	# CPUE
 	CPUEplot(logs41jonah,lfa=41,graphic='pdf',wd=10,ht=8,lab='LFA41_JC')
 
+
+
+##______________________##
+##                      ##
+##       BYCATCH	    ##
+##______________________##
+##                      ##
+
+
+
+	# Bycatch from Observer Data
+	bycatch41<-read.csv(file.path(project.datadirectory('lobster'),'data',"LFA41bycatch2015.csv"))
+	bycatch41$LONGITUDE<-bycatch41$LONGITUDE*-1
+	bycatch41$YEAR<-year(bycatch41$BOARD_DATE)
+
+	# Remove records not observed
+	bycatch41<-subset(bycatch41,SOURCE==0&OFFAREA!="UNKNOWN")
+
+	# create list of all species recorded
+	species<-aggregate(EST_DISCARD_WT ~ COMMON + SPECCD_ID, data = bycatch41, sum, na.rm=T)
+	species<-species[order(species$EST_DISCARD_WT,decreasing=T),]
+
+	# calculate total discarded and kept weights from observed sets 
+	kept<-aggregate(EST_KEPT_WT ~ YEAR + QUARTER + OFFAREA, data = bycatch41, sum, na.rm=T)
+	discard<-aggregate(EST_DISCARD_WT ~ YEAR + QUARTER  + OFFAREA + SPECCD_ID, data = bycatch41, sum, na.rm=T)
+
+
+
+	# this is to add in zeros for species not observed in a particular set
+	discard_allsp<-merge(discard[!duplicated(paste(discard$YEAR, discard$QUARTER, discard$OFFAREA)),1:3],species[,1:2])
+	discard<-merge(discard,discard_allsp,all=T)
+	observed<-merge(kept,discard,all=T)
+	observed$EST_DISCARD_WT[is.na(observed$EST_DISCARD_WT)]<-0
+	
+	# calculate discard rate
+	observed$discardRate<-observed$EST_DISCARD_WT/observed$EST_KEPT_WT
+	
+	
+
+	## Total Catch from Logs
+	lobster.db('logs41')
+	logs41$YEAR<-year(logs41$FV_FISHED_DATETIME)
+	logs41$QUARTER<-quarter(logs41$FV_FISHED_DATETIME)
+	logs41$ADJCATCHKG<-logs41$ADJCATCH*0.4536
+
+	# switch to areas in bycatch data
+	logs41$AREA<-logs41$OFFAREA	
+	logs41$OFFAREA[logs41$AREA == 'GBANK'] <- '1GBANK'
+	logs41$OFFAREA[logs41$AREA == 'GBASIN'] <- '2GBASIN'
+	logs41$OFFAREA[logs41$AREA == 'SEBROWNS'] <- '3SEBROWNS'
+	logs41$OFFAREA[logs41$AREA == 'SWBROWNS'] <- '4WBROWNS'
+	logs41$OFFAREA[logs41$AREA == 'CROWELL'] <- '4WBROWNS'
+
+	# calculate total landings by YEAR, QUARTER & OFFAREA
+	#total<-aggregate(ADJCATCHKG ~ YEAR + QUARTER + OFFAREA , data = logs41, sum, na.rm=T)
+	total<-aggregate(ADJCATCHKG ~ YEAR + QUARTER + OFFAREA , data = subset(logs41,OFFAREA!="UNKNOWN"), sum, na.rm=T)
+	total<-merge(total,species[,1:2])
+
+
+	# merge with observed sets
+	combined<-merge(observed,total,all=T)
+	# seperate the sampled quarter + year + area combinations from the non-sampled ones
+	notSampled<-subset(combined,is.na(discardRate))
+	Sampled<-subset(combined,!is.na(discardRate))
+
+	# calculate mean discard rate for each year and area and species
+	AreaMeans<-aggregate(discardRate ~ YEAR + OFFAREA + SPECCD_ID, data = combined, mean, na.rm=T)
+
+	# fill in annual means for quarters not sampled 
+	tmp1<-merge(notSampled[,-which(names(notSampled)=='discardRate')], AreaMeans,all.x=T)
+
+	# calculate mean discard rate for each year and species
+	AnnualMeans<-aggregate(discardRate ~ YEAR + SPECCD_ID, data = combined, mean, na.rm=T)
+
+	# fill in area means for years not sampled 
+	tmp2<-merge(tmp1[is.na(tmp1$discardRate),-which(names(tmp1)=='discardRate')], AnnualMeans,all.x=T)
+	
+	# combine so that there is a discard rate for all not-sampled records 
+	notSampled<-rbind(subset(tmp1,!is.na(discardRate)),tmp2)
+
+	# combine sampled and non sampled 
+	finaldata<-rbind(Sampled,notSampled)
+
+	# calculate total discards
+	finaldata$TotalDiscards<-finaldata$ADJCATCHKG*finaldata$discardRate
+
+	# add in NAFO areas
+	finaldata$NAFOAREA<-NA
+	finaldata$NAFOAREA[finaldata$OFFAREA %in% c('1GBANK','2GBASIN')] <- "5Z"
+	finaldata$NAFOAREA[finaldata$OFFAREA %in% c('3SEBROWNS','4WBROWNS')] <- "4X"
+
+	yrs<-sort(unique(finaldata$YEAR))
+	table4X<-sapply(yrs,function(y){with(subset(finaldata,NAFOAREA=="4X"&YEAR==y),tapply(TotalDiscards,COMMON,sum))})
+	table4X<-data.frame(round(table4X[order(rowSums(table4X),decreasing=T),]))
+	names(table4X)<-yrs
+	table4X
+
+	table5Z<-sapply(yrs,function(y){with(subset(finaldata,NAFOAREA=="5Z"&YEAR==y),tapply(TotalDiscards,COMMON,sum))})
+	table5Z<-data.frame(round(table5Z[order(rowSums(table5Z),decreasing=T),]))
+	names(table5Z)<-yrs
+	table5Z
+
+	table<-sapply(yrs,function(y){with(subset(finaldata,YEAR==y),tapply(TotalDiscards,COMMON,sum))})
+	table<-data.frame(round(table[order(rowSums(table),decreasing=T),]))[-1,]
+	names(table)<-yrs
+	table
+
+
+
+
+	# add in NAFO areas
+	observed$NAFOAREA<-NA
+	observed$NAFOAREA[observed$OFFAREA %in% c('1GBANK','2GBASIN')] <- "5Z"
+	observed$NAFOAREA[observed$OFFAREA %in% c('3SEBROWNS','4WBROWNS')] <- "4X"
+
+	yrs<-sort(unique(subset(observed,NAFOAREA=="4X")$YEAR))
+	ObsTable4X<-sapply(yrs,function(y){with(subset(observed,NAFOAREA=="4X"&YEAR==y),tapply(EST_DISCARD_WT,COMMON,sum))})
+	ObsTable4X<-data.frame(round(ObsTable4X[order(rowSums(ObsTable4X),decreasing=T),]))
+	names(ObsTable4X)<-yrs
+	ObsTable4X
+
+	yrs<-sort(unique(subset(observed,NAFOAREA=="5Z")$YEAR))
+	ObsTable5Z<-sapply(yrs,function(y){with(subset(observed,NAFOAREA=="5Z"&YEAR==y),tapply(EST_DISCARD_WT,COMMON,sum))})
+	ObsTable5Z<-data.frame(round(ObsTable5Z[order(rowSums(ObsTable5Z),decreasing=T),]))
+	names(ObsTable5Z)<-yrs
+	ObsTable5Z
+
+
+	yrs<-sort(unique(observed$YEAR))
+	ObsTable<-sapply(yrs,function(y){with(subset(observed,YEAR==y),tapply(EST_DISCARD_WT,COMMON,sum))})
+	ObsTable<-data.frame(round(ObsTable[order(rowSums(ObsTable),decreasing=T),]))[-1,]
+	names(ObsTable)<-yrs
+	ObsTable
+
+
+	write.csv(table4X,file.path(project.datadirectory('lobster'),'assessments',"LFA41","TotalByCatch4X.csv"))
+	write.csv(ObsTable4X,file.path(project.datadirectory('lobster'),'assessments',"LFA41","ObservedByCatch4X.csv"))
+	write.csv(table5Z,file.path(project.datadirectory('lobster'),'assessments',"LFA41","TotalByCatch5Z.csv"))
+	write.csv(ObsTable5Z,file.path(project.datadirectory('lobster'),'assessments',"LFA41","ObservedByCatch5Z.csv"))
+	write.csv(table,file.path(project.datadirectory('lobster'),'assessments',"LFA41","TotalByCatch.csv"))
+	write.csv(ObsTable,file.path(project.datadirectory('lobster'),'assessments',"LFA41","ObservedByCatch.csv"))
+
+
+
+
+	combined$Time<-combined$YEAR+(combined$QUARTER-1)*0.25
+par(mfrow=c(2,2))
+for(i in 1:4){
+	plot(discardRate~Time,subset(combined,SPECCD_ID==2511&OFFAREA==areas[i]))
+}
+
+	combined$logEST_KEPT_WT<-log(combined$EST_KEPT_WT)
+
+	jonah<-subset(combined,SPECCD_ID==species$SPECCD_ID[2])
+
+
+	fit<-gam(EST_DISCARD_WT ~ offset(logEST_KEPT_WT) + Time  + OFFAREA, data=jonah, family=poisson(link="log"))
+ 	exp(predict.glm(fit))->jonah$predicted
+
+
+
+
+
+
+	fit<-list()
+	for(i in 1:2){
+	
+	fit[[i]]<-glm(EST_DISCARD_WT ~ offset(logEST_KEPT_WT) + as.factor(YEAR) + as.factor(QUARTER)  + OFFAREA, data=subset(combined,SPECCD_ID==species$SPECCD_ID[i]), family=poisson(link="log"))
+
+	}
+
+
+	subset(combined,SPECCD_ID==species$SPECCD_ID[i])
+ 	predict.glm(fit[[2]])->combined$predicted
+
+
+
+
+	predDat<-total
+	predDat$logEST_KEPT_WT<-log(predDat$ADJCATCHKG)
