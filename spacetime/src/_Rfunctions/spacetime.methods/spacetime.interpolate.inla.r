@@ -25,11 +25,17 @@
     bad = which( !is.finite( Y[])) 
     if (length(bad)> 0 ) hasdata[bad] = NA
     
-    X = attach.big.matrix(p$descriptorfile.X, path=p$tmp.datadir )  # input data  -- independent vars
-    colnames(X) = p$variables$X
-    bad = which( !is.finite( rowSums(X[])) ) 
-    if (length(bad)> 0 ) hasdata[bad] = NA
-    
+    if ( p$variables$X != "none" ) {
+      X = attach.big.matrix(p$descriptorfile.X, path=p$tmp.datadir )  # input data  -- independent vars
+      if ( ncol(X)==1 ) {
+        bad = which( !is.finite( X[]) ) 
+      } else {
+        colnames(X) = p$variables$X
+        bad = which( !is.finite( rowSums(X[])) ) 
+      }
+      if (length(bad)> 0 ) hasdata[bad] = NA
+    }
+
     LOCS = attach.big.matrix(p$descriptorfile.LOCS, path=p$tmp.datadir )  # input data -- location vars
     colnames(LOCS) = p$variables$LOCS
     bad = which( !is.finite( rowSums(LOCS[]))) 
@@ -38,8 +44,8 @@
     H = na.omit( hasdata )
     rm( hasdata); gc()
     
-    # storage of indices  .. keep here :: more memory usage but fewer operation
-    Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons )  
+    # storage of indices  .. keep here :: more memory usage but fewer operations
+    Pmat = matrix( 1:(p$nplons*p$nplats), ncol=p$nplats, nrow=p$nplons, byrow=T )  
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
     S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )  # statistical outputs
 
@@ -49,9 +55,7 @@
 
     for ( iip in ip ) {
       dd = p$runs[ iip, "jj" ]
-      # dd=20723
-      # dd=26024
-      # dd=498439
+      # dd=26025
       if ( debugrun) cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "start \n" ), file=p$debug.file, append=TRUE ) 
     
       focal = t(S[dd,])
@@ -66,21 +70,19 @@
       ppp = NULL
       ppp = try( point.in.block( focal[1,c(1,2)], LOCS, dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, resize=TRUE ) )
       if( is.null(ppp)) next()
-      
       if (class( ppp ) %in% "try-error" ) next()
-  #    stop()
-  #  }
     
       dist.cur = ppp$dist.to.nmax
       j = intersect( H, ppp$indices )
       rm(ppp)
 
       ndata = length(j)
-      
+      if (ndata < p$n.min) next()
+
       if ( debugrun)  {
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd, "n=", ndata, "dist=", dist.cur, "\n" ), file=p$debug.file, append=TRUE ) 
       }
-     
+
       # prediction locations
       doff = p$inla.mesh.offset * (dist.cur/p$dist.max) # scale to dist.max
       mbuffer = sum( doff )
@@ -143,25 +145,41 @@
       obs_index = inla.spde.make.index(name=p$spatial.field.name, SPDE$n.spde)
       obs_eff = list()
       obs_eff[["spde"]] = c( obs_index, list(intercept=1) )
-      obs_eff[["covar"]] = as.list( as.data.frame( X[j,]))
+      if ( p$variables$X != "none" ) {
+        if ( ncol(X)==1 ) {
+          obs_eff[["covar"]] = as.list( as.data.frame( X[j])) # bigmatrix quirk
+        } else {
+          obs_eff[["covar"]] = as.list( as.data.frame( X[j,]))
+        }
+        obs_A = list( inla.spde.make.A( mesh=MESH, loc=LOCS[j,] ), 1 )
+      } else {
+        obs_A = list( inla.spde.make.A( mesh=MESH, loc=LOCS[j,] ) ) # no effects
+      }
       obs_ydata = list()
       obs_ydata[[ p$variables$Y ]] = p$spacetime.link ( Y[j] )
-      obs_A = list( inla.spde.make.A( mesh=MESH, loc=LOCS[j,] ), 1 )
       DATA = inla.stack( tag="obs", data=obs_ydata, A=obs_A, effects=obs_eff, remove.unused=FALSE ) 
       rm ( obs_index, obs_eff, obs_ydata, obs_A )
       # remove.unused=FALSE ensures that we can look at the estimated field effect without having to do expensive separate predictions.
       # DATA$A is projection matrix to translate from mesh nodes to data nodes
 
       # prediction stack
-      if ( any( grepl ("predictions.direct", p$predictions))) {
-        preds_locs = as.matrix(pa[, c("plon", "plat")])
+      if ( any( grepl ("predictions.direct", p$spacetime.outputs))) {
+        preds_locs = as.matrix( LOCS[ j, ])
         preds_index = inla.spde.make.index( name=p$spatial.field.name, SPDE$n.spde)
         preds_eff = list()
         preds_eff[["spde"]] = c( preds_index, list(intercept=1) )
-        preds_eff[["covar"]] = as.list(as.data.frame(X[ pa$i ,])) 
+        if ( p$variables$X != "none" ) {
+          if ( ncol(X)==1 ) {
+            preds_eff[["covar"]] = as.list(as.data.frame(X[ j ])) 
+          } else {
+            preds_eff[["covar"]] = as.list(as.data.frame(X[ j ,])) 
+          }
+          preds_A = list( inla.spde.make.A(MESH, loc=preds_locs ), 1)
+        } else {
+          preds_A = list( inla.spde.make.A(MESH, loc=preds_locs ) )
+        }
         preds_ydata = list()
         preds_ydata[[ p$variables$Y ]] = NA ## ie. to predict
-        preds_A = list( inla.spde.make.A(MESH, loc=preds_locs ), 1)
         PREDS = inla.stack( tag="preds", data=preds_ydata, A=preds_A, effects=preds_eff, remove.unused=FALSE )
         DATA = inla.stack(DATA, PREDS )
         preds_stack_index = inla.stack.index( DATA, "preds")$data  # indices of predictions in stacked data
@@ -185,6 +203,7 @@
       if ( debugrun) {
         cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "computations finished \n" ), 
             file=p$debug.file, append=TRUE ) 
+        print(RES)
         print( summary(RES)) 
         # low level debugging .. and looking at posterior marginals
         idat =  inla.stack.index( DATA, 'data')$data # indices of data locations
@@ -206,9 +225,9 @@
       # ----------------
       # predict upon grid
      
-      if ( any( grepl ("predictions", p$predictions))) {
+      if ( any( grepl ("predictions", p$spacetime.outputs))) {
         params.local = list()
-        if ( exists( "preds_stack_index")) params.local$direct.index = preds_stack_index 
+        if ( exists( "preds_stack_index")) params.local$preds_stack_index = preds_stack_index 
         if ( exists( "pa")) params.local$locs_new = pa[,c("plon", "plat" )]
         preds = spacetime.predict.inla.spde( MESH, RES, p=p, pl=params.local  )
         pa = cbind( pa, preds) 
@@ -265,7 +284,7 @@
       
       rm(MESH); gc()
 
-      if ( any( grepl ("statistics", p$predictions))) {
+      if ( any( grepl ("statistics", p$spacetime.outputs))) {
         # extract summary statistics from a spatial (SPDE) analysis and update the output file
         inla.summary = spacetime.summary.inla.spde2 ( RES, SPDE )
         # save statistics last as this is an indicator of completion of all tasks .. restarts would be broken otherwise
@@ -275,6 +294,7 @@
         S[dd,5] = inla.summary["spatial error", "mode"]
         S[dd,6] = inla.summary["observation error", "mode"]
         if ( debugrun)  {
+          print( inla.summary )
           cat( paste(  Sys.time(), Sys.info()["nodename"], "index=", dd,  "statistics saved  \n" ), 
               file=p$debug.file, append=TRUE ) 
         }
