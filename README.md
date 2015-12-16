@@ -14,31 +14,34 @@ To download this repository, you can either:
 
 To use ecomod, the following standard for directory structures for source code and data must be adhered to:
 
-ecomod ("ecomod.directory", see below)
-    |--- project name 1 
-    	|--- src (location of main scripts, sequentially numbered if sequence is important )
-    	    |--- _Rfunctions (location of functions supporting the project, there can be subdirectories if desired) 
-    |--- project name 2 (etc)
-
-ecomod_data ("ecomod.datadirectory", see below)
-    |--- project name 1 
-    	|--- (various subdirectories as required by the project)
-    	|--- (etc)
-    |--- project name 2 (etc)
+    ecomod ("ecomod.directory", see below)
+        |___ project name 1 
+      	|___ src (location of main scripts, sequentially numbered if sequence is important )
+      	    |___  _Rfunctions (location of functions supporting the project, there can be subdirectories if desired) 
+        |___ project name 2 (etc)
+      
+    ecomod_data ("ecomod.datadirectory", see below)
+        |___ project name 1 
+      	  |___ (various subdirectories as required by the project)
+      	  |___ (etc)
+        |___ project name 2 (etc)
 
 
 The above root directories must be defined using the following key variable names:
 
-    ecomod.workdirectory = file.path( "C:", "R", "workspace" )    ### replace with correct path to R workspace
-    ecomod.datadirectory = file.path( "C:", "path", "to", "ecomod_data" )  ### replace with correct path to local data directory ... must have the same directory hierarchy
+    ecomod.directory = file.path( "C:", "path", "to", "ecomod" )           ### replace with correct path to local ecomod directory 
+    ecomod.datadirectory = file.path( "C:", "path", "to", "ecomod_data" )  ### replace with correct path to local data directory 
+    
+
     source( file.path( ecomod.directory, "_ecomodSetup", "ecomod.rprofile.r" ) ) ### initializes the ecomod environment
 
-They can be defined as you like but it is simples to define them in your .Rprofile file (located in your 'home' directory). If this file does not already exist, simply create a new file. In MSWindows, the home directory seems to be the "My Documents" directory (i.e. C:\Users\<user name>\Documents). If not known, run R and then type: getwd(). In Linux and other UNIX variants, including MacOSX it is your usual home directory. 
+They can be defined where you prefer. It is probably simplest to define them in your .Rprofile file (located in your 'home' directory. If this file does not already exist, simply create a new file. In MSWindows, the home directory seems to be the "My Documents" directory (i.e. C:\Users\<user name>\Documents). If not known, run R and then type: getwd(). In Linux and other UNIX variants, including MacOSX it is your usual home directory.) 
 
 
 Example usage 
 
-To load in all functions under the common/src/_Rfunctions/ and snowcrab/src/_Rfunctions/ you need to run the following:
+"loadfunctions()" is a simple function that reads in all files under a particular project directory in a structured manner. 
+To load in all functions under the ecomod/common/src/_Rfunctions/ and ecomod/snowcrab/src/_Rfunctions/ you need to run the following:
 
     loadfunctions( c("common", "snowcrab") )  
 
@@ -46,14 +49,14 @@ or to load a specific file/function that fuzzy matches the 'functionname' criter
 
     loadfunctions( "snowcrab", functionname="current.assessment.year.r")  
     
-
-loadfunctions() is a simple function that reads in all files under a particular project directory in a structured manner. 
+In addition, the following will provide a simple way of referring to the directory structure of a given project:
 
     project.codedirectory( "spacetime" ) # returns the file path to the spacetime code directory under ecomod
     project.datadirectory( "spacetime" ) # returns the file path to the spacetime data directory under ecomod_data (or whatever you defined as the root data location in your Rprofile )
 
 To search for functions or key words with ecomod, use the following:
 
-    ecomod.help( "functionname" ) # find help for a given function ( anything that follows:  #// )
-    ecomod.search( "habitat" )   # search for every file for 'habitat' and return file name and line number
+    ecomod.help( "functionname" ) # find help for a given function ( anything that follows:  #// if you plan to add documentation )
+    ecomod.search( "habitat" )    # search for every file for 'habitat' and return file name and line number
+    
 
