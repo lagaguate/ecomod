@@ -22,8 +22,8 @@ To use ecomod, the following standard for directory structures for source code a
       
     ecomod_data ("ecomod.datadirectory", see below)
         |___ project name 1 
-      	  |___ (various subdirectories as required by the project)
-      	  |___ (etc)
+      	    |___ (various subdirectories as required by the project)
+      	    |___ (etc)
         |___ project name 2 (etc)
 
 
