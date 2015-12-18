@@ -15,6 +15,7 @@
 			p = make.list(list(v=p$species, yrs=p$years.to.estimate),Y=p)
 			p$runs = p$runs[order(p$runs$v),]
 			p$strata.files.return = F
+			 p$strat = c(440:455,457)
 
 	 rebuild.groundfish.data = F
 	 if(rebuild.groundfish.data) { 
@@ -33,9 +34,9 @@
 
 
 	#set up the frame to do the analysis
-	aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= 'redfish')
+	aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= 'redfish.unitII')
 	
-	aout= groundfish.analysis(DS='stratified.estimates',p=p,out.dir= 'redfish') #returns all the redfish stratified data
+		aout= groundfish.analysis(DS='stratified.estimates',p=p,out.dir= 'redfish.unitII') #returns all the redfish stratified data
 
 #survey numbers at length by cm
 if(redo.numbers.at.length) {
@@ -45,11 +46,11 @@ if(redo.numbers.at.length) {
 				p$bootstrapped.ci = F
 				for(l in len) {
 					p$size.class = c(l,l)
-					aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= 'redfish')
+					aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= 'redfish.unitII')
 					aout$len.group = l
 					oo = rbind(oo,aout)
 				   }
-				   save(oo,file = file.path(project.datadirectory('redfish'),'analysis','stratified.at.length.redfish.rdata'))
+				   save(oo,file = file.path(project.datadirectory('redfish.unitII'),'analysis','stratified.at.length.redfish.rdata'))
 }
 
 #figure stratified analysis
@@ -70,7 +71,7 @@ if(redo.stratied.figure) {
 				p$file.name = 'unit3redfish.weights.total.greater.22cm.png'
 				#a = aout[which(aout$group=='23-70'),]
 				
-				p$file.name = 'unit3redfish.weights.all.png'
+				p$file.name = 'unit2redfish.weights.all.png'
 				a = aout[which(aout$group=='all'),]
 				
 				p$file.name = 'unit3redfish.numbers.all.png'
@@ -79,7 +80,7 @@ if(redo.stratied.figure) {
 				  p$add.upper.lower = F
 				        p$upper.reference.line = 0.8
 				        p$lower.reference.line = 0.4
-				        p$figure.title = 'Unit III redfish '
+				        p$figure.title = 'Unit II redfish '
 				        #p$figure.title = 'Unit III redfish <22cm'
 				        p$y.maximum = NULL # NULL # if ymax is too high for one year
 				    	p$show.truncated.numbers = F #if using ymax and want to show the numbers that are cut off as values on figure
@@ -92,7 +93,7 @@ if(redo.stratied.figure) {
 				        p$error.bars=T
 						
 
-				     ref.out=   figure.stratified.analysis(x=a,p=p,out.dir='redfish')
+				     ref.out=   figure.stratified.analysis(x=aout,p=p,out.dir='redfish.unitII')
 
 				sfp = file.path(fp,'analysis','saved p files')
 			dir.create(sfp,recursive=T,showWarnings=F)
@@ -178,9 +179,9 @@ if(make.map.allocation) {
 	if(redo.survey.bubbles) {
 				load(file.path(project.datadirectory('redfish'),'analysis','stratified.at.length.redfish.rdata')) #This matches PComeau's #s
 				out = reshape(oo[,c('yr','len.group','n.yst')], timevar= 'len.group',idvar='yr',direction='wide')
-				pdf(file.path(project.datadirectory('redfish'),'figures','UnitIIIsurveybubbles.pdf'))
+				pdf(file.path(project.datadirectory('redfish.unitII'),'figures','UnitIIsurveybubbles.pdf'))
 				matrixBubbles(t(out[,2:46]),xr=1:46,yr=1:45,maxinch=0.2,xlab='Year',ylab='Length',yc.colors=T,ttl='Unit III Redfish')
-				lines(1:10,ht[7:16],lwd=3,col='red')
+				lines(14:24,ht[4:14],lwd=3,col='red')
 				lines(28:37,ht[7:16],lwd=3,col='red')
 					dev.off()
 		
@@ -355,4 +356,4 @@ fp = file.path(project.datadirectory('redfish'),"figures")
 	}
 	
 
-	#day night catchability and post stratification of the survey to examine ---is it worthwhile??
+	

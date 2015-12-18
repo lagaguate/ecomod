@@ -28,7 +28,7 @@ dev.off()
 
 
 loadfunctions('lobster')
-catchgrids<-lobGridPlot(subset(logsInSeason,SYEAR==2014,c("LFA","GRID_NUM","WEIGHT_KG")),lvls=c(100,50000,100000,200000,400000,600000,800000,1000000),FUN=sum,border=NA)
+catchgrids <-lobGridPlot(subset(logsInSeason,SYEAR==2014,c("LFA","GRID_NUM","WEIGHT_KG")),lvls=c(100,50000,100000,200000,400000,600000,800000,1000000),FUN=sum,border=NA)
 	
 pdf(file.path( project.datadirectory("lobster"), "R","GridLandings.pdf"),11,8)
 
@@ -37,6 +37,24 @@ ContLegend("bottomright",lvls=catchgrids$lvls/1000,Cont.data=catchgrids,title="C
 
 dev.off()
 
+
+############## LFA grid effort
+
+
+loadfunctions('lobster')
+logsInSeason<-read.csv(file.path( project.datadirectory("lobster"), "data","logsInSeason.csv"))
+yy = unique(logsInSeason$SYEAR)
+
+
+fp = file.path( project.datadirectory("lobster"), "figures")
+dir.create(fp, recursive =T, showWarnings =F)
+
+effortgrids <-lobGridPlot(subset(logsInSeason,SYEAR==2014,c("LFA","GRID_NUM","NUM_OF_TRAPS")),lvls=c(100,50000,100000,200000,400000,600000,800000,1000000),FUN=sum,border=NA)
+pdf(file=file.path(fp,paste("GridLandings",y,"pdf",sep="."),11,8)
+LobsterMap(poly.lst=effortgrids[1:2],title=paste(y,"Lobster Catch"))
+ContLegend("bottomright",lvls=effortgrids$lvls/1000,Cont.data=effortgrids,title="Catch (t)",inset=0.02,cex=0.8,bg='white')
+
+dev.off()
 
 
 ############# LFA 41
