@@ -165,7 +165,7 @@
         rid = minilog.db( DS="set.minilog.lookuptable" )
         rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
-        rid = rid[ rid$yr== yr ,] 
+        rid = rid[ which(rid$yr== yr) ,] 
         #rid = rid[grepl('S19092004',rid$minilog_uid),] 
         if (nrow(rid) == 0 ) next()
         
@@ -218,13 +218,13 @@
                 id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
                 tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30)
               )
-              
+            #if(id=="minilog.S18092004.6.392.13.9.326") browser()
+             
               bcp = bottom.contact.parameters( bcp ) # add other default parameters .. not specified above
-           #if(id==) browser()
               bc =  NULL
               bc = bottom.contact( x=M, bcp=bcp )
               ## bottom.contact.plot (bc)
-              if ( !is.null(bc) ) res = bc$res 
+              if ( !is.null(bc$res) ) res = bc$res 
             } 
            
             if( ndat == 0) {

@@ -82,7 +82,10 @@
       
     RES = NULL
     RES = spacetime.inla.call( FM=FM, DATA=DATA, SPDE=SPDE, FAMILY="gaussian" )
-     
+      
+    # extract summary statistics from a spatial (SPDE) analysis and update the output file
+    # inla.summary = spacetime.summary.inla.spde2 = ( RES, SPDE )
+
     # inla.spde2.matern creates files to disk that are not cleaned up:
     spdetmpfn = SPDE$f$spde2.prefix
     fns = list.files( dirname( spdetmpfn ), all.files=TRUE, full.names=TRUE, recursive=TRUE, include.dirs=TRUE )  

@@ -14,28 +14,31 @@
                      "sp", "raster", "colorspace" ,  "splancs", "fields",
                      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
   
-  p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
+  p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization  .. raw data is also in this resolution
    
   p = spacetime.parameters(p)  # load spde defaults
-  p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+  p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
   p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
   p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-  p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
+  p$n.max = 10000 # numerical time/memory constraint -- anything larger takes too much time
   p$expected.range = 50 #+units=km km , with dependent var on log scale
   p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
   p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
-  p$modelformula = formula( substrate ~ -1 + intercept + f( log(z), model="rw2") + f( dZ, model="rw2") + f(ddZ, model="rw2") 
-                           + f( Z.rangeMode, model="rw2" ) + f( spatial.field, model=SPDE ) )
+  p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
+  p$modelformula = formula( substrate ~ -1 + intercept 
+    + f( inla.group(log(z+0.01) ), model="rw2") 
+    + f( inla.group(log(dZ+0.01)), model="rw2") 
+    + f( inla.group( log(ddZ+0.01) ), model="rw2") 
+    + f( inla.group( log(Z.rangeMode+0.01)), model="rw2" ) 
+    + f( spatial.field, model=SPDE ) )
+  
   p$spacetime.link = function( X ) { log(X) + 1000 } 
   p$spacetime.invlink = function( X ) { exp(X) - 1000  }
-
-  p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
-  p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
-  p$spacetime.invlink = function( X ) { exp(X) - 1000 }
   p$spacetime.family = "gaussian"
+  p$spacetime.outputs = c( "predictions.direct", "statistics" ) # "random.field", etc. for now: "predictions.projected" works only for simple models. This contains smooth terms 
   
   # if not in one go, then the value must be reconstructed from the correct elements:  
   p$spacetime.posterior.extract = function(s, rnm) { 
@@ -51,7 +54,7 @@
     i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
     return( p$spacetime.invlink( 
       s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] 
-      + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_curv,1] ) + s$latent[ i_range,1]  ) 
+      + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_curv,1]  + s$latent[ i_range,1]  ) ) 
   }
    
   reset.input = FALSE

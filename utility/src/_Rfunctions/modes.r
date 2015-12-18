@@ -18,7 +18,7 @@ modes = function( Z, eps=0, ... ) {
  
   # simple determination from histogram
   Z = Z[ which(is.finite(Z) ) ]
-  u = try( density(Z, ... ) , silent = TRUE )
+  u = try( density(Z ) , silent = TRUE )
   
   if ("try-error" %in% class(u) )  {
     rownames(res) = c("simple")

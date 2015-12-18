@@ -142,7 +142,7 @@
         rid = seabird.db( DS="set.seabird.lookuptable" )
         rid = data.frame( seabird_uid=rid$seabird_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="seabird_uid", all.x=TRUE, all.y=FALSE )
-        rid = rid[ rid$yr== yr ,] 
+        rid = rid[ which(rid$yr== yr) ,] 
  
         if (nrow(rid) == 0 ) next()
         #prune down the rids to only a subset
@@ -172,7 +172,7 @@
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
    
           print(id)
-          if(id=='seabird.S18112012.2.339.6.24.24') browser()
+          #if(id=='seabird.S18112012.2.339.6.24.24') browser()
           bc = NULL
           bc = bottom.contact( x=M, bcp=bcp )
 

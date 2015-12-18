@@ -77,23 +77,28 @@
         Y[] = as.matrix( slot(B, "data")[, p$variables$Y ]  )
       }
 
-      # independent variables/ covariates
-      if ( !is.null(  p$variables$X ) ) {
+      
+      if ( p$variables$X != "none" ) {
+        # independent variables/ covariates
         nc = length( p$variables$X )
         X = filebacked.big.matrix( nrow=nr, ncol=nc, type="double", dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.X, descriptorfile=p$descriptorfile.X ) 
-        if ( "data.frame" %in% class(B) ) {
-          X[] = as.matrix( B[ , p$variables$X ] )
-        } else if ( "SpatialGridDataFrame" %in% class(B) ) {
-          X[] = as.matrix( slot(B, "data")[, p$variables$X ]  )
+        if ( p$variables$X %in% c( "none")  ) {
+          X[] = 1  
+        } else {
+          if ( "data.frame" %in% class(B) ) {
+            X[] = as.matrix( B[ , p$variables$X ] )
+          } else if ( "SpatialGridDataFrame" %in% class(B) ) {
+            X[] = as.matrix( slot(B, "data")[, p$variables$X ]  )
+          }
         }
-      }        
-      
+      }
+
       # coordinates
       LOCS = filebacked.big.matrix( nrow=nr, ncol=2, type="double", dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.LOCS, descriptorfile=p$descriptorfile.LOCS ) 
       if ( "data.frame" %in% class(B) ) {
-        LOCS[] = as.matrix( B[ , p$variables$X ] )
+        LOCS[] = as.matrix( B[ , p$variables$LOCS ] )
       } else if ( "SpatialGridDataFrame" %in% class(B) ) {
         LOCS[] = as.matrix( coordinates(B) )
       }
