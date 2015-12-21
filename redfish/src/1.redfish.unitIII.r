@@ -197,7 +197,6 @@ if(redo.commercial.bubbles) {
 				matrixBubbles(t(out[,2:46]),xr=1:45,yr=1:45,maxinch=0.2,xlab='Year',ylab='Length',yc.colors=T,ttl='Unit III Redfish')
 				dev.off()	
 			}
-#need to make the histograms of the numbers at length by year and combined the two series
 
 #make the numbers at length freqs for commercial and survey standardized to one for each year
 if(make.length.freq.comps) {
