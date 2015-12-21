@@ -38,7 +38,7 @@
 # this needs to be done after the above datadumps to refresh locally stored databases
 
   if (make.fisheries.data) {
-    observer.db( DS="odb.redo", p=p )
+    observer.db( DS="odb.redo", p=p ) # 3 minutes
     # fishing ground are used for determination of contraints for interpolation
     logbook.db( DS="logbook.redo", p=p )
     logbook.db( DS="logbook.filtered.positions.redo", p=p )
@@ -70,18 +70,16 @@
 
     # The following requires "setInitial"
     if(esnoar2netmind.conversion){
-      netmind.db(DS='esnoar2netmind.conversion',Y=2014:p$current.assessment.year)
+      netmind.db(DS='esnoar2netmind.conversion',Y=2014:p$current.assessment.year) #MG line doesn't seem to just run on it's own. need to open netmind.db.r and run this
     }
 
     seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012;
+    #MG minilog data is not being recorded, figure out if it should be used and kept in the package
     minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
     netmind.db( DS="load", Y=netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
 
     
-    seabird.db( DS="stats.redo", Y=seabird.yToload ) # ~ 20 min
-    minilog.db( DS="stats.redo", Y=minilog.yToload ) # ~ 5 min for 1999 to 2010 
-    netmind.db( DS="stats.redo", Y=netmind.yToload ) # requires minilog and seabird stats .. do last ~ 30 min
-
+    
 
     snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )
     set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
@@ -92,7 +90,7 @@
       problems = data.quality.check( set, type="position") 
       
       problems = data.quality.check( set, type="minilog.mismatches" )
-      problems = data.quality.check( set, type="minilog.load")
+      problems = data.quality.check( set, type="tminilog.load")
       problems = data.quality.check( set, type="minilog.dateproblems") 
       problems = data.quality.check( set, type="minilog") # Check for duplicate timestamps 
       

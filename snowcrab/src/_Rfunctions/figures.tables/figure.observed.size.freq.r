@@ -6,7 +6,7 @@
     odb = odb[ii,]
     
     if (years=="all") years = sort( unique( odb$fishyr ) )
-years=2014
+#years=2014
     for (reg in regions) {
       r = filter.region.polygon(x=odb, region=recode.areas(reg), planar=F)
       for (y in years) {

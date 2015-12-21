@@ -10,19 +10,17 @@
    p$clusters = rep("localhost", 24 )
    p$clusters = rep("localhost", 7 )
 
-
-
   # ------------------------------------------
   # Time-series: Fisheries landings
-    figure.landings.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts" )
+    figure.landings.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts", outfile2="landings.ts.sm" )
 
   # ------------------------------------------
   # Time-series: Fisheries effort 
-    figure.effort.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts" )
+    figure.effort.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts", outfile2="effort.ts.sm" )
 
   # ------------------------------------------
   # Time-series: Fisheries CPUE
-    figure.cpue.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts" )
+    figure.cpue.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts", outfile2="cpue.sm.ts" )
 
   # ------------------------------------------
   # Size frequency distributions, broken down by moult category from at-sea observed data 
@@ -30,29 +28,25 @@
 
   # ------------------------------------------
   # Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
-    histograms.size.maturity( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
+    histograms.size.maturity.update( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
  
-    
   # ------------------------------------------
   # Timeseries of all survey variables
     figure.timeseries.males( outdir=file.path(p$annual.results, "timeseries", "survey") )
     figure.timeseries.females( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
-
-
   # ------------------------------------------
   # Timeseries of all survey variables
     figure.timeseries.survey(p, areas=c("cfanorth", "cfasouth", "cfa4x"), from.file=F )
-
 
   # ------------------------------------------
   # Timeseries: geometric mean density of R-1 recruits
     figure.timeseries.recruits( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
- #Timeseries: geometric mean density of R0
+  #Timeseries: geometric mean density of R0
     figure.timeseries.R0( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
-#To represent the reduced set of stations in 2014
+  #To represent the reduced set of stations in 2014
     figure.timeseries.R0.reduced.stations( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
   # ------------------------------------------
@@ -75,13 +69,11 @@
   # Timeseries: geometric mean carapace width from at-sea observers 
     figure.timeseries.CW( outdir=file.path(p$annual.results,  "timeseries", "survey"), type="observer" )
 
-
   # ------------------------------------------
   # Map: Basemap of the Scotian Shelf used by all other mapping routines
   #   creating a partial postscript file via GMT 
   #   .. only required if changing resolution or spatial extent
     gmt.basemap (p)
-
 
     # ------------------------------------------
   # Map: Scotian Shelf with CFA lines and labels  .. using gmt
@@ -90,7 +82,6 @@
     p$outfile.basename = file.path(p$outdir, "map.CFAs")
     # p$basemap = file.path( project.datadirectory("snowcrab"), "R", p$basemap)
     map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
-
     
   # ------------------------------------------
   # Map:  Mean/geometric mean of various variables in the set data table
@@ -101,9 +92,10 @@
    p$do.parallel=F
     map.cat.information( p, outdir=file.path( project.datadirectory("snowcrab"), "R", "maps", "species" ) )
 
-  # ------------------------------------------
+  # ------------------------------------------   
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   # Map:Fisheries logbook data (Effort, CPU, Landings)
-    map.fisheries.data( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "logbook") )
+    map.fisheries.data( p)
 
   # ------------------------------------------
   # Map: Survey locations
@@ -127,11 +119,8 @@
   # Map: Spatial representation of maturity patterns of snow crab
     map.maturity( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "maturity"), newyear=T ) 
 
-
   ##########################################################################
   ###############################  Retired figures #########################
-
-
   # ------------------------------------------
   # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
     habitat.usage( usevar="totno.all", covariate="depth", outdir = file.path(p$annual.results, "habitat.templates") )

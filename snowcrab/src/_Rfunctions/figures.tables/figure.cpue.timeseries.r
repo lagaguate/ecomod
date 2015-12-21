@@ -1,4 +1,4 @@
-  figure.cpue.timeseries = function( yearmax, outdir=NULL, outfile=NULL ) {
+  figure.cpue.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfile2=NULL ) {
    
     regions = c("cfanorth", "cfasouth", "cfa4x")
     k = NULL
@@ -22,22 +22,28 @@
     yrange = range (k, na.rm=T)
     yrange[1] = 0
     xrange = range(uyrs)
-    xrange[1] = xrange[1] - 0.5
-    xrange[2] = xrange[2] + 0.5
+    xrange[1] = xrange[1]
+    xrange[2] = xrange[2]
+    xlabels = c(xrange[1], xrange[1]+8, xrange[1]+18, xrange[1]+28, xrange[2])
+
     
     dir.create( outdir, recursive=T, showWarnings=F  )
     fn = file.path( outdir, paste( outfile, "png", sep="." ) )
+    fn2 = file.path( outdir, paste(outfile2,"png",sep="." ) )
+
     #Cairo( file=fn, type="png", bg="white", , pointsize=30, units="in", width=6, height=4, dpi=300 )
-     png( file=fn,units='in', width=15,height=12,pointsize=18, res=300,type='cairo')
-       m=1; plot( uyrs, k[,m],  type="b", ylab="Catch rate (kg/trap)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
+     png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
+      m=1; plot( uyrs, k[,m],  type="b", ylab="Catch rate (kg/trap)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
       m=2; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
       m=3; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
-      axis( 1 )
+      axis( 1, at=xlabels )
       axis( 2 )
       legend(x=1980, y=100, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=3, pch=pts, col=cols, cex=1.4 )
+    
     dev.off()
+
     cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
-    table.view(k)
+    #table.view(k)
     return( fn )
   }
 

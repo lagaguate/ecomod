@@ -7,9 +7,10 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
 
     p$libs = RLibrary ( c( 
       "geosphere", "lubridate", "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", 
-      "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot"
+      "vegan", "akima", "fields", "lattice", "gstat", "rgdal", "maptools",  "boot", "raster", "sp", 
+      "RColorBrewer", "rasterVis", "rgdal", "sp", "rgeos"
     ) )
-
+    
     p$init.files = loadfunctions( c( 
       "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", 
       "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
@@ -19,6 +20,10 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
     p$spatial.domain = "snowcrab"
     p = spatial.parameters( p ) # region and lon/lats, projections 
     p = gmt.parameters( p ) 
+
+    p$ext2 = extent(matrix(c(-66.4, 42.2, -57.2, 47.4), nrow=2, ncol=2)) #MG extent of mapping frame
+    p$extUTM = extent(matrix(c(219287.2, 4677581, 937584, 5265946), nrow=2, ncol=2)) #MG UTM extent of mapping frame
+    p$geog.proj = "+proj=longlat +ellps=WGS84"
 
 
     p$annot.cex=2
