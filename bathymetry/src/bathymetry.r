@@ -1,303 +1,142 @@
-# -------------------------------------------------------------------------------------
-# Bathymetry data --- warning this depends upon GMT (Generic Mapping Tools) 
-  
-  p=list()
+  # Bathymetry data: processing bathymetry data with RINLA  .. no GMT dependency 
+
+  p = list( project.name = "bathymetry" )
+  p$project.root = project.datadirectory( p$project.name )
+         
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-  p$libs = RLibrary( "rgdal", "lattice", "parallel" )
-
-
-  # ------------------
-  # glue all data sources (spherical coords) 
-  # ... right now this is about 17 GB in size when expanded .... SLOW .... 
-  # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
-  # run on servers only unless your machine can handle it
+  p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", 
+                     "sp", "raster", "colorspace" ,  "splancs", "fields",
+                     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
+  
+  ## highres = 0.5 km discretization  .. do NOT change .. instead use "spde_complete" below to project onto other grids
+  p = spatial.parameters( type="canada.east.highres", p=p ) 
+  p = spacetime.parameters(p)  # load spde defaults
+  p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+  p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+  p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
+  p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
+  p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
+  p$expected.range = 50 #+units=km km , with dependent var on log scale
+  p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
+  p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+  p$variables = list( Y="z", X="none", LOCS=c("plon", "plat") )  # X is covariates. .. is none, must specify "none"
+  p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
+  p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
+  p$spacetime.link = function( X ) { log(X + 2000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
+  p$spacetime.invlink = function( X ) { exp(X) - 2000 }
+  p$spacetime.family = "gaussian"
+  p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
+    
+  # if not in one go, then the value must be reconstructed from the correct elements:  
+  p$spacetime.posterior.extract = function(s, rnm) { 
+    # rnm are the rownames that will contain info about the indices ..
+    # optimally the grep search should only be done once but doing so would 
+    # make it difficult to implement in a simple structure/manner ... 
+    # the overhead is minimal relative to the speed of modelling and posterior sampling
+    i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+    i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
+    return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
+  }
+   
   redo.bathymetry.rawdata = FALSE
   if ( redo.bathymetry.rawdata ) { 
-		p = spatial.parameters( type="canada.east", p=p )
-    bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
- }
-
-
-  # ------------------
-  # GMT-based methods:
-  # NOTE: too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
-  # for the high resolution maps .. the temporary files can be created deleted/overwritten files 
-  # in the temporary drives 
-  redo.isobaths = FALSE
-  if (redo.isobaths) {
-    area = c( "snowcrab", "SSE", "ecnasap", "canada.east" ) 
-    for (sp in area) {
-      p$spatial.domain = sp
-      p = spatial.parameters( p=p )
-      p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
-      # override defaults in gmt.parameters as additional ones are used by other systems including lattice
-      p$isobaths = c( 0, seq(50, 450, by=50), seq( 500, 1000, by=100 )  ) #override defaults 
-      p = make.list( list( depths=p$isobaths ), Y=p )
-      p$clusters = rep( "localhost", 1 )  
-      #isobath.db( p=p, DS="redo" ) 
-      parallel.run( isobath.db,  p=p, DS="redo" ) 	
-    }
+    bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
   }
 
-
-  # ------------------
-  # intermediary base maps with location definitions, annotations and isobaths ... to speed up PS map production .. only for GMT maps
-  redo.basemap.gmt = FALSE  
-  if ( redo.basemap.gmt ) {
-    area = c( "snowcrab", "SSE", "ecnasap", "canada.east" ) 
-    for (sp in area) {
-      p$spatial.domain = sp
-      p = spatial.parameters( p=p )
-      p = gmt.parameters(p)  # interpolation parameters ... currently using GMT's isobaths whcih are specified in gmt.parameters
-      # or if you want to override the isobaths plotted define them here (but make sure they were created in the previous step)
-      # p$isobaths = c( seq(50, 450, by=100)  )
-      gmt.basemap(p)
-    }
+  reset.input = FALSE
+  if (reset.input) {
+    # faster if you do this step on kaos (the fileserver)
+    bathymetry.db ( p, DS="bathymetry.spacetime.input.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae)
+    spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=bathymetry.db( p=p, DS="bathymetry.spacetime.input" ) )
   }
+  
+  reset.output = FALSE
+  if (reset.output) {
+    spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
+    cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ), file=p$debug.file, append=FALSE ) # init
+  }
+
+  # cluster definition
+  # do not use all CPU's as INLA itself is partially run in parallel
+  # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
+  # p$clusters = "localhost"  # if serial run, send a single cluster host
+  p$clusters = rep( "localhost", 6 )
+  # p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 2 ) )
+  sS = spacetime.db( p, DS="statistics.bigmemory.status" )
+  sS$n.incomplete / (sS$n.problematic + sS$n.incomplete +sS$n.complete)
+
+  p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
+  parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
+  # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if serial process
+
+
+  bathymetry.db( DS="landmasks.create", p=p ) # need do only once, unless resolution is being changed
+ # for debugging during parallel run:
+ # bathymetry.figures( DS="statistics", p=p ) # need do only once, unless resolution is being changed
+ # bathymetry.figures( DS="predictions", p=p ) # need do only once, unless resolution is being changed
+ # bathymetry.figures( DS="predictions.errors", p=p ) # need do only once, unless resolution is being changed
+  
+  # save to file 
+  spacetime.db( p=p, DS="predictions.redo" )  
+  spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
+  
+  # clean up bigmemory files
+  spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
+
+  # compute slope and curvature and then assimilate results in bathymetry.db
+  bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )  
+
+  # as the interpolation process is so expensive, regrid based off the above run
+  # if you want more, will need to add to the list and modify the selection criteria
+  bathymetry.db( p=p, DS="spde_complete.redo", grids.new=c( "canada.east.highres", "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
+
+  # test outputs/ access methods
+  # plot( bathymetry.db( p, DS="spde_complete", return.format="brick" )$z ) # raster brick
+  # spplot( bathymetry.db( p, DS="spde_complete"), "z" ) # default return value is a spatial points/grid data frame
 
   
-  # ------------------
-  # prepare finalised bathymetry data for use in ecomod
-  complete.bathymetry.db = FALSE
-  areas = c( "canada.east", "SSE" ) # only two are currently used  
-  for ( sp in areas ) {
-    p = spatial.parameters( type=sp, p=p )
-    p = gmt.parameters(p)
-    bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT's math functions ...
-		bathymetry.db ( p, DS="Z.redo" )
-		bathymetry.db ( p, DS="dZ.redo" )
-		bathymetry.db ( p, DS="ddZ.redo" )
-    bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
-    bathymetry.db ( p, DS="complete.redo" ) # glue all together 
+  ### NOTE:  bathymetry.db ( p, DS="complete" ) is a synonym for   bathymetry.db( p=p, DS="spde_complete" )
 	
+  # filtering of areas and or depth to reduce file size, in planar coords only
+  for (domain in c("canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab" ) ) {
+    bathymetry.db ( p=spatial.parameters( type=domain ), DS="baseline.redo" ) 
   }
 
- 
-  # ------------------
   # "snowcrab" subsets do exist but are simple subsets of SSE 
   # so only the lookuptable below is all that is important as far as bathymetry is concerned
   # both share the same initial domains + resolutions
- 	p = spatial.parameters( type="snowcrab", p=p )
-  bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
-  bathymetry.db( DS="lookuptable.sse.snowcrab.redo" ) 
+   
+  bathymetry.db( p=spatial.parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
  
-
-
-
-  # ------------------
-  ## a few lattice-based maps: for SSE only right now
-  p = spatial.parameters( type="SSE" )
-  x = bathymetry.db ( p, DS="baseline" )
-  
-	snowcrab.area=F
-	if (snowcrab.area) {
-		# this is used below
-		sc = intersect( 
-				which( x$plon< 990 & x$plon > 220  & x$plat< 5270 & x$plat > 4675 ) ,
-				filter.region.polygon( x[, c("plon", "plat") ], "cfaall", planar=T) 
-		)
-		x = x[sc,]
-	}
-	
-	x$z =log( x$z )
-  
-  outdir = file.path(project.datadirectory("bathymetry","maps"), p$spatial.domain) 
-
-  dr = quantile( x$z, probs=c(0.005, 0.995))
-  datarange = seq(dr[1], dr[2], length.out=100)
-  cols = color.code( "blue.black", datarange )
-  outfn = "depth"
-  annot = "ln ( Depth; m )"
-  map( xyz=x[,c("plon", "plat", "z")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
-  
-  
-  x = bathymetry.db ( p, DS="dZ.planar" )
-	if (snowcrab.area) x = x[sc,]
-  dr = quantile( x$dZ, probs=c(0.005, 0.995))
-  datarange = seq(dr[1], dr[2], length.out=100)
-  cols = color.code( "blue.black", datarange )
-  outfn = "slope"
-  annot = "ln ( Slope; m/m )"
-  map( xyz=x[ ,c("plon", "plat", "dZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=outdir, at=datarange , col.regions=cols , spatial.domain=p$spatial.domain )
-
- 
-  x = bathymetry.db ( p, DS="ddZ.planar" )
-	if (snowcrab.area) x = x[sc,]
-  dr = quantile( x$ddZ, probs=c(0.005, 0.995))
-  datarange = seq(dr[1], dr[2], length.out=100)
-  cols = color.code( "blue.black", datarange )
-  outfn = "curvature"
-  annot = "ln ( Curvature; m/m/m )"
-  map( xyz=x[,c("plon", "plat", "ddZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-    fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
-
-
-
-  ### END GMT-based methods
-
-
-  # --------------------------
-
-
-  ### START INLA-based methods
-
-  
-  process.bathymetry.data.via.inla = FALSE
-  if (process.bathymetry.data.via.inla) {
-    ## ----- Adaptive estimation method (test) :
-    # processing bathymetry data with RINLA  .. no GMT dependency 
-  
-    # initialize bigmemory data objects
-    p=list()
-    p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-    p$libs = RLibrary( 
-      "rgdal", "lattice", "parallel", "INLA", "geosphere", "sp", "raster", "colorspace" ,
-      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra", "splancs")
-    
-    p$project.name = "bathymetry"
-    p$project.root = project.datadirectory( p$project.name )
-    
-    p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization
-    
-    redo.bathymetry.rawdata = FALSE
-    if ( redo.bathymetry.rawdata ) { 
-      bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-    }
-
-    p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-    p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-    p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
-   
-    ## this changes with resolution: at p$pres=0.25 and a p$dist.max=25: the max count expected is 40000
-    p$n.min = 30
-    p$n.max = 6000 # numerical time/memory constraint
-
-    # the following parameters are for inside and outside ... do not make them exact multiples as this seems to make things hang ..
-    p$inla.mesh.max.edge = c(  0.025,   0.04 )    # proportion of 2*p$dist.max or equivalent: c(inside,outside) -- must be positive valued
-    p$inla.mesh.offset   = c( - 0.025,  - 0.05 )   # how much to extend inside and outside of boundary: proportion of dist.max .. neg val = proportion
-    p$inla.mesh.cutoff   = c( - 0.05,   - 0.5 )    ## min distance allowed between points: proportion of dist.max ; neg val = proportion
-
-    p$inla.mesh.hull.radius = c( -0.04, - 0.08 ) ## radius of boundary finding algorythm ; neg val = proportion
-
-    p$inla.mesh.hull.resolution = 125  ## resolution for discretization to find boundary
-
-    p$spacetime.noise = 0.001  # add a little noise to coordinates to prevent a race condition
-
-    p$inla.alpha = 2 # bessel function curviness
-    p$inla.nsamples = 5000 # posterior similations 
-    p$expected.range = 50 # km , with dependent var on log scale
-    p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
-
-    p$predict.in.one.go = FALSE # use false, one go is very very slow and a resource expensive method
-    p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-
-    p$debug.file = file.path( ecomod.workdirectory, "inla.debug.out" )
-
-
-    p$modelformula = formula( ydata ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
-
-    p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
-
-    p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
-    p$spacetime.invlink = function( X ) { exp(X) - 1000 }
-  
-    p$spacetime.family = "gaussian"
-    
-    # if not in one go, then the value must be reconstructed from the correct elements:  
-    p$spacetime.posterior.extract = function(s, rnm) { 
-      # rnm are the rownames that will contain info about the indices ..
-      # optimally the grep search should only be done once but doing so would 
-      # make it difficult to implement in a simple structure/manner ... 
-      # the overhead is minimal relative to the speed of modelling and posterior sampling
-      i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
-      i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
-      return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
-    }
-   
-  
-    reset.input = FALSE
-    if (reset.input) {
-      # faster if you do this step on kaos (the fileserver)
-      bathymetry.db ( p, DS="bathymetry.spacetime.input.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae)
-      spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=bathymetry.db( p=p, DS="bathymetry.spacetime.input" ) )
-    }
-
-    
-    reset.output = FALSE
-    if (reset.output) {
-      spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
-      cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ), file=p$debug.file, append=FALSE ) # init
-    }
-
-    # cluster definition
-    # do not use all CPU's as INLA itself is partially run in parallel
-    # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
-    # p$clusters = "localhost"  # if serial run, send a single cluster host
-    # p$clusters = c( "hyperion",  "nyx", "tartarus", "kaos", "tethys" ) 
-    p$clusters = c( rep( "hyperion", 6 ), rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ), rep("tethys", 6 ) )
-    nS = spacetime.db( p, DS="statistics.bigmemory.size" )
-      
-    p = make.list( list( jj=sample( 1:nS ) ), Y=p ) # random order helps use all cpus 
-    
-    # spacetime.interpolate.inla( p=p, debugrun=TRUE ) 
-    parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
-    
-    if (0) {
-      # low level check of results
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      
-      # predictions
-      S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
-     
-      # S[,3] is the range estimate
-      x11()
-      datarange = log( c( 5, 800 ))
-      dr = seq( datarange[1], datarange[2], length.out=150)
-      levelplot( log(S[,3])  ~ S[,1] + S[,2] , aspect="iso", at=dr, col.regions=color.code( "seis", dr) ,
-        contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2  )  
-
-      # problematic and/or no data (i.e., land) and skipped
-      i = which( is.nan( S[,3] ) )
-      length(i)
-       
-      # not yet completed
-      j = which( is.na( S[,3] ) ) 
-      length(j)
-
-      # completed 
-      k = which( is.finite (S[,3])  ) # not yet done
-      length(k)
-
-      #predictions 
-      P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
-      pps  =  expand.grid( plons=p$plons, plats=p$plats)
-   
-      datarange = log( c( 5, 5000 ))
-      dr = seq( datarange[1], datarange[2], length.out=150)
-      levelplot( log( P[,2] ) ~ plons + plats, pps, aspect="iso", main="mean", at=dr, col.regions=rev(color.code( "seis", dr)) ,
-        contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-   
-      x11()
-       datarange = ( c( 1, 50 ))
-       dr = seq( datarange[1], datarange[2], length.out=150)
-       levelplot(  P[,3]  ~ plons + plats, pps, aspect="iso", main="mean", at=dr, col.regions=rev(color.code( "seis", dr)) , contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-
-      # redo incomplete
-      p = make.list( list( jj=sample( j ) ), Y=p ) 
-      p = parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
- 
-    }
-
-    spacetime.plot( p=p, "predictions.mean.bigmemory" ) # directly from bigmatrix objects
-    
-    spacetime.db( p=p, DS="predictions.redo" )  
-    spacetime.db( p=p, DS="statistics.redo" )
-    spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
-
-    bathymetry.db( p=p, DS="inla.finalize.redo" )  # create a completed bathymtry db for use with ecomod
-
+  # to recreate new polygons, run the following:
+  bathyclines.redo = FALSE
+  depths = c(0, 10, 20, 50, 75, 100, 200, 250, 300, 400, 500, 600, 700, 750, 800, 900, 
+               1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
+  if( bathyclines.redo ) {
+    # note these polygons are created at the resolution specified in p$spatial.domain .. 
+    # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ). 
+    # For lower one specify an appropriate p$spatial.domain
+    coast = isobath.db( p=p, DS="coastLine.redo", return.lonlat=TRUE ) # flatten into one
+    coast = isobath.db( p=p, DS="coastPolygon.redo", return.lonlat=TRUE )
+    plygn = isobath.db( p=p, DS="isobath.redo", depths=depths, return.lonlat=TRUE  )
   }
+  
+  plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
 
+  plot( plygn[ as.character(c(0))], xlim=c(-68,-52), ylim=c(41,50), col="blue" )  # ie. coastline
+  lines( plygn[ as.character(c( 100, 200, 300 ))], col="lightgray" ) # for multiple polygons
+  lines( plygn[ as.character(c( 500, 1000))], col="gray" ) # for multiple polygons
+  # plot( plygn, xlim=c(-68,-52), ylim=c(41,50))  # all isobaths commented as it is slow ..
+
+
+  # or to get in projected (planar) coords as defined by p$spatial domain
+  plygn = isobath.db( p=p, DS="isobath", depths=c(100)  ) # as SpatialLines
+  plot(plygn)
+
+  plygn_aslist = coordinates( plygn) 
+  plot( 0,0, type="n", xlim=c(-200,200), ylim=c(-200,200)  )
+  lapply( plygn_aslist[[1]], points, pch="." )
+
+  plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
+  plot(plygn_as_xypoints, pch=".")
 

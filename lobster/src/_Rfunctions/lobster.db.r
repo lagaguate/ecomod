@@ -18,6 +18,8 @@
         # ODBC data dump of lobster data
         lobster.db( DS="logs.redo")
         lobster.db( DS="logs41.redo")
+        lobster.db( DS="logs41jonah.redo")
+        lobster.db( DS="observer41.redo")
         lobster.db( DS="atSea.redo")
         lobster.db( DS="cris.redo")
         lobster.db( DS="port.redo")
@@ -28,7 +30,7 @@
       }
     }
 
-    ## Inshore Commercial Logs and slips
+### Inshore Commercial Logs and slips
     if (DS %in% c("logs.redo", "logs") ) {
 
      if (DS=="logs.redo") {
@@ -50,7 +52,7 @@
       
     }
 
-    ## Offshore Commercial Logs
+### Offshore Commercial Logs
     if (DS %in% c("logs41.redo", "logs41") ) {
 
      if (DS=="logs41.redo") {
@@ -58,9 +60,8 @@
         con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
         
         # logs from LFA 41 Cheryl's query for adjusted catch and assigning subareas
-        query41<-"select b.mon_doc_id, b.vr_number, b.vessel_name, b.captain, b.licence_id, 
-                b.FV_FISHED_DATETIME, 
-                round((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100),4) DDLAT,
+        query41<-"select b.mon_doc_id, b.vr_number, b.vessel_name, b.captain, b.licence_id, b.FV_FISHED_DATETIME, 
+                round((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100)DDLAT,
                 round((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100),4) DDLON,
                 b.NUM_OF_TRAPS, b.EST_WEIGHT_LOG_LBS, 
                 b.EST_WEIGHT_LOG_LBS*a.ratio adjcatch,
@@ -92,19 +93,221 @@
                 group by a.est_lbs, a.mon_doc_id
                 )) a, marfissci.lobster_md_log b
                 where a.mon_doc_id = b.mon_doc_id
-                and b.licence_id in (141926, 141930)"
-                
+                and b.licence_id in (141926, 141929, 141930)"
+         
+        slipquery41<-"select  to_char(landing_date_time, 'yyyy'), sum(slip_weight_lbs) from marfissci.lobster_md_slip where licence_id in (141926,141929,141930) group by  to_char(landing_date_time, 'yyyy')"        
+        slip41 = sqlQuery(con, slipquery41)
         logs41 = sqlQuery(con, query41)
         logs41$DDLON<-logs41$DDLON*-1
         save( logs41, file=file.path( fn.root, "logs41.rdata"), compress=T)
+        save( slip41, file=file.path( fn.root, "slip41.rdata"), compress=T)
         gc()  # garbage collection
         odbcClose(con)
       }
       load (file.path( fn.root, "logs41.rdata"), .GlobalEnv)
+      load (file.path( fn.root, "slip41.rdata"), .GlobalEnv)
       
     }
 
-    ## At Sea sampling from Cheryl's view
+### Offshore Commercial Logs for Jonah crab
+   if (DS %in% c("logs41jonah.redo", "logs41jonah") ) {
+
+     if (DS=="logs41jonah.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # logs from LFA 41 Cheryl's query for adjusted catch and assigning subareas
+        query41<-"select doc_id, licence_id, vr_number, vessel_name, captain_name, date_fished,
+                round((((LATITUDE/100/100-TRUNC(LATITUDE/100/100))*100)/60)+TRUNC(LATITUDE/100/100),4) DDLAT,
+                round((((LONGITUDE/100/100-TRUNC(LONGITUDE/100/100))*100)/60)+TRUNC(LONGITUDE/100/100),4) DDLON,
+                num_of_traps, est_weight_log_lbs, pro_rated_slip_wt_lbs adjcatch_lbs, 
+                case          when mflib.simplepoly.inside((((LATITUDE/100/100-TRUNC(LATITUDE/100/100))*100)/60)+TRUNC(LATITUDE/100/100), 
+                -1*((((LONGITUDE/100/100-TRUNC(LONGITUDE/100/100))*100)/60)+TRUNC(LONGITUDE/100/100)), 'CROWELL_BASIN_EXT')>0
+                              then 'CROWELL'
+                              when mflib.simplepoly.inside((((LATITUDE/100/100-TRUNC(LATITUDE/100/100))*100)/60)+TRUNC(LATITUDE/100/100), 
+                -1*((((LONGITUDE/100/100-TRUNC(LONGITUDE/100/100))*100)/60)+TRUNC(LONGITUDE/100/100)), 'SW_BROWNS_EXT')>0
+                              then 'SWBROWNS'
+                              when mflib.simplepoly.inside((((LATITUDE/100/100-TRUNC(LATITUDE/100/100))*100)/60)+TRUNC(LATITUDE/100/100), 
+                -1*((((LONGITUDE/100/100-TRUNC(LONGITUDE/100/100))*100)/60)+TRUNC(LONGITUDE/100/100)), 'SE_BROWNS_EXT')>0
+                              then 'SEBROWNS'
+                              when mflib.simplepoly.inside((((LATITUDE/100/100-TRUNC(LATITUDE/100/100))*100)/60)+TRUNC(LATITUDE/100/100), 
+                -1*((((LONGITUDE/100/100-TRUNC(LONGITUDE/100/100))*100)/60)+TRUNC(LONGITUDE/100/100)), 'GEORGES_BASIN_EXT')>0
+                              then 'GBASIN'
+                              when mflib.simplepoly.inside((((LATITUDE/100/100-TRUNC(LATITUDE/100/100))*100)/60)+TRUNC(LATITUDE/100/100), 
+                -1*((((LONGITUDE/100/100-TRUNC(LONGITUDE/100/100))*100)/60)+TRUNC(LONGITUDE/100/100)), 'GEORGES_BANK_EXT')>0
+                              then 'GBANK'
+                    when mflib.simplepoly.inside((((LATITUDE/100/100-TRUNC(LATITUDE/100/100))*100)/60)+TRUNC(LATITUDE/100/100), 
+                -1*((((LONGITUDE/100/100-TRUNC(LONGITUDE/100/100))*100)/60)+TRUNC(LONGITUDE/100/100)), 'LFA41_4W')>0
+                              then '4W'
+                              else 'UNKNOWN'
+                              end OFFAREA
+                from marfissci.marfis_crab
+                where licence_id in (141929, 141931)"
+         
+        logs41jonah = sqlQuery(con, query41)
+        logs41jonah$DDLON<-logs41jonah$DDLON*-1
+        save( logs41jonah, file=file.path( fn.root, "logs41jonah.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
+      }
+      load (file.path( fn.root, "logs41jonah.rdata"), .GlobalEnv)
+      
+    }
+
+### Offshore Observer
+    if (DS %in% c("observer41.redo", "observer41") ) {
+
+     if (DS=="observer41.redo") {
+        require(RODBC)
+        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+        # logs from LFA 41 Cheryl's query for adjusted catch and assigning subareas
+        query41<-"select TRIP_ID, 
+                  CFV,
+                  VESSEL_NAME,
+                  LICENSE_NO,
+                  NUM_HOOK_HAUL,
+                  BOARD_DATE,
+                  case  when to_char(board_date, 'MM') in (01,02,03)
+                        then 1
+                        when to_char(board_date, 'MM') in (04,05,06)
+                        then 2
+                        when to_char(board_date, 'MM') in (07,08,09)
+                        then 3
+                        when to_char(board_date, 'MM') in (10,11,12)
+                        then 4
+                        else null
+                  end QUARTER,
+                  SET_NO,
+                  SOURCE,
+                  SPECCD_ID,
+                  COMMON,
+                  EST_NUM_CAUGHT,
+                  EST_KEPT_WT,
+                  EST_DISCARD_WT,
+                  LATITUDE,
+                  LONGITUDE,
+                  case when mflib.simplepoly.inside(latitude, -1*longitude, 'CROWELL_BASIN_EXT')>0
+                       then '4WBROWNS'
+                       when mflib.simplepoly.inside(latitude, -1*longitude, 'SW_BROWNS_EXT')>0
+                       then '4WBROWNS'
+                       when mflib.simplepoly.inside(latitude, -1*longitude, 'SE_BROWNS_EXT')>0
+                       then '3SEBROWNS'
+                       when mflib.simplepoly.inside(latitude, -1*longitude, 'GEORGES_BASIN_EXT')>0
+                       then '2GBASIN'
+                       when mflib.simplepoly.inside(latitude, -1*longitude, 'GEORGES_BANK_EXT')>0
+                       then '1GBANK'
+                       WHEN TRIP_ID = 100031557 AND SET_NO = 30
+                       THEN '2GBASIN'
+                       WHEN TRIP_ID = 100034606 AND SET_NO IN (8,9,12)
+                       THEN '1GBANK'
+                       WHEN TRIP_ID = 100036824 AND SET_NO IN (19,20)
+                       THEN '1GBANK'
+                       WHEN TRIP_ID = 100037267 AND SET_NO IN (54,55)
+                       THEN '1GBANK'
+                       WHEN TRIP_ID = 100037677 AND SET_NO = 57
+                       THEN '4WBROWNS'
+                       WHEN TRIP_ID = 100040377 AND SET_NO = 49
+                       THEN '4WBROWNS'
+                       WHEN TRIP_ID = 100042642 AND SET_NO = 43
+                       THEN '4WBROWNS'
+                       WHEN TRIP_ID = 100045023 AND SET_NO in (19,20)
+                       THEN '1GBANK'
+                       else 'UNKNOWN'
+                       end OFFAREA,
+                  COMMENTS
+                  from (
+                  select  a.trip_id, g.cfv, g.vessel_name, g.license_no, b.num_hook_haul, a.board_date, c.set_no, b.source,
+                  c.speccd_id, d.common, c.est_num_caught, c.est_kept_wt, c.est_discard_wt, 
+                  f.latitude, f.longitude, replace(b.comments,Chr(10),' ') comments
+                   from   istrips a,
+                   isfishsets b,
+                   iscatches c,
+                   observer.isspeciescodes d,
+                   (SELECT 
+                      fishset_id, 
+                  (CASE 
+                      WHEN pntcd_lat_3 is not null and pntcd_lon_3 is not null
+                      THEN pntcd_lat_3
+                      ELSE 
+                        (CASE 
+                         WHEN pntcd_lat_4 is not null and pntcd_lon_4 is not null
+                         THEN pntcd_lat_4
+                         ELSE 
+                            (CASE 
+                             WHEN pntcd_lat_1 is not null and pntcd_lon_1 is not null
+                             THEN pntcd_lat_1
+                             ELSE 
+                                (CASE 
+                                 WHEN pntcd_lat_2 is not null and pntcd_lon_2 is not null
+                                 THEN pntcd_lat_2
+                                 ELSE 
+                                  NULL
+                                 END)
+                             END)
+                         END)
+                      END) latitude,
+                  (CASE 
+                      WHEN pntcd_lat_3 is not null and pntcd_lon_3 is not null
+                      THEN pntcd_lon_3
+                      ELSE 
+                        (CASE 
+                         WHEN pntcd_lat_4 is not null and pntcd_lon_4 is not null
+                         THEN pntcd_lon_4
+                         ELSE 
+                            (CASE 
+                             WHEN pntcd_lat_1 is not null and pntcd_lon_1 is not null
+                             THEN pntcd_lon_1
+                             ELSE 
+                                (CASE 
+                                 WHEN pntcd_lat_2 is not null and pntcd_lon_2 is not null
+                                 THEN pntcd_lon_2
+                                 ELSE 
+                                  NULL
+                                 END)
+                             END)
+                         END)
+                      END) longitude
+                  FROM (
+                  SELECT
+                    a.fishset_id, 
+                   sum(case b.pntcd_id when 1 then latitude else null end ) pntcd_lat_1,
+                   sum(case b.pntcd_id when 1 then longitude else null end ) pntcd_lon_1,
+                   sum(case b.pntcd_id when 2 then latitude else null end ) pntcd_lat_2,
+                   sum(case b.pntcd_id when 2 then longitude else null end ) pntcd_lon_2,
+                   sum(case b.pntcd_id when 3 then latitude else null end ) pntcd_lat_3,
+                   sum(case b.pntcd_id when 3 then longitude else null end ) pntcd_lon_3,
+                   sum(case b.pntcd_id when 4 then latitude else null end ) pntcd_lat_4,
+                   sum(case b.pntcd_id when 4 then longitude else null end ) pntcd_lon_4
+                  FROM observer.isfishsets a, observer.issetprofile b
+                  where a.fishset_id = b.fishset_id(+)
+                  group by a.fishset_id
+                  order by a.fishset_id
+                  ) 
+                  )F,
+                   isvessels g
+                   where  a.trip_id = b.trip_id
+                   and  g.vess_id = a.vess_id(+)
+                   and   b.fishset_id = c.fishset_id(+)
+                   and   c.speccd_id = d.speccd_id(+)
+                   and  b.fishset_id = f.fishset_id(+)
+                   and  b.fishset_id = c.fishset_id(+)
+                  and a.vess_id in (295,316,317,1891,1892,1979,1982,2096,2097,2098,2099,2152,2153,4444,10069,10141,10285,12217,13677,18620,20140)
+                  and a.tripcd_id = 2550
+                  and a.board_date > '2001-12-31'
+                  order by trip_id, set_no
+                  )"
+       
+        observer41 = sqlQuery(con, query41)
+        save( observer41, file=file.path( fn.root, "observer41.rdata"), compress=T)
+        gc()  # garbage collection
+        odbcClose(con)
+      }
+      load (file.path( fn.root, "observer41.rdata"), .GlobalEnv)
+      
+    }
+
+### At Sea sampling from Cheryl's view 
     if (DS %in% c("atSea.redo", "atSea") ) {
 
      if (DS=="atSea.redo") {
@@ -120,7 +323,7 @@
       load(file.path( fn.root, "atSea.rdata"), .GlobalEnv)
      }
 
-    ## port sampling 
+### port sampling 
     if (DS %in% c("port.redo", "port") ) {
 
      if (DS=="port.redo") {
@@ -136,7 +339,7 @@
       load(file.path( fn.root, "port.rdata"), .GlobalEnv)
      }
   
-  ## voluntary logs 
+### voluntary logs 
     if (DS %in% c("vlog.redo", "vlog") ) {
 
      if (DS=="vlog.redo") {
@@ -152,7 +355,7 @@
       load(file.path( fn.root, "vlog.rdata"), .GlobalEnv)
      }
 
-    ## CRIS database
+### CRIS database
     if (DS %in% c("cris.redo", "cris") ) {
 
      if (DS=="cris.redo") {
@@ -174,7 +377,7 @@
       load(file.path( fn.root, "crisSamples.rdata"), .GlobalEnv)       
      }
   
-    ## FSRS traps 
+### FSRS traps 
     if (DS %in% c("fsrs.redo", "fsrs") ) {
 
      if (DS=="fsrs.redo") {
@@ -190,7 +393,7 @@
       load(file.path( fn.root, "fsrs.rdata"), .GlobalEnv)
      }
 
-     ## lobster catch from scallop survey  
+### lobster catch from scallop survey  
     if (DS %in% c("scallop.redo", "scallop") ) {
 
      if (DS=="scallop.redo") {
@@ -208,7 +411,8 @@
       load(file.path( fn.root, "scallopCatch.rdata"), .GlobalEnv)
       load(file.path( fn.root, "scallopTows.rdata"), .GlobalEnv)
     }
-    ## lobster survey  
+
+### lobster survey  
     if (DS %in% c("survey.redo", "survey") ) {
 
       if (DS=="survey.redo") {

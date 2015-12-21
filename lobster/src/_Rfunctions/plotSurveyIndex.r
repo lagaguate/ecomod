@@ -1,0 +1,33 @@
+plotSurveyIndex<-function(trend.dat,moving.avg=T,ref.points=T,index.stations=T,fn="SurveyIndex",wd=8,ht=6){
+
+	## Plot Survey Index Figure 4
+	
+	if(index.stations){
+		Stns<-read.csv(file.path(project.datadirectory('lobster'),'data',"survey32Stations.csv"))
+		trend.dat<-subset(trend.dat,SID%in%Stns$SID)
+
+	}
+
+	LPT<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,mean,na.rm=T))
+	yrs<-as.numeric(names(LPT))
+	LPTsd<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,sd,na.rm=T))
+	LPTn<- with(trend.dat,tapply(NUM_STANDARDIZED,YEAR,length))
+	LPTse<-LPTsd/sqrt(LPTn)
+	rmLPT<-mavg(LPT)
+
+	#	browser()
+
+	pdf(file.path( project.datadirectory("lobster"), "R", paste0(fn,".pdf")),wd,ht)
+
+	plot(yrs,LPT,pch=16,ylim=c(0,max(LPT+LPTse)),xlab='',ylab='Mean N / Standard Tow',las=1)
+	axis(1,yrs,lab=F,tck=-0.01)
+	arrows(yrs, LPT+LPTse, yrs, LPT-LPTse ,code=3,angle=90,length=0.05)
+	if(moving.avg)lines(yrs[-(1:2)],rmLPT[!is.na(rmLPT)],lty=2,col='orange',lwd=2)
+	if(ref.points){
+		abline(h=median(LPT[2:15]*0.8),col=rgb(0,0,1,0.5))
+		text(max(yrs)+.5,median(LPT[2:15]*0.8)*.85,"Upper Stock Reference",col=rgb(0,0,1,0.5),pos=2,cex=0.8)
+	}
+
+	
+	dev.off()
+}

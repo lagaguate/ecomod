@@ -30,6 +30,7 @@
               z = length( which( is.finite( x[ filter, v] ) ) )
               if (z < 1) next()
               y = x[ filter, ]
+              if(v=='t' & yrs==2003) browser()
               q = variable.recode( y[,v], v, direction="forward", db="snowcrab" ) # transform variables where necessary
               m =  mean (q, trim=trim, na.rm=T)
               n = length(q)

@@ -1,5 +1,5 @@
-groundfish.analysis <- function(DS='stratified.estimates',p=p, ip=NULL) {
-    loc = file.path( project.datadirectory("groundfish"), "analysis" )
+groundfish.analysis <- function(DS='stratified.estimates',out.dir = 'groundfish', p=p, ip=NULL) {
+    loc = file.path( project.datadirectory(out.dir), "analysis" )
     
     dir.create( path=loc, recursive=T, showWarnings=F )
          if(p$series=='summer')  {mns = c('June','July','August')     ; strat = c(440:495)}
@@ -19,24 +19,72 @@ if(DS %in% c('species.set.data')) {
             a = dir(loc)
             a = a[grep('strata.files',a)]
             a = a[grep(paste(p$species,collapse="|"),a)]
+            if(exists('strata.files.return',p)){
+                  it = grep(paste(p$size.class,collapse="-"),a)
+                  load(file.path(loc,a[it]))
+                  return(strata.files)
+                  }
             for(op in a) {
                 load(file.path(loc,op))
                 al = lapply(strata.files,"[[",2)
                 al = do.call('rbind',al)
                 al$Sp= strsplit(op,"\\.")[[1]][3] 
-                outa = rbind(al,outa)
+                b = strsplit(op,"\\.")
+                b = b[[1]][grep('length',b[[1]])+1]
+                al = rename.df(al,c('totwgt','totno'),c(paste('totwgt',b,sep="."),paste('totno',b,sep=".")))
+                if(is.null(outa)) {outa = rbind(al,outa) 
+                  } else {
+                 outa = merge(outa,al[,c('mission','setno',paste('totwgt',b,sep="."),paste('totno',b,sep="."))],by=c('mission','setno'))
+                }
                 }
                 return(outa)
               }
- 
+if(DS %in% c('mean.wt.at.length')) {
+  p$strata.files.return=T  
+  de = groundfish.db(DS='gsdet.odbc')
+  de = de[which(de$spec %in% p$spec & de$flen %in% p$size.class[1]:p$size.class[2]),]
+  de$id = paste(de$mission,de$setno,sep=".")
+  aout= groundfish.analysis(DS='stratified.estimates.redo',p=p,out.dir= out.dir)
+  a = NULL
+  out = data.frame(yr = p$years.to.estimate, meanWt = NA)
+    for(i in 1:length(aout)) {
+      #this is really gross coding, I am very sorry, brain not working, weighted mean per strat by totno, population weighted for annual total.
+        a = aout[[c(i,2)]]
+        a$id = paste(a$mission,a$setno,sep=".")
+        d = de[which(de$id %in% a$id),]
+     if(length(na.omit(d$fwt))>3){ 
+      if(any(d$mission=='TEL2005605' & d$spec==23)) {l = which(d$fshno==69); d$fwt[l] <- NA}
+          d = aggregate(fwt~id,data=d,FUN=mean)
+        a = merge(a,d,by=c('id'),all.x=T)  
+        b = aggregate(totno~strat,data=a,FUN=sum)
+        a = merge(a,b,by='strat')
+        a$wt = a$totno.x/a$totno.y
+        b = as.data.frame(sapply(split(a,a$strat),function(x) weighted.mean(x$fwt,w=x$wt)))
+        b$strat = rownames(b)
+        names(b) = c('fwt','strat')
+        g = aggregate(totno.x~strat,data=a,FUN=mean)
+        h = data.frame(strat=aout[[c(i,1,1)]],NH=aout[[c(i,1,2)]])
+        b = merge(b,g,by='strat')
+        b = merge(b,h,by='strat')
+        b$wt = b$totno.x * b$NH
+        b = weighted.mean(b$fwt,w=b$wt,na.rm=T)
+        out[i,'meanWt']  = b 
+      }
+    }
+return(out)
+}
+
 if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
           if(DS=='stratified.estimates'){
             outa = NULL 
             a = dir(loc)
             a = a[grep('stratified',a)]
             a = a[grep(paste(p$species,collapse="|"),a)]
-            for(op in a) {
+          for(op in a) {
                 load(file.path(loc,op))
+                b = strsplit(op,"\\.")
+                b = b[[1]][grep('length',b[[1]])+1]
+                out$group = b    
                 outa = rbind(out,outa)
                 }
                 return(outa)
@@ -62,27 +110,32 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
      out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA,n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
     mp=0
     np=1
+    effic.out = data.frame(yr=NA,strat.effic.wt=NA,alloc.effic.wt=NA,strat.effic.n=NA,alloc.effic.n=NA)
+    nopt.out =  list()
     for(iip in ip) {
             mp = mp+1
             v = p$runs[iip,"v"]
             if(iip==1) v0=v
-            if(v0!=v) {
-              lle = 'all'
-              if(p$length.based & !p$sex.based) lle = 'by.length'
-              
-              if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
-              fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
-              fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
-              save(out,file=file.path(loc,fn))
-              save(strata.files,file=file.path(loc,fn.st))
-              print(fn)
-              rm(out)
-              rm(strata.files)
-              out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA, n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
-              strata.files = list()
-              mp=1
-              np = np + 1
-            } 
+            if(v0!=v) { # if this species loop is done save the file and reset data frame to continue with next spp
+                    lle = 'all'
+                    if(p$length.based & !p$sex.based) lle = paste(p$size_class[1],p$size_class[2],sep="-")
+                    if(p$length.based & p$sex.based) lle = 'by.length.by.sex'
+                  
+                    fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
+                    fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
+                  
+                    save(out,file=file.path(loc,fn))
+                    save(strata.files,file=file.path(loc,fn.st))
+                  
+                    print(fn)
+                    rm(out)
+                    rm(strata.files)
+                  
+                    out = data.frame(yr=NA,sp=NA,w.yst=NA,w.yst.se=NA,w.ci.yst.l=NA,w.ci.yst.u=NA,w.Yst=NA,w.ci.Yst.l=NA,w.ci.Yst.u=NA,n.yst=NA,n.yst.se=NA, n.ci.yst.l=NA,n.ci.yst.u=NA,n.Yst=NA,n.ci.Yst.l=NA,n.ci.Yst.u=NA,dwao=NA)
+                    strata.files = list()
+                    mp=1
+                    np = np + 1
+                  } 
             vv = v0 = v
             yr = p$runs[iip,"yrs"]
             print ( p$runs[iip,] )
@@ -92,13 +145,14 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
     
                 se = set[iy,]
                 ca = cas[iv,]
-                  se$z = (se$dmin+se$dmax) / 2  
-              vars.2.keep = c('mission','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','slong','slat','type')  
+                  se$z = (se$dmin+se$dmax) / 2
+                vars.2.keep = c('mission','slat','slong','setno','sdate','dist','strat','z','bottom_temperature','bottom_salinity','type')  
                 se = se[,vars.2.keep]
-        
+                se$slong = convert.dd.dddd(se$slong)
+                se$slat = convert.dd.dddd(se$slat)
         p$lb = p$length.based        
-#browser()
-        if(p$by.sex & !p$length.based) p$size_class=c(0,1000); p$length.based=T
+
+        if(p$by.sex & !p$length.based) {p$size_class=c(0,1000); p$length.based=T}
         
         if(!p$lb) { vars.2.keep =c('mission','setno','totwgt','totno','size_class','spec')
                     ca = ca[,vars.2.keep]
@@ -160,20 +214,31 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                           sc$totwgt = sc$totwgt * 1.75 / sc$dist 
                           io = which(stra$strat %in% unique(sc$strat))
                           st = stra[io,c('strat','NH')]
+                  st = st[order(st$strat),]
                   st = Prepare.strata.file(st)
                   sc1= sc
                   sc = sc[which(sc$type==1),]
                   sc = Prepare.strata.data(sc)
-                 
                   strata.files[[mp]]  = list(st,sc1)
                   sW = Stratify(sc,st,sc$totwgt)        
                   sN = Stratify(sc,st,sc$totno)
-
                   ssW = summary(sW)
                   ssN = summary(sN) 
+               if(p$strata.efficiencies) {
+                  ssW = summary(sW,effic=T,nopt=T)
+                  ssN = summary(sN,effic=T,nopt=T)
+              effic.out[mp,] = c(yr,ssW$effic.str,ssW$effic.alloc,ssN$effic.str,ssN$effic.alloc)
+              nopt.out[[mp]] = list(yr,ssW$n.opt,ssN$n.opt)
+               } 
+               if(!p$strata.efficiencies) {
+                      bsW = NA
+                      bsN = NA
+                      nt = NA
+               if(p$bootstrapped.ci) {
                   bsW = summary(boot.strata(sW,method='BWR',nresamp=1000),ci.method='BC')
                   bsN = summary(boot.strata(sN,method='BWR',nresamp=1000),ci.method='BC')       
                   nt  = sum(sW$Nh)/1000
+                }
                 out[mp,] = c(yr,v,ssW[[1]],ssW[[2]],bsW[1],bsW[2],ssW[[3]]/1000,bsW[1]*nt,bsW[2]*nt,
                 ssN[[1]],ssN[[2]],bsN[1],bsN[2],ssN[[3]]/1000,bsN[1]*nt,bsN[2]*nt,ssW$dwao) 
                 print(out[mp,'v'])  
@@ -182,14 +247,18 @@ if(DS %in% c('stratified.estimates','stratified.estimates.redo')) {
                 print(out[mp,'v'])  
               }
             }
+          }
+  if(p$strata.efficiencies) {
+                 return(list(effic.out,nopt.out))
+              }
               lle = 'all'
-              if(p$length.based) lle = 'by.length'
+              if(p$length.based) lle = paste(p$size.class[1],p$size.class[2],sep="-")
               fn = paste('stratified',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
               fn.st = paste('strata.files',v0,p$series,'strata',min(strat),max(strat),'length',lle,'rdata',sep=".")
              print(fn)
               save(out,file=file.path(loc,fn))
               save(strata.files,file=file.path(loc,fn.st))
-             #if(p$strata.files.return) return(strata.files)
+             if(p$strata.files.return) return(strata.files)
              return(out)
 
    }

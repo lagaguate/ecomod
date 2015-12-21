@@ -13,7 +13,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "utm20"
-    p$internal.crs =  "+proj=utm +ellps=WGS84 +zone=20"
+    p$internal.crs =  "+proj=utm +ellps=WGS84 +zone=20 +units=km"
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
     p$pres = 1
     p$lon0=-68
@@ -33,8 +33,37 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
+    p$nplats = length(p$plats)
   }
-
+  
+  if ( p$spatial.domain %in% c("SSE.mpa") ) {
+    # source raw data for bathymetry:
+		p$bathymetry.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
+		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
+		# resolution and region
+		p$internal.projection = "utm20"
+    p$internal.crs =  "+proj=utm +ellps=WGS84 +zone=20 +units=km"
+    p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
+    p$pres = 1
+    p$lon0=-71
+    p$lon1=-48
+    p$lat0=37
+    p$lat1=48
+    p$lons = seq(p$lon0, p$lon1, by=p$dres)
+    p$lats = seq(p$lat0, p$lat1, by=p$dres)
+    p$nlons = length(p$lons)
+    p$nlats = length(p$lats)
+    p$corners = data.frame(lon=c(p$lon0,p$lon1), lat=c(p$lat0,p$lat1))
+    p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection )
+    
+    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    
+    p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
+    p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
+    p$nplons = length(p$plons)
+    p$nplats = length(p$plats)
+  }
 
   if ( p$spatial.domain=="canada.east") {
 		# source raw data for bathymetry:
@@ -42,7 +71,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
-    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N "
+    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N +units=km "
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. ~ 0.25 km
     p$pres = 1  # km
     p$lon0=-72
@@ -65,13 +94,13 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$nplats = length(p$plats)
   }
 
-  if ( p$spatial.domain=="canada.east.highres") {
+  if ( p$spatial.domain %in% c("canada.east.highres", "canada.east.highres.lonlat")) {
 		# source raw data for bathymetry:
 		p$bathymetry.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
 		# resolution and region
 		p$internal.projection = "lambert.conic.canada.east"
-    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N "
+    p$internal.crs = "+proj=lcc +ellps=WGS84  +lon_0=62W +lat_0=45N +lat_1=43N +lat_2=47N +units=km"
     p$dres = 1/60/4  # CHS is 15 arc second ~ 0.25 km
     p$pres = 0.5  # discretize to 0.5 km resolution
     p$lon0=-72
@@ -93,6 +122,19 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
     p$nplats = length(p$plats)
+    
+    if (  p$spatial.domain == "canada.east.highres.lonlat" ) {
+      # lon/lat copied into plon/plat to permit operations in spherical coordinates
+    	p$internal.projection = "spherical"
+      p$internal.crs = "+proj=longlat +ellps=WGS84 "
+      p$plons = p$lons
+      p$plats = p$lats
+      p$nplons = p$nlons
+      p$nplats = p$nlats
+      p$corners$plon = p$corners$lon
+      p$corners$plat = p$corners$lat
+    }
+  
   }
 
   return(p)

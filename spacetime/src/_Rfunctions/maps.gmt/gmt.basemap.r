@@ -19,7 +19,7 @@ gmt.basemap = function( p ) {
      cmd( "gmt psbasemap", p$region, p$gmtproj, p$annot, ps.new, p$basemap )
      for (d in p$isobaths ){
        isob = NULL
-       isob = isobath.db( p=p, depths=d )
+       isob = isobath.db( p=p, DS="gmt", depths=d )
        # isob$symbol =
        if (is.null(isob)) next()
        write.table( isob, file=gmt.isobathdata, quote=FALSE, col.names=FALSE, row.names=FALSE )

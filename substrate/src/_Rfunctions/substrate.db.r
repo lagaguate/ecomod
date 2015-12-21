@@ -18,8 +18,8 @@
         load( filename )   
         return ( substrate )
       }
-      proj4.params = "+proj=utm +zone=20 +datum=NAD83 "
-      substrate = readAsciiGrid( rawdata.file, proj4string=CRS( proj4.params ) )
+      proj4.params = "+proj=utm +zone=20 +datum=NAD83 +units=m" #resolution is 500m X 500m
+      substrate = sp::read.asciigrid( rawdata.file, proj4string=CRS( proj4.params ), colname="grainsize" )  ## mm
       save( substrate, file=filename, compress=T )
       return(filename)
     }
@@ -36,9 +36,7 @@
       substrate = as.data.frame( substrate )
       names(substrate) = c("grainsize", "plon", "plat" )
       substrate = substrate[,c("plon", "plat", "grainsize")]  
-      substrate$plon = substrate$plon / 1000  # convert to km
-      substrate$plat = substrate$plat / 1000  # convert to km
-      proj4.params = "+proj=utm +zone=20 +datum=NAD83"  # original/raw data still in NAD83 geoid
+      proj4.params = "+proj=utm +zone=20 +datum=NAD83 +units=m"  # original/raw data still in NAD83 geoid
       substrate= planar2lonlat ( substrate, proj4.params ) 
       substrate= substrate[ ,c("lon", "lat", "grainsize")]
       save( substrate, file=filename, compress=T   )
@@ -153,20 +151,19 @@
         load( fn)
         return( substrate )
       }
-      
-      SS = substrate.db ( p, DS="lonlat.highres" )  # signif=7 for lat, lon  
-      SS = lonlat2planar( SS, proj.type=p$internal.projection ) 
-      
-      # no need to discretize, however to bring in other covariates (depth) use discretization in planar coords 
-      SS$plon = grid.internal( SS$plon, p$plons )
-      SS$plat = grid.internal( SS$plat, p$plats )
-      SS = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
- 
-      # add depth and related stats .. dependencies for inla-based modelling
-      ZZ = bathymetry.db( p, DS="inla" )
 
-      substrate = merge ( SS, ZZ, by=c("plon", "plat"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+      substrate = bathymetry.db( p, DS="spde_complete", return.format = "list" ) 
+      substrate$substrate = projectRaster( 
+          from=raster( substrate.db( p=p, DS="substrate.initial" ) ), 
+          to=spatial.parameters.to.raster( p) )
+      substrate = as( brick(substrate), "SpatialGridDataFrame" )
       
+      #substrate$grainsize = log( substrate$gainsize )
+      #substrate$z = log( substrate$z )
+      #substrate$dZ = log( substrate$dZ )
+      #substrate$ddZ = log( substrate$ddZ )
+      #substrate$Z.rangeMode = log( substrate$Z.rangeMode )
+
       save (substrate, file=fn, compress=TRUE)
       return(fn)
     }

@@ -1,11 +1,12 @@
-figure.habitat.associations <- function(data,p) {
+figure.habitat.associations <- function(data,p,out.dir='groundfish',f.name,plot=T) {
 	print('2014 data not included temp and sal not in database')
 	options(stringsAsFactors=F)
 out.d = out.s = out.t = list()
-for(i in 1:(length(data)-1)) {
+for(i in 1:(length(data)-2)) {
 			
-			survey.dat = data[[c(i,2)]]
-			strata.dat = data[[c(i,1)]]
+			survey.dat = Prepare.strata.data(data[[c(i,2)]])
+			strata.dat = Prepare.strata.file(data[[c(i,1)]])
+
 			yr= as.numeric(unique(substr(survey.dat$mission,4,7)))
 			st = survey.dat[which(survey.dat$bottom.temperature> -5 | !is.na(survey.dat$bottom.temperature)),]
 		out<-Association.test(st,strata.group=strata.dat,hydro='bottom.temperature',species='totno',nreps=1000)
@@ -28,8 +29,8 @@ for(i in 1:(length(data)-1)) {
 		for(i in c(1:10,12)) {
 			ss[,i]<-as.numeric(ss[,i])
 		}
-		
-		pdf(file=file.path(project.datadirectory('groundfish'),"analysis","figures",'4xwhitehake.pdf'))
+		if(plot){
+		pdf(file=file.path(project.datadirectory(out.dir),"figures",paste(f.name,'.pdf',sep="")))
 		vars<-unique(ss$VAR)
 		par(mfcol=c(3,1))
 		par(mar=c(0,4,4,1))
@@ -61,7 +62,8 @@ for(i in 1:(length(data)-1)) {
 		with(a3,points(VAL~YEAR,pch=SYM, cex=1.5))
 		with(a3,lines(MED.HAB~YEAR,col='blue'))
 		dev.off()
-		return(ss)
 		}
-
+		return(ss)
+		
+		}
 

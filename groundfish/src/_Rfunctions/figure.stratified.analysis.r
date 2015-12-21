@@ -1,9 +1,9 @@
-figure.stratified.analysis <- function(x,p) {
-	fn=file.path(project.datadirectory('groundfish'),'analysis','figures')
+figure.stratified.analysis <- function(x,p,out.dir='groundfish') {
+	fn=file.path(project.datadirectory(out.dir),'figures')
 	dir.create(fn,showWarnings=F)
 	if(is.character(x)) {
 		#if using file name
-		load(file.path(project.datadirectory('groundfish'),'analysis',x))
+		load(file.path(project.datadirectory('out.dir'),'analysis',x))
 		x = out; rm(out)
 		}
 	#default is to use the object directly	
@@ -13,15 +13,15 @@ figure.stratified.analysis <- function(x,p) {
 		m='Yst' ; mm = 'n'; lev='Stratified Total'; mt= 'Number'; div = 1000
 		if(grepl('mean',measure)) {m = 'yst'; lev = 'Stratified Mean'; div =1}
 		if(grepl('weight',metric)) {mm = 'w'; mt = 'Weight'}
-
 		n1 = names(x)[grep(m,names(x))]
 		n2 = names(x)[grep(mm,names(x))]
 		n = intersect(n1,n2)
 		xp = x[,c('yr',n)]
-		names(xp) = c('year','mean','lower','upper')
+		if(ncol(xp)==5) names(xp) = c('year','mean','se','lower','upper')
+		if(ncol(xp)==4) names(xp) = c('year','mean','lower','upper')
+		
 		xp$mean = xp$mean / div; xp$lower = xp$lower / div; xp$upper = xp$upper / div
 		xpp = xp[which(xp$year>=time.series.start.year & xp$year<=time.series.end.year),  ]
-
 		ylim=c(min(xpp$lower),max(xpp$upper))
 		if(exists('y.maximum')) {
 			yl = ylim[2];
@@ -42,22 +42,25 @@ figure.stratified.analysis <- function(x,p) {
 		  lines(rmean.yr,rmean,lty=1,lwd=3,col='salmon')
 		}
 		if(running.median){
-		  print(paste(3,'Year Running Median'))
-		  rmean = smooth(xpp$mean,kind='3RS3R',endrule='Tukey')
-      		  rmean.yr = xpp$year[1:length(xpp$year)]
+		  print(paste(running.length,'Year Running Median'))
+		  #rmean = smooth(xpp$mean,kind='3RS3R',endrule='Tukey')
+      	rmean = runmed(xpp$mean,k=running.length,endrule='median')
+        rmean.yr = xpp$year[1:length(xpp$year)]
 		  lines(rmean.yr,rmean,lty=1,lwd=3,col='salmon')
 		}
 
 			if(exists('y.maximum',p) &  exists('show.truncated.numbers',p)) {
 				if(nrow(sll)>0){
 				yym = rep(y.maximum*0.95,nrow(sll))
-				ap = sll$year[2:(length(sll$year))]-sll$year[1:(length(sll$year)-1)] 
+				if(nrow(sll>1)) {ap = sll$year[2:(length(sll$year))]-sll$year[1:(length(sll$year)-1)]}
+				if(nrow(sll==1)) {ap = sll$year}
 				if(any(ap<5)) {
 					io = which(ap<5)+1
 					for(i in 1:length(io)) {
 						yym[io[i]] = y.maximum*(0.95-0.025)
 					}
 				}
+				
 				text(sll$year,yym,round(sll$upper,0),cex=0.85)
 			}
 		}
@@ -81,16 +84,17 @@ figure.stratified.analysis <- function(x,p) {
 				lines(x=c(reference.start.year,reference.end.year),y=c(lxref,lxref),col='blue',lty=1,lwd=4)
 			}
 		}
+	if(legend){
 	if(!running.mean & !running.median)	legend(legend.placement,lty=c(1,1),lwd=c(4,4),col=c('darkgreen','blue'),c('80% reference period','40% reference period'),bty='n',cex=0.8)
 	if(running.mean)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(running.length,'yr Running Mean',sep="")),bty='n',cex=0.8)
-	if(running.median)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(3,'yr Running Median',sep="")),bty='n',cex=0.8)
-	
+	if(running.median)  legend(legend.placement,lty=c(1,1,1),lwd=c(4,4,4),col=c('darkgreen','blue','salmon'),c('80% reference period','40% reference period',paste(running.length,'yr Running Median',sep="")),bty='n',cex=0.8)
+	}
   title(figure.title)
 		
 		
 		print(file.path(fn,file.name))
 dev.off()
-if(add.reference.line) {return(c(Reference=xref,Reflow=lxref,Refhi=uxref))}
+if(add.reference.lines) {return(c(Reference=xref,Reflow=lxref,Refhi=uxref))}
 
 	})
 

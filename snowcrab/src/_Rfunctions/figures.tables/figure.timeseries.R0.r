@@ -1,5 +1,5 @@
 
-  figure.timeseries.R0 = function( outdir, all.areas=T ) {
+  figure.timeseries.R0 = function( outdir,infile=NULL, all.areas=T ,specific.area=NULL) {
  
     set = snowcrab.db( DS="set.merge.det")
   
@@ -10,13 +10,14 @@
       areas = c("cfasouth", "cfanorth" )
       regions = c("S-ENS", "N-ENS")
     }
-
+    if(!is.null(specific.area)) {areas = specific.area; regions= specific.area}
     n.regions = length(regions)
     n.areas = length(areas)
 
     v = "R0.mass"
 
     td =  get.time.series ( from.file=T )
+    if(!is.null(infile)) td = infile
     td = td[ which( td$variable == v) ,]
     td = td[ order(td$region, td$year) , ]
     td$region = factor(td$region, levels=areas, labels =regions)

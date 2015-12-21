@@ -175,7 +175,7 @@
   make.timeseries.data(p=p, areas=p$regions )  #  timeseries of means of all survey data
   
   #in 2014 as there was reduced stations for comparison
-make.timeseries.data(p=p, areas=p$regions,reduced.stations=T, vars=c('R0.mass' ))  #  timeseries of means of all survey data
+make.timeseries.data(p=p, areas=p$regions,reduced.stations=F, vars=c('R0.mass' ))  #  timeseries of means of all survey data
   
 
   #  tsdata = snowcrab.db("set.timerseries")

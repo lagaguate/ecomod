@@ -12,7 +12,7 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
     ) )
     
     p$init.files = loadfunctions( c( 
-      "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", 
+      "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", "netmensuration", 
       "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
 
     p$annual.results = file.path( project.datadirectory("snowcrab"), "assessments", current.assessment.year ) # output location for year-specific results
