@@ -77,6 +77,7 @@
       filelist = matrix( NA, ncol=3, nrow=nfiles)
       for (f in 1:nfiles) {
         yr = netmindDate( fnNetmind=dirlist[f] )
+         print(yr)
         if ( is.null(yr) ) next()
         if ( yr %in% Y ) filelist[f,] = c( f, dirlist[f], yr )
       }

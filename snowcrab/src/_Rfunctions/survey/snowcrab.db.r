@@ -134,7 +134,6 @@
 	set$trip = as.character(set$trip)
       set$set  = as.integer(set$set)
  
-
       ############
       # We had discussed that one station got missed in the assessment last year as there was a 
       # typo in the Haul Code ID which indicated that the tow was bad when it was actually a good tow. 
@@ -226,6 +225,21 @@
       set$yr = convert.datecodes(set$chron, "year")
      
       save( set, file=fn, compress=TRUE )
+
+      #MG Save the trawl file to a shapefile to bring into ArcGIS
+      shape.set <- set
+      shape.set$lon <- -shape.set$lon
+      shape.set$chron <- as.character(shape.set$chron)
+
+      set.cords <- shape.set[, c("lon", "lat")]
+      sdf.set <- SpatialPointsDataFrame(set.cords, data=shape.set)
+      proj4string(sdf.set) <- CRS(p$geog.proj)
+      shpdir = file.path(project.datadirectory("snowcrab"), "maps", "shapefiles", "survey")
+      setwd(shpdir)
+      writeOGR(sdf.set, ".", "SurveyDataUpdate", driver="ESRI Shapefile", overwrite=T)
+      setwd("/home/michelle/tmp")
+      shp.path <- paste("SurveyDataUpdate shapefile created at", shpdir, sep=" ")
+      print(shp.path)
 
       return ( fn )
     }
