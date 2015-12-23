@@ -136,8 +136,10 @@ points(lat~lon,FSRSvesday.dat,pch=16,col=rgb(0,0,0,0.1))
 
 	for(i in 1:length(yrs)){
 
-	LobsterMap(ylim=c(42.5,45),xlim=c(-66.5,-62.2),mapRes="UR",points.lst=list(data.frame(EID=1:nrow(x),X=x$DDLON,Y=x$DDLAT),data.frame(EID=1:nrow(x),pch=21,col=rgb(0,1,0,0.5))),pt.cex=sqrt(x[,i+7]),title=yrs[i])
-
+	LobsterMap(ylim=c(42.5,45),xlim=c(-66.5,-62.2),title=yrs[i])
+	addPoints(data.frame(EID=1:nrow(x),X=x$DDLON,Y=x$DDLAT),pch=21,bg=rgb(0,1,0,0.3),cex=sqrt(x[,i+7]))
+	legend('bottomright',legend=c(50,40,30,20,10,1),pch=21,pt.bg=rgb(0,1,0,0.3),pt.cex=sqrt(c(50,40,30,20,10,1)),bty='n',title="No. of Licences",inset=0.05,x.intersp=2,y.intersp=2)
 	}
 
 	dev.off()
+	
