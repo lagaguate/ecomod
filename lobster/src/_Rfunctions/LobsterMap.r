@@ -22,7 +22,7 @@
 # stippling = adds stippling to land (purely for visual effect)
 # lol = adds water colored border to coastline (purely for visual effect)
 
-LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs',bathy.source='topex',isobaths=seq(100,1000,100),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,labels='lfa',LT=T,plot.rivers=T,addSummerStrata=F,...){
+LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs',bathy.source='topex',isobaths=seq(100,1000,100),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,pt.cex=1,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,labels='lfa',LT=T,plot.rivers=T,addSummerStrata=F,...){
 
 options(stringsAsFactors=F)		
 	require(PBSmapping)|| stop("Install PBSmapping Package")
@@ -198,7 +198,7 @@ options(stringsAsFactors=F)
 
 	# plot points
 	if(!is.null(points.lst)){
-		addPoints(points.lst[[1]],polyProps=points.lst[[2]])
+		addPoints(points.lst[[1]],polyProps=points.lst[[2]],cex=pt.cex)
 	}
 
 	# plot lines

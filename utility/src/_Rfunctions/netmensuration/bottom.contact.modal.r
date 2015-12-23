@@ -23,7 +23,7 @@ bottom.contact.modal = function( sm, bcp ) {
     oo = which ( abs( sm$Z - Z0$mode ) < 1 )  # anything within 1 m of the "mode" 
     if (length(oo) > 50) {
       rr = range(oo)
-      res = c( sm$timestamp[rr[1]], sm$timestamp[rr[2]] )
+      res = list( bc0=sm$timestamp[rr[1]], bc1=sm$timestamp[rr[2]] )
     }
     return(res) 
   }
@@ -95,7 +95,6 @@ bottom.contact.modal = function( sm, bcp ) {
   }
 
   res = list( bc0=sm$timestamp[r0], bc1=sm$timestamp[r1] )
-
   return(res)
 }
 

@@ -21,6 +21,7 @@ modes = function( Z, eps=0, ... ) {
   u = try( density(Z ) , silent = TRUE )
   
   if ("try-error" %in% class(u) )  {
+    res = data.frame( mode=NA, sd=NA, lb=NA, ub=NA,lb1=NA,ub1=NA,lb2=NA,ub2=NA ) 
     rownames(res) = c("simple")
     return(res)
   }
