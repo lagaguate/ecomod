@@ -1,11 +1,12 @@
 
-
-### TODO:: add data collected by snow crab survey and any others for that matter 
-###
-
-
 # process Substrate information using SPDE /RINLA .. no GMT dependency
-    
+  
+  ## NOTE:: substrate size is really only relevant for SSE/snowcrab domain right now as no 
+  ##        other data source has been found/identified
+  ##        but working at the size of canada.east.highres for compatibility with bathymetry 
+  ##        .. might change this in future as it is also expensive in time .. but really only done once in a while, sooo...
+  ## TODO:: add data collected by snow crab survey and any others for that matter 
+   
   p = list( project.name = "substrate" )
   p$project.root = project.datadirectory( p$project.name )
          
@@ -13,7 +14,6 @@
   p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", 
                      "sp", "raster", "colorspace" ,  "splancs", "fields",
                      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
-  
   p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization  .. raw data is also in this resolution
    
   p = spacetime.parameters(p)  # load spde defaults
@@ -21,54 +21,43 @@
   p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
   p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
   p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-  p$n.max = 10000 # numerical time/memory constraint -- anything larger takes too much time
+  p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
   p$expected.range = 50 #+units=km km , with dependent var on log scale
   p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
   p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
   p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
+  #p$variables = list( Y="substrate", X=c("z" ), LOCS=c("plon", "plat") )  
+  
   p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
   p$modelformula = formula( substrate ~ -1 + intercept 
-    + f( inla.group(log(z+0.01) ), model="rw2") 
+    + f( inla.group(log(z+1000) ), model="rw2") 
     + f( inla.group(log(dZ+0.01)), model="rw2") 
     + f( inla.group( log(ddZ+0.01) ), model="rw2") 
     + f( inla.group( log(Z.rangeMode+0.01)), model="rw2" ) 
     + f( spatial.field, model=SPDE ) )
   
-  p$spacetime.link = function( X ) { log(X) + 1000 } 
-  p$spacetime.invlink = function( X ) { exp(X) - 1000  }
+  p$spacetime.link = function( X ) { log(X)  } 
+  p$spacetime.invlink = function( X ) { exp(X)  }
   p$spacetime.family = "gaussian"
   p$spacetime.outputs = c( "predictions.direct", "statistics" ) # "random.field", etc. for now: "predictions.projected" works only for simple models. This contains smooth terms 
+    
+  reset.bigmemory.objects = FALSE
+  if ( reset.bigmemory.objects ) {
+    # note::depends upon bathymetry
+    substrate.db ( p=p, DS="substrate.spacetime.inputs.data.redo" )  
+    substrate.db( p=p, DS="substrate.spacetime.inputs.prediction.redo" )
+    
+    # reset input data objects
+    spacetime.db( p=p, DS="bigmemory.inla.inputs.data", B=substrate.db( p=p, DS="substrate.spacetime.inputs.data" ) )
+    spacetime.db( p=p, DS="bigmemory.inla.inputs.prediction", B=substrate.db( p=p, DS="substrate.spacetime.inputs.prediction" ) ) # note this is the same as inputs
   
-  # if not in one go, then the value must be reconstructed from the correct elements:  
-  p$spacetime.posterior.extract = function(s, rnm) { 
-    # rnm are the rownames that will contain info about the indices ..
-    # optimally the grep search should only be done once but doing so would 
-    # make it difficult to implement in a simple structure/manner ... 
-    # the overhead is minimal relative to the speed of modelling and posterior sampling
-    i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
-    i_depth = grep("z", rnm, fixed=TRUE ) # matching the model index  .. etc
-    i_slope = grep("dZ", rnm, fixed=TRUE ) # matching the model index  .. etc
-    i_curv  = grep("ddZ", rnm, fixed=TRUE ) # matching the model index  .. etc
-    i_range = grep("Z.rangeMode", rnm, fixed=TRUE ) # matching the model index  .. etc
-    i_spatial.field = grep("spatial.field", rnm, fixed=TRUE ) 
-    return( p$spacetime.invlink( 
-      s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] 
-      + s$latent[ i_depth,1] + s$latent[ i_slope,1] + s$latent[ i_curv,1]  + s$latent[ i_range,1]  ) ) 
-  }
-   
-  reset.input = FALSE
-  if (reset.input) {
-    # depends upon bathymetry
-    substrate.db ( p=p, DS="substrate.spacetime.input.redo" )  
-    spacetime.db( p=p, DS="bigmemory.inla.reset.input", B=substrate.db( p=p, DS="substrate.spacetime.input" ) )
-  }
-  reset.output = FALSE
-  if (reset.output) {
-    spacetime.db( p=p, DS="bigmemory.inla.reset.output" ) # create/reset bigmemory output data objects  
+    # reset bigmemory output data objects  (e.g., if you are restarting)
+    spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
+    spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
     cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ), file=p$debug.file, append=FALSE ) # init
   }
-
+  
   # cluster definition
   # do not use all CPU's as INLA itself is partially run in parallel
   # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
@@ -91,13 +80,16 @@
   spacetime.db( p=p, DS="predictions.redo" )  
   spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
   spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
-
+ 
+  # bring together stats and predictions and any other required computations
+  substrate.db( p=p, DS="substrate.spacetime.finalize.redo" )  
+ 
   # as the interpolation process is so expensive, regrid based off the above run
   # if you want more, will need to add to the list and modify the selection criteria
-  substrate.db( p=p, DS="finalized.redo", grids.new=c( "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
+  substrate.db( p=p, DS="spde_complete.redo", grids.new=c( "canada.east.highres", "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
 
   # test outputs/ access methods
-  plot( substrate.db( p, DS="finalized", return.format="brick" )$z ) # raster brick
-  spplot( substrate.db( p, DS="finalized", return.format="sp" ), "z" ) # spatial points/grid data frame
+  plot( substrate.db( p, DS="spde_complete", return.format="brick" )$substrate ) # raster brick
+  spplot( substrate.db( p, DS="spde_complete", return.format="sp" ), "substrate" ) # spatial points/grid data frame
    
 
