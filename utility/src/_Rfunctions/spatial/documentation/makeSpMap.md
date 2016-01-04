@@ -1,9 +1,9 @@
-# **[makeSpMap.R](makeSpMap.R)**
+# **[makeSpMap.R](../makeSpMap.R)**
 #### Jan 4, 2016
 MMM - 2016 
 This makes a simple basemap from shapefiles using sp and rgdal.
 
-![Example of makeSpMap()](../../images/makeSpMap.png)
+![Example of makeSpMap()](images/makeSpMap.png)
 
 I like it because: 
 *  the inital extent can be set prior to drawing the map;
