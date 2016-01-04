@@ -21,10 +21,9 @@ makeSpMap<-function(xlim=c(-67,-57),ylim=c(42,47.5)){
   library(sp)
   library(rgdal) #readOGR
   library(latticeExtra) # For layer()
-  loadfunctions("polygons")
+
   
   shapeloader<-function(i){
-    loadfunctions("utility/src/_Rfunctions/spatial")
     readOGR(
       gsub(
         paste0("/",
@@ -50,10 +49,15 @@ for (i in 1:length(baselayer.shapes)){
   baselayer[i]<-shapeloader(baselayer.shapes[i])
 }
 #polygons added with sp.polygons, lines added with sp.lines
+#
 s<- spplot(baselayer[[1]], "ID", xlim=xlim, ylim=ylim, 
-           col.regions="steelblue2", col="steelblue2", colorkey=FALSE)
+           col.regions="steelblue2", col="steelblue2", 
+           colorkey=FALSE, par.settings = list(panel.background=list(col="royalblue2")),
+           scales = list(draw = TRUE))
 s<-s+layer(sp.polygons(baselayer[[2]], fill="lightblue1", col="lightblue1", under=F))   
 s<-s+layer(sp.polygons(baselayer[[3]], fill="moccasin", col="moccasin", under=F))    
 s<-s+layer(sp.lines(baselayer[[4]], col="navajowhite3", under=F)) 
 return(s)
 }
+# loadfunctions("polygons")
+# makeSpMap()
