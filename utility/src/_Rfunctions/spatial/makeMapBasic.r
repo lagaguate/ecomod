@@ -6,11 +6,19 @@
 #  - area extents added as a separate function (getExtent.R)
 #  - numerous more extents added for use by that function
 #----------------------------------------------------
-makeMapBasic= function(x,xlim=c(-67,-57), ylim=c(42,47.5), title="", area=c('ALL'),main=""){
+makeMapBasic= function(x,xlim=c(-67,-57), ylim=c(42,47.5), title="", area="default", main=""){
+  #shapefiles=c(), 
   require(PBSmapping)
   require("raster")
 	require("geosphere")
   
+  #("sp_23_2014-12-01_tow_83UTM20N.shp")
+#   these.shapefiles<-list()
+#   for (i in 1:length(shapefiles)){
+#     #need to get working data directory - not hard code
+#     these.shapefiles[i] <-importShapefile(file.path(project.datadirectory('observers'),shapefiles[i]))
+#   }
+    
 # read in shapefiles
 #--------------------------------------
   basemap= importShapefile(find.ecomod.gis("map_base_region"))
@@ -28,6 +36,8 @@ makeMapBasic= function(x,xlim=c(-67,-57), ylim=c(42,47.5), title="", area=c('ALL
   #(snowcrab, NAFO, Strata and more)
   #if multiple areas specified, get bounds that contain them all
   #if extent not found, alert user
+  
+  if (!area =="default"){
   allExtents<-data.frame()
   for (i in 1:length(area)){
     if (!is.null(ncol(getExtent(area[i])))){
@@ -42,6 +52,7 @@ makeMapBasic= function(x,xlim=c(-67,-57), ylim=c(42,47.5), title="", area=c('ALL
   maxY<-max(allExtents[,5])
   xlim<-c(minX,maxX)
   ylim<-c(minY,maxY)
+  }
   
   plotPolys(basemap, projection="LL", col="royalblue2", border="black",
   font.lab=1,  xlab="Longitude", ylab="Latitude", axes=T, tck=-.01,
