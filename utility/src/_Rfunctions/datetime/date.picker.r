@@ -1,27 +1,3 @@
-get.day<-function(the.year,the.month){
-  #//MMM, Dec, 2015
-  #//This function provides the number of days in each month, given a year and
-  #//month.
-  #//It accounts for leapyears from 1904-2096.  Leapyears are not simply every 4 
-  #//years - please look it up should this script live long enough to need 
-  #//modification :)
-  #//
-  #//This script was originally part of the date.picker() function, but was 
-  #//separated since it might be useful on its own
-  
-  leapyears = seq(1904, 2096, 4 )
-  if (the.month %in% c(1,3,5,7,8,10,12)){
-    the.days = c(1:31)
-  }  else if (the.month %in% c(4,6,9,11)){
-    the.days = c(1:30)
-  } else if (the.year %in% leapyears){
-    the.days = c(1:29)
-  }else{
-    the.days = c(1:28)
-  }
-  return(the.days)
-}
-
 date.picker<-function(type="default"){
   #//MMM, Dec, 2015
   #//
@@ -40,12 +16,17 @@ date.picker<-function(type="default"){
   #//   "default" or "start"  - any time the user cancels the dialog boxes, it 
   #//                           defaults to the earliest date corresponding to the 
   #//                           user's selections (e.g. if only the year was 
-  #//                           chosen (e.g. 1988), it would return 1986/01/01) 
+  #//                           chosen (e.g. 1988), it would return 1988/01/01) 
   #//   "end"  - any time the user cancels the dialog boxes, it defaults to the 
   #//            latest available date corresponding to the user's selections 
   #//            (e.g. if only the year and month was chosen (e.g. February and 
   #//            1988), it would return 1988/02/29 )
-  if (type=="start")type="default"
+  if (type=="start"){
+      type="default"
+      titletweak="the Earliest"
+  }else if (type=="end"){
+    titletweak="the Most Recent"
+  }
   the.year=NULL
   the.month=NULL
   the.day=NULL
@@ -76,7 +57,7 @@ date.picker<-function(type="default"){
     }
     the.year<-select.list(as.character(years),
                           multiple=F, graphics=T, 
-                          title=("Select a Year"))
+                          title=paste0("Select ",titletweak," Year"))
       if (the.year=="") {
         the.year=def.year 
         the.month=def.month 
@@ -88,7 +69,7 @@ date.picker<-function(type="default"){
       }else {
         the.month<-select.list(as.character(months),
                                multiple=F, graphics=T, 
-                               title=("Select a Month"))
+                               title=paste0("Select ",titletweak," Month"))
         if (the.month=="") {
           the.month=def.month 
           all.days=get.day(the.year,the.month)
@@ -101,7 +82,7 @@ date.picker<-function(type="default"){
         }else{
           the.day<-select.list(as.character(get.day(the.year,the.month)),
                                multiple=F, graphics=T, 
-                               title=("Select a Day"))
+                               title=paste0("Select ",titletweak," Day"))
           if (the.day=="") {
             all.days=get.day(the.year,the.month)
             if (type=="default"){
