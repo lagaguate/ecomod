@@ -45,7 +45,7 @@
       time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
       
       bcp = list( 
-        id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), YR=yr,
+        id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), 
         tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
       )
       
