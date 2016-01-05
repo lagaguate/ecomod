@@ -1,6 +1,6 @@
 
   
-  substrate.db = function( p=NULL, DS=NULL ) {
+  substrate.db = function( p=NULL, DS=NULL, grids.new=NULL ) {
  
     if ( DS %in% c("substrate.initial", "substrate.initial.redo") ) {
       # Read in the ArcInfo ascii grid file using library maptools and output a SpatialGridDataFrame
@@ -71,6 +71,7 @@
       return( filename.lonlat.interp )
     }
 
+    # ------------
 
     if ( DS %in% c("lonlat", "lonlat.redo", "lonlat.grid") ) { 
       # interpolation to internal grid
@@ -141,13 +142,13 @@
   
     # ---------------
     
-    if (DS %in% c("substrate.spacetime.input.redo", "substrate.spacetime.input") ) { 
+    if (DS %in% c("substrate.spacetime.inputs.data.redo", "substrate.spacetime.inputs.data") ) { 
    
       datadir = project.datadirectory("substrate", "data" )
 			dir.create( datadir, showWarnings=F, recursive=T )
       fn = file.path( datadir, paste( "substrate", "spacetime", p$spatial.domain, "rdata", sep=".") )
       
-      if (DS =="substrate.spacetime.input" ) {
+      if (DS =="substrate.spacetime.inputs.data" ) {
         load( fn)
         return( substrate )
       }
@@ -157,17 +158,144 @@
           from=raster( substrate.db( p=p, DS="substrate.initial" ) ), 
           to=spatial.parameters.to.raster( p) )
       substrate = as( brick(substrate), "SpatialGridDataFrame" )
-      
-      #substrate$grainsize = log( substrate$gainsize )
-      #substrate$z = log( substrate$z )
-      #substrate$dZ = log( substrate$dZ )
-      #substrate$ddZ = log( substrate$ddZ )
-      #substrate$Z.rangeMode = log( substrate$Z.rangeMode )
-
+ 
       save (substrate, file=fn, compress=TRUE)
       return(fn)
     }
+
+
+    ### ------
     
+
+    if (DS %in% c("substrate.spacetime.inputs.prediction.redo", "substrate.spacetime.inputs.prediction") ) { 
+   
+      datadir = project.datadirectory("substrate", "data" )
+			dir.create( datadir, showWarnings=F, recursive=T )
+      fn = file.path( datadir, paste( "substrate", "spacetime", p$spatial.domain, "rdata", sep=".") )
+      
+      if (DS =="substrate.spacetime.inputs.prediction" ) {
+        #load( fn)
+        substrate = substrate.db( p, DS="substrate.spacetime.inputs.data" ) 
+        return( substrate )
+      }
+      
+      ### prediction grids are the same as the input grid .. do nothing for now
+      ### but kept separate from "*...inputs" in case thy diverge in future
+      print( "This is just a placeholder ..  grids are the same as inputs")
+      # substrate = substrate.db( p, DS="substrate.spacetime.inputs.data" ) 
+      # save (substrate, file=fn, compress=TRUE)
+      return(fn)
+    }
+
+    #-------------------------
+
+    if ( DS %in% c("substrate.spacetime.finalize.redo", "substrate.spacetime.finalize" )) {
+      #// substrate( p, DS="substrate.spacetime.finalize(.redo)" return/create the 
+      #//   spacetime interpolated method formatted and finalised for production use with predictions and statistics
+      fn = file.path(  project.datadirectory("substrate"), "interpolated", 
+        paste( "substrate", "spacetime", "finalized", p$spatial.domain, "rdata", sep=".") )
+      if (DS =="substrate.spacetime.finalize" ) {
+        B = NULL
+        if ( file.exists ( fn) ) load( fn)
+        return( B )
+      }
+ 
+      preds = spacetime.db( p=p, DS="predictions" )  
+      nr = p$nplons
+      nc = p$nplats
+ 
+      BP = expand.grid( plon=p$plons, plat=p$plats ) # coords of full prediction area
+      attr( BP, "out.attrs") = NULL
+      BP$substrate.predictionMean = preds[,2] 
+      BP$substrate.predictionSD   = preds[,3]
+      
+      # remove land
+      oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
+      BP$substrate.predictionMean[oc] = NA
+      BP$substrate.predictionSD[oc]   = NA
+
+      rm(preds); gc()
+     
+      # merge into statistics
+      BS = spacetime.db( p=p, DS="statistics" )
+      B = cbind( BP, BS ) 
+      names(B) = c( names(BP), "substrate.rangeMode", "substrate.rangeSD", "substrate.spatialSD", "substrate.observationSD" )
+
+      save( B, file=fn, compress=TRUE)
+      return(fn)
+
+      if (0) {
+        levelplot( log(substrate.predictionMean) ~ plon + plat, B, aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) ) 
+        levelplot( log(substrate.rangeMode) ~ plon + plat, B, aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) ) 
+        levelplot( substrate.rangeSD ~ plon + plat, B, aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) ) 
+      }
+    }
+
+    # -------------
+    
+    if ( DS %in% c( "spde_complete", "spde_complete.redo" ) ) {
+     #// substrate.db( DS="spde_complete" .. ) returns the final form of the substrate data after
+     #// regridding and selection to area of interest as specificied by girds.new=c("SSE", etc)
+      Z = NULL
+      
+      if ( DS %in% c("spde_complete", "complete") ) {
+        
+        if  (DS %in% c("complete")) {
+          # for backwards compatibility
+          Z = substrate.db( p=p, DS="spde_complete", return.format == "dataframe" )
+          return (Z)
+        }
+
+        # DS="spde_complete"
+        domain = NULL
+        if ( is.null(domain)) {
+          if ( exists("spatial.domain", p)) {
+            domain = p$spatial.domain 
+          } else if ( !is.null(grids.new)) { # over-rides p$spatial domain
+            if( length( grids.new )== 1 ) {
+              domain = grids.new
+        } } }
+        fn = file.path( project.datadirectory("substrate", "interpolated"), 
+          paste( "substrate", "spde_complete", domain, "rdata", sep=".") )
+        if ( file.exists ( fn) ) load( fn)
+        if ( return.format == "dataframe" ) { ## default
+          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
+          return( Z )
+        } 
+        if ( return.format == "dataframe.filtered" ) {
+          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
+          Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) 
+          return( Z )
+        } 
+        if ( return.format %in% c("list") ) return( Z  )
+      }
+
+      p0 = p  # the originating parameters
+      Z0 = substrate.db( p=p0, DS="substrate.spacetime.finalize" )
+      coordinates( Z0 ) = ~ plon + plat 
+      crs(Z0) = crs( p0$interal.crs )
+      above.sealevel = which( Z0$z < 0 ) # depth values < 0 are above  
+      if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
+ 
+      Z = list()
+      
+      grids = unique( c( p$spatial.domain, grids.new, "canada.east.highres.lonlat" ))
+
+      for (gr in grids ) {
+        p1 = spatial.parameters( type=gr )
+        for (vn in names(Z0)) {
+          Z[[vn]] = projectRaster( 
+            from =rasterize( Z0, spatial.parameters.to.raster(p0), field=vn, fun=mean), 
+            to   =spatial.parameters.to.raster( p1) )
+        } 
+        fn = file.path( project.datadirectory("substrate", "interpolated"), 
+          paste( "substrate", "spde_complete", p1$spatial.domain, "rdata", sep=".") )
+        save (Z, file=fn, compress=TRUE)
+        print(fn)
+      }
+      return ( "Completed subsets" )
+    }
+
   }
 
 

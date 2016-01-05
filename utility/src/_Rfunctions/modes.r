@@ -19,7 +19,7 @@ modes = function( Z, eps=0, ... ) {
   # simple determination from histogram
   Z = Z[ which(is.finite(Z) ) ]
   u = try( density(Z ) , silent = TRUE )
-  
+  browser()
   if ("try-error" %in% class(u) )  {
     res = data.frame( mode=NA, sd=NA, lb=NA, ub=NA,lb1=NA,ub1=NA,lb2=NA,ub2=NA ) 
     rownames(res) = c("simple")

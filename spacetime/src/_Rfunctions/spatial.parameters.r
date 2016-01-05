@@ -63,6 +63,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
     p$nplats = length(p$plats)
+    p$boundary = "scotia.fundy.with.buffer"
   }
 
   if ( p$spatial.domain=="canada.east") {
