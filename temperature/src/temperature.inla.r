@@ -85,9 +85,7 @@
   # t0 = t0[ filter.region.polygon( t0, region="isobath1000m" ) , ]
 
    # scotianshelf = locator() 
-    scotianshelf = read.table( find.ecomod.gis( "scotia.fundy.with.buffer.dat"  ) ) 
-    names( scotianshelf) = c("lon", "lat")
-
+    scotianshelf = polygon.db( id="scotia.fundy.with.buffer"  ) 
     plot( t0$lat ~ t0$lon, pch="." )
     lines( scotianshelf )
 

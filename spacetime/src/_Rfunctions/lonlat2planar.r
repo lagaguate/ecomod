@@ -9,6 +9,7 @@
     
     # if internal lookup does not work then try to directly pass to CRS   
     if ( "try-error" %in% class( proj4.params) ) proj4.params = try( CRS( proj.type ), silent=TRUE )
+    if ( "try-error" %in% class( proj4.params) ) proj4.params = try( CRS( as.character(proj.type) ), silent=TRUE )
     if ( "try-error" %in% class( proj4.params) ) {
       print( proj.type )
       warning( "Projection not recognised") 
@@ -20,7 +21,7 @@
       stop( "The proj4 CRS requires an explicit +units=km ")
     }
 
-    y = rgdal::project( as.matrix(x[,input_names]), crsX , inv=F ) 
+    y = rgdal::project( as.matrix(x[,input_names]), proj=crsX , inv=F ) 
     colnames(y) = newnames 
     for (i in 1:length( newnames)) {
       if ( newnames[i] %in% colnames(x) ) x[, newnames[i]] = NULL   
