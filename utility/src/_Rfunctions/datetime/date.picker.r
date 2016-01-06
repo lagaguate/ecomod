@@ -53,7 +53,7 @@ date.picker<-function(type="default"){
     if (type=="end"){
       def.month<-12
     }else {
-      def.month<-12
+      def.month<-1
     }
     the.year<-select.list(as.character(years),
                           multiple=F, graphics=T, 
