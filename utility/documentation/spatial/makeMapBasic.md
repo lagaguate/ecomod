@@ -1,4 +1,4 @@
-# **[makeMapBasic.r](../makeMapBasic.r)**
+# **[makeMapBasic.r](../../src/_RFunctions/spatial/makeMapBasic.r)**
 #### Jan 4, 2016
 MMM - 2016 
 This function generates a map using PBSmapping plotting functions.  It is a simplified version of Ben Z's original called [makeMap.r](makeMap.md) function.  
