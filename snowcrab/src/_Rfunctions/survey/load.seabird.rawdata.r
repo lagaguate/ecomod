@@ -1,7 +1,7 @@
 
   # ---------------------------------------- low-level data access
 
-	load.seabird.rawdata = function(fn, f, set) {
+	load.seabird.rawdata = function(fn, f, set, plot=F) {
    	
     out = NULL
 
@@ -71,10 +71,9 @@
     seabird$seabird_uid = NA
     seabird$depth = NA
     minute = 1 / 24 / 60 # 1 minute in chron terms
-
     metadata = NULL
     for ( ssid in 1:length(setxi) ) {
-      
+     
 	    filename2 = tolower( fileinfo[length(fileinfo)] )
 
       iset = setxi[ssid]
@@ -116,7 +115,6 @@
 
       o = j0:j1
       error = "" #dummy value
-
       if (length(o) < 30) {
         # no matching time range found ... use closest match and raise a flag
         # data stream did not start appropriately .. use minilogs
@@ -128,6 +126,17 @@
         print( head( seabird[ o,] ) )
         print( "The following is the closest matching in set:")  
         print( setx)
+          if(plot){
+            setinfo = set[setxi,]
+            fp =  file.path( project.datadirectory("snowcrab"), "data", "seabird", "mismatches", yr)
+            dir.create( fp, recursive = TRUE, showWarnings = FALSE )
+            pdf(file.path(fp,paste(setinfo$trip[1],'pdf',sep='.') ),12,8)
+            plot(seabird$chron,-seabird$pressure,type='l',main=setinfo$trip[1])
+            points(setinfo$chron,rep(0,nrow(setinfo)),pch=16,col='red')
+            dev.off()
+
+          }
+
         next()
       }
 
@@ -147,6 +156,7 @@
 
     basedata = seabird[ which( !is.na( seabird$seabird_uid) ) ,]
 
+ 
     return( list( metadata=metadata, basedata=basedata ) )
   }
  
