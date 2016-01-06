@@ -21,12 +21,12 @@ date.picker<-function(type="default"){
   #//            latest available date corresponding to the user's selections 
   #//            (e.g. if only the year and month was chosen (e.g. February and 
   #//            1988), it would return 1988/02/29 )
-  if (type=="start"){
-      type="default"
-      titletweak="the Earliest"
+   if (type=="start" | type=="default"){
+    type="default"
+    titletweak="the Earliest"
   }else if (type=="end"){
     titletweak="the Most Recent"
-  }
+  } 
   the.year=NULL
   the.month=NULL
   the.day=NULL

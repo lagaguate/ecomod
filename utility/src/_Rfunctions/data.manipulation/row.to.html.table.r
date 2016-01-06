@@ -13,6 +13,7 @@ row.to.html.table <- function(therow,main='',center='F',tableSummary='')
               <th style="border: 1px solid #1C1C1C; border-collapse: collapse;">Field</th>
               <th style="border: 1px solid #1C1C1C; border-collapse: collapse;">Value</th></tr>')
   tabbody=''
+  nvar=length(therow)
   for (i in 1:nvar) {
     tabbody=paste0(tabbody, '<tr>
                    <td style="border: 1px solid #1C1C1C; border-collapse: collapse;">',names(therow[i]),'</td>
