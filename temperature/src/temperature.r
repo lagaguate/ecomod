@@ -11,12 +11,12 @@
 
 
     p = list()
-    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory" ) )
+    p$libs = RLibrary( c( "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory" ) )
     p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature" ) ) 
  
     # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    p$tyears = c(1950:2014)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    newyear = c( 2014)
+    p$tyears = c(1950:2015)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+    newyear = c( 2015)
 
     p$wtimes = 1:52 
     p$nw = length(p$wtimes)
@@ -50,7 +50,7 @@
       # data up-take for all of the "canada.east" only
       # only one data stream necessary at present .. the largest extent
       # "canada.east" = Nafo2J + Nafo3K + Nafo3L + Nafo3N +  Nafo3O + Nafo4R + Nafo4S + Nafo4V + Nafo4W + Nafo4X + Nafo5Ze + Nafo5Zw
-      p = spatial.parameters( p=p, type= "canada.east" )
+      p = spatial.parameters( p=p, type="canada.east" )
 
       # ----------------
       # extract all hydro data and add snow crab and groundfish data

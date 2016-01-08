@@ -279,7 +279,7 @@
  
       Z = list()
       
-      grids = unique( c( p$spatial.domain, grids.new, "canada.east.highres.lonlat" ))
+      grids = unique( c( p$spatial.domain, grids.new ))
 
       for (gr in grids ) {
         p1 = spatial.parameters( type=gr )

@@ -95,7 +95,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$nplats = length(p$plats)
   }
 
-  if ( p$spatial.domain %in% c("canada.east.highres", "canada.east.highres.lonlat")) {
+  if ( p$spatial.domain %in% c("canada.east.highres")) {
 		# source raw data for bathymetry:
 		p$bathymetry.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
@@ -124,18 +124,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$nplons = length(p$plons)
     p$nplats = length(p$plats)
     
-    if (  p$spatial.domain == "canada.east.highres.lonlat" ) {
-      # lon/lat copied into plon/plat to permit operations in spherical coordinates
-    	p$internal.projection = "spherical"
-      p$internal.crs = "+proj=longlat +ellps=WGS84 "
-      p$plons = p$lons
-      p$plats = p$lats
-      p$nplons = p$nlons
-      p$nplats = p$nlats
-      p$corners$plon = p$corners$lon
-      p$corners$plat = p$corners$lat
-    }
-  
+    
   }
 
   return(p)

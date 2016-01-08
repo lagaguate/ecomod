@@ -200,10 +200,12 @@
       }
       
       if ( DS =="predictions.redo" ) {
-        preds = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
-        # preds = preds[]
-        predloc = attach.big.matrix(p$descriptorfile.Ploc, path=p$tmp.datadir) 
-        preds = cbind ( predloc, preds )
+        pp = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
+        preds = pp[]
+        ppl = attach.big.matrix(p$descriptorfile.Ploc, path=p$tmp.datadir) 
+        predloc = ppl[]
+        preds = as.data.frame( cbind ( predloc, preds ) )
+        names(preds) = c( "plon", "plat", "ndata", "mean", "sdev" )
         save( preds, file=fn.P, compress=TRUE )
         return(fn.P)
       } 
@@ -272,7 +274,8 @@
         statnames  = c( "range", "range.sd", "spatial.sd", "observation.sd"  )
         datalink   = c( "log", "log", "log", "log" )  # a log-link seems appropriate for these data
         names(ss) = statnames0 
-        sslocs = attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir)  # statistical output locations
+        ssl = attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir)  # statistical output locations
+        sslocs = as.data.frame(ssl[]) # copy
         names(sslocs) = p$variables$LOCS
         ss = cbind( sslocs, ss )
         rm (S)
