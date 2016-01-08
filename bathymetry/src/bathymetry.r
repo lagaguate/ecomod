@@ -5,7 +5,7 @@
   p = list( project.name = "bathymetry" )
   p$project.root = project.datadirectory( p$project.name )
          
-  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
+  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" ) )
   p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",
     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
