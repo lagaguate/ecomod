@@ -2,37 +2,107 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
                                  date.range.start=format(seq(Sys.Date(), length=2, by="-1 years")[2] - 1, "%Y-%m-%d"),
                                  date.range.end=format(Sys.Date(), "%Y-%m-%d")){
   library(sqldf)
+  soughtQ=""
+  gearQ=""
+  name=""
+    # Choose Gear or Species --------------------------------------------------
     level.1<-select.list(c("By Species Sought","By Gear"),
                          multiple=F, graphics=T, 
                          title="Data View?")
-    if (level.1=="By Species Sought"){ 
+
+    if (level.1=="By Species Sought" | length(level.1)<2){ 
+      #if left blank, we assume species
       focus="spp"
       the.species<-get.species()
       sought.GUI<-select.list(paste( the.species$COMMON, " (", the.species$SPECSCD_ID,")",sep=""),
                               multiple=T, graphics=T, 
                               title="Choose a species")
-      sought <-as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', sought.GUI))
-      soughtQ<-SQL.in(sought)
-      where<-paste0("AND f.specscd_id IN (",soughtQ,")")
+      sought <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', sought.GUI)))
+      soughtQ<-paste0("AND f.specscd_id IN (",sought,")")
+      
+      name<-if(length(sought)>1) paste0("spp_",sought[1],"_etc") else paste0("sp_",sought[1])
     }else if (level.1=="By Gear"){
       focus="gear"
       the.gear<-get.gear()
       gear.GUI<-select.list(paste( the.gear$DESCRIPTION, " (", the.gear$GEARCD_ID,")",sep=""),
                             multiple=T, graphics=T, 
                             title="Choose a gear")
-      gear<-as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', gear.GUI))
-      gearQ<-SQL.in.noquotes(gear)
-      where<-paste0("AND g.gearcd_id IN (",gearQ,")")
+      gear<-SQL.in.noquotes(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', gear.GUI)))
+      gearQ<-paste0("AND g.gearcd_id IN (",gear,")")
+      
+      name<-paste0('gear_',if(length(gear)>1) paste0(gear[1],"_etc") else gear[1])
     }
+
+    
+    
+    # Choose Date Range -------------------------------------------------------
+    #crashed my computer several times so limitred to 2 years unless overridden
+  get.date.range<-function(){
+    date.range.GUI<-list()
     date.range.start<-date.picker("start")
     date.range.end<-date.picker("end")
-
-  
-  if (focus=="gear"){
-    name<-paste0('gear_',if(length(gear)>1) paste0(gear[1],"_etc") else gear[1])
-  }else{
-    name<-if(length(sought)>1) paste0("spp_",sought[1],"_etc") else paste0("sp_",sought[1])
+    date.range.GUI<-list(date.range.start,date.range.end)
+    date.range.GUI<-verify.date.range(date.range.GUI)
+    return(date.range.GUI)
   }
+  
+  verify.date.range<-function(date.range.GUI){
+    diff <- as.Date(strptime(date.range.GUI[2], "%Y-%m-%d")) - as.Date(strptime(date.range.GUI[1], "%Y-%m-%d"))
+    if (diff[[1]]>730){
+      verify.date.GUI<-select.list(c("Change my date range","I might crash my computer, but I want more than 2 years of data"),
+                  multiple=F, graphics=T, 
+                  title="Please Verify your date selection")
+      if (verify.date.GUI=="Change my date range")date.range.GUI=get.date.range()
+    }
+    return(date.range.GUI)
+  }
+  date.range<-get.date.range()
+  dateQ<-paste0("AND t.board_date BETWEEN to_date('",date.range[1],"','YYYY-MM-DD') AND to_date('",date.range[2],"','YYYY-MM-DD')")
+
+  tripcode=NULL
+  setcode=NULL
+    # Choose Set Code ---------------------------------------------------------   
+    the.setcode<-get.setcode(tripcode=tripcode, sought=sought, date.range=date.range)
+    setcode.GUI<-select.list(paste( the.setcode$SET_TYPE, " (", the.setcode$SETCD_ID,")",sep=""),
+                             multiple=T, graphics=T, 
+                             title="Choose a set type")
+    if (length(setcode.GUI)<1){
+    # if user cancels dialogue box, assume we want them all
+      setcode<-SQL.in.noquotes(as.numeric(the.setcode[,1]))
+    }else{
+      setcode<-SQL.in.noquotes(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', setcode.GUI)))
+    }
+    setcodeQ<-paste0("AND f.setcd_id IN (",setcode,")")   
+    # Choose Trip Code ---------------------------------------------------------    
+    the.tripcode<-get.tripcode(setcode=setcode, sought=sought, date.range=date.range)
+    tripcode.GUI<-select.list(paste( the.tripcode$TRIP_TYPE, " (", the.tripcode$TRIPCD_ID,")",sep=""),
+                              multiple=T, graphics=T, 
+                              title="Choose a trip type")
+    if (length(setcode.GUI)<1){
+      # if user cancels dialogue box, assume we want them all
+      tripcode<-SQL.in.noquotes(as.numeric(tripcode.GUI[,1]))      
+    }else{
+      tripcode<-SQL.in.noquotes(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', tripcode.GUI)))
+    }
+    
+    tripcodeQ<-paste0("AND t.tripcd_id IN (",tripcode,")")
+    
+
+
+    
+    where<-paste(soughtQ,
+                 gearQ,
+                 setcodeQ,
+                 tripcodeQ,
+                 dateQ,sep=" ")
+
+    
+ # a bad month somwhere is causing the extraction to fail in certain circumstances.  Must investigate   
+ #   to_date(NVL(to_char( p1.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p1.settime,1,2) || ':' || substr( p1.settime, 3, 2),'YYYY-MM-DD HH24:MI') p1time,
+#    to_date(NVL(to_char( p2.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p2.settime,1,2) || ':' || substr( p2.settime, 3, 2),'YYYY-MM-DD HH24:MI') p2time,
+#    to_date(NVL(to_char( p3.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p3.settime,1,2) || ':' || substr( p3.settime, 3, 2),'YYYY-MM-DD HH24:MI') p3time,
+#    to_date(NVL(to_char( p4.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p4.settime,1,2) || ':' || substr( p4.settime, 3, 2),'YYYY-MM-DD HH24:MI') p4time,
+    
   ISD_INF_query<-paste0("SELECT SUBSTR(v.vessel_name,1,15) vessel,
                         t.tripcd_id,
                         to_char(t.board_date,'YYYY') year,
@@ -60,12 +130,7 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
                         p3.latddmm p3latddmm,
                         p4.longddmm p4longddmm,
                         p4.latddmm p4latddmm,
-                        p4.settime p4time,
-                        to_date(NVL(to_char( p1.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p1.settime,1,2) || ':' || substr( p1.settime, 3, 2),'YYYY-MM-DD HH24:MI') p1time,
-                        to_date(NVL(to_char( p2.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p2.settime,1,2) || ':' || substr( p2.settime, 3, 2),'YYYY-MM-DD HH24:MI') p2time,
-                        to_date(NVL(to_char( p3.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p3.settime,1,2) || ':' || substr( p3.settime, 3, 2),'YYYY-MM-DD HH24:MI') p3time,
-                        to_date(NVL(to_char( p4.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p4.settime,1,2) || ':' || substr( p4.settime, 3, 2),'YYYY-MM-DD HH24:MI') p4time,
-                        len_longline lenLLkm,
+                        p4.settime p4time,len_longline lenLLkm,
                         ROUND((f.num_hook_haul/ 1000.), 2) nK_hooks,
                         p1.depth p1depth,
                         p2.depth p2depth,
@@ -128,14 +193,14 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
                         AND t.trip_id     =f.trip_id
                         AND g.gear_id     =f.gear_id
                         AND f.setcd_id    = a.setcd_id
-                        AND t.board_date BETWEEN to_date('",date.range.start,"','YYYY-MM-DD') AND to_date('",date.range.end,"','YYYY-MM-DD')
                         ",where)
   if(focus=="spp")print("Looking for your species...")else print("Looking for your gear...")
-  ISD_INF<-sqlQuery(channel,ISD_INF_query)
+  ISD_INF<<-sqlQuery(channel,ISD_INF_query)
   if (nrow(ISD_INF)<1){
     print("Error: No data can be found for your selection")
-    print(where)
-    print(paste0(date.range.start, " to ", date.range.end , " and ", where))
+    print("####")
+    print(ISD_INF_query)
+    print("####")
     return(NULL)
   }else{
     print("Found data. Transmogrifying universes...")
@@ -189,16 +254,18 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
     #The following gets set attributes for use in the data layer
     #It will be fancy when it converts p1-p4 to datetime fields so that soaktime and duration can be checked
     # and can handle the ocassional null value for edatetime
+    
+    #p1time,
+    #p2time,
+    #p3time,
+    #p4time,
     set.all.attrib<-sqldf("SELECT year,
                           tripcd_id,
+                          cfv,
                           vessel,
                           trip,
                           trip_id,
                           set_no,
-                          p1time,
-                          p2time,
-                          p3time,
-                          p4time,
                           nafarea_id,
                           stratum_id,
                           gearcd_id,
