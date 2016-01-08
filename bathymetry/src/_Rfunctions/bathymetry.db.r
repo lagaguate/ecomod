@@ -674,8 +674,8 @@
 
       # on resolution of statistics
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
-      V = data.frame( cbind(plon=S[,1], plat=S[,2]) )
+      Sloc = attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir ) 
+      V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
       V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") ) 
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" )
     }
@@ -693,21 +693,17 @@
         return( B )
       }
  
-      preds = spacetime.db( p=p, DS="predictions" )  
       nr = p$nplons
       nc = p$nplats
  
-      BP = expand.grid( plon=p$plons, plat=p$plats ) # coords of full prediction area
-      attr( BP, "out.attrs") = NULL
-      BP$z = preds[,2] # really Z.mean but for historical compatibility "z" 
-      BP$Z.predictionSD = preds[,3]
-      
+      BP = spacetime.db( p=p, DS="predictions" )  
+      BP = BP[, c( "plon", "plat", "mean", "sdev")]
+      names(BP) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z" 
+
       # remove land
       oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
       BP$z[oc] = NA
       BP$Z.predictionSD[oc] = NA
-
-      rm(preds); gc()
 
       Bmn = matrix( data=BP$z, nrow=nr, ncol=nc )  # means
       
@@ -778,6 +774,12 @@
         fn = file.path( project.datadirectory("bathymetry", "interpolated"), 
           paste( "bathymetry", "spde_complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
+     
+        if ( return.format == "brick" ) { ## default
+          Z = brick(Z)
+          return( Z )
+        } 
+         
         if ( return.format == "dataframe" ) { ## default
           Z = as( brick(Z), "SpatialPointsDataFrame" ) 
           return( Z )
@@ -799,7 +801,7 @@
  
       Z = list()
       
-      grids = unique( c( p$spatial.domain, grids.new, "canada.east.highres.lonlat" ))
+      grids = unique( c( p$spatial.domain, grids.new ))
 
       for (gr in grids ) {
         p1 = spatial.parameters( type=gr )
