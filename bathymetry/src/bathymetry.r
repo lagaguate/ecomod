@@ -116,7 +116,10 @@
   bathymetry.db( p=p, DS="spde_complete.redo", grids.new=new.grids ) 
 
   # filtering of areas and or depth to reduce file size, in planar coords only
-  for (domain in new.grids) bathymetry.db ( p=spatial.parameters( type=domain ), DS="baseline.redo" ) 
+  for (domain in new.grids){ 
+    print(domain)
+    bathymetry.db ( p=spatial.parameters( type=domain ), DS="baseline.redo" ) 
+  }
 
   # "snowcrab" subsets do exist but are simple subsets of SSE 
   # so only the lookuptable below is all that is important as far as bathymetry is concerned

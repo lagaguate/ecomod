@@ -161,7 +161,6 @@
         rid = set[ ii,] 
       # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
         Stats = NULL
-        browser()
         for ( i in 1:nii  ){ 
           print(i)
           id = rid$netmind_uid[i]

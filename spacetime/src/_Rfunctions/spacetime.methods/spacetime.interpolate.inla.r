@@ -90,9 +90,15 @@
       dist.cur = ppp$dist.to.nmax
       
       j = na.omit( hasdata[ppp$indices] )
-      # j = intersect( hasdata, ppp$indices)  # input data indices with covariates 
-      # rm(ppp)
-      ndata = length(j) #no data locations
+      ndata = length(j) # number of data locations
+      
+      # if data transformation causes infinite values or NA's then ignore rather than failing with the rest of the analysis
+      test.finite = which( is.finite( p$spacetime.link ( Y[j] ) ) )
+      if (length( test.finite) != ndata ) {
+        # altered j, update  count
+        j = j[ test.finite ]
+        ndata = length(j)
+      }
       if (ndata < p$n.min) next()
       if (debugrun) cat( paste( Sys.time(), deid, "n=", ndata, "dist=", dist.cur, "\n" ), file=p$debug.file, append=TRUE ) 
       locs_noise = runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise ) # add  noise  to prevent a race condition
