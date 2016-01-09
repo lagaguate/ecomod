@@ -56,10 +56,10 @@
       # extract all hydro data and add snow crab and groundfish data
       # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical) from 1910 to 2010
       # hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) # temp data not maintained any longer ???
-      # hydro.db( DS="osd.oneoff.singleyear.redo", yr=2011, p=p ) 
-      # .. not sure where data are being stored 
-      # .. right now using data obtained directly from Roger Pettipas (OSD)  
-        hydro.db( DS="osd.pettipas.redo", p=p, yr=c(2010:2013) ) 
+      
+      # since 2011, Roger Petipas has been maintaining a database, the following loads this data
+      hydro.db( DS="osd.pettipas.redo", p=p, yr=c(2011:2014) ) 
+      hydro.db( DS="osd.current", p=p, yr=c(2011, 2012, 2014:2015) ) 
 
       # ----------------
       # Merge depth profiles from all data streams: OSD, groundfish, snowcrab
