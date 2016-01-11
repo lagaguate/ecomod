@@ -10,7 +10,7 @@
   p = list( project.name = "substrate" )
   p$project.root = project.datadirectory( p$project.name )
          
-  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "substrate" ) )
+  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons", "substrate" ) )
   p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", 
                      "sp", "raster", "colorspace" ,  "splancs", "fields",
                      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
@@ -24,7 +24,7 @@
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
+      p$n.max = 9000 # numerical time/memory constraint -- anything larger takes too much time
       p$expected.range = 50 #+units=km km , with dependent var on log scale
       p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
       p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
@@ -108,7 +108,7 @@
   substrate.db( p=p, DS="spde_complete.redo", grids.new=c( "canada.east.highres", "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
 
   # test outputs/ access methods
-  plot( substrate.db( p, DS="spde_complete", return.format="brick" )$substrate ) # raster brick
-  spplot( substrate.db( p, DS="spde_complete", return.format="sp" ), "substrate" ) # spatial points/grid data frame
+  # plot( substrate.db( p, DS="spde_complete", return.format="brick" )$substrate ) # raster brick
+  # spplot( substrate.db( p, DS="spde_complete", return.format="sp" ), "substrate" ) # spatial points/grid data frame
    
 

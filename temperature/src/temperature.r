@@ -1,18 +1,13 @@
 
-
   # ----------------
   # Prep OSD, snow crab and groundfish temperature profiles    
   # this one has to be done manually .. no longer mainted by anyone ..
-  # temperature.profiles = hydro.db( DS="osd.rawdata.refresh" )  
-  
-  # from (http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html) 
-  # depths: 500,500, "complete profile"   .. raw data  for the SS (region: jc.ss")
-  # must download manually to this directory and run gzip
+ 
+    p = list( project.name = "temperature" )
+    p$project.root = project.datadirectory( p$project.name )
 
-
-    p = list()
     p$libs = RLibrary( c( "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory" ) )
-    p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature" ) ) 
+    p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "polygons" , "temperature" ) ) 
  
     # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p$tyears = c(1950:2015)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -21,53 +16,38 @@
     p$wtimes = 1:52 
     p$nw = length(p$wtimes)
     p$ny = length(p$tyears)
-
-    p$gam.optimizer = "bam" ## other optimizers:: "bam", "perf", "nlm", "bfgs", "optim", "newton", "nlm.fd" --- bfgs is way too slow to use
-
-    # min number of data points req 
-    # before attempting to model timeseries in a localized space (determined by a box with size dist.km .. below.
-    p$nMin.tbot = p$ny*2 
-    
-    # "manhattan" (~radius) distances to extend search for data 
-    # (for timeseries interpolation and spatial interpolations)
-    p$dist.km = c( 5, 10, 15, 20 ) 
-
+    p$gam.optimizer = "nlm" ## other optimizers:: "bam", "perf", "nlm", "bfgs", "optim", "newton", "nlm.fd" --- bfgs is way too slow to use
+    p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
+    p$dist.km = c( 5, 10, 15, 20 ) # "manhattan" (~radius) distances to extend search for data
     p$tsmethod ="harmonics.1"  # temporal interpolation method ... harmonic analysis seems most reasonable
-      # .. do not use more than 2 as it chases noise too much 
-      # .. 1 harmonic seems the best in terms of not chasing after noise 
- 
-    # faster to use RAM-based data objects but this forces use only of local cpu's
-    # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
-    p$use.bigmemory.file.backing = FALSE  
-    # p$use.bigmemory.file.backing = TRUE  # file-backing is slower but can use all cpu's in a distributed cluster
+      # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
+
 
 
     # ------------------------------
 
     if ( create.baseline.database ) {
-      
-      # ----------------
       # data up-take for all of the "canada.east" only
       # only one data stream necessary at present .. the largest extent
       # "canada.east" = Nafo2J + Nafo3K + Nafo3L + Nafo3N +  Nafo3O + Nafo4R + Nafo4S + Nafo4V + Nafo4W + Nafo4X + Nafo5Ze + Nafo5Zw
       p = spatial.parameters( p=p, type="canada.east" )
 
-      # ----------------
       # extract all hydro data and add snow crab and groundfish data
       # hydro.db( DS="osd.rawdata.allfiles.redo", p=p  )   # redo whole data set (historical) from 1910 to 2010
       # hydro.db( DS="osd.rawdata.singleyear.redo", yr=newyear, p=p ) # temp data not maintained any longer ???
       
-      # since 2011, Roger Petipas has been maintaining a database, the following loads this data
-      hydro.db( DS="osd.pettipas.redo", p=p, yr=c(2011:2014) ) 
-      hydro.db( DS="osd.current", p=p, yr=c(2011, 2012, 2014:2015) ) 
+      # Roger Petipas has been maintaining a database, the following loads this data
+      hydro.db( DS="osd.initial", p=p ) 
+      hydro.db( DS="osd.current", p=p, yr=2014:newyear ) 
 
       # ----------------
       # Merge depth profiles from all data streams: OSD, groundfish, snowcrab
       # p = make.list( list( yrs=p$tyears), Y=p )
-        p = make.list( list( yrs=2010:2013), Y=p )  # etc, alternate usage
-        hydro.db( DS="profiles.annual.redo", yr=newyear, p=p  ) # can also choose all years: yr=p$tyears
-      # parallel.run( hydro.db, p=p, yr=p$tyears, DS="profiles.annual.redo", init.files=p$init.files ) 
+      p = make.list( list( yrs=c(2008:newyear), Y=p )  # etc, alternate usage
 
+      p$current.assessment.year =2015
+      hydro.db( DS="profiles.annual.redo", yr=c(2008:newyear), p=p  ) # can also choose all years: yr=p$tyears
+      # parallel.run( hydro.db, p=p, yr=p$tyears, DS="profiles.annual.redo", init.files=p$init.files ) 
 
       # ----------------
       # Extract bottom data from each profile
@@ -75,14 +55,9 @@
         hydro.db( DS="bottom.annual.redo", yr=newyear, p=p ) # yr argument overrides p$tyears .. e.g. for a new year of data
       # hydro.db( DS="bottom.annual.redo", p=p ) 
       # parallel.run( hydro.db, p=p, yr=p$tyears, DS="bottom.annual.redo", init.files=p$init.files ) 
-
-
-      # ----------------
-      # Basic data uptake now complete 
     }
 
-
-
+    # Basic data uptake now complete 
     
     
     # ------------------------------
@@ -92,21 +67,56 @@
       # to optimize speed for snow crab /SSE only results 
       # p = spatial.parameters( p=p, type="canada.east" ) #  can be completed later (after assessment) when time permits if required
       p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
-    
-
-      # ----------------
+   
       # grid bottom data to internal spatial resolution ; <1 min  
       p = make.list( list( yrs=p$tyears), Y=p )
       # parallel.run( hydro.db, p=p, DS="bottom.gridded.redo" )
       hydro.db( p=p, DS="bottom.gridded.redo" )  # all p$tyears, for a single year use with yr argument: yr=newyear
-
      
     
-      # ----------------
       # temporal interpolations assuming some seasonal pattern 
       # 1950-2013, SSE took ~ 35 hrs on laptop (shared RAM, 24 CPU; 1950-2013 run April 2014 ) ... 17 GB req of shared memory
-      # this is parallelized ... the call is internal to this 
+      # 1950-2015, SSE 22 hrs, 42 GB RAM, 8 CPU on hyperion (10 Jan 2015), using BAM
+ 
+      # define output mattrix
+      # predictions are made upon the locations defined by bathymetry "baseline" 
+      p$nP = nrow( bathymetry.db( p=p, DS="baseline" ) )
+      p = temperature.db(p=p, DS="bigmemory.initiate" ) # return pointers to bigmemory objects in case it is RAM-based    must be at top level 
+        # test to make sure attach is possible .. sometimes requires restart of R or even computer .. bigmemory memory leak or file caching
+        tbot <- attach.big.matrix( p$descriptorfile.tbot )
+			  tbot.se <- attach.big.matrix( p$descriptorfile.tbotse )
+      
       p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
+      p = make.list( list( loc=sample.int( p$nP) ), Y=p ) # random order helps use all cpus
+           
+      parallel.run( temperature.timeseries.interpolate, p=p)
+      # temperature.timeseries.interpolate ( p=p )
+
+        if (0) {
+          # tmp saves in case export is problematic here:
+          fn.tbot.tmp = file.path( tinterpdir, "tbot.tmp.rdata")
+          fn.tbotse.tmp = file.path( tinterpdir, "tbotse.tmp.rdata")
+          
+          tbot <- attach.big.matrix( p$descriptorfile.tbot )
+			    tbot.se <- attach.big.matrix( p$descriptorfile.tbotse  )
+
+          # tmp save in case export is problematic
+          fn.tbot.tmp = file.path( tinterpdir, "tbot.tmp.rdata")
+          fn.tbotse.tmp = file.path( tinterpdir, "tbotse.tmp.rdata")
+
+          save( tbot, file=fn.tbot.tmp, compress=T )
+          save( tbot.se, file=fn.tbotse.tmp, compress=T )
+
+          load( fn.tbot.tmp) 
+          load( fn.tbotse.tmp) 
+          str(tbot)
+          # after checking.. if all ok, then delete
+          file.remove( fn.tbot.tmp )
+          file.remove( fn.tbotse.tmp)
+          # temperature.db( p=p, DS="bigmemory.status" ) # if file backed ...
+        }
+      
+      # save interpolation as time slices
       temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) #amc set up at 20:12 Jan 13
   
 
@@ -116,6 +126,7 @@
       # using localhost in 2014 6+ hr for each run but with multiple cycles ~ 10 hr total 
       # use all clusters if available
       p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+       p$clusters = rep("localhost", detectCores() ) 
       p = make.list( list( yrs=p$tyears), Y=p )
       parallel.run( temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
     
@@ -164,6 +175,8 @@
 
     }
 
+  # finish
+  p = temperature.db( p=p, DS="bigmemory.cleanup" )
 
 
   debug = FALSE

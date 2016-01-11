@@ -2,9 +2,9 @@
   temperature.interpolations = function( ip=NULL, p=NULL, DS=NULL, yr=NULL) {
 
     if (DS %in% c(  "temporal.interpolation", "temporal.interpolation.se", "temporal.interpolation.redo" )){
-   
-      starttime = Sys.time()
       
+      # interpolations complete ... now write time slices to disk 
+   
       tinterpdir = project.datadirectory("temperature", "data", "interpolated", "temporal", p$spatial.domain  )
       dir.create( tinterpdir, recursive=T, showWarnings=F )
 				
@@ -20,56 +20,9 @@
           return ( tinterp.se )
       }
 		  	
-      P = bathymetry.db( p=p, DS="baseline" )
-      p$nP = nrow(P);	
-
-      nr = p$nP
-			nc = p$nw * p$ny
-
-      if (p$use.bigmemory.file.backing) {
+      tbot <- attach.big.matrix( p$descriptorfile.tbot  )
+			tbot.se <- attach.big.matrix( p$descriptorfile.tbotse  )
       
-        basenm = file.path( make.random.string("interpolated.bigmemory.rdata.tmp") )
-        p$fn.tbot =  paste( basenm, "pred", sep="." )
-        p$fn.tbot.se = paste( basenm, "se", sep="." )
-        bf1 = basename(p$fn.tbot) 
-        bf2 = basename(p$fn.tbot.se) 
-        df1 = paste(bf1, "desc",sep=".")
-        df2 = paste(bf2, "desc",sep=".")
-        tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA,   backingfile=bf1, descriptorfile=df1   )  
-        tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, backingfile=bf2, descriptorfile=df2  )
-
-      } else {
-      
-        tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA, shared=TRUE  )  
-        tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, shared=TRUE  )
-      
-      }
-
-      # required to operate with bigmemory objects in parallel 
-      p$tbot.desc = describe(tbot)
-      p$tbot.se.desc = describe(tbot.se)
-     	    
-      B = hydro.db( p=p, DS="bottom.gridded.all"  )
-  #   B = B[, c("plon", "plat", "yr", "weekno", "t") ]
-
-      # globally remove all unrealistic data
-      TR = range(B$t, na.rm=TRUE ) 
-      TR[1] = max( TR[1], -3)
-      TR[2] = min( TR[2], 30)
-      B$t [ which( B$t < TR[1]) ] = NA
-      B$t [ which( B$t > TR[2]) ] = NA
-      B = B[ which( is.finite(B$t)) ,]
-
-      gc()
-      # sample.int used to randomize order ... to use all cpu's as much as possible
-      p = make.list( list( loc=sample.int(p$nP) ), Y=p ) # random order helps use all cpus 
-      parallel.run( temperature.timeseries.interpolate, p=p, P=P, B=B )
-      # temperature.timeseries.interpolate ( p=p )
-      
-      tbot <- attach.big.matrix( p$tbot.desc )
-			tbot.se <- attach.big.matrix( p$tbot.se.desc )
-
-      # interpolations complete ... now write time slices to disk 
 			for ( r in 1:length(p$tyears) ) {
 				yt = p$tyears[r]
 				fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
@@ -83,19 +36,11 @@
 				save( tinterp.se, file=fn2, compress=T) 
 			}
 		
-      if (p$use.bigmemory.file.backing) {
-  			file.remove( p$fn.tbot , p$fn.tbot.se )
-	  		file.remove( paste( c(p$fn.tbot , p$fn.tbot.se), "desc", sep=".") )
-      }
-     
-      endtime = Sys.time()
-
-			return ( endtime - starttime )
+			return ( "complete" )
     }
  
 
 		# -------------------
-
 
 
     if (DS %in% c(  "spatial.interpolation", "spatial.interpolation.se", "spatial.interpolation.redo" )){
@@ -217,8 +162,6 @@
 
       return (endtime - starttime)
     }
- 
-
     
   } 
 

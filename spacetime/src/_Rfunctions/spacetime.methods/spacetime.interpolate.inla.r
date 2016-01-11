@@ -15,9 +15,6 @@
   
     # load bigmemory data objects pointers
     p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
- 
-    options(bigmemory.allow.dimnames=TRUE)
- 
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
     S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )  # statistical outputs
     
@@ -73,7 +70,7 @@
     # main loop over each output location in S (stats output locations) 
     for ( iip in ip ) {
       dd = p$runs[ iip, "jj" ]
-      # dd=66288
+      # dd=2000
       if (debugrun) deid = paste( Sys.info()["nodename"], "index=", dd )
       if (debugrun) cat( paste( Sys.time(), deid, "start \n" ), file=p$debug.file, append=TRUE ) 
       focal = t(Sloc[dd,])
@@ -91,7 +88,8 @@
       
       j = na.omit( hasdata[ppp$indices] )
       ndata = length(j) # number of data locations
-      
+      if (ndata < p$n.min) next()
+
       # if data transformation causes infinite values or NA's then ignore rather than failing with the rest of the analysis
       test.finite = which( is.finite( p$spacetime.link ( Y[j] ) ) )
       if (length( test.finite) != ndata ) {

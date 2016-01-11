@@ -2,7 +2,7 @@
   ### This uses GMT-based methods .. it is now deprecated
   
   p = list()
-  p$init.files = 	loadfunctions( c("spacetime", "utility", "substrate", "bathymetry" ) ) 
+  p$init.files = 	loadfunctions( c("spacetime", "utility", "substrate", "bathymetry", "polygons" ) ) 
   p$libs = RLibrary( "maptools" , "rgdal" )
 
 	# --------------------------------------

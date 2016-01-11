@@ -3,6 +3,61 @@
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
     if (exists( "libs", p)) RLibrary( p$libs ) 
   
+    # ------
+
+    if (DS %in% "bigmemory.filenames" ) {
+      p$tmp.datadir = file.path( p$project.root, "tmp" )
+      if( !file.exists(p$tmp.datadir)) dir.create( p$tmp.datadir, recursive=TRUE, showWarnings=FALSE )
+      p$backingfile.tbot = paste( "tbot.bigmatrix", p$spatial.domain, "tmp", sep=".")
+      p$backingfile.tbotse = paste( "tbotse.bigmatrix", p$spatial.domain, "tmp", sep=".")
+      return(p)
+    }
+
+    # ------
+
+    if (DS %in% "bigmemory.cleanup" ) { 
+      # load bigmemory data objects pointers
+      p = temperature.db( p=p, DS="bigmemory.filenames" ) 
+      todelete = file.path( p$tmp.datadir,c( p$backingfile.tbot, p$backingfile.tbotse )) 
+      for (fn in todelete ) if (file.exists(fn)) file.remove(fn) 
+      return( todelete )
+    }
+
+    ------
+
+    if (DS %in% "bigmemory.initiate" ) { 
+      p = temperature.db( p=p, DS="bigmemory.filenames" ) 
+    # create file backed bigmemory objects
+      fn.tbot = file.path(p$tmp.datadir, p$backingfile.tbot )
+      if ( file.exists( fn.tbot) ) file.remove( fn.tbot) 
+      fn.tbotse = file.path(p$tmp.datadir, p$backingfile.tbotse )
+      if ( file.exists( fn.tbotse) ) file.remove( fn.tbotse ) 
+      nr = p$nP
+      nc = p$nw*p$ny
+      # shared RAM object
+      tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA, shared=TRUE)  
+      tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, shared=TRUE)
+      p$descriptorfile.tbot = describe( tbot)
+      p$descriptorfile.tbotse = describe( tbot.se)
+      return( p ) 
+    }
+
+    #  -------------
+
+    if ( DS %in% "bigmemory.status" ) { 
+        tbot = attach.big.matrix(p$descriptorfile.tbot  )
+        # problematic and/or no data (e.g., land, etc.) and skipped
+        i = which( is.nan( tbot[, 1] ) )
+        # not yet completed
+        j = which( is.na( tbot[,1] ) ) 
+        # completed 
+        k = which( is.finite (tbot[,1])  ) # not yet done
+        return( list(problematic=i, incomplete=j, completed=k, n.total=nrow(tbot[]), 
+                     n.incomplete=length(j), n.problematic=length(i), n.complete=length(k)) ) 
+      }
+
+
+    # -----------------
 
     if (DS %in% c("climatology", "climatology.redo") ) {
       

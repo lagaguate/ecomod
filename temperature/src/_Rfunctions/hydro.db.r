@@ -18,7 +18,6 @@
     if (exists( "libs", p)) RLibrary( p$libs ) 
     # OSD data series variables of interest
     
-    varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
 
     if ( DS == "osd.rawdata" ) {
       # simple loading of annual data files
@@ -59,6 +58,7 @@
     
     if (DS=="osd.rawdata.singleyear.redo" ) {
       varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE","SALINITY" ,"SIGMAT" ) 
+      varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
       for ( y in yr) {
         X = NULL
         fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
@@ -72,43 +72,41 @@
         save( X, file=fn.out, compress=T)
       }
     } 
-   
-    if (DS=="osd.pettipas.redo" ) {
-      ## this is a data dump directly from Roger Pettipas for 2010 to 2012 using MSACCESS -> text
-      ## and merging here
-      datadir = file.path( loc.archive, "pettipas" )
-      varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE","SALINITY" ,"SIGMAT" ) 
-      for ( y in yr ) {
+ 
+    # ----------------------
+
+    if (DS=="osd.initial" ) {
+      ## this is a data dump directly from Roger Pettipas for 2008 to 2015 
+      varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
+      fndata = file.path( loc.archive, "Data_2008-2014.csv.xz" ) 
+      XX = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
+      names(XX) = tolower( names(XX) )
+      XX$depth = decibar2depth ( P=XX$pressure, lat=XX$latitude )
+      if (!exists( "sigmat", XX))  XX$sigmat = XX$sigma.t  # naming is variable
+      XX$date_string = paste( XX$year, XX$month, XX$day, sep="-" )
+      XX$date = chron( dates.=XX$date_string, format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
+      yrs = sort( unique( XX$year) )
+      for ( y in yrs ) {
         print (y)
-        fndata = file.path( datadir, paste( "temp_dt_", y, ".txt.xz", sep="" ) ) # xz compressed files
-        fnset = file.path( datadir, paste( "temp_st_", y, ".txt.xz", sep="" ) )
-        tdata = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
-        names( tdata) = c("pressure", "temperature", "salinity", "sigmat", "stationid" )
-        tsets = read.csv( file=xzfile(fnset), header=TRUE, stringsAsFactors=FALSE , na.strings="9999" )
-        names( tsets) = c("cruiseid", "latitude", "longitude", "cruise_date", "time", "depth_sounding", "pmax", "stationid" )
-        X = merge( tdata, tsets, by="stationid", all.x=TRUE, all.y=FALSE )
-        X$depth = decibar2depth ( P=X$pressure, lat=X$latitude )
-        X = X[,tolower(varlist)]
         fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
-        names(X) = tolower( names(X) )
-        u = matrix( unlist(strsplit( X$cruise_date, split=" ")), nrow=nrow(X), byrow=TRUE )
-        X$date = chron( dates.=u[,1], format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
-        X$temperature = as.numeric( X$temperature ) 
-        X$salinity= as.numeric(X$salinity)
-        X$sigmat = as.numeric(X$sigmat)
-        X= X[, varstosave ]
-        save( X, file=fn.out, compress=T)
+        ii = which ( XX$year == y )
+        if (length(ii) > 1) {
+          X= XX[ ii, varstosave ]
+          save( X, file=fn.out, compress=T)
+        }
       }
     }
 
+ 
     # ----------------------
 
+
     if (DS=="osd.current" ) {
-      ## this is a data dump directly from Roger Pettipas for 2008 to 2015 
-      datadir = file.path( loc.archive, "pettipas" )
+      ## this is a data dump directly from Roger Pettipas for 2015 and on 
+      varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
       for ( y in yr ) {
         print (y)
-        fndata = file.path( datadir, paste( "Data_", y, ".csv.xz", sep="" ) ) 
+        fndata = file.path( loc.archive, paste( "Data_", y, ".csv.xz", sep="" ) ) 
         fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
         X = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
         names(X) = tolower( names(X) )
