@@ -34,23 +34,6 @@ zoop.db( DS="zoop.speciesAbund.redo", p=p )
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # ---- 
 
 
@@ -96,14 +79,14 @@ zoop.db( DS="zoop.speciesAbund.redo", p=p )
       # temporal interpolations assuming a sinusoidal seasonal pattern 
         p$clusters = rep("localhost",  24) # ~ 155 hours with 24 cpus and 1950:2012, ESS; 20 GB total
         # ?? p$clusters = c( rep("kaos.beowulf",20), rep("nyx.beowulf",20), rep("tartarus.beowulf",20) ) # speeded ??
-        temperature.interpolations( p=p, DS="temporal.interpolation.redo" ) 
+        temperature.db( p=p, DS="temporal.interpolation.redo" ) 
           # 1950-2012, SSE took +46 hrs  
 
       # ----------------
       # simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
-      # temperature.interpolations( p=p, DS="spatial.interpolation.redo" ) 
+      # temperature.db( p=p, DS="spatial.interpolation.redo" ) 
       p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
-      parallel.run( clusters=p$clusters, n=length(p$tyears), temperature.interpolations, p=p, DS="spatial.interpolation.redo" ) 
+      parallel.run( clusters=p$clusters, n=length(p$tyears), temperature.db, p=p, DS="spatial.interpolation.redo" ) 
     
       # ----------------
       # extract relevant statistics

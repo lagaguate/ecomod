@@ -972,7 +972,7 @@ abline(0:1, col=gray(.7))
   tdb = rasterize( set )
 
 
-  tdb = temperature.interpolations( p=p, DS="temporal.interpolation.redo", yr=2000 ) 
+  tdb = temperature.db( p=p, DS="temporal.interpolation.redo", yr=2000 ) 
 
 
 

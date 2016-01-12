@@ -21,7 +21,7 @@
       xyz = xyz[, c("plon", "plat")]
       for (iy in ip ) {
         y = p$runs[iy, "yrs"] 
-        H = temperature.interpolations( p=p, DS = "temporal.interpolation", yr=y  )
+        H = temperature.db( p=p, DS = "temporal.interpolation", yr=y  )
         if (is.null(H)) next ()
         for (w in 1:52) {
           wchar = paste( "0", w, sep="" )

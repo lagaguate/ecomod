@@ -30,9 +30,10 @@
 
     for ( iip in ip ) {
       mm = p$runs[iip,"loc"]
-      # print (mm)			
+      print (mm)			
       res = NULL
-      res = interpolate.ts ( p=p, B=B, g=P[mm,], z=z0 ) 
+      res = try( interpolate.ts ( p=p, B=B, g=P[mm,], z=z0 ) , silent=TRUE )
+      if ( class(res) %in% "try-error" ) next()
       if ( is.null( res) ) next()
       tbot <- attach.big.matrix( p$descriptorfile.tbot  )
       tbot.se <- attach.big.matrix( p$descriptorfile.tbotse  )
