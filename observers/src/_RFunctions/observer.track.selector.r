@@ -1,16 +1,23 @@
-observer.track.selector<-function( sought=c(9999), gear=NULL,
-                                 date.range.start=format(seq(Sys.Date(), length=2, by="-1 years")[2] - 1, "%Y-%m-%d"),
-                                 date.range.end=format(Sys.Date(), "%Y-%m-%d")){
+observer.track.selector<-function( sought=NULL, gear=NULL,
+                                 date.range.start=NULL,
+                                 date.range.end=NULL){
   library(sqldf)
+  sought=NULL
   soughtQ=""
+  gear=NULL
   gearQ=""
+  caught=NULL
+  catchQ=""
   name=""
+  catchfield=""
+  catchtable=""
+  catchjoin=""
+  
     # Choose Gear or Species --------------------------------------------------
-    level.1<-select.list(c("By Species Sought","By Gear"),
+    level.1<-select.list(c("By Species Sought","By Species Caught","By Gear"),
                          multiple=F, graphics=T, 
                          title="Data View?")
-
-    if (level.1=="By Species Sought" | length(level.1)<2){ 
+    if (level.1=="By Species Sought" | level.1==""){ 
       #if left blank, we assume species
       focus="spp"
       the.species<-get.species()
@@ -21,6 +28,19 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
       soughtQ<-paste0("AND f.specscd_id IN (",sought,")")
       
       name<-if(length(sought)>1) paste0("spp_",sought[1],"_etc") else paste0("sp_",sought[1])
+    }else if (level.1=="By Species Caught"){
+      focus="caught"
+      the.caught.species<-get.caught.species()
+      caught.GUI<-select.list(paste( the.caught.species$COMMON, " (", the.caught.species$SPECCD_ID,")",sep=""),
+                             multiple=T, graphics=T, 
+                             title="Choose a species")
+      
+      caught <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', caught.GUI)))
+      catchfield=", ISCATCHES.SPECCD_ID"
+      catchtable=", ISCATCHES"
+      catchjoin="AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
+                  AND f.SET_NO           = ISCATCHES.SET_NO"
+      catchQ=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
     }else if (level.1=="By Gear"){
       focus="gear"
       the.gear<-get.gear()
@@ -32,37 +52,50 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
       
       name<-paste0('gear_',if(length(gear)>1) paste0(gear[1],"_etc") else gear[1])
     }
-
-    
+print("sought")
+   print(sought) 
+   print("caught")
+   print(caught) 
+   print("gear")
+   print(gear) 
     
     # Choose Date Range -------------------------------------------------------
-    #crashed my computer several times so limitred to 2 years unless overridden
-  get.date.range<-function(){
+    #crashed my computer several times so limited to 3 years unless overridden
+  verify.date.range<-function(date.range.GUI){
+    diff <- as.Date(strptime(date.range.GUI[2], "%Y")) - as.Date(strptime(date.range.GUI[1], "%Y"))
+    if (diff[[1]]>1095){
+      verify.date.GUI<-select.list(c("Change my date range",
+                                     "I might crash my computer, but I want more than 3 years of data"),
+      multiple=F, graphics=T, 
+      title="Please Verify your date selection")
+      if (verify.date.GUI=="Change my date range")date.range.GUI=get.date.range()
+    }
+    return(date.range.GUI)
+  }
+  
+  get.date.range<-function(sought, caught, gear){
     date.range.GUI<-list()
-    date.range.start<-date.picker("start")
-    date.range.end<-date.picker("end")
+    date.range<-as.character(get.year(sought=sought, caught=caught, gear=gear))
+    date.range.start<-select.list(date.range,
+                                       multiple=F, graphics=T, 
+                                       title="Choose the earliest year of desired data")
+    date.range.end<-select.list(date.range,
+                                        multiple=F, graphics=T, 
+                                        title="Choose the most recent year of desired data")
     date.range.GUI<-list(date.range.start,date.range.end)
     date.range.GUI<-verify.date.range(date.range.GUI)
     return(date.range.GUI)
   }
   
-  verify.date.range<-function(date.range.GUI){
-    diff <- as.Date(strptime(date.range.GUI[2], "%Y-%m-%d")) - as.Date(strptime(date.range.GUI[1], "%Y-%m-%d"))
-    if (diff[[1]]>730){
-      verify.date.GUI<-select.list(c("Change my date range","I might crash my computer, but I want more than 2 years of data"),
-                  multiple=F, graphics=T, 
-                  title="Please Verify your date selection")
-      if (verify.date.GUI=="Change my date range")date.range.GUI=get.date.range()
-    }
-    return(date.range.GUI)
-  }
-  date.range<-get.date.range()
-  dateQ<-paste0("AND t.board_date BETWEEN to_date('",date.range[1],"','YYYY-MM-DD') AND to_date('",date.range[2],"','YYYY-MM-DD')")
+  date.range<-get.date.range(sought=sought, caught=caught, gear=gear)
+
+  
+  dateQ<-paste0("AND t.board_date BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
 
   tripcode=NULL
   setcode=NULL
     # Choose Set Code ---------------------------------------------------------   
-    the.setcode<-get.setcode(tripcode=tripcode, sought=sought, date.range=date.range)
+    the.setcode<-get.setcode(tripcode=tripcode, sought=sought, date.range=date.range, gear=gear)
     setcode.GUI<-select.list(paste( the.setcode$SET_TYPE, " (", the.setcode$SETCD_ID,")",sep=""),
                              multiple=T, graphics=T, 
                              title="Choose a set type")
@@ -74,7 +107,7 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
     }
     setcodeQ<-paste0("AND f.setcd_id IN (",setcode,")")   
     # Choose Trip Code ---------------------------------------------------------    
-    the.tripcode<-get.tripcode(setcode=setcode, sought=sought, date.range=date.range)
+    the.tripcode<-get.tripcode(setcode=setcode, sought=sought, date.range=date.range, gear=gear)
     tripcode.GUI<-select.list(paste( the.tripcode$TRIP_TYPE, " (", the.tripcode$TRIPCD_ID,")",sep=""),
                               multiple=T, graphics=T, 
                               title="Choose a trip type")
@@ -94,7 +127,8 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
                  gearQ,
                  setcodeQ,
                  tripcodeQ,
-                 dateQ,sep=" ")
+                 dateQ,
+                 catchQ,sep=" ")
 
     
  # a bad month somwhere is causing the extraction to fail in certain circumstances.  Must investigate   
@@ -148,6 +182,7 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
                         a.set_type,
                         p1.setprof_id p1setprof_id,
                         p4.setprof_id p4setprof_id
+                        ",catchfield,"
                         FROM observer.isTrips t,
                         observer.isvessels v,
                         observer.isgears g,
@@ -185,6 +220,7 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
                         ) p4,
                         observer.isFishSets f,
                         observer.issettypecodes a
+                        ", catchtable,"
                         WHERE f.fishset_id=p1.f_id
                         AND f.fishset_id  =p2.f_id
                         AND f.fishset_id  =p3.f_id
@@ -193,8 +229,12 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
                         AND t.trip_id     =f.trip_id
                         AND g.gear_id     =f.gear_id
                         AND f.setcd_id    = a.setcd_id
+                        ", catchjoin,"
                         ",where)
   if(focus=="spp")print("Looking for your species...")else print("Looking for your gear...")
+  print("###")
+  print(ISD_INF_query)
+  print("###")
   ISD_INF<<-sqlQuery(channel,ISD_INF_query)
   if (nrow(ISD_INF)<1){
     print("Error: No data can be found for your selection")
@@ -259,26 +299,28 @@ observer.track.selector<-function( sought=c(9999), gear=NULL,
     #p2time,
     #p3time,
     #p4time,
-    set.all.attrib<-sqldf("SELECT year,
-                          tripcd_id,
-                          cfv,
-                          vessel,
-                          trip,
-                          trip_id,
-                          set_no,
-                          nafarea_id,
-                          stratum_id,
-                          gearcd_id,
-                          specscd_id,
-                          FISHSET_ID,
-                          p1longddmm,
-                          p2longddmm,
-                          p3longddmm,
-                          p4longddmm,
-                          p1latddmm,
-                          p2latddmm,
-                          p3latddmm,
-                          p4latddmm  FROM ISD_INF")
+    
+#     year,
+#     tripcd_id,
+#     cfv,
+#     vessel,
+#     trip,
+#     trip_id,
+#     set_no,
+#     nafarea_id,
+#     stratum_id,
+#     gearcd_id,
+#     specscd_id,
+#     FISHSET_ID,
+#     p1longddmm,
+#     p2longddmm,
+#     p3longddmm,
+#     p4longddmm,
+#     p1latddmm,
+#     p2latddmm,
+#     p3latddmm,
+#     p4latddmm
+    set.all.attrib<-sqldf("SELECT * FROM ISD_INF")
     
     rownames(set.all.attrib)<-set.all.attrib$FISHSET_ID
     
