@@ -14,7 +14,7 @@
   p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", 
                      "sp", "raster", "colorspace" ,  "splancs", "fields",
                      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
-  p = spatial.parameters( type="canada.east.highres", p=p ) ## highres = 0.5 km discretization  .. raw data is also in this resolution
+  p = spatial.parameters( type="canada.east", p=p ) ## highres = 0.5 km discretization  .. raw data is also in this resolution
     
   rebuild.maindatabase = FALSE
   if (rebuild.maindatabase) {

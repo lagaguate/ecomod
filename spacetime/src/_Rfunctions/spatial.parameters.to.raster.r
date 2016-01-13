@@ -31,16 +31,24 @@ spatial.parameters.to.raster = function( params, edge.reference=TRUE ) {
     u = unique( params$plons-uu )
     v = unique( params$plats-vv )
   
-    up=FALSE
-    if(length(u)==0) if ( u!=0) {
-      up=TRUE
-      ras_coord[,1] = ras_coord[,1] + u
+    up=FALSE # updated flag
+    if ( length(u) > 1 ) {
+      ud = zapsmall( diff( u) )
+    
     }
 
-    if(length(v)==0) if ( v!=0) {
-      up=TRUE
-      ras_coord[,1] = ras_coord[,1] + v
+    if ( length(u)==1 ) {
+      if ( u!=0) {
+        up=TRUE
+        ras_coord[,1] = ras_coord[,1] + u
+      }
     }
+
+    if(length(v)==1){
+      if ( v!=0) {
+        up=TRUE
+        ras_coord[,1] = ras_coord[,1] + v
+    }}
 
     if(up) {
       print( "Raster coords offset issue ... trying a simple fix")
