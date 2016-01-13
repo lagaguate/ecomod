@@ -9,9 +9,9 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
   caught=NULL
   catchQ=""
   name=""
-  catchfield=""
-  catchtable=""
-  catchjoin=""
+#   catchfield=""
+#   catchtable=""
+#   catchjoin=""
   
     # Choose Gear or Species --------------------------------------------------
     level.1<-select.list(c("By Species Sought","By Species Caught","By Gear"),
@@ -36,10 +36,10 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                              title="Choose a species")
       
       caught <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', caught.GUI)))
-      catchfield=", ISCATCHES.SPECCD_ID"
-      catchtable=", ISCATCHES"
-      catchjoin="AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
-                  AND f.SET_NO           = ISCATCHES.SET_NO"
+#       catchfield=", ISCATCHES.SPECCD_ID"
+#       catchtable=", ISCATCHES"
+#       catchjoin="AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
+#                   AND f.SET_NO           = ISCATCHES.SET_NO"
       catchQ=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
     }else if (level.1=="By Gear"){
       focus="gear"
@@ -52,12 +52,6 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
       
       name<-paste0('gear_',if(length(gear)>1) paste0(gear[1],"_etc") else gear[1])
     }
-print("sought")
-   print(sought) 
-   print("caught")
-   print(caught) 
-   print("gear")
-   print(gear) 
     
     # Choose Date Range -------------------------------------------------------
     #crashed my computer several times so limited to 3 years unless overridden
@@ -181,8 +175,8 @@ print("sought")
                         f.setcd_id,
                         a.set_type,
                         p1.setprof_id p1setprof_id,
-                        p4.setprof_id p4setprof_id
-                        ",catchfield,"
+                        p4.setprof_id p4setprof_id,
+                        ISCATCHES.SPECCD_ID
                         FROM observer.isTrips t,
                         observer.isvessels v,
                         observer.isgears g,
@@ -220,7 +214,7 @@ print("sought")
                         ) p4,
                         observer.isFishSets f,
                         observer.issettypecodes a
-                        ", catchtable,"
+                        , ISCATCHES
                         WHERE f.fishset_id=p1.f_id
                         AND f.fishset_id  =p2.f_id
                         AND f.fishset_id  =p3.f_id
@@ -229,7 +223,8 @@ print("sought")
                         AND t.trip_id     =f.trip_id
                         AND g.gear_id     =f.gear_id
                         AND f.setcd_id    = a.setcd_id
-                        ", catchjoin,"
+                        AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
+                        AND f.SET_NO           = ISCATCHES.SET_NO
                         ",where)
   if(focus=="spp")print("Looking for your species...")else print("Looking for your gear...")
   print("###")
