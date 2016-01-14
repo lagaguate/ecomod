@@ -16,9 +16,12 @@
   p$ny = length(p$tyears)
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
   p$nMin.tbot = p$ny*4 # min number of data points req before attempting to model timeseries in a localized space 
-  p$dist.km = c( 2.5, 5, 7.5, 10, 15, 20, 25 ) # "manhattan" (~radius) distances to extend search for data
-  p$tsmethod ="harmonics.1"  # temporal interpolation method ... harmonic analysis seems most reasonable
-    # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
+  p$dist.km = c( 2.5, 5, 7.5, 10, 15, 20, 25 ) # "manhattan" distances to extend search for data
+  
+  # choose: temporal interpolation method ... harmonic analysis seems most reasonable
+  # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
+  # possible methods: "annual", "seasonal.basic", "seasonal.smoothed", "harmonics.1", "harmonics.2", "harmonics.3", "inla.ts.simple"
+  p$tsmethod ="harmonics.1"  
 
   newyear = 2015
 
@@ -81,6 +84,7 @@
     # save interpolation as time slices
     temperature.db( p=p, DS="temporal.interpolation.redo" ) #amc set up at 20:12 Jan 13
 
+
     # 3. simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
     # temperature.db( p=p, DS="spatial.interpolation.redo" ) 
     # using localhost in 2014 6+ hr for each run but with multiple cycles ~ 10 hr total 
@@ -111,6 +115,7 @@
     # 6. glue climatological stats together
     temperature.db ( p=p, DS="climatology.redo") 
     
+
     # 7. annual summary temperature statistics for all grid points --- used as the basic data level for interpolations 
     p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
     p = make.list( list( yrs=p$tyears), Y=p )

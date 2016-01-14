@@ -14,24 +14,27 @@
   p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", 
                      "sp", "raster", "colorspace" ,  "splancs", "fields",
                      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
-  p = spatial.parameters( type="canada.east", p=p ) ## highres = 0.5 km discretization  .. raw data is also in this resolution
-    
-  rebuild.maindatabase = FALSE
-  if (rebuild.maindatabase) {
+  p = spatial.parameters( type="canada.east.highres", p=p ) # highest resolution still 
+   
+  make.substrate.db = FALSE
+  if (make.substrate.db) {
+    substrate.db ( DS="substrate.initial.redo" ) # bring in Kostelev's data ... stored as a SpatialGridDataFrame
+		substrate.db ( DS="lonlat.highres.redo" ) # in future .. additional data would be added here ...
+  }
 
+  interpolations.redo = FALSE
+  if (interpolations.redo) {
       p = spacetime.parameters(p)  # load spde defaults
       p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 9000 # numerical time/memory constraint -- anything larger takes too much time
+      p$n.max = 6000 # numerical time/memory constraint -- anything larger takes too much time
       p$expected.range = 50 #+units=km km , with dependent var on log scale
       p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
       p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-
       p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
       #p$variables = list( Y="substrate", X=c("z" ), LOCS=c("plon", "plat") )  
-      
       p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
       p$modelformula = formula( substrate ~ -1 + intercept 
         + f( inla.group(log(z+1000) ), model="rw2") 
@@ -39,7 +42,6 @@
         + f( inla.group( log(ddZ+0.01) ), model="rw2") 
         + f( inla.group( log(Z.rangeMode+0.01)), model="rw2" ) 
         + f( spatial.field, model=SPDE ) )
-      
       p$spacetime.link = function( X ) { log(X)  } 
       p$spacetime.invlink = function( X ) { exp(X)  }
       p$spacetime.family = "gaussian"
@@ -61,10 +63,9 @@
         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
             file=p$debug.file, append=FALSE ) # init
       }
-      
+       
       if (0) {
-        # cluster definition
-        # do not use all CPU's as INLA itself is partially run in parallel
+        # cluster definition: do not use all CPU's as INLA itself is partially run in parallel
         # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
         p$clusters = "localhost"  # if serial run, send a single cluster host
         p$clusters = rep( "localhost", 6 )
@@ -73,7 +74,6 @@
       }
   
       # run the beast .. warning this will take a very long time! (weeks)
-   
       sS = spacetime.db( p, DS="statistics.bigmemory.status" )
       sS$n.incomplete / (sS$n.problematic + sS$n.incomplete +sS$n.complete)
    
@@ -82,8 +82,8 @@
       # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if serial process
 
       if (0) {
-        # for checking status of outputs during parallel runs:
-        # bathymetry.db( DS="landmasks.create", p=p ) # run only if default resolution is altered 
+        # checking status of outputs during parallel runs:
+        # bathymetry.db( DS="landmasks.create", p=p ) # run this line only if default resolution is altered 
         substrate.figures( DS="statistics", p=p ) 
         substrate.figures( DS="predictions", p=p ) 
         substrate.figures( DS="predictions.errors", p=p ) 
