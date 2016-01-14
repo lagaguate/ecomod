@@ -1,18 +1,23 @@
-get.species<-function(){
-  species.query="SELECT DISTINCT COMMON, SPECSCD_ID
+get.species<-function(order="COMMON"){
+  if (order!="COMMON") order="SPECSCD_ID"
+  species.query=paste0("SELECT DISTINCT COMMON, SPECSCD_ID
   FROM SPECIESSOUGHTCODES
-  ORDER BY COMMON"
+  ORDER BY ",order)
   the.species = sqlQuery(channel, species.query)
   return(the.species)
 }
-get.caught.species<-function(){
-  caught.species.query="SELECT DISTINCT SPECIESCODES.COMMON,
+
+get.caught.species<-function(order="COMMON"){
+  if (order!="COMMON") order="SPECCD_ID"
+  caught.species.query=paste0("SELECT DISTINCT SPECIESCODES.COMMON,
   ISCATCHES.SPECCD_ID
   FROM ISCATCHES
   INNER JOIN SPECIESCODES
   ON SPECIESCODES.SPECCD_ID = ISCATCHES.SPECCD_ID
-  ORDER BY COMMON"
-  the.caught.species = sqlQuery(channel, caught.species.query)
+  ORDER BY ",order)
+  the.caught.species <- sqlQuery(channel, caught.species.query)
+  #found some tabs in the species names that were changing the order
+  the.caught.species$COMMON<-gsub("\t","",the.caught.species$COMMON)
   return(the.caught.species)
 }
 get.gear<-function(){
@@ -102,7 +107,8 @@ get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
       soughttweak=paste0("AND ISFISHSETS.SPECSCD_ID IN (",sought,")")
     }
     if (!is.null(date.range)) {
-      datetweak =  paste0("AND ISTRIPS.board_date BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
+      #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery
+      datetweak =  paste0("AND to_date(to_char(ISTRIPS.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"-01-01','YYYY-MM-DD') AND to_date('",date.range[2],"-12-31','YYYY-MM-DD')")
       datejoin = "
       INNER JOIN ISTRIPS
       ON ISFISHSETS.TRIP_ID   = ISTRIPS.TRIP_ID"
@@ -169,7 +175,8 @@ get.tripcode<-function(setcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
       ON ISFISHSETS.TRIP_ID   = ISTRIPS.TRIP_ID"
     }
     if (!is.null(date.range)) {
-      datetweak =  paste0("AND ISTRIPS.board_date BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
+      #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery
+      datetweak =  paste0("AND to_date(to_char(ISTRIPS.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
     }
       
     tripcode.query=paste("SELECT DISTINCT ISTRIPTYPECODES.TRIPCD_ID,
