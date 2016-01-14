@@ -680,7 +680,7 @@
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" )
     }
 
-  #-------------------------
+    #-------------------------
 
     if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
       #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the 

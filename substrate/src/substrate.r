@@ -13,7 +13,7 @@
   make.substrate.db = FALSE
   if (make.substrate.db) {
     substrate.db ( DS="substrate.initial.redo" ) # stored as a SpatialGridDataFrame
-		substrate.db ( p=spatial.parameters( type="SSE" ), DS="lonlat.highres.redo" )
+		substrate.db ( DS="lonlat.highres.redo" ) # simple conversion to lonlat
 		for ( j in c( "SSE", "canada.east" ) ) {  # sse and snowcrab have same domains
 			p = spatial.parameters( type=j )
 			substrate.db ( p, DS="lonlat.interpolated.redo" )

@@ -59,8 +59,10 @@
       if (length(pbad)> 0 ) phasdata[pbad] = NA
     }
     rcP = data.frame( cbind( Prow = (Ploc[,1]-p$plons[1])/p$pres + 1,  Pcol = (Ploc[,2]-p$plats[1])/p$pres + 1)) 
-    rcP$i =1:nrow(rcP) # row index
+    # rcP$i =1:nrow(rcP) # row index
     rcP$rc = paste( rcP$Prow, rcP$Pcol, sep="~")
+    rcP$Prow = rcP$Pcol = NULL
+    gc()
 
     #-----------------
     # row, col indices
@@ -303,7 +305,9 @@
         }
       }
       rm(MESH); gc()
-
+      
+      # bathymetry.figures( DS="predictions", p=p ) # to debug
+ 
       if ( any( grepl ("statistics", p$spacetime.outputs))) {
         # extract summary statistics from a spatial (SPDE) analysis and update the output file
         inla.summary = spacetime.summary.inla.spde2 ( RES, SPDE )
@@ -317,6 +321,9 @@
           cat( paste( Sys.time(), deid, "statistics saved  \n" ), file=p$debug.file, append=TRUE ) 
         }
       }
+      
+      # bathymetry.figures( DS="statistics", p=p ) # to debug
+
       rm( SPDE, RES) ; gc()
 
       if(0) {

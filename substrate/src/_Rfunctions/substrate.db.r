@@ -152,10 +152,11 @@
         load( fn)
         return( substrate )
       }
-
+      
+      # begin with bathymetry data and add another layer to it 
       substrate = bathymetry.db( p, DS="spde_complete", return.format = "list" ) 
       substrate$substrate = projectRaster( 
-          from=raster( substrate.db( p=p, DS="substrate.initial" ) ), 
+          from=raster( substrate.db( DS="substrate.initial" ) ), 
           to=spatial.parameters.to.raster( p) )
       substrate = as( brick(substrate), "SpatialGridDataFrame" )
  
