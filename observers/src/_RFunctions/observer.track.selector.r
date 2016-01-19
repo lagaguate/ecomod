@@ -11,10 +11,13 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                                  date.range.start=NULL,
                                  date.range.end=NULL){
   library(sqldf)
+  
+  the.species=NULL
   sought=NULL
   soughtQ=""
   gear=NULL
   gearQ=""
+  the.caught.species=NULL
   caught=NULL
   catchQ=""
   locQ=""
@@ -30,7 +33,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
       #if left blank, we assume species
       focus="sought"
       the.species<-get.species()
-      sought.GUI<-select.list(paste( the.species$COMMON, " (", the.species$SPECSCD_ID,")",sep=""),
+      sought.GUI<-select.list(paste( the.species$SOUGHT, " (", the.species$SPECSCD_ID,")",sep=""),
                               multiple=T, graphics=T, 
                               title="Choose a species")
       sought <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', sought.GUI)))
@@ -38,13 +41,13 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     }else if (level.1=="By Species Caught"){
       focus="caught"
       the.caught.species<-get.caught.species(order="CODE")
-      caught.GUI<-select.list(paste( the.caught.species$COMMON, " (", the.caught.species$SPECCD_ID,")",sep=""),
+      caught.GUI<-select.list(paste( the.caught.species$CAUGHT, " (", the.caught.species$SPECCD_ID,")",sep=""),
                              multiple=T, graphics=T, 
                              title="Choose a species")
       caught <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', caught.GUI)))
       catchQ=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
       catchfield=", ISCATCHES.SPECCD_ID"
-      catchtable=", ISCATCHES"
+      catchtable=", OBSERVER.ISCATCHES"
       catchjoin="AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
              AND f.SET_NO           = ISCATCHES.SET_NO"
     }else if (level.1=="By Gear"){
@@ -269,6 +272,14 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     print("Proceed? 5000 records is known to crash Mike's computer")
     cont=readline("Enter Y to continue: ") 
     if(toupper(cont) !="Y") { stop(return(ISD_INF_query))}
+    }
+    if (!is.null(the.caught.species)){
+      ISD_INF= merge(ISD_INF,the.caught.species)
+    }
+    if (!is.null(the.species)) {
+      ISD_INF = merge(ISD_INF,the.species)
+    }else {
+      ISD_INF = merge(ISD_INF,get.species())
     }
     print("Identifying tracks...")
     p1.dat<-sqldf("SELECT DISTINCT FISHSET_ID, 1 ORD, P1LONG X, P1LAT Y FROM ISD_INF")

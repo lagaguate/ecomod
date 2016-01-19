@@ -1,6 +1,6 @@
 get.species<-function(order="COMMON"){
   if (order!="COMMON") order="SPECSCD_ID"
-  species.query=paste0("SELECT DISTINCT COMMON, SPECSCD_ID
+  species.query=paste0("SELECT DISTINCT COMMON SOUGHT, SPECSCD_ID
   FROM SPECIESSOUGHTCODES
   ORDER BY ",order)
   the.species = sqlQuery(channel, species.query)
@@ -9,7 +9,7 @@ get.species<-function(order="COMMON"){
 
 get.caught.species<-function(order="COMMON"){
   if (order!="COMMON") order="SPECCD_ID"
-  caught.species.query=paste0("SELECT DISTINCT SPECIESCODES.COMMON,
+  caught.species.query=paste0("SELECT DISTINCT SPECIESCODES.COMMON CAUGHT,
   ISCATCHES.SPECCD_ID
   FROM ISCATCHES
   INNER JOIN SPECIESCODES
@@ -17,7 +17,7 @@ get.caught.species<-function(order="COMMON"){
   ORDER BY ",order)
   the.caught.species <- sqlQuery(channel, caught.species.query)
   #found some tabs in the species names that were changing the order
-  the.caught.species$COMMON<-gsub("\t","",the.caught.species$COMMON)
+  the.caught.species$CAUGHT<-gsub("\t","",the.caught.species$CAUGHT)
   return(the.caught.species)
 }
 get.gear<-function(){

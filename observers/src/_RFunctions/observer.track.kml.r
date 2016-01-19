@@ -88,5 +88,5 @@ observer.track.kml<-function(x, pid="FISHSET_ID", labelFields=NULL, addLineMarke
   mykml$preview()
 }
 
-#observer.track.kml(observer.track.kml(), pid="FISHSET_ID",labelFields=c("VESSEL"),folderFields=c("YEAR", "NAFAREA_ID","SPECSCD_ID"),addLineMarkers=T,filename="testing")
-#observer.track.kml(df, pid="FISHSET_ID",labelFields=c("VESSEL","SPECCD_ID"),folderFields=c("YEAR", "SPECSCD_ID","SPECCD_ID"),addLineMarkers=T,filename="testing")
+#observer.track.kml(observer.track.kml(), pid="FISHSET_ID",labelFields=c("VESSEL"),folderFields=c("YEAR", "NAFAREA_ID"),addLineMarkers=T,filename="testing")
+#observer.track.kml(df, pid="FISHSET_ID",labelFields=c("VESSEL"),folderFields=c("NAFAREA_ID"),addLineMarkers=T,filename="testing")
