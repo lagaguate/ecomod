@@ -1,4 +1,4 @@
-recruitment.trap.db(DS , outdir = project.datadirectory('lobster'), p,Y=1999:2015) {
+recruitment.trap.db<-function(DS , outdir = project.datadirectory('lobster'), p,Y=1999:2015) {
 	
 	fout = file.path(outdir,p$current.assessment.year,'R')
 	dir.create(fout,recursive=T,showWarnings=F)
@@ -9,6 +9,7 @@ recruitment.trap.db(DS , outdir = project.datadirectory('lobster'), p,Y=1999:201
 
 			if(DS=='raw.redo') {
 					for(y in Y) {
+						RODBCconn = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
 						rc<- sqlQuery(RODBCconn, paste("SELECT * FROM FSRS_LOBSTER_VW where HAUL_YEAR = ",y,";",sep=""))
 						names(rc) <- tolower(names(rc))
 						save(rc,file=file.path(ffout,paste(y,'.rdata',sep="")))
