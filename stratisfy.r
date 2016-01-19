@@ -604,41 +604,41 @@ agelen$FLEN<-floor(agelen$FLEN/agelen$BINWIDTH)*agelen$BINWIDTH
 
 agelen$CAGE<-NA
 if (agency.gui=="DFO"){
-#if sampwgt is 0 or NA and totwgt is not null or 0 
-#then replace sample weigt with total weight 
-iu = which(agelen$SAMPWGT ==0)
-iw = which(is.na(agelen$SAMPWGT))
-ii = which(agelen$TOTWGT>0)
-
-iiu = intersect(ii,iu)
-if(length(iiu)>0) {
-  agelen$SAMPWGT[iiu] = agelen$TOTWGT[iiu]
-}
-
-iiw = intersect(ii,iw)
-if(length(iiw)>0) {
-  agelen$SAMPWGT[iiw] = agelen$TOTWGT[iiw]
-}
-
-ie = which(agelen$SAMPWGT >0)
-io = which(!is.na(agelen$SAMPWGT))
-iy = which(agelen$SAMPWGT==0)
-  #if sampwgt > 0, use it to calculate cage
-  st1<- union(ie,io)
-  if (length(st1) >0){
-    agelen$CAGE[st1]<-agelen$RAW_TOTWGT[st1]/agelen$SAMPWGT[st1]*
-                      (towdist/agelen$DIST[st1])*agelen$CLEN[st1]
+  #if sampwgt is 0 or NA and totwgt is not null or 0 
+  #then replace sample weigt with total weight 
+  iu = which(agelen$SAMPWGT ==0)
+  iw = which(is.na(agelen$SAMPWGT))
+  ii = which(agelen$TOTWGT>0)
+  
+  iiu = intersect(ii,iu)
+  if(length(iiu)>0) {
+    agelen$SAMPWGT[iiu] = agelen$TOTWGT[iiu]
   }
-  #if sampwgt ==0, cage ==0
-  st0 = intersect(io,iy)
-  if (length(st0) >0){
-    agelen$CAGE[st0]<-0
+  
+  iiw = intersect(ii,iw)
+  if(length(iiw)>0) {
+    agelen$SAMPWGT[iiw] = agelen$TOTWGT[iiw]
   }
-  #if sampwgt is na/null, cage is na/null
-  stNA<-which(is.na(agelen$SAMPWGT))
-  if (length(stNA)>0){
-    agelen$CAGE[stNA]<-NA
-  }
+  
+  ie = which(agelen$SAMPWGT >0)
+  io = which(!is.na(agelen$SAMPWGT))
+  iy = which(agelen$SAMPWGT==0)
+    #if sampwgt > 0, use it to calculate cage
+    st1<- union(ie,io)
+    if (length(st1) >0){
+      agelen$CAGE[st1]<-agelen$RAW_TOTWGT[st1]/agelen$SAMPWGT[st1]*
+                        (towdist/agelen$DIST[st1])*agelen$CLEN[st1]
+    }
+    #if sampwgt ==0, cage ==0
+    st0 = intersect(io,iy)
+    if (length(st0) >0){
+      agelen$CAGE[st0]<-0
+    }
+    #if sampwgt is na/null, cage is na/null
+    stNA<-which(is.na(agelen$SAMPWGT))
+    if (length(stNA)>0){
+      agelen$CAGE[stNA]<-NA
+    }
 }else{
   agelen$CAGE<-agelen$CLEN
 }
@@ -669,7 +669,6 @@ if (isTRUE(by.sex)){
 }
 
 lset<-na.zero(agelen[,sex.c])
-#SHOULD THIS USE CLEN, NOT CAGE?
 li = which(lset$CAGE==0) 
 lset$FLEN[li] = unique(lset$FLEN)[1]
  lset<-aggregate(lset$CAGE,
@@ -910,7 +909,7 @@ results<-list(
   length_total=length_total, 
   length_total_se=length_total_se,
   nw=nw,   
-  weights=weights,
+  weights=weights, #kg
   numbers=numbers, 
   age.length.key.totals=age.length.key.totals,
   age_table=age_table, 

@@ -7,6 +7,7 @@
 [Current Limitations](#Limits)  
 [Running the Script](#Running)  
 [Results](#Results)  
+[Units](#Units)  
 [Changes from APL Version Results](#Changes)  
 [Development of stratisfy](#R-vers)  
 [Historic Documentation](README_archived.md) 
@@ -103,6 +104,10 @@ When the script is run, the result is a list, composed almost entirely of data f
 |ages								|&quot;Age Mean&quot;; &quot;Age Mean Std Error&quot;; &quot;Age Total&quot;; &quot;Age Total Standard Error&quot;                      | 	results[[16]]	|	STRAT; COUNT; age&#95;&lt;ages&gt;&#95;mean; age&#95;&lt;ages&gt;&#95;se; age&#95;&lt;ages&gt;&#95;tot; age&#95;&lt;ages&gt;&#95;tot&#95;se		 	|
 
 <a name="TableNotes"></a>*values like &lt;length bins&gt; or &lt;ages&gt; have actual numeric values
+
+## <a name="Units"></a>  Units
+Depths are in Fathoms
+Weights are in Kilograms
 
 ## <a name="Changes"></a>  Changes from APL Version Results:
 Some of the available results combine results that was previously available on mutiple sheets:
