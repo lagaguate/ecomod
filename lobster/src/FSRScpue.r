@@ -6,6 +6,7 @@ RLibrary("plyr","lattice")
 #LATEST DATA EXPORT FROM FSRS DATABASE:
 #lobster.db("fsrs.redo")
 lobster.db("fsrs")
+recruitment.trap.db('raw.redo')
 
 FSRS.dat<-fsrs
 FSRS.dat$VES_DATE<-paste(FSRS.dat$VESSEL_CD,FSRS.dat$HAUL_DATE,sep='.')
