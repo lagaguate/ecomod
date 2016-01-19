@@ -1,3 +1,12 @@
+if (F){
+  # load required ecomod functions
+  loadfunctions("observers/src/_RFunctions")
+  loadfunctions("utility/src/_Rfunctions/datetime")
+  loadfunctions("utility/src/_Rfunctions/sql.tools")
+  #connect to db
+  library(RODBC)
+  channel<-odbcConnect("PTRAN",uid=oracle.observer.username,pwd=oracle.observer.password)
+}
 observer.track.selector<-function( sought=NULL, gear=NULL,
                                  date.range.start=NULL,
                                  date.range.end=NULL){
@@ -9,6 +18,9 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
   caught=NULL
   catchQ=""
   locQ=""
+  catchfield=""
+  catchtable=""
+  catchjoin=""
   
     # Choose Gear or Species --------------------------------------------------
     level.1<-select.list(c("By Species Sought","By Species Caught","By Gear","By Location"),
@@ -30,8 +42,11 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                              multiple=T, graphics=T, 
                              title="Choose a species")
       caught <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', caught.GUI)))
-
       catchQ=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
+      catchfield=", ISCATCHES.SPECCD_ID"
+      catchtable=", ISCATCHES"
+      catchjoin="AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
+             AND f.SET_NO           = ISCATCHES.SET_NO"
     }else if (level.1=="By Gear"){
       focus="gear"
       the.gear<-get.gear()
@@ -136,7 +151,9 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
 #    to_date(NVL(to_char( p3.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p3.settime,1,2) || ':' || substr( p3.settime, 3, 2),'YYYY-MM-DD HH24:MI') p3time,
 #    to_date(NVL(to_char( p4.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p4.settime,1,2) || ':' || substr( p4.settime, 3, 2),'YYYY-MM-DD HH24:MI') p4time,
     
-  ISD_INF_query<<-paste0("SELECT SUBSTR(v.vessel_name,1,15) vessel,
+    #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery 
+    
+  ISD_INF_query<<-paste0("SELECT DISTINCT SUBSTR(v.vessel_name,1,15) vessel,
                         t.tripcd_id,
                         to_char(t.board_date,'YYYY') year,
                         t.board_date,
@@ -181,8 +198,8 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                         f.setcd_id,
                         a.set_type,
                         p1.setprof_id p1setprof_id,
-                        p4.setprof_id p4setprof_id,
-                        ISCATCHES.SPECCD_ID
+                        p4.setprof_id p4setprof_id
+                        ",catchfield,"
                         FROM observer.isTrips t,
                         observer.isvessels v,
                         observer.isgears g,
@@ -220,7 +237,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                         ) p4,
                         observer.isFishSets f,
                         observer.issettypecodes a
-                        , ISCATCHES
+                        ",catchtable,"
                         WHERE f.fishset_id=p1.f_id
                         AND f.fishset_id  =p2.f_id
                         AND f.fishset_id  =p3.f_id
@@ -229,8 +246,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                         AND t.trip_id     =f.trip_id
                         AND g.gear_id     =f.gear_id
                         AND f.setcd_id    = a.setcd_id
-                        AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
-                        AND f.SET_NO           = ISCATCHES.SET_NO
+                        ",catchjoin,"
                         ",where)
   if(focus=="sought"){
     print("Looking for the sought species...")
@@ -250,18 +266,18 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     print(paste0("Found ", recno," records."))
     #crashed computer enough times to desire this chance to kill function
     if(recno>1000){ 
-    print("Proceed?")
+    print("Proceed? 5000 records is known to crash Mike's computer")
     cont=readline("Enter Y to continue: ") 
     if(toupper(cont) !="Y") { stop(return(ISD_INF_query))}
     }
     print("Identifying tracks...")
-    p1.dat<-sqldf("SELECT FISHSET_ID, 1 ORD, P1LONG X, P1LAT Y FROM ISD_INF")
+    p1.dat<-sqldf("SELECT DISTINCT FISHSET_ID, 1 ORD, P1LONG X, P1LAT Y FROM ISD_INF")
     p1.dat<-p1.dat[complete.cases(p1.dat),]
-    p2.dat<-sqldf("SELECT FISHSET_ID, 2 ORD, P2LONG X, P2LAT Y FROM ISD_INF")
+    p2.dat<-sqldf("SELECT  DISTINCT FISHSET_ID, 2 ORD, P2LONG X, P2LAT Y FROM ISD_INF")
     p2.dat<-p2.dat[complete.cases(p2.dat),]
-    p3.dat<-sqldf("SELECT FISHSET_ID, 3 ORD, P3LONG X, P3LAT Y FROM ISD_INF")
+    p3.dat<-sqldf("SELECT  DISTINCT FISHSET_ID, 3 ORD, P3LONG X, P3LAT Y FROM ISD_INF")
     p3.dat<-p3.dat[complete.cases(p3.dat),]
-    p4.dat<-sqldf("SELECT FISHSET_ID, 4 ORD, P4LONG X, P4LAT Y FROM ISD_INF")
+    p4.dat<-sqldf("SELECT  DISTINCT FISHSET_ID, 4 ORD, P4LONG X, P4LAT Y FROM ISD_INF")
     p4.dat<-p4.dat[complete.cases(p4.dat),]
     
     #identify the sets with at least 2 points
@@ -315,12 +331,6 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
   print(paste("Completed"))
   return(results)
 }
-# load required ecomod functions
-# loadfunctions("observers/src/_RFunctions")
-# loadfunctions("utility/src/_Rfunctions/datetime")
-# loadfunctions("utility/src/_Rfunctions/sql.tools")
-# #connect to db
-# library(RODBC)
-# channel<-odbcConnect("PTRAN",uid=oracle.observer.username,pwd=oracle.observer.password)
 # #run it
 # test<-observer.track.selector()
+

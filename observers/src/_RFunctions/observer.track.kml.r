@@ -1,4 +1,7 @@
-#write.csv2(testdata,file="df_tracks_test.csv")
+if (F) {
+  #load required ecomod functions
+  loadfunctions("utility/src/_Rfunctions/data.manipulation")
+}
 observer.track.kml<-function(x, pid="FISHSET_ID", labelFields=NULL, addLineMarkers=T, folderFields=NULL,filename="df_kml"){
 #   ###MMM - Jan 2016
 #   This function enables the plotting of data frames in Google Earth as a kml
@@ -85,8 +88,5 @@ observer.track.kml<-function(x, pid="FISHSET_ID", labelFields=NULL, addLineMarke
   mykml$preview()
 }
 
-#load required ecomod functions
-#loadfunctions("utility/src/_Rfunctions/data.manipulation")
-#observer.track.kml(test[[2]],"tow_whole")
 #observer.track.kml(observer.track.kml(), pid="FISHSET_ID",labelFields=c("VESSEL"),folderFields=c("YEAR", "NAFAREA_ID","SPECSCD_ID"),addLineMarkers=T,filename="testing")
 #observer.track.kml(df, pid="FISHSET_ID",labelFields=c("VESSEL","SPECCD_ID"),folderFields=c("YEAR", "SPECSCD_ID","SPECCD_ID"),addLineMarkers=T,filename="testing")
