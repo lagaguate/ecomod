@@ -1,0 +1,115 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang4105{\fonttbl{\f0\fmodern\fprq1\fcharset0 Courier New;}{\f1\fnil\fcharset0 Courier New;}{\f2\fmodern\fcharset0 Courier New;}{\f3\fmodern Courier New;}{\f4\fswiss\fprq2\fcharset0 Arial;}}
+{\colortbl ;\red0\green0\blue0;\red0\green0\blue255;\red240\green32\blue0;\red176\green16\blue16;\red0\green128\blue0;\red128\green0\blue0;}
+\viewkind4\uc1\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang1033\f0\fs18\par
+\cf2 Function\cf1  \cf3 read_delimited_\lang4105 Tow_data_\lang1033 file\cf1 (in_path,file_name)\{\par
+\tab\cf4 Character_Read\cf1 (\cf4 cat\cf1 (0,in_path,file_name),"tdata");\par
+\pard\lang4105\f1   \cf5 // tdata = tdata[bindex(((tdata[;seq(1,9)] == "T12008-01")||(tdata[;seq(1,9)] == "CK2006-01")||(tdata[;seq(1,9)] == "T12009-01")));]; // just Grand Bank surveys\cf1\par
+  \cf5 // Set up vector of column headers to replace muliple line header in file\cf1\par
+  Header = "T_Survey\tab T_Date\tab T_Tow\tab Station\tab Tow_Type\tab Tow_Quality\tab Gear\tab Bearing\tab Depth_m\tab Speed\tab Start_Lat\tab Start_Long\tab Start_Time\tab End_Lat\tab End_Long"; \par
+  Header = \cf4 cat\cf1 (Header,"\tab End_Time\tab Org_dist\tab Dist_m\tab Bottom\tab WaveHeight\tab WindSpeed\tab Hawser_m\tab Comments\tab Dummy\tab Dist_nm");\par
+  tdata = \cf3 replace_Header\cf1 (tdata,1,Header);\par
+\lang1033\f0   Num_\lang4105 T_\lang1033 recs = \cf4 len\cf1 (tdata)[1] - 1;\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105\f2   \cf3\lang1033\f3 extract_fields\cf1 (\lang4105\f2 t\lang1033\f0 data\f3 ,\lang4105\f2 0\lang1033\f3 )\lang4105\f2 ;\lang1033\f3  \lang4105\f2          \cf5 // Parse data columns\cf1\lang1033\f3\par
+\pard\lang4105\f0\tab\cf5 // T_\f4\fs20 Survey\f0\fs18                   \lang1033 /\lang4105 / Survey ID\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // T_\f4\fs20 Date\f0\fs18                     \lang1033 /\lang4105 / mm/dd/yy\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // T_\f4\fs20 Tow   \lang1033\f0\fs18   \lang4105                  \lang1033 /\lang4105 / Tow number\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Station\lang1033\f0\fs18       \lang4105             \lang1033 /\lang4105 /\lang1033   \lang4105 Station Number\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Tow_Type\lang1033\f0\fs18              \lang4105    \lang1033 /\lang4105 /\lang1033   \lang4105 Type of tow, reg survey = 1\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Tow_Quality\lang1033\f0\fs18               /\lang4105 /\lang1033   \lang4105 Tow quality, Good tow = 1\lang1033  \cf1\lang4105\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Gear\cf1\par
+\f0\fs18\tab\cf5 // \f4\fs20 Bearing\lang1033\f0\fs18              \lang4105     \lang1033 /\lang4105 /\lang1033   \lang4105 Tow Direction\lang1033  \cf1\lang4105\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Depth_m\lang1033\f0\fs18     \lang4105            \lang1033 /\lang4105 /\lang1033   \lang4105 Depth (m)\lang1033  \cf1\lang4105\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Speed\lang1033\f0\fs18    \lang4105                \lang1033 /\lang4105 /\lang1033   \lang4105 Towing speed (knots)\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Start_Lat\lang1033\f0\fs18      \lang4105            \lang1033 /\lang4105 /\lang1033   \lang4105 Start Latitude\lang1033      \lang4105 ddmm.mm\lang1033  \cf1\lang4105\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Star_tLong\lang1033\f0\fs18  \lang4105              \lang1033 /\lang4105 /\lang1033   \lang4105 Start Longitude\lang1033      \lang4105 ddmm.mm\lang1033   \cf1\lang4105\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Start_Time\f0\fs18               \lang1033 /\lang4105 / Start Time  hh:mm\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 End_lat\f0\fs18   \lang1033               /\lang4105 / End Latitude\lang1033      \lang4105 ddmm.mm\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 End_long\lang1033\f0\fs18       \lang4105         /\lang1033 /\lang4105   End  Longitude\lang1033      \lang4105 ddmm.mm\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 End_time\lang1033\f0\fs18  \lang4105              //\lang1033  \lang4105  End Time  hh:mm\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // Org_\f4\fs20 Dist\lang1033\f0\fs18                /\lang4105 / Distance towed m\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Dist_m\lang1033\f0\fs18                /\lang4105 / Adjusted Distance towed m\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Bottom\lang1033\f0\fs18          \lang4105      \lang1033 /\lang4105 / bottom type\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 WaveHeight\lang1033\f0\fs18          /\lang4105 / Wave height (m)\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 WindSpeed\lang1033\f0\fs18          /\lang4105 / Wind Speed \cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Hawser_m\lang1033\f0\fs18           /\lang4105 / Length of towing Hawser (feet)\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Comments\f0\fs18          \lang1033 /\lang4105 / comments\cf1\f4\fs20\par
+\f0\fs18\tab\cf5 // \f4\fs20 Dummy\lang1033\f0\fs18      \lang4105       \lang1033 /\lang4105 / dummy column of 0's\cf1\f4\fs20\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\f0\fs18\tab\cf5\lang4105 //drop selectivity tows S1,S2 andS3\cf1\par
+\tab\cf5 //tdata\lang1033  =\lang4105 tdata\lang1033  \lang4105 [bindex(shape(cat(0,len(tdata)[1],1),tdata[;10]) != "S");];\cf1\par
+\lang1033\tab\cf5 //Original\lang4105 Tow\lang1033 Data = tdata;\cf1\par
+   \cf5 //----------------------------------------------------------------\cf1\par
+\lang4105\tab\cf5 // Now do conversions necessary\cf1\par
+\tab\f4\fs20 Start_Lat\f0\fs18  = \lang1033 int(\lang4105\f4\fs20 Start_Lat\f0\fs18  \lang1033 /100.) + mod(\lang4105\f4\fs20 Start_Lat\f0\fs18  \lang1033 ,100)/60.\lang4105 ;\lang1033\par
+\lang4105\tab\f4\fs20 Start_Long\f0\fs18  = -1*(\lang1033 int(\lang4105\f4\fs20 Start_Long\f0\fs18  \lang1033 /100.) + mod(\lang4105\f4\fs20 Start_Long\f0\fs18  \lang1033 ,100)/60.\lang4105 );\lang1033\par
+\lang4105\tab\f4\fs20 End_lat\f0\fs18  = \lang1033 int(\lang4105\f4\fs20 End_lat\f0\fs18  \lang1033 /100.) + mod(\lang4105\f4\fs20 End_lat\f0\fs18  \lang1033 ,100)/60.\lang4105 ;\lang1033\par
+\lang4105\tab\f4\fs20 End_long\f0\fs18  = -1*(\lang1033 int(\lang4105\f4\fs20 End_long\lang1033\f0\fs18 /100.) + mod(\lang4105\f4\fs20 End_long\f0\fs18  \lang1033 ,100)/60.\lang4105 );\lang1033\par
+\lang4105    Month = num(T_date[;1 2]);\par
+   Day = num(T_date[;4 5]);\par
+   Year = 2000 + num(T_date[;7 8]);\par
+   Pos = \cf4 cat\cf1 (2,\cf4 ave\cf1 (\cf4 cat\cf1 (2,Start_long,\f4\fs20 End_long\f0\fs18 ),2),\cf4 Ave\cf1 (\cf4 cat\cf1 (2,Start_lat,End_lat),2));\par
+   dist_m[\cf4 bindex\cf1 (dist_m == \cf4 NAN\cf1 ())] = Org_Dist[\cf4 bindex\cf1 (dist_m == \cf4 NAN\cf1 ())]; \cf5 //if no adj Dist use original\cf1\par
+   dist_m[\cf4 bindex\cf1 (dist_m == \cf4 NAN\cf1 ())] = 300.; \cf5 // Default distance where missing\cf1\par
+\pard  \f1   dist_m[\cf4 bindex\cf1 (dist_m == 0)] = 300.; \cf5 // Default distance where missing\cf1\par
+  \cf5 // t_tow = num(t_tow);\cf1\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\f0\};\par
+\par
+\cf2\f3 Function\cf0  \cf6 extract_fields\cf0 (data,fieldnos) \{\cf1\par
+\tab\cf5 // Creates variables in memory from character matrix\cf1\par
+\tab\cf5 // fieldnos - data field nums in the matrix to read\cf1\par
+\tab\cf5 //   if 0 then parse all the fields\cf1\par
+\tab fieldNames = "";\par
+\tab colvec = \cf6 ravel\cf1 (fieldnos);\cf0\par
+\tab tab = \cf6 numtochar\cf0 (9);\par
+\tab maxcol = \cf6 max\cf0 (colvec);\par
+\tab\cf2 if\cf0  (maxcol < 1) \{\par
+\tab\tab $nfields = \cf6 sum\cf0 (\cf6 shape\cf0 (\cf6 len\cf0 (data)[2],1,data[1;]) == tab) + 1;\par
+\tab\tab colvec = \cf6 seq\cf0 (1,$nfields);\par
+\tab\tab maxcol = \cf6 max\cf0 (colvec);\par
+\tab\}\par
+\tab tmp = data;\par
+\tab sourcecol = 0; thiscol = 1;\par
+\tab\cf2 for\cf0  (i = 1; i <= maxcol;i++) \{\par
+\tab\tab sourcecol++;\par
+\tab\tab\cf2 if\cf0  (colvec[thiscol] == sourcecol) \{\par
+\tab\tab\tab thiscol++;\par
+\tab\tab\tab fieldname = \cf6 trim\cf0 (\cf6 trim\cf0 (tmp[1;],tab));\par
+\tab\tab\tab fieldname = \cf6 strrep\cf0 (fieldname," ","_");\par
+\tab\tab\tab fieldname = \cf6 strrep\cf0 (fieldname,"/","_");\par
+\tab\tab\tab fieldname = \cf6 strrep\cf0 (fieldname,"+","_");\par
+\tab\tab\tab fieldname = \cf6 strrep\cf0 (fieldname,"-","_");\par
+\tab\tab\tab fieldname = \cf6 strrep\cf0 (fieldname,"-","_");\par
+\tab\tab\tab fieldNames = \cf6 cat\cf0 (fieldNames," ",fieldname);\par
+\tab\tab\tab field = \cf6 drop\cf0 (1 0,\cf6 trim\cf0 (tmp,tab));\par
+\tab\tab\tab $isnum = \cf6 sum\cf0 (1 - \cf6 member\cf0 ("1234567890.+-Ee ",\cf6 ravel\cf0 (field))) == 0;\par
+\tab\tab\tab\cf2 if\cf0  ($isnum) field = \cf6 num\cf0 (field);\par
+\tab\tab\tab $e = \cf6 cat\cf0 (fieldname,"=field");\par
+\tab\tab\tab\cf6 execute\cf0 ($e);\par
+\tab\tab\}\par
+\tab\tab tmp = \cf6 trim\cf0 (tmp,tab,1);\par
+\tab\}\par
+\tab fieldNames = \cf6 strfold\cf0 (fieldNames," ");\par
+\tab\cf2 return\cf0 (fieldNames);\cf1\par
+\};\par
+\cf2\f0 Function\cf1  \cf3 replace_header\cf1 (InFile,H_Lines,InH)\{\par
+\tab\cf5 // function to replace header line at top of file\par
+\pard\cf0\lang4105\f1    $temp = drop(cat(0,H_Lines, 0),Infile); // Drop current header lines\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang1033\f0\tab F_w = \cf4 len\cf1 ($temp)[2];    \cf5 // File width\cf1\par
+\tab H_W = \cf4 len\cf1 (InH);       \cf5 // Header width\cf1\par
+\tab\cf2 IF\cf1 (H_W < F_W) \{      \cf5 // IF Header width < File width\cf1\par
+\tab\tab H2 = \cf4 cat\cf1 (InH,\cf4 shape\cf1 ((F_W - H_W)," "));   \cf5 // pad header with blanks to match file width\cf1\par
+\tab\tab Out_m = \cf4 cat\cf1 (1,H2,$temp);\par
+\tab\} \cf2 else\cf1  \cf2 if\cf1  (H_W > F_W)\{   \cf5 // If Header width > file width\cf1\par
+\tab\tab F2 = \cf4 cat\cf1 (2,$temp, \cf4 shape\cf1 (\cf4 cat\cf1 (0,\cf4 len\cf1 ($temp)[1], H_W - F_W)," "));   \cf5 // Pad file with blanks to match header width\cf1\par
+\tab\tab Out_m = \cf4 cat\cf1 (1,InH,F2);\par
+\tab\}\cf2 else\cf1\{\par
+\tab\tab Out_m = \cf4 cat\cf1 (1,InH,$temp);   \cf5 // Header and file same width\cf1\par
+\tab\};\par
+   \cf2 Return\cf1 (Out_m);\par
+\};\par
+\pard\cf5 //Nov 2015 - MMM added a folder for data\cf1\par
+in_path = "C:\\Users\\mcmahonm\\Documents\\GitHub\\PED_Analytics_data\\surfclam\\Combined\\";\par
+//Nov 2015 - MMM added a folder for generic functions\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf4 search_paths\cf1 ("C:\\Users\\mcmahonm\\Documents\\GitHub\\PED_Analytics\\surfclam\\functions\\");\lang4105\par
+\pard\cf3\lang1033 read_delimited_\lang4105 Tow_data_\lang1033 file\cf1 (in_path,\lang4105 "Combined_\f1 Tow_data.txt\f0 "\lang1033 )\lang4105 ;\cf0\f1\par
+}
+ 
