@@ -52,24 +52,30 @@ observer.track.kml<-function(x, pid="FISHSET_ID", labelFields=NULL, addLineMarke
   x$name=paste0("<![CDATA[",x$name,"]]>")
   x$Snippet = x$name
   
-  mykml$addFolder(fid = "0", name = "Observer Tracks", description=paste0("Observer data for these tracks was generated on ",format(Sys.time(), "%Y-%m-%d %H:%M %Z")), open=1) 
+  mykml$addFolder(fid = "0", 
+                  name = "Observer Tracks", 
+                  description=paste0("Observer data for these tracks was generated on ",format(Sys.time(), "%Y-%m-%d %H:%M %Z")), open=1) 
   populate_kml<-function(x, y){
   #MMM - Jan 2016
   #You might want to display the data by nafo areas, or year, or gear type, so
   #this function was added to avoid hardcoding folder levels.  The desired 
   #folder hierarchy will correspond with the order of fields specified in 
-  #order of "folders" in the ddply call
+  #order of "folders" in the d_ply call
   #we will never speak of how long this took me to figure out
     base='mykml$getFolder("0")'
     thislevel=""
     for (i in 1:length(y)){ 
                 if (i==1) {thislevel=base}
-                getF=paste(thislevel,'$getFolder(fid="',x[,y[i]][1],'")',sep="")
+      #'folder ids don't like special characters - replace them, but keep the 
+      #'original values for using as names
+      this=x[,y[i]][1]
+      this.clean=gsub("&","AND",gsub("'","",this))
+                getF=paste(thislevel,'$getFolder(fid="', this.clean,'")',sep="")
                 if (is.null(eval(parse(text=getF)))){
-                  addF=paste(thislevel,'$addFolder(name="',x[,y[i]][1],'", fid="',x[,y[i]][1],'")',sep="")
+                  addF=paste(thislevel,'$addFolder(name="',this,'", fid="', this.clean,'")',sep="")
                   eval(parse(text=addF))
                 }
-                thislevel=paste0(thislevel,'$getFolder(fid="',x[,y[i]][1],'")')
+                thislevel=paste0(thislevel,'$getFolder(fid="', this.clean,'")')
                 eval(parse(text=thislevel))
     }
            addline=paste(thislevel, '$addLineString(x, styleUrl = "linestyle")',sep="")
@@ -77,6 +83,7 @@ observer.track.kml<-function(x, pid="FISHSET_ID", labelFields=NULL, addLineMarke
            #if selected, add a single point to each line so that it will be more visible
            if (addLineMarkers){
              addPoint=paste(thislevel, '$addPoint(x[x$ORD==min(as.numeric(unique(x$ORD))),], styleUrl = "pointstyle")',sep="")
+             if(addPoint==F) print("no 1")
              eval(parse(text=addPoint))
            }
      }

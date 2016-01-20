@@ -17,6 +17,8 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
   soughtQ=""
   gear=NULL
   gearQ=""
+  vessels=NULL
+  vesselsQ=""
   the.caught.species=NULL
   caught=NULL
   catchQ=""
@@ -24,11 +26,19 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
   catchfield=""
   catchtable=""
   catchjoin=""
+ 
+  
+  trim <- function (x) gsub("^\\s+|\\s+$", "", x)
   
     # Choose Gear or Species --------------------------------------------------
-    level.1<-select.list(c("By Species Sought","By Species Caught","By Gear","By Location"),
+    level.1<-select.list(c("By Species Sought",
+                           "By Species Caught",
+                           "By Gear",
+                           "By Vessel",
+                           "By Location"),
                          multiple=F, graphics=T, 
                          title="Data View?")
+    
     if (level.1=="By Species Sought" | level.1==""){ 
       #if left blank, we assume species
       focus="sought"
@@ -55,9 +65,21 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
       the.gear<-get.gear()
       gear.GUI<-select.list(paste( the.gear$DESCRIPTION, " (", the.gear$GEARCD_ID,")",sep=""),
                             multiple=T, graphics=T, 
-                            title="Choose a gear")
+                            title="Choose gear type(s)")
       gear<-SQL.in.noquotes(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', gear.GUI)))
-      gearQ<-paste0("AND g.gearcd_id IN (",gear,")")
+      gearQ<-paste0("AND g.gearcd_id IN (",gear,")") 
+    }else if (level.1=="By Vessel"){
+      focus="vessel"
+      the.vessels<-get.vessels()
+      vessels.GUI<-select.list(paste( the.vessels$VESSEL_NAME, " (", the.vessels$CFV,")",sep=""),
+                            multiple=T, graphics=T, 
+                            title="Choose vessel(s)")
+      #'Some of the cfv values are NA, so I'm using the names in the SQL.  This means that 
+      #'I have to protect against weird characters.  So far, I've 
+      #'doubled up apostrophes and
+      #'replaced amersands with || chr(38) ||
+      vessels<-SQL.in(trim(gsub("&","' || chr(38) || '",gsub("'","''",gsub('\\([^)]*\\)', '\\1', vessels.GUI)))))
+      vesselsQ<-paste0("AND v.VESSEL_NAME IN (",vessels,")")
     }else if (level.1=="By Location"){
       focus="location"
       print("####")
@@ -88,9 +110,9 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     return(date.range.GUI)
   }
   
-  get.date.range<-function(sought, caught, gear){
+  get.date.range<-function(sought, caught, gear, vessels){
     date.range.GUI<-list()
-    date.range<-as.character(get.year(sought=sought, caught=caught, gear=gear))
+    date.range<-as.character(get.year(sought=sought, caught=caught, gear=gear, vessels=vessels))
     date.range.start<-select.list(date.range,
                                        multiple=F, graphics=T, 
                                        title="Choose the earliest year of desired data")
@@ -102,7 +124,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     return(date.range.GUI)
   }
   
-  date.range<-get.date.range(sought=sought, caught=caught, gear=gear)
+  date.range<-get.date.range(sought=sought, caught=caught, gear=gear, vessels=vessels)
 
   
   #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery
@@ -111,7 +133,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
   tripcode=NULL
   setcode=NULL
     # Choose Set Code ---------------------------------------------------------   
-    the.setcode<-get.setcode(tripcode=tripcode, sought=sought, date.range=date.range, gear=gear)
+    the.setcode<-get.setcode(tripcode=tripcode, sought=sought, date.range=date.range, gear=gear, vessels=vessels)
     setcode.GUI<-select.list(paste( the.setcode$SET_TYPE, " (", the.setcode$SETCD_ID,")",sep=""),
                              multiple=T, graphics=T, 
                              title="Choose a set type")
@@ -123,7 +145,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     }
     setcodeQ<-paste0("AND f.setcd_id IN (",setcode,")")   
     # Choose Trip Code ---------------------------------------------------------    
-    the.tripcode<-get.tripcode(setcode=setcode, sought=sought, date.range=date.range, gear=gear)
+    the.tripcode<-get.tripcode(setcode=setcode, sought=sought, date.range=date.range, gear=gear, vessels=vessels)
     tripcode.GUI<-select.list(paste( the.tripcode$TRIP_TYPE, " (", the.tripcode$TRIPCD_ID,")",sep=""),
                               multiple=T, graphics=T, 
                               title="Choose a trip type")
@@ -141,6 +163,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     
     where<-paste(soughtQ,
                  gearQ,
+                 vesselsQ,
                  setcodeQ,
                  tripcodeQ,
                  dateQ,
