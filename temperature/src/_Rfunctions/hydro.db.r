@@ -184,7 +184,7 @@
             Y$id =  "dummy"
             Y$yr =  yt
             Y$dayno = 1
-            Y$weekno = 1
+            Y$mon = 1
             Y$depth = -1
             Y$oxyml = NA
   
@@ -193,7 +193,7 @@
             Y$id =  paste( Y$longitude, Y$latitude, Y$dayno, sep="~" )
             Y$yr =  as.numeric( as.character( years( Y$date ) ) )
             Y$dayno = convert.datecodes(Y$date, "julian") 
-            Y$weekno = ceiling ( Y$dayno / 365 * 52 )
+            Y$mon = ceiling ( Y$dayno / 365 * 12 )
             Y$depth = decibar2depth ( P=Y$pressure, lat=Y$latitude )
             Y$oxyml = NA
             
@@ -209,7 +209,7 @@
           gf = grdfish[ which( grdfish$yr == yt ) , ]
 					if (nrow(gf) > 0) {
 						gf$sigmat = NA
-						names(gf) = c( "id", "depth", "temperature", "salinity", "oxyml", "longitude", "latitude", "yr", "weekno", "dayno", "date", "sigmat"  )
+						names(gf) = c( "id", "depth", "temperature", "salinity", "oxyml", "longitude", "latitude", "yr", "mon", "dayno", "date", "sigmat"  )
 						Y = rbind( Y, gf[, names(Y)] )
 					}
 				}
@@ -223,7 +223,7 @@
             minilog$id = minilog$minilog_uid 
             minilog$yr = as.numeric( as.character( years( minilog$chron) ) )
             minilog$dayno = convert.datecodes(minilog$chron, "julian") 
-            minilog$weekno = ceiling ( minilog$dayno / 365 * 52 )
+            minilog$mon = ceiling ( minilog$dayno / 365 * 12 )
             minilog$date = minilog$chron
             Y = rbind( Y, minilog[, names(Y) ] )
           }
@@ -234,7 +234,7 @@
             seabird$id = seabird$seabird_uid
             seabird$yr = as.numeric( as.character( years( seabird$chron) ) )
             seabird$dayno = convert.datecodes( seabird$chron, "julian") 
-            seabird$weekno = ceiling ( seabird$dayno / 365 * 52 )
+            seabird$mon = ceiling ( seabird$dayno / 365 * 12 )
             seabird$date = seabird$chron
             seabird$oxyml = NA
             Y = rbind( Y, seabird[, names(Y) ] )
@@ -340,22 +340,28 @@
       loc.gridded = file.path( basedir, "basedata", "gridded", "bottom", p$spatial.domain )
       dir.create( loc.gridded, recursive=T, showWarnings=F )
       
+      O = NULL
+      fnall = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
+
       if (DS == "bottom.gridded.all" ) {
         if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
-        O = NULL
-        fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
-        if (file.exists(fn)) { 
-          load (fn) 
-        } else {
-          for (y in p$tyears ) {
+        if (file.exists(fnall)) { 
+          load (fnall) 
+        } 
+        O = O[ which( O$yr %in% yr) , ]
+        return(O)
+      }
+   
+      if (DS == "bottom.gridded.all.redo" ) {
+        if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
+        for (y in p$tyears ) {
             On = hydro.db(p=p, DS="bottom.gridded", yr=y) 
             if ( is.null( On) ) next()
             O = rbind( O, On )
           }
-          save( O, file=fn, compress=TRUE )
-        }
+        save( O, file=fnall, compress=TRUE )
         O = O[ which( O$yr %in% yr) , ]
-        return(O)
+        return( fnall )
       }
 
 
@@ -421,7 +427,7 @@
           ## ensure that inside each grid/time point 
           ## that there is only one point estimate .. taking medians
           vars = c("z", "t", "salinity", "sigmat", "oxyml")
-          tp$st = paste( tp$weekno, tp$plon, tp$plat ) 
+          tp$st = paste( tp$mon, tp$plon, tp$plat ) 
         
           o = which( ( duplicated( tp$st )) )
           if (length(o)>0) { 

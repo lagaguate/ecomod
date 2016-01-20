@@ -62,6 +62,9 @@
         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
             file=p$debug.file, append=FALSE ) # init
+        
+        # define boundary polygon for data
+        spacetime.db( p, DS="boundary.redo" ) 
       }
 
      if (0) {
@@ -69,15 +72,15 @@
        # do not use all CPU's as INLA itself is partially run in parallel
        # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
        p$clusters = "localhost"  # if serial run, send a single cluster host
-       p$clusters = rep( "localhost", 6 )
-       p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
+       p$clusters = rep( "localhost", 8 )
+       p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ), rep("tethys", 2) )
        p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 2 ) ) 
       }
       
       # run the beast .. warning this will take a very long time! (weeks)
-   
+      
       sS = spacetime.db( p, DS="statistics.bigmemory.status" )
-      sS$n.incomplete / (sS$n.problematic + sS$n.incomplete +sS$n.complete)
+      sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
    
       p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
       parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  

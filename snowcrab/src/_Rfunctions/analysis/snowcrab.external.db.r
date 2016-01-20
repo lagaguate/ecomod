@@ -89,6 +89,7 @@
       set$yr = convert.datecodes(set$chron, "year")
       set$julian = convert.datecodes(set$chron, "julian")
       set$weekno = floor(set$julian/365*52) + 1 
+      set$mon = floor(set$julian/365*12) + 1 
       
       #----------------------------
       # look up missing environmental data

@@ -85,7 +85,7 @@
       p$model.type = "gam.full" # choose method for habitat model :
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
       p$optimizers = c( "bam", "perf","nlm",   "bfgs", "newton", "Nelder-Mead" )  # used by GAM
-			p$prediction.weekno = 39 # predict for ~ Sept 1 
+			p$prediction.mon = 9 # predict for ~ Sept 1 
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
       p$use.annual.models = F  ## <<<<< new addition
@@ -182,6 +182,7 @@
       set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
       set = presence.absence( set, "R0.mass", p$habitat.threshold.quantile )  # determine presence absence(Y) and weighting(wt)
       set$weekno = floor(set$julian / 365 * 52) + 1
+      set$mon = floor(set$julian / 365 * 12) + 1
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
 
@@ -213,13 +214,13 @@
     v = "R0.mass"
 
         PS = habitat.db ( DS="complete", year=y, p=p )
-				PS$weekno = p$prediction.weekno  # must be same as above
+				PS$mon = p$prediction.mon  # must be same as above
 				PS$t = NA
       
         PST = temperature.db( p=p, DS="spatial.interpolation", yr=y  )
 				if (is.null(PST)) next ()
 				
-        PS$t = PST[, p$prediction.weekno ]
+        PS$t = PST[, p$prediction.mon ]
         PS$t[ which(PS$t < -2) ] = -2
 			  PS$t[ which(PS$t > 30) ] = 30 
 

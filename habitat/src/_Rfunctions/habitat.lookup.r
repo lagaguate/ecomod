@@ -122,7 +122,7 @@
     }
 
     # -------------------
-    # weekly-varying items:
+    # monthly-varying items:
     if ( DS %in% c( "temperature", "temperature.weekly" )) {
       if (! exists( "yr", x) ) {
         if (any( grepl( "chron", names(x) ) )) {
@@ -131,11 +131,11 @@
       } 
       if (! exists( "yr", x ) ) stop( "yr is required")  # required
       
-      if (! exists("weekno", x) ) {
+      if (! exists("mon", x) ) {
         x$dayno = convert.datecodes(x$chron, "julian")  
-        x$weekno = ceiling (x$dayno / 365 * 52 )
+        x$mon = ceiling (x$dayno / 365 * 12 )
       }
-      if (! exists( "weekno", x ) ) stop( "weekno is required")  # required
+      if (! exists( "mon", x ) ) stop( "mon is required")  # required
 
       print( "Looking up temperature at weekly scales" )
 
@@ -155,7 +155,7 @@
           
         V = matrix( NA, ncol=2, nrow=length(ii) )	
         V[,1] = X$row
-        V[,2] = X$weekno
+        V[,2] = X$mon
 
         H = habitat.lookup.datasource( DS=DS, yr=yr, p=p  )  # bring in appropriate habitat data source
         if (is.null(H)) next()
@@ -177,7 +177,7 @@
           distances[ which(distances > max.distance) ] = NA
           for( jj in 1:length( im ) ) {
             dd = which.min( distances[,jj] )
-            if (length(dd) > 0) X[ im[jj],vn ] = H[ dd, X[ im[jj],"weekno"] ]
+            if (length(dd) > 0) X[ im[jj],vn ] = H[ dd, X[ im[jj],"mon"] ]
           }
         }
         O = rbind( O, X )

@@ -7,7 +7,7 @@
 
 
   p$tyears = c(1990:1995)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  p$wtimes = 1:52 
+  p$mon = 1:12 
   p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
   
   # p = temperature.db( p=p, DS="bigmemory.filenames" ) 
@@ -93,7 +93,7 @@
     p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(1970:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    p$wtimes = 1:52 
+    p$mon = 1:12 
     p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
     
     inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
@@ -118,7 +118,7 @@
     t0 = t0[ subarea ,]
     
     t0$yrindex = t0$yr - min(t0$yr) + 1
-    t0$pryr = (t0$weekno-1)/52
+    t0$pryr = (t0$mon-1)/12
     t0$ti = t0$yr + t0$pryr
     t0$logZ = log(t0$z)
     t0$tC = t0$t
@@ -181,8 +181,8 @@ Posterior marginals for linear predictor and fitted values computed
     # choose model formula for GAM-based models
     mf = switch( p$tsmethod ,
       annual = ' t ~ s(yr) ',
-      seasonal.basic = ' t ~ s(yr) + s(weekno, bs="cc") ', 
-      seasonal.smoothed = ' t ~ s(yr, weekno) + s(yr) + s(weekno, bs="cc")  ', 
+      seasonal.basic = ' t ~ s(yr) + s(mon, bs="cc") ', 
+      seasonal.smoothed = ' t ~ s(yr, mon) + s(yr) + s(mon, bs="cc")  ', 
       harmonics.1 = ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w)  ', 
       harmonics.2 = ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s(yr, sin.w2) + s(cos.w2) + s( sin.w2 ) ' , 
       harmonics.3 = ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s(yr, sin.w2) + s(cos.w2) + s( sin.w2 ) + s(yr, cos.w3) + s(yr, sin.w3)  + s(cos.w3) + s( sin.w3 ) '
@@ -191,19 +191,19 @@ Posterior marginals for linear predictor and fitted values computed
 
    t0$w = 1 / (( t0$lon - fp$lon)**2 + (t0$lat - fp$lat)**2 )# weight data in space: inverse distance squared
    t0$w[ which( t0$w < 1e-3 ) ] = 1e-3
-   # t0 = t0[,c("t", "w", "yr", "weekno" )]
+   # t0 = t0[,c("t", "w", "yr", "mon" )]
    # data transformations and creation of new variables where required for raw data 
    
    x = t0
    
    # default output grid
-   OP = expand.grid( weekno=p$wtimes, yr=p$tyears )
+   OP = expand.grid( mon=p$mon, yr=p$tyears )
    OP$fit = NA  # these will be filled in with predicted fits and se's
    OP$se  = NA
 
 
-    OP$tiyr = OP$yr + OP$weekno/52 
-    x$tiyr =  x$yr + x$weekno/52
+    OP$tiyr = OP$yr + OP$mon/12 
+    x$tiyr =  x$yr + x$mon/12
    
    if ( p$tsmethod %in% c( "harmonics.1", "harmonics.2", "harmonics.3"  ) ) {
       x$cos.w  = cos( x$tiyr )
@@ -247,12 +247,12 @@ Posterior marginals for linear predictor and fitted values computed
     }
     
     # other methods
-    OP$time = OP$yr + OP$weekno / 52
+    OP$time = OP$yr + OP$mon / 12
     OP = OP[ order( OP$time ) ,]
 
     # STL method
     vn = "fit"
-    OPts = ts( OP[,vn] , start=c( min(p$tyears), 1), frequency=52 )
+    OPts = ts( OP[,vn] , start=c( min(p$tyears), 1), frequency=12 )
     plot.default(  OPts, type="l" )
 
     OPstl = stl( OPts, s.window=4) # seasonal decomposition using loess 
@@ -294,7 +294,7 @@ Posterior marginals for linear predictor and fitted values computed
     p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-    p$wtimes = 1:52 
+    p$mon = 1:12 
     p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
     
     inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
@@ -340,7 +340,7 @@ Posterior marginals for linear predictor and fitted values computed
   
 # plot(M0, asp=1 ) # visualise mesh
     t0$yrindex = t0$yr - min(t0$yr) + 1
-    t0$pryr = (t0$weekno-1)/52
+    t0$pryr = (t0$mon-1)/12
     t0$ti = t0$yr + t0$pryr
     t0$logZ = log(t0$z)
     t0$b0 = 1  # intercepts
@@ -456,7 +456,7 @@ Posterior marginals for linear predictor and fitted values computed
   p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
   p$tyears = c(1990:1995)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  p$wtimes = 1:52 
+  p$mon = 1:12 
   p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
   
   inla.setOption(scale.model.default = TRUE)  # better numerical performance of IGMRF models and less dependnence upon hyperpriors
@@ -474,13 +474,13 @@ Posterior marginals for linear predictor and fitted values computed
   t0 = t0[a,]
 
   t0$yrindex = t0$yr - min(t0$yr) + 1
-  t0$pryr = (t0$weekno-1)/52 
-  # t0$pryr = trunc( (t0$weekno-1)/52 /2 ) *2 ## make it every 2 weeks
+  t0$pryr = (t0$mon-1)/12 
+  # t0$pryr = trunc( (t0$mon-1)/12 /2 ) *2 ## make it every 2 weeks
   t0$ti = t0$yr + t0$pryr
   t0$logZ = log(t0$z)
   t0$b0 = 1  # intercepts
 
-  if (anyDuplicated( paste( t0$plon, t0$plat, t0$yr, t0$weekno, sep="_"))) stop("Dups!")
+  if (anyDuplicated( paste( t0$plon, t0$plat, t0$yr, t0$mon, sep="_"))) stop("Dups!")
   
 
   # boundary domain

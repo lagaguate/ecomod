@@ -84,11 +84,11 @@
         qs = empirical.ranges( db="snowcrab", v, probs=c(p$habitat.threshold.quantile, 0.95), remove.zeros=T ) 
   
         PS = habitat.db ( DS="complete", year=y, p=p )
-				PS$weekno = p$prediction.weekno  # must be same as above
+				PS$mon = p$prediction.mon  # must be same as above
          
         PST = temperature.db( p=p, DS="spatial.interpolation", yr=y  )
 				if (is.null(PST)) next ()
-				PS$t = as.vector( PST[, p$prediction.weekno ] )
+				PS$t = as.vector( PST[, p$prediction.mon ] )
 
         rm (PST); gc()
 

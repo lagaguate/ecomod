@@ -632,9 +632,10 @@
       gsinf$yr = convert.datecodes( gsinf$date, "year" )
       gsinf$dayno = convert.datecodes( gsinf$date, "julian")
       gsinf$weekno = ceiling ( gsinf$dayno / 365 * 52 )
+      gsinf$mon = ceiling ( gsinf$dayno / 365 * 12 )
       gsinf$longitude = gsinf$lon
       gsinf$latitude = gsinf$lat
-      gsinf = gsinf[ , c( "id", "lon", "lat", "yr", "weekno", "dayno", "date" ) ]
+      gsinf = gsinf[ , c( "id", "lon", "lat", "yr", "mon", "weekno", "dayno", "date" ) ]
       gshyd = groundfish.db( "gshyd.profiles" )
       gshyd = merge( gshyd, gsinf, by="id", all.x=T, all.y=F, sort=F )
       gshyd$sal[gshyd$sal<5]=NA
