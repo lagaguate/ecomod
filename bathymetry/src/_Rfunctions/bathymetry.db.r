@@ -631,14 +631,16 @@
     # ----------------
  
     if ( DS %in% c("bathymetry.spacetime.inputs.data", "bathymetry.spacetime.inputs.data.redo" )) {
-      #\\ DS="bathymetry.spacetime.input" is a low-level call that creates the input data table in a bigmemory table  
+      #\\ DS="bathymetry.spacetime.input" is a low-level call that prepares the bathymetry data
+      #\\   for input into a bigmemory table for further processing
       fn = file.path( datadir, paste( "bathymetry", "spacetime", "input", p$spatial.domain,  "rdata", sep=".") )
       if (DS =="bathymetry.spacetime.inputs.data" ) {
         load( fn)
         return( B )
       }
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
-      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) 
+      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )
+      B = B[ which(B$z > -100),]
       B = lonlat2planar( B, proj.type=p$internal.projection ) 
       B$plon = grid.internal( B$plon, p$plons )
       B$plat = grid.internal( B$plat, p$plats )

@@ -36,11 +36,10 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
         # only attempt interpolation if we have enough data (nMin.tbot)
         x = B[i,] # faster to reduce the size of B here
         # remove potentially noisy/erroneous data --- they are highly influential when there is little data 
-        xt = quantile( x$t, probs=c(0.005, 0.995) )
-        xi = which( x$t >= xt[1] & x$t <= xt[2] ) 
-        
-        if (length(xi) < p$nMin.tbot ) next()
-        x = x[xi, ] 
+        # xt = quantile( x$t, probs=c(0.005, 0.995) )
+        # xi = which( x$t >= xt[1] & x$t <= xt[2] ) 
+        # if (length(xi) < p$nMin.tbot ) next()
+        # x = x[xi, ] 
         
         x$w = 1 / (( g$plon - x$plon)**2 + (g$plat - x$plat)**2 )# weight data in space: inverse distance squared
         x$w[ which( x$w < 1e-3 ) ] = 1e-3
