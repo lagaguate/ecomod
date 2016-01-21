@@ -123,7 +123,7 @@
 
     # -------------------
     # monthly-varying items:
-    if ( DS %in% c( "temperature", "temperature.weekly" )) {
+    if ( DS %in% c( "temperature", "temperature.monthly" )) {
       if (! exists( "yr", x) ) {
         if (any( grepl( "chron", names(x) ) )) {
           x$yr = as.numeric( as.character( years( x$chron )))
@@ -137,7 +137,7 @@
       }
       if (! exists( "mon", x ) ) stop( "mon is required")  # required
 
-      print( "Looking up temperature at weekly scales" )
+      print( "Looking up temperature at monthly scales" )
 
       yrs = sort( unique( x$yr ))
 

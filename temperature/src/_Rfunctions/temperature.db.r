@@ -307,8 +307,8 @@
         P = temperature.db( p=p, DS="temporal.interpolation", yr=y  )
         V = temperature.db( p=p, DS="temporal.interpolation.se", yr=y  )
 				print ( paste("Year:", y)  )
-        for ( ww in 1:52 ) {
-          print ( paste( "Week:", ww) )
+        for ( ww in 1:12 ) {
+          print ( paste( "Month:", ww) )
           # these are simple interpolations 
           P[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=P[,ww] )
           V[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=V[,ww] )

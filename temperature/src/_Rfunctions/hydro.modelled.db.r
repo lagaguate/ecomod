@@ -62,7 +62,7 @@
 
 				# half-period .. also approximate as sinusoid can also span 2 yrs
 				# sin tranf required to make circular and then take difference and rescale
-        O$thalfperiod = abs( sin(O$wmax/52*pi) - sin(O$wmin/52*pi) ) * 52/pi 
+        O$thalfperiod = abs( sin(O$wmax/12*pi) - sin(O$wmin/12*pi) ) * 12/pi 
       
         fn =  file.path( tstatdir, paste("bottom.statistics.annual", y, "rdata", sep=".") )
         save( O, file=fn, compress=T )

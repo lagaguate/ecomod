@@ -23,7 +23,7 @@
         H = H[, c("plon", "plat", "substrate.mean") ]
       }
 
-      if ( DS %in% c("temperature", "temperature.weekly" ) ) {
+      if ( DS %in% c("temperature", "temperature.monthly" ) ) {
         H = temperature.db( p=p, DS="spatial.interpolation", yr=yr  )
       }
  

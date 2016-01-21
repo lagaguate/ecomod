@@ -16,8 +16,8 @@
   p$ny = length(p$tyears)
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
   p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
-  p$dist.km = c( 2.5, 5, 7.5, 10, 15, 20, 25 ) # "manhattan" distances to extend search for data
-  p$maxdist = 25 # if using gstat  max dist to interpolate in space
+  p$dist.km = c( 2.5, 5, 7.5, 10, 15 ) # "manhattan" distances to extend search for data
+  p$maxdist = 20 # if using gstat  max dist to interpolate in space
   # choose: temporal interpolation method ... harmonic analysis seems most reasonable
   # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
   # possible methods: "annual", "seasonal.basic", "seasonal.smoothed", "harmonics.1", "harmonics.2", "harmonics.3", "inla.ts.simple"
@@ -81,7 +81,9 @@
     p$nP = nrow( bathymetry.db( p=p, DS="baseline" ) )
     p = temperature.db(p=p, DS="bigmemory.initiate" ) # return pointers to bigmemory objects in case it is RAM-based    must be at top level 
     # test to make sure attach is possible .. sometimes requires restart of R or even computer .. bigmemory memory leak or file caching
-    
+    tbot <- bigmemory::attach.big.matrix( p$descriptorfile.tbot  )
+		tbot.se <- bigmemory::attach.big.matrix( p$descriptorfile.tbotse  )
+  
     p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
     # p = make.list( list( loc=sample.int( p$nP) ), Y=p ) # random order helps use all cpus
     p = make.list( list( loc=sample.int( p$nP ) ), Y=p ) # random order helps use all cpus
