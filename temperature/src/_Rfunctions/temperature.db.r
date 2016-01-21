@@ -306,7 +306,8 @@
         y = p$runs[r, "yrs"]
         P = temperature.db( p=p, DS="temporal.interpolation", yr=y  )
         V = temperature.db( p=p, DS="temporal.interpolation.se", yr=y  )
-				print ( paste("Year:", y)  )
+				
+        print ( paste("Year:", y)  )
         for ( ww in 1:52 ) {
           print ( paste( "Week:", ww) )
           # these are simple interpolations 

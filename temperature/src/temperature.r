@@ -17,7 +17,7 @@
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
   p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
   p$dist.km = c( 2.5, 5, 7.5, 10, 15, 20) # "manhattan" distances to extend search for data
-  p$maxdist = 50 # if using gstat  max dist to interpolate in space
+  p$maxdist = 20 # if using gstat  max dist to interpolate in space
   # choose: temporal interpolation method ... harmonic analysis seems most reasonable
   # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
   # possible methods: "annual", "seasonal.basic", "seasonal.smoothed", "harmonics.1", "harmonics.2", "harmonics.3", "inla.ts.simple"
@@ -45,14 +45,14 @@
     hydro.db( DS="osd.current", p=p, yr=2014:p$newyear ) # specify range or specific year 
 
     # Merge depth profiles from all data streams: OSD, groundfish, snowcrab
-    p = make.list( list( yrs=c(2008:p$newyear), Y=p )   # specify range or specific year
+    p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce ep = make.list( list( yrs=c(2008:p$newyear), Y=p ))   # specify range or specific year
     p$current.assessment.year = p$newyear # required to access groundfish and snow crab data
     hydro.db( DS="profiles.annual.redo", yr=c(2008:p$newyear), p=p  )  # specify range or specific year
     # parallel.run( hydro.db, p=p, yr=p$tyears, DS="profiles.annual.redo", init.files=p$init.files ) 
 
     # Extract bottom data from each profile
-      p = make.list( list( yrs=2008:p$newyear), Y=p )  # specify range or specific year
-      hydro.db( DS="bottom.annual.redo", yr=2008:p$newyear, p=p ) # yr argument overrides p$tyears .. e.g. for a new year of data
+    p = make.list( list( yrs=2008:p$newyear), Y=p )  # specify range or specific year
+    hydro.db( DS="bottom.annual.redo", yr=2008:p$newyear, p=p ) # yr argument overrides p$tyears .. e.g. for a new year of data
     # hydro.db( DS="bottom.annual.redo", p=p ) 
     # parallel.run( hydro.db, p=p, yr=p$tyears, DS="bottom.annual.redo", init.files=p$init.files ) 
   }
@@ -79,10 +79,12 @@
     # define output mattrix
     # predictions are made upon the locations defined by bathymetry "baseline" 
     p$nP = nrow( bathymetry.db( p=p, DS="baseline" ) )
-    p = temperature.db(p=p, DS="bigmemory.initiate" ) # return pointers to bigmemory objects in case it is RAM-based    must be at top level 
-    # test to make sure attach is possible .. sometimes requires restart of R or even computer .. bigmemory memory leak or file caching
-    tbot <- bigmemory::attach.big.matrix( p$descriptorfile.tbot  )
-    tbot.se <- bigmemory::attach.big.matrix( p$descriptorfile.tbotse  )
+    p = temperature.db(p=p, DS="bigmemory.initiate" ) # return pointers to bigmemory objects 
+    
+      # test to make sure attach is possible .. 
+      # sometimes requires restart of R or even computer .. bigmemory memory leak or file caching
+      tbot <- bigmemory::attach.big.matrix( p$descriptorfile.tbot  )
+      tbot.se <- bigmemory::attach.big.matrix( p$descriptorfile.tbotse  )
 
     p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
     # p = make.list( list( loc=sample.int( p$nP) ), Y=p ) # random order helps use all cpus

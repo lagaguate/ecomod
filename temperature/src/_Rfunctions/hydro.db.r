@@ -253,6 +253,9 @@
         iiY = which(duplicated(Y))
         if (length(iiY)>0) Y = Y [ -iiY, ]
 
+        bad = which( Y$temperature < -5 | Y$temperature > 40 ) 
+        if (length(bad)>0) Y=Y[-bad,]
+
         fn = file.path( loc.profile, paste("depthprofiles", yt, "rdata", sep="."))
         print( fn )
         save( Y, file=fn, compress=T )
@@ -299,8 +302,11 @@
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
         Y = hydro.db( DS="profiles.annual", yr=yt, p=p )
-        # Bottom temps
         if (is.null(Y)) next()
+        igood = which( Y$temperature >= -3 & Y$temperature <= 25 )  ## 25 is a bit high but in case some shallow data 
+        Y = Y[igood, ]
+ 
+    # Bottom temps
 				Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Y$dayno, sep="~" )
         ids =  sort( unique( Y$id ) )
         res = copy.data.structure( Y)   
@@ -409,7 +415,10 @@
           tp = rename.df( tp, "depth", "z")
           tp$date = NULL
 					# tp$depth = NULL
-         
+        
+          igood = which( tp$t >= -3 & tp$t <= 25 )  ## 25 is a bit high but in case some shallow data 
+          tp = tp[igood, ]
+ 
           igood = which( tp$lon >= p$corners$lon[1] & tp$lon <= p$corners$lon[2] 
               &  tp$lat >= p$corners$lat[1] & tp$lat <= p$corners$lat[2] )
           tp = tp[igood, ]

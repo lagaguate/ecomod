@@ -10,6 +10,8 @@
     attr( z0, "out.attrs" ) = NULL
     z0$fit = NA  # these will be filled in with predicted fits and se's
     z0$se  = NA
+    z0$tiyr = 2*pi* ( z0$yr + z0$weekno/52 )
+    z0 = z0[ order(z0$tiyr), ]
 
     if ( p$tsmethod %in% c("annual", "seasonal.basic", "seasonal.smoothed", "harmonics.1", "harmonics.2", "harmonics.3" ) ) {
         interpolate.ts = temperature.timeseries.interpolate.gam
@@ -19,7 +21,7 @@
     }
       
     B = hydro.db( p=p, DS="bottom.gridded.all"  )
-  # B = B[, c("plon", "plat", "yr", "weekno", "t") ]
+    B$tiyr = 2*pi* ( B$yr + B$weekno/52 )
       
     # globally remove all unrealistic data  
     keep = which( B$t >= -3 & B$t <= 25 ) # hard limits
