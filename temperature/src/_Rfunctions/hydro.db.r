@@ -340,22 +340,28 @@
       loc.gridded = file.path( basedir, "basedata", "gridded", "bottom", p$spatial.domain )
       dir.create( loc.gridded, recursive=T, showWarnings=F )
       
+      O = NULL
+      fnall = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
+
       if (DS == "bottom.gridded.all" ) {
         if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
-        O = NULL
-        fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
-        if (file.exists(fn)) { 
-          load (fn) 
-        } else {
-          for (y in p$tyears ) {
+        if (file.exists(fnall)) { 
+          load (fnall) 
+        } 
+        O = O[ which( O$yr %in% yr) , ]
+        return(O)
+      }
+   
+      if (DS == "bottom.gridded.all.redo" ) {
+        if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
+        for (y in p$tyears ) {
             On = hydro.db(p=p, DS="bottom.gridded", yr=y) 
             if ( is.null( On) ) next()
             O = rbind( O, On )
           }
-          save( O, file=fn, compress=TRUE )
-        }
+        save( O, file=fnall, compress=TRUE )
         O = O[ which( O$yr %in% yr) , ]
-        return(O)
+        return( fnall )
       }
 
 

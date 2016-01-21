@@ -24,22 +24,22 @@
       return( todelete )
     }
 
-    ------
+    # ------
 
     if (DS %in% "bigmemory.initiate" ) { 
       p = temperature.db( p=p, DS="bigmemory.filenames" ) 
     # create file backed bigmemory objects
-      fn.tbot = file.path(p$tmp.datadir, p$backingfile.tbot )
-      if ( file.exists( fn.tbot) ) file.remove( fn.tbot) 
-      fn.tbotse = file.path(p$tmp.datadir, p$backingfile.tbotse )
-      if ( file.exists( fn.tbotse) ) file.remove( fn.tbotse ) 
+      # fn.tbot = file.path(p$tmp.datadir, p$backingfile.tbot )
+      # if ( file.exists( fn.tbot) ) file.remove( fn.tbot) 
+      # fn.tbotse = file.path(p$tmp.datadir, p$backingfile.tbotse )
+      # if ( file.exists( fn.tbotse) ) file.remove( fn.tbotse ) 
       nr = p$nP
       nc = p$nw*p$ny
       # shared RAM object
-      tbot = big.matrix(nrow=nr, ncol=nc, type="double" , init=NA, shared=TRUE)  
-      tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", init=NA, shared=TRUE)
-      p$descriptorfile.tbot = describe( tbot)
-      p$descriptorfile.tbotse = describe( tbot.se)
+      tbot = big.matrix(nrow=nr, ncol=nc, type="double" , shared=TRUE)  
+      tbot.se = big.matrix(nrow=nr, ncol=nc, type="double", shared=TRUE)
+      p$descriptorfile.tbot = bigmemory::describe( tbot)
+      p$descriptorfile.tbotse = bigmemory::describe( tbot.se)
       return( p ) 
     }
 
@@ -47,7 +47,7 @@
 
     if ( DS %in% "bigmemory.status" ) { 
         # not used .. here for reference for other projects
-        tbot = attach.big.matrix(p$descriptorfile.tbot  )
+        tbot = bigmemory::attach.big.matrix(p$descriptorfile.tbot  )
         # problematic and/or no data (e.g., land, etc.) and skipped
         i = which( is.nan( tbot[, 1] ) )
         # not yet completed
@@ -204,9 +204,35 @@
           if (file.exists( fn1) ) load(fn1)
           return ( tinterp.se )
       }
-      tbot <- attach.big.matrix( p$descriptorfile.tbot  )
-			tbot.se <- attach.big.matrix( p$descriptorfile.tbotse  )
-			for ( r in 1:length(p$tyears) ) {
+      tb <- bigmemory::attach.big.matrix( p$descriptorfile.tbot  )
+			tb.se <- bigmemory::attach.big.matrix( p$descriptorfile.tbotse  )
+	  
+      # copy
+      tbot = tb[]
+      tbot.se = tb.se[]
+      # reject unreasonable extremes 
+      bad = which( tbot < -3 | tbot > 25  )
+      if (length( bad) > 0) {
+        tbot[ bad] = NA
+        tbot.se[bad] = NA
+      }
+      
+      # global quantile removal: 99.9 % prob
+      tq = quantile( tbot, probs=c(0.0005, 0.9995), na.rm=TRUE  )   # in 2015: -2.46276 21.60798
+      bad = which( tbot < tq[1] | tbot > tq[2] )
+      if (length( bad) > 0) {
+        tbot[ bad] = NA
+        tbot.se[bad] = NA
+      }
+
+      tr = quantile( tbot.se, probs=c(0.0005, 0.9995), na.rm=TRUE  )   # 0.0802125 11.3508923
+      bad = which( tbot.se < tr[1] | tbot.se > tr[2] )
+      if (length( bad) > 0) {
+        tbot[ bad] = NA
+        tbot.se[bad] = NA
+      }
+
+      for ( r in 1:length(p$tyears) ) {
 				yt = p$tyears[r]
 				fn1 = file.path( tinterpdir, paste( "temporal.interpolation", yt, "rdata", sep=".") )
 				fn2 = file.path( tinterpdir, paste( "temporal.interpolation.se", yt, "rdata", sep=".") )
@@ -260,78 +286,57 @@
         return ( V )
       }
 
+      if ( is.null(ip) ) ip = 1:p$nruns
       O = bathymetry.db( p=p, DS="baseline" )
       O$z = NULL
+      if (p$spmethod == "kernel.density" ) {
+        # pre-compute a few things rather than doing it for each iteration
+        p$wgts = fields::setup.image.smooth(nrow=p$nplons, ncol=p$nplats, dx=p$pres, dy=p$pres, 
+          theta=p$theta, xwidth=p$nsd*p$theta, ywidth=p$nsd*p$theta )
+        p$O2M = cbind( (O$plon-p$plons[1])/p$pres + 1, (O$plat-p$plats[1])/p$pres + 1) # row, col indices in matrix form
+      }
+     
+      if (p$spmethod == "gam" ) {
+        p$O = O
+      }
+      
+      rm(O); gc()
 
-      if ( is.null(ip) ) ip = 1:p$nruns
       for ( r in ip ) { 
         y = p$runs[r, "yrs"]
         P = temperature.db( p=p, DS="temporal.interpolation", yr=y  )
         V = temperature.db( p=p, DS="temporal.interpolation.se", yr=y  )
-        # real data are set at se=0  .. they are real zero values
-        TRv = quantile( V, probs=c(0.005, 0.995), na.rm=TRUE  )   
-        V[ V < TRv[1] ] = TRv[1] 
-        V[ V > TRv[2] ] = TRv[2] 
-        W = 1 / V^2 
- 
 				print ( paste("Year:", y)  )
         for ( ww in 1:52 ) {
           print ( paste( "Week:", ww) )
-          ai = which(is.finite(P[,ww]))
-          Tdat = P[ai,ww]
-          gs = NULL
-          for ( distance in p$dist.km ) {
-            # inverse distance weighted interpolation (power = 0.5) to max dist of 10 km
-            gs = try( 
-              gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], 
-                     maxdist=distance, set=list(idp=.5), weights=W[ai,ww])
-              , silent=TRUE ) 
-
-            if ( ! ( "try-error" %in% class(gs) ) ) break() 
-          }
-
-          if ( ( "try-error" %in% class(gs) ) ) {
-              # last try drop weights with all data .. max distance
-              gs = try( 
-                gstat( id="t", formula=Tdat~1, locations=~plon+plat, data=O[ai,], 
-                     maxdist=distance, set=list(idp=.5) )
-                , silent=TRUE ) 
-          }
- 
-          if ( "try-error" %in% class(gs) )  next()  # give up
-
-          count = 0
-          todo = 1
-          aj = which( ! is.finite(P[,ww]) )
-      
-          TR = quantile(  P[,ww], probs=c(0.005, 0.995), na.rm=TRUE )
-          TR[1] = max( TR[1], -3)
-          TR[2] = min( TR[2], 30)
-          
-          while ( todo > 0 )  {
-            preds = predict( object=gs, newdata=O[aj,]  )
-            extrapolated1 = which( preds[,3] < TR[1] )
-            extrapolated2 = which( preds[,3] > TR[2] )
-            if (length( extrapolated1 ) > 0 ) preds[ extrapolated1, 3] = TR[1]
-            if (length( extrapolated2 ) > 0 ) preds[ extrapolated2, 3] = TR[2]
-            P[aj,ww] = preds[,3]
-						V[aj,ww] = sqrt( V[aj,ww]^2 + preds[,4]^2 )     # assume additive error 
-            aj = which( ! is.finite(P[,ww]) )
-            last = todo
-            todo = length( aj )
-            count = count + 1
-            if ( (todo == last) | (count > 10) ) {
-              # stuck in a loop or converged.. take a global mean 
-              if (todo > 0) {
-                P[aj,ww] = median( P[,ww], na.rm=TRUE )
-                V[aj,ww] = median( V[,ww], na.rm=TRUE )
-              }
-              break() 
-            }
-          } 
-          rm ( aj ); gc()
+          # these are simple interpolations 
+          P[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=P[,ww] )
+          V[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=V[,ww] )
         }
-				fn1 = file.path( spinterpdir,paste("spatial.interpolation",  y, "rdata", sep=".") )
+			
+        # reject unreasonable extremes 
+        bad = which( P < -3 | P > 25  )
+        if (length( bad) > 0) {
+          P[ bad] = NA
+          V[bad] = NA
+        }
+        
+        # annual quantile removal: 99% prob
+        tq = quantile( P, probs=c(0.0005, 0.9995), na.rm=TRUE  )   
+        bad = which( P < tq[1] | P > tq[2] )
+        if (length( bad) > 0) {
+          P[bad] = NA
+          V[bad] = NA
+        }
+
+        tr = quantile( V, probs=c(0.0005, 0.9995), na.rm=TRUE  )   
+        bad = which( V < tr[1] | V > tr[2] )
+        if (length( bad) > 0) {
+          P[bad] = NA
+          V[bad] = NA
+        }
+		
+        fn1 = file.path( spinterpdir,paste("spatial.interpolation",  y, "rdata", sep=".") )
 				fn2 = file.path( spinterpdir,paste("spatial.interpolation.se",  y, "rdata", sep=".") )
 				save( P, file=fn1, compress=T )
 				save( V, file=fn2, compress=T )

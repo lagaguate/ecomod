@@ -18,11 +18,11 @@
   if (rebuild.maindatabase) {
 
       p = spacetime.parameters(p)  # load spde defaults
-      p$dist.max = 80 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+      p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
+      p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
       p$expected.range = 50 #+units=km km , with dependent var on log scale
       p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
       p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
@@ -30,7 +30,7 @@
       
       p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
       p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
-      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
+      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude 
       p$spacetime.invlink = function( X ) { exp(X) - 1000 }
       p$spacetime.family = "gaussian"
       p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
@@ -62,6 +62,9 @@
         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
             file=p$debug.file, append=FALSE ) # init
+        
+        # define boundary polygon for data
+        spacetime.db( p, DS="boundary.redo" ) 
       }
 
      if (0) {
@@ -69,15 +72,15 @@
        # do not use all CPU's as INLA itself is partially run in parallel
        # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
        p$clusters = "localhost"  # if serial run, send a single cluster host
-       p$clusters = rep( "localhost", 6 )
-       p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
+       p$clusters = rep( "localhost", 8 )
+       p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ), rep("tethys", 2) )
        p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 2 ) ) 
       }
       
       # run the beast .. warning this will take a very long time! (weeks)
-   
+      
       sS = spacetime.db( p, DS="statistics.bigmemory.status" )
-      sS$n.incomplete / (sS$n.problematic + sS$n.incomplete +sS$n.complete)
+      sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
    
       p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
       parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
@@ -88,7 +91,7 @@
         # bathymetry.db( DS="landmasks.create", p=p ) # run only if default resolution is altered 
         bathymetry.figures( DS="statistics", p=p ) 
         bathymetry.figures( DS="predictions", p=p ) 
-        bathymetry.figures( DS="predictions.errors", p=p ) 
+        bathymetry.figures( DS="predictions.error", p=p ) 
       }
 
       # save to file 
