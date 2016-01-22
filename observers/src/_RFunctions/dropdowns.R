@@ -1,4 +1,4 @@
-get.species<-function(order="COMMON"){
+populate.species<-function(order="COMMON"){
   if (order!="COMMON") order="SPECSCD_ID"
   species.query=paste0("SELECT DISTINCT COMMON SOUGHT, SPECSCD_ID
   FROM SPECIESSOUGHTCODES
@@ -7,7 +7,7 @@ get.species<-function(order="COMMON"){
   return(the.species)
 }
 
-get.caught.species<-function(order="COMMON"){
+populate.caught.species<-function(order="COMMON"){
   if (order!="COMMON") order="SPECCD_ID"
   caught.species.query=paste0("SELECT DISTINCT SPECIESCODES.COMMON CAUGHT,
   ISCATCHES.SPECCD_ID
@@ -20,7 +20,7 @@ get.caught.species<-function(order="COMMON"){
   the.caught.species$CAUGHT<-gsub("\t","",the.caught.species$CAUGHT)
   return(the.caught.species)
 }
-get.gear<-function(){
+populate.gear<-function(){
   gear.query="SELECT DISTINCT ISGEARCODES.GEARCD_ID,
   ISGEARCODES.DESCRIPTION
   FROM ISFISHSETS
@@ -32,7 +32,7 @@ get.gear<-function(){
   the.gear = sqlQuery(channel,gear.query)
   return(the.gear)
 }
-get.vessels<-function(canadian.only=T, order="VESSEL_NAME"){
+populate.vessels<-function(canadian.only=T, order="VESSEL_NAME"){
   if (order!="VESSEL_NAME") order="CFV"
   if (canadian.only==T) cntry="AND CTRYCD_ID IN (2,3)" else cntry=""
   vessel.query=paste0("SELECT DISTINCT ISVESSELS.CFV,
@@ -43,7 +43,7 @@ get.vessels<-function(canadian.only=T, order="VESSEL_NAME"){
   the.vessels = sqlQuery(channel,vessel.query)
   return(the.vessels)
 }
-get.year<-function(sought=NULL, caught=NULL, gear=NULL, vessels=NULL){
+populate.year<-function(sought=NULL, caught=NULL, gear=NULL, vessels=NULL){
   if (is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
   the.year=c(format(Sys.Date(), "%Y"):1977)
   }else{
@@ -96,7 +96,7 @@ ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
   }
   return(the.year)
 }
-get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL, vessels=NULL){
+populate.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL, vessels=NULL){
   #If particular values are desired, we can filter the provided options
   if (is.null(tripcode) & is.null(sought) & is.null(date.range) & is.null(gear) & is.null(vessels) ){
     setcode.query="SELECT DISTINCT ISSETTYPECODES.SETCD_ID,
@@ -168,7 +168,7 @@ get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL, ves
   the.setcode = sqlQuery(channel,setcode.query)
   return(the.setcode)
 }
-get.tripcode<-function(setcode=NULL,sought=NULL, date.range=NULL, gear=NULL, vessels=NULL){
+populate.tripcode<-function(setcode=NULL,sought=NULL, date.range=NULL, gear=NULL, vessels=NULL){
   #If particular values are desired, we can filter the provided options
   if (is.null(setcode) & is.null(sought) & is.null(date.range) & is.null(gear) & is.null(vessels) ){
     tripcode.query="SELECT DISTINCT ISTRIPTYPECODES.TRIPCD_ID,
