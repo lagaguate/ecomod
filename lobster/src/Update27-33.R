@@ -5,6 +5,9 @@
 #---------------------------------------------------------------------------Plots for Update
 	require(lattice)
 
+    # run script for modelling catch rates in FSRS traps
+    loadfunctions( "lobster", functionname="FSRScpue.r") 
+
 	
 	# FSRS CPUE
 	FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRScpue.csv"))

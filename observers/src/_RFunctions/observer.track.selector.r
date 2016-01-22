@@ -1,56 +1,99 @@
+if (F){
+  # load required ecomod functions
+  loadfunctions("observers/src/_RFunctions")
+  loadfunctions("utility/src/_Rfunctions/datetime")
+  loadfunctions("utility/src/_Rfunctions/sql.tools")
+  #connect to db
+  library(RODBC)
+  channel<-odbcConnect("PTRAN",uid=oracle.observer.username,pwd=oracle.observer.password)
+}
 observer.track.selector<-function( sought=NULL, gear=NULL,
                                  date.range.start=NULL,
                                  date.range.end=NULL){
   library(sqldf)
+  
+  the.species=NULL
   sought=NULL
   soughtQ=""
   gear=NULL
   gearQ=""
+  vessels=NULL
+  vesselsQ=""
+  the.caught.species=NULL
   caught=NULL
   catchQ=""
-  name=""
-#   catchfield=""
-#   catchtable=""
-#   catchjoin=""
+  locQ=""
+  catchfield=""
+  catchtable=""
+  catchjoin=""
+ 
+  
+  trim <- function (x) gsub("^\\s+|\\s+$", "", x)
   
     # Choose Gear or Species --------------------------------------------------
-    level.1<-select.list(c("By Species Sought","By Species Caught","By Gear"),
+    level.1<-select.list(c("By Species Sought",
+                           "By Species Caught",
+                           "By Gear",
+                           "By Vessel",
+                           "By Location"),
                          multiple=F, graphics=T, 
                          title="Data View?")
+    
     if (level.1=="By Species Sought" | level.1==""){ 
       #if left blank, we assume species
-      focus="spp"
+      focus="sought"
       the.species<-get.species()
-      sought.GUI<-select.list(paste( the.species$COMMON, " (", the.species$SPECSCD_ID,")",sep=""),
+      sought.GUI<-select.list(paste( the.species$SOUGHT, " (", the.species$SPECSCD_ID,")",sep=""),
                               multiple=T, graphics=T, 
                               title="Choose a species")
       sought <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', sought.GUI)))
       soughtQ<-paste0("AND f.specscd_id IN (",sought,")")
-      
-      name<-if(length(sought)>1) paste0("spp_",sought[1],"_etc") else paste0("sp_",sought[1])
     }else if (level.1=="By Species Caught"){
       focus="caught"
-      the.caught.species<-get.caught.species()
-      caught.GUI<-select.list(paste( the.caught.species$COMMON, " (", the.caught.species$SPECCD_ID,")",sep=""),
+      the.caught.species<-get.caught.species(order="CODE")
+      caught.GUI<-select.list(paste( the.caught.species$CAUGHT, " (", the.caught.species$SPECCD_ID,")",sep=""),
                              multiple=T, graphics=T, 
                              title="Choose a species")
-      
       caught <-SQL.in(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', caught.GUI)))
-#       catchfield=", ISCATCHES.SPECCD_ID"
-#       catchtable=", ISCATCHES"
-#       catchjoin="AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
-#                   AND f.SET_NO           = ISCATCHES.SET_NO"
       catchQ=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
+      catchfield=", ISCATCHES.SPECCD_ID"
+      catchtable=", OBSERVER.ISCATCHES"
+      catchjoin="AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
+             AND f.SET_NO           = ISCATCHES.SET_NO"
     }else if (level.1=="By Gear"){
       focus="gear"
       the.gear<-get.gear()
       gear.GUI<-select.list(paste( the.gear$DESCRIPTION, " (", the.gear$GEARCD_ID,")",sep=""),
                             multiple=T, graphics=T, 
-                            title="Choose a gear")
+                            title="Choose gear type(s)")
       gear<-SQL.in.noquotes(as.numeric(gsub('.+\\(([0-9]+)\\).*?$', '\\1', gear.GUI)))
-      gearQ<-paste0("AND g.gearcd_id IN (",gear,")")
+      gearQ<-paste0("AND g.gearcd_id IN (",gear,")") 
+    }else if (level.1=="By Vessel"){
+      focus="vessel"
+      the.vessels<-get.vessels()
+      vessels.GUI<-select.list(paste( the.vessels$VESSEL_NAME, " (", the.vessels$CFV,")",sep=""),
+                            multiple=T, graphics=T, 
+                            title="Choose vessel(s)")
+      #'Some of the cfv values are NA, so I'm using the names in the SQL.  This means that 
+      #'I have to protect against weird characters.  So far, I've 
+      #'doubled up apostrophes and
+      #'replaced amersands with || chr(38) ||
+      vessels<-SQL.in(trim(gsub("&","' || chr(38) || '",gsub("'","''",gsub('\\([^)]*\\)', '\\1', vessels.GUI)))))
+      vesselsQ<-paste0("AND v.VESSEL_NAME IN (",vessels,")")
+    }else if (level.1=="By Location"){
+      focus="location"
+      print("####")
+      print("####")
+      maxLat <- readline("Enter Maximum Latitude (Northern Limit) in Decimal Degrees: ") 
+      minLat <- readline("Enter Minimum Latitude (Southern Limit) in Decimal Degrees: ")  
+      maxLon <- readline("Enter Maximum Longitude (Eastern Limit) in Decimal Degrees: ")  
+      minLon <- readline("Enter Minimum Longitude (Western Limit) in Decimal Degrees: ")  
       
-      name<-paste0('gear_',if(length(gear)>1) paste0(gear[1],"_etc") else gear[1])
+      locQ=paste0("AND (
+                       (p1.longitude*-1 BETWEEN ",minLon," AND ",maxLon," AND p1.latitude BETWEEN ",minLat," AND ",maxLat,")
+                    or (p2.longitude*-1 BETWEEN ",minLon," AND ",maxLon," AND p2.latitude BETWEEN ",minLat," AND ",maxLat,") 
+                    or (p3.longitude*-1 BETWEEN ",minLon," AND ",maxLon," AND p3.latitude BETWEEN ",minLat," AND ",maxLat,")
+                    or (p4.longitude*-1 BETWEEN ",minLon," AND ",maxLon," AND p4.latitude BETWEEN ",minLat," AND ",maxLat,"))")
     }
     
     # Choose Date Range -------------------------------------------------------
@@ -67,9 +110,9 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     return(date.range.GUI)
   }
   
-  get.date.range<-function(sought, caught, gear){
+  get.date.range<-function(sought, caught, gear, vessels){
     date.range.GUI<-list()
-    date.range<-as.character(get.year(sought=sought, caught=caught, gear=gear))
+    date.range<-as.character(get.year(sought=sought, caught=caught, gear=gear, vessels=vessels))
     date.range.start<-select.list(date.range,
                                        multiple=F, graphics=T, 
                                        title="Choose the earliest year of desired data")
@@ -81,15 +124,16 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     return(date.range.GUI)
   }
   
-  date.range<-get.date.range(sought=sought, caught=caught, gear=gear)
+  date.range<-get.date.range(sought=sought, caught=caught, gear=gear, vessels=vessels)
 
   
-  dateQ<-paste0("AND t.board_date BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
-
+  #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery
+  dateQ<-paste0("AND to_date(to_char(t.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
+  
   tripcode=NULL
   setcode=NULL
     # Choose Set Code ---------------------------------------------------------   
-    the.setcode<-get.setcode(tripcode=tripcode, sought=sought, date.range=date.range, gear=gear)
+    the.setcode<-get.setcode(tripcode=tripcode, sought=sought, date.range=date.range, gear=gear, vessels=vessels)
     setcode.GUI<-select.list(paste( the.setcode$SET_TYPE, " (", the.setcode$SETCD_ID,")",sep=""),
                              multiple=T, graphics=T, 
                              title="Choose a set type")
@@ -101,7 +145,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     }
     setcodeQ<-paste0("AND f.setcd_id IN (",setcode,")")   
     # Choose Trip Code ---------------------------------------------------------    
-    the.tripcode<-get.tripcode(setcode=setcode, sought=sought, date.range=date.range, gear=gear)
+    the.tripcode<-get.tripcode(setcode=setcode, sought=sought, date.range=date.range, gear=gear, vessels=vessels)
     tripcode.GUI<-select.list(paste( the.tripcode$TRIP_TYPE, " (", the.tripcode$TRIPCD_ID,")",sep=""),
                               multiple=T, graphics=T, 
                               title="Choose a trip type")
@@ -119,10 +163,12 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     
     where<-paste(soughtQ,
                  gearQ,
+                 vesselsQ,
                  setcodeQ,
                  tripcodeQ,
                  dateQ,
-                 catchQ,sep=" ")
+                 catchQ,
+                 locQ, sep=" ")
 
     
  # a bad month somwhere is causing the extraction to fail in certain circumstances.  Must investigate   
@@ -131,11 +177,14 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
 #    to_date(NVL(to_char( p3.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p3.settime,1,2) || ':' || substr( p3.settime, 3, 2),'YYYY-MM-DD HH24:MI') p3time,
 #    to_date(NVL(to_char( p4.setdate, 'YYYY-MM-DD'),'0000-00-00') ||' '|| SUBSTR( p4.settime,1,2) || ':' || substr( p4.settime, 3, 2),'YYYY-MM-DD HH24:MI') p4time,
     
-  ISD_INF_query<-paste0("SELECT SUBSTR(v.vessel_name,1,15) vessel,
+    #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery 
+    
+  ISD_INF_query<<-paste0("SELECT DISTINCT SUBSTR(v.vessel_name,1,15) vessel,
                         t.tripcd_id,
                         to_char(t.board_date,'YYYY') year,
                         t.board_date,
                         v.cfv,
+                        v.ctrycd_id,
                         t.trip,
                         f.set_no,
                         f.nafarea_id,
@@ -175,8 +224,8 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                         f.setcd_id,
                         a.set_type,
                         p1.setprof_id p1setprof_id,
-                        p4.setprof_id p4setprof_id,
-                        ISCATCHES.SPECCD_ID
+                        p4.setprof_id p4setprof_id
+                        ",catchfield,"
                         FROM observer.isTrips t,
                         observer.isvessels v,
                         observer.isgears g,
@@ -214,7 +263,7 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                         ) p4,
                         observer.isFishSets f,
                         observer.issettypecodes a
-                        , ISCATCHES
+                        ",catchtable,"
                         WHERE f.fishset_id=p1.f_id
                         AND f.fishset_id  =p2.f_id
                         AND f.fishset_id  =p3.f_id
@@ -223,29 +272,46 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
                         AND t.trip_id     =f.trip_id
                         AND g.gear_id     =f.gear_id
                         AND f.setcd_id    = a.setcd_id
-                        AND f.FISHSET_ID       = ISCATCHES.FISHSET_ID
-                        AND f.SET_NO           = ISCATCHES.SET_NO
+                        ",catchjoin,"
                         ",where)
-  if(focus=="spp")print("Looking for your species...")else print("Looking for your gear...")
-  print("###")
-  print(ISD_INF_query)
-  print("###")
+  if(focus=="sought"){
+    print("Looking for the sought species...")
+  }else if(focus=="caught"){ 
+    print("Looking for the caught species...")
+  }else if(focus=="gear"){ 
+    print("Looking for the gear...")
+  } else if(focus=="location"){   
+    print("Looking for your area...")
+  }
   ISD_INF<<-sqlQuery(channel,ISD_INF_query)
-  if (nrow(ISD_INF)<1){
+  recno=nrow(ISD_INF)
+  if (recno<1){
     print("Error: No data can be found for your selection")
-    print("####")
-    print(ISD_INF_query)
-    print("####")
-    return(NULL)
+    return(ISD_INF_query)
   }else{
-    print("Found data. Transmogrifying universes...")
-    p1.dat<-sqldf("SELECT FISHSET_ID, 1 ORD, P1LONG X, P1LAT Y FROM ISD_INF")
+    print(paste0("Found ", recno," records."))
+    #crashed computer enough times to desire this chance to kill function
+    if(recno>1000){ 
+    print("Proceed? 5000 records is known to crash Mike's computer")
+    cont=readline("Enter Y to continue: ") 
+    if(toupper(cont) !="Y") { stop(return(ISD_INF_query))}
+    }
+    if (!is.null(the.caught.species)){
+      ISD_INF= merge(ISD_INF,the.caught.species)
+    }
+    if (!is.null(the.species)) {
+      ISD_INF = merge(ISD_INF,the.species)
+    }else {
+      ISD_INF = merge(ISD_INF,get.species())
+    }
+    print("Identifying tracks...")
+    p1.dat<-sqldf("SELECT DISTINCT FISHSET_ID, 1 ORD, P1LONG X, P1LAT Y FROM ISD_INF")
     p1.dat<-p1.dat[complete.cases(p1.dat),]
-    p2.dat<-sqldf("SELECT FISHSET_ID, 2 ORD, P2LONG X, P2LAT Y FROM ISD_INF")
+    p2.dat<-sqldf("SELECT  DISTINCT FISHSET_ID, 2 ORD, P2LONG X, P2LAT Y FROM ISD_INF")
     p2.dat<-p2.dat[complete.cases(p2.dat),]
-    p3.dat<-sqldf("SELECT FISHSET_ID, 3 ORD, P3LONG X, P3LAT Y FROM ISD_INF")
+    p3.dat<-sqldf("SELECT  DISTINCT FISHSET_ID, 3 ORD, P3LONG X, P3LAT Y FROM ISD_INF")
     p3.dat<-p3.dat[complete.cases(p3.dat),]
-    p4.dat<-sqldf("SELECT FISHSET_ID, 4 ORD, P4LONG X, P4LAT Y FROM ISD_INF")
+    p4.dat<-sqldf("SELECT  DISTINCT FISHSET_ID, 4 ORD, P4LONG X, P4LAT Y FROM ISD_INF")
     p4.dat<-p4.dat[complete.cases(p4.dat),]
     
     #identify the sets with at least 2 points
@@ -285,39 +351,8 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
     bad.sets<-set.deploy[!duplicated(set.deploy$FISHSET_ID),]$FISHSET_ID
     bad.sets<-c(bad.sets,set.tow[!duplicated(set.tow$FISHSET_ID),]$FISHSET_ID)
     bad.sets<-c(bad.sets,set.retrieve[!duplicated(set.retrieve$FISHSET_ID),]$FISHSET_ID)
-    
-    #The following gets set attributes for use in the data layer
-    #It will be fancy when it converts p1-p4 to datetime fields so that soaktime and duration can be checked
-    # and can handle the ocassional null value for edatetime
-    
-    #p1time,
-    #p2time,
-    #p3time,
-    #p4time,
-    
-#     year,
-#     tripcd_id,
-#     cfv,
-#     vessel,
-#     trip,
-#     trip_id,
-#     set_no,
-#     nafarea_id,
-#     stratum_id,
-#     gearcd_id,
-#     specscd_id,
-#     FISHSET_ID,
-#     p1longddmm,
-#     p2longddmm,
-#     p3longddmm,
-#     p4longddmm,
-#     p1latddmm,
-#     p2latddmm,
-#     p3latddmm,
-#     p4latddmm
+ 
     set.all.attrib<-sqldf("SELECT * FROM ISD_INF")
-    
-    rownames(set.all.attrib)<-set.all.attrib$FISHSET_ID
     
     set.deploy<-merge(set.deploy,set.all.attrib)
     set.tow<- merge(set.tow,set.all.attrib)
@@ -330,12 +365,6 @@ observer.track.selector<-function( sought=NULL, gear=NULL,
   print(paste("Completed"))
   return(results)
 }
-# load required ecomod functions
-# loadfunctions("observers/src/_RFunctions")
-# loadfunctions("utility/src/_Rfunctions/datetime")
-# loadfunctions("utility/src/_Rfunctions/sql.tools")
-# #connect to db
-# library(RODBC)
-# channel<-odbcConnect("PTRAN",uid=oracle.observer.username,pwd=oracle.observer.password)
 # #run it
 # test<-observer.track.selector()
+

@@ -45,11 +45,9 @@ temperature.timeseries.interpolate.gam = function(p, bb, pp, zz ) {
         x$w[ which( x$w < 1e-3 ) ] = 1e-3
         x$w[ which( x$w > 1 ) ] = 1
 
-        x=x[,c("t", "w", "yr", "mon" )]
-
         # data transformations and creation of new variables where required for raw data 
         if ( p$tsmethod %in% c( "harmonics.1", "harmonics.2", "harmonics.3"  ) ) {
-          x$tiyr =  2*pi* ( x$yr + x$mon/12 )
+          # x$tiyr =  2*pi* ( x$yr + x$mon/12 )
           x$cos.w  = cos( 2*pi*x$tiyr )
           x$sin.w  = sin( 2*pi*x$tiyr )
          
@@ -58,7 +56,7 @@ temperature.timeseries.interpolate.gam = function(p, bb, pp, zz ) {
           # zz$tiyr0 = zz$yr + zz$mon/12 
           zz$yr[ no.years ] = median( years.with.data) 
             # alter years to be within model range
-          zz$tiyr = 2*pi* ( zz$yr + zz$mon/12 )
+          # zz$tiyr = 2*pi* ( zz$yr + zz$mon/12 )
           zz$cos.w  = cos( zz$tiyr )
           zz$sin.w  = sin( zz$tiyr )
           
@@ -76,7 +74,7 @@ temperature.timeseries.interpolate.gam = function(p, bb, pp, zz ) {
             zz$sin.w3 = sin( 3*zz$tiyr )
           }
         }
-        
+
         # estimate model parameters
         tsmodel = NULL 
         tsmodel = switch( p$gam.optimizer ,
@@ -99,21 +97,6 @@ temperature.timeseries.interpolate.gam = function(p, bb, pp, zz ) {
     } # end for dm loop						
  
     return(zz)
-
-      if (FALSE) {
-        #debugging ..
-        dm = 30
-        drange = c(-1,1) * dm
-        plon0 = pp$plon + drange
-        plat0 = pp$plat + drange
-        i = which( B$plon > plon0[1] & B$plon < plon0[2] & B$plat > plat0[1] & B$plat < plat0[2] )
-        x = B[i,] 
-        x$tiyr =  x$yr + x$mon/12
-        zz$tiyr = zz$yr + zz$mon/12
-        plot( t~tiyr, x, xlim=range(zz$tiyr), pch=20 )
-        lines( fit~ tiyr, zz, col="green" )
-      }
-
 }
 
 

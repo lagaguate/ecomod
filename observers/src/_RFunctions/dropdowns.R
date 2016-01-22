@@ -1,18 +1,23 @@
-get.species<-function(){
-  species.query="SELECT DISTINCT COMMON, SPECSCD_ID
+get.species<-function(order="COMMON"){
+  if (order!="COMMON") order="SPECSCD_ID"
+  species.query=paste0("SELECT DISTINCT COMMON SOUGHT, SPECSCD_ID
   FROM SPECIESSOUGHTCODES
-  ORDER BY COMMON"
+  ORDER BY ",order)
   the.species = sqlQuery(channel, species.query)
   return(the.species)
 }
-get.caught.species<-function(){
-  caught.species.query="SELECT DISTINCT SPECIESCODES.COMMON,
+
+get.caught.species<-function(order="COMMON"){
+  if (order!="COMMON") order="SPECCD_ID"
+  caught.species.query=paste0("SELECT DISTINCT SPECIESCODES.COMMON CAUGHT,
   ISCATCHES.SPECCD_ID
   FROM ISCATCHES
   INNER JOIN SPECIESCODES
   ON SPECIESCODES.SPECCD_ID = ISCATCHES.SPECCD_ID
-  ORDER BY COMMON"
-  the.caught.species = sqlQuery(channel, caught.species.query)
+  ORDER BY ",order)
+  the.caught.species <- sqlQuery(channel, caught.species.query)
+  #found some tabs in the species names that were changing the order
+  the.caught.species$CAUGHT<-gsub("\t","",the.caught.species$CAUGHT)
   return(the.caught.species)
 }
 get.gear<-function(){
@@ -27,8 +32,19 @@ get.gear<-function(){
   the.gear = sqlQuery(channel,gear.query)
   return(the.gear)
 }
-get.year<-function(sought=NULL, caught=NULL, gear=NULL){
-  if (is.null(sought) & is.null(caught) & is.null(gear)){
+get.vessels<-function(canadian.only=T, order="VESSEL_NAME"){
+  if (order!="VESSEL_NAME") order="CFV"
+  if (canadian.only==T) cntry="AND CTRYCD_ID IN (2,3)" else cntry=""
+  vessel.query=paste0("SELECT DISTINCT ISVESSELS.CFV,
+  ISVESSELS.VESSEL_NAME
+  FROM ISVESSELS 
+  WHERE 1=1 ",cntry,"
+  ORDER BY ",order)
+  the.vessels = sqlQuery(channel,vessel.query)
+  return(the.vessels)
+}
+get.year<-function(sought=NULL, caught=NULL, gear=NULL, vessels=NULL){
+  if (is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
   the.year=c(format(Sys.Date(), "%Y"):1977)
   }else{
     soughttweak=""
@@ -36,6 +52,8 @@ get.year<-function(sought=NULL, caught=NULL, gear=NULL){
     caughttweak=""
     geartweak=""
     gearjoin=""
+    vesseltweak=""
+    vesseljoin=""
     if (!is.null(sought)) {
       soughttweak=paste0("AND ISFISHSETS.SPECSCD_ID IN (",sought,")")
     }
@@ -53,15 +71,22 @@ get.year<-function(sought=NULL, caught=NULL, gear=NULL){
     INNER JOIN ISGEARCODES
     ON ISGEARS.GEARCD_ID        = ISGEARCODES.GEARCD_ID"
     }
+    if (!is.null(vessels)) {
+      vesseltweak=paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
+      vesseljoin = "INNER JOIN ISVESSELS
+ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
+    }
     year.query=paste0("SELECT DISTINCT to_char(ISTRIPS.BOARD_DATE,'YYYY')
                       FROM ISFISHSETS
                       INNER JOIN ISTRIPS
                       ON ISFISHSETS.TRIP_ID       = ISTRIPS.TRIP_ID
                       ",gearjoin,"
+                      ",vesseljoin,"
                       ",caughtjoin,"
                       WHERE 1=1 
                       ",soughttweak,"
                       ",geartweak,"
+                      ",vesseltweak,"
                       ",caughttweak,"
                       ORDER BY to_char(ISTRIPS.BOARD_DATE,'YYYY') DESC")
     the.year = sqlQuery(channel,year.query)
@@ -69,14 +94,11 @@ get.year<-function(sought=NULL, caught=NULL, gear=NULL){
       the.year=the.year[,1]
     }
   }
-  #years<-c(format(Sys.Date(), "%Y"):1977)
-  #the.year = sqlQuery(channel,gear.query)
-
   return(the.year)
 }
-get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
+get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL, vessels=NULL){
   #If particular values are desired, we can filter the provided options
-  if (is.null(tripcode) & is.null(sought) & is.null(date.range) & is.null(gear) ){
+  if (is.null(tripcode) & is.null(sought) & is.null(date.range) & is.null(gear) & is.null(vessels) ){
     setcode.query="SELECT DISTINCT ISSETTYPECODES.SETCD_ID,
     ISSETTYPECODES.SET_TYPE
     FROM ISSETTYPECODES
@@ -92,17 +114,27 @@ get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
     datejoin=""
     geartweak=""
     gearjoin=""
-    if (!is.null(tripcode)) {
-      triptweak=paste0("AND ISTRIPS.TRIPCD_ID IN (",tripcode,")")
+    vesseltweak=""
+    vesseljoin =""
+    if (!is.null(tripcode)|!is.null(vessels)) {
       tripjoin= "
       INNER JOIN ISTRIPS
       ON ISFISHSETS.TRIP_ID   = ISTRIPS.TRIP_ID"
+    }
+    if (!is.null(tripcode)){
+      triptweak=paste0("AND ISTRIPS.TRIPCD_ID IN (",tripcode,")")
+    }
+    if (!is.null(vessels)) {
+      vesseltweak=paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
+      vesseljoin = "INNER JOIN ISVESSELS
+      ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
     }
     if (!is.null(sought)) {
       soughttweak=paste0("AND ISFISHSETS.SPECSCD_ID IN (",sought,")")
     }
     if (!is.null(date.range)) {
-      datetweak =  paste0("AND ISTRIPS.board_date BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
+      #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery
+      datetweak =  paste0("AND to_date(to_char(ISTRIPS.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"-01-01','YYYY-MM-DD') AND to_date('",date.range[2],"-12-31','YYYY-MM-DD')")
       datejoin = "
       INNER JOIN ISTRIPS
       ON ISFISHSETS.TRIP_ID   = ISTRIPS.TRIP_ID"
@@ -115,8 +147,8 @@ get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
       INNER JOIN ISGEARCODES
       ON ISGEARS.GEARCD_ID        = ISGEARCODES.GEARCD_ID"
     }
-    
-    setcode.query=paste0("SELECT DISTINCT ISFISHSETS.SETCD_ID,
+
+    setcode.query<<-paste0("SELECT DISTINCT ISFISHSETS.SETCD_ID,
     ISSETTYPECODES.SET_TYPE
     FROM ISSETTYPECODES
     INNER JOIN ISFISHSETS
@@ -124,19 +156,21 @@ get.setcode<-function(tripcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
     ",tripjoin,"
     ",datejoin,"
     ",gearjoin,"
+    ",vesseljoin,"
     WHERE 1=1
     ",triptweak,"
     ",soughttweak,"
     ",datetweak,"
     ",geartweak,"
+    ",vesseltweak,"
     ORDER BY SETCD_ID")
   }
   the.setcode = sqlQuery(channel,setcode.query)
   return(the.setcode)
 }
-get.tripcode<-function(setcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
+get.tripcode<-function(setcode=NULL,sought=NULL, date.range=NULL, gear=NULL, vessels=NULL){
   #If particular values are desired, we can filter the provided options
-  if (is.null(setcode) & is.null(sought) & is.null(date.range) & is.null(gear) ){
+  if (is.null(setcode) & is.null(sought) & is.null(date.range) & is.null(gear) & is.null(vessels) ){
     tripcode.query="SELECT DISTINCT ISTRIPTYPECODES.TRIPCD_ID,
     ISTRIPTYPECODES.TRIP_TYPE
     FROM ISTRIPTYPECODES
@@ -169,9 +203,14 @@ get.tripcode<-function(setcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
       ON ISFISHSETS.TRIP_ID   = ISTRIPS.TRIP_ID"
     }
     if (!is.null(date.range)) {
-      datetweak =  paste0("AND ISTRIPS.board_date BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
+      #between YYYY AND YYY wasn't getting full year, so had to implement so jiggery-pokery
+      datetweak =  paste0("AND to_date(to_char(ISTRIPS.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
     }
-      
+    if (!is.null(vessels)) {
+      vesseltweak=paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
+      vesseljoin = "INNER JOIN ISVESSELS
+      ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
+    }  
     tripcode.query=paste("SELECT DISTINCT ISTRIPTYPECODES.TRIPCD_ID,
     ISTRIPTYPECODES.TRIP_TYPE
     FROM ISTRIPTYPECODES
@@ -180,11 +219,13 @@ get.tripcode<-function(setcode=NULL,sought=NULL, date.range=NULL, gear=NULL){
     ",fishsetjoin,"
     ",soughtjoin,"
     ",gearjoin,"
+    ",vesseljoin,"
     WHERE 1=1
      ",settweak,"
      ",soughttweak,"
      ",datetweak,"
      ",geartweak,"
+    ",vesseltweak,"
     ORDER BY TRIPCD_ID")
   }
   the.tripcode = sqlQuery(channel,tripcode.query)

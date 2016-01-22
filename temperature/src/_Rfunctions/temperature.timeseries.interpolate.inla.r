@@ -24,14 +24,12 @@ temperature.timeseries.interpolate.inla = function(p, bb, pp, zz ) {
   x = x[ , xnames ]
   x$dataid = 1:length(i)
   x$predid = NA
-  x$tiyr =  x$yr + x$mon/12
 
   zz$w = 1
   zz$dataid = NA
   zz$predid = 1:nrow(zz)
   zz$t = NA
-  zz$tiyr =  zz$yr + zz$mon/12
-   
+
   x = rbind( x, zz[, colnames(x)] )  # combine predictor and estimator dframes .. this is how inla/Bayesian methods operate
   
   preds = which( is.finite( x$predid ))

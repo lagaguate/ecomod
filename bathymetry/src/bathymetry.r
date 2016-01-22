@@ -18,11 +18,11 @@
   if (rebuild.maindatabase) {
 
       p = spacetime.parameters(p)  # load spde defaults
-      p$dist.max = 80 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+      p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
+      p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
       p$expected.range = 50 #+units=km km , with dependent var on log scale
       p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
       p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
@@ -30,7 +30,7 @@
       
       p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
       p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
-      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -383 to 5467 m .. 1000 shifts all to positive valued as this will operate on the logs
+      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude 
       p$spacetime.invlink = function( X ) { exp(X) - 1000 }
       p$spacetime.family = "gaussian"
       p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
@@ -91,7 +91,7 @@
         # bathymetry.db( DS="landmasks.create", p=p ) # run only if default resolution is altered 
         bathymetry.figures( DS="statistics", p=p ) 
         bathymetry.figures( DS="predictions", p=p ) 
-        bathymetry.figures( DS="predictions.errors", p=p ) 
+        bathymetry.figures( DS="predictions.error", p=p ) 
       }
 
       # save to file 
