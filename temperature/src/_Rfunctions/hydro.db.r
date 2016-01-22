@@ -432,7 +432,7 @@
           tp$plat = grid.internal( tp$plat, p$plats )
 	
 					tp = tp[ which( is.finite( tp$lon + tp$lat + tp$plon + tp$plat ) ) , ]
-          
+          browser() 
           ## ensure that inside each grid/time point 
           ## that there is only one point estimate .. taking medians
           vars = c("z", "t", "salinity", "sigmat", "oxyml")

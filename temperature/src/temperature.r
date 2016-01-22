@@ -45,7 +45,7 @@
     hydro.db( DS="osd.current", p=p, yr=2014:p$newyear ) # specify range or specific year 
 
     # Merge depth profiles from all data streams: OSD, groundfish, snowcrab
-    p = make.list( list( yrs=c(2008:p$newyear), Y=p )   # specify range or specific year
+    p = make.list( list( yrs=c(2008:p$newyear), Y=p ))   # specify range or specific year
     p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce ep = make.list( list( yrs=c(2008:p$newyear), Y=p ))   # specify range or specific year
     p$current.assessment.year = p$newyear # required to access groundfish and snow crab data
     hydro.db( DS="profiles.annual.redo", yr=c(2008:p$newyear), p=p  )  # specify range or specific year
