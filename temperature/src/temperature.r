@@ -98,7 +98,7 @@
     # temperature.db( p=p, DS="spatial.interpolation.redo" ) 
     # using localhost in 2014 6+ hr for each run but with multiple cycles ~ 10 hr total 
     # use all clusters if available
-    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p$clusters = rep("localhost", detectCores() ) 
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="spatial.interpolation.redo" ) 
@@ -108,14 +108,14 @@
     # hydro.modelled.db(  p=p, DS="bottom.statistics.annual.redo" )
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
-    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
 
 
     # 5. climatology database 
     # 4 cpu's ~ 5 min
-    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
     # hydro.modelled.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
     p = make.list( list( vname=bstats), Y=p )
@@ -127,13 +127,13 @@
     
 
     # 7. annual summary temperature statistics for all grid points --- used as the basic data level for interpolations 
-    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="complete.redo") 
 
 
     # 8. Maps 
-    p$clusters = c( rep("kaos.beowulf",23), rep("nyx.beowulf",24), rep("tartarus.beowulf",24) )
+    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( hydro.map, p=p, type="annual"  ) 
