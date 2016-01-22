@@ -175,6 +175,8 @@
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
 		
         E = hydro.modelled.db( DS="bottom.statistics.annual", p=p, yr=yr  ) 
+        if (is.null(E)) print( paste( "bottom.statistics.annual not found for:" , yr ) )
+
         names(E)[ which(names(E)=="tamplitude") ] = "tamp"  # fix this at the level of "bottom statistics"
         names(E)[ which(names(E)=="thalfperiod") ] = "thp"
 
