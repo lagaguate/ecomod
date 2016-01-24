@@ -58,11 +58,11 @@
 				SS = (P-O$tmean)^2 # sums of squares
 				O$tsd  = apply( SS*W, 1, sum, na.rm=T ) # weighted seasonal mean sums of squares
 
-				O$tamplitude = O$tmax- O$tmin  # approximate as sinusoid can span 2 yrs
+				O$tamplitude = O$tmax- O$tmin  # approximate as sinusoid can span 2 yrs .. max amplitude 
 
 				# half-period .. also approximate as sinusoid can also span 2 yrs
 				# sin tranf required to make circular and then take difference and rescale
-        O$thalfperiod = abs( sin(O$wmax/12*pi) - sin(O$wmin/12*pi) ) * 12/pi 
+        O$thalfperiod = abs( sin(O$wmax/p$nw*pi) - sin(O$wmin/p$nw*pi) ) * p$nw/pi 
       
         fn =  file.path( tstatdir, paste("bottom.statistics.annual", y, "rdata", sep=".") )
         save( O, file=fn, compress=T )
@@ -107,10 +107,6 @@
 
       return( "Completed" )
     }
-
-
-
-
 
   }
 

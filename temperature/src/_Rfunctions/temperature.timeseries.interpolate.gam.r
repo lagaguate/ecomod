@@ -33,6 +33,9 @@ temperature.timeseries.interpolate.gam = function(p, bb, pp, zz ) {
       plat0 = pp$plat + drange
       i = which( bb$plon > plon0[1] & bb$plon < plon0[2] & bb$plat > plat0[1] & bb$plat < plat0[2] )
       if (length(i) > p$nMin.tbot ) {  
+        
+      #  browser()
+
         # only attempt interpolation if we have enough data (nMin.tbot)
         x = bb[i,] # faster to reduce the size of bb here
         # remove potentially noisy/erroneous data --- they are highly influential when there is little data 

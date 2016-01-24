@@ -11,12 +11,12 @@
 
   # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
   p$tyears = c(1950:2015)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  p$dyears = seq( 0, 1, by=0.1 ) # intervals of decimal years... fractional year breaks 
-  p$nw = length(p$dyears-1)
   p$ny = length(p$tyears)
+  p$nw = 10 # number of intervals in time within a year
+  p$dyears = (c(1:p$nw)-1)  / p$nw # intervals of decimal years... fractional year breaks 
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
-  p$nMin.tbot = p$ny*3 # min number of data points req before attempting to model timeseries in a localized space 
-  p$dist.km = c( 2.5, 5, 7.5, 10, 12.5, 15 ) # "manhattan" distances to extend search for data
+  p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
+  p$dist.km = c( 2.5, 5, 7.5, 10, 12.5, 15, 17.5 ) # "manhattan" distances to extend search for data
   p$maxdist = 20 # if using gstat  max dist to interpolate in space
   # choose: temporal interpolation method ... harmonic analysis seems most reasonable
   # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
