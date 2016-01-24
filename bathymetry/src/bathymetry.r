@@ -162,3 +162,28 @@
   plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
   plot(plygn_as_xypoints, pch=".")
 
+
+  # a few plots :
+  
+  p = spatial.parameters( type="canada.east.highres", p=p ) 
+  b = bathymetry.db( p=p, DS="spde_complete" ) 
+  
+  u = b[[vn]] [ is.finite( b[[vn]]) ]
+  if (length( u) > 0 ) out = x[u]
+
+  vn = "z"
+  mypalette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
+  mybreaks = classIntervals( u, n=length(mypalette), style="quantile")$brks
+  
+  depths = c(0, 10, 100, 200, 300, 400, 500 )
+  plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
+
+  sab = as( Polygon( coords=polygon.db( id="aoi.st.anns") ), "SpatialPolygons" )
+  sab = spTransform( sab, crs( plygn) )
+
+  sp.layout= list( sab, plygn )
+  
+  spplot( b, vn, col.regions=mypalette, main=vn, sp.layout=coastLayout, col="transparent" )
+
+
+

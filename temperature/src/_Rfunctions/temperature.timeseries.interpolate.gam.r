@@ -18,8 +18,8 @@ temperature.timeseries.interpolate.gam = function(p, bb, pp, zz ) {
 # choose model formula for GAM-based models
   mf = switch( p$tsmethod ,
     annual = ' t ~ s(yr) ',
-    seasonal.basic = ' t ~ s(yr) + s(mon, bs="cc") ', 
-    seasonal.smoothed = ' t ~ s(yr, mon) + s(yr) + s(mon, bs="cc")  ', 
+    seasonal.basic = ' t ~ s(yr) + s(dyear, bs="cc") ', 
+    seasonal.smoothed = ' t ~ s(yr, dyear) + s(yr) + s(dyear, bs="cc")  ', 
     harmonics.1 = ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w)  ', 
     harmonics.2 = ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s(yr, sin.w2) + s(cos.w2) + s( sin.w2 ) ' , 
     harmonics.3 = ' t ~ s(yr) + s(yr, cos.w) + s(yr, sin.w) + s(cos.w) + s(sin.w) + s(yr, cos.w2) + s(yr, sin.w2) + s(cos.w2) + s( sin.w2 ) + s(yr, cos.w3) + s(yr, sin.w3)  + s(cos.w3) + s( sin.w3 ) '
@@ -47,16 +47,12 @@ temperature.timeseries.interpolate.gam = function(p, bb, pp, zz ) {
 
         # data transformations and creation of new variables where required for raw data 
         if ( p$tsmethod %in% c( "harmonics.1", "harmonics.2", "harmonics.3"  ) ) {
-          # x$tiyr =  2*pi* ( x$yr + x$mon/12 )
           x$cos.w  = cos( 2*pi*x$tiyr )
           x$sin.w  = sin( 2*pi*x$tiyr )
          
           years.with.data = unique( x$yr)
           no.years = which( !( zz$yr %in% years.with.data) )
-          # zz$tiyr0 = zz$yr + zz$mon/12 
           zz$yr[ no.years ] = median( years.with.data) 
-            # alter years to be within model range
-          # zz$tiyr = 2*pi* ( zz$yr + zz$mon/12 )
           zz$cos.w  = cos( zz$tiyr )
           zz$sin.w  = sin( zz$tiyr )
           

@@ -6,17 +6,17 @@
   p = list( project.name = "temperature" )
   p$project.root = project.datadirectory( p$project.name )
 
-  p$libs = RLibrary( c( "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "fields" ) )
+  p$libs = RLibrary( c( "lubridate", "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "fields" ) )
   p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "polygons" , "temperature" ) ) 
 
   # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  p$tyears = c(1970:2015)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  p$mon = 1:12 
-  p$nw = length(p$mon)
+  p$tyears = c(1950:2015)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+  p$dyears = seq( 0, 1, by=0.1 ) # intervals of decimal years... fractional year breaks 
+  p$nw = length(p$dyears-1)
   p$ny = length(p$tyears)
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
-  p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
-  p$dist.km = c( 2.5, 5, 7.5, 10, 15 ) # "manhattan" distances to extend search for data
+  p$nMin.tbot = p$ny*3 # min number of data points req before attempting to model timeseries in a localized space 
+  p$dist.km = c( 2.5, 5, 7.5, 10, 12.5, 15 ) # "manhattan" distances to extend search for data
   p$maxdist = 20 # if using gstat  max dist to interpolate in space
   # choose: temporal interpolation method ... harmonic analysis seems most reasonable
   # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
@@ -35,7 +35,7 @@
 
   if ( create.baseline.database ) {
     # data up-take for all of the "canada.east" only one data stream necessary at present 
-    p = spatial.parameters( p=p, type="canada.east" )
+    p = spatial.parameters( p=p, type="canada.east" )  # only one supported
 
     if (historical.data.redo) {
       hydro.db( DS="osd.rawdata.allfiles.redo", p=p )   # redo whole data set (historical) from 1910 to 2010
@@ -45,10 +45,9 @@
     hydro.db( DS="osd.current", p=p, yr=2014:p$newyear ) # specify range or specific year 
 
     # Merge depth profiles from all data streams: OSD, groundfish, snowcrab
-    p = make.list( list( yrs=c(2008:p$newyear), Y=p ))   # specify range or specific year
+    p = make.list( list( yrs=c(2008:p$newyear)), Y=p )   # specify range or specific year
     p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce ep = make.list( list( yrs=c(2008:p$newyear), Y=p ))   # specify range or specific year
-    p$current.assessment.year = p$newyear # required to access groundfish and snow crab data
-    hydro.db( DS="profiles.annual.redo", yr=c(2008:p$newyear), p=p  )  # specify range or specific year
+    hydro.db( DS="profiles.annual.redo", p=p  )  # specify range or specific year
     # parallel.run( hydro.db, p=p, yr=p$tyears, DS="profiles.annual.redo", init.files=p$init.files ) 
 
     # Extract bottom data from each profile
@@ -90,8 +89,8 @@
     p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
     # p = make.list( list( loc=sample.int( p$nP) ), Y=p ) # random order helps use all cpus
     p = make.list( list( loc=sample.int( p$nP ) ), Y=p ) # random order helps use all cpus
-    # temperature.timeseries.interpolate ( p=p )
     parallel.run( temperature.timeseries.interpolate, p=p)
+    # temperature.timeseries.interpolate ( p=p )
     temperature.db( p=p, DS="temporal.interpolation.redo" ) # save interpolation as time slices to disk 
 
 
@@ -161,7 +160,7 @@
     p = spatial.parameters( p=p, type="SSE" )
     testyear = 2006
     O = hydro.db( p=p, DS="bottom.gridded", yr=testyear )
-    O = O[, c("plon", "plat", "t", "yr", "mon")]
+    O = O[, c("plon", "plat", "t", "yr", "dyr")]
     O = O[ which( is.finite(O$t)) ,]
     ee.g = gstat( id = "t", formula=t~plon+plat, locations=~plon+plat, data=O ) 
     vg <- variogram( ee.g, boundaries=c(2, 4, 8, 16, 20, 32, 40, 64, 80, 128, 150 ) )

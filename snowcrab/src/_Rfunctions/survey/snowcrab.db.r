@@ -698,16 +698,16 @@
 #      set = merge( set, mlStats, by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
       set = merge( set, sbStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
       set = merge( set, mlStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-      set$t0 = as.POSIXct(set$t0,format="%Y-%m-%d %H:%M:%S", tz=tzone)
-      set$t1 = as.POSIXct(set$t1,format="%Y-%m-%d %H:%M:%S", tz=tzone)
+      set$t0 = as.POSIXct(set$t0,format="%Y-%m-%d %H:%M:%S", tz=tzone,origin=lubridate::origin )
+      set$t1 = as.POSIXct(set$t1,format="%Y-%m-%d %H:%M:%S", tz=tzone ,origin=lubridate::origin)
       set = toNums(set,c('dt','t0.ml','t1.ml', 'dt.ml'))
 
       # use seabird data as the standard, replace with minilog data where missing
       ii = which(!is.finite( set$t0) )
-      if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin='1970-01-01', tz=tzone)
+      if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin=lubridate::origin, tz=tzone)
  
       ii = which(!is.finite( set$t1) )
-      if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t1.ml[ii],origin='1970-01-01', tz=tzone)
+      if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t1.ml[ii],origin=lubridate::origin, tz=tzone)
       
       ii = which(!is.finite( set$z) )
       if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]

@@ -20,7 +20,7 @@ temperature.timeseries.interpolate.inla = function(p, bb, pp, zz ) {
   x$w[ which( x$w < 1e-3 ) ] = 1e-3
   x$w[ which( x$w > 1 ) ] = 1
 
-  xnames = c( "yr", "t", "mon", "w") 
+  xnames = c( "yr", "t", "dyear", "w") 
   x = x[ , xnames ]
   x$dataid = 1:length(i)
   x$predid = NA
@@ -39,7 +39,7 @@ temperature.timeseries.interpolate.inla = function(p, bb, pp, zz ) {
   dd = median( nn[nn>0], na.rm=TRUE )
   x$tiyr = jitter( x$tiyr, amount=dd / 20 ) # add noise as inla seems unhappy with duplicates in x?
 
-  x$pryr = x$mon / 12
+  x$pryr = x$dyear
   x$b0 = 1
 
   x$cos.w  = cos( x$tiyr )

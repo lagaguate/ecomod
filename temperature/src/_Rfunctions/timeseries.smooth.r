@@ -23,7 +23,7 @@
 
     debug = FALSE
     if(debug) {
-      OP$time = OP$yr + OP$mon / 12
+      OP$time = lubridate::decimal_date( OP$date) 
       OP = OP[ order( OP$time ) ,]
       
       # STL method
