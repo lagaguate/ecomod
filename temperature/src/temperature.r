@@ -16,7 +16,7 @@
   p$dyears = (c(1:p$nw)-1)  / p$nw # intervals of decimal years... fractional year breaks 
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
   p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
-  p$dist.km = c( 2.5, 5, 7.5, 10, 12.5, 15, 17.5 ) # "manhattan" distances to extend search for data
+  p$dist.km = c( 2.5, 5, 7.5, 10, 12.5, 15 ) # "manhattan" distances to extend search for data
   p$maxdist = 20 # if using gstat  max dist to interpolate in space
   # choose: temporal interpolation method ... harmonic analysis seems most reasonable
   # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
@@ -25,7 +25,7 @@
   # p$spmethod = "inverse.distance"  ## too slow
   # p$spmethod = "gam" ## too smooth
   p$spmethod = "kernel.density" ## best
-  p$theta = 10 # dist to interpolate ~ 1/2 autocor range in method  p$spmethod = "kernel.density
+  p$theta = 8 # dist to interpolate ~ 1/2 autocor range in method  p$spmethod = "kernel.density
   p$nsd = 5 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
 
   p$newyear = 2015
