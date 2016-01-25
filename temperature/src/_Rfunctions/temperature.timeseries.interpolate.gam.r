@@ -28,7 +28,9 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
   mf = formula(mf)
   
   for ( dm in p$dist.km ) { 
-      drange = c(-1,1) * dm
+     
+
+    drange = c(-1,1) * dm
       plon0 = g$plon + drange
       plat0 = g$plat + drange
       i = which( B$plon > plon0[1] & B$plon < plon0[2] & B$plat > plat0[1] & B$plat < plat0[2] )
@@ -36,30 +38,25 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
         # only attempt interpolation if we have enough data (nMin.tbot)
         x = B[i,] # faster to reduce the size of B here
         # remove potentially noisy/erroneous data --- they are highly influential when there is little data 
-        xt = quantile( x$t, probs=c(0.005, 0.995) )
-        xi = which( x$t >= xt[1] & x$t <= xt[2] ) 
-        
-        if (length(xi) < p$nMin.tbot ) next()
-        x = x[xi, ] 
+        # xt = quantile( x$t, probs=c(0.005, 0.995) )
+        # xi = which( x$t >= xt[1] & x$t <= xt[2] ) 
+        # if (length(xi) < p$nMin.tbot ) next()
+        # x = x[xi, ] 
         
         x$w = 1 / (( g$plon - x$plon)**2 + (g$plat - x$plat)**2 )# weight data in space: inverse distance squared
         x$w[ which( x$w < 1e-3 ) ] = 1e-3
         x$w[ which( x$w > 1 ) ] = 1
 
-        x=x[,c("t", "w", "yr", "weekno" )]
-
         # data transformations and creation of new variables where required for raw data 
         if ( p$tsmethod %in% c( "harmonics.1", "harmonics.2", "harmonics.3"  ) ) {
-          x$tiyr =  2*pi* ( x$yr + x$weekno/52 )
           x$cos.w  = cos( 2*pi*x$tiyr )
           x$sin.w  = sin( 2*pi*x$tiyr )
          
           years.with.data = unique( x$yr)
           no.years = which( !( z$yr %in% years.with.data) )
-          # z$tiyr0 = z$yr + z$weekno/52 
+         
           z$yr[ no.years ] = median( years.with.data) 
             # alter years to be within model range
-          z$tiyr = 2*pi* ( z$yr + z$weekno/52 )
           z$cos.w  = cos( z$tiyr )
           z$sin.w  = sin( z$tiyr )
           
@@ -77,7 +74,7 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
             z$sin.w3 = sin( 3*z$tiyr )
           }
         }
-        
+
         # estimate model parameters
         tsmodel = NULL 
         tsmodel = switch( p$gam.optimizer ,
@@ -98,7 +95,8 @@ temperature.timeseries.interpolate.gam = function(p, B, g, z ) {
         }
       }
     } # end for dm loop						
- 
+    
+
     return(z)
 
 }

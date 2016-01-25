@@ -253,6 +253,9 @@
         iiY = which(duplicated(Y))
         if (length(iiY)>0) Y = Y [ -iiY, ]
 
+        bad = which( Y$temperature < -5 | Y$temperature > 40 ) 
+        if (length(bad)>0) Y=Y[-bad,]
+
         fn = file.path( loc.profile, paste("depthprofiles", yt, "rdata", sep="."))
         print( fn )
         save( Y, file=fn, compress=T )
@@ -299,8 +302,11 @@
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
         Y = hydro.db( DS="profiles.annual", yr=yt, p=p )
-        # Bottom temps
         if (is.null(Y)) next()
+        igood = which( Y$temperature >= -3 & Y$temperature <= 25 )  ## 25 is a bit high but in case some shallow data 
+        Y = Y[igood, ]
+ 
+    # Bottom temps
 				Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Y$dayno, sep="~" )
         ids =  sort( unique( Y$id ) )
         res = copy.data.structure( Y)   
@@ -340,22 +346,28 @@
       loc.gridded = file.path( basedir, "basedata", "gridded", "bottom", p$spatial.domain )
       dir.create( loc.gridded, recursive=T, showWarnings=F )
       
+      O = NULL
+      fnall = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
+
       if (DS == "bottom.gridded.all" ) {
         if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
-        O = NULL
-        fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
-        if (file.exists(fn)) { 
-          load (fn) 
-        } else {
-          for (y in p$tyears ) {
+        if (file.exists(fnall)) { 
+          load (fnall) 
+        } 
+        O = O[ which( O$yr %in% yr) , ]
+        return(O)
+      }
+   
+      if (DS == "bottom.gridded.all.redo" ) {
+        if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
+        for (y in p$tyears ) {
             On = hydro.db(p=p, DS="bottom.gridded", yr=y) 
             if ( is.null( On) ) next()
             O = rbind( O, On )
           }
-          save( O, file=fn, compress=TRUE )
-        }
+        save( O, file=fnall, compress=TRUE )
         O = O[ which( O$yr %in% yr) , ]
-        return(O)
+        return( fnall )
       }
 
 
@@ -403,7 +415,10 @@
           tp = rename.df( tp, "depth", "z")
           tp$date = NULL
 					# tp$depth = NULL
-         
+        
+          igood = which( tp$t >= -3 & tp$t <= 25 )  ## 25 is a bit high but in case some shallow data 
+          tp = tp[igood, ]
+ 
           igood = which( tp$lon >= p$corners$lon[1] & tp$lon <= p$corners$lon[2] 
               &  tp$lat >= p$corners$lat[1] & tp$lat <= p$corners$lat[2] )
           tp = tp[igood, ]

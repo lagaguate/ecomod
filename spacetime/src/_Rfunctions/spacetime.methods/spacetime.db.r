@@ -222,6 +222,56 @@
 
     # -----------------
 
+    if (DS %in% c( "boundary.redo", "boundary" ) )  {
+      
+      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+      fn =  file.path(p$tmp.datadir, "boundary.rdata" )
+      
+      if (DS=="boundary") {
+        if( file.exists(fn)) load( fn)
+        return( boundary )
+      }
+
+      # load bigmemory data objects pointers
+     
+      # data:
+      Y = attach.big.matrix(p$descriptorfile.Y, path=p$tmp.datadir )  
+      LOCS = attach.big.matrix(p$descriptorfile.LOCS, path=p$tmp.datadir )
+      hasdata = 1:length(Y) 
+      bad = which( !is.finite( Y[])) 
+      if (length(bad)> 0 ) hasdata[bad] = NA
+      # covariates (independent vars)
+      if ( exists( "X", p$variables) ) {
+        X = attach.big.matrix(p$descriptorfile.X, path=p$tmp.datadir )  
+        if ( length( p$variables$X ) == 1 ) {
+          bad = which( !is.finite( X[]) ) 
+        } else {
+          bad = which( !is.finite( rowSums(X[])) ) 
+        }
+        if (length(bad)> 0 ) hasdata[bad] = NA
+      }
+      ii = na.omit(hasdata)
+      ndata = length(ii)
+      locs_noise = LOCS[ii,] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise )
+      maxdist = max( diff( range( LOCS[ii,1] )), diff( range( LOCS[ii,2] )) )
+
+      boundary=list( polygon = inla.nonconvex.hull(  LOCS[ii,], convex=-0.04, resolution=125 ) )
+      
+      Sloc = attach.big.matrix(p$descriptorfile.Sloc , path=p$tmp.datadir )  # statistical output locations
+      boundary$inside.polygon = point.in.polygon( Sloc[,1], Sloc[,2], 
+          boundary$polygon$loc[,1], boundary$polygon$loc[,2], mode.checked=TRUE) 
+
+      save( boundary, file=fn, compress=TRUE )
+
+      plot( LOCS[], pch="." )
+      lines( boundary$polygon$loc , col="green" )
+
+      return( fn )
+    }
+
+    
+    # -----------------
+
     if (DS %in% c( "statistics", "statistics.redo", "statistics.bigmemory.initialize", 
                    "statistics.bigmemory.size" , "statistics.bigmemory.status"  )  ) { 
       
@@ -245,23 +295,33 @@
       }
 
       if ( DS=="statistics.bigmemory.size" ) { 
+        # load bigmemory data objects pointers
+        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
         S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
         return( nrow(S) )
       }
 
       if ( DS=="statistics.bigmemory.status" ) { 
+        # find locations for statistic computation and trim area based on availability of data
+        # stats:
+        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
         S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )
+        
+        bnds = spacetime.db( p, DS="boundary" )
+
         # problematic and/or no data (e.g., land, etc.) and skipped
-        i = which( is.nan( S[,1] ) )
+        to.ignore =  which( bnds$inside.polygon == 0 ) # outside boundary
+
+        i = which( is.nan( S[,1] ) & bnds$inside.polygon != 0 )
      
         # not yet completed
-        j = which( is.na( S[,1] ) ) 
+        j = which( is.na( S[,1] )  & bnds$inside.polygon != 0 ) 
 
         # completed 
-        k = which( is.finite (S[,1])  ) # not yet done
+        k = which( is.finite (S[,1])  & bnds$inside.polygon != 0 ) # not yet done
 
         return( list(problematic=i, incomplete=j, completed=k, n.total=nrow(S[]), 
-                     n.incomplete=length(j), n.problematic=length(i), n.complete=length(k)) ) 
+                     n.incomplete=length(j), n.problematic=length(i), n.complete=length(k), to.ignore=to.ignore ) )
       }
 
       if ( DS =="statistics.redo" ) {

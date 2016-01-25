@@ -45,9 +45,11 @@
       }
     }
 		
-		pp = list( spatial.domain=spatial.domain )
+		pp = spatial.parameters( type=spatial.domain )
 
-    lp = levelplot( z ~ plon+plat, data=xyz, aspect="iso", pts=pts, colpts=colpts, annot=annot, pp=pp, 
+    isobs = isobath.db( p=pp, depths=c(0, 100, 200, 300, 400, 500, 600, 700 ) ) 
+
+    lp = levelplot( z ~ plon+plat, data=xyz, aspect="iso", pts=pts, colpts=colpts, annot=annot, isobs=isobs, 
       annot.cex=annot.cex, xlab="", ylab="", scales=list(draw=F), col.regions=col.regions, at=at, xlim=xlim, ylim=ylim, 
       colorkey=colorkey , rez=rez, leg=leg,  cfa.regions=cfa.regions,
       panel = function(x, y, subscripts, rez=rez,  ...) {
@@ -68,8 +70,10 @@
         }
 
         if (depthcontours) {
-          sp.lines( isobath.db( p=pp, depths=c(100, 300,  500, 700 ) ), col = "darkgrey", pch=".", cex=0.6 )
-          sp.lines( isobath.db( p=pp, depths=c(200, 400, 600 ) ), col = "grey", pch=".", cex=0.6 )
+          depths1 = c(100, 300, 500, 700 )
+          depths2 = c(200, 400, 600)
+          for ( i in depths1 ) sp.lines( isobs[as.character(i) ] , col = "darkgrey", pch=".", cex=0.6 )
+          for ( i in depths2 ) sp.lines( isobs[as.character(i) ] , col = "grey", pch=".", cex=0.6 )
         }
 
         if ( cfa.regions ) {
@@ -103,7 +107,7 @@
         }
                   
         #coastline
-        sp.lines( isobath.db( p=pp, depths=c(0) ), col = "black", pch=".", cex=1 )
+        sp.lines( isobs["0"], col = "black", pch=".", cex=1 )
 
         if (is.null(leg) ) {
 				  xoffset = 30
