@@ -83,7 +83,8 @@
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
       # slow ... need to find a faster solution
       ppp = NULL
-      ppp = try( point.in.block( focal[1,c(1,2)], LOCS, dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, resize=TRUE ) )
+      ppp = try( point.in.block( focal[1,c(1,2)], LOCS, dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, 
+        upsampling=p$upsampling, downsampling=p$downsampling, resize=TRUE ) )
       if( is.null(ppp)) next()
       if (class( ppp ) %in% "try-error" ) next()
       dist.cur = ppp$dist.to.nmax
@@ -219,7 +220,6 @@
      
       RES = NULL
       RES = spacetime.inla.call( FM=p$modelformula, DATA=DATA, SPDE=SPDE, FAMILY=p$spacetime.family )
-
       if ( debugrun && !is.null( RES) ) {
         cat( paste(  Sys.time(), deid, "computations finished \n" ), file=p$debug.file, append=TRUE ) 
         print(RES)
@@ -249,6 +249,8 @@
       # predictions 
       if ( any( grepl ("predictions", p$spacetime.outputs))) {
         # do not use ifelse below ... it alters data structure
+        print( "Prediction step ..")
+
         task = p$spacetime.outputs[grep("predictions", p$spacetime.outputs) ][1]  ## only take the first one in case there are many
         preds = NULL
         if ( task=="predictions.direct" ) {
@@ -263,9 +265,9 @@
         }
         pa = cbind( pa, preds) 
         if (debugrun) cat( paste(  Sys.time(), deid, "predictions completed \n" ), file=p$debug.file, append=TRUE ) 
-        if (0) {
-          levelplot( xmean ~ plon+plat, pa, aspect="iso", labels=TRUE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=TRUE) )
-          levelplot( xsd   ~ plon+plat, pa, aspect="iso", labels=TRUE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        if (debugrun) {
+          x11(); levelplot( xmean ~ plon+plat, pa, aspect="iso", labels=TRUE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=TRUE) )
+          x11(); levelplot( xsd   ~ plon+plat, pa, aspect="iso", labels=TRUE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
         }
         good = which( is.finite( rowSums(pa) ) )
         if (length(good) < 1) next()
@@ -309,6 +311,7 @@
       # bathymetry.figures( DS="predictions", p=p ) # to debug
  
       if ( any( grepl ("statistics", p$spacetime.outputs))) {
+        print( "Saving summary statisitics" )
         # extract summary statistics from a spatial (SPDE) analysis and update the output file
         inla.summary = spacetime.summary.inla.spde2 ( RES, SPDE )
         # save statistics last as this is an indicator of completion of all tasks .. restarts would be broken otherwise
@@ -321,18 +324,16 @@
           cat( paste( Sys.time(), deid, "statistics saved  \n" ), file=p$debug.file, append=TRUE ) 
         }
       }
-      
-      # bathymetry.figures( DS="statistics", p=p ) # to debug
-
-      rm( SPDE, RES) ; gc()
-
-      if(0) {
+ 
+      if(debugrun) {
         pps = expand.grid( plon=p$plons, plat=p$plats)
         # zz = which(pps$plon > -50 & pps$plon < 50 & pps$plats < 50 & pps$plats > -50 ) # & P[,2] > 0   )
         zz = which(pps$plon > min(pa$plon) & pps$plon < max(pa$plon) & pps$plat < max(pa$plat) & pps$plat > min(pa$plat) ) 
-        x11()
-        levelplot( ( P[zz,2] ) ~ plon + plat, pps[zz,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        x11(); levelplot( ( P[zz,means] ) ~ plon + plat, pps[zz,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
       }
+     
+      rm( SPDE, RES) ; gc()
+
       rm( ii, good, pa, xs, xm, mi, mf, si, sf ); gc()
       if ( debugrun) cat( paste( Sys.time(), deid, "end \n" ), file=p$debug.file, append=TRUE ) 
     }  # end for loop

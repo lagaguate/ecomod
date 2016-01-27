@@ -25,7 +25,7 @@
   # p$spmethod = "inverse.distance"  ## too slow
   # p$spmethod = "gam" ## too smooth
   p$spmethod = "kernel.density" ## best
-  p$theta = 8 # dist to interpolate ~ 1/2 autocor range in method  p$spmethod = "kernel.density
+  p$theta = 10 # FFT kernel bandwidth (SD of kernel) for method p$spmethod = "kernel.density"  
   p$nsd = 5 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
 
   p$newyear = 2015
@@ -102,25 +102,31 @@
     p$clusters = rep("localhost", detectCores() ) 
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="spatial.interpolation.redo" ) 
+    #  temperature.db( p=p, DS="spatial.interpolation.redo" ) # 2hr in serial mode
+
 
 
     # 4. extract relevant statistics
-    # hydro.modelled.db(  p=p, DS="bottom.statistics.annual.redo" )
+    # temperature.db(  p=p, DS="bottom.statistics.annual.redo" )
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
-    parallel.run( hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
+    parallel.run( temperature.db, p=p, DS="bottom.statistics.annual.redo" ) 
+    #  temperature.db( p=p, DS="bottom.statistics.annual.redo" ) 
+
 
 
     # 5. climatology database 
     # 4 cpu's ~ 5 min
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
-    # hydro.modelled.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
+    # temperature.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
     p = make.list( list( vname=bstats), Y=p )
-    parallel.run( hydro.modelled.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
+    parallel.run( temperature.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
+    #  temperature.db( p=p, DS="bottom.mean.redo", vname=bstats  )  
  
+
 
     # 6. glue climatological stats together
     temperature.db ( p=p, DS="climatology.redo") 
@@ -142,11 +148,12 @@
     parallel.run( hydro.map, p=p, type="global") 
   }
 
+
   # finished interpolations
 
 
   #-----------------------------------------
-  # the following a just for testing / notes
+  # the following is just for testing / notes
   
   if (0) { 
     # to access data:
@@ -216,13 +223,13 @@
     p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p = spatial.parameters( p=p, type= "SSE" )
     out = NULL
-    out = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=p$tyears[1] )
+    out = temperature.db( p=p, DS="bottom.statistics.annual", yr=p$tyears[1] )
     out = planar2lonlat( out, proj.type=p$internal.projection )
     out = out[ , c("lon", "lat", "tmean" ) ]
     names(out) = c( "lon", "lat", paste("tmean", p$tyears[1],sep="_") ) 
     for ( y in p$tyears[-1] ) {
       r = NULL 
-      r = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
+      r = temperature.db( p=p, DS="bottom.statistics.annual", yr=y )
       names(r) = paste( names(r), y, sep="_") 
       iname = grep( "tmean", names(r) )
       out = cbind( out, r[,iname] )

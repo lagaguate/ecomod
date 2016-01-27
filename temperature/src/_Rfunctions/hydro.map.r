@@ -45,7 +45,7 @@
         y = p$runs[iy, "yrs"] 
         print(y)
         
-        H = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
+        H = temperature.db( p=p, DS="bottom.statistics.annual", yr=y )
         
         if ( p$spatial.domain=="snowcrab" ) {
           i = which( H$plon< 990 &  H$plon > 220  &   ## these are in planar coords  ..should fix this hack one day
@@ -118,7 +118,7 @@
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
  
         if (type %in% c("temperatures", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tmean" )
+          H = temperature.db( p=p, DS="bottom.mean",  vname="tmean" )
           datacols = c("plon", "plat", "tmean")
           datarange = seq(-1,11, length.out=50)
           cols = color.code( "blue.black", datarange )
@@ -130,7 +130,7 @@
         }  
     
         if (type %in% c("amplitudes", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tamplitude")
+          H = temperature.db( p=p, DS="bottom.mean",  vname="tamplitude")
           datacols = c("plon", "plat", "tamplitude")
           datarange = seq(0,10, length.out=50)
           cols = color.code( "blue.black", datarange )
@@ -142,7 +142,7 @@
         }  
     
         if (type %in% c("dyear.of.minima", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="wmin")
+          H = temperature.db( p=p, DS="bottom.mean",  vname="wmin")
           datacols = c("plon", "plat", "wmin")
           datarange = seq(0,p$nw, length.out=50)
           cols = color.code( "blue.yellow.blue", datarange )
@@ -154,7 +154,7 @@
                  }  
     
         if (type %in% c("halfperiod", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="thalfperiod" )
+          H = temperature.db( p=p, DS="bottom.mean",  vname="thalfperiod" )
           datacols = c("plon", "plat", "thalfperiod")
           datarange = seq(0, 20, length.out=50)
           cols = color.code( "blue.black", datarange )
@@ -165,7 +165,7 @@
             corners=p$corners , spatial.domain=p$spatial.domain )
         }
         if (type %in% c("tsd", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tsd" )
+          H = temperature.db( p=p, DS="bottom.mean",  vname="tsd" )
           datacols = c("plon", "plat", "tsd")
           datarange = seq(0, 5, length.out=50)
           cols = color.code( "blue.black", datarange )

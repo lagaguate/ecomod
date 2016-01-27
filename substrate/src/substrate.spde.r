@@ -29,24 +29,27 @@
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 6000 # numerical time/memory constraint -- anything larger takes too much time
+      p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
+      p$upsampling = c( 1.1, 1.2, 1.3, 1.4, 1.5 )  # local block search fractions
+      p$downsampling = c( 0.25, 0.2, 0.15, 0.1, 0.075, 0.05, 0.025, 0.01 ) # local block search fractions  -- need to adjust based upon data density
+
       p$expected.range = 50 #+units=km km , with dependent var on log scale
       p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
       p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-      p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
-      #p$variables = list( Y="substrate", X=c("z" ), LOCS=c("plon", "plat") )  
+      # p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
+      p$variables = list( Y="substrate", X=c("z", "dZ" ), LOCS=c("plon", "plat") )  
       p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
       p$modelformula = formula( substrate ~ -1 + intercept 
         + f( inla.group(log(z+1000) ), model="rw2") 
         + f( inla.group(log(dZ+0.01)), model="rw2") 
-        + f( inla.group( log(ddZ+0.01) ), model="rw2") 
-        + f( inla.group( log(Z.rangeMode+0.01)), model="rw2" ) 
+        # + f( inla.group( log(ddZ+0.01) ), model="rw2") 
+        # + f( inla.group( log(Z.rangeMode+0.01)), model="rw2" ) 
         + f( spatial.field, model=SPDE ) )
       p$spacetime.link = function( X ) { log(X)  } 
       p$spacetime.invlink = function( X ) { exp(X)  }
       p$spacetime.family = "gaussian"
       p$spacetime.outputs = c( "predictions.direct", "statistics" ) # "random.field", etc. for now: "predictions.projected" works only for simple models. This contains smooth terms 
-        
+
       reset.bigmemory.objects = FALSE
       if ( reset.bigmemory.objects ) {
         # note::depends upon bathymetry
@@ -62,8 +65,13 @@
         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
             file=p$debug.file, append=FALSE ) # init
+ 
+        # define boundary polygon for data to drop land etc vary parameters until it matches data ...
+        p$mesh.boundary.resolution = 120 # discretization
+        p$mesh.boundary.convex = -0.03  # curavature of boundary
+        spacetime.db( p, DS="boundary.redo" ) 
       }
-       
+ 
       if (0) {
         # cluster definition: do not use all CPU's as INLA itself is partially run in parallel
         # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
@@ -73,13 +81,13 @@
         p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 2 ) ) 
       }
   
-      # run the beast .. warning this will take a very long time! (weeks)
       sS = spacetime.db( p, DS="statistics.bigmemory.status" )
       sS$n.incomplete / (sS$n.problematic + sS$n.incomplete +sS$n.complete)
    
+      # run the beast .. warning this will take a very long time! (weeks)
       p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
       parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
-      # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if serial process
+      # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if testing serial process
 
       if (0) {
         # checking status of outputs during parallel runs:

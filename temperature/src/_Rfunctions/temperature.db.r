@@ -1,4 +1,4 @@
-  temperature.db = function ( ip=NULL, year=NULL, p, DS, yr=NULL ) {
+  temperature.db = function ( ip=NULL, year=NULL, p, DS, vname=NULL, yr=NULL ) {
     
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
     if (exists( "libs", p)) RLibrary( p$libs ) 
@@ -87,27 +87,27 @@
       Z$id = 1:nrow(Z)
       Z$z = NULL
 
-      E.tmean = hydro.modelled.db( p=p, DS="bottom.mean", vname="tmean" ) 
+      E.tmean = temperature.db( p=p, DS="bottom.mean", vname="tmean" ) 
       names(E.tmean) = c("plon", "plat", "tmean")
       PS = merge( Z, E.tmean, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( Z, E.tmean ) ; gc()
 
-      E.tamp  = hydro.modelled.db( p=p, DS="bottom.mean", vname="tamplitude"  ) 
+      E.tamp  = temperature.db( p=p, DS="bottom.mean", vname="tamplitude"  ) 
       names(E.tamp) = c("plon", "plat", "tamp")
       PS = merge( PS, E.tamp, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.tamp ) ; gc()
 
-      E.wmin  = hydro.modelled.db( p=p,  DS="bottom.mean", vname="wmin"  ) 
+      E.wmin  = temperature.db( p=p,  DS="bottom.mean", vname="wmin"  ) 
       names(E.wmin) = c("plon", "plat", "wmin")
       PS = merge( PS, E.wmin, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.wmin ) ; gc()
 
-      E.thp   = hydro.modelled.db( p=p,  DS="bottom.mean", vname="thalfperiod" ) 
+      E.thp   = temperature.db( p=p,  DS="bottom.mean", vname="thalfperiod" ) 
       names(E.thp) = c("plon", "plat", "thp")
       PS = merge( PS, E.thp, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.thp ) ; gc()
 
-      E.tsd   = hydro.modelled.db( p=p,  DS="bottom.mean", vname="tsd" ) 
+      E.tsd   = temperature.db( p=p,  DS="bottom.mean", vname="tsd" ) 
       names(E.tsd) = c("plon", "plat", "tsd")
       PS = merge( PS, E.tsd, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.tsd ) ; gc()
@@ -158,23 +158,23 @@
 
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
       if (is.null(ip)) ip = 1:p$nruns
-      
+
       # depth is the primary constraint 
       Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
       Z$id = 1:nrow(Z)
       Z$z = NULL
-  
+
       CL = temperature.db(p=p, DS="climatology")
       names(CL) = c("plon", "plat", "tmean.cl", "tamp.cl", "wmin.cl", "thp.cl", "tsd.cl") 
-      
+
       CL = merge( Z, CL,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F ) ## should not be required but in case ordining get messed up
 
       for (iy in ip) {
         yr = p$runs[iy, "yrs"]
         print (yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
-		
-        E = hydro.modelled.db( DS="bottom.statistics.annual", p=p, yr=yr  ) 
+
+        E = temperature.db( DS="bottom.statistics.annual", p=p, yr=yr  ) 
         if (is.null(E)) print( paste( "bottom.statistics.annual not found for:" , yr ) )
 
         names(E)[ which(names(E)=="tamplitude") ] = "tamp"  # fix this at the level of "bottom statistics"
@@ -291,6 +291,8 @@
       if ( is.null(ip) ) ip = 1:p$nruns
       O = bathymetry.db( p=p, DS="baseline" )
       O$z = NULL
+
+      # store a few things into p as required by spmethod ..
       if (p$spmethod == "kernel.density" ) {
         # pre-compute a few things rather than doing it for each iteration
         p$wgts = fields::setup.image.smooth(nrow=p$nplons, ncol=p$nplats, dx=p$pres, dy=p$pres, 
@@ -346,5 +348,111 @@
       endtime = Sys.time()
       return (endtime - starttime)
     }
+   
+
+    if (DS %in% c(  "bottom.statistics.annual", "bottom.statistics.annual.redo" )){
+      
+			tstatdir = project.datadirectory("temperature",  "data", "stats", p$spatial.domain ) 
+      dir.create( tstatdir, showWarnings=F, recursive = TRUE )
+
+			if (DS %in% c("bottom.statistics.annual")) {
+        O = NULL
+        fn = file.path( tstatdir, paste("bottom.statistics.annual",  yr, "rdata", sep=".") )
+        if (file.exists( fn) ) load(fn)
+        return ( O )
+      }
+        
+      ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
+      if ( is.null(ip)) ip = 1:p$nruns
+
+      for ( r in ip ) { 
+        y = p$runs[r, "yrs"]
+				print ( paste("Year:", y)  )
+				
+				O = bathymetry.db( p=p, DS="baseline" )
+        P = temperature.db( p=p, DS="spatial.interpolation", yr=y  )
+     		P[ P < -2 ] = -2  
+			  P[ P > 30 ] = 30 
+			  ibaddata = which( !is.finite(P) )
+				P[ ibaddata ] = mean(P, na.rm=T )
+				
+				V = temperature.db( p=p, DS="spatial.interpolation.se", yr=y  )
+				V[ V < 0.1 ] = 100  # shrink weighting of unreasonably small SEs
+			  V[ which( !is.finite(V)) ] = 1000 # "
+				V[ ibaddata ] = 10000 # " smaller still
+
+        O$yr = y
+        O$wmin = NA
+        O$wmax = NA
+        O$tmin = NA
+        O$tmax = NA
+        O$tsd = NA
+        O$tmean = NA
+        O$tamplitude = NA
+        O$thalfperiod = NA
+        
+        O$wmin = apply( P, 1, which.min )
+        O$wmax = apply( P, 1, which.max )
+				O$tmin = apply( P, 1, quantile, probs=0.005 )
+        O$tmax = apply( P, 1, quantile, probs=0.995 )
+
+				W = 1/V^2   # weights: inverse variance, normalised
+				W = W / rowSums(W)
+				O$tmean = apply( P*W, 1, sum, na.rm=T)
+
+				SS = (P-O$tmean)^2 # sums of squares
+				O$tsd  = apply( SS*W, 1, sum, na.rm=T ) # weighted seasonal mean sums of squares
+
+				O$tamplitude = O$tmax- O$tmin  # approximate as sinusoid can span 2 yrs .. max amplitude 
+
+				# half-period .. also approximate as sinusoid can also span 2 yrs
+				# sin tranf required to make circular and then take difference and rescale
+        O$thalfperiod = abs( sin(O$wmax/p$nw*pi) - sin(O$wmin/p$nw*pi) ) * p$nw/pi 
+      
+        fn =  file.path( tstatdir, paste("bottom.statistics.annual", y, "rdata", sep=".") )
+        save( O, file=fn, compress=T )
     
+        rm (O, P) ; gc()
+      }
+      return ("Completed")
+    }
+ 
+
+    if (DS %in% c( "bottom.mean", "bottom.mean.redo" )){
+			
+			# global / climatological mean across all years
+			tstatdir = project.datadirectory("temperature", "data", "stats", p$spatial.domain )
+      dir.create( tstatdir, showWarnings=F, recursive = TRUE  )
+
+			if (DS=="bottom.mean") {
+				fn = file.path(tstatdir, paste(vname, "rdata", sep=".") )
+				P = NULL
+				if (file.exists(fn)) load(fn)
+				return(P)
+			}
+
+      if ( is.null(ip) ) ip = 1:p$nruns
+ 
+			for ( iv in ip ) {
+				vn = p$runs[iv, "vname"]
+				B = NULL
+				for (y in p$tyears ) {
+					H = temperature.db( p=p, DS="bottom.statistics.annual", yr=y ) 
+					B = cbind( B, H[, vn] )
+				}
+				
+				P = bathymetry.db( p=p, DS="baseline" )
+				P$new = rowMeans(B, na.rm=T)
+				P$z = NULL
+				names(P) = c("plon", "plat", vn)
+				fn = file.path( tstatdir, paste(vn, "rdata", sep=".") )
+				save(P, file=fn, compress=T)
+
+			}
+
+      return( "Completed" )
+    }
+
+
+
   }

@@ -255,7 +255,11 @@
       locs_noise = LOCS[ii,] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise )
       maxdist = max( diff( range( LOCS[ii,1] )), diff( range( LOCS[ii,2] )) )
 
-      boundary=list( polygon = inla.nonconvex.hull(  LOCS[ii,], convex=-0.04, resolution=125 ) )
+      convex = -0.04
+      if (exists( "mesh.boundary.convex", p) ) convex=p$mesh.boundary.convex 
+      resolution = 125
+      if (exists( "mesh.boundary.resolution", p) ) resolution=p$mesh.boundary.resolution
+      boundary=list( polygon = inla.nonconvex.hull(  LOCS[ii,], convex=convex, resolution=resolution ) )
       
       Sloc = bigmemory::attach.big.matrix(p$descriptorfile.Sloc , path=p$tmp.datadir )  # statistical output locations
       boundary$inside.polygon = point.in.polygon( Sloc[,1], Sloc[,2], 
@@ -263,8 +267,9 @@
 
       save( boundary, file=fn, compress=TRUE )
 
-      plot( LOCS[], pch="." )
-      lines( boundary$polygon$loc , col="green" )
+      plot( LOCS[ii,], pch="." ) # data locations
+      lines( boundary$polygon$loc , col="green" ) 
+
 
       return( fn )
     }

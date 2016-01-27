@@ -23,6 +23,8 @@
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
       p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
+      p$upsampling = c( 1.1, 1.2, 1.5, 2, 2.5, 3 )  # local block search fractions
+      p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3 ) # local block search fractions  -- need to adjust based upon data density
       p$expected.range = 50 #+units=km km , with dependent var on log scale
       p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
       p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
@@ -34,7 +36,8 @@
       p$spacetime.invlink = function( X ) { exp(X) - 1000 }
       p$spacetime.family = "gaussian"
       p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
-        
+      
+      
       # if not in one go, then the value must be reconstructed from the correct elements:  
       p$spacetime.posterior.extract = function(s, rnm) { 
         # rnm are the rownames that will contain info about the indices ..
@@ -48,33 +51,36 @@
       
       reset.bigmemory.objects = FALSE
       if ( reset.bigmemory.objects ) {
-        # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
-        bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-        bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-        bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
+         # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
+         bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
 
-        # transfer data into spacetime methods as bigmemory objects
-        spacetime.db( p=p, DS="bigmemory.inla.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
-        spacetime.db( p=p, DS="bigmemory.inla.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
+         # transfer data into spacetime methods as bigmemory objects
+         spacetime.db( p=p, DS="bigmemory.inla.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
+         spacetime.db( p=p, DS="bigmemory.inla.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
       
-        # reset bigmemory output data objects  (e.g., if you are restarting)
-        spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
-        spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
-        cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
+         # reset bigmemory output data objects  (e.g., if you are restarting)
+         spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
+         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
+         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
             file=p$debug.file, append=FALSE ) # init
         
-        # define boundary polygon for data
-        spacetime.db( p, DS="boundary.redo" ) 
+        # define boundary polygon for data .. this trims the prediction/statistics locations to speed things up a little ..
+        p$mesh.boundary.resolution = 150
+        p$mesh.boundary.convex = -0.025
+        spacetime.db( p, DS="boundary.redo" ) # ~ 5 min 
+        # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?  
       }
 
-     if (0) {
-       # cluster definition
-       # do not use all CPU's as INLA itself is partially run in parallel
-       # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
-       p$clusters = "localhost"  # if serial run, send a single cluster host
-       p$clusters = rep( "localhost", 8 )
-       p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ), rep("tethys", 2) )
-       p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 2 ) ) 
+      if (0) {
+        # cluster definition
+        # do not use all CPU's as INLA itself is partially run in parallel
+        # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
+        p$clusters = "localhost"  # if serial run, send a single cluster host
+        p$clusters = rep( "localhost", 5 )
+        p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ), rep("tethys", 2) )
+        p$clusters = c( rep( "hyperion", 4 ), rep( "nyx", 10 ), rep ("tartarus", 10), rep("kaos", 10 ), rep("tethys", 2 ) ) 
       }
       
       # run the beast .. warning this will take a very long time! (weeks)
@@ -84,11 +90,10 @@
    
       p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
       parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
-      # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if serial process
+      # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if testing serial process
 
       if (0) {
         # for checking status of outputs during parallel runs:
-        # bathymetry.db( DS="landmasks.create", p=p ) # run only if default resolution is altered 
         bathymetry.figures( DS="statistics", p=p ) 
         bathymetry.figures( DS="predictions", p=p ) 
         bathymetry.figures( DS="predictions.error", p=p ) 

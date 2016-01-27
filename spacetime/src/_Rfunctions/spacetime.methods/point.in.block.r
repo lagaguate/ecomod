@@ -1,4 +1,4 @@
-point.in.block = function( foc, dta, dist.max, n.min=100, n.max=10000, resize=FALSE) {
+point.in.block = function( foc, dta, dist.max, n.min=100, n.max=1000, upsampling=c(1.1, 1.2), downsampling=c(0.9, 0.8), resize=FALSE) {
 
   #\\ find all points in data dta inside of a block of distance bdist from a focal point foc 
   #\\ col 1 = (p)lon  and  col2 = (p)lat
@@ -11,8 +11,7 @@ point.in.block = function( foc, dta, dist.max, n.min=100, n.max=10000, resize=FA
   if ( !resize )  return( list( dist.to.nmax = dist.cur, indices = j, xypoints = dta[j,] ) )
   if ( ndat < 5 ) return( NULL )
   if ( ndat < n.min )  {
-    fractions=c( 1.1, 1.2, 1.5, 2, 2.5, 3 ) 
-    for ( f in fractions )  {
+    for ( f in upsampling )  {
         dist.cur = dist.max * f
         j = which( dlon < dist.cur & dlat < dist.cur ) # faster to take a block 
         ndat = length(j)
@@ -30,8 +29,7 @@ point.in.block = function( foc, dta, dist.max, n.min=100, n.max=10000, resize=FA
       return( list( dist.to.nmax = dist.cur, indices = j, xypoints = dta[j,] ) )
     } else {
       # reduce size of distance/block     
-      fractions=c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3 ) 
-       for ( f in fractions )  {
+       for ( f in downsampling )  {
           dist.cur = dist.max * f
           j = which( dlon < dist.cur & dlat < dist.cur ) # faster to take a block 
           ndat = length(j)

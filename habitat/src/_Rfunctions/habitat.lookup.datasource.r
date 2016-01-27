@@ -29,7 +29,7 @@
  
       if ( DS %in% c("temperature.climatology" ) ) {
         H = temperature.db( p=p, DS="climatology", year=yr  ) 
-        # H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tmean" )
+        # H = temperature.db( p=p, DS="bottom.mean",  vname="tmean" )
       }
 
       if ( DS %in% c( "temperature.complete" ) ) {
@@ -37,7 +37,7 @@
       }
 
       if ( DS %in% c( "temperature.annual" ) ) {
-        H = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=yr )
+        H = temperature.db( p=p, DS="bottom.statistics.annual", yr=yr )
       }        
 
       if ( DS %in% c("default", "environmentals", "time.variant" ) ) {
