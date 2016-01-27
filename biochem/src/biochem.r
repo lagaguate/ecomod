@@ -97,13 +97,7 @@ zoop.db( DS="zoop.speciesAbund.redo", p=p )
       parallel.run( clusters=p$clusters, n=length(p$tyears),	temperature.db, p=p, DS="bottom.statistics.annual.redo" ) 
 
       # ----------------
-      # climatology database 
-      # 4 cpu's ~ 5 min
-      bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
-      # temperature.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
-      p$clusters = rep( "nyx", length(bstats) )
-      parallel.run( clusters=p$clusters, n=length(bstats), temperature.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
-   
+  
 
       # glue climatological stats together
       temperature.db ( p=p, DS="climatology.redo") 

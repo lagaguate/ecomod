@@ -29,7 +29,6 @@
  
       if ( DS %in% c("temperature.climatology" ) ) {
         H = temperature.db( p=p, DS="climatology", year=yr  ) 
-        # H = temperature.db( p=p, DS="bottom.mean",  vname="tmean" )
       }
 
       if ( DS %in% c( "temperature.complete" ) ) {

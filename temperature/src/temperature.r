@@ -75,7 +75,7 @@
 
     # 2. temporal interpolations assuming some seasonal pattern 
     # 1950-2013, SSE took ~ 35 hrs on laptop (shared RAM, 24 CPU; 1950-2013 run April 2014 ) ... 17 GB req of shared memory
-    # 1950-2015, SSE 22 hrs, 42 GB RAM, 8 CPU on hyperion (10 Jan 2015), using BAM
+    # 1950-2015, SSE 22 hrs, 42 GB RAM, 8 CPU on hyperion (10 Jan 2015), using NLM .. not much longer for "canada.east"
     # define output mattrix
     # predictions are made upon the locations defined by bathymetry "baseline" 
     p$nP = nrow( bathymetry.db( p=p, DS="baseline" ) )
@@ -117,28 +117,18 @@
 
 
 
-    # 5. climatology database 
-    # 4 cpu's ~ 5 min
-    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
-    bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
-    # temperature.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
-    p = make.list( list( vname=bstats), Y=p )
-    parallel.run( temperature.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
-    #  temperature.db( p=p, DS="bottom.mean.redo", vname=bstats  )  
- 
-
-
-    # 6. glue climatological stats together
+    # 5. climatology database ... ~ 2 min
+    p$bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
+    p$tyears.climatology = p$tyears  # or redefine it with : p$tyears.climatology = 1950:2015  
     temperature.db ( p=p, DS="climatology.redo") 
     
 
-    # 7. annual summary temperature statistics for all grid points --- used as the basic data level for interpolations 
-    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
+    # 6. annual summary temperature statistics for all grid points --- used as the basic data level for interpolations 
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="complete.redo") 
 
 
-    # 8. Maps 
+    # 7. Maps 
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
     p = make.list( list( yrs=p$tyears), Y=p )
