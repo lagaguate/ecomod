@@ -1,6 +1,7 @@
 if (F) {
   # load required ecomod functions
   loadfunctions("utility/src/_Rfunctions/colours")
+  loadfunctions("utility/src/_Rfunctions/data.manipulation")
 }
 plot.kml<-function(x, metadata=NULL, pid = "FISHSET_ID", ord=NULL, labelFields = NULL, folderFields = NULL, colourField = NULL, filename = "df_kml", drawPolys=F) {
   #'   ###MMM - Jan 2016
@@ -28,6 +29,7 @@ plot.kml<-function(x, metadata=NULL, pid = "FISHSET_ID", ord=NULL, labelFields =
   #'     filename:      a name for the out =put kml file
   library(kmlbuilder)
   library(plyr)
+  
   filenamefull = paste0(filename,".kml")
   mykml = RKmlObject()
 
@@ -67,13 +69,14 @@ plot.kml<-function(x, metadata=NULL, pid = "FISHSET_ID", ord=NULL, labelFields =
     x, 1, row.to.html.table,
     main = paste0("Data for this track, as of ",format(Sys.time(), "%Y-%m-%d %H:%M %Z")),
     tableSummary = "Data for this track")
-  
   #kmlbuilder lines need pid, lat and lon
-  x$pid = x[[pid]]
-  
+  #if pid is defined by multiple values, concatenate them into unique identifier
+  x$pid = toupper(do.call(paste, c(x[pid], sep = "")))
+  x$pid = lettersToNumbers(x$pid)       
+
   #common naming conventions for latitude and longitudes used to identify coords
-  latnames=c("LAT","LATITUDE","Y")
-  lonnames=c("LON","LONG","LONGITUDE","X")
+  latnames=c("LAT","SLAT","LATITUDE","Y")
+  lonnames=c("LON","SLONG","LONG","LONGITUDE","X")
   x$lat = x[[intersect(latnames,toupper(names(x)))[1]]]
   x$lon = x[[intersect(lonnames,toupper(names(x)))[1]]]
   
@@ -104,7 +107,6 @@ plot.kml<-function(x, metadata=NULL, pid = "FISHSET_ID", ord=NULL, labelFields =
 
   #function for adding the various features
   plot.features<-function(x, a, thislevel) {
-    #browser()
     stylem=tapply(x[[a]], x$pid, min)
     this.ord <- as.data.frame(unique(x$pid))    
     names(this.ord)<-c("pid")
