@@ -7,7 +7,7 @@
 		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
 	) )
 
-  p$libs = RLibrary( "mgcv", "sp", "gstat",  "parallel", "fields", "chron" ) 
+  p$libs = RLibrary( "mgcv", "sp", "gstat",  "parallel", "fields", "chron", "lubridate", "raster", "rgdal"  ) 
   p$taxa = "maxresolved"
   p$season = "allseasons"
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
@@ -17,7 +17,6 @@
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
 
-  p$yearstomodel = 1970:2014
   
    
      p$speciesarea.modeltype = "complex"
