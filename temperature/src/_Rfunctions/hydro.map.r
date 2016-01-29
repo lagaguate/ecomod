@@ -17,7 +17,7 @@
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
       datarange = seq(-0.5, p$nw, length.out=50)
       cols = color.code( "blue.black", datarange )
-      xyz = bathymetry.db( p=p, DS="Z.planar" )
+      xyz = bathymetry.db( p=p, DS="baseline" )
       xyz = xyz[, c("plon", "plat")]
       for (iy in ip ) {
         y = p$runs[iy, "yrs"] 
@@ -90,7 +90,7 @@
     
         if (type %in% c("halfperiod", "annual") ) {
           datacols = c("plon", "plat", "thalfperiod")
-          datarange = seq(0, 20, length.out=50)
+          datarange = seq(0, p$nw/2, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "halfperiod.length", y, sep=".")
           annot = y
@@ -156,7 +156,7 @@
         if (type %in% c("halfperiod", "global") ) {
           H = temperature.db( p=p, DS="bottom.mean",  vname="thalfperiod" )
           datacols = c("plon", "plat", "thalfperiod")
-          datarange = seq(0, 20, length.out=50)
+          datarange = seq(0, p$nw/2, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "halfperiod.length", sep=".")
           annot = paste("Length of half-period\n", sep="")
