@@ -2,8 +2,8 @@
 parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="default" ) {
    
   if ( set =="default" ) {
-    
     p$current.assessment.year = current.assessment.year 
+
 
     p$libs = RLibrary ( c( 
       "geosphere", "lubridate", "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", 

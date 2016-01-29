@@ -13,7 +13,6 @@
 
     n.regions = length(regions)
     n.areas = length(areas)
-    
     varnames = names(set)
     vars = varnames[ grep ( vars, varnames) ]
 

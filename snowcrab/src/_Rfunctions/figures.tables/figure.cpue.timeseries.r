@@ -24,8 +24,8 @@
     xrange = range(uyrs)
     xrange[1] = xrange[1]
     xrange[2] = xrange[2]
-    xlabels = c(xrange[1], xrange[1]+8, xrange[1]+18, xrange[1]+28, xrange[2])
-
+#    xlabels = c(xrange[1], xrange[1]+8, xrange[1]+18, xrange[1]+28, xrange[2])
+    xlabels = seq(xrange[1]+1, xrange[2], 2)
     
     dir.create( outdir, recursive=T, showWarnings=F  )
     fn = file.path( outdir, paste( outfile, "png", sep="." ) )
@@ -33,12 +33,14 @@
 
     #Cairo( file=fn, type="png", bg="white", , pointsize=30, units="in", width=6, height=4, dpi=300 )
      png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
-      m=1; plot( uyrs, k[,m],  type="b", ylab="Catch rate (kg/trap)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
+      m=1; plot( uyrs, k[,m],  type="b", ylab="Catch rate (kg/trap)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
       m=2; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
       m=3; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
-      axis( 1, at=xlabels )
+      axis( 1, at=xlabels, labels=FALSE )
+      text(x=xlabels+1, y=par('usr')[3], labels=xlabels, srt=45, adj=c(1.5,1), xpd=TRUE)
+
       axis( 2 )
-      legend(x=1980, y=100, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=3, pch=pts, col=cols, cex=1.4 )
+      legend(x=1980, y=100, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2 )
     
     dev.off()
 

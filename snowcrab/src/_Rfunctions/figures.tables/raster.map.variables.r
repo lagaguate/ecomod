@@ -1,15 +1,20 @@
 #Function to summarize and map raster variables
 #Cell size can also be adjusted to change the default cell size that is mapped, default = 6km
 
-	raster.map.variables = function(K, p, variables, plottimes, polydir, shpdir, rasdir, mapdir, grid.fun, cell, extent=p$extUTM) {
+	raster.map.variables = function(K, p, variables, plottimes, polydir, shpdir, rasdir, mapdir, grid.fun, extent=p$extUTM) {
 		extent=p$extUTM
 		p.ext2 = extent(matrix(c(-66.4, 42.2, -57.2, 47.4), nrow=2, ncol=2))
 		cell=NULL
 		internal.crs <- "+proj=utm +zone=20 ellps=WGS84"
 		geog.proj <- CRS("+proj=longlat +ellps=WGS84")
 		seis <- colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")
+		loadfunctions("bathymetry")
+		# in meters
+		ib = isobath.db( depths=c(100, 200) , return.lonlat=TRUE )
 		
+
 		#Import coastline
+		#MG: Switch this to the smaller coastline with no islands
 		setwd(polydir)
 		coast<-readOGR(".", "NY_to_Nova_UTM20")
 		coast<-spTransform(coast, geog.proj)
@@ -18,7 +23,7 @@
 		#Designate Cell size
 		if(is.null(cell)) {
 			# 1 minute grid = 0.166, 2 minute grid = 0.033, 3minute grid = 0.05, 4 minute grid = 0.0666, 5 minute grid = 0.083
-			cell<- 0.05
+			cell<- 0.083
 			cell.big <- 0.083
 		}
 
@@ -93,21 +98,28 @@
 
 				#MG might want to convert landings /1000 to calculate tons for landings, right now it's using KG
 				quant <- unique(quantile(z, seq(0,1, length.out=75)))
+			#MG check to see if quantiles are being calculated properly for effort, there doesn't seem to be a lot of red on the maps
 				quant.small <- unique(quantile(z, seq(0,1, length.out=5)))
 				ckey <- list(at=quant, labels=list(at=quant.small))
 				#Plot the variable	
 				setwd(mapdir)
-			  fig.name <- paste(v, name, ".png", sep="")
+			    fig.name <- paste(v, name, ".png", sep="")
 				png(filename=fig.name, width=6, height=5, units="in", res=450)		
 				print(levelplot(grid.sum, at=quant, colorkey=ckey, col.regions=seis, 
-				margin=F, xlab="", ylab="", main=name, scales = list(x=list(cex=0.7), y=list(cex=0.7))) + layer(sp.polygons(coast, fill='lightgrey')))
+				margin=F, xlab="", ylab="", main=name, scales = list(x=list(cex=0.7), y=list(cex=0.7))) + layer(sp.polygons(coast, fill='lightgrey'))+ layer(sp.polygons(coast, fill='lightgrey')) + layer(sp.lines(ib, col='gray10', alpha= 0.6, lwd= 0.6)))
 				dev.off()
 			}
 			stack.name<- paste(v, "stack", ".png", sep="")
-			png(filename=stack.name, width=6, height=7, units="in", res=300)
-			max.plot <- length(sort(unique(M$yr)))
+			par(mar=c(1,1,1,1))
+ 			par(oma=c(0,0,0,0))
+			png(filename=stack.name, width=6.5, height=5, units="in", res=300)
+ 			par(mar=c(1,1,1,1))
+ 			par(oma=c(0,0,0,0))
+			max.plot <- length(sort(unique(M$yr)))-1
 			min.plot <- max.plot - 8
-			print(levelplot(rstack[[min.plot:max.plot]], at=quant, colorkey=ckey, col.regions=seis, margin=F, xlab="", ylab="") + layer(sp.polygons(coast, fill='lightgrey')))
+			main <- y
+			print(levelplot(rstack[[min.plot:max.plot]], at=quant, colorkey=ckey, col.regions=seis, 
+				margin=F, xlab="", ylab="", par.strip.text=list(cex=0.7), scales = list(x=list(cex=0.5), y=list(cex=0.5), main=list(cex=0.5))) + layer(sp.polygons(coast, fill='lightgrey')) + layer(sp.lines(ib, col='dimgrey', alpha=0.6, lwd= 0.4)))
 			dev.off()
 			to.print <- paste(v, "completed", sep=" ")
 			print(to.print)
@@ -115,3 +127,4 @@
 		
 		return("mapping completed")
 	}
+	

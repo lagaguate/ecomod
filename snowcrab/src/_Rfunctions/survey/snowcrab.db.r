@@ -131,7 +131,7 @@
       setvars = c("trip", "set", "station", "stime", "observer", "cfa", "lon", "lat", "towquality", "Zx", "Tx", "gear", "sa")#,"iset_type" )  
       print('need to addin the mpa station index')
 
-	set$trip = as.character(set$trip)
+	    set$trip = as.character(set$trip)
       set$set  = as.integer(set$set)
  
       ############
@@ -153,7 +153,7 @@
         # one-off error corrections until database gets refreshed
         i = which(set$trip=="S15092006" & set$set==3)
         if (length(i)==1) set$totmass[i] = 0
-    
+
         i = which(set$trip=="S21092007" & set$set==12)
         if (length(i)==1) set$towquality[i] = 1
       }
@@ -171,6 +171,36 @@
         set$stime[i] = 2146
         i = which(set$trip == 'S06112014' &set$set==8)
         set$lon[i] = 60.08317
+      }
+
+      debug.2015= T
+      if(debug.2015) {
+        i= which(set$trip_id == '100045549' & set$set==1 & set$station ==1)
+        set$stime[i] = 0449
+        i= which(set$trip_id == '100045553' & set$set==4 & set$station ==615)
+        set$stime[i] = 0944
+        i= which(set$trip_id == '100045757' & set$set==4 & set$station ==210)
+        set$stime[i] = 0845
+        i= which(set$trip_id == '100045764' & set$set ==5 & set$station == 344)
+        set$stime[i] = 0947
+	
+	      i= which(set$trip == 'S21112015' & set$set ==6 & set$station == 378)
+        set$stime[i] = 1102
+	      i= which(set$trip == 'S26102015' & set$set ==5 & set$station == 724)
+        set$stime[i] = 1948
+
+	      i=which(set$trip_id == '100045765' & set$set==15 & set$station==911)
+        set$sdate[i]= '2015-12-12 01:00:00'
+
+        i=which(set$trip_id == '100045765' & set$set ==15 & set$station==809)
+        set$sdate[i] = '2015-12-12 01:00:00'
+
+        i=which(set$trip== 'S12092015' & set$set==7)
+        set$towquality[i] = 4
+
+        i=which(set$trip== 'S05092015' & set$set==9 & set$station==187)
+        set$lon[i]= 60.2575
+        print("2015 debugging complete")
       }
 
       
@@ -306,6 +336,8 @@
       # det$chela = jitter(det$chela, amount=0.2)
       # det$abdomen = jitter(det$abdomen, amount=0.2)
       # det$mass =  jitter(det$mass, amount=0.2)  # mass in grams
+
+      # MG add some filtering here to identify strange crabs. mis-classed sex, etc....
 
       det = predictweights (det )
      
@@ -520,6 +552,8 @@
       factors = c("trip", "set")
 
       X = snowcrab.db( DS="set.clean" )
+      X2015 = X[which(X$yr==2015),]
+      head(X2015)
       Y = snowcrab.db( DS="det.initial" )
  
       # add various variables to set-level data
@@ -651,7 +685,12 @@
       factors = c("trip", "set")
 
       X = snowcrab.db( DS="set.merge.det" )
+      X2015 = X[which(X$yr == 2015),]
+      print(head(X2015))
+      
       cat = snowcrab.db( DS="cat.initial" )
+      cat2015 = cat[grep("2015", cat$trip),]
+      print(head(cat2015))
       
       cat0 = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="snowcrab", outtype="groundfishcodes"), c(factors, "totno")]
       names(cat0) = c(factors, "totno.all")
@@ -670,7 +709,9 @@
       set = X
       
       if ( nrow( snowcrab.db( DS="setInitial" )) != nrow( set) ) {   print( "Merge failure ... " );  stop()    }
-
+      X2015 = X[which(X$yr == 2015),]
+      print(head(X2015))
+      
       save( set, file=fn, compress=T )
       return ( "Complete" )
     }
@@ -687,9 +728,12 @@
       
       set = snowcrab.db( DS="setInitial") 
       set.names= names(set)
+      #set2015 = set[which(set$yr==2015),]
       
+      #These have 2015 data in them
       sb = seabird.db( DS="set.seabird.lookuptable" )
       ml = minilog.db( DS="set.minilog.lookuptable" )
+      ml2015 = ml[grep("2015", ml$trip),]
       nm = netmind.db( DS="set.netmind.lookuptable" )
 
       set = merge( set, sb, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".seabird") )
@@ -698,14 +742,18 @@
       
       set = set[ , c( set.names, "seabird_uid", "minilog_uid", "netmind_uid" ) ]
 
+      #These do not have 2015 data in them 
       sbStats =  seabird.db( DS="stats" )
  #     sbStats = sbStats[ , c("seabird_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
       sbStats = sbStats[ , c("seabird_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
-
+      #sbStats2015= sbStats[grep("2015", sbStats$trip),]
       mlStats =  minilog.db( DS="stats" )
  #     mlStats = mlStats[ , c("minilog_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
       mlStats = mlStats[ , c("minilog_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
- 
+       #mlStats2015= mlStats[grep("2015", mlStats$trip),]
+
+
+
       names( mlStats ) = c("minilog_uid",'trip','set', "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
 
 #      set = merge( set, sbStats, by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
@@ -739,6 +787,8 @@
       if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
     
       set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
+      set2015 = set[which(set$yr==2015),]
+      print(head(set2015))
 
       return (set)
     }
@@ -760,10 +810,13 @@
    
       # first complete set by adding netmind data
       set = snowcrab.db( DS="set.minilog.seabird" )
-      
       nm = netmind.db( DS="stats" )
       nm = nm[,  c("trip","set","netmind_uid", "distance", "spread", "spread_sd", "surfacearea", "vel", "vel_sd", "netmind_n", "slon", "slat" ) ]
       #set = merge( set, nm, by =c("netmind_uid"), all.x=TRUE, all.y=FALSE )
+      nm2015 = nm[grep("2015", nm$trip),]
+      print("nm2015")
+      print(head(nm2015))
+
       set = merge( set, nm, by =c("trip","set"), all.x=TRUE, all.y=FALSE )
 
       set = set[ order( set$yr, set$station, set$t0, set$chron) , ]
@@ -815,6 +868,8 @@
       set$observer = NULL
       set$cfa = NULL
       set$gear = NULL
+
+      #set2015= set[which(set$yr==2015),]
    
       save( set, file=fn, compress=TRUE )
       
@@ -835,6 +890,9 @@
       }
       
       set = snowcrab.db( DS="set.merge.cat" )
+      set2015 = set[which(set$yr == 2015),]
+      print(head(set2015))
+      
 
 			# bring in time invariant features:: depth
 			print ("Bring in depth")
@@ -842,7 +900,7 @@
       set$z = log( set$z )
 			
 		  # bring in time varing features:: temperature
-			print ("Bring in temperature")
+			#print ("Bring in temperature")
       set = habitat.lookup( set, p=p, DS="temperature" )
 
 			# bring in all other habitat variables, use "z" as a proxy of data availability
@@ -850,7 +908,7 @@
 		  set = habitat.lookup( set,  p=p, DS="all.data" )
 		
       # return planar coords to correct resolution
-      # set = lonlat2planar( set, proj.type=p$internal.projection )
+      set = lonlat2planar( set, proj.type=p$internal.projection )
       
       # complete area designations  
       set = fishing.area.designations(set, type="lonlat")
@@ -858,6 +916,8 @@
       # ----add other species
       print( "Adding other species to 'set' ")
       cat = snowcrab.db( DS="cat.initial" )
+      cat2015 = cat[grep("2015", cat$trip),]
+      print(head(cat2015))
 			
 			cat$uid = paste(cat$trip, cat$set, sep="~")
 			set$uid = paste(set$trip, set$set, sep="~")
@@ -886,6 +946,9 @@
         set[l,k] = 0
         set[,k] = set[,k] / set$sa
       }
+      
+      set2015 = set[which(set$yr ==2015), ]
+      print(head(set2015))
       
       save(set, file=fn, compress=T)
     

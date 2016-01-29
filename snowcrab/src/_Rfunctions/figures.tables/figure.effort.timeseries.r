@@ -40,14 +40,16 @@
       xrange = range(uyrs)
       xrange[1] = xrange[1]
       xrange[2] = xrange[2]
-      xlabels = c(xrange[1], xrange[1]+8, xrange[1]+18, xrange[1]+28, xrange[2])
+      xlabels = seq(xrange[1]+1, xrange[2], 2)
 
-      m=1; plot( uyrs, e[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
+
+      m=1; plot( uyrs, e[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
       m=2; points(uyrs, e[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
       m=3; points(uyrs, e[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
-      axis( 1, at=xlabels )
+      axis( 1, at=xlabels, labels=FALSE )
+      text(x=xlabels+1, y=par('usr')[3], labels=xlabels, srt=45, adj=c(1.5,1), xpd=TRUE)
       axis( 2 )
-      legend(x=1980, y=100, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=3, pch=pts, col=cols, cex=1.4 )
+      legend(x=1980, y=100, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2 )
       dev.off()
 
       png(file=fn2 ,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
@@ -60,13 +62,15 @@
       xrange = range(uyrs)
       xrange[1] = xrange[1]
       xrange[2] = xrange[2]
-      xlabels = c(xrange[1], xrange[1]+8, xrange[1]+18, xrange[1]+28, xrange[2])
+      xlabels = seq(xrange[1]+1, xrange[2], 2)
 
-      m=1; plot( uyrs, sm[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=4, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
+
+      m=1; plot( uyrs, sm[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=4, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
       m=2; points(uyrs, sm[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
-      axis( 1, at=xlabels )
+      axis( 1, at=xlabels, labels=FALSE )
+      text(x=xlabels+1, y=par('usr')[3], labels=xlabels, srt=45, adj=c(1.5,1), xpd=TRUE)
       axis( 2 )
-      legend(x=1985, y=45, c("N-ENS", "4X"), bty="n", lty=lns, lwd=3, pch=pts, col=cols, cex=1.4 )
+      legend(x=1985, y=45, c("N-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2 )
     }
     dev.off()
     cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )

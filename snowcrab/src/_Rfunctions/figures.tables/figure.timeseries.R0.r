@@ -1,6 +1,6 @@
 
-  figure.timeseries.R0 = function( outdir,infile=NULL, all.areas=T ,specific.area=NULL) {
- 
+  figure.timeseries.R0 = function( outdir, all.areas=T ) {
+ #browser()
     set = snowcrab.db( DS="set.merge.det")
   
     if (all.areas) {
@@ -10,46 +10,60 @@
       areas = c("cfasouth", "cfanorth" )
       regions = c("S-ENS", "N-ENS")
     }
-    if(!is.null(specific.area)) {areas = specific.area; regions= specific.area}
+
     n.regions = length(regions)
     n.areas = length(areas)
 
     v = "R0.mass"
 
     td =  get.time.series ( from.file=T )
-    if(!is.null(infile)) td = infile
     td = td[ which( td$variable == v) ,]
     td = td[ order(td$region, td$year) , ]
     td$region = factor(td$region, levels=areas, labels =regions)
     #   td[ which(td$region=="4X" & td$year < 2004), c("mean", "se", "ub", "lb", "n")] = NA
 
-    ylim=range(c(td$mean), na.rm=T); ylim[1]=ylim[1]-0.1*ylim[2]; ylim[2] = ylim[2]+ylim[2]*0.2
-    xlim=range(td$year); xlim[1]=xlim[1]-0.5; xlim[2]=xlim[2]+0.5
+    ylim='NULL'
+    ylim[2]=max(td$ub)
+    ylim[1]=round(min(td$lb), 0) - (max(td$ub)*0.05)
+    #ylim=range(c(td$mean), na.rm=T); ylim[1]=ylim[1]-0.1*ylim[2]; ylim[2] = ylim[2]+ylim[2]*0.2
+    xlim=range(td$year); xlim[1]=xlim[1]; xlim[2]=xlim[2]
+
+    xlabels = seq(min(xlim), max(xlim), 1)
+    ylabels = round(seq(0, round(as.numeric(ylim[2]), 2), length.out=8), 2)
 
     dir.create( outdir, recursive=T, showWarnings=F )
-    fn = file.path( outdir, paste( v, "combined",  sep="." ) )
-        cex.main = 1.4
-    cex.lab = 1.3
-    cex.axis = 1.3
+    fn = file.path( outdir, paste( v, "combined.png",  sep="." ) )
+    cex.main = 1.4
+    cex.lab = 1
+    cex.axis = 0.2
 
- Cairo( file=fn, type="pdf", bg="white",  units="in", width=6, height=8 )
+ Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=6.5, dpi=350 )
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
-          layout=c(1,n.regions), xlim=xlim, ylim=ylim,
-              main="Fishable Biomass", xlab="Year", ylab=list("Geometric mean t / km^2"),
-              cex.lab=cex.lab, cex.axis=cex.axis, cex.main = cex.main,
+          layout=c(1,n.regions),
+          par.strip.text=list(
+            plot.symbol=list(col='black', fill='darkgrey', cex=0.75, pch=21),
+            axis.text=list(cex=0.7),
+            par.main.text=list(cex=1),
+            layout.heights=list(strip=1, panel=1, main=0.5),
+            strip.background=list(col='lightgrey')),
+            #xlim=xlim, 
+            ylim=(c(as.numeric(ylim[1]), as.numeric(ylim[2]))),
+            scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
+              main="Recruits (t-1)", xlab=list("Year", cex=1), ylab=list("Geometric mean No. / km^2", cex=1),
+              #cex.lab=cex.lab, 
+              cex.axis=cex.axis, 
+              cex.main = cex.main,
               panel = function(x, y, subscripts, ub, lb, ...) {
-             larrows(x, lb[subscripts],
-                     x, ub[subscripts],
-                     angle = 90, code = 3, length=0.05)
-             panel.xyplot(x, y, type="b", lty=1, lwd=2, pch=20, col="black", ...)
-             panel.abline(h=median(y), col="gray75", ...)
+             larrows(x, lb[subscripts], x, ub[subscripts], angle = 90, code = 3, length=0.05)
+             panel.xyplot(x, y, type="b", lty=1, lwd=1.5, pch=21, fill='darkgrey', col="black", ...)
+            # panel.abline(h=0.5, col="gray75", ...)
          }
       )
     
     print(pl)
     dev.off()
-   cmd( "convert   -trim -quality 9  -geometry 200% -frame 2% -mattecolor white -antialias ", paste(fn, "pdf", sep="."),  paste(fn, "png", sep=".") )
+   #cmd( "convert   -trim -quality 9  -geometry 200% -frame 2% -mattecolor white -antialias ", paste(fn, "pdf", sep="."),  paste(fn, "png", sep=".") )
      return("Done")
     }
 

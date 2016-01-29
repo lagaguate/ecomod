@@ -1,5 +1,6 @@
 
-  net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL ) {
+  net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL ) {
+   #browser()
     
     tzone = "America/Halifax"  ## need to verify if this is correct
 
@@ -33,6 +34,7 @@
     }
   
     if(N$netmind_uid[1] =='netmind.S26092014.9.541.17.48.304') return(out)
+
  
     if ( any( is.null( t1 ) || is.null(t0) ) )   {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 

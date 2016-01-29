@@ -14,7 +14,7 @@
 
     variables = c("effort", "landings", "cpue")
     grid.fun=mean
-    raster.map.variables(x, p, variables, p$plottimes, polydir, shpdir, rasdir, mapdir, grid.fun)
+    raster.map.variables(x, p, variables, p$plottimes, polydir, shpdir, rasdir, mapdir, grid.fun=mean)
     return("Mapping Completed")
   }
 

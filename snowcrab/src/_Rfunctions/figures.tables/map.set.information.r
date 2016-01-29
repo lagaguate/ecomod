@@ -2,7 +2,8 @@
     
     set = snowcrab.db( DS="set.complete")
     variables = variable.list.expand("all.data")
-
+    #variables = c('totmass.male.com', 'totmass.female.mat')
+    
     if (method =="gmt") {
       # overrides to defaults
       p$tension = "-T.4"  # 0.35+ for steep; 0.25 for smooth

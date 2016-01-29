@@ -2,7 +2,7 @@
 isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return.lonlat=FALSE ) {
   #\\ create or return isobaths and coastlines/coast polygons
   #\\ return.lonlat=TRUE forces spherical coords otherwise planar coords as defined in p
-  
+  #browser()
   if (DS %in% c( "isobath", "isobath.redo" )) {
     fn.iso = file.path( project.datadirectory("bathymetry", "isobaths" ), "isobaths.rdata" ) 
     isobaths = NULL

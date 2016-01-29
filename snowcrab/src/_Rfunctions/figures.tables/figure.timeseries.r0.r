@@ -1,6 +1,6 @@
 
-  figure.timeseries.CC5 = function( outdir, all.areas=T ) {
- #browser()
+  figure.timeseries.R1 = function( outdir, all.areas=T ) {
+ 
     set = snowcrab.db( DS="set.merge.det")
   
     if (all.areas) {
@@ -14,7 +14,7 @@
     n.regions = length(regions)
     n.areas = length(areas)
 
-    v = "totno.male.com.CC5"
+    v = "R0.mass"
 
     td =  get.time.series ( from.file=T )
     td = td[ which( td$variable == v) ,]
@@ -29,7 +29,7 @@
     xlim=range(td$year); xlim[1]=xlim[1]; xlim[2]=xlim[2]
 
     xlabels = seq(min(xlim), max(xlim), 1)
-    ylabels = round(seq(0, round(as.numeric(ylim[2]), 0), length.out=8), -1)
+    ylabels = round(seq(0, round(as.numeric(ylim[2]), -1), length.out=8), -2)
 
     dir.create( outdir, recursive=T, showWarnings=F )
     fn = file.path( outdir, paste( v, "combined.png",  sep="." ) )
@@ -44,14 +44,13 @@
           par.strip.text=list(
             plot.symbol=list(col='black', fill='darkgrey', cex=0.75, pch=21),
             axis.text=list(cex=0.7),
-            par.main.text=list(cex=1)),
-          par.settings=list(
+            par.main.text=list(cex=1),
             layout.heights=list(strip=1, panel=1, main=0.5),
             strip.background=list(col='lightgrey')),
             #xlim=xlim, 
             ylim=(c(as.numeric(ylim[1]), as.numeric(ylim[2]))),
             scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
-              main="Total No. Male Commercial CC5", xlab=list("Year", cex=1), ylab=list("Geometric mean No. / km^2", cex=1),
+              main="Recruits (t-1)", xlab=list("Year", cex=1), ylab=list("Geometric mean No. / km^2", cex=1),
               #cex.lab=cex.lab, 
               cex.axis=cex.axis, 
               cex.main = cex.main,

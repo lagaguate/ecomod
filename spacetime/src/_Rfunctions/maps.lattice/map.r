@@ -7,7 +7,7 @@
     # map using levelplot ... no GMT dependency
 		
 		require( lattice )
-
+#browser()
     xlim =ylim = NULL
     colorkey=list(space="right", labels=list(cex=3)) # these are lattice options
 
@@ -68,8 +68,10 @@
         }
 
         if (depthcontours) {
-          sp.lines( isobath.db( p=pp, depths=c(100, 300,  500, 700 ) ), col = "darkgrey", pch=".", cex=0.6 )
-          sp.lines( isobath.db( p=pp, depths=c(200, 400, 600 ) ), col = "grey", pch=".", cex=0.6 )
+          #sp.lines( isobath.db( p=pp, depths=c(100, 300,  500, 700 ) ), col = "darkgrey", pch=".", cex=0.6 )
+          #sp.lines( isobath.db( p=pp, depths=c(200, 400, 600 ) ), col = "grey", pch=".", cex=0.6 )
+          #sp.lines( isobath.db( p=list(internal.crs="+proj=utm+ellps=WGS84+zone=20+units=km"), depths=c(100, 300,  500, 700 ) ), col = "darkgrey", pch=".", cex=0.6 )
+          #sp.lines( isobath.db( p=list(internal.crs="+proj=utm+ellps=WGS84+zone=20+units=km"), depths=c(200, 400, 600 ) ), col = "grey", pch=".", cex=0.6 )
         }
 
         if ( cfa.regions ) {
@@ -101,9 +103,17 @@
           panel.lines( cfa.4x.24$plon, cfa.4x.24$plat, col = "darkgray", lwd=2 )
         
         }
-                  
+        
+
         #coastline
-        sp.lines( isobath.db( p=pp, depths=c(0) ), col = "black", pch=".", cex=1 )
+        sp.lines( isobath.db( p=pp, depths=c(100) ), col = "black", pch=".", cex=1 )
+ 
+        #polydir = file.path(project.datadirectory("polygons"), "data", "Basemaps", "Marine", "Coastline")
+       #setwd(polydir)
+        #coast<-readOGR(".", "NY_to_Nova_UTM20")
+        #coast <- gSimplify(coast, tol=0.01, topologyPreserve=TRUE)
+        #sp.polygons(coast, fill='lightgrey')
+
 
         if (is.null(leg) ) {
 				  xoffset = 30
@@ -131,3 +141,5 @@
   }
 
 
+#ib = isobath.db( depths=c(100, 200) , return.lonlat=TRUE )
+#(sp.lines(ib, col='dimgrey', alpha=0.6, lwd= 0.4)

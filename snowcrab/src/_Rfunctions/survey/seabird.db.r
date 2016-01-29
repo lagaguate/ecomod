@@ -125,6 +125,7 @@
         return (res)
 
       }
+     # browser()
       
       # default action  is "stats.redo"
       

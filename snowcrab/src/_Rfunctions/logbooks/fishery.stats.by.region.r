@@ -10,9 +10,11 @@
     if (Reg=="cfanorth") region = c("cfa20", "cfa21", "cfa22", "cfanorth", "north")
     if (Reg=="cfasouth") region = c("cfa23", "cfa24", "cfasouth", "cfaslope")
     if (Reg=="cfa4x") region = "cfa4x"
+    if (Reg=="cfa23") region = "cfa23"
+    if (Reg=="cfa24") region = "cfa24"
     
     lnd = landings[ which(landings$cfa %in% region) ,]
-     
+    #lnd = landings[ which(landings$cfa0 %in% region) ,]
     l = aggregate( lnd$landings, list(yr=lnd$yr), function(x) sum(x, na.rm=T))
     names(l) = c("yr", "landings")
     

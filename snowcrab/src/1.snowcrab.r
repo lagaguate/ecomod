@@ -23,12 +23,12 @@
 
 
   if (obtain.database.snapshot) {
-    snowcrab.db( DS="set.odbc.redo", yrs=1996:p$current.assessment.year ) 
-    snowcrab.db( DS="det.odbc.redo", yrs=1996:p$current.assessment.year ) 
-    snowcrab.db( DS="cat.odbc.redo", yrs=1996:p$current.assessment.year ) 
-    logbook.db(  DS="odbc.logbook.redo", yrs=1996:p$current.assessment.year ) 
-    logbook.db(  DS="odbc.licence.redo" ) 
-    logbook.db(  DS="odbc.areas.redo" ) 
+    snowcrab.db( DS="set.odbc.redo", yrs=1996:p$current.assessment.year ) # Copy over datadirectory ("snowcrab"), "data", "trawl", "SNCRABSETS"
+    snowcrab.db( DS="det.odbc.redo", yrs=1996:p$current.assessment.year ) # Copy over datadirectory ("snowcrab"), "data", "trawl", "SNCRABDETAILS"
+    snowcrab.db( DS="cat.odbc.redo", yrs=1996:p$current.assessment.year ) # Copy over datadirectory ("snowcrab"), "data", "trawl", "SNTRAWLBYCATCH"
+    logbook.db(  DS="odbc.logbook.redo", yrs=1996:p$current.assessment.year ) #Copy over datadirectory ("snowcrab"), "data", "logbook", "datadump"
+    logbook.db(  DS="odbc.licence.redo" ) #Copy over datadirectory ("snowcrab"), "data", "logbook", "lic.datadump.rdata" 
+    logbook.db(  DS="odbc.areas.redo" ) #Copy over datadirectory ("snowcrab"), "data", "observer", "datadump"
     observer.db( DS="odbc.redo", yrs=1996:p$current.assessment.year )  
   }
 
@@ -49,11 +49,9 @@
 
 # -------------------------------------------------------------------------------------
 # create base set data and add all historical data fixes
-
-  if (get.base.data) {
-    
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+    if (get.base.data) {
     # sequence is important ... do not change 
-    
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
  
@@ -67,27 +65,29 @@
         netmind.yToload = 1999:p$current.assessment.year
       }     
      
-
-    # The following requires "setInitial"
+    # The following requires "setInitial", run this line if loading netmind data 2014 or after
     if(esnoar2netmind.conversion){
-      netmind.db(DS='esnoar2netmind.conversion',Y=2014:p$current.assessment.year) #MG line doesn't seem to just run on it's own. need to open netmind.db.r and run this
-    }
+      netmind.db(DS='esnoar2netmind.conversion',Y=2014:p$current.assessment.year) 
+      }
 
     seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012;
-    #MG minilog data is not being recorded, figure out if it should be used and kept in the package
     minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
     netmind.db( DS="load", Y=netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
 
+    #MG I'm not sure why these stats are not being written automatically, neet to set it in the code above to run these after data is loaded
+    seabird.db (DS="stats.redo", Y=2014:p$current.assessment.year)
+    minilog.db (DS="stats.redo", Y=2014:p$current.assessment.year)
+    netmind.db(DS="stats.redo", Y=p$current.assessment.year)
     
-    
-
     snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )
+   
     set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-
-       
+    set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
+    head(set2015)  
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
       problems = data.quality.check( set, type="position") 
+      #MG try checking the end position of the tow, if there is an error
       
       problems = data.quality.check( set, type="minilog.mismatches" )
       problems = data.quality.check( set, type="tminilog.load")
@@ -96,6 +96,7 @@
       
       problems = data.quality.check( set, type="netmind.load")
       problems = data.quality.check( set, type="netmind.mismatches" )
+#MG there is still a mismatch happening with S26102015 set 5 and station 724, not ssure why it's not finding a match
       
       problems = data.quality.check( set, type="tow.duration")
       problems = data.quality.check( set, type="tow.distance")
@@ -113,55 +114,40 @@
     snowcrab.db( DS="set.merge.det.redo" )
     snowcrab.db( DS="set.merge.cat.redo" )  
 
-  }  # end base data
 
+  }  # end base data
 
   parameters.initial = p  # copy here as the other calls below overwrites p
 
 # -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
-
-  
 #     Bathymetry data :: 
   loadfunctions("bathymetry", functionname="bathymetry.r" ) # if necessary
-
 #     Substrate type  :: 
   loadfunctions("substrate", functionname="substrate.r" ) # if necessary
-
 #     Groundfish data :: 
 #     NOTE  groundfish.db( DS="odbc.redo" ) must first be done manually 
 #     on a windows machine and data snapshots moved to local system
   loadfunctions( "groundfish", functionname="1.groundfish.r" ) 
-
 #     Taxonomy :: 
   loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary
-
-
 ## The following are very SLOW: 
 # Temperatures ::  
   loadfunctions ( "temperature", functionname="temperature.r" )  # days
-
-  
 # Habitat data ... environmentals only as it is used by bio.db etc
   loadfunctions ( "habitat", functionname="habitat.temperatures.r" ) 
-
 # BIO db update :: 
 # must come after temperature interpolations to permit temperature lookups 
   loadfunctions ( "bio", functionname="bio.r" )  
-
 # the folllowing depends upon bio.db and temperature  
   loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
   loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
   loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) #ran into problems with mapping these need to check sept 7 2014 
   loadfunctions ( "metabolism", functionname="metabolism.r" ) 
   loadfunctions ( "condition", functionname="condition.r" ) 
-
-
 # Habitat data :: NOTE:: This glues all the above together in planar coord system 
 # to allow fast lookup of data for matching with set, logbook data
   loadfunctions ( "habitat", functionname="habitat.complete.r" ) 
-
-
 
 # -------------------------------------------------------------------------------------
 # Final data lookup/matching .. AFTER refreshing all above tables (where relevent/possible)
@@ -172,10 +158,11 @@
   snowcrab.db( DS ="set.complete.redo", p=p )   
   snowcrab.db( DS ="set.logbook.redo", yrs=1996:p$current.assessment.year ) # add gridded fisheries data
   snowcrab.db( DS ="set.logbook", yrs=1996:p$current.assessment.year ) 
-  make.timeseries.data(p=p, areas=p$regions )  #  timeseries of means of all survey data
   
-  #in 2014 as there was reduced stations for comparison
-make.timeseries.data(p=p, areas=p$regions,reduced.stations=F, vars=c('R0.mass' ))  #  timeseries of means of all survey data
+  #make.timeseries.data(p=p, areas=p$regions )  #  timeseries of means of all survey data
+  #in 2014 as there were reduced stations for comparison
+  #make.timeseries.data(p=p, areas=p$regions,reduced.stations=F, vars='R0.mass' ) #  timeseries of means of all survey data
+  make.timeseries.data(p=p, areas=NULL,reduced.stations=F, vars=NULL) #  timeseries of means of all survey data
   
 
   #  tsdata = snowcrab.db("set.timerseries")
@@ -199,7 +186,7 @@ make.timeseries.data(p=p, areas=p$regions,reduced.stations=F, vars=c('R0.mass' )
 # simple geometric means of raw data:  used by indicators ordination and some figures
   # takes many hours ... need to make parallel  TODO 
   tsdata =  get.time.series ( x=snowcrab.db( DS="set.logbook"),
-    regions=p$regions, vars=variable.list.expand("all.data"), from.file=F, trim=0 )
+  regions=p$regions, vars=variable.list.expand("all.data"), from.file=F, trim=0 )
 
 
 

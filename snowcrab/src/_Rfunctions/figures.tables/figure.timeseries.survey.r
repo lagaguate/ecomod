@@ -21,8 +21,9 @@
 
     #na.omit()
     variables =  c( variable.list.expand("all.to.model"), variable.list.expand("snowcrab.cw"), variable.list.expand("physical"),"landings", "cpue", "notraps", "effort" )
-    names.set = names(set)
+    #variables = c('RO.mass', 'R1.no', 'totno.female')
 
+    names.set = names(set)
     for ( v in variables ) {
       cex=1
       main = list(v, cex=cex) 
