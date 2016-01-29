@@ -132,8 +132,12 @@
         print("All data are within positional bounds")
         return (NULL)
       } else {  
+<<<<<<< HEAD
        #outside = setdiff( c(1:nrow(set), inside) )
        outside = setdiff(1:nrow(set), inside)
+=======
+        outside = setdiff( 1:nrow(set), inside )
+>>>>>>> master
         points( set$lon[outside], set$lat[outside], col="red")
         print( "------------- The following are out of the cfa bounds: "  )
         print( set[ outside, ] )

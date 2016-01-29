@@ -630,19 +630,37 @@
 
     # ----------------
  
-    if ( DS %in% c("bathymetry.spacetime.input", "bathymetry.spacetime.input.redo" )) {
-      #\\ DS="bathymetry.spacetime.input" is a low-level call that creates the input data table in a bigmemory table  
+    if ( DS %in% c("bathymetry.spacetime.inputs.data", "bathymetry.spacetime.inputs.data.redo" )) {
+      #\\ DS="bathymetry.spacetime.input" is a low-level call that prepares the bathymetry data
+      #\\   for input into a bigmemory table for further processing
       fn = file.path( datadir, paste( "bathymetry", "spacetime", "input", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.spacetime.input" ) {
+      if (DS =="bathymetry.spacetime.inputs.data" ) {
         load( fn)
         return( B )
       }
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
-      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" ) 
+      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )
+      B = B[ which(B$z > -100),]
       B = lonlat2planar( B, proj.type=p$internal.projection ) 
       B$plon = grid.internal( B$plon, p$plons )
       B$plat = grid.internal( B$plat, p$plats )
       B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
+      save( B, file=fn, compress=TRUE)
+      return(fn)
+    }
+
+    # --------------
+     
+    if ( DS %in% c("bathymetry.spacetime.inputs.prediction", "bathymetry.spacetime.inputs.prediction.redo" )) {
+      #\\ DS="bathymetry.spacetime.input" is a low-level call that creates the input data table in a bigmemory table  
+      fn = file.path( datadir, paste( "bathymetry", "spacetime", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
+      if (DS =="bathymetry.spacetime.inputs.prediction" ) {
+        load( fn)
+        return( B )
+      }
+      B = expand.grid( p$plons, p$plats )
+      attr( B, "out.attrs") = NULL
+      names( B ) = c("plon", "plat")
       save( B, file=fn, compress=TRUE)
       return(fn)
     }
@@ -658,13 +676,13 @@
 
       # on resolution of statistics
       p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-      S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
-      V = data.frame( cbind(plon=S[,1], plat=S[,2]) )
+      Sloc = attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir ) 
+      V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
       V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") ) 
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" )
     }
 
-  #-------------------------
+    #-------------------------
 
     if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
       #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the 
@@ -677,28 +695,17 @@
         return( B )
       }
  
-      preds = spacetime.db( p=p, DS="predictions" )  
       nr = p$nplons
       nc = p$nplats
  
-      BP = expand.grid( plon=p$plons, plat=p$plats ) # coords of full prediction area
-      attr( BP, "out.attrs") = NULL
-      BP$z = preds[,2] # really Z.mean but for historical compatibility "z" 
-      BP$Z.predictionSD = preds[,3]
-      
+      BP = spacetime.db( p=p, DS="predictions" )  
+      BP = BP[, c( "plon", "plat", "mean", "sdev")]
+      names(BP) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z" 
+
       # remove land
       oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
       BP$z[oc] = NA
       BP$Z.predictionSD[oc] = NA
-
-      rm(preds); gc()
-
-      # tidy up cases where there are no data .. should not be necessary
-      nd = which( BP$zn==0 )
-      if (length(nd)>0) {
-        BP$z[nd] = NA # no data .. no mean
-        BP$Z.predictionSD[nd] = NA 
-      }
 
       Bmn = matrix( data=BP$z, nrow=nr, ncol=nc )  # means
       
@@ -751,11 +758,13 @@
       
       if ( DS %in% c("spde_complete", "complete") ) {
         
-        if  (DS=="complete") {
+        if  (DS %in% c("complete")) {
+          # for backwards compatibility
           Z = bathymetry.db( p=p, DS="spde_complete", return.format == "dataframe" )
           return (Z)
         }
-        
+
+        # DS="spde_complete"
         domain = NULL
         if ( is.null(domain)) {
           if ( exists("spatial.domain", p)) {
@@ -767,7 +776,22 @@
         fn = file.path( project.datadirectory("bathymetry", "interpolated"), 
           paste( "bathymetry", "spde_complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
+     
+        if ( return.format == "brick" ) { ## default
+          Z = brick(Z)
+          return( Z )
+        } 
+          
         if ( return.format == "dataframe" ) { ## default
+          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
+          Z = as.data.frame(Z)
+          u = names(Z)
+          names(Z)[ which( u=="x") ] = "plon"
+          names(Z)[ which( u=="y") ] = "plat"
+          return( Z )
+        } 
+       
+        if ( return.format == "SpatialPointsDataFrame" ) { ## default
           Z = as( brick(Z), "SpatialPointsDataFrame" ) 
           return( Z )
         } 
@@ -783,10 +807,12 @@
       Z0 = bathymetry.db( p=p0, DS="bathymetry.spacetime.finalize" )
       coordinates( Z0 ) = ~ plon + plat 
       crs(Z0) = crs( p0$interal.crs )
+      above.sealevel = which( Z0$z < 0 ) # depth values < 0 are above  
+      if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
  
       Z = list()
       
-      grids = unique( c( p$spatial.domain, grids.new, "canada.east.highres.lonlat" ))
+      grids = unique( c( p$spatial.domain, grids.new ))
 
       for (gr in grids ) {
         p1 = spatial.parameters( type=gr )

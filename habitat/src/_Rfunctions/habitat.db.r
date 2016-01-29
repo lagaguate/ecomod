@@ -35,18 +35,17 @@
       }
      
 			# depth is the primary constraint 
-      Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
+      Z = bathymetry.db( p=p, DS="complete" )  # SS to a depth of 500 m  the default used for all planar SS grids
       Z$id = 1:nrow(Z)
-    
-      dZ = bathymetry.db( p=p, DS="dZ.planar" )  #already log transformed
-      ddZ = bathymetry.db( p=p, DS="ddZ.planar" )  # already log transformed
+      Z$dZ = log( Z$dZ )
+      Z$ddZ = log( Z$ddZ)
+      Z = Z[, c("plon", "plat", "id", "z", "dZ", "ddZ" )]
+
       S =  substrate.db ( p=p, DS="planar")
       S$substrate.mean = log(S$grainsize)
       S$grainsize = NULL
   
-      PS = merge( Z, S, by =c("plon", "plat"), all.x=T, all.y=F, sort=F )
-      PS = merge( PS, dZ, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
-      PS = merge( PS, ddZ, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
+      PS = merge( Z, S, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
      
       print( "Interpolating missing data with inverse-distance weighted means" )
         vars = setdiff( names(PS), c("plon", "plat") )

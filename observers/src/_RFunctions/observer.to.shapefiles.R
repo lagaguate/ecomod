@@ -16,6 +16,12 @@ observer.to.shapefiles<-function(GUI=T,
   library(sp) 
   library(rgdal)
   library(sqldf)
+  
+  #load ecomod functions
+  loadfunctions("observers")
+  loadfunctions("utility/src/_Rfunctions/datetime")
+  loadfunctions("utility/src/_Rfunctions/sql.tools")
+  
   channel<-odbcConnect("PTRAN",uid=oracle.observer.username,pwd=oracle.observer.password)
   if (GUI ==F){
     if (!is.null("gear")){
@@ -280,7 +286,8 @@ if (focus=="gear"){
   }
   
   #set the projection
-  crs.geo <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84") 
+  #crs.geo <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84") 
+  crs.geo <- CRS("+init=epsg:4326") 
   crs.utm20N<-CRS("+init=epsg:26920")
   
   set.all.shp<-SpatialLinesDataFrame(SpatialLines(set.all.lines), set.all.attrib, match.ID = T)
@@ -321,7 +328,5 @@ if (focus=="gear"){
   }
   print(paste("Completed - data written to ",project.datadirectory("observers"),"/",filename,sep=""))
 }
-#loadfunctions("observers")
-#loadfunctions("utility/src/_Rfunctions/datetime")
-#loadfunctions("utility/src/_Rfunctions/sql.tools")
+
 #observer.to.shapefiles()

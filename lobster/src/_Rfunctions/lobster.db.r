@@ -61,7 +61,7 @@
         
         # logs from LFA 41 Cheryl's query for adjusted catch and assigning subareas
         query41<-"select b.mon_doc_id, b.vr_number, b.vessel_name, b.captain, b.licence_id, b.FV_FISHED_DATETIME, 
-                round((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100)DDLAT,
+                round((((b.ENT_LATITUDE/100/100-TRUNC(b.ENT_LATITUDE/100/100))*100)/60)+TRUNC(b.ENT_LATITUDE/100/100),4) DDLAT,
                 round((((b.ENT_LONGITUDE/100/100-TRUNC(b.ENT_LONGITUDE/100/100))*100)/60)+TRUNC(b.ENT_LONGITUDE/100/100),4) DDLON,
                 b.NUM_OF_TRAPS, b.EST_WEIGHT_LOG_LBS, 
                 b.EST_WEIGHT_LOG_LBS*a.ratio adjcatch,

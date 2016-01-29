@@ -25,13 +25,13 @@
 				print ( paste("Year:", y)  )
 				
 				O = bathymetry.db( p=p, DS="baseline" )
-        P = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
+        P = temperature.db( p=p, DS="spatial.interpolation", yr=y  )
      		P[ P < -2 ] = -2  
 			  P[ P > 30 ] = 30 
 			  ibaddata = which( !is.finite(P) )
 				P[ ibaddata ] = mean(P, na.rm=T )
 				
-				V = temperature.interpolations( p=p, DS="spatial.interpolation.se", yr=y  )
+				V = temperature.db( p=p, DS="spatial.interpolation.se", yr=y  )
 				V[ V < 0.1 ] = 100  # shrink weighting of unreasonably small SEs
 			  V[ which( !is.finite(V)) ] = 1000 # "
 				V[ ibaddata ] = 10000 # " smaller still

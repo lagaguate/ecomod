@@ -40,11 +40,12 @@ substrate.figures = function( DS=NULL, p=NULL ) {
   if ( DS=="statistics" ) {
     p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
     S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
+    Sloc = attach.big.matrix(p$descriptorfile.Sloc , path=p$tmp.datadir ) 
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot
     datarange = log( c( 5, 800 ))
     dr = seq( datarange[1], datarange[2], length.out=150)
     oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="statistics" )
-    levelplot( log(S[oc,3])  ~ S[oc,1] + S[oc,2] , aspect="iso", at=dr, col.regions=color.code( "seis", dr) ,
+    levelplot( log(S[oc,1])  ~ Sloc[oc,1] + Sloc[oc,2] , aspect="iso", at=dr, col.regions=color.code( "seis", dr) ,
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), cex=2,
       panel = function(x, y, subscripts, ...) {
         panel.levelplot (x, y, subscripts, aspect="iso", rez=c(5,5), ...)

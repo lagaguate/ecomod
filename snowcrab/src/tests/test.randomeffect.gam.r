@@ -84,7 +84,7 @@ Q1d 214.52285 1256.456  k=256 -- not enough data in some years
   PS$weekno = p$prediction.weekno  # must be same as above
   PS$t = NA
    
-  PST = temperature.interpolations( p=p, DS="spatial.interpolation", yr=y  )
+  PST = temperature.db( p=p, DS="spatial.interpolation", yr=y  )
   if (is.null(PST)) next ()
   
   PS$t = PST[, p$prediction.weekno ]

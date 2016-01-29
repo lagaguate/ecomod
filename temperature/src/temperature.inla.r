@@ -1,4 +1,22 @@
 
+  p = list( project.name = "temperature" )
+  p$project.root = project.datadirectory( p$project.name )
+
+  p$libs = RLibrary( c( "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
+  p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "polygons" , "temperature" ) ) 
+
+
+  p$tyears = c(1990:1995)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
+  p$wtimes = 1:52 
+  p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
+  
+  # p = temperature.db( p=p, DS="bigmemory.filenames" ) 
+
+  
+  # wrap up
+  p = temperature.db( p=p, DS="bigmemory.cleanup" )
+
+
   # test timeseries methods and spatial, spatio-temporal methods on ocean temperature data
   loadfunctions("utility")  
   RLibrary( "INLA" )
@@ -85,9 +103,7 @@
   # t0 = t0[ filter.region.polygon( t0, region="isobath1000m" ) , ]
 
    # scotianshelf = locator() 
-    scotianshelf = read.table( find.ecomod.gis( "scotia.fundy.with.buffer.dat"  ) ) 
-    names( scotianshelf) = c("lon", "lat")
-
+    scotianshelf = polygon.db( id="scotia.fundy.with.buffer"  ) 
     plot( t0$lat ~ t0$lon, pch="." )
     lines( scotianshelf )
 

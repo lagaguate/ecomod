@@ -21,7 +21,7 @@
       xyz = xyz[, c("plon", "plat")]
       for (iy in ip ) {
         y = p$runs[iy, "yrs"] 
-        H = temperature.interpolations( p=p, DS = "temporal.interpolation", yr=y  )
+        H = temperature.db( p=p, DS = "temporal.interpolation", yr=y  )
         if (is.null(H)) next ()
         for (w in 1:52) {
           wchar = paste( "0", w, sep="" )
@@ -29,7 +29,8 @@
           outfn = paste( "temperatures.bottom", y, wchar, sep=".")
           annot = paste("Temperature\n", y, " - ", w, sep="")
           map( xyz=cbind(xyz, H[,w]), cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners , spatial.domain=p$spatial.domain)
         }
       } 
       return( "Completed maps")
@@ -61,7 +62,8 @@
           outfn = paste( "temperatures.bottom", y, sep=".")
           annot = y
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners, spatial.domain=p$spatial.domain )
         }  
     
         if (type %in% c("amplitudes", "annual") ) {
@@ -71,7 +73,8 @@
           outfn = paste( "temperatures.bottom.amplitude", y, sep=".")
           annot = y
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners, spatial.domain=p$spatial.domain   )
         }  
     
         if (type %in% c("week.of.minima", "annual") ) {
@@ -81,7 +84,8 @@
           outfn = paste( "week.temperature.minima", y, sep=".")
           annot = y
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners , spatial.domain=p$spatial.domain )
         }  
     
         if (type %in% c("halfperiod", "annual") ) {
@@ -91,7 +95,8 @@
           outfn = paste( "halfperiod.length", y, sep=".")
           annot = y
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners , spatial.domain=p$spatial.domain )
         }
 
         if (type %in% c("tsd", "annual") ) {
@@ -101,7 +106,8 @@
           outfn = paste( "temperatures.bottom.sd", y, sep=".")
           annot = y
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners , spatial.domain=p$spatial.domain )
         }
       
       } }
@@ -119,7 +125,8 @@
           outfn = paste( "temperatures.bottom", sep=".")
           annot = paste("Temperature\n", sep="")
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners, spatial.domain=p$spatial.domain  )
         }  
     
         if (type %in% c("amplitudes", "global") ) {
@@ -130,7 +137,8 @@
           outfn = paste( "temperatures.bottom.amplitude", sep=".")
           annot = paste("Temperature amplitude\n",  sep="")
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners , spatial.domain=p$spatial.domain )
         }  
     
         if (type %in% c("week.of.minima", "global") ) {
@@ -141,7 +149,8 @@
           outfn = paste( "week.temperature.minima", sep=".")
           annot = paste("Week of temperature minima\n", sep="")
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners , spatial.domain=p$spatial.domain )
                  }  
     
         if (type %in% c("halfperiod", "global") ) {
@@ -152,7 +161,8 @@
           outfn = paste( "halfperiod.length", sep=".")
           annot = paste("Length of half-period\n", sep="")
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners , spatial.domain=p$spatial.domain )
         }
         if (type %in% c("tsd", "global") ) {
           H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tsd" )
@@ -162,7 +172,8 @@
           outfn = paste( "temperatures.bottom.sd",  sep=".")
           annot = paste("Temperature SD\n", sep="")
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
-            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, corners=p$corners  )
+            fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
+            corners=p$corners  , spatial.domain=p$spatial.domain)
         }
 
     }

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 bottom.contact.plot = function ( O, netspread=FALSE ) {
   
   if ( exists("error.flag", O) && !is.na( O$error.flag ) )  {
@@ -164,3 +168,8 @@ bottom.contact.plot = function ( O, netspread=FALSE ) {
     
     }
 }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> master

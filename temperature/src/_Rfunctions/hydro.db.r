@@ -3,7 +3,6 @@
   hydro.db = function( ip=NULL, p=NULL, DS=NULL, yr=NULL, vname=NULL, additional.data=c("groundfish", "snowcrab"), ...) {
 
     # manipulate temperature databases from osd, groundfish and snow crab and grid them 
-
     # OSD data source is 
     # http://www.meds-sdmm.dfo-mpo.gc.ca/zmp/climate/climate_e.htm
     # http://www.mar.dfo-mpo.gc.ca/science/ocean/database/data_query.html 
@@ -14,15 +13,12 @@
     basedir = project.datadirectory("temperature", "data" )
     loc.archive = file.path( basedir, "archive", "profiles", p$spatial.domain )
     loc.basedata = file.path( basedir, "basedata", "rawdata", p$spatial.domain )
-    
     dir.create( loc.basedata, recursive=T, showWarnings=F )
-  
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
     if (exists( "libs", p)) RLibrary( p$libs ) 
-    
     # OSD data series variables of interest
-    varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE" ,"SALINITY" ,"SIGMAT" ) 
- 
+    
+
     if ( DS == "osd.rawdata" ) {
       # simple loading of annual data files
       out = NULL
@@ -41,6 +37,7 @@
     if ( DS=="osd.rawdata.allfiles.redo" ) {
       fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
       X = NULL
+      varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE","SALINITY" ,"SIGMAT" ) 
       for (fn in fn.all) {
         f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
         f = f[,varlist] 
@@ -52,84 +49,74 @@
           X = f[ which( fyears == yrs) ,]
           names(X) = tolower( names(X) )
           X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-          X$cruise_date = NULL
+          X = X[ , vartosave ]
           save( X, file=fn.out, compress=T) 
-
         }
       }
 
     } 
     
     if (DS=="osd.rawdata.singleyear.redo" ) {
+      varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE","SALINITY" ,"SIGMAT" ) 
+      varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
       for ( y in yr) {
         X = NULL
         fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
         fn = fn.all[ grep (as.character(y), fn.all) ]
         f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
         X = f[,varlist]
-         
         fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
         names(X) = tolower( names(X) )
         X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-        X$cruise_date = NULL
+        X= X[, varstosave ]
         save( X, file=fn.out, compress=T)
       }
     } 
-    
-    if (DS=="osd.oneoff.singleyear.redo" ) {
-        ## this is a data dump directly from Roger Petipas	
-        X = NULL
-        fn.all = list.files( path=loc.archive, pattern="partial.*.gz", full.names=T) 
-        fn = fn.all[ grep (as.character(yr), fn.all) ]
-        f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
-        colnames(f) =  c( "cruiseid", "latitude", "longitude", "cruise_date", "time", 
-            "pressure", "temperature", "salinity", "sigmat", "stationid" ) 
-        f$depth = decibar2depth ( P=f$pressure, lat=f$latitude )
-        X = f[,tolower(varlist)]
+ 
+    # ----------------------
 
-        fn.out = file.path( loc.basedata, paste( "osd.rawdata", yr, "rdata", sep=".") )
-        names(X) = tolower( names(X) )
-        X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-        X$cruise_date = NULL
-        save( X, file=fn.out, compress=T)
+    if (DS=="osd.initial" ) {
+      ## this is a data dump directly from Roger Pettipas for 2008 to 2015 
+      varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
+      fndata = file.path( loc.archive, "Data_2008-2014.csv.xz" ) 
+      XX = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
+      names(XX) = tolower( names(XX) )
+      XX$depth = decibar2depth ( P=XX$pressure, lat=XX$latitude )
+      if (!exists( "sigmat", XX))  XX$sigmat = XX$sigma.t  # naming is variable
+      XX$date_string = paste( XX$year, XX$month, XX$day, sep="-" )
+      XX$date = chron( dates.=XX$date_string, format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
+      yrs = sort( unique( XX$year) )
+      for ( y in yrs ) {
+        print (y)
+        fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+        ii = which ( XX$year == y )
+        if (length(ii) > 1) {
+          X= XX[ ii, varstosave ]
+          save( X, file=fn.out, compress=T)
+        }
+      }
     }
 
-    if (DS=="osd.pettipas.redo" ) {
-      ## this is another data dump directly from Roger Petipasfort 2010 to 2012 using MSACCESS -> text
-      ## and merging here
-      datadir = file.path( loc.archive, "pettipas" )
-     
+ 
+    # ----------------------
+
+
+    if (DS=="osd.current" ) {
+      ## this is a data dump directly from Roger Pettipas for 2015 and on 
+      varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
       for ( y in yr ) {
         print (y)
-        fndata = file.path( datadir, paste( "temp_dt_", y, ".txt.xz", sep="" ) ) # xz compressed files
-        fnset = file.path( datadir, paste( "temp_st_", y, ".txt.xz", sep="" ) )
-
-        tdata = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
-        names( tdata) = c("pressure", "temperature", "salinity", "sigmat", "stationid" )
-
-        tsets = read.csv( file=xzfile(fnset), header=TRUE, stringsAsFactors=FALSE , na.strings="9999" )
-        names( tsets) = c("cruiseid", "latitude", "longitude", "cruise_date", "time", "depth_sounding", "pmax", "stationid" )
-
-        X = merge( tdata, tsets, by="stationid", all.x=TRUE, all.y=FALSE )
-        X$depth = decibar2depth ( P=X$pressure, lat=X$latitude )
-        
-        X = X[,tolower(varlist)]
-  
+        fndata = file.path( loc.archive, paste( "Data_", y, ".csv.xz", sep="" ) ) 
         fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
+        X = read.csv( file=xzfile(fndata), header=TRUE, stringsAsFactors=FALSE, na.strings="9999" )
         names(X) = tolower( names(X) )
-        
-        u = matrix( unlist(strsplit( X$cruise_date, split=" ")), nrow=nrow(X), byrow=TRUE )
-
-        X$date = chron( dates.=u[,1], format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
-        X$cruise_date = NULL
-       
-        X$temperature = as.numeric( X$temperature ) 
-        X$salinity= as.numeric(X$salinity)
-        X$sigmat = as.numeric(X$sigmat)
-  
+        X$depth = decibar2depth ( P=X$pressure, lat=X$latitude )
+        if (!exists( "sigmat", X))  X$sigmat = X$sigma.t  # naming is variable
+        X$date_string = paste( X$year, X$month, X$day, sep="-" )
+        X$date = chron( dates.=X$date_string, format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
+        X= X[, varstosave ]
         save( X, file=fn.out, compress=T)
       }
-     
     }
 
 
@@ -266,6 +253,9 @@
         iiY = which(duplicated(Y))
         if (length(iiY)>0) Y = Y [ -iiY, ]
 
+        bad = which( Y$temperature < -5 | Y$temperature > 40 ) 
+        if (length(bad)>0) Y=Y[-bad,]
+
         fn = file.path( loc.profile, paste("depthprofiles", yt, "rdata", sep="."))
         print( fn )
         save( Y, file=fn, compress=T )
@@ -312,8 +302,11 @@
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
         Y = hydro.db( DS="profiles.annual", yr=yt, p=p )
-        # Bottom temps
         if (is.null(Y)) next()
+        igood = which( Y$temperature >= -3 & Y$temperature <= 25 )  ## 25 is a bit high but in case some shallow data 
+        Y = Y[igood, ]
+ 
+    # Bottom temps
 				Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Y$dayno, sep="~" )
         ids =  sort( unique( Y$id ) )
         res = copy.data.structure( Y)   
@@ -353,22 +346,28 @@
       loc.gridded = file.path( basedir, "basedata", "gridded", "bottom", p$spatial.domain )
       dir.create( loc.gridded, recursive=T, showWarnings=F )
       
+      O = NULL
+      fnall = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
+
       if (DS == "bottom.gridded.all" ) {
         if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
-        O = NULL
-        fn = file.path( loc.gridded, paste( "bottom.allyears", "rdata", sep="." ) )
-        if (file.exists(fn)) { 
-          load (fn) 
-        } else {
-          for (y in p$tyears ) {
+        if (file.exists(fnall)) { 
+          load (fnall) 
+        } 
+        O = O[ which( O$yr %in% yr) , ]
+        return(O)
+      }
+   
+      if (DS == "bottom.gridded.all.redo" ) {
+        if (is.null(yr)) yr=p$tyears # defaults to tyears if no yr specified 
+        for (y in p$tyears ) {
             On = hydro.db(p=p, DS="bottom.gridded", yr=y) 
             if ( is.null( On) ) next()
             O = rbind( O, On )
           }
-          save( O, file=fn, compress=TRUE )
-        }
+        save( O, file=fnall, compress=TRUE )
         O = O[ which( O$yr %in% yr) , ]
-        return(O)
+        return( fnall )
       }
 
 
@@ -416,7 +415,10 @@
           tp = rename.df( tp, "depth", "z")
           tp$date = NULL
 					# tp$depth = NULL
-         
+        
+          igood = which( tp$t >= -3 & tp$t <= 25 )  ## 25 is a bit high but in case some shallow data 
+          tp = tp[igood, ]
+ 
           igood = which( tp$lon >= p$corners$lon[1] & tp$lon <= p$corners$lon[2] 
               &  tp$lat >= p$corners$lat[1] & tp$lat <= p$corners$lat[2] )
           tp = tp[igood, ]

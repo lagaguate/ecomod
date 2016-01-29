@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 bottom.contact.gating.variance = function( x, good, bcp ) {
 
   ## -----------------------------------
@@ -48,4 +52,10 @@ bottom.contact.gating.variance = function( x, good, bcp ) {
   }
 
   return( list( bc0=x$timestamp[ j0 ], bc1=x$timestamp[ j1 ]) )
+<<<<<<< HEAD
 }
+=======
+}
+
+
+>>>>>>> master

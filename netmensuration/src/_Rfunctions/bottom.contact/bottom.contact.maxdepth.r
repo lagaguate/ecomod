@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 bottom.contact.maxdepth = function( sm, O, bcmethods, bcp ) {
   # using previously computed estimates of touchdown (bc0) and lift-off (bc1) and associated SD's 
   # find maximum depths in the neighbourhoods
@@ -53,4 +57,10 @@ bottom.contact.maxdepth = function( sm, O, bcmethods, bcp ) {
   res =  list( bc0=sm$timestamp[bc0i], bc1=sm$timestamp[bc1i] )
 
   return(res)
+<<<<<<< HEAD
 }
+=======
+}
+
+
+>>>>>>> master

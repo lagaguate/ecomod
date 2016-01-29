@@ -24,7 +24,7 @@
       }
 
       if ( DS %in% c("temperature", "temperature.weekly" ) ) {
-        H = temperature.interpolations( p=p, DS="spatial.interpolation", yr=yr  )
+        H = temperature.db( p=p, DS="spatial.interpolation", yr=yr  )
       }
  
       if ( DS %in% c("temperature.climatology" ) ) {

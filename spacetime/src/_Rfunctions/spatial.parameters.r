@@ -15,7 +15,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		p$internal.projection = "utm20"
     p$internal.crs =  "+proj=utm +ellps=WGS84 +zone=20 +units=km"
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
-    p$pres = 1
+    p$pres = 1   # 1 km resolution!
     p$lon0=-68
     p$lon1=-56
     p$lat0=41
@@ -28,7 +28,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection )
     
     p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
-    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    p$corners$plat = round( p$corners$plat, 0)  # this matches the p$pres value of 1 km resolution
     
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
@@ -44,7 +44,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
 		p$internal.projection = "utm20"
     p$internal.crs =  "+proj=utm +ellps=WGS84 +zone=20 +units=km"
     p$dres = 1/60/4  # this is the 15 second grid from CHS  .. default use highest resolution
-    p$pres = 1
+    p$pres = 1  # 1 km resolution
     p$lon0=-71
     p$lon1=-48
     p$lat0=37
@@ -57,12 +57,13 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection )
     
     p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
-    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    p$corners$plat = round( p$corners$plat, 0)  # this matches the p$pres value of 1 km resolution
     
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
     p$nplats = length(p$plats)
+    p$boundary = "scotia.fundy.with.buffer"
   }
 
   if ( p$spatial.domain=="canada.east") {
@@ -86,7 +87,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection )
       
     p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
-    p$corners$plon = round( p$corners$plon, 0)  # this matches the p$pres value of 1 km resolution
+    p$corners$plat = round( p$corners$plat, 0)  # this matches the p$pres value of 1 km resolution
     
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
@@ -94,7 +95,7 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$nplats = length(p$plats)
   }
 
-  if ( p$spatial.domain %in% c("canada.east.highres", "canada.east.highres.lonlat")) {
+  if ( p$spatial.domain %in% c("canada.east.highres")) {
 		# source raw data for bathymetry:
 		p$bathymetry.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
 		p$bathymetry.bin = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary
@@ -115,26 +116,15 @@ spatial.parameters = function( p=NULL, type=NULL ) {
     p$corners = lonlat2planar( p$corners, proj.type=p$internal.projection ) 
     
     # this must be sufficient to capture the p$pres value of 0.25 km resolution
-    p$corners$plon = round( p$corners$plon, 2)  
-    p$corners$plon = round( p$corners$plon, 2)  
+    p$corners$plon = round( p$corners$plon, 1) # 1 because the resolution is 0.5 km 
+    p$corners$plat = round( p$corners$plat, 1)  
     
     p$plons = seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
     p$plats = seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
     p$nplons = length(p$plons)
     p$nplats = length(p$plats)
     
-    if (  p$spatial.domain == "canada.east.highres.lonlat" ) {
-      # lon/lat copied into plon/plat to permit operations in spherical coordinates
-    	p$internal.projection = "spherical"
-      p$internal.crs = "+proj=longlat +ellps=WGS84 "
-      p$plons = p$lons
-      p$plats = p$lats
-      p$nplons = p$nlons
-      p$nplats = p$nlats
-      p$corners$plon = p$corners$lon
-      p$corners$plat = p$corners$lat
-    }
-  
+    
   }
 
   return(p)

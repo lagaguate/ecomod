@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 bottom.contact.parameters = function( bcp=list( datasource ="groundfish" ) ) {
+=======
+
+  bottom.contact.parameters = function( bcp=list( datasource ="groundfish" ) ) {
+>>>>>>> master
     
     if (bcp$datasource =="snowcrab") {
       # snow crab specific defaults  
@@ -87,3 +92,8 @@ bottom.contact.parameters = function( bcp=list( datasource ="groundfish" ) ) {
     return(bcp)
   
   }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> master
