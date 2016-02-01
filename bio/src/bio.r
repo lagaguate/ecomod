@@ -6,8 +6,8 @@
     "groundfish", "snowcrab", "bathymetry", "temperature", "habitat", "bio" ))
 
   p=list()
+  p$libs = RLibrary ("parallel", "fields", "rgdal" )
   p$init.files = unique( c( pinits, loadfunctions( "snowcrab", functionname="default.project.environment" ) ) )
-  p$libs = RLibrary ("parallel", "fields" )
 
   
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale

@@ -6,7 +6,7 @@ RLibrary("plyr","lattice")
 #LATEST DATA EXPORT FROM FSRS DATABASE:
 #lobster.db("fsrs.redo")
 lobster.db("fsrs")
-recruitment.trap.db('raw.redo')
+#recruitment.trap.db('raw.redo',p=p)
 
 FSRS.dat<-fsrs
 FSRS.dat$VES_DATE<-paste(FSRS.dat$VESSEL_CD,FSRS.dat$HAUL_DATE,sep='.')
@@ -38,7 +38,9 @@ FSRSvesday.dat<-merge(FSRSvesday.dat,subareas,all.x=T)
 FSRSvesday.dat$SYEAR<-as.numeric(substr(FSRSvesday.dat$S_LABEL,1,4))
 write.csv(FSRSvesday.dat,file.path( project.datadirectory("lobster"), "data","FSRSrectraps.csv"),row.names=F)
 
-pdf(file.path( project.directory("lobster"), "R","FSRScpue.pdf"))
+FSRSvesday.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRSrectraps.csv"))
+FSRSvesday.dat$HAUL_DATE<-as.Date(FSRSvesday.dat$HAUL_DATE)
+#pdf(file.path( project.directory("lobster"), "R","FSRScpue.pdf"))
 
 #---------------------------------------------------------------------------LFA27
 
@@ -46,9 +48,14 @@ pdf(file.path( project.directory("lobster"), "R","FSRScpue.pdf"))
 
 
 	# Create column for week of season (WOS)
-	season<-unique(FSRS.LFA27.dat$S_LABEL)
+	season<-sort(unique(FSRS.LFA27.dat$S_LABEL))
+	FSRS.LFA27.dat$WOS<-NA
 	for(i in 1:length(season)){
 		FSRS.LFA27.dat$WOS[FSRS.LFA27.dat$S_LABEL==season[i]]<-floor((FSRS.LFA27.dat$HAUL_DATE[FSRS.LFA27.dat$S_LABEL==season[i]]-min(FSRS.LFA27.dat$HAUL_DATE[FSRS.LFA27.dat$S_LABEL==season[i]]))/7)+1
+	}
+	FSRS.LFA27.dat$DOS<-NA
+	for(i in 1:length(season)){
+		FSRS.LFA27.dat$WOS[FSRS.LFA27.dat$S_LABEL==season[i]]<-FSRS.LFA27.dat$HAUL_DATE[FSRS.LFA27.dat$S_LABEL==season[i]]-min(FSRS.LFA27.dat$HAUL_DATE[FSRS.LFA27.dat$S_LABEL==season[i]])+1
 	}
 
 	#----------------------------------------------------------------------North
@@ -64,8 +71,10 @@ pdf(file.path( project.directory("lobster"), "R","FSRScpue.pdf"))
 		LFA27north.year$l.cpue=LFA27north.year$LEGALS/LFA27north.year$TRAPS
 
 		# Generalized linear model for sub-legals
-		LFA27north.glm1=glm(SHORTS~as.factor(VESSEL_CD) + as.factor(SYEAR) + WOS + offset(logTRAPS) ,data=LFA27north.week, family=poisson(link="log"))
+		LFA27north.glm1=glm(SHORTS~as.factor(VESSEL_CD) + as.factor(SYEAR) + WOS + offset(TRAPS) ,data=LFA27north.week, family=poisson(link="log"))
 		summary(LFA27north.glm1)
+
+
 
 			# determine most representative vessel for predictions
 			vessels<-unique(LFA27north.week$VESSEL_CD)

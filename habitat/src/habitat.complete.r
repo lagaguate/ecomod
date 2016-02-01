@@ -21,8 +21,9 @@
 
 
   loadfunctions ( "habitat", functionname="habitat.parameters.r" ) 
-  
      
+  p$yearstomodel = 1970:2015
+  
   # TODO :: biologicals begin in 1970 ..  need to fix 
   #        .. at present data from 1970 are copied to all pre 1970 data years
      

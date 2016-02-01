@@ -11,6 +11,8 @@
   
     loadfunctions ( "habitat", functionname="habitat.parameters.r" ) 
  
+    p$yearstomodel = 1970:2015
+    
     # physical characteristics (depth, temp, substrate)
     # Time-invariant data (depth, substate, etc) 
     habitat.db( DS="baseline.redo", p=p ) ## Time-invariant data (depth, substate, etc) 

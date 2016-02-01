@@ -1,6 +1,6 @@
-populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL) {
+populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL, coords = NULL) {
   if (order != "COMMON")  order = "SPECSCD_ID"
-  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
+  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels) & is.null(coords)){
   species.query = paste0("SELECT DISTINCT COMMON SOUGHT, SPECSCD_ID
                          FROM OBSERVER.SPECIESSOUGHTCODES
                          ORDER BY ",order)
@@ -12,6 +12,7 @@ populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, d
     caughttweak=""
     geartweak=""
     vesseltweak=""
+    coordstweak=""
     
     fishsetjoinALL=""
     tripjoinALL=""
@@ -22,10 +23,11 @@ populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, d
     caughtjoin=""
     gearjoin=""
     vesseljoin=""
+    coordsjoin=""
     
     ######
     #FISHSETSJOIN - needed by set, trip, date, gear,vessels
-    if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(caught) | !is.null(gear) | !is.null(vessels)) {
+    if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(caught) | !is.null(gear) | !is.null(vessels) | !is.null(coords)) {
       fishsetjoinALL=paste0("INNER JOIN OBSERVER.ISFISHSETS
                       ON SPECIESSOUGHTCODES.SPECSCD_ID = ISFISHSETS.SPECSCD_ID")
     }
@@ -36,22 +38,21 @@ populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, d
     }
     
     if (!is.null(setcode)) {
-      settweak = paste0("AND ISFISHSETS.SPECSCD_ID IN (",setcode,")")
-      #fishsetjoin
+      settweak = paste0("AND ISFISHSETS.SETCD_ID IN (",setcode,")")
     }
     
     if (!is.null(tripcode)) {
       triptweak = paste0("AND ISTRIPS.TRIPCD_ID IN (",tripcode,")")
-      #fishsetjoin
-      #tripjoin
     }   
     
     if (!is.null(date.range)) {
       datetweak = paste0("AND to_date(to_char(isTrips.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
-      #fishsetjoin
-      #tripjoin
     }
-    #if (!is.null(sought)) {}
+    
+    if (!is.null(sought)) {
+      soughttweak=paste0("AND SPECIESSOUGHTCODES.SPECSCD_ID IN (",sought,")")
+    }
+    
     if (!is.null(caught)) {
       caughttweak=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
       caughtjoin="INNER JOIN OBSERVER.ISCATCHES
@@ -73,6 +74,12 @@ populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, d
       #fishsetjoin
       #tripjoin
     }
+    if (!is.null(coords)) {
+      coordstweak = paste0("AND ISSETPROFILE.LONGITUDE BETWEEN ",coords[3]*-1," AND ",coords[4]*-1," AND ISSETPROFILE.latitude BETWEEN ",coords[2]," AND ",coords[1])
+      coordsjoin = "INNER JOIN OBSERVER.ISSETPROFILE
+      ON ISFISHSETS.FISHSET_ID = ISSETPROFILE.FISHSET_ID
+      AND ISFISHSETS.SET_NO = ISSETPROFILE.SET_NO"
+    }
     ######
     
     dynamic.where <- paste(settweak,
@@ -81,7 +88,8 @@ populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, d
                            soughttweak,
                            caughttweak,
                            geartweak,
-                           vesseltweak, sep = " ")
+                           vesseltweak,
+                           coordstweak, sep = " ")
     dynamic.join <-paste(fishsetjoinALL,
                          tripjoinALL,
                          setjoin,
@@ -90,7 +98,8 @@ populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, d
                           soughtjoin,
                           caughtjoin,
                           gearjoin,
-                          vesseljoin, sep= " ")
+                          vesseljoin,
+                         coordsjoin, sep= " ")
     
     species.query = paste0("SELECT DISTINCT COMMON SOUGHT, SPECIESSOUGHTCODES.SPECSCD_ID
                          FROM OBSERVER.SPECIESSOUGHTCODES
@@ -103,10 +112,10 @@ populate.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, d
   return(the.species)
 }
 
-populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL) {
+populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL, coords = NULL) {
   if (order != "COMMON")
     order = "SPECCD_ID"
-  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
+  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels) & is.null(coords)){
   caught.species.query = paste0(
     "SELECT DISTINCT SPECIESCODES.COMMON CAUGHT,
     ISCATCHES.SPECCD_ID
@@ -122,6 +131,7 @@ populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = 
     caughttweak=""
     geartweak=""
     vesseltweak=""
+    coordstweak=""
     
     fishsetjoinALL=""
     tripjoinALL=""
@@ -133,13 +143,14 @@ populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = 
     caughtjoin=""
     gearjoin=""
     vesseljoin=""
+    coordsjoin=""
     
     #           INNER JOIN OBSERVER.ISSPECIESSOUGHTCODES
     #           ON ISFISHSETS.SPECSCD_ID = ISSPECIESSOUGHTCODES.SPECSCD_ID    
     
     ######
     #FISHSETSJOIN - needed by set, trip, date, sought, caught, gear,vessels
-    if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels)) {
+    if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels)| !is.null(coords)) {
       fishsetjoinALL=paste0("INNER JOIN OBSERVER.ISFISHSETS
               ON ISCATCHES.FISHSET_ID = ISFISHSETS.FISHSET_ID
               AND ISCATCHES.SET_NO = ISFISHSETS.SET_NO")
@@ -151,7 +162,7 @@ populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = 
     }
     
     if (!is.null(setcode)) {
-      settweak = paste0("AND ISFISHSETS.SPECSCD_ID IN (",setcode,")")
+      settweak = paste0("AND ISFISHSETS.SETCD_ID IN (",setcode,")")
     }
     
     if (!is.null(tripcode)) {
@@ -166,26 +177,26 @@ populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = 
       soughttweak=paste0("AND ISFISHSETS.SPECSCD_ID IN (",sought,")")
     }
     
-#     if (!is.null(caught)) {
-#       caughttweak=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
-#       caughtjoin="INNER JOIN OBSERVER.ISCATCHES
-#       ON ISFISHSETS.FISHSET_ID = ISCATCHES.FISHSET_ID
-#       AND ISFISHSETS.SET_NO = ISCATCHES.SET_NO"
-#     }
+     if (!is.null(caught)) {
+       caughttweak=paste0("AND ISCATCHES.SPECCD_ID IN (",caught,")")
+     }
     
     if(!is.null(gear)){
       geartweak=paste0("AND ISGEARS.GEARCD_ID IN (",gear,")")
       gearjoin="INNER JOIN OBSERVER.ISGEARS
       ON ISFISHSETS.GEAR_ID= ISGEARS.GEAR_ID"
-      #fishsetjoin
     }
     
     if(!is.null(vessels)){
       vesseltweak=paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
       vesseljoin="INNER JOIN OBSERVER.ISVESSELS
       ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
-      #fishsetjoin
-      #tripjoin
+    }
+    if (!is.null(coords)) {
+      coordstweak = paste0("AND ISSETPROFILE.LONGITUDE BETWEEN ",coords[3]*-1," AND ",coords[4]*-1," AND ISSETPROFILE.latitude BETWEEN ",coords[2]," AND ",coords[1])
+      coordsjoin = "INNER JOIN OBSERVER.ISSETPROFILE
+        ON ISFISHSETS.FISHSET_ID = ISSETPROFILE.FISHSET_ID
+        AND ISFISHSETS.SET_NO = ISSETPROFILE.SET_NO"
     }
     ######  
     dynamic.where <- paste(settweak,
@@ -194,7 +205,8 @@ populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = 
                            soughttweak,
                            caughttweak,
                            geartweak,
-                           vesseltweak, sep = " ")
+                           vesseltweak,
+                           coordstweak, sep = " ")
     dynamic.join <-paste(fishsetjoinALL,
                          tripjoinALL,
                          fishsetjoin,
@@ -204,7 +216,8 @@ populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = 
                          soughtjoin,
                          caughtjoin,
                          gearjoin,
-                         vesseljoin, sep= " ")
+                         vesseljoin,
+                         coordsjoin, sep= " ")
 
 
     caught.species.query = caught.species.query = paste0("SELECT DISTINCT ISSPECIESCODES.COMMON CAUGHT,
@@ -223,12 +236,13 @@ populate.caught.species <- function(order = "COMMON", setcode = NULL,tripcode = 
   return(the.caught.species)
 }
 
-populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL) {
-  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
+populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL, coords = NULL) {
+  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels) & is.null(coords)){
   gear.query = "SELECT DISTINCT ISGEARCODES.GEARCD_ID,
   ISGEARCODES.DESCRIPTION
   FROM OBSERVER.ISGEARCODES
-  ON ISGEARS.GEARCD_ID       = ISGEARCODES.GEARCD_ID
+  INNER JOIN OBSERVER.ISGEARS
+  ON ISGEARCODES.GEARCD_ID = ISGEARS.GEARCD_ID
   ORDER BY ISGEARCODES.DESCRIPTION"
   }else{    
   settweak=""
@@ -238,6 +252,7 @@ populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
   caughttweak=""
   geartweak=""
   vesseltweak=""
+  coordstweak=""
   
   fishsetjoinALL=""
   tripjoinALL=""
@@ -249,14 +264,13 @@ populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
   caughtjoin=""
   gearjoin=""
   vesseljoin=""
+  coordsjoin=""
   
   ######
 # FISHSETS ALREADY JOINED
 #   #FISHSETSJOIN - needed by set, trip, date, sought, caught, gear,vessels
-  if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels)) {
-    fishsetjoinALL=paste0("INNER JOIN OBSERVER.ISGEARS
-                          ON ISGEARCODES.GEARCD_ID = ISGEARS.GEARCD_ID
-                          INNER JOIN OBSERVER.ISFISHSETS
+  if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels) | !is.null(coords)) {
+    fishsetjoinALL=paste0("INNER JOIN OBSERVER.ISFISHSETS
                           ON ISFISHSETS.GEAR_ID = ISGEARS.GEAR_ID")
   }
 
@@ -289,19 +303,20 @@ populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
     AND ISFISHSETS.SET_NO = ISCATCHES.SET_NO"
   }
   
-#   if(!is.null(gear)){
-#     geartweak=paste0("AND ISGEARS.GEARCD_ID IN (",gear,")")
-#     gearjoin="INNER JOIN OBSERVER.ISGEARS
-#     ON ISFISHSETS.GEAR_ID= ISGEARS.GEAR_ID"
-#     #fishsetjoin
-#   }
+  if(!is.null(gear)){
+    geartweak=paste0("AND ISGEARCODES.GEARCD_ID IN (",gear,")")
+  }
   
   if(!is.null(vessels)){
     vesseltweak=paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
     vesseljoin="INNER JOIN OBSERVER.ISVESSELS
     ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
-    #fishsetjoin
-    #tripjoin
+  }
+  if (!is.null(coords)) {
+    coordstweak = paste0("AND ISSETPROFILE.LONGITUDE BETWEEN ",coords[3]*-1," AND ",coords[4]*-1," AND ISSETPROFILE.latitude BETWEEN ",coords[2]," AND ",coords[1])
+    coordsjoin = "INNER JOIN OBSERVER.ISSETPROFILE
+        ON ISFISHSETS.FISHSET_ID = ISSETPROFILE.FISHSET_ID
+        AND ISFISHSETS.SET_NO = ISSETPROFILE.SET_NO"
   }
   ######  
   
@@ -311,7 +326,8 @@ populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
                          soughttweak,
                          caughttweak,
                          geartweak,
-                         vesseltweak, sep = " ")
+                         vesseltweak,
+                         coordstweak, sep = " ")
   dynamic.join <-paste(fishsetjoinALL,
                        tripjoinALL,
                        fishsetjoin,
@@ -321,10 +337,13 @@ populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
                        soughtjoin,
                        caughtjoin,
                        gearjoin,
-                       vesseljoin, sep= " ")
+                       vesseljoin,
+                       coordsjoin, sep= " ")
     gear.query = paste0("SELECT DISTINCT ISGEARCODES.GEARCD_ID,
                         ISGEARCODES.DESCRIPTION
                         FROM OBSERVER.ISGEARCODES
+                        INNER JOIN OBSERVER.ISGEARS
+                        ON ISGEARCODES.GEARCD_ID = ISGEARS.GEARCD_ID
                         ",dynamic.join,"
                         WHERE 1=1
                         ",dynamic.where,"
@@ -334,14 +353,14 @@ populate.gear <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
   return(the.gear)
 }
 
-populate.vessels <- function(canadian.only = T, order = "VESSEL_NAME", setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL) {
-  if (order != "VESSEL_NAME")
+populate.vessels <- function(canadian.only = F, order = "VESSEL_NAME", setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL, coords = NULL) {
+    if (order != "VESSEL_NAME")
     order = "CFV"
   if (canadian.only == T)
     cntry = "AND CTRYCD_ID IN (2,3)"
   else
     cntry = ""
-  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
+  if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels) & is.null(coords)){
   vessel.query = paste0(
     "SELECT DISTINCT ISVESSELS.CFV,
     ISVESSELS.VESSEL_NAME
@@ -356,7 +375,10 @@ populate.vessels <- function(canadian.only = T, order = "VESSEL_NAME", setcode =
     caughttweak=""
     geartweak=""
     vesseltweak=""
+    coordstweak=""
     
+    fishsetjoinALL=""
+    tripjoinALL=""
     fishsetjoin=""
     setjoin=""
     tripjoin=""
@@ -365,22 +387,23 @@ populate.vessels <- function(canadian.only = T, order = "VESSEL_NAME", setcode =
     caughtjoin=""
     gearjoin=""
     vesseljoin=""
+    coordsjoin=""
     
     #TRIPSJOIN - needed by trip, date, vessels
-    if (!is.null(setcode) | !is.null(tripcode) | !is.null(sought)| !is.null(caught)| !is.null(gear) |!is.null(date.range) | !is.null(vessels)) {
+    if (!is.null(setcode) | !is.null(tripcode) | !is.null(sought)| !is.null(caught)| !is.null(gear) |!is.null(date.range) | !is.null(vessels) | !is.null(coords)) {
       tripjoinALL= "INNER JOIN OBSERVER.ISTRIPS
       ON ISVESSELS.VESS_ID = ISTRIPS.VESS_ID"
     }
     
       #FISHSETSJOIN - needed by set, trip, date, sought, caught, gear,vessels
-      if (!is.null(setcode) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels)) {
+      if (!is.null(setcode) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels) | !is.null(coords)) {
         fishsetjoinALL=paste0("INNER JOIN OBSERVER.ISFISHSETS
                               ON ISTRIPS.TRIP_ID = ISFISHSETS.TRIP_ID")
       }
 
     
     if (!is.null(setcode)) {
-      settweak = paste0("AND ISFISHSETS.SPECSCD_ID IN (",setcode,")")
+      settweak = paste0("AND ISFISHSETS.SETCD_ID IN (",setcode,")")
     }
     
     if (!is.null(tripcode)) {
@@ -407,14 +430,16 @@ populate.vessels <- function(canadian.only = T, order = "VESSEL_NAME", setcode =
       gearjoin="INNER JOIN OBSERVER.ISGEARS
       ON ISFISHSETS.GEAR_ID= ISGEARS.GEAR_ID"
     }
+    if (!is.null(coords)) {
+      coordstweak = paste0("AND ISSETPROFILE.LONGITUDE BETWEEN ",coords[3]*-1," AND ",coords[4]*-1," AND ISSETPROFILE.latitude BETWEEN ",coords[2]," AND ",coords[1])
+      coordsjoin = "INNER JOIN OBSERVER.ISSETPROFILE
+      ON ISFISHSETS.FISHSET_ID = ISSETPROFILE.FISHSET_ID
+      AND ISFISHSETS.SET_NO = ISSETPROFILE.SET_NO"
+    }
     
-#     if(!is.null(vessels)){
-#       vesseltweak=paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
-#       vesseljoin="INNER JOIN ISVESSELS
-#       ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
-#       #fishsetjoin
-#       #tripjoin
-#     }
+    if(!is.null(vessels)){
+      vesseltweak=paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
+    }
     ######     
     dynamic.where <- paste(settweak,
                            triptweak,
@@ -422,7 +447,8 @@ populate.vessels <- function(canadian.only = T, order = "VESSEL_NAME", setcode =
                            soughttweak,
                            caughttweak,
                            geartweak,
-                           vesseltweak, sep = " ")
+                           vesseltweak,
+                           coordstweak, sep = " ")
     dynamic.join <-paste(tripjoinALL,
                          fishsetjoinALL,
                          fishsetjoin,
@@ -432,7 +458,8 @@ populate.vessels <- function(canadian.only = T, order = "VESSEL_NAME", setcode =
                          soughtjoin,
                          caughtjoin,
                          gearjoin,
-                         vesseljoin, sep= " ")
+                         vesseljoin,
+                         coordsjoin, sep= " ")
     
     vessel.query = paste0(
       "SELECT DISTINCT ISVESSELS.CFV,
@@ -448,7 +475,7 @@ populate.vessels <- function(canadian.only = T, order = "VESSEL_NAME", setcode =
   return(the.vessels)
 }
 
-populate.year <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL) {
+populate.year <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL, coords = NULL) {
     if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
       the.year = c(format(Sys.Date(), "%Y"):1977)
     }else{
@@ -459,6 +486,7 @@ populate.year <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
       caughttweak=""
       geartweak=""
       vesseltweak=""
+      coordstweak=""
       
       fishsetjoinALL=""
       tripjoinALL=""
@@ -470,9 +498,10 @@ populate.year <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
       caughtjoin=""
       gearjoin=""
       vesseljoin=""
+      coordsjoin=""
       
       #FISHSETSJOIN - needed by set, trip, date, sought, caught, gear,vessels
-      if (!is.null(setcode) | !is.null(sought)| !is.null(caught) | !is.null(gear) ) {
+      if (!is.null(setcode) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(coords)  ) {
         fishsetjoinALL=paste0("INNER JOIN OBSERVER.ISFISHSETS
                               ON ISTRIPS.TRIP_ID = ISFISHSETS.TRIP_ID")
       }
@@ -498,13 +527,23 @@ populate.year <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
         vesseljoin = "INNER JOIN OBSERVER.ISVESSELS
         ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
       }
+      if (!is.null(date.range)) {
+        datetweak = paste0("AND to_date(to_char(isTrips.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
+      }
+      if (!is.null(coords)) {
+        coordstweak = paste0("AND ISSETPROFILE.LONGITUDE BETWEEN ",coords[3]*-1," AND ",coords[4]*-1," AND ISSETPROFILE.latitude BETWEEN ",coords[2]," AND ",coords[1])
+        coordsjoin = "INNER JOIN OBSERVER.ISSETPROFILE
+        ON ISFISHSETS.FISHSET_ID = ISSETPROFILE.FISHSET_ID
+        AND ISFISHSETS.SET_NO = ISSETPROFILE.SET_NO"
+      }
       dynamic.where <- paste(settweak,
                              triptweak,
                              datetweak,
                              soughttweak,
                              caughttweak,
                              geartweak,
-                             vesseltweak, sep = " ")
+                             vesseltweak,
+                             coordstweak, sep = " ")
       dynamic.join <-paste(fishsetjoinALL,
                            tripjoinALL,
                            fishsetjoin,
@@ -514,7 +553,8 @@ populate.year <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
                            soughtjoin,
                            caughtjoin,
                            gearjoin,
-                           vesseljoin, sep= " ")
+                           vesseljoin,
+                           coordsjoin, sep= " ")
       
       year.query = paste0(
         "SELECT DISTINCT to_char(ISTRIPS.BOARD_DATE,'YYYY')
@@ -532,9 +572,9 @@ populate.year <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sou
     return(the.year)
     }
 
-populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL) {
+populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL, coords = NULL) {
     #If particular values are desired, we can filter the provided options
-    if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
+    if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels) & !is.null(coords)){
       setcode.query = "SELECT DISTINCT ISSETTYPECODES.SETCD_ID,
       ISSETTYPECODES.SET_TYPE
       FROM OBSERVER.ISSETTYPECODES
@@ -550,6 +590,7 @@ populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, 
       caughttweak=""
       geartweak=""
       vesseltweak=""
+      coordstweak=""
       
       fishsetjoinALL=""
       tripjoinALL=""
@@ -561,9 +602,10 @@ populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, 
       caughtjoin=""
       gearjoin=""
       vesseljoin=""
+      coordsjoin=""
  
       #FISHSETSJOIN - needed by set, trip, date, sought, caught, gear,vessels
-      if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels) ) {
+      if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels) | !is.null(coords) ) {
         fishsetjoinALL="INNER JOIN OBSERVER.ISFISHSETS
                               ON ISSETTYPECODES.SETCD_ID = ISFISHSETS.SETCD_ID"
       }
@@ -591,10 +633,20 @@ populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, 
         datetweak = paste0("AND to_date(to_char(isTrips.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')")
       }
       
+      if (!is.null(setcode)) {
+        settweak = paste0("AND ISSETTYPECODES.SETCD_ID IN (",setcode,")")
+      }
+      
       if (!is.null(gear)) {
         geartweak = paste0("AND ISGEARS.GEARCD_ID IN (",gear,")")
         gearjoin = "INNER JOIN OBSERVER.ISGEARS
         ON ISFISHSETS.GEAR_ID = ISGEARS.GEAR_ID"
+      }
+      if (!is.null(coords)) {
+        coordstweak = paste0("AND ISSETPROFILE.LONGITUDE BETWEEN ",coords[3]*-1," AND ",coords[4]*-1," AND ISSETPROFILE.latitude BETWEEN ",coords[2]," AND ",coords[1])
+        coordsjoin = "INNER JOIN OBSERVER.ISSETPROFILE
+        ON ISFISHSETS.FISHSET_ID = ISSETPROFILE.FISHSET_ID
+        AND ISFISHSETS.SET_NO = ISSETPROFILE.SET_NO"
       }
       
       dynamic.where <- paste(settweak,
@@ -603,7 +655,8 @@ populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, 
                              soughttweak,
                              caughttweak,
                              geartweak,
-                             vesseltweak, sep = " ")
+                             vesseltweak,
+                             coordstweak, sep = " ")
       dynamic.join <-paste(fishsetjoinALL,
                            tripjoinALL,
                            fishsetjoin,
@@ -613,7 +666,8 @@ populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, 
                            soughtjoin,
                            caughtjoin,
                            gearjoin,
-                           vesseljoin, sep= " ")
+                           vesseljoin,
+                           coordsjoin, sep= " ")
       
       setcode.query <- paste0(
         "SELECT DISTINCT ISSETTYPECODES.SETCD_ID,
@@ -629,8 +683,8 @@ populate.setcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, 
     return(the.setcode)
       }
 
-populate.tripcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL) {
-    if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels)){
+populate.tripcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL, sought = NULL, caught = NULL, gear = NULL, vessels = NULL, coords = NULL) {
+    if (is.null(setcode) & is.null(tripcode) & is.null(date.range) & is.null(sought) & is.null(caught) & is.null(gear) & is.null(vessels) & is.null(coords)){
       tripcode.query = "SELECT DISTINCT ISTRIPTYPECODES.TRIPCD_ID,
       ISTRIPTYPECODES.TRIP_TYPE
       FROM OBSERVER.ISTRIPTYPECODES
@@ -644,6 +698,8 @@ populate.tripcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL,
       caughttweak=""
       geartweak=""
       vesseltweak=""
+      loctweak=""
+      coordstweak=""
       
       fishsetjoinALL=""
       tripjoinALL=""
@@ -655,16 +711,17 @@ populate.tripcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL,
       caughtjoin=""
       gearjoin=""
       vesseljoin=""
+      locjoin=""
+      coordsjoin=""
       
-      if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels) ) {
+      if (!is.null(setcode) | !is.null(tripcode) | !is.null(date.range) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(vessels) | !is.null(coords)) {
         tripjoinALL = "INNER JOIN OBSERVER.ISTRIPS
         ON ISTRIPTYPECODES.TRIPCD_ID   = ISTRIPS.TRIPCD_ID"
       }
-      if (!is.null(setcode) | !is.null(tripcode) | !is.null(sought)| !is.null(caught) | !is.null(gear) ) {
+      if (!is.null(setcode) | !is.null(tripcode) | !is.null(sought)| !is.null(caught) | !is.null(gear) | !is.null(coords)) {
         fishsetjoinALL = "INNER JOIN OBSERVER.ISFISHSETS
         ON ISTRIPS.TRIP_ID   = ISFISHSETS.TRIP_ID"
       }
-      
       
       if (!is.null(setcode)) {
         settweak = paste0("AND ISFISHSETS.SETCD_ID IN (",setcode,")")
@@ -685,18 +742,32 @@ populate.tripcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL,
           "AND to_date(to_char(ISTRIPS.board_date,'YYYY'),'YYYY') BETWEEN to_date('",date.range[1],"','YYYY') AND to_date('",date.range[2],"','YYYY')"
         )
       }
+      
+      if (!is.null(tripcode)) {
+        triptweak = paste0("AND ISTRIPTYPECODES.TRIPCD_ID IN (",tripcode,")")
+      }
+      
       if (!is.null(vessels)) {
         vesseltweak = paste0("AND ISVESSELS.VESSEL_NAME IN (",vessels,")")
         vesseljoin = "INNER JOIN OBSERVER.ISVESSELS
         ON ISTRIPS.VESS_ID = ISVESSELS.VESS_ID"
       }
+      
+      if (!is.null(coords)) {
+        coordstweak = paste0("AND ISSETPROFILE.LONGITUDE BETWEEN ",coords[3]*-1," AND ",coords[4]*-1," AND ISSETPROFILE.latitude BETWEEN ",coords[2]," AND ",coords[1])
+        coordsjoin = "INNER JOIN OBSERVER.ISSETPROFILE
+        ON ISFISHSETS.FISHSET_ID = ISSETPROFILE.FISHSET_ID
+        AND ISFISHSETS.SET_NO = ISSETPROFILE.SET_NO"
+      }
+      
       dynamic.where <- paste(settweak,
                              triptweak,
                              datetweak,
                              soughttweak,
                              caughttweak,
                              geartweak,
-                             vesseltweak, sep = " ")
+                             vesseltweak,
+                             coordstweak, sep = " ")
       dynamic.join <-paste(tripjoinALL,
                            fishsetjoinALL,
                            fishsetjoin,
@@ -706,7 +777,8 @@ populate.tripcode <- function(setcode = NULL,tripcode = NULL, date.range = NULL,
                            soughtjoin,
                            caughtjoin,
                            gearjoin,
-                           vesseljoin, sep= " ")
+                           vesseljoin,
+                           coordsjoin, sep= " ")
       
       tripcode.query = paste(
         "SELECT DISTINCT ISTRIPTYPECODES.TRIPCD_ID,

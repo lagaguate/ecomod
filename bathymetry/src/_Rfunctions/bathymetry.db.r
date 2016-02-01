@@ -541,7 +541,7 @@
     # ------------
     
     if (DS %in% c("baseline", "baseline.redo") ) {
-      # form prediction surface in planar coords for SS snowcrab area
+      # form prediction surface in planar coords 
       outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", 
           paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
 
@@ -552,17 +552,17 @@
      
       if ( p$spatial.domain == "snowcrab" ) {
         # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions 
-        Z = bathymetry.db( p=spatial.parameters( type="SSE", p=p ), DS="spde_complete", return.format == "dataframe.filtered"  )
+        Z = bathymetry.db( p=spatial.parameters( type="SSE", p=p ), DS="spde_complete", return.format = "dataframe.filtered"  )
         
       } else {
-        Z = bathymetry.db( p=p , DS="spde_complete", return.format == "dataframe.filtered"  )
+        Z = bathymetry.db( p=p , DS="spde_complete", return.format = "dataframe.filtered"  )
       }
       names0 = names( Z)
       Z = as.data.frame(Z)
       names(Z) = c( names0, "plon", "plat")
       Z = Z[, c("plon", "plat", "z")] 
    
-      Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) ## extra filters based upon depth and locations 
+      # Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) ## extra filters based upon depth and locations 
       save (Z, file=outfile, compress=T )
 			return( paste( "Baseline data file completed:", outfile )  )
       # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
@@ -752,15 +752,15 @@
     # -------------
     
     if ( DS %in% c( "complete", "complete.redo", "spde_complete", "spde_complete.redo" ) ) {
-     #// bathymetry.db( DS="spde_complete" .. ) returns the final form of the bathymetry data after
-     #// regridding and selection to area of interest as specificied by girds.new=c("SSE", etc)
+      #// underlying storage data format is as a list of rasters
+      #// regridding and selection to area of interest as specificied by girds.new=c("SSE", etc)
       Z = NULL
       
       if ( DS %in% c("spde_complete", "complete") ) {
         
         if  (DS %in% c("complete")) {
           # for backwards compatibility
-          Z = bathymetry.db( p=p, DS="spde_complete", return.format == "dataframe" )
+          Z = bathymetry.db( p=p, DS="spde_complete", return.format = "dataframe" )
           return (Z)
         }
 
@@ -777,18 +777,32 @@
           paste( "bathymetry", "spde_complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
      
-        if ( return.format == "brick" ) { ## default
+        if ( return.format == "brick" ) { 
           Z = brick(Z)
           return( Z )
         } 
-         
+          
         if ( return.format == "dataframe" ) { ## default
           Z = as( brick(Z), "SpatialPointsDataFrame" ) 
+          Z = as.data.frame(Z)
+          u = names(Z)
+          names(Z)[ which( u=="x") ] = "plon"
+          names(Z)[ which( u=="y") ] = "plat"
           return( Z )
         } 
+ 
         if ( return.format == "dataframe.filtered" ) {
-          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
+          Z = as( brick(Z), "SpatialPointsDataFrame" )
+          Z = as.data.frame(Z)
+          u = names(Z)
+          names(Z)[ which( u=="x") ] = "plon"
+          names(Z)[ which( u=="y") ] = "plat"
           Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) 
+          return( Z )
+        } 
+      
+        if ( return.format == "SpatialPointsDataFrame" ) { ## default
+          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
           return( Z )
         } 
         if ( return.format %in% c("list") ) return( Z  )
@@ -804,7 +818,7 @@
       Z = list()
       
       grids = unique( c( p$spatial.domain, grids.new ))
-
+      
       for (gr in grids ) {
         p1 = spatial.parameters( type=gr )
         for (vn in names(Z0)) {

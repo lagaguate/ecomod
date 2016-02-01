@@ -17,7 +17,7 @@
 #'vessels
 get.setcode <-
   function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
-             NULL, caught = NULL, gear = NULL, vessels = NULL) {
+             NULL, caught = NULL, gear = NULL, vessels = NULL, coords=NULL) {
     the.setcode <-
       populate.setcode(
         setcode = setcode,
@@ -26,7 +26,8 @@ get.setcode <-
         sought = sought,
         caught = caught,
         gear = gear,
-        vessels = vessels
+        vessels = vessels,
+        coords=coords
       )
     setcode.GUI <-
       select.list(
@@ -47,7 +48,7 @@ get.setcode <-
 
 get.tripcode <-
   function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
-             NULL, caught = NULL, gear = NULL, vessels = NULL) {
+             NULL, caught = NULL, gear = NULL, vessels = NULL, coords=NULL) {
     the.tripcode <-
       populate.tripcode(
         setcode = setcode,
@@ -56,7 +57,8 @@ get.tripcode <-
         sought = sought,
         caught = caught,
         gear = gear,
-        vessels = vessels
+        vessels = vessels,
+        coords=coords
       )
     tripcode.GUI <-
       select.list(
@@ -79,7 +81,7 @@ get.tripcode <-
 
 get.vessels <-
   function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
-             NULL, caught = NULL, gear = NULL, vessels = NULL) {
+             NULL, caught = NULL, gear = NULL, vessels = NULL, coords=NULL) {
     the.vessels <- populate.vessels(
       setcode = setcode,
       tripcode = tripcode,
@@ -87,7 +89,8 @@ get.vessels <-
       sought = sought,
       caught = caught,
       gear = gear,
-      vessels = vessels
+      vessels = vessels,
+      coords = coords
     )
     vessels.GUI <-
       select.list(
@@ -108,7 +111,7 @@ get.vessels <-
 
 get.gear <-
   function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
-             NULL, caught = NULL, gear = NULL, vessels = NULL) {
+             NULL, caught = NULL, gear = NULL, vessels = NULL, coords=NULL) {
     the.gear <- populate.gear(
       setcode = setcode,
       tripcode = tripcode,
@@ -116,7 +119,8 @@ get.gear <-
       sought = sought,
       caught = caught,
       gear = gear,
-      vessels = vessels
+      vessels = vessels,
+      coords=coords
     )
     gear.GUI <-
       select.list(
@@ -133,7 +137,7 @@ get.gear <-
 
 get.caught.species <-
   function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
-             NULL, caught = NULL, gear = NULL, vessels = NULL) {
+             NULL, caught = NULL, gear = NULL, vessels = NULL, coords=NULL) {
     the.caught.species <- populate.caught.species(
       order = "CODE",
       setcode = setcode,
@@ -142,7 +146,8 @@ get.caught.species <-
       sought = sought,
       caught = caught,
       gear = gear,
-      vessels = vessels
+      vessels = vessels,
+      coords=coords
     )
     caught.GUI <-
       select.list(
@@ -151,10 +156,10 @@ get.caught.species <-
             ""
         ),
         multiple = T, graphics = T,
-        title = "Choose a species"
+        title = "Choose one or more species"
       )
     caught <-
-      SQL.in(as.numeric(gsub(
+      SQL.in.noquotes(as.numeric(gsub(
         '.+\\(([0-9]+)\\).*?$', '\\1', caught.GUI
       )))
     return(caught)
@@ -162,7 +167,7 @@ get.caught.species <-
 
 get.sought.species <-
   function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
-             NULL, caught = NULL, gear = NULL, vessels = NULL) {
+             NULL, caught = NULL, gear = NULL, vessels = NULL, coords=NULL) {
     the.species <- populate.species(
       setcode = setcode,
       tripcode = tripcode,
@@ -170,7 +175,8 @@ get.sought.species <-
       sought = sought,
       caught = caught,
       gear = gear,
-      vessels = vessels
+      vessels = vessels,
+      coords=coords
     )
     sought.GUI <-
       select.list(
@@ -179,10 +185,41 @@ get.sought.species <-
         title = "Choose a species"
       )
     sought <-
-      SQL.in(as.numeric(gsub(
+      SQL.in.noquotes(as.numeric(gsub(
         '.+\\(([0-9]+)\\).*?$', '\\1', sought.GUI
       )))
     return(sought)
+  }
+
+get.date.range <-
+  function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
+             NULL, caught = NULL, gear = NULL, vessels = NULL, coords=NULL) {
+    date.range.GUI <- list()
+    date.range <-
+      as.character(
+        populate.year(
+          setcode = setcode,
+          tripcode = tripcode,
+          date.range = date.range,
+          sought = sought,
+          caught = caught,
+          gear = gear,
+          vessels = vessels,
+          coords=coords
+        )
+      )
+    date.range.start <- select.list(
+      date.range,
+      multiple = F, graphics = T,
+      title = "Choose the earliest year of desired data"
+    )
+    date.range.end <- select.list(
+      date.range,
+      multiple = F, graphics = T,
+      title = "Choose the most recent year of desired data"
+    )
+    date.range.GUI <- list(date.range.start,date.range.end)
+    return(date.range.GUI)
   }
 
 get.location <- function() {
@@ -202,33 +239,3 @@ get.location <- function() {
   
   return(bounds)
 }
-
-get.date.range <-
-  function(setcode = NULL, tripcode = NULL, date.range = NULL, sought =
-             NULL, caught = NULL, gear = NULL, vessels = NULL) {
-    date.range.GUI <- list()
-    date.range <-
-      as.character(
-        populate.year(
-          setcode = setcode,
-          tripcode = tripcode,
-          date.range = date.range,
-          sought = sought,
-          caught = caught,
-          gear = gear,
-          vessels = vessels
-        )
-      )
-    date.range.start <- select.list(
-      date.range,
-      multiple = F, graphics = T,
-      title = "Choose the earliest year of desired data"
-    )
-    date.range.end <- select.list(
-      date.range,
-      multiple = F, graphics = T,
-      title = "Choose the most recent year of desired data"
-    )
-    date.range.GUI <- list(date.range.start,date.range.end)
-    return(date.range.GUI)
-  }
