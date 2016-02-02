@@ -125,6 +125,7 @@
         }
       }
 
+
       SPDE = inla.spde2.matern( MESH,      
         alpha=p$inla.alpha, # alpha is the Bessel smoothness factor .. 1(?) gives exponential correlation function
         B.tau=matrix(c(log(tau0),-1,+1),nrow=1,ncol=3),
