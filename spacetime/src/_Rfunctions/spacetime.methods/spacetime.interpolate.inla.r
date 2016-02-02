@@ -10,8 +10,8 @@
     if (is.null(ip)) if( exists( "nruns", p ) ) ip = 1:p$nruns  
  
     # priors 
-    kappa0 = sqrt(8)/p$expected.range
-    tau0 = 1/(sqrt(4*pi)*kappa0* p$expected.sigma) 
+    # kappa0 = sqrt(8)/p$expected.range
+    # tau0 = 1/(sqrt(4*pi)*kappa0* p$expected.sigma) 
   
     # load bigmemory data objects pointers
     p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
@@ -127,11 +127,11 @@
 
 
       SPDE = inla.spde2.matern( MESH,      
-        alpha=p$inla.alpha, # alpha is the Bessel smoothness factor .. 1(?) gives exponential correlation function
-        B.tau=matrix(c(log(tau0),-1,+1),nrow=1,ncol=3),
-        B.kappa=matrix(c(log(kappa0),0,-1),nrow=1,ncol=3),
-        theta.prior.mean=c(0,0), # thetas are the internal representations of prior offsets for tau and kappa (i.e.,range and sigma)
-        theta.prior.prec=c(0.1, 0.1) # precision of thetas
+        alpha=p$inla.alpha #, # alpha is the Bessel smoothness factor .. 1(?) gives exponential correlation function
+        # B.tau=matrix(c(log(tau0),-1,+1),nrow=1,ncol=3),
+        # B.kappa=matrix(c(log(kappa0),0,-1),nrow=1,ncol=3),
+        # theta.prior.mean=c(0,0), # thetas are the internal representations of prior offsets for tau and kappa (i.e.,range and sigma)
+        # theta.prior.prec=c(0.1, 0.1) # precision of thetas
       ) 
 
       # effects .. a list of two elements: first is for SPDE and second is for covariates

@@ -24,6 +24,7 @@
 
   interpolations.redo = FALSE
   if (interpolations.redo) {
+   
       p = spacetime.parameters(p)  # load spde defaults
       p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
@@ -39,6 +40,14 @@
       # p$variables = list( Y="substrate", X=c("z", "dZ", "ddZ", "Z.rangeMode" ), LOCS=c("plon", "plat") )  
       p$variables = list( Y="substrate", X=c("z", "dZ" ), LOCS=c("plon", "plat") )  
       p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
+      
+      if (0) {
+        # examine data distribution and range of var and covars 
+        B = substrate.db( p=p, DS="substrate.spacetime.inputs.data" )
+        summary(B)
+        hist( log(B$dZ))
+      }
+
       p$modelformula = formula( substrate ~ -1 + intercept 
         + f( inla.group(log(z+1000) ), model="rw2") 
         + f( inla.group(log(dZ+0.01)), model="rw2") 

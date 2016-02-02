@@ -88,15 +88,15 @@
  ------- until the following are finshed ----
  --------------------------------------------
 
-
-  # 4. This step needs to be completed after all other incoming db are refreshed ... add biologicals 
   ### loadfunctions ( "bio", functionname="bio.r" )  
   ### loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
   ### loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
   ### loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
   ### loadfunctions ( "metabolism", functionname="metabolism.r" ) 
   ### loadfunctions ( "condition", functionname="condition.r" ) 
-  #
+ 
+
+  # 4. This step needs to be completed after all other incoming db are refreshed ... add biologicals 
   # TODO :: biologicals begin in 1970 ..  need to fix 
   #        .. at present data from 1970 are copied to all pre 1970 data years
 
