@@ -781,8 +781,17 @@
           Z = brick(Z)
           return( Z )
         } 
-         
+          
         if ( return.format == "dataframe" ) { ## default
+          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
+          Z = as.data.frame(Z)
+          u = names(Z)
+          names(Z)[ which( u=="x") ] = "plon"
+          names(Z)[ which( u=="y") ] = "plat"
+          return( Z )
+        } 
+       
+        if ( return.format == "SpatialPointsDataFrame" ) { ## default
           Z = as( brick(Z), "SpatialPointsDataFrame" ) 
           return( Z )
         } 
