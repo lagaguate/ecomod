@@ -7,6 +7,7 @@ FSRSclf<-function(lfa= c("27", "28", "29", "30", "31.1", "31.2", "32", "33"), yr
 	#lobster.db("fsrs.redo")
 	lobster.db("fsrs")
 	#recruitment.trap.db('raw.redo',p=p)
+	scd<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","FSRS_SIZE_CODES.csv"))
 
 	fsrs$SYEAR<-fsrs$HAUL_YEAR
 	fsrs$SYEAR[fsrs$LFA%in%c("33","34")]<-as.numeric(substr(fsrs$S_LABEL[fsrs$LFA%in%c("33","34")],6,9))
