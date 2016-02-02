@@ -1,8 +1,8 @@
 
 ## TOTAL LANDINGS
-AnnualLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","Commercial","AnnualSlipLand.csv"))
-HistoricLand.dat<-read.delim(file.path(project.datadirectory('lobster'),"data","Commercial","LFA34_Landings_1892-2004.txt"))
-SeasonalLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","Commercial","SeasonalSlipLand.csv"))
+AnnualLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","inputs","AnnualSlipLand.csv"))
+HistoricLand.dat<-read.delim(file.path(project.datadirectory('lobster'),"data","inputs","LFA34_Landings_1892-2004.txt"))
+SeasonalLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","inputs","SeasonalSlipLand.csv"))
 
 Annual.dat<-reshape(AnnualLand.dat,idvar="YEAR",varying=names(AnnualLand.dat)[-1],times=substr(names(AnnualLand.dat)[-1],4,6),direction='long',timevar="LFA",v.names="CATCH")
 Season.dat<-reshape(SeasonalLand.dat,idvar="SEASON",varying=names(SeasonalLand.dat)[-1],times=substr(names(SeasonalLand.dat)[-1],4,6),direction='long',timevar="LFA",v.names="CATCH")
@@ -10,7 +10,7 @@ Annual.dat$SYEAR<-Annual.dat$YEAR
 Season.dat$SYEAR<-as.numeric(substr(Season.dat$SEASON,6,9))
 Landings.dat<-rbind(subset(Annual.dat,LFA<33&YEAR>1975,c("SYEAR","LFA","CATCH")),subset(Season.dat,select=c("SYEAR","LFA","CATCH")))
 
-write.csv(Landings.dat,file.path( project.datadirectory("lobster"), "data","TotalLandings.csv"),row.names=F)
+write.csv(Landings.dat,file.path( project.datadirectory("lobster"), "data","products","TotalLandings.csv"),row.names=F)
 
 
 ## LOGS
@@ -48,7 +48,7 @@ for(i in 1:length(lfa)) {
 names(cpue.lst)<-lfa
 cpue.dat<-do.call("rbind",cpue.lst)
 
-write.csv(cpue.dat,file.path( project.datadirectory("lobster"), "data","CommercialCPUE.csv"),row.names=F)
+write.csv(cpue.dat,file.path( project.datadirectory("lobster"), "data","products","CommercialCPUE.csv"),row.names=F)
 
 ### by LFA
 cpue2.lst<-list()
@@ -64,7 +64,7 @@ for(i in 1:length(lfa)) {
 names(cpue2.lst)<-lfa
 LOGcpue.dat<-do.call("rbind",cpue2.lst)
 
-write.csv(cpue2.dat,file.path( project.datadirectory("lobster"), "data","CommercialCPUE_LFA.csv"),row.names=F)
+write.csv(cpue2.dat,file.path( project.datadirectory("lobster"), "data","products","CommercialCPUE_LFA.csv"),row.names=F)
 
 
 #### Plotting
@@ -114,7 +114,7 @@ pdf(file.path( project.datadirectory("lobster"), "R","LFA34.pdf"),8,11)
 
 LobsterMap('34',poly.lst=catchgrids[1:2],title="2014 Lobster Catch")
 ContLegend("bottomleft",lvls=catchgrids$lvls/1000,Cont.data=catchgrids,title="Catch (t)",inset=0.02,cex=0.8,bg='white')
-ss2015<-read.csv(file.path( project.datadirectory("lobster"), "data","LFA34TrawlStations2015.csv"))
+ss2015<-read.csv(file.path( project.datadirectory("lobster"), "data","products","LFA34TrawlStations2015.csv"))
 with(subset(ss2015,TYPE%in%c('index','2014_index')),points(DDLON,DDLAT,pch=16,col='red'))
 with(subset(ss2015,TYPE%in%c('2014','2014_index')),points(DDLON,DDLAT))
 legend('topleft',c('index','2014'),col=c('red','black'),pch=c(16,1),inset=0.02,cex=0.8,bg='white')
@@ -129,7 +129,7 @@ pdf(file.path( project.datadirectory("lobster"), "R","LFA34.pdf"),8,11)
 
 LobsterMap('34',poly.lst=catchgrids[1:2],title="2014 Lobster Catch")
 ContLegend("bottomleft",lvls=catchgrids$lvls/1000,Cont.data=catchgrids,title="Catch (t)",inset=0.02,cex=0.8,bg='white')
-ss2015<-read.csv(file.path( project.datadirectory("lobster"), "data","LFA34TrawlStations2015.csv"))
+ss2015<-read.csv(file.path( project.datadirectory("lobster"), "data","products","LFA34TrawlStations2015.csv"))
 with(subset(ss2015,TYPE%in%c('index','2014_index')),points(DDLON,DDLAT,pch=16,col='red'))
 with(subset(ss2015,TYPE%in%c('2014','2014_index')),points(DDLON,DDLAT))
 legend('topleft',c('index','2014'),col=c('red','black'),pch=c(16,1),inset=0.02,cex=0.8,bg='white')
@@ -167,7 +167,7 @@ for(i in 1:length(lfa)) {
 names(cpue2.lst)<-lfa
 VLOGcpue.dat<-do.call("rbind",cpue2.lst)
 
-write.csv(VLOGcpue.dat,file.path( project.datadirectory("lobster"), "data","VolLogsCPUE_LFA.csv"),row.names=F)
+write.csv(VLOGcpue.dat,file.path( project.datadirectory("lobster"), "data","products","VolLogsCPUE_LFA.csv"),row.names=F)
 
 lfas<-c(27:30,32,33)
 par(mfrow=c(2,3))
@@ -207,9 +207,9 @@ colMeans(catchquarter.lst[[9]][-(1:2),-1]/rowSums(catchquarter.lst[[9]][-(1:2),-
 names(cpue2.lst)<-lfa
 LOGcpue.dat<-do.call("rbind",cpue2.lst)
 
-write.csv(cpue2.dat,file.path( project.datadirectory("lobster"), "data","CommercialCPUE_LFA.csv"),row.names=F)
+write.csv(cpue2.dat,file.path( project.datadirectory("lobster"), "data","products","CommercialCPUE_LFA.csv"),row.names=F)
 
-cpue2.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","CommercialCPUE_LFA.csv"))
+cpue2.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","products","CommercialCPUE_LFA.csv"))
 
 
 
