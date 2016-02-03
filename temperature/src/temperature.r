@@ -29,13 +29,12 @@
   p$nsd = 5 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
 
   p$newyear = 2015
-
+  
+  p = spatial.parameters( p=p, type="canada.east" )  # default grid and resolution
 
   # ------------------------------
 
   if ( create.baseline.database ) {
-    # data up-take for all of the "canada.east" only one data stream necessary at present 
-    p = spatial.parameters( p=p, type="canada.east" )
 
     if (historical.data.redo) {
       hydro.db( DS="osd.rawdata.allfiles.redo", p=p )   # redo whole data set (historical) from 1910 to 2010
@@ -62,9 +61,6 @@
   # ------------------------------
  
   if (create.interpolated.results ) { 
-    # to optimize speed for snow crab /SSE only results 
-    # p = spatial.parameters( p=p, type="canada.east" ) #  can be completed later (after assessment) when time permits if required
-    p = spatial.parameters( p=p, type="SSE" ) #  type="canada.east"  can be completed later (after assessment) when time permits if required
  
     # 1. grid bottom data to internal spatial resolution ; <1 min  
     p = make.list( list( yrs=p$tyears), Y=p )
@@ -124,23 +120,27 @@
 
     # 6. glue climatological stats together
     temperature.db ( p=p, DS="climatology.redo") 
-    
+
+  }
+
+
+  ### to this point everything is run on canada.east domain, now take subsets: 
 
     # 7. annual summary temperature statistics for all grid points --- used as the basic data level for interpolations 
+    p$subregions = c("SSE", "SSE.mpa", "snowcrab", "canada.east") # complete subsets based upon resolution and domain
+    
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="complete.redo") 
 
-
     # 8. Maps 
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
-    # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( hydro.map, p=p, type="annual"  ) 
-    # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
-    p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( hydro.map, p=p, type="global") 
-  }
+    # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
+    # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
+     
 
   # finished interpolations
 

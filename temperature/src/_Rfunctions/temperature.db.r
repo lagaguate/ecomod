@@ -74,11 +74,8 @@
       if ( p$spatial.domain =="snowcrab" ) outfile = file.path( outdir, paste("PS.climatology", "ESS", "rdata", sep="." ) )
 
       if ( DS=="climatology" ) {
+        PS = NULL
         if (file.exists(outfile)) load( outfile )
-        if ( p$spatial.domain =="snowcrab" ) {
-          id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
-          PS = PS[ id, ]
-        }
         return (PS)
       }
      
@@ -141,24 +138,56 @@
       ### a conveniance data table to reduce number of merges occuring during modelling steps
       ### annual stats and climatology are merged together  
       ### essentially the base level data set for habitat db but needed at a lower level as it is used for the other indicators
-      outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p$spatial.domain )
-      if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", "SSE" )
-      dir.create(outdir, recursive=T, showWarnings=F)
+     
 
       if (DS=="complete") {
+        p0 = spatial.parameters( type=p$spatial.domain.default )  # default
+        outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p0$spatial.domain )
         outfile =  file.path( outdir, paste( "PS", year, "rdata", sep= ".") )
         PS = NULL
         if ( file.exists( outfile ) ) load( outfile )
-        if ( p$spatial.domain =="snowcrab" ) {
-          id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
-          PS = PS[ id, ]
-        }
+        
+        if ( p$spatial.domain == p$spatial.domain.default ) return (PS)
+        # otherwise take subsets:
+        p1 = spatial.parameters( type=p$spatial.domain )
+        
+        z0 = bathymetry.db ( p=p0, DS="baseline" )
+        z1 = bathymetry.db ( p=p1, DS="baseline" )
+        z1 = planar2lonlat( z1, proj.type=p1$internal.projection )  # convert new locations to lon lat
+        z1 = lonlat2planar( z1, proj.type=p0$internal.projection )  # convert lon lat to coord system of p0
+        z1$plon = trunc( z1$plon / p$pres ) * p$pres
+        z1$plat = trunc( z1$plat / p$pres ) * p$pres
+        z1$plonplat = paste( z1$plon, z1$plat, sep="_" )
+        z0$plonplat = paste( z0$plon, z0$plat, sep="_" )
+        
+        ii = match( z1$plonplat, z0$plonplat )
+        
+        PS = PS[ ii, ]
+        PS$plon = z1$plon
+        PS$plat = z1$plat
+        PS$z = z1$z
+        PS$yr = year
+        
+        vn = setdiff( names(PS), c("plon", "plat", "z" ) ) 
+  
+        p$theta = 5
+        p$nsd = 5
+        p$wgts = fields::setup.image.smooth(nrow=p$nplons, ncol=p$nplats, dx=p$pres, dy=p$pres, 
+          theta=p$theta, xwidth=p$nsd*p$theta, ywidth=p$nsd*p$theta )
+        p$O2M = cbind( (z1$plon-p$plons[1])/p$pres + 1, (z1$plat-p$plats[1])/p$pres + 1) # row, col indices in matrix form
+       
+        for ( ww in vn ) {
+          # these are simple interpolations 
+          PS[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=P[,ww] )
+   
         return (PS)
       }
 
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
       if (is.null(ip)) ip = 1:p$nruns
-      
+
+      if (p$spatial.domain != "canada.east" ) warning( "Canada.east is the only supported domain!  I am assuming you know what you are doing .." )
+
       # depth is the primary constraint 
       Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
       Z$id = 1:nrow(Z)
@@ -185,6 +214,8 @@
         PS = PS[ order( PS$id), ]
         PS$id = NULL
 
+        outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p$spatial.domain )
+        dir.create(outdir, recursive=T, showWarnings=F)
         save (PS, file=outfile, compress=T )
       }
       return( outdir )
@@ -270,21 +301,14 @@
         P = NULL
         fn1 = file.path( spinterpdir, paste("spatial.interpolation",  yr, "rdata", sep=".") )
         if (file.exists( fn1) ) load(fn1)
-        if ( p$spatial.domain =="snowcrab" ) {
-          id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
-          P = P[ id, ]
-        }
         return ( P )
       }
      	
 			if (DS %in% c("spatial.interpolation.se")) {
         V = NULL
 				fn2 = file.path( spinterpdir, paste("spatial.interpolation.se",  yr, "rdata", sep=".") )
+        V =NULL
         if (file.exists( fn2) ) load(fn2)
-        if ( p$spatial.domain =="snowcrab" ) {
-          id = bathymetry.db( DS="lookuptable.sse.snowcrab" )
-          V = V[ id, ]
-        }
         return ( V )
       }
 
