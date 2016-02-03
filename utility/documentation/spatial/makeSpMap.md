@@ -1,4 +1,4 @@
-# **[makeSpMap.R](../../src/_RFunctions/spatial/makeSpMap.R)**
+# **[makeSpMap.R](../../src/_Rfunctions/spatial/makeSpMap.R)**
 #### Jan 4, 2016
 MMM - 2016 
 This makes a simple basemap from shapefiles using sp and rgdal.
