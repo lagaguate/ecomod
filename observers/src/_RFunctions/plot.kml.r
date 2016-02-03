@@ -3,7 +3,18 @@ if (F) {
   loadfunctions("utility/src/_Rfunctions/colours")
   loadfunctions("utility/src/_Rfunctions/data.manipulation")
 }
-plot.kml<-function(x, metadata=NULL, pid = "FISHSET_ID", ord=NULL, labelFields = NULL, folderFields = NULL, colourField = NULL, filename = "df_kml", drawPolys=F) {
+plot.kml<-function(x, metadata=NULL, 
+                   pid = "FISHSET_ID", 
+                   ord=NULL, 
+                   labelFields = NULL, 
+                   folderFields = NULL, 
+                   colourField = NULL, 
+                   filename = "df_kml", 
+                   drawPolys=F, 
+                   drawLines=T,
+                   drawPoints=F,
+                   drawLineMarkers=T,
+                   drawVerts=T) {
  
   #'   ###MMM - Jan 2016
   #'   This function enables the plotting of data frames in Google Earth as a kml
@@ -130,25 +141,31 @@ plot.kml<-function(x, metadata=NULL, pid = "FISHSET_ID", ord=NULL, labelFields =
           eval(parse(text = addpoly))
         }
         #can make a linestring
-        if(linePoss==T){
+        if(linePoss==T & drawLines==T){
           addline = paste0(thislevel, '$addLineString(z, styleUrl = "ln_',these.features[[a]][j],'")')
           eval(parse(text = addline))
-          #when drawing a line, add all of the vertices
-          #if want to omit first vertex, use: vertices[2:nrow(vertices),]
-          #I think a date field should be here too (for time)
-          vertices=z[,c("pid","lat","lon")]
-          vertices$description=apply(
-            vertices, 1, row.to.html.table,
-            main = "Data for this vertex",
-            tableSummary = "Data for this object")
-          #browser()
-          addPoint = paste0(thislevel,'$addPoint(vertices[2:nrow(vertices),], styleUrl = "pt_vertices")')
-          eval(parse(text = addPoint))
         }
-      
+        if(drawLineMarkers==T){
         #also add a single point to the line (for visibility)
         addPoint = paste0(thislevel,'$addPoint(z[1,], styleUrl = "pt_',these.features[[a]][j],'")')
         eval(parse(text = addPoint))
+        }
+        if(drawPoints==T){
+          #also add a single point to the line (for visibility)
+          addPoint = paste0(thislevel,'$addPoint(z, styleUrl = "pt_',these.features[[a]][j],'")')
+          eval(parse(text = addPoint))
+        }
+        if (drawVerts==T){
+        #if want to omit first vertex, use: vertices[2:nrow(vertices),]
+        #I think a date field should be here too (for time)
+        vertices=z[,c("pid","lat","lon")]
+        vertices$description=apply(
+          vertices, 1, row.to.html.table,
+          main = "Data for this vertex",
+          tableSummary = "Data for this object")
+        addPoint = paste0(thislevel,'$addPoint(vertices[2:nrow(vertices),], styleUrl = "pt_vertices")')
+        eval(parse(text = addPoint))
+        }
     }
   }
   populate_kml <- function(x) {
@@ -195,4 +212,4 @@ plot.kml<-function(x, metadata=NULL, pid = "FISHSET_ID", ord=NULL, labelFields =
   mykml$preview()
 }
 
-#plot.kml(test[[3]], metadata=test[[1]], pid="FISHSET_ID", ord="ORD", labelFields=c("VESSEL"),folderFields=c("NAFAREA_ID"),colourField="CTRYCD_ID", filename="testing", drawPolys=F)
+#plot.kml(test[[3]], metadata=test[[1]], pid="TRIPCD_ID", ord="FISHSET_ID", labelFields=c("VESSEL"),folderFields=c("CAUGHT","SOUGHT"), colourField="GEARCD_ID", filename="testing", drawPolys=F, drawPoints=F, drawLines=T, drawLineMarkers=F,drawVerts=F)
