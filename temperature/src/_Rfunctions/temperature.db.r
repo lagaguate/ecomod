@@ -178,13 +178,13 @@
         if (is.null(E)) print( paste( "bottom.statistics.annual not found for:" , yr ) )
         names(E)[ which(names(E)=="tamplitude") ] = "tamp"  # fix this at the level of "bottom statistics"
         names(E)[ which(names(E)=="thalfperiod") ] = "thp"
-        PS0 = merge( PS0, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
-        PS0 = PS0[ order( PS0$id), ]
+        PS0y = merge( PS0, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
+        PS0y = PS0y[ order( PS0$id), ]
         
         for (gr in  unique( c(p$spatial.domain.default, p$subregions)) ) {
           print (gr)
           if ( gr == p$spatial.domain.default ) {
-            PS = PS0
+            PS = PS0y
             p1 = p
           } else {
             # ( gr != p$spatial.domain.default ) {
@@ -201,10 +201,10 @@
             locsout = PS[, c("plon", "plat")]
             p0$wgts = fields::setup.image.smooth( nrow=p0$nplons, ncol=p0$nplats, dx=p0$pres, dy=p0$pres, 
                   theta=p$theta, xwidth=p$nsd*p$theta, ywidth=p$nsd*p$theta )
-            vn = setdiff( names(PS0), c("plon", "plat", "z" , "yr" ) ) 
+            vn = setdiff( names(PS0y), c("plon", "plat", "z" , "yr" ) ) 
             for ( ww in vn ) {
               Z = Z0
-              Z[PS0_m] = PS0[,ww]
+              Z[PS0_m] = PS0y[,ww]
               # simple linear interpolations 
               is = fields::interp.surface( list( x=p0$plons, y=p0$plats, z=Z), loc=locsout )
               ii = which( is.na( is) ) 
@@ -216,14 +216,14 @@
                 }
               } 
               jj = which( is.na( is) ) 
-              if ( length( jj)> 0 ) is[jj] = median( PS0[,ww], na.rm=TRUE )
+              if ( length( jj)> 0 ) is[jj] = median( PS0y[,ww], na.rm=TRUE )
               PS[,ww] = is 
             }
             
             # return to coordinate system of original projection
             PS$plon = PS$plon0
             PS$plat = PS$plat0
-            PS = PS[ , names(PS0) ]
+            PS = PS[ , names(PS0y) ]
           }
           PS$id = NULL
           outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p1$spatial.domain )
