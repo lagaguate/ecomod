@@ -163,6 +163,7 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRS
 	
 	
 
+		BarPlotCLF(atSeaCLF$CLF,,yrs=Yrs,bins=bins,col='grey',filen="SeaSamplingLFA34",rel=T,LS=83)
 
 #------------------## for modelling ##-----------------#
 	
