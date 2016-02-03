@@ -138,85 +138,95 @@
       ### a conveniance data table to reduce number of merges occuring during modelling steps
       ### annual stats and climatology are merged together  
       ### essentially the base level data set for habitat db but needed at a lower level as it is used for the other indicators
-     
-
+      
       if (DS=="complete") {
-        p0 = spatial.parameters( type=p$spatial.domain.default )  # default
-        outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p0$spatial.domain )
-        outfile =  file.path( outdir, paste( "PS", year, "rdata", sep= ".") )
         PS = NULL
+        outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p$spatial.domain )
+        outfile =  file.path( outdir, paste( "PS", year, "rdata", sep= ".") )
         if ( file.exists( outfile ) ) load( outfile )
-        
-        if ( p$spatial.domain == p$spatial.domain.default ) return (PS)
-        # otherwise take subsets:
-        p1 = spatial.parameters( type=p$spatial.domain )
-        
-        z0 = bathymetry.db ( p=p0, DS="baseline" )
-        z1 = bathymetry.db ( p=p1, DS="baseline" )
-        z1 = planar2lonlat( z1, proj.type=p1$internal.projection )  # convert new locations to lon lat
-        z1 = lonlat2planar( z1, proj.type=p0$internal.projection )  # convert lon lat to coord system of p0
-        z1$plon = trunc( z1$plon / p$pres ) * p$pres
-        z1$plat = trunc( z1$plat / p$pres ) * p$pres
-        z1$plonplat = paste( z1$plon, z1$plat, sep="_" )
-        z0$plonplat = paste( z0$plon, z0$plat, sep="_" )
-        
-        ii = match( z1$plonplat, z0$plonplat )
-        
-        PS = PS[ ii, ]
-        PS$plon = z1$plon
-        PS$plat = z1$plat
-        PS$z = z1$z
-        PS$yr = year
-        
-        vn = setdiff( names(PS), c("plon", "plat", "z" ) ) 
-  
-        p$theta = 5
-        p$nsd = 5
-        p$wgts = fields::setup.image.smooth(nrow=p$nplons, ncol=p$nplats, dx=p$pres, dy=p$pres, 
-          theta=p$theta, xwidth=p$nsd*p$theta, ywidth=p$nsd*p$theta )
-        p$O2M = cbind( (z1$plon-p$plons[1])/p$pres + 1, (z1$plat-p$plats[1])/p$pres + 1) # row, col indices in matrix form
-       
-        for ( ww in vn ) {
-          # these are simple interpolations 
-          PS[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=P[,ww] )
-   
-        return (PS)
+        return(PS)
       }
 
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
       if (is.null(ip)) ip = 1:p$nruns
-
-      if (p$spatial.domain != "canada.east" ) warning( "Canada.east is the only supported domain!  I am assuming you know what you are doing .." )
-
-      # depth is the primary constraint 
-      Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
-      Z$id = 1:nrow(Z)
-      Z$z = NULL
-  
-      CL = temperature.db(p=p, DS="climatology")
-      names(CL) = c("plon", "plat", "tmean.cl", "tamp.cl", "wmin.cl", "thp.cl", "tsd.cl") 
       
-      CL = merge( Z, CL,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F ) ## should not be required but in case ordining get messed up
+      print ( "Downscaling data.." )
 
+      # default domain climatology
+      p0 = spatial.parameters( type=p$spatial.domain.default )
+      Z0 = matrix( NA, nrow=p0$nplons, ncol=p0$nplats)
+      PS0 = bathymetry.db ( p=p0, DS="baseline" )
+      PS0$id =1:nrow(PS0)
+      CL = temperature.db(p=p0, DS="climatology")
+      CL$plon = CL$plat = CL$z = NULL
+      names(CL)[ which(names(CL)=="tmean") ] = "tmean.cl"  
+      names(CL)[ which(names(CL)=="tamplitude") ] = "tamp.cl"  
+      names(CL)[ which(names(CL)=="wmin") ] = "wmin.cl"  
+      names(CL)[ which(names(CL)=="thalfperiod") ] = "thp.cl"  
+      names(CL)[ which(names(CL)=="tsd") ] = "tsd.cl"  
+      PS0 = merge( PS0, CL,  by =c("id"), all.x=T, all.y=F, sort=F ) 
+      PS0_m = cbind( (PS0$plon-p0$plons[1])/p0$pres + 1, (PS0$plat-p0$plats[1])/p0$pres + 1) # row, col indices in matrix form
+      rm (CL); gc()
+      
       for (iy in ip) {
         yr = p$runs[iy, "yrs"]
-        print (yr)
-        outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
-		
-        E = hydro.modelled.db( DS="bottom.statistics.annual", p=p, yr=yr  ) 
+        print (paste( yr))
+	      
+        # default domain annual stats
+        E = hydro.modelled.db( DS="bottom.statistics.annual", p=p0, yr=yr  ) 
+        E$z = NULL
         if (is.null(E)) print( paste( "bottom.statistics.annual not found for:" , yr ) )
-
         names(E)[ which(names(E)=="tamplitude") ] = "tamp"  # fix this at the level of "bottom statistics"
         names(E)[ which(names(E)=="thalfperiod") ] = "thp"
-
-        PS = merge( CL, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
+        PS0 = merge( PS0, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
+        PS0 = PS0[ order( PS0$id), ]
         
-        PS = PS[ order( PS$id), ]
-        PS$id = NULL
 
-        outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p$spatial.domain )
-        dir.create(outdir, recursive=T, showWarnings=F)
-        save (PS, file=outfile, compress=T )
+        for (gr in  p$subregions ) {
+          print (gr)
+          if ( gr == p$spatial.domain.default ) next()  # nothing to do
+          p1 = spatial.parameters( type=gr )
+          
+          # sub-domain grid
+          PS = bathymetry.db ( p=p1, DS="baseline" )
+          PS = planar2lonlat( PS, proj.type=p1$internal.projection )  # convert new locations to lon lat
+          PS$yr = yr
+          PS$plon0 = PS$plon
+          PS$plat0 = PS$plat
+          PS = lonlat2planar( PS, proj.type=p0$internal.projection )  # convert lon lat to coord system of p0
+          locsout = PS[, c("plon", "plat")]
+          p0$wgts = fields::setup.image.smooth( nrow=p0$nplons, ncol=p0$nplats, dx=p0$pres, dy=p0$pres, 
+                theta=p$theta, xwidth=p$nsd*p$theta, ywidth=p$nsd*p$theta )
+         
+          vn = setdiff( names(PS0), c("plon", "plat", "z" , "yr", "id" ) ) 
+          for ( ww in vn ) {
+            Z = Z0
+            Z[PS0_m] = PS0[,ww]
+            # simple linear interpolations 
+            is = fields::interp.surface( list( x=p0$plons, y=p0$plats, z=Z), loc=locsout )
+            ii = which( is.na( is) ) 
+            if ( length( ii)> 0 ) {
+              # smoothed surface ..but fast!  mostly edges such as coastlines ..
+              kd = try( fields::image.smooth( Z, dx=p0$pres, dy=p0$pres, wght=p0$wgts )$z  )
+              if ( ! (class(kd) %in% "try-error") ) {
+                is[ii] = fields::interp.surface( list( x=p0$plons, y=p0$plats, z=kd), loc=locsout[ii,] )
+              }
+            } 
+            jj = which( is.na( is) ) 
+            if ( length( jj)> 0 ) is[jj] = median( PS0[,ww], na.rm=TRUE )
+            PS[,ww] = is 
+          }
+          
+          # return to coordinate system of original projection
+          PS$plon = PS$plon0
+          PS$plat = PS$plat0
+          PS$plon0 = PS$plat0 = PS$lon = PS$lat = NULL
+
+          outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p1$spatial.domain )
+          outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
+          dir.create(outdir, recursive=T, showWarnings=F)
+          save (PS, file=outfile, compress=T )
+        }
       }
       return( outdir )
     }

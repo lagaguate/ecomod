@@ -25,12 +25,13 @@
   # p$spmethod = "inverse.distance"  ## too slow
   # p$spmethod = "gam" ## too smooth
   p$spmethod = "kernel.density" ## best
-  p$theta = 10 # dist to interpolate ~ 1/2 autocor range in method  p$spmethod = "kernel.density
+  p$theta = 8 # dist to interpolate ~ 1/2 autocor range in method  p$spmethod = "kernel.density
   p$nsd = 5 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
 
   p$newyear = 2015
   
-  p = spatial.parameters( p=p, type="canada.east" )  # default grid and resolution
+  p$spatial.domain.default = "canada.east"
+  p = spatial.parameters( p=p, type=p$spatial.domain.default )  # default grid and resolution
 
   # ------------------------------
 
@@ -124,23 +125,24 @@
   }
 
 
-  ### to this point everything is run on canada.east domain, now take subsets: 
+  ### to this point everything is run on p$spatial.domain.default domain, now take subsets: 
 
-    # 7. annual summary temperature statistics for all grid points --- used as the basic data level for interpolations 
-    p$subregions = c("SSE", "SSE.mpa", "snowcrab", "canada.east") # complete subsets based upon resolution and domain
+    # 7. downscale to appropriate domain: simple interpolations and maps
+    p$subregions = c("SSE", "SSE.mpa", "snowcrab", "canada.east") # target domains and resolution
     
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="complete.redo") 
+    #  temperature.db( p=p, DS="complete.redo") 
+    
+    for ( gr in p$subregions ) {
+      p = spatial.parameters( type= gr )
+      parallel.run( hydro.map, p=p, type="annual"  ) 
+      parallel.run( hydro.map, p=p, type="global") 
+      # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
+      # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
+    }
 
-    # 8. Maps 
-    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
-    p = make.list( list( yrs=p$tyears), Y=p )
-    parallel.run( hydro.map, p=p, type="annual"  ) 
-    parallel.run( hydro.map, p=p, type="global") 
-    # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
-    # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
-     
 
   # finished interpolations
 
