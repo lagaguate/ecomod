@@ -129,8 +129,9 @@
 
     # 7. downscale to appropriate domain: simple interpolations and maps
     p$subregions = c("SSE", "SSE.mpa", "snowcrab", "canada.east") # target domains and resolution
-    
-    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
+       
+    # p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using th
+    # p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="complete.redo") 
     #  temperature.db( p=p, DS="complete.redo") 

@@ -150,7 +150,7 @@
       ####### "ip" is the first parameter expected when run in parallel mode .. do not move this one
       if (is.null(ip)) ip = 1:p$nruns
       
-      print ( "Downscaling data.." )
+      print ( "Completing and downscaling data where necessary ..." )
 
       # default domain climatology
       p0 = spatial.parameters( type=p$spatial.domain.default )
@@ -181,47 +181,51 @@
         PS0 = merge( PS0, E,  by =c("plon", "plat"), all.x=T, all.y=F, sort=F)
         PS0 = PS0[ order( PS0$id), ]
         
-
-        for (gr in  p$subregions ) {
+        for (gr in  unique( c(p$spatial.domain.default, p$subregions)) ) {
           print (gr)
-          if ( gr == p$spatial.domain.default ) next()  # nothing to do
-          p1 = spatial.parameters( type=gr )
-          
-          # sub-domain grid
-          PS = bathymetry.db ( p=p1, DS="baseline" )
-          PS = planar2lonlat( PS, proj.type=p1$internal.projection )  # convert new locations to lon lat
-          PS$yr = yr
-          PS$plon0 = PS$plon
-          PS$plat0 = PS$plat
-          PS = lonlat2planar( PS, proj.type=p0$internal.projection )  # convert lon lat to coord system of p0
-          locsout = PS[, c("plon", "plat")]
-          p0$wgts = fields::setup.image.smooth( nrow=p0$nplons, ncol=p0$nplats, dx=p0$pres, dy=p0$pres, 
-                theta=p$theta, xwidth=p$nsd*p$theta, ywidth=p$nsd*p$theta )
-         
-          vn = setdiff( names(PS0), c("plon", "plat", "z" , "yr", "id" ) ) 
-          for ( ww in vn ) {
-            Z = Z0
-            Z[PS0_m] = PS0[,ww]
-            # simple linear interpolations 
-            is = fields::interp.surface( list( x=p0$plons, y=p0$plats, z=Z), loc=locsout )
-            ii = which( is.na( is) ) 
-            if ( length( ii)> 0 ) {
-              # smoothed surface ..but fast!  mostly edges such as coastlines ..
-              kd = try( fields::image.smooth( Z, dx=p0$pres, dy=p0$pres, wght=p0$wgts )$z  )
-              if ( ! (class(kd) %in% "try-error") ) {
-                is[ii] = fields::interp.surface( list( x=p0$plons, y=p0$plats, z=kd), loc=locsout[ii,] )
-              }
-            } 
-            jj = which( is.na( is) ) 
-            if ( length( jj)> 0 ) is[jj] = median( PS0[,ww], na.rm=TRUE )
-            PS[,ww] = is 
+          if ( gr == p$spatial.domain.default ) {
+            PS = PS0
+            p1 = p
+          } else {
+            # ( gr != p$spatial.domain.default ) {
+            # down scale data to alternate grids
+            p1 = spatial.parameters( type=gr )
+            
+            # sub-domain grid
+            PS = bathymetry.db ( p=p1, DS="baseline" )
+            PS = planar2lonlat( PS, proj.type=p1$internal.projection )  # convert new locations to lon lat
+            PS$yr = yr
+            PS$plon0 = PS$plon
+            PS$plat0 = PS$plat
+            PS = lonlat2planar( PS, proj.type=p0$internal.projection )  # convert lon lat to coord system of p0
+            locsout = PS[, c("plon", "plat")]
+            p0$wgts = fields::setup.image.smooth( nrow=p0$nplons, ncol=p0$nplats, dx=p0$pres, dy=p0$pres, 
+                  theta=p$theta, xwidth=p$nsd*p$theta, ywidth=p$nsd*p$theta )
+            vn = setdiff( names(PS0), c("plon", "plat", "z" , "yr" ) ) 
+            for ( ww in vn ) {
+              Z = Z0
+              Z[PS0_m] = PS0[,ww]
+              # simple linear interpolations 
+              is = fields::interp.surface( list( x=p0$plons, y=p0$plats, z=Z), loc=locsout )
+              ii = which( is.na( is) ) 
+              if ( length( ii)> 0 ) {
+                # smoothed surface ..but fast!  mostly edges such as coastlines ..
+                kd = try( fields::image.smooth( Z, dx=p0$pres, dy=p0$pres, wght=p0$wgts )$z  )
+                if ( ! (class(kd) %in% "try-error") ) {
+                  is[ii] = fields::interp.surface( list( x=p0$plons, y=p0$plats, z=kd), loc=locsout[ii,] )
+                }
+              } 
+              jj = which( is.na( is) ) 
+              if ( length( jj)> 0 ) is[jj] = median( PS0[,ww], na.rm=TRUE )
+              PS[,ww] = is 
+            }
+            
+            # return to coordinate system of original projection
+            PS$plon = PS$plon0
+            PS$plat = PS$plat0
+            PS = PS[ , names(PS0) ]
           }
-          
-          # return to coordinate system of original projection
-          PS$plon = PS$plon0
-          PS$plat = PS$plat0
-          PS$plon0 = PS$plat0 = PS$lon = PS$lat = NULL
-
+          PS$id = NULL
           outdir =  file.path( project.datadirectory("temperature"), "data", "interpolated", "complete", p1$spatial.domain )
           outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
           dir.create(outdir, recursive=T, showWarnings=F)
