@@ -137,7 +137,7 @@
     #  temperature.db( p=p, DS="complete.redo") 
     
     for ( gr in p$subregions ) {
-      p = spatial.parameters( type= gr )
+      p = spatial.parameters(  p=p, type= gr )
       parallel.run( hydro.map, p=p, type="annual"  ) 
       parallel.run( hydro.map, p=p, type="global") 
       # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
