@@ -15,8 +15,6 @@
   
     # load bigmemory data objects pointers
     p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-    P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
-    S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )  # statistical outputs
     
     #---------------------
     # data for modelling 
@@ -76,8 +74,12 @@
       if (debugrun) deid = paste( Sys.info()["nodename"], "index=", dd )
       if (debugrun) cat( paste( Sys.time(), deid, "start \n" ), file=p$debug.file, append=TRUE ) 
       focal = t(Sloc[dd,])
+      
+      S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )  # statistical outputs
+      
       if ( is.nan( S[dd,1] ) ) next()
       if ( !is.na( S[dd,1] ) ) next()
+      
       S[dd,1] = NaN   # this is a flag such that if a run fails (e.g. in mesh generation), it does not get revisited
       # .. it gets over-written below if successful
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
@@ -279,6 +281,8 @@
         means = 2
         stdevs = 3
         ii = pa$i
+        
+        P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )  # predictions
         test = rowSums( P[ii,] )
         u = which( is.finite( test ) )  # these have data already .. update
         if ( length( u ) > 0 ) {

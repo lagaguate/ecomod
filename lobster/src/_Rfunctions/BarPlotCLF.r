@@ -4,7 +4,7 @@ BarPlotCLF<-function(CLF,yrs=2005:2014,CLFyrs=yrs,bins=seq(0,220,5),filen='',row
 	
 	if(!missing(ymax)&&length(ymax)==1)ymax<-rep(ymax,length(CLF))
 	
-	if(pdf) pdf(file.path(project.datadirectory('lobster'),'R',paste0('CLF',filen,'.pdf')), width = wd, height = ht)
+	if(pdf) pdf(file.path(project.datadirectory('lobster'),'figures',paste0('CLF',filen,'.pdf')), width = wd, height = ht)
 	par(mfcol=c(rows,ceiling(length(yrs)/rows)), mar = c(0,2,0,0.5), omi = c(0.85, 0.75, 0.75, 0.5))
 	
 	for(i in 1:length(CLF)){

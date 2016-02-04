@@ -1,13 +1,16 @@
 
 #### Import lobster data from various databases
 
-loadfunctions('lobster')
+    
+loadfunctions( "lobster", functionname="initialise.local.environment.r") 
 
-# run in windows emvironment
-lobster.db()
+##### lumped function lobster.db
+
+        # run in windows emvironment
+        lobster.db()
 
 
-		# load .RData objects
+	# load .RData objects
 
         lobster.db( DS="logs")		# Inshore logs summary documents
         lobster.db( DS="logs41")	# Offshore logs monitoring documents
@@ -18,3 +21,8 @@ lobster.db()
         lobster.db( DS="fsrs")		# FSRS recruitment traps
         lobster.db( DS="scallop")	# scallop survey bycatch
         lobster.db( DS="survey")	# ITLS Lobster Survey
+
+
+#### FSRS recruitment traps only
+
+recruitment.trap.db('raw.redo')

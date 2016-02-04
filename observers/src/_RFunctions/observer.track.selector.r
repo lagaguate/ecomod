@@ -6,7 +6,7 @@ if (F) {
   loadfunctions("utility/src/_Rfunctions/sql.tools")
   #connect to db
   library(RODBC)
-  channel <-  odbcConnect("PTRAN",uid = oracle.observer.username,pwd = oracle.observer.password)
+  channel <-  odbcConnect("PTRAN",uid = oracle.personal.username,pwd = oracle.personal.password)
 }
 observer.track.selector<-function() {
   library(sqldf)
@@ -307,14 +307,13 @@ observer.track.selector<-function() {
     #p1-p4:set.all
     
     set.tow <- rbind(p2.dat,p3.dat)
-    set.tow.segs <- set.tow[duplicated(set.tow$FISHSET_ID),]$FISHSET_ID
-    set.tow <- set.tow[set.tow$FISHSET_ID %in% set.tow.segs,]
+#     set.tow.segs <- set.tow[duplicated(set.tow$FISHSET_ID),]$FISHSET_ID
+#     set.tow <- set.tow[set.tow$FISHSET_ID %in% set.tow.segs,]
     set.tow <- set.tow[order(set.tow$FISHSET_ID,set.tow$ORD),]
 
-    
     set.all <- rbind(p1.dat,p2.dat,p3.dat,p4.dat)
-    set.all.segs <- set.all[duplicated(set.all$FISHSET_ID),]$FISHSET_ID
-    set.all <- set.all[set.all$FISHSET_ID %in% set.all.segs,]
+#     set.all.segs <- set.all[duplicated(set.all$FISHSET_ID),]$FISHSET_ID
+#     set.all <- set.all[set.all$FISHSET_ID %in% set.all.segs,]
     set.all <- set.all[order(set.all$FISHSET_ID,set.all$ORD),]
  
     set.all.attrib <- sqldf("SELECT * FROM ISD_INF")

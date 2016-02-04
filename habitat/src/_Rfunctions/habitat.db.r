@@ -74,7 +74,6 @@
 
 
     if (DS %in% c("environmentals", "environmentals.redo") ) {
-      
       outdir =  file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "environmentals" )
       if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE","environmentals" )
       dir.create(outdir, recursive=T, showWarnings=F)
@@ -90,8 +89,8 @@
         return (PS)
       }
 
-      if (!exists("ip")) ip = 1:p$nruns
-    
+      if (is.null(ip)) ip = 1:p$nruns
+
       for (iy in ip) {
         yr = p$runs[iy, "yrs"]
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
@@ -104,6 +103,7 @@
         PS = PS[ order( PS$id ) ,]
         PS$id = NULL
         save (PS, file=outfile, compress=T )
+        print( outfile)
       }
     }
 
