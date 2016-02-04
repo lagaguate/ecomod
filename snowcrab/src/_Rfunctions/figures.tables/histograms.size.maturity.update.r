@@ -26,7 +26,7 @@
         det$sid = paste(det$trip, det$set, sep="~")
 
         hvar="cw"
-        bw = 4
+        bw = 2
         s0 = 10
         s1 = 150
 
@@ -57,7 +57,7 @@
       fn = file.path(  outdir, "male.png" )
       
       #Cairo( file=fn, type="pdf", bg="white", units="in", width=6, height=8 )
-      Cairo( file=fn, type="png", bg="white", units="in", width=6, height=8, dpi=350 )  
+      Cairo( file=fn, type="png", bg="white", units="in", width=6, height=8, dpi=450 )  
 
       ncols = length(areas)
       nrows = length(year)
@@ -66,7 +66,7 @@
       par(mar=c(0, 0, 0.4, 0))
 
       # ylim=c(0,400) # for 4X
-      ylim=c(0,2300)
+      ylim=c(0,1100)
       xlim=c(0,140)
       cols = c("blue3", "darkslategray1")
 
@@ -99,7 +99,7 @@
           
           if (areas[a]==areas[3] & year[y] %in% c(1998:2000) ) {
           } else {
-            abline( v=22, lwd=0.4, lty="longdash" )
+            abline( v=41, lwd=1, lty="longdash" )
           }
           
           if (areas[a]==areas[3] & year[y]==year[1] ) {

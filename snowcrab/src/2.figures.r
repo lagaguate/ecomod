@@ -37,12 +37,15 @@
 
   # ------------------------------------------
   # Timeseries of all survey variables
+    #MG fix this one
     figure.timeseries.survey(p, areas=c("cfanorth", "cfasouth", "cfa4x"), from.file=F ) # goes to file.path( project.datadirectory("snowcrab"), "R", "timeseries", "survey"
 
   # ------------------------------------------
   # Timeseries: geometric mean density of R-1 recruits
     #figure.timeseries.recruits( outdir=file.path(p$annual.results, "timeseries", "survey") )
+    #MG Fix R2
     figure.timeseries.R2( outdir=file.path(p$annual.results, "timeseries", "survey") )
+    #MG Try to get a better measure of R1, not being used at this point because it seems to poorly represent recruits
     figure.timeseries.R1( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
   #Timeseries: geometric mean density of R0

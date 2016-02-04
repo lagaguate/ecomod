@@ -294,20 +294,21 @@
       # merge in the sa which is used as a weighting factor of most analyses
       det = merge(x=det[,detvars], y=X[,c("trip","set","sa")], by=c("trip", "set"), all.x=T, all.y=F)
      
-      # Trips and sets with no matching SA ... they have biologicals but were called bad tows(for the most part) 
+      # Trips and sets with no matching SA ...  
       ii = which( !is.finite(det$sa) )
-#    print ("DET without matching SA ... due to bad tows? ... check these ") 
-#    print (det[ii, c("trip","set")]) 
+      #print ("DET without matching SA ... due to bad tows? ... check these ") 
+      #print (det[ii, c("trip","set")])
+      #print (det[ii,])
       det$sa[ii] = median(det$sa, na.rm=T )
 
       i.mat = which(det$mat==1)
       i.imm = which(det$mat==2) 
       i.other = setdiff( 1:nrow( det), c(i.mat, i.imm) ) 
-
+      
       det$mat[ i.mat ] = mature
       det$mat[ i.imm ] = immature
       det$mat[ i.other ] = mat.unknown
- 
+      
       i.male = which( det$sex == 1 )
       i.female = which( det$sex == 2 )
       i.other =  setdiff( 1:nrow(det), c(i.male, i.female) )
@@ -315,7 +316,38 @@
       det$sex [ i.male ] = male  # male defined as a gloabl parameter
       det$sex [ i.female ] = female  # female defined as a gloabl parameter
       det$sex [ i.other ] = sex.unknown  # sex codes defined as a gloabl parameter
+      
 
+      #Identify morphology errors and print, save to CSV
+      yr.e <- p$current.assessment.year
+      fn.e = file.path(project.datadirectory("snowcrab"), "data", "trawl", "morphology.errors")
+      dir.create(fn.e, recursive=T, showWarnings=F)
+      outfile.e =  file.path( fn.e, paste("morphologyerrors", yr.e, ".csv", sep=""))
+      
+      #Sex.e: Unknown Sex
+      sex.e <- det[which(det$sex==0),]
+      sex.e.2015 <- sex.e[grep("2015", sex.e$trip),]
+      sex.e$error <- 'sex.e'
+      #Cw.e: Carapace Width below 5 or greater than 185
+      cw.e <- det[ which(det$cw<5 | det$cw>185 ),]
+      cw.e$error <- 'cw.e'
+      #Chela.e: Chela less than 1 or greater than 50
+      chela.e <- det[which(det$chela < 1 | det$chela > 50  ),]
+      chela.e$error <- 'chela.e'
+      #Abdomen.e:Abdomen less than 1 and greater than 66
+      abdomen.e <- det[which(det$abdomen < 1 | det$abdomen > 66 ),]
+      abdomen.e$error <- 'abdomen.e'
+      #Mass.e: Mass less than 1 or greater than 1500
+      mass.e <- det[which( det$mass < 1 | det$mass > 1500  ),]
+      mass.e$error <- 'mass.e'
+      #Sex.a: Indeterminate sex based on measurements taken (abdomen values where sex=male)
+      sex.a <- det[which(is.finite( det$abdomen ) & det$sex==1),]
+      sex.a$error <- 'sex.a'      
+      #Sex.c: Indeterminate sex based on measurements taken (chela values where sex=female
+      sex.c <- det[which(is.finite( det$chela ) & det$sex==2),]
+      sex.c$error <- 'sex.c'
+      
+     
       det$cw [ which(det$cw<5 | det$cw>185 ) ] = NA  # a few zero-values
       det$chela [ which(det$chela < 1 | det$chela > 50  )] = NA # remove 0's and unreliably small values
       det$abdomen [ which(det$abdomen < 1 | det$abdomen > 66 ) ] = NA # remove 0's and unreliably small values
@@ -337,7 +369,6 @@
       # det$abdomen = jitter(det$abdomen, amount=0.2)
       # det$mass =  jitter(det$mass, amount=0.2)  # mass in grams
 
-      # MG add some filtering here to identify strange crabs. mis-classed sex, etc....
 
       det = predictweights (det )
      
@@ -346,6 +377,10 @@
       det$cw  [ unreliable ]= NA # remove as these cw were used to create the above unreliable masses
       
       det = predictmaturity (det, method="logistic.regression")
+      
+      #Mat.e: Unknown Maturity
+      mat.e <- det[which(det$mat ==0),]
+      mat.e$error <- 'mat.e'
       
       primiparous = filter.class( det, "primiparous")
       multiparous = filter.class( det, "multiparous")
@@ -365,6 +400,29 @@
       allometry.snowcrab( "cw.mass", "female", redo=T  )
       allometry.snowcrab( "chela.mass", "female", redo=T  )
       allometry.snowcrab( "cw.chela.mat", "female", redo=T  )
+      
+      names.e <- list(mat.e, sex.e, cw.e, chela.e, abdomen.e, mass.e, sex.a, sex.c)
+      errors = NULL
+      for (e in names.e){
+        if (nrow(e) > 0)
+          errors <- rbind(errors, e)
+      }
+      
+      errors.yearly <- errors[grep(yr.e, errors$trip),]
+      
+      write.csv(errors.yearly, file=outfile.e)
+      print("Morphology Errors saved to file")
+      print(outfile.e)
+      cat("ERROR CODES\
+      Mat.e: Unknown Maturity\
+      Sex.e: Unknown Sex\
+      Cw.e: Carapace Width below 5 or greater than 185\
+      Chela.e: Chela less than 1 or greater than 50\
+      Abdomen.e:Abdomen less than 1 and greater than 66\
+      Mass.e: Mass less than 1 or greater than 1500\
+      Sex.a: Indeterminate sex based on measurements taken (abdomen values where sex=male)\
+      Sex.c: Indeterminate sex based on measurements taken (chela values where sex=female\n")
+      
 
       return ( "Complete" )
     }
@@ -869,7 +927,8 @@
       set$cfa = NULL
       set$gear = NULL
 
-      #set2015= set[which(set$yr==2015),]
+      set2015= set[which(set$yr==2015),]
+      print(head(set2015))
    
       save( set, file=fn, compress=TRUE )
       

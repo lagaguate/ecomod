@@ -73,6 +73,7 @@
 
 
     if (DS %in% c("environmentals", "environmentals.redo") ) {
+      #browser()
       
       outdir =  file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "environmentals" )
       if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE","environmentals" )
@@ -88,11 +89,14 @@
         }
         return (PS)
       }
-
-      if (!exists("ip")) ip = 1:p$nruns
-    
-      for (iy in ip) {
-        yr = p$runs[iy, "yrs"]
+      browser()
+     # if (!exists("ip")) ip = 1:p$nruns
+    yrs=p$yearstomodel
+      #for (iy in ip) {
+    for (yr in yrs) {
+       
+        #yr = p$runs[iy, "yrs"]
+        print(yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
         PS = NULL
         PS = habitat.db( DS="baseline", p=p )  

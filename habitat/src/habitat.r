@@ -77,32 +77,10 @@
   # 3. Contains all environmental data == baseline and temperature data ... none of the 'higher level indicators'
   # Used for merging back into bio.db as the 'higher level indicators have not yet been created/updated
   p = make.list( list( yrs=p$yearstomodel), Y=p )
-  parallel.run( habitat.db, DS="environmentals.redo", p=p )
-  # habitat.db ( DS="environmentals.redo", p=p )
+  #parallel.run( habitat.db, DS="environmentals.redo", p=p ) #MG parallel isn't running properly at the moment
+  habitat.db( DS="environmentals.redo", p=p )
 
-
-
- --------------------------------------------
- ------- STOP HERE ! ------------------------
- ------- DO NOT RUN THE REMAINDER -----------
- ------- until the following are finshed ----
- --------------------------------------------
-
-
-  # 4. This step needs to be completed after all other incoming db are refreshed ... add biologicals 
-  ### loadfunctions ( "bio", functionname="bio.r" )  
-  ### loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
-  ### loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
-  ### loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
-  ### loadfunctions ( "metabolism", functionname="metabolism.r" ) 
-  ### loadfunctions ( "condition", functionname="condition.r" ) 
-  #
-  # TODO :: biologicals begin in 1970 ..  need to fix 
-  #        .. at present data from 1970 are copied to all pre 1970 data years
-
-  p = make.list( list( yrs=p$yearstomodel), Y=p )
-  parallel.run(  habitat.db, DS="complete.redo", p=p )
-  # habitat.db ( DS="complete.redo", p=p )
+  
 
 
  

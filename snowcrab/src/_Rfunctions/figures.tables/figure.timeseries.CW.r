@@ -40,7 +40,7 @@
     #   td[ which(td$region=="4X" & td$year < 2004), c("mean", "se", "ub", "lb", "n")] = NA
 
     #ylim=range(c(td$mean), na.rm=T); ylim[1]=ylim[1]-0.1*ylim[2]; ylim[2] = ylim[2]+ylim[2]*0.2
-    xlim=range(td$year); xlim[1]=xlim[1]; xlim[2]=xlim[2]
+    xlim=range(td$year); xlim[1]=xlim[1]; xlim[2]=xlim[2]+1
     ylim='NULL'
     rg= range(td$mean, finite=TRUE)
     ylim[2]= rg[2]*1.02
@@ -52,7 +52,7 @@
 
 
     dir.create( outdir, recursive=T, showWarnings=F  )
-    Cairo( file=fn, type="png", bg="white",  units="in", width=6, height=8, dpi=350)
+    Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=8, dpi=350)
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
     #    layout=c(1,n.areas), xlim=xlim, scales = list(y = "free"),

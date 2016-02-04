@@ -24,6 +24,8 @@
       td = td[ii ,]
       td = td[ order(td$region, td$year) , ]
       td$region = factor(td$region, levels=areas, labels =regions)
+      
+      ylim=NULL
 
       #ylim=range(c(td$mean), na.rm=T); ylim[1]=ylim[1]-0.1*ylim[2]; ylim[2] = ylim[2]+ylim[2]*0.4 +200
       ylim[2]=max(td$ub)
@@ -38,7 +40,7 @@
 
       dir.create( outdir, recursive=T, showWarnings=F )
       fn = file.path( outdir, paste( v, "combined", "png", sep="." ) )
-      Cairo( file=fn, type="png", bg="white",  units="in", width=4, height=6, dpi=350)
+      Cairo( file=fn, type="png", bg="white",  units="in", width=4, height=6, dpi=450)
       setup.lattice.options()
       pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
         layout=c(1,n.areas), 

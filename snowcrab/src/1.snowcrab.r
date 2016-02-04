@@ -96,8 +96,7 @@
       
       problems = data.quality.check( set, type="netmind.load")
       problems = data.quality.check( set, type="netmind.mismatches" )
-#MG there is still a mismatch happening with S26102015 set 5 and station 724, not ssure why it's not finding a match
-      
+
       problems = data.quality.check( set, type="tow.duration")
       problems = data.quality.check( set, type="tow.distance")
       
@@ -106,8 +105,10 @@
       
       problems = data.quality.check( set, type="netmind.timestamp" )
 
-    
+    #MG det.initial.redo updates and processes morphology. This code now identifies morphology errors, which must be
+    #checked with written logs, then sent to database and put in debugging here and re-run
     snowcrab.db( DS="det.initial.redo", p=p )
+    
     snowcrab.db( DS="det.georeferenced.redo" ) 
     snowcrab.db( DS="cat.initial.redo", p=p )
     snowcrab.db( DS="cat.georeferenced.redo" )
@@ -135,7 +136,8 @@
 # Temperatures ::  
   loadfunctions ( "temperature", functionname="temperature.r" )  # days
 # Habitat data ... environmentals only as it is used by bio.db etc
-  loadfunctions ( "habitat", functionname="habitat.temperatures.r" ) 
+  loadfunctions("habitat", functionname="habitat.r")
+  #loadfunctions ( "habitat", functionname="habitat.temperatures.r" ) 
 # BIO db update :: 
 # must come after temperature interpolations to permit temperature lookups 
   loadfunctions ( "bio", functionname="bio.r" )  

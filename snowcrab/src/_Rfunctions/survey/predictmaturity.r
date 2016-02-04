@@ -8,12 +8,12 @@
     # global parameters:: mature, immature, female, male is defined in load.snowcrab.environment 
     
     # basic biological limits
-      x$mat[ which( x$cw<35 ) ]  = immature
+      x$mat[ which( x$cw<50 ) ]  = immature
       x$mat[ which( x$cw>150 ) ] = mature
     
     # males: order is important .. last is most imperative
       x$mat[ which( x$sex == male & x$shell %in% c(4,5)) ] = mature
-      x$mat[ which( x$sex == male & x$cw < 35) ] = immature
+      x$mat[ which( x$sex == male & x$cw < 50) ] = immature
       x$mat[ which( x$sex == male & x$cw > 150) ] = mature
       x$mat[ which( x$sex == male & x$chela < 5) ] = immature
       x$mat[ which( x$sex == male & x$chela > 33) ] = mature
