@@ -10,20 +10,45 @@
 
 	
 	# FSRS CPUE
-	FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRScpue.csv"))
-	require(lattice)
+	shorts<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRSmodelresultsSHORT.csv"))
+	legals<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRSmodelresultsLEGAL.csv"))
+
+
+
+	# shorts
+	pdf(file.path( project.datadirectory("lobster"),"R","FSRSshorts.pdf"),8, 10)
+
+
+	p <- ggplot()
+	p <- p + geom_point(data = shorts, aes(y = mu, x = YEAR), shape = 16, size = 3)
+	p <- p + xlab("Year") + ylab("Lobsters / Trap")
+	p <- p + theme(text = element_text(size=15)) + theme_bw()
+	p <- p + geom_line(data = shorts, aes(x = YEAR, y = mu), colour = "black")
+	p <- p + geom_ribbon(data = shorts, aes(x = YEAR, ymax = ub, ymin = lb ), alpha = 0.5)
+	p <- p + facet_wrap(  ~Area, ncol=2,scales = "fixed")
+	p
+
+	dev.off()
+
+	# legals
+
+	pdf(file.path( project.datadirectory("lobster"),"R","FSRSlegals.pdf"),8, 10)
+
+	p <- ggplot()
+	p <- p + geom_point(data = legals, aes(y = mu, x = YEAR), shape = 16, size = 3)
+	p <- p + xlab("Year") + ylab("Lobsters / Trap")
+	p <- p + theme(text = element_text(size=15)) + theme_bw()
+	p <- p + geom_line(data = legals, aes(x = YEAR, y = mu), colour = "black")
+	p <- p + geom_ribbon(data = legals, aes(x = YEAR, ymax = ub, ymin = lb ), alpha = 0.5)
+	p <- p + facet_wrap(  ~Area, ncol=2,scales = "fixed")
+	p
+
+	dev.off()
 
 	wd=9
 	ht=6
 	wd.r=0.7
 	ht.r=0.62
-
-	x11(wd,ht)
-	xyplot(pred.s.cpue~SYEAR|LFA, data=subset(FSRScpue.dat,LFA%in%c('28','29','30','31A','31B','32')), ylab="CPUE (No. Lobsters / Trap Haul)",xlab= "Year", main="", as.table=T,type='b',ylim=c(0,4.5))
-	x11(wd*wd.r,ht*ht.r)
-	xyplot(pred.s.cpue~SYEAR|subarea, data=subset(FSRScpue.dat,LFA=='27'), ylab="CPUE (No. Lobsters / Trap Haul)",xlab= "Year", as.table=T,type='b',ylim=c(0,4.5))
-	x11(wd*wd.r,ht*ht.r)
-	xyplot(pred.s.cpue~SYEAR|subarea, data=subset(FSRScpue.dat,LFA=='33'), ylab="CPUE (No. Lobsters / Trap Haul)",xlab= "Year", as.table=T,type='b',ylim=c(0,4.5))
 
 
 	# Logs CPUE

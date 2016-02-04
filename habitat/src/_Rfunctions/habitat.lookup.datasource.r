@@ -28,7 +28,9 @@
       }
  
       if ( DS %in% c("temperature.climatology" ) ) {
-        H = temperature.db( p=p, DS="climatology", year=yr  ) 
+        H = temperature.db( p=p, DS="complete", year=yr  ) 
+        keep = c("plon", "plat", "tmean.cl", "tamp.cl", "wmin.cl", "thp.cl", "tsd.cl" )
+        H = H[, keep]
         # H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tmean" )
       }
 

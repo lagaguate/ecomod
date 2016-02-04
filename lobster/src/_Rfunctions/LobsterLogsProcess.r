@@ -7,7 +7,7 @@ LobsterLogsProcess<-function(){
 
 
 	#Filtering by date trap and weight:
-	Fish.Date<-read.csv(file.path( project.datadirectory("lobster"), "data","FishingSeasonDates.csv"))
+	Fish.Date<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","FishingSeasonDates.csv"))
 	lfa <- unique(Fish.Date$LFA)
 	max_trap<-c(825,750,750,750,750,750,750,750,1126,1126,1126,1226)
 	max_lbs<-c(2750,2750,2750,2750,2750,2750,2750,10000,30000,30000,30000,30000)
