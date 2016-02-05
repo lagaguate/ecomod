@@ -75,10 +75,6 @@
   groundfish.db( DS="cat.base.redo" )
 
 
-******************
-##### <<<<<<<<<<<<<<<< MUST ADD new routines to bring in Temp and Sal as gshyd is no longer maintained as of 2012/13
-*******************
-
 
   groundfish.db( "det.base.redo")#, r2crit=0.75 ) # ~ 10 min 
   groundfish.db( "cat.redo" )  # add correction factors, and express per unit area

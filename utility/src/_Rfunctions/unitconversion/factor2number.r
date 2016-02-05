@@ -1,5 +1,9 @@
 
-  factor2number = function(x, vars) {
+  factor2number = function(x, vars=NULL) {
+	if(is.null(vars)) {
+	x = as.numeric(levels( x ))[as.integer( x )]
+	return(x)
+	}
     for (i in vars) {
 			if ( is.factor( x[,i]	) ) {
 				x[,i] = as.numeric(levels( x[,i] ))[as.integer( x[,i] )]
