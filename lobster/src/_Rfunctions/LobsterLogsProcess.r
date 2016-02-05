@@ -7,7 +7,7 @@ LobsterLogsProcess<-function(){
 
 
 	#Filtering by date trap and weight:
-	Fish.Date<-read.csv(file.path( project.datadirectory("lobster"), "data","FishingSeasonDates.csv"))
+	Fish.Date<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","FishingSeasonDates.csv"))
 	lfa <- unique(Fish.Date$LFA)
 	max_trap<-c(825,750,750,750,750,750,750,750,1126,1126,1126,1226)
 	max_lbs<-c(2750,2750,2750,2750,2750,2750,2750,10000,30000,30000,30000,30000)
@@ -68,11 +68,11 @@ LobsterLogsProcess<-function(){
 	logsInSeason$CPUE<-logsInSeason$WEIGHT_KG/logsInSeason$NUM_OF_TRAPS
 	logsInSeason<-subset(logsInSeason,CPUE<20)
 
-	subareas<-read.csv(file.path( project.datadirectory("lobster"), "data","LFA2733subarea.csv"))
+	subareas<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","LFA2733subarea.csv"))
 	names(subareas)[2]<-"GRID_NUM"
 	logsInSeason<-merge(logsInSeason,subareas,all.x=T)
 
-	TotalLandings<-read.csv(file.path( project.datadirectory("lobster"), "data","TotalLandings.csv"))
+	TotalLandings<-read.csv(file.path( project.datadirectory("lobster"), "data","products","TotalLandings.csv"))
 		
 	# add BUMPUP column: total landings/sum of logs for each year  & LFA
 	logsInSeason$BUMPUP<-NA
