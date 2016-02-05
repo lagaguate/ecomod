@@ -35,11 +35,14 @@
       }
      
 			# depth is the primary constraint 
+      Zbase = bathymetry.db( p=p, DS="baseline" ) # area -prefiltered for depth/bounds
+      Zbase$z = NULL
       Z = bathymetry.db( p=p, DS="complete" )  # SS to a depth of 500 m  the default used for all planar SS grids
       Z$id = 1:nrow(Z)
       Z$dZ = log( Z$dZ )
       Z$ddZ = log( Z$ddZ)
       Z = Z[, c("plon", "plat", "id", "z", "dZ", "ddZ" )]
+      Z = merge(Zbase, Z, by=c("plon", "plat"), all.x=TRUE, all.y=FALSE, sort=FALSE )
 
       S =  substrate.db ( p=p, DS="planar")
       S$substrate.mean = log(S$grainsize)
@@ -73,7 +76,6 @@
 
 
     if (DS %in% c("environmentals", "environmentals.redo") ) {
-      
       outdir =  file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "environmentals" )
       if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE","environmentals" )
       dir.create(outdir, recursive=T, showWarnings=F)
@@ -89,8 +91,8 @@
         return (PS)
       }
 
-      if (!exists("ip")) ip = 1:p$nruns
-    
+      if (is.null(ip)) ip = 1:p$nruns
+
       for (iy in ip) {
         yr = p$runs[iy, "yrs"]
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
@@ -103,6 +105,7 @@
         PS = PS[ order( PS$id ) ,]
         PS$id = NULL
         save (PS, file=outfile, compress=T )
+        print( outfile)
       }
     }
 
