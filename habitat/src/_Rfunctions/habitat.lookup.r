@@ -30,12 +30,13 @@
       print( paste( "Looking up ", DS) )
 
       H = habitat.lookup.datasource( DS, p=p )  # bring in appropriate habitat data source
-      H$plon = grid.internal( H$plon, H$plons )
-      H$plat = grid.internal( H$plat, H$plats )
+      H$plon = grid.internal( H$plon, p$plons )
+      H$plat = grid.internal( H$plat, p$plats )
 	    H = H[ which( is.finite( H$plon + H$plat)), ]
       Hnames = names(H)
       out = merge( x, H, by=coords, all.x=T, all.y=F, suffixes=c("", ".duplicated"), sort=FALSE )
       rm(x); gc()
+
       newvars = setdiff( Hnames, xnames ) 
       if (length(newvars)==0) newvars= setdiff( intersect( xnames, Hnames ), coords )
       outnames = names(out)
@@ -86,8 +87,8 @@
         print( yr )
         H = habitat.lookup.datasource( DS, yr=yr, p=p  )  # bring in appropriate habitat data source
 
-        H$plon = grid.internal( H$plon, H$plons )
-        H$plat = grid.internal( H$plat, H$plats )
+        H$plon = grid.internal( H$plon, p$plons )
+        H$plat = grid.internal( H$plat, p$plats )
 	      H = H[ which( is.finite( H$plon + H$plat)), ]
         
         ii = which( x$yr == yr )
@@ -133,6 +134,7 @@
       
       if (! exists("mon", x) ) {
         x$dayno = convert.datecodes(x$chron, "julian")  
+        x$weekno = ceiling (x$dayno / 365 * 52 )
         x$mon = ceiling (x$dayno / 365 * 12 )
       }
       if (! exists( "mon", x ) ) stop( "mon is required")  # required
@@ -141,7 +143,7 @@
 
       yrs = sort( unique( x$yr ))
 
-      B = bathymetry.db( p=p, DS="baseline" ) # already discretized to internal plons and plats
+      B = bathymetry.db( p=p, DS="spde_complete", return.format="dataframe" ) # already discretized to internal plons and plats
       B$row = 1:nrow(B)
       B$z = NULL
 

@@ -4,23 +4,23 @@
   # ultimately to speed up processing by creating merged data that are repeatedly used by many other functions/analysis
  
   # 1. create parameter list
-
-  p = list()
-  p$libs = RLibrary( "mgcv", "sp", "gstat",  "parallel", "fields", "chron", "lubridate", "raster", "rgdal"  ) 
+ 
+  p = list( project.name = "habitat" )
+  p$project.root = project.datadirectory( p$project.name )
+  
+  p$libs = RLibrary( c( "mgcv", "sp", "gstat",  "parallel", "fields", "chron", "lubridate", "raster", "rgdal"  ) )
   p$init.files = loadfunctions( c(
 	  "spacetime", "utility", "parallel", "habitat", "substrate", "bathymetry", "speciesarea", "metabolism", 
 		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
-	) )
+	) ) 
 
   p$taxa = "maxresolved"
   p$season = "allseasons"
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
   p$interpolation.nmax = 100 
    
-  
   p$yearstomodel = 1970:2015
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
-
 
   p$speciesarea.modeltype = "complex"
   p$speciesarea.method = "glm"   ## this is chosen in speciesarea.r ... make sure it matches up

@@ -10,11 +10,11 @@
       }
 
       if ( DS=="depth") {
-        H = bathymetry.db( p=p, DS="baseline" )
+        H = bathymetry.db( p=p,  DS="spde_complete", return.format = "dataframe" )
       }
 
       if ( DS=="depth.complete") {
-        H = bathymetry.db( p=p, DS="complete" )
+        H = bathymetry.db( p=p, DS="spde_complete", return.format = "dataframe" )
       }
       
       if ( DS=="substrate") {
@@ -24,6 +24,8 @@
       }
 
       if ( DS %in% c("temperature", "temperature.monthly" ) ) {
+        B = bathymetry.db( p=p, DS="spde_complete", return.format = "dataframe" )
+
         H = temperature.db( p=p, DS="spatial.interpolation", yr=yr  )
       }
  

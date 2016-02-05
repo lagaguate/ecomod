@@ -5,10 +5,10 @@
   p = list( project.name = "bathymetry" )
   p$project.root = project.datadirectory( p$project.name )
          
-  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" ) )
-  p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
+  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" )  )
+  p$libs = RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",
-    "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
+    "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" ) )
   
   # default (= only supported resolution of 0.5 km discretization)  .. do NOT change 
   # use "spde_complete" to project/downscale/upscale onto other grids/resolutions
