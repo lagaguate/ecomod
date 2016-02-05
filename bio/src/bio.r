@@ -10,6 +10,9 @@
     loadfunctions( c("groundfish", "habitat", "bio" )),
     loadfunctions( "snowcrab", functionname="default.project.environment" ) ))
 
+  p$nw = 10 # number of intervals in time within a year in the temperature interpolations ( must match temperature.r 's value )
+  
+
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
 
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far

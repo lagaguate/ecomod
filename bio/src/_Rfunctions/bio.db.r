@@ -44,7 +44,8 @@
       }
       
       # set$chron = as.chron( as.numeric(string2chron( paste( paste( set$yr, "Jan", "01", sep="-" ), "12:00:00") )) + set$julian ) # required for time-dependent lookups
-      
+      set$timestamp = as.POSIXct( chron::as.chron( set$chron ) ) 
+                                 
       save( set, file=fn, compress=T )
       return (fn) 
     }

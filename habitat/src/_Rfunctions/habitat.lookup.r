@@ -62,17 +62,23 @@
         }
       }
     }
-  
+
+
     # -------------------
     # yearly-varying items:
     if ( DS %in% c( "default", "all", "all.data", "environmentals", "temperature.all" )) {
+        
       if (! exists( "yr", x) ){
-        if ( any( grepl( "chron", names(x) ) )) {
-          x$yr = as.numeric( as.character( years( x$chron )))
+        if (exists( "timestamp", x )) {
+            x$yr = lubridate::year( x$timestamp ) 
+        } else if (exists( "chron" ) ) {  
+            x$timestamp = as.POSIXct( chron::as.chron( x$chron), origin=lubridate::origin )
+            x$yr = lubridate::year( x$timestamp ) 
+        } else {
+          stop( "yr is required")  # required
         }
       } 
-      if (! exists( "yr", x ) ) stop( "yr is required")  # required
- 
+
       yrs = sort( unique( x$yr ))
       print( paste( "Looking up ", DS) )
      
@@ -123,23 +129,35 @@
     }
 
     # -------------------
-    # monthly-varying items:
-    if ( DS %in% c( "temperature", "temperature.monthly" )) {
-      if (! exists( "yr", x) ) {
-        if (any( grepl( "chron", names(x) ) )) {
-          x$yr = as.numeric( as.character( years( x$chron )))
+    # fine scale year+season varying items:
+    if ( DS %in% c( "temperature", "temperature.seasonal" )) {
+    
+      if (! exists( "yr", x) ){
+        if (exists( "timestamp", x )) {
+            x$yr = lubridate::year( x$timestamp ) 
+        } else if (exists( "chron" ) ) {  
+            x$timestamp = as.POSIXct( chron::as.chron( x$chron), origin=lubridate::origin )
+            x$yr = lubridate::year( x$timestamp ) 
+        } else {
+          stop( "yr is required")  # required
         }
       } 
-      if (! exists( "yr", x ) ) stop( "yr is required")  # required
-      
-      if (! exists("mon", x) ) {
-        x$dayno = convert.datecodes(x$chron, "julian")  
-        x$weekno = ceiling (x$dayno / 365 * 52 )
-        x$mon = ceiling (x$dayno / 365 * 12 )
-      }
-      if (! exists( "mon", x ) ) stop( "mon is required")  # required
 
-      print( "Looking up temperature at monthly scales" )
+      if (! exists( "dyear", x) ) { # dyear is the decimal year (fraction of a year)
+        if (exists( "timestamp", x )) {
+          x$dyear = lubridate::decimal_date( x$timestamp ) - x$yr 
+        } else if (exists( "chron" ) ) {  
+           x$timestamp = as.POSIXct( chron::as.chron( x$chron), origin=lubridate::origin )
+           x$dyear = lubridate::decimal_date( x$timestamp ) - x$yr  
+        } else {
+          stop( "dyear, the fractional year, is required")  # required
+        }
+      } 
+    
+      dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+      x$dyr = as.numeric( cut( x$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integerr representation of season
+       
+      print( "Looking up temperature at year+seasonal scales" )
 
       yrs = sort( unique( x$yr ))
 
@@ -157,7 +175,7 @@
           
         V = matrix( NA, ncol=2, nrow=length(ii) )	
         V[,1] = X$row
-        V[,2] = X$mon
+        V[,2] = X$dyr
 
         H = habitat.lookup.datasource( DS=DS, yr=yr, p=p  )  # bring in appropriate habitat data source
         if (is.null(H)) next()
@@ -179,7 +197,7 @@
           distances[ which(distances > max.distance) ] = NA
           for( jj in 1:length( im ) ) {
             dd = which.min( distances[,jj] )
-            if (length(dd) > 0) X[ im[jj],vn ] = H[ dd, X[ im[jj],"mon"] ]
+            if (length(dd) > 0) X[ im[jj],vn ] = H[ dd, X[ im[jj],"dyr"] ]
           }
         }
         O = rbind( O, X )

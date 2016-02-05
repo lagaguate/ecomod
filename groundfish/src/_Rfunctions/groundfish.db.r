@@ -629,13 +629,14 @@
       }
       gsinf = groundfish.db( "gsinf" ) 
       gsinf$date = as.chron( gsinf$sdate )
+      gsinf$timestamp = gsinf$sdate 
       gsinf$yr = convert.datecodes( gsinf$date, "year" )
       gsinf$dayno = convert.datecodes( gsinf$date, "julian")
       gsinf$weekno = ceiling ( gsinf$dayno / 365 * 52 )
       gsinf$mon = ceiling ( gsinf$dayno / 365 * 12 )
       gsinf$longitude = gsinf$lon
       gsinf$latitude = gsinf$lat
-      gsinf = gsinf[ , c( "id", "lon", "lat", "yr", "mon", "weekno", "dayno", "date" ) ]
+      gsinf = gsinf[ , c( "id", "lon", "lat", "yr", "mon", "weekno", "dayno", "date", "timestamp" ) ]
       gshyd = groundfish.db( "gshyd.profiles" )
       gshyd = merge( gshyd, gsinf, by="id", all.x=T, all.y=F, sort=F )
       gshyd$sal[gshyd$sal<5]=NA
@@ -758,7 +759,7 @@
         return (cat)
       }
       
-      require(chron)
+      # require(chron)
 
       gscat = groundfish.db( "gscat" ) #kg/set, no/set 
       set = groundfish.db( "set.base" ) 
@@ -911,13 +912,15 @@
       oo = which( !is.finite( set$sdate)) # NED1999842 has no accompanying gsinf data ... drop it
       if (length(oo)>0) set = set[ -oo  ,]  
 
-      set$chron = as.chron(set$sdate)  ## chron is deprecated 
+      set$chron = as.chron(set$sdate)  ## chron is deprecated
+      set$timestamp = as.POSIXct(set$sdate, origin=lubridate::origin) 
+      # or simply: set$timestamp = set$sdate
       # set$yr = convert.datecodes(set$chron, "year" )
       # set$julian = convert.datecodes(set$chron, "julian")
       set$julian = lubridate::yday( set$sdate )
       # set$sdate = NULL
 
-      set = set[, c("id", "chron", "yr", "julian", "strat", "dist_km", "dist_pos", 
+      set = set[, c("id", "timestamp", "chron", "yr", "julian", "strat", "dist_km", "dist_pos", 
                  "sakm2", "lon", "lat", "sdepth", "temp", "sal", "oxyml", "settype")]
 
       set = set[ !duplicated(set$id) ,] 

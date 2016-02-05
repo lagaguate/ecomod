@@ -185,7 +185,7 @@
     p = spatial.parameters( p=p, type="SSE" )
  
     O = hydro.db( p=p, DS="bottom.gridded.all"  )
-    O = O[, c("plon", "plat", "t", "yr", "mon")]
+    O = O[, c("plon", "plat", "t", "yr", "dyear")]
     O = O[ which( is.finite(O$t)) ,]
 
    
@@ -197,13 +197,13 @@
 
     O = O[ i, ]
 
-    e = gam( t ~ s(yr, mon) + s(plon, plat) , data=O[i,] )
+    e = gam( t ~ s(yr, dyear) + s(plon, plat) , data=O[i,] )
     e = gam( t ~ s(yr, ttime) + s(plon, plat) , data=O )
     e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1 ) )
     e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1,ttime=~1 ) )
     e = gamm( t~ s(yr) + ttime + s(plon,plat), data=O, random=list(plonplat=~1 ) )
 
-    e = gamm( t~ s(yr,mon) + s(plon,plat), data=O, random=list(plon=~1, plat=~1), correlation=corSpher( c(range, nugg), form = ~ plon+plat, nugget=T) )
+    e = gamm( t~ s(yr, dyear) + s(plon,plat), data=O, random=list(plon=~1, plat=~1), correlation=corSpher( c(range, nugg), form = ~ plon+plat, nugget=T) )
     summary(e)
     AIC(e)
     plot(e, all.terms=T, pers=T,theta=60)

@@ -183,6 +183,8 @@
       Ydummy$depth = -1
       Ydummy$oxyml = NA
       
+      dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+      
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
         
@@ -193,7 +195,8 @@
           } else {
             Y$yr = yt
             Y$dyear = lubridate::decimal_date( Y$date ) - Y$yr
-            Yid = cut( Y$dyear, breaks=p$dyears, include.lowest=T, right=F, ordered_result=TRUE )
+            
+            Yid = cut( Y$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE )
             Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Yid , sep="~" )
             Y$depth = decibar2depth ( P=Y$pressure, lat=Y$latitude )
             Y$oxyml = NA
@@ -300,7 +303,8 @@
           }
         }
 
-
+      dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+      
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
         Y = hydro.db( DS="profiles.annual", yr=yt, p=p )
@@ -309,8 +313,7 @@
         Y = Y[igood, ]
  
         # Bottom temps
-				
-        Yid = cut( Y$dyear, breaks=p$dyears, include.lowest=T, right=F, ordered_result=TRUE )
+        Yid = cut( Y$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE )
         Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Yid, sep="~" )
         ids =  sort( unique( Y$id ) )
         res = copy.data.structure( Y)   
@@ -417,7 +420,8 @@
           tp = rename.df( tp, "depth", "z")
 
           tp$date = as.Date( tp$date ) # strip out time of day information
-          tp$dyear = lubridate::decimal_date( tp$date ) - tp$yr
+          tp$ddate = lubridate::decimal_date( tp$date )
+          tp$dyear = tp$ddate - tp$yr
 					# tp$depth = NULL
         
           igood = which( tp$t >= -3 & tp$t <= 25 )  ## 25 is a bit high but in case some shallow data 
@@ -439,7 +443,7 @@
           ## ensure that inside each grid/time point 
           ## that there is only one point estimate .. taking medians
           vars = c("z", "t", "salinity", "sigmat", "oxyml")
-          tp$st = paste( tp$mon, tp$plon, tp$plat ) 
+          tp$st = paste( tp$ddate, tp$plon, tp$plat ) 
         
           o = which( ( duplicated( tp$st )) )
           if (length(o)>0) { 

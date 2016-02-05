@@ -23,9 +23,7 @@
         H = H[, c("plon", "plat", "substrate.mean") ]
       }
 
-      if ( DS %in% c("temperature", "temperature.monthly" ) ) {
-        B = bathymetry.db( p=p, DS="spde_complete", return.format = "dataframe" )
-
+      if ( DS %in% c("temperature", "temperature.seasonal" ) ) {
         H = temperature.db( p=p, DS="spatial.interpolation", yr=yr  )
       }
  
@@ -33,7 +31,6 @@
         H = temperature.db( p=p, DS="complete", year=yr  ) 
         keep = c("plon", "plat", "tmean.cl", "tamp.cl", "wmin.cl", "thp.cl", "tsd.cl" )
         H = H[, keep]
-        # H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tmean" )
       }
 
       if ( DS %in% c( "temperature.complete" ) ) {

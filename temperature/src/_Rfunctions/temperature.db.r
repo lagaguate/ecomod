@@ -80,31 +80,31 @@
       }
      
 			# depth is the primary constraint 
-      Z = bathymetry.db( p=p, DS="baseline" )  # SS to a depth of 500 m  the default used for all planar SS grids
+      Z = bathymetry.db( p=p, DS="baseline" ) 
       Z$id = 1:nrow(Z)
       Z$z = NULL
 
-      E.tmean = hydro.modelled.db( p=p, DS="bottom.mean", vname="tmean" ) 
+      E.tmean = temperature.db( p=p, DS="bottom.mean", vname="tmean" ) 
       names(E.tmean) = c("plon", "plat", "tmean")
       PS = merge( Z, E.tmean, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( Z, E.tmean ) ; gc()
 
-      E.tamp  = hydro.modelled.db( p=p, DS="bottom.mean", vname="tamplitude"  ) 
+      E.tamp  = temperature.db( p=p, DS="bottom.mean", vname="tamplitude"  ) 
       names(E.tamp) = c("plon", "plat", "tamp")
       PS = merge( PS, E.tamp, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.tamp ) ; gc()
 
-      E.wmin  = hydro.modelled.db( p=p,  DS="bottom.mean", vname="wmin"  ) 
+      E.wmin  = temperature.db( p=p,  DS="bottom.mean", vname="wmin"  ) 
       names(E.wmin) = c("plon", "plat", "wmin")
       PS = merge( PS, E.wmin, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.wmin ) ; gc()
 
-      E.thp   = hydro.modelled.db( p=p,  DS="bottom.mean", vname="thalfperiod" ) 
+      E.thp   = temperature.db( p=p,  DS="bottom.mean", vname="thalfperiod" ) 
       names(E.thp) = c("plon", "plat", "thp")
       PS = merge( PS, E.thp, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.thp ) ; gc()
 
-      E.tsd   = hydro.modelled.db( p=p,  DS="bottom.mean", vname="tsd" ) 
+      E.tsd   = temperature.db( p=p,  DS="bottom.mean", vname="tsd" ) 
       names(E.tsd) = c("plon", "plat", "tsd")
       PS = merge( PS, E.tsd, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
       rm ( E.tsd ) ; gc()
@@ -173,7 +173,7 @@
         print (paste( yr))
 	      
         # default domain annual stats
-        E = hydro.modelled.db( DS="bottom.statistics.annual", p=p0, yr=yr  ) 
+        E = temperature.db( DS="bottom.statistics.annual", p=p0, yr=yr  ) 
         E$z = NULL
         if (is.null(E)) print( paste( "bottom.statistics.annual not found for:" , yr ) )
         names(E)[ which(names(E)=="tamplitude") ] = "tamp"  # fix this at the level of "bottom statistics"
@@ -350,7 +350,7 @@
         V = temperature.db( p=p, DS="temporal.interpolation.se", yr=y  )
 				print ( paste("Year:", y)  )
         for ( ww in 1:p$nw ) {
-          print ( paste( "Dyear:", ww) )
+          print ( paste( "Seasonal component (dyear) :", ww) )
           # these are simple interpolations 
           P[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=P[,ww] )
           V[,ww] = temperature.spatial.interpolate( method=p$spmethod, p=p, z=V[,ww] )
