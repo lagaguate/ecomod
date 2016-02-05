@@ -21,7 +21,7 @@ FSRS.dat$HAUL_DATE<-as.Date(FSRS.dat$HAUL_DATE)
 ## Aggregate by unique vessal and day, summerizing total traps, legals and shorts
 
 trap.lst<-lapply(with(FSRS.dat,tapply(TRAP_NO,VES_DATE,unique)),length)
-trap.dat<-data.frame(VES_DATE=names(trap.lst),TOTAL_Trap.lst))
+trap.dat<-data.frame(VES_DATE=names(trap.lst),TOTAL_TRAPS=as.vector(unlist(trap.lst)))
 
 short.lst<-with(subset(FSRS.dat,SHORT==1),tapply(TRAP_NO,VES_DATE,length)) 
 short.dat<-data.frame(VES_DATE=names(short.lst),SHORTS=short.lst)
@@ -64,8 +64,8 @@ FSRSvesday$HAUL_DATE<-as.Date(FSRSvesday$HAUL_DATE)
 #missing.temps.percent
 
 
-#-----------------------------------LFA27
 
+#-----------------------------------LFA27
 
 	#------------------------------North
 	LFA27north<-subset(FSRSvesday,subarea=='27 North')
@@ -73,14 +73,11 @@ FSRSvesday$HAUL_DATE<-as.Date(FSRSvesday$HAUL_DATE)
 	LFA27n.sm<-FSRSmodel(LFA27north, response="SHORTS")
 	LFA27n.lm<-FSRSmodel(LFA27north, response="LEGALS")
 
-
-
 	#------------------------------South
 	LFA27south<-subset(FSRSvesday,subarea=='27 South')
 
 	LFA27s.sm<-FSRSmodel(LFA27south, response="SHORTS")
 	LFA27s.lm<-FSRSmodel(LFA27south, response="LEGALS")
-
 
 
 #-------------------------------LFA28
@@ -91,14 +88,12 @@ FSRSvesday$HAUL_DATE<-as.Date(FSRSvesday$HAUL_DATE)
 	LFA28.lm<-FSRSmodel(LFA28, response="LEGALS")
 
 
-
 #-------------------------------LFA29
 
 	LFA29<-subset(FSRSvesday,LFA==29)
 
 	LFA29.sm<-FSRSmodel(LFA29, response="SHORTS")
 	LFA29.lm<-FSRSmodel(LFA29, response="LEGALS")
-
 
 
 #-------------------------------LFA30
@@ -109,14 +104,12 @@ FSRSvesday$HAUL_DATE<-as.Date(FSRSvesday$HAUL_DATE)
 	LFA30.lm<-FSRSmodel(LFA30, response="LEGALS")
 
 
-
 #-------------------------------LFA31A
 
 	LFA31A<-subset(FSRSvesday,LFA==31.1)
 
 	LFA31A.sm<-FSRSmodel(LFA31A, response="SHORTS")
 	LFA31A.lm<-FSRSmodel(LFA31A, response="LEGALS")
-
 
 
 #-------------------------------LFA31B
@@ -127,7 +120,6 @@ FSRSvesday$HAUL_DATE<-as.Date(FSRSvesday$HAUL_DATE)
 	LFA31B.lm<-FSRSmodel(LFA31B, response="LEGALS")
 
 
-
 #-------------------------------LFA32
 
 	LFA32<-subset(FSRSvesday,LFA==32)
@@ -136,36 +128,79 @@ FSRSvesday$HAUL_DATE<-as.Date(FSRSvesday$HAUL_DATE)
 	LFA32.lm<-FSRSmodel(LFA32, response="LEGALS")
 
 
-
-
 #-----------------------------------LFA33
-
 
 	#------------------------------East
 	LFA33east<-subset(FSRSvesday,subarea=='33 East')
 
-
-	LFA33e.sm<-FSRSmodel(LFA33east, response="SHORTS")
-	LFA33e.lm<-FSRSmodel(LFA33east, response="LEGALS")
-
-
+	LFA33e.sm<-FSRSmodel(LFA33east, response="SHORTS",interaction=T)
+	LFA33e.lm<-FSRSmodel(LFA33east, response="LEGALS",interaction=T)
 
 	#------------------------------West
 	LFA33west<-subset(FSRSvesday,subarea=='33 West')
 
-	LFA33w.sm<-FSRSmodel(LFA33west, response="SHORTS")
-	LFA33w.lm<-FSRSmodel(LFA33west, response="LEGALS")
-
+	LFA33w.sm<-FSRSmodel(LFA33west, response="SHORTS",interaction=T)
+	LFA33w.lm<-FSRSmodel(LFA33west, response="LEGALS",interaction=T)
 
 
 #-------------------------------LFA34
 
 	LFA34<-subset(FSRSvesday,LFA==34)
 
-	LFA34.sm<-FSRSmodel(LFA34, response="SHORTS")
-	LFA34.lm<-FSRSmodel(LFA34, response="LEGALS")
+	LFA34.sm<-FSRSmodel(LFA34, response="SHORTS",interaction=T)
+	LFA34.lm<-FSRSmodel(LFA34, response="LEGALS",interaction=T)
 
 #________________________
+
+
+
+
+	#------------------------------load previous runs
+	#LFA27n.sm<-FSRSmodel(LFA27north, response="SHORTS",redo=F)
+	#LFA27n.lm<-FSRSmodel(LFA27north, response="LEGALS",redo=F)
+	#LFA27s.sm<-FSRSmodel(LFA27south, response="SHORTS",redo=F)
+	#LFA27s.lm<-FSRSmodel(LFA27south, response="LEGALS",redo=F)
+	#LFA28.sm<-FSRSmodel(LFA28, response="SHORTS",redo=F)
+	#LFA28.lm<-FSRSmodel(LFA28, response="LEGALS",redo=F)
+	#LFA29.sm<-FSRSmodel(LFA29, response="SHORTS",redo=F)
+	#LFA29.lm<-FSRSmodel(LFA29, response="LEGALS",redo=F)
+	#LFA30.sm<-FSRSmodel(LFA30, response="SHORTS",redo=F)
+	#LFA30.lm<-FSRSmodel(LFA30, response="LEGALS",redo=F)
+	#LFA31A.sm<-FSRSmodel(LFA31A, response="SHORTS",redo=F)
+	#LFA31A.lm<-FSRSmodel(LFA31A, response="LEGALS",redo=F)
+	#LFA31B.sm<-FSRSmodel(LFA31B, response="SHORTS",redo=F)
+	#LFA31B.lm<-FSRSmodel(LFA31B, response="LEGALS",redo=F)
+	#LFA32.sm<-FSRSmodel(LFA32, response="SHORTS",redo=F)
+	#LFA32.lm<-FSRSmodel(LFA32, response="LEGALS",redo=F)
+	#LFA33e.sm<-FSRSmodel(LFA33east, response="SHORTS",redo=F)
+	#LFA33e.lm<-FSRSmodel(LFA33east, response="LEGALS",redo=F)
+	#LFA33w.sm<-FSRSmodel(LFA33west, response="SHORTS",redo=F)
+	#LFA33w.lm<-FSRSmodel(LFA33west, response="LEGALS",redo=F)
+	#LFA34.sm<-FSRSmodel(LFA34, response="SHORTS",redo=F)
+	#LFA34.lm<-FSRSmodel(LFA34, response="LEGALS",redo=F)
+
+	# plot model fit in most recent year
+	FSRSmodel.3dplot(LFA27n.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA27n.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA27s.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA27s.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA28.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA28.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA29.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA29.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA30.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA30.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA31A.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA31A.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA31B.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA31B.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA32.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA32.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA33e.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA33e.lm$model,response="LEGALS")
+	FSRSmodel.3dplot(LFA33w.sm$model,response="SHORTS")
+	FSRSmodel.3dplot(LFA33w.lm$model,response="LEGALS")
+
 
 LFA27n.sm$pData$Area<-'27N'
 LFA27s.sm$pData$Area<-'27S'
