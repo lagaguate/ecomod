@@ -28,7 +28,6 @@
     # time-invariant items 
     if ( DS %in% c( "depth", "depth.all", "substrate", "time.invariant", "baseline" )) {
       print( paste( "Looking up ", DS) )
-
       H = habitat.lookup.datasource( DS, p=p )  # bring in appropriate habitat data source
       H$plon = grid.internal( H$plon, p$plons )
       H$plat = grid.internal( H$plat, p$plats )
@@ -38,6 +37,7 @@
       rm(x); gc()
 
       newvars = setdiff( Hnames, xnames ) 
+
       if (length(newvars)==0) newvars= setdiff( intersect( xnames, Hnames ), coords )
       outnames = names(out)
       oo = grep("duplicated", outnames) 

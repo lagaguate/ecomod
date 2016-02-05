@@ -68,11 +68,11 @@ LobsterLogsProcess<-function(){
 	logsInSeason$CPUE<-logsInSeason$WEIGHT_KG/logsInSeason$NUM_OF_TRAPS
 	logsInSeason<-subset(logsInSeason,CPUE<20)
 
-	subareas<-read.csv(file.path( project.datadirectory("lobster"), "data","LFA2733subarea.csv"))
+	subareas<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","LFA2733subarea.csv"))
 	names(subareas)[2]<-"GRID_NUM"
 	logsInSeason<-merge(logsInSeason,subareas,all.x=T)
 
-	TotalLandings<-read.csv(file.path( project.datadirectory("lobster"), "data","TotalLandings.csv"))
+	TotalLandings<-read.csv(file.path( project.datadirectory("lobster"), "data","products","TotalLandings.csv"))
 		
 	# add BUMPUP column: total landings/sum of logs for each year  & LFA
 	logsInSeason$BUMPUP<-NA
