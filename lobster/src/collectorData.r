@@ -45,6 +45,12 @@ ys = xs[which(xs$Species=='Homarus americanus'),]
 yss = ys[which(ys$Size<=100),'Size']
 a = hist(yss,breaks = seq(1,100,2),main='Lobster Bay Suction')
 
+require(mixtools)
+	sC = normalmixEM(yss,k=4, mu=c(8,18,22,40),sigma=c(0.5,1,1,1) )
+		histAllMixtures(sC,breaks=seq(1,100,2),main='LobsterBaySuction',prob=T,xlab='CL')	
+		savePlot(file.path(getwd(),'LobsterBaySuction.png'),'png')
+
+
 #mixture modelling for Lobster Bay, Port Latour, St Mary's Bay and Cape Breton
 
 require(mixtools)
