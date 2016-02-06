@@ -3,7 +3,7 @@
     
     # wrapping function to provide a common intercae to various habitat related lookup routines
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
-    # x must contain plon, plat, and chron
+    # x must contain plon, plat, and chron (deprecated) or timstamp (posix)
     
     loadfunctions( "utility" )
     RLibrary (p$libs) 
@@ -44,6 +44,7 @@
       if (length(oo) > 0 ) {
         for ( o in oo ) {
           vn = gsub(  ".duplicated", "", outnames[o] )
+          newvars = c( newvars, vn )  # add to list to keep track of ..
           vnd = outnames[o]
           im = which( !is.finite( out[ , vn ] ) ) # missing in input data
           if (length( im) > 0 ) out[im,vn] = out[im,vnd] # overwrite missing with proposals
@@ -160,25 +161,32 @@
       print( "Looking up temperature at year+seasonal scales" )
 
       yrs = sort( unique( x$yr ))
-
-      B = bathymetry.db( p=p, DS="spde_complete", return.format="dataframe" ) # already discretized to internal plons and plats
+        
+      B = bathymetry.db( p=p, DS="baseline") # temperature complete is discretized to the "baseline" internal plons and plats
+      B = B[, c("plon", "plat")]  # just locations
       B$row = 1:nrow(B)
-      B$z = NULL
+
+      p0 = spatial.parameters( type=p$default.spatial.domain )
+      BH = bathymetry.db( p=p, DS="baseline") # temperature complete is discretized to the "baseline" internal plons and plats
+      B = B[, c("plon", "plat")]  # just locations
+      B$row = 1:nrow(B)
+
 
       O = NULL
       for (yr in yrs) { 
-        print( yr )
-  
+        print( yr ) 
+           
         ii = which( x$yr == yr )
         if (length( ii) == 0) next()  
         X = merge( x[ii,], B, by=coords, all.x=T, all.y=F, sort=F, suffixes=c("", ".duplicated") )
-          
+         
         V = matrix( NA, ncol=2, nrow=length(ii) )	
         V[,1] = X$row
         V[,2] = X$dyr
-
+ 
         H = habitat.lookup.datasource( DS=DS, yr=yr, p=p  )  # bring in appropriate habitat data source
         if (is.null(H)) next()
+        colnames(H)[ which(colnames(H)=="tmean") ] = "t"
         X$t.H = H[V]
         vn = newvars = "t" 
         vnd = "t.H"
@@ -207,10 +215,11 @@
     
     # -------------------------------
     # final processing and formatting
-      varstodrop = which( names(res) %in% newvars )
-      if (length(varstodrop) > 0) res = res[ , -varstodrop ] # drop duplicates in advance of merge
+      # varstodrop = which( names(res) %in% newvars )
+      # if (length(varstodrop) > 0) res = res[ , -varstodrop ] # drop duplicates in advance of merge
 
-      res = merge( res, out[, c("hid", newvars )], by="hid", all.x=T, all.y=F, sort=T )
+      # res = merge( res, out[, c("hid", newvars )], by="hid", all.x=T, all.y=F, sort=T )
+      res = out
       res = res[ order( res$hid ) , ]
       if ( nrow( res ) != nx ) {
         print( "Merge error -- duplicated coords" )

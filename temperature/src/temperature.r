@@ -6,7 +6,7 @@
   p = list( project.name = "temperature" )
   p$project.root = project.datadirectory( p$project.name )
 
-  p$libs = RLibrary( c( "lubridate", "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "fields" ) )
+  p$libs = RLibrary( c( "lubridate", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "fields" ) )
   p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "polygons" , "temperature" ) ) 
 
   # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -102,6 +102,17 @@
     #  temperature.db( p=p, DS="spatial.interpolation.redo" ) # 2hr in serial mode
 
 
+    for ( gr in  gr in p$subregions ) {
+      for ( yr in p$tyears ) {
+
+        p0 = spatial.parameters( p=p, type=p$default.spatial.domain )
+        p1 = spatial.parameters(  p=p, type=gr )
+        L0 = bathymetry.db( p=p0, DS="baseline" )[ ,c("plon", "plat")]
+        L1 = bathymetry.db( p=p1, DS="baseline" )[ ,c("plon", "plat")]
+        Z0 = temperature.db( p=p, DS="spatial.interpolation", yr=yr )
+        Z1 = spacetime.regrid ( L0, Z0, p0=p, p1=p1 )
+
+    }}
 
     # 4. extract relevant statistics
     # temperature.db(  p=p, DS="bottom.statistics.annual.redo" )
@@ -125,20 +136,23 @@
   ### to this point everything is run on p$spatial.domain.default domain, now take subsets: 
 
     # 7. downscale to appropriate domain: simple interpolations and maps
-    p$subregions = c("SSE", "SSE.mpa", "snowcrab", "canada.east") # target domains and resolution
-       
+    p$subregions = c("canada.east", "SSE", "SSE.mpa", "snowcrab" ) # target domains and resolution
     # p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using th
     # p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
-    parallel.run( temperature.db, p=p, DS="complete.redo") 
-    #  temperature.db( p=p, DS="complete.redo") 
-    
+   
     for ( gr in p$subregions ) {
+      print (gr)
       p = spatial.parameters(  p=p, type= gr )
-      parallel.run( hydro.map, p=p, type="annual"  ) 
-      parallel.run( hydro.map, p=p, type="global") 
-      # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
-      # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
+      if ( length(p$clusters) > 1 ) {
+        parallel.run( temperature.db, p=p, DS="complete.redo") 
+        parallel.run( hydro.map, p=p, type="annual"  ) 
+        parallel.run( hydro.map, p=p, type="global") 
+      } else {      
+        temperature.db( p=p, DS="complete.redo") 
+        hydro.map( p=p, type="annual" ) 
+        hydro.map( p=p, type="global" ) 
+      }
     }
 
 

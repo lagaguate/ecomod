@@ -14,7 +14,7 @@
   
 
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
-
+  p$default.spatial.domain = "canada.east"  # for temperature lookups
 	p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$taxa =  "maxresolved"
   # p$seasons = "allseasons"

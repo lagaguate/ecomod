@@ -25,6 +25,9 @@
 
   p$taxa =  "maxresolved"
 
+  p$nw = 10  # from temperature.r, number of intervals in a year
+      
+ 
 
 
 

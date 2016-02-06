@@ -18,7 +18,10 @@
   p$season = "allseasons"
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
   p$interpolation.nmax = 100 
-   
+         
+  p$nw = 10  # from temperature.r, number of intervals in a year
+      
+ 
   p$yearstomodel = 1970:2015
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
 

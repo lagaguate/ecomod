@@ -60,8 +60,7 @@
         rm( td); gc()
         
         hdat$yr = yr # update all other records
-        hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
-        hdat$julian = convert.datecodes(  hdat$chron, "julian" )
+        hdat$timestamp = as.Date( paste(yr, "01", "01", sep="-") ) + days( floor(365* p$prediction.dyear  ))
         hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
 
         for ( ww in p$varstomodel ) {
@@ -109,8 +108,7 @@
           rm( td); gc()
 
           hdat$yr = yr # update all other records
-          hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
-          hdat$julian = convert.datecodes(  hdat$chron, "julian" )
+          hdat$timestamp = as.Date( paste(yr, "01", "01", sep="-") ) + days( floor(365* p$prediction.dyear  ))
           hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
 # to here
 

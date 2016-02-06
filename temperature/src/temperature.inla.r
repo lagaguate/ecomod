@@ -2,7 +2,7 @@
   p = list( project.name = "temperature" )
   p$project.root = project.datadirectory( p$project.name )
 
-  p$libs = RLibrary( c( "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
+  p$libs = RLibrary( c( "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
   p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "polygons" , "temperature" ) ) 
 
 
@@ -89,7 +89,7 @@
     # https://onlinecourses.science.psu.edu/stat510/?q=book/export/html/57
 
     p = list()
-    p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
+    p$libs = RLibrary( c( "lubridate", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
     p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
     p$tyears = c(1970:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
@@ -453,7 +453,7 @@ Posterior marginals for linear predictor and fitted values computed
   # 4. spatial-temporal model on temperature
 
   p = list()
-  p$libs = RLibrary( c( "chron", "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
+  p$libs = RLibrary( c( "gstat", "sp", "parallel", "mgcv", "bigmemory", "INLA", "lattice" ) )
   p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "temperature", "polygons" ) ) 
 
   p$tyears = c(1990:1995)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.

@@ -9,7 +9,7 @@
 
 	
   p = list()
-  p$libs = RLibrary ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel")) 
+  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel")) 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
   # faster to use RAM-based data objects but this forces use only of local cpu's

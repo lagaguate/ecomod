@@ -10,7 +10,7 @@
       marked$Ncrabs = NULL
       f = which(marked$lon>-55)
       marked[f,] = NA
-      marked$jul = chron(dates.=marked$date, format=c(dates="m/d/y"), out.format=c(dates="year-m-d") )
+      marked$jul = chron::chron(dates.=marked$date, format=c(dates="m/d/y"), out.format=c(dates="year-m-d") )
       save(marked, file=file.path(tags.datadir, "marked.Rdata"), compress=T)
     }
     if (DS=="file") load( file=file.path(tags.datadir, "marked.Rdata"))

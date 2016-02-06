@@ -3,7 +3,7 @@
       
       if ( V %in% c("default") ) {
           # basic model -- less spatial density .. all covariates
-           out = formula( Y ~ s(mon, bs="ts" ) 
+           out = formula( Y ~ s(dyear, bs="ts" ) 
             + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) 
             + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) 
             + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )             
@@ -16,7 +16,7 @@
       
    #  if ( V %in% c("R0.no", "R0.mass", "totmass.com") ) {
    #    #  same as basic model but with higher spatial densities
-   #      out = formula( Y ~ s(mon, bs="ts" ) 
+   #      out = formula( Y ~ s(dyear, bs="ts" ) 
    #        + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) 
    #        + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) 
    #        + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )             
@@ -28,7 +28,7 @@
    #  }
   if ( V %in% c("R0.mass") ) {
         #  same as basic model but with higher spatial densities
-          out = formula( Y ~ te(mon, bs="cs" ) 
+          out = formula( Y ~ te(dyear, bs="cs" ) 
             + te(tmean,bs='cs') + te(dt.annual, bs="cs" ) + te(dt.seasonal, bs="cs" ) 
             + te(tamp, bs="cs" )+ te(wmin, bs="cs" ) 
             + te(z,bs='cs') + te(dZ, bs="cs" )  + te(substrate.mean, bs="cs" )             
@@ -41,13 +41,13 @@
 
 			if ( V=="simple" ) {
         # simple model in case of failures in other attempts
-        out = formula( Y ~  s(mon, k=4, bs="ts" ) 
+        out = formula( Y ~  s(dyear, k=4, bs="ts" ) 
             + s(tmean) + s(z) + s(dZ, k=4, bs="ts" ) + s(substrate.mean, k=4, bs="ts" )             
             + s(plon, plat, bs="tp", by=as.factor(yr)) + as.factor(yr) ) 
       }
   if ( V=="totno.male.mat" ) {
         # simple model in case of failures in other attempts
-        out = formula( Y ~  s(mon, k=4, bs="ts" ) 
+        out = formula( Y ~  s(dyear, k=4, bs="ts" ) 
             + s(tmean) + s(z) + s(dZ, k=4, bs="ts" ) + s(substrate.mean, k=4, bs="ts" )             
             + s(plon, plat, bs="tp", by=as.factor(yr)) + as.factor(yr) ) 
       }
@@ -62,7 +62,7 @@
 
 			if ( V=="R0.mass.2012" ) {
         # enough data for a high spatial resolution of data variability
-        out = formula( Y ~ s(mon, k=4, bs="ts" ) 
+        out = formula( Y ~ s(dyear, k=4, bs="ts" ) 
             + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
             + s(tamp, k=4, bs="ts" )+ s( wmin, k=4 , bs="ts" ) 
             + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
@@ -73,13 +73,13 @@
      
       if ( V=="R0.mass.old" ) {
         # enough data for a high spatial resolution of data variability
-        out = formula( Y ~  s(mon, k=4) + s( t-t.annual ) + s(tmean) + s(t.annual-tmean) + s( tamp)+ s( wmin) 
+        out = formula( Y ~  s(dyear, k=4) + s( t-t.annual ) + s(tmean) + s(t.annual-tmean) + s( tamp)+ s( wmin) 
             + s( plon, plat, k=400, by=as.factor(yr) ) + s( z ) + s(substrate.mean ) + s(ddZ) + s(dZ) ) 
       }
 
       if ( V=="R0.mass.2011" ) {
         # enough data for a high spatial resolution of data variability
-        out = formula( Y ~  s(yr) + s(mon, k=4, bs="ts" ) 
+        out = formula( Y ~  s(yr) + s(dyear, k=4, bs="ts" ) 
             + s(tmean) + s(dt.annual, k=4, bs="ts" ) + s(dt.seasonal, k=4, bs="ts" ) 
             + s(tamp, k=4, bs="ts" )+ s( wmin, k=4 , bs="ts" ) 
             + s(z) + s(dZ, k=4, bs="ts" )  + s(substrate.mean, k=4, bs="ts" )             
@@ -99,7 +99,7 @@
     
       if ( V=="R0.mass.2009" ) {
         # enough data for a high spatial resolution of data variability
-        out = formula( Y ~ s(yr, bs="ts" ) + s(mon, bs="ts" ) 
+        out = formula( Y ~ s(yr, bs="ts" ) + s(dyear, bs="ts" ) 
             + s( dt.seasonal, bs="ts" ) + s(tmean, bs="ts" ) + s(dt.annual, bs="ts" ) 
             + s( tamp, bs="ts" ) + s( wmin, bs="ts"  ) 
             + s( z , bs="ts" ) + s(substrate.mean, bs="ts" ) + s(ddZ, bs="ts" ) + s(dZ, bs="ts"  ) 

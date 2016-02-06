@@ -115,8 +115,6 @@
 
 		if (DS %in% c( "speciescomposition", "speciescomposition.redo" ) ) {
 
-			require( chron) 
-     
       fn = file.path( ddir, paste( "speciescomposition", infix, "rdata", sep=".") )
 
 			if (DS=="speciescomposition") {
