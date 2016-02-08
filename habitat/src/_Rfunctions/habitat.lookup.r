@@ -1,5 +1,5 @@
  
-  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.005, 0.995) ) {
+  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.0005, 0.9995) ) {
     
     # wrapping function to provide a common intercae to various habitat related lookup routines
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
@@ -186,7 +186,6 @@
  
         H = habitat.lookup.datasource( DS=DS, yr=yr, p=p  )  # bring in appropriate habitat data source
         if (is.null(H)) next()
-        colnames(H)[ which(colnames(H)=="tmean") ] = "t"
         X$t.H = H[V]
         vn = newvars = "t" 
         vnd = "t.H"

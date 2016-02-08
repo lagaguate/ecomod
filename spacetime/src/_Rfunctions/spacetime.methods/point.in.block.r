@@ -22,7 +22,7 @@ point.in.block = function( foc, dta, dist.max, n.min=100, n.max=1000, upsampling
   }
   
   if ( ndat >= n.min ) {
-    if ( ndat <= n.max * 2 ) { # if close to n.max, subsample quickly and return
+    if ( ndat <= n.max * 1.5 ) { # if close to n.max, subsample quickly and return
       if ( ndat > n.max) { 
         j = j[ .Internal( sample(  length(j), n.max, replace=FALSE, prob=NULL)) ] 
       }

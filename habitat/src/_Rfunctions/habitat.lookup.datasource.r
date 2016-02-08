@@ -31,7 +31,8 @@
         }
         if ( DS %in% c( "temperature.annual", "temperature", "temperature.seasonal" ) ) {
           # note this is valid only for the default spatial domain .. so must regrid
-          H = temperature.db( p=p, DS="spatial.interpolation", yr=yr  ) 
+          p0 = spatial.parameters( type=p$default.spatial.domain )
+          H = temperature.db( p=p0, DS="spatial.interpolation", yr=yr  ) 
         }
         if ( DS %in% c( "temperature.complete" ) ) {
           H = temperature.db( p=p, DS="complete", year=yr  ) 

@@ -14,7 +14,15 @@
       Z = matrix( NA, nrow=p$nplons, ncol=p$nplats)
       Z[p$O2M] = z
       kd = try( fields::image.smooth( Z, dx=p$pres, dy=p$pres, wght=p$wgts )$z )
-      if ( ! (class(kd) %in% "try-error") ) z[tofill] = kd[p$O2M][ tofill]
+      z[tofill] = kd[p$O2M][ tofill]
+ 
+      # update and repeat
+      tofill = which( ! is.finite( z) )
+      if (length( tofill) > 0 ) {
+        Z[p$O2M] = z # update matrix
+        kd = try( fields::image.smooth( Z, dx=p$pres, dy=p$pres, wght=p$wgts )$z )
+        z[tofill] = kd[p$O2M][ tofill]
+      }
       return(z)
     }
 

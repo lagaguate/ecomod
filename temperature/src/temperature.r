@@ -15,7 +15,7 @@
   p$nw = 10 # number of intervals in time within a year
   p$dyears = (c(1:p$nw)-1)  / p$nw # intervals of decimal years... fractional year breaks 
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
-  p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
+  p$nMin.tbot = p$ny*3 # min number of data points req before attempting to model timeseries in a localized space 
   p$dist.km = c( 2.5, 5, 7.5, 10, 12.5, 15 ) # "manhattan" distances to extend search for data
   p$maxdist = 20 # if using gstat  max dist to interpolate in space
   # choose: temporal interpolation method ... harmonic analysis seems most reasonable
@@ -25,12 +25,13 @@
   # p$spmethod = "inverse.distance"  ## too slow
   # p$spmethod = "gam" ## too smooth
   p$spmethod = "kernel.density" ## best
-  p$theta = 10 # FFT kernel bandwidth (SD of kernel) for method p$spmethod = "kernel.density"  
-  p$nsd = 5 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
+  p$theta = 5 # FFT kernel bandwidth (SD of kernel) for method p$spmethod = "kernel.density"  
+  p$nsd = 6 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
 
   p$newyear = 2015
   
-  p$spatial.domain.default = "canada.east"
+  p$subregions = c("canada.east", "SSE", "SSE.mpa", "snowcrab" ) # target domains and resolution
+  p$spatial.domain.default = "canada.east"  
   p = spatial.parameters( p=p, type=p$spatial.domain.default )  # default grid and resolution
 
   # ------------------------------
@@ -91,8 +92,10 @@
     temperature.db( p=p, DS="temporal.interpolation.redo" ) # save interpolation as time slices to disk 
 
 
-    # 3. simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
-    # temperature.db( p=p, DS="spatial.interpolation.redo" ) 
+    # 3. simple spatial interpolation 
+    # NOTE this one does a regridding as selected by p$subregions ... 
+    # ... it is required for the habitat lookup .. no way around it
+    # (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
     # using localhost in 2014 6+ hr for each run but with multiple cycles ~ 10 hr total 
     # use all clusters if available
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
@@ -102,19 +105,7 @@
     #  temperature.db( p=p, DS="spatial.interpolation.redo" ) # 2hr in serial mode
 
 
-    for ( gr in  gr in p$subregions ) {
-      for ( yr in p$tyears ) {
-
-        p0 = spatial.parameters( p=p, type=p$default.spatial.domain )
-        p1 = spatial.parameters(  p=p, type=gr )
-        L0 = bathymetry.db( p=p0, DS="baseline" )[ ,c("plon", "plat")]
-        L1 = bathymetry.db( p=p1, DS="baseline" )[ ,c("plon", "plat")]
-        Z0 = temperature.db( p=p, DS="spatial.interpolation", yr=yr )
-        Z1 = spacetime.regrid ( L0, Z0, p0=p, p1=p1 )
-
-    }}
-
-    # 4. extract relevant statistics
+    # 4. extract relevant statistics:: only for default grid . TODO might as well do for each subregion/subgrid
     # temperature.db(  p=p, DS="bottom.statistics.annual.redo" )
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
@@ -125,7 +116,7 @@
 
 
 
-    # 5. climatology database ... ~ 2 min
+    # 5. climatology database ... ~ 2 min :: only for  default grid . TODO might as well do for each subregion/subgrid
     p$bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
     p$tyears.climatology = p$tyears  # or redefine it with : p$tyears.climatology = 1950:2015  
     temperature.db ( p=p, DS="climatology.redo") 
@@ -133,10 +124,9 @@
   }
 
 
-  ### to this point everything is run on p$spatial.domain.default domain, now take subsets: 
+  ### to this point everything is run on p$spatial.domain.default domain (except spatial.interpolation), now take subsets: 
 
     # 7. downscale to appropriate domain: simple interpolations and maps
-    p$subregions = c("canada.east", "SSE", "SSE.mpa", "snowcrab" ) # target domains and resolution
     # p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using th
     # p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
