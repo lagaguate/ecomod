@@ -49,8 +49,8 @@
       }
         
       
-      p$bigmem.desc = describe(sar)
-      p$bigmem.ny.desc = describe(sar.ny)  # counts the # of years of data
+      p$bigmem.desc = bigmemory::describe(sar)
+      p$bigmem.ny.desc =  bigmemory::describe(sar.ny)  # counts the # of years of data
 
       p = make.list( list( nsets=1:p$nsets ), Y=p )
       parallel.run( species.count.engine, p=p, set=set, sc=scat )
@@ -100,7 +100,7 @@
         o = big.matrix(nrow=p$nsets, ncol=p$nvars, type="double", init=NA ) 
       }
 
-      p$bigmem.desc = describe(o)
+      p$bigmem.desc = bigmemory::describe(o)
 
       p = make.list( list( nsets=1:p$nsets ), Y=p )
       parallel.run( speciesarea.statistics, p=p )
