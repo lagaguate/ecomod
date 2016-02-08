@@ -38,6 +38,7 @@
       fn.all = list.files( path=loc.archive, pattern="osd.clim.*.gz", full.names=T) 
       X = NULL
       varlist = c("DEPTH","PRESSURE","CRUISE_DATE","LATITUDE" ,"LONGITUDE" ,"TEMPERATURE","SALINITY" ,"SIGMAT" ) 
+      varstosave = c( "depth", "pressure", "latitude" ,"longitude" ,"temperature" ,"salinity" ,"sigmat", "date" )
       for (fn in fn.all) {
         f = read.csv( gzfile(fn), header=T, as.is=T, sep=",", na.strings="9999")
         f = f[,varlist] 
@@ -48,8 +49,8 @@
           print( paste(yrs, ":", fn.out) )
           X = f[ which( fyears == yrs) ,]
           names(X) = tolower( names(X) )
-          X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
-          X = X[ , vartosave ]
+          X$date = lubridate::dmy( X$cruise_date )
+          X = X[ , varstosave ]
           save( X, file=fn.out, compress=T) 
         }
       }
@@ -67,7 +68,7 @@
         X = f[,varlist]
         fn.out = file.path( loc.basedata, paste( "osd.rawdata", y, "rdata", sep=".") )
         names(X) = tolower( names(X) )
-        X$date = chron( dates.=X$cruise_date, format=c(dates="d/m/y"), out.format=c(dates="year-m-d")  )
+        X$date = lubridate::ymd( X$cruise_date )
         X= X[, varstosave ]
         save( X, file=fn.out, compress=T)
       }
@@ -84,7 +85,7 @@
       XX$depth = decibar2depth ( P=XX$pressure, lat=XX$latitude )
       if (!exists( "sigmat", XX))  XX$sigmat = XX$sigma.t  # naming is variable
       XX$date_string = paste( XX$year, XX$month, XX$day, sep="-" )
-      XX$date = chron( dates.=XX$date_string, format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
+      XX$date = lubridate::ymd( XX$date_string ) 
       yrs = sort( unique( XX$year) )
       for ( y in yrs ) {
         print (y)
@@ -113,7 +114,7 @@
         X$depth = decibar2depth ( P=X$pressure, lat=X$latitude )
         if (!exists( "sigmat", X))  X$sigmat = X$sigma.t  # naming is variable
         X$date_string = paste( X$year, X$month, X$day, sep="-" )
-        X$date = chron( dates.=X$date_string, format=c(dates="y-m-d"), out.format=c(dates="year-m-d")  )
+        X$date = lubridate::ymd( X$date_string )
         X= X[, varstosave ]
         save( X, file=fn.out, compress=T)
       }
@@ -155,7 +156,6 @@
           }
         }
 
-
       # bring in snow crab, groundfish and OSD data ...
       
       loadfunctions( "snowcrab")  # only need the functions not the whole environment
@@ -176,27 +176,30 @@
       loadfunctions( "groundfish")
       grdfish = groundfish.db( "gshyd.georef" )
 
+      Ydummy = hydro.db( DS="osd.rawdata", yr=2000, p=p ) [1,]  # dummy entry using year=2000
+      Ydummy$yr = NA
+      Ydummy$dyear = 0.5
+      Ydummy$id =  "dummy"
+      Ydummy$depth = -1
+      Ydummy$oxyml = NA
+      
+      dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+      
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
+        
         Y = hydro.db( DS="osd.rawdata", yr=yt, p=p )
           if ( is.null(Y) ) {
-            Y = hydro.db( DS="osd.rawdata", yr=2000, p=p ) [1,]  # dummy entry using year=2000
-            Y$id =  "dummy"
-            Y$yr =  yt
-            Y$dayno = 1
-            Y$weekno = 1
-            Y$depth = -1
-            Y$oxyml = NA
-  
+            Y = Ydummy
+            Y$yr = yt
           } else {
-
-            Y$id =  paste( Y$longitude, Y$latitude, Y$dayno, sep="~" )
-            Y$yr =  as.numeric( as.character( years( Y$date ) ) )
-            Y$dayno = convert.datecodes(Y$date, "julian") 
-            Y$weekno = ceiling ( Y$dayno / 365 * 52 )
+            Y$yr = yt
+            Y$dyear = lubridate::decimal_date( Y$date ) - Y$yr
+            
+            Yid = cut( Y$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE )
+            Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Yid , sep="~" )
             Y$depth = decibar2depth ( P=Y$pressure, lat=Y$latitude )
             Y$oxyml = NA
-            
             # next should not be necessary .. but just in case the osd data types get altered  
             Y$temperature = as.numeric(Y$temperature ) 
             Y$salinity= as.numeric(Y$salinity)
@@ -204,13 +207,17 @@
           }
         
         Y$pressure = NULL
-
+        
+        
         if ("groundfish" %in% additional.data ) {
-          gf = grdfish[ which( grdfish$yr == yt ) , ]
+          gfkeep = c( "id", "sdepth", "temp", "sal", "oxyml", "lon", "lat", "yr", "date")  
+          gf = grdfish[ which( grdfish$yr == yt ) , gfkeep ]
 					if (nrow(gf) > 0) {
 						gf$sigmat = NA
-						names(gf) = c( "id", "depth", "temperature", "salinity", "oxyml", "longitude", "latitude", "yr", "weekno", "dayno", "date", "sigmat"  )
-						Y = rbind( Y, gf[, names(Y)] )
+						gf$date = as.POSIXct(gf$date, origin=lubridate::origin) 
+            gf$dyear = lubridate::decimal_date( gf$date ) - gf$yr
+            names(gf) = c( "id", "depth", "temperature", "salinity", "oxyml", "longitude", "latitude", "yr", "date", "dyear", "sigmat"  )
+            Y = rbind( Y, gf[, names(Y)] )
 					}
 				}
 
@@ -221,10 +228,9 @@
           if (! is.null( nrow( minilog ) ) ) {
             minilog = merge( minilog, set, by="minilog_uid", all.x=TRUE, all.y=FALSE ) 
             minilog$id = minilog$minilog_uid 
-            minilog$yr = as.numeric( as.character( years( minilog$chron) ) )
-            minilog$dayno = convert.datecodes(minilog$chron, "julian") 
-            minilog$weekno = ceiling ( minilog$dayno / 365 * 52 )
-            minilog$date = minilog$chron
+            minilog$date = as.POSIXct(minilog$chron, origin=lubridate::origin)
+            minilog$yr = yt
+            minilog$dyear = lubridate::decimal_date( minilog$date ) - minilog$yr
             Y = rbind( Y, minilog[, names(Y) ] )
           }
 
@@ -232,10 +238,9 @@
 					if ( !is.null( nrow( seabird ) ) ) {
             seabird = merge( seabird, set, by="seabird_uid", all.x=TRUE, all.y=FALSE ) 
             seabird$id = seabird$seabird_uid
-            seabird$yr = as.numeric( as.character( years( seabird$chron) ) )
-            seabird$dayno = convert.datecodes( seabird$chron, "julian") 
-            seabird$weekno = ceiling ( seabird$dayno / 365 * 52 )
-            seabird$date = seabird$chron
+            seabird$yr = yt
+            seabird$date = as.POSIXct(seabird$chron, origin=lubridate::origin)
+            seabird$dyear = lubridate::decimal_date( seabird$date ) - seabird$yr
             seabird$oxyml = NA
             Y = rbind( Y, seabird[, names(Y) ] )
           }
@@ -253,9 +258,9 @@
         iiY = which(duplicated(Y))
         if (length(iiY)>0) Y = Y [ -iiY, ]
 
-        bad = which( Y$temperature < -5 | Y$temperature > 40 ) 
+        bad = which( Y$temperature < -5 | Y$temperature > 30 ) 
         if (length(bad)>0) Y=Y[-bad,]
-
+        
         fn = file.path( loc.profile, paste("depthprofiles", yt, "rdata", sep="."))
         print( fn )
         save( Y, file=fn, compress=T )
@@ -268,7 +273,7 @@
     # ----------------  
 
     if (DS %in% c( "bottom.annual", "bottom.annual.redo" ) ) {
-      # extract bottom temperatures 
+      # extract bottom temperatures
      
       if (p$spatial.domain %in% c("SSE", "snowcrab")  ) p$spatial.domain="canada.east"  ## no point in having these as they are small subsets
 
@@ -298,7 +303,8 @@
           }
         }
 
-
+      dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+      
       for (iy in ip) {
         yt = p$runs[iy, "yrs"]
         Y = hydro.db( DS="profiles.annual", yr=yt, p=p )
@@ -306,8 +312,9 @@
         igood = which( Y$temperature >= -3 & Y$temperature <= 25 )  ## 25 is a bit high but in case some shallow data 
         Y = Y[igood, ]
  
-    # Bottom temps
-				Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Y$dayno, sep="~" )
+        # Bottom temps
+        Yid = cut( Y$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE )
+        Y$id =  paste( round(Y$longitude,2), round(Y$latitude,2), Yid, sep="~" )
         ids =  sort( unique( Y$id ) )
         res = copy.data.structure( Y)   
 
@@ -318,13 +325,11 @@
           zmax = max( Z$depth, na.rm=T ) - 10  # accept any depth within 10 m of the maximum depth
           kk =  which( Z$depth >= zmax ) 
           R = Z[ which.max( Z$depth ) , ]
-          
           R$temperature = median( Z$temperature[kk] , na.rm=T ) 
           R$salinity = median( Z$salinity[kk] , na.rm=T )
           R$sigmat = median( Z$sigmat[kk] , na.rm=T )
           R$oxyml = median( Z$oxyml[kk] , na.rm=T )
           res = rbind( res, R )
-        
         }
         
         Z = res
@@ -413,7 +418,10 @@
           tp = rename.df( tp, "latitude", "lat")
           tp = rename.df( tp, "temperature", "t")
           tp = rename.df( tp, "depth", "z")
-          tp$date = NULL
+
+          tp$date = as.Date( tp$date ) # strip out time of day information
+          tp$ddate = lubridate::decimal_date( tp$date )
+          tp$dyear = tp$ddate - tp$yr
 					# tp$depth = NULL
         
           igood = which( tp$t >= -3 & tp$t <= 25 )  ## 25 is a bit high but in case some shallow data 
@@ -432,11 +440,10 @@
           tp$plat = grid.internal( tp$plat, p$plats )
 	
 					tp = tp[ which( is.finite( tp$lon + tp$lat + tp$plon + tp$plat ) ) , ]
-          
           ## ensure that inside each grid/time point 
           ## that there is only one point estimate .. taking medians
           vars = c("z", "t", "salinity", "sigmat", "oxyml")
-          tp$st = paste( tp$weekno, tp$plon, tp$plat ) 
+          tp$st = paste( tp$ddate, tp$plon, tp$plat ) 
         
           o = which( ( duplicated( tp$st )) )
           if (length(o)>0) { 

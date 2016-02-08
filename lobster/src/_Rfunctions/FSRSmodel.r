@@ -1,4 +1,4 @@
-FSRSmodel<-function(FSRS,response="SHORTS",redo=T){
+FSRSmodel<-function(FSRS,response="SHORTS",redo=T,interaction=F){
 	
   lfa = ifelse(!is.na(unique(FSRS$subarea)),unique(FSRS$subarea),unique(FSRS$LFA))
 
@@ -24,7 +24,8 @@ FSRSmodel<-function(FSRS,response="SHORTS",redo=T){
 	if(response=="SHORTS"){
 		if(redo){
 			print(Sys.time())
-			S <- glmmadmb(SHORTS ~ fYEAR + LEGALS + TEMP + offset(logTRAPS) + (1 | VESSEL), family = "nbinom", data = FSRS,save.dir="tmp")
+			if(interaction==F)S <- glmmadmb(SHORTS ~ fYEAR + LEGALS + TEMP + offset(logTRAPS) + (1 | VESSEL), family = "nbinom", data = FSRS,save.dir="tmp")
+			if(interaction==T)S <- glmmadmb(SHORTS ~ fYEAR + LEGALS + TEMP + LEGALS*TEMP + offset(logTRAPS) + (1 | VESSEL), family = "nbinom", data = FSRS,save.dir="tmp")
 			print(Sys.time())
 			print(summary(S))
 			pData<-with(S$frame,data.frame(fYEAR=sort(unique(fYEAR)),TEMP= mean(TEMP),logTRAPS= log(1),LEGALS= mean(LEGALS)))
@@ -34,6 +35,7 @@ FSRSmodel<-function(FSRS,response="SHORTS",redo=T){
 			pData$ub <- exp(P$fit + 1.96 * P$se.fit)
 			pData$lb <- exp(P$fit - 1.96 * P$se.fit)
 			print(Sys.time())
+			S$LFA=lfa
 			output<-list(model=S,pData=pData)
 			save( output, file=file.path( fn.root, paste0(lfa,response,"glmm.rdata")), compress=T)
 		}
@@ -47,7 +49,8 @@ FSRSmodel<-function(FSRS,response="SHORTS",redo=T){
 	if(response=="LEGALS"){
 		if(redo){
 			print(Sys.time())
-			L <- glmmadmb(LEGALS ~ fYEAR + DOS + TEMP + offset(logTRAPS) + (1 | VESSEL), family = "nbinom", data = FSRS,save.dir="tmp")
+			if(interaction==F)L <- glmmadmb(LEGALS ~ fYEAR + DOS + TEMP + offset(logTRAPS) + (1 | VESSEL), family = "nbinom", data = FSRS,save.dir="tmp")
+			if(interaction==T)L <- glmmadmb(LEGALS ~ fYEAR + DOS + TEMP + DOS*TEMP + offset(logTRAPS) + (1 | VESSEL), family = "nbinom", data = FSRS,save.dir="tmp")
 			print(Sys.time())
 			print(summary(L))
 			pData<-with(L$frame,data.frame(fYEAR=sort(unique(fYEAR)),TEMP= mean(TEMP),logTRAPS= log(1),DOS= mean(DOS)))
@@ -57,6 +60,7 @@ FSRSmodel<-function(FSRS,response="SHORTS",redo=T){
 			pData$ub <- exp(P$fit + 1.96 * P$se.fit)
 			pData$lb <- exp(P$fit - 1.96 * P$se.fit)
 			print(Sys.time())
+			L$LFA=lfa
 			output<-list(model=L,pData=pData)
 			save( output, file=file.path( fn.root, paste0(lfa,response,"glmm.rdata")), compress=T)
 		}

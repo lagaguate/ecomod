@@ -863,7 +863,7 @@ sd           1.385588         NA  1.0899911  1.382066   1.726755        NA      
 
   A <- inla.spde.make.A(mesh=M0, loc=locs0, group=set0$yr, n.group=k ) 
 
-  Z = inla.stack( tag='stdata', data=list( Y=set0$B), A=list(A,1), effects=list(iset, w=set0$weekno ))
+  Z = inla.stack( tag='stdata', data=list( Y=set0$B), A=list(A,1), effects=list(iset, w=set0$dyear ))
 
   # prior for temporal autoregression coefficient -- N( mean=0, variance=5) and initial value guess  
   h.spec <- list(theta=list(initial=0.7, param=c(0, 5)))
@@ -881,7 +881,7 @@ sd           1.385588         NA  1.0899911  1.382066   1.726755        NA      
 
   
   # summary of the covariate coefficients (together the observed mean for each covariate level)
-  round(cbind(observed=tapply(set$B, set$weekno, mean), res$summary.fixed), 4)
+  round(cbind(observed=tapply(set$B, set$dyear, mean), res$summary.fixed), 4)
 
 
   # summary for the posterior marginal distribution of the temporal correlation

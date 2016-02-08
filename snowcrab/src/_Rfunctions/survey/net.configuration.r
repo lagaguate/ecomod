@@ -29,7 +29,7 @@
     }
 
     if (!is.null(t0) & !is.null(tchron)  ) {
-     t0_multiple = t0 = c( as.POSIXct(tchron, tz=tzone), t0 )
+     t0_multiple = t0 = c( as.POSIXct(tchron, tz=tzone, origin=lubridate::origin ), t0 )
       tchron =NULL
     }
   
@@ -39,11 +39,11 @@
     if ( any( is.null( t1 ) || is.null(t0) ) )   {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 
      
-      N$timestamp =  as.POSIXct( N$chron , tz=tzone )
+      N$timestamp =  as.POSIXct( N$chron , tz=tzone, origin=lubridate::origin )
       M = N[, c("timestamp", "depth") ]
       
-      if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz=tzone )
-      if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz=tzone )
+      if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz=tzone, origin=lubridate::origin )
+      if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz=tzone, origin=lubridate::origin )
       time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
       
       bcp = list( 
@@ -108,7 +108,7 @@
       }
     }
 
-    if (!is.null( t1) )    t1 = as.POSIXct(t1,origin='1970-01-01', tz=tzone)
+    if (!is.null( t1) )    t1 = as.POSIXct(t1, origin=lubridate::origin, tz=tzone)
     
     if (!is.null( t0_multiple )) {
         if( !any(is.na(t0_multiple) )) { # two estimates of t0
@@ -146,7 +146,7 @@ if(!is.na(out$t0))    out$yr = as.numeric( as.character( years( out$t0) ))
 if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
 
     if(is.chron(t0)) itime =  which( N$chron >= t0  &  N$chron <= t1 )
-    if(is.POSIXct(t0)) itime =  which( as.POSIXct(N$chron, tz=tzone) >= t0  &  as.POSIXct(N$chron, tz=tzone) <= t1 )
+    if(is.POSIXct(t0)) itime =  which( as.POSIXct(N$chron, tz=tzone , origin=lubridate::origin) >= t0  &  as.POSIXct(N$chron, tz=tzone , origin=lubridate::origin)  <= t1 )
     
     if ( length( itime) < n.req ) problem = T
 

@@ -15,7 +15,7 @@
   p$model.type = "gam.full" # choose method for habitat model :
   p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
   p$optimizers = c( "nlm", "perf", "bam", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
-	p$prediction.weekno = 39 # predict for ~ Sept 1 
+	p$prediction.dyear = 0.8 # predict for ~ Sept 1 
   p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
 
@@ -81,13 +81,16 @@ Q1d 214.52285 1256.456  k=256 -- not enough data in some years
 
 
   PS = habitat.db ( DS="complete", year=y, p=p )
-  PS$weekno = p$prediction.weekno  # must be same as above
+  PS$dyear = p$prediction.dyear  # must be same as above
   PS$t = NA
    
   PST = temperature.db( p=p, DS="spatial.interpolation", yr=y  )
   if (is.null(PST)) next ()
-  
-  PS$t = PST[, p$prediction.weekno ]
+ 
+  dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+  dyr = as.numeric( cut( p$prediction.dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integer representation of season
+
+  PS$t = PST[, dyr ]
   PS$t[ which(PS$t < -2) ] = -2
   PS$t[ which(PS$t > 30) ] = 30 
 

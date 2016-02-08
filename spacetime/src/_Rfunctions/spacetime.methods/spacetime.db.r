@@ -200,9 +200,9 @@
       }
       
       if ( DS =="predictions.redo" ) {
-        pp = attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
+        pp = bigmemory::attach.big.matrix(p$descriptorfile.P, path=p$tmp.datadir)  # predictions
         preds = pp[]
-        ppl = attach.big.matrix(p$descriptorfile.Ploc, path=p$tmp.datadir) 
+        ppl = bigmemory::attach.big.matrix(p$descriptorfile.Ploc, path=p$tmp.datadir) 
         predloc = ppl[]
         preds = as.data.frame( cbind ( predloc, preds ) )
         names(preds) = c( "plon", "plat", "ndata", "mean", "sdev" )
@@ -235,14 +235,14 @@
       # load bigmemory data objects pointers
      
       # data:
-      Y = attach.big.matrix(p$descriptorfile.Y, path=p$tmp.datadir )  
-      LOCS = attach.big.matrix(p$descriptorfile.LOCS, path=p$tmp.datadir )
+      Y = bigmemory::attach.big.matrix(p$descriptorfile.Y, path=p$tmp.datadir )  
+      LOCS = bigmemory::attach.big.matrix(p$descriptorfile.LOCS, path=p$tmp.datadir )
       hasdata = 1:length(Y) 
       bad = which( !is.finite( Y[])) 
       if (length(bad)> 0 ) hasdata[bad] = NA
       # covariates (independent vars)
       if ( exists( "X", p$variables) ) {
-        X = attach.big.matrix(p$descriptorfile.X, path=p$tmp.datadir )  
+        X = bigmemory::attach.big.matrix(p$descriptorfile.X, path=p$tmp.datadir )  
         if ( length( p$variables$X ) == 1 ) {
           bad = which( !is.finite( X[]) ) 
         } else {
@@ -255,16 +255,21 @@
       locs_noise = LOCS[ii,] + runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise )
       maxdist = max( diff( range( LOCS[ii,1] )), diff( range( LOCS[ii,2] )) )
 
-      boundary=list( polygon = inla.nonconvex.hull(  LOCS[ii,], convex=-0.04, resolution=125 ) )
+      convex = -0.04
+      if (exists( "mesh.boundary.convex", p) ) convex=p$mesh.boundary.convex 
+      resolution = 125
+      if (exists( "mesh.boundary.resolution", p) ) resolution=p$mesh.boundary.resolution
+      boundary=list( polygon = inla.nonconvex.hull(  LOCS[ii,], convex=convex, resolution=resolution ) )
       
-      Sloc = attach.big.matrix(p$descriptorfile.Sloc , path=p$tmp.datadir )  # statistical output locations
+      Sloc = bigmemory::attach.big.matrix(p$descriptorfile.Sloc , path=p$tmp.datadir )  # statistical output locations
       boundary$inside.polygon = point.in.polygon( Sloc[,1], Sloc[,2], 
           boundary$polygon$loc[,1], boundary$polygon$loc[,2], mode.checked=TRUE) 
 
       save( boundary, file=fn, compress=TRUE )
 
-      plot( LOCS[], pch="." )
-      lines( boundary$polygon$loc , col="green" )
+      plot( LOCS[ii,], pch="." ) # data locations
+      lines( boundary$polygon$loc , col="green" ) 
+
 
       return( fn )
     }
@@ -297,7 +302,7 @@
       if ( DS=="statistics.bigmemory.size" ) { 
         # load bigmemory data objects pointers
         p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-        S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
+        S = bigmemory::attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
         return( nrow(S) )
       }
 
@@ -305,7 +310,7 @@
         # find locations for statistic computation and trim area based on availability of data
         # stats:
         p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-        S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )
+        S = bigmemory::attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )
         
         bnds = spacetime.db( p, DS="boundary" )
 
@@ -328,13 +333,13 @@
         #\\ spacetime.db( "statsitics.redo") .. statistics are stored at a different resolution than the final grid
         #\\   this fast interpolates the solutions to the final grid
         p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
-        S = attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+        S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
         ss = as.data.frame( S[] )
         statnames0 = c( "range", "range.sd", "spatial.var", "observation.var"  )
         statnames  = c( "range", "range.sd", "spatial.sd", "observation.sd"  )
         datalink   = c( "log", "log", "log", "log" )  # a log-link seems appropriate for these data
         names(ss) = statnames0 
-        ssl = attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir)  # statistical output locations
+        ssl = bigmemory::attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir)  # statistical output locations
         sslocs = as.data.frame(ssl[]) # copy
         names(sslocs) = p$variables$LOCS
         ss = cbind( sslocs, ss )

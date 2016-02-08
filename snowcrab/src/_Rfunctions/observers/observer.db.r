@@ -102,6 +102,7 @@
       odb$mat_tmp = NULL
 
       odb$lon = -odb$lon
+      odb$timestamp =  odb$sdate
       odb$chron = as.chron(odb$sdate)
       odb$yr = as.numeric(as.character(years(odb$chron)))
 

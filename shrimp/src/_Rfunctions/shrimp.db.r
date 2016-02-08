@@ -48,9 +48,9 @@
       names(x) = tolower( names(x))
       
       x$yr = as.numeric( as.character( years(x$fdate) ) )
-      x$julian = convert.datecodes( x$fdate, "julian" )
-      x$month = ceiling(x$julian/365 *12)
-      x$week = ceiling(x$julian/365 *52)
+      #x$julian = convert.datecodes( x$fdate, "julian" )
+      #x$mon = ceiling(x$julian/365 *12)
+      #x$week = ceiling(x$julian/365 *52)
       
       # -- mobile gear
       mobile = which( x$btype %in% c( 1,3 ) )

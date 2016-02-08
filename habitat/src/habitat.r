@@ -4,23 +4,26 @@
   # ultimately to speed up processing by creating merged data that are repeatedly used by many other functions/analysis
  
   # 1. create parameter list
-
-  p = list()
-  p$libs = RLibrary( "mgcv", "sp", "gstat",  "parallel", "fields", "chron", "lubridate", "raster", "rgdal"  ) 
+ 
+  p = list( project.name = "habitat" )
+  p$project.root = project.datadirectory( p$project.name )
+  
+  p$libs = RLibrary( c( "mgcv", "sp", "gstat",  "parallel", "fields", "chron", "lubridate", "raster", "rgdal"  ) )
   p$init.files = loadfunctions( c(
 	  "spacetime", "utility", "parallel", "habitat", "substrate", "bathymetry", "speciesarea", "metabolism", 
 		"sizespectrum", "speciescomposition", "temperature", "biochem", "condition" 
-	) )
+	) ) 
 
   p$taxa = "maxresolved"
   p$season = "allseasons"
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) 
   p$interpolation.nmax = 100 
-   
-  
+         
+  p$nw = 10  # from temperature.r, number of intervals in a year
+      
+ 
   p$yearstomodel = 1970:2015
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
-
 
   p$speciesarea.modeltype = "complex"
   p$speciesarea.method = "glm"   ## this is chosen in speciesarea.r ... make sure it matches up
@@ -80,7 +83,29 @@
   #parallel.run( habitat.db, DS="environmentals.redo", p=p ) #MG parallel isn't running properly at the moment
   habitat.db( DS="environmentals.redo", p=p )
 
-  
+
+
+ --------------------------------------------
+ ------- STOP HERE ! ------------------------
+ ------- DO NOT RUN THE REMAINDER -----------
+ ------- until the following are finshed ----
+ --------------------------------------------
+
+  ### loadfunctions ( "bio", functionname="bio.r" )  
+  ### loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
+  ### loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
+  ### loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
+  ### loadfunctions ( "metabolism", functionname="metabolism.r" ) 
+  ### loadfunctions ( "condition", functionname="condition.r" ) 
+ 
+
+  # 4. This step needs to be completed after all other incoming db are refreshed ... add biologicals 
+  # TODO :: biologicals begin in 1970 ..  need to fix 
+  #        .. at present data from 1970 are copied to all pre 1970 data years
+
+  p = make.list( list( yrs=p$yearstomodel), Y=p )
+  parallel.run(  habitat.db, DS="complete.redo", p=p )
+  # habitat.db ( DS="complete.redo", p=p )
 
 
  

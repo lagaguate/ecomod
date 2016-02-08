@@ -22,10 +22,10 @@ polygon.db = function( DS="load", p=NULL, id=NULL, crs="", plotmap=FALSE ) {
       print( fn)
     }
     X = read.table (fn)
-    names( X ) = c("lon", "lat" )
+    colnames( X ) = c("lon", "lat" )
     if ( crs!="") {
       X = rgdal::project( as.matrix(X), proj=as.character(crs) ) 
-      names(X) = c("plon", "plat")
+      colnames(X) = c("plon", "plat")
     } 
     if (plotmap) {
       if ( crs=="" ) {
@@ -46,7 +46,7 @@ polygon.db = function( DS="load", p=NULL, id=NULL, crs="", plotmap=FALSE ) {
     polygon.db ( DS="map.background", p=p ) 
     X = locator(type="o" )
     X = as.data.frame( X)
-    names(X) = c("lon", "lat")
+    colnames(X) = c("lon", "lat")
     X = rbind(X, X[1,]) 
     lines (X)
     u = readline("If it looks good, type 'good' and [enter], otherwise interrrupt and start over.. " )

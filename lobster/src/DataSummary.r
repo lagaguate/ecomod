@@ -4,7 +4,7 @@ RLibrary('lubridate')
 
 #temp.dat<-read.csv(file.path(project.datadirectory('lobster'),'data','CTS_Temperature.csv'))
 #collector.dat<-read.csv(file.path(project.datadirectory('lobster'),'data','CollectorData.csv'))
-FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRScpue.csv"))
+FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","products","FSRScpue.csv"))
 
 #------------------## LFA 34 ##-----------------#
 #------------------## LBM ##-----------------#
@@ -30,10 +30,10 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRS
 
 		# CPUE
 		FSRScpue34.dat<-subset(FSRScpue.dat,LFA==34)
-		LOGScpue34.dat<-read.csv(file.path(project.datadirectory('lobster'),'data',"LFA34CPUE.csv"))
+		LOGScpue34.dat<-read.csv(file.path(project.datadirectory('lobster'),'data',"products","LFA34CPUE.csv"))
 		
 		# Lobster Survey 
-		SURVindex34.dat<-read.csv(file.path(project.datadirectory('lobster'),'data',"LFA34SurveyIndex.csv"))
+		SURVindex34.dat<-read.csv(file.path(project.datadirectory('lobster'),'data',"products","LFA34SurveyIndex.csv"))
 
 		# Scallop Surveyc
 		SCALSURV.dat<-ScallopSurveyProcess(SPA=c("3","29"),Years=1996:2014)
@@ -43,9 +43,9 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRS
 		LPTn<- with(SCALSURV.dat,tapply(NLobsStd,YEAR,length))
 		LPTse<-LPTsd/sqrt(LPTn)
 		rmLPT<-ma(LPT)
-		write.csv(data.frame(SYEAR=1996:2014,N=LPTn,LPT=LPT,LPT.SE=LPTse),file.path(project.datadirectory('lobster'),'data',"LFA34ScalSurveyIndex.csv"),row.names=F)
+		write.csv(data.frame(SYEAR=1996:2014,N=LPTn,LPT=LPT,LPT.SE=LPTse),file.path(project.datadirectory('lobster'),'data',"products","LFA34ScalSurveyIndex.csv"),row.names=F)
 
-		SCALSURVindex34.dat<-read.csv(file.path(project.datadirectory('lobster'),'data',"LFA34ScalSurveyIndex.csv"))
+		SCALSURVindex34.dat<-read.csv(file.path(project.datadirectory('lobster'),'data',"products","LFA34ScalSurveyIndex.csv"))
 
 
 		SURVindex34.dat$DEN<-SURVindex34.dat$LPT/17
@@ -66,9 +66,9 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRS
 	####### Landings
 	#######
 
-		AnnualLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","Commercial","AnnualSlipLand.csv"))
-		HistoricLand.dat<-read.delim(file.path(project.datadirectory('lobster'),"data","Commercial","LFA34_Landings_1892-2004.txt"))
-		SeasonalLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","Commercial","SeasonalSlipLand.csv"))
+		AnnualLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","inputs","AnnualSlipLand.csv"))
+		HistoricLand.dat<-read.delim(file.path(project.datadirectory('lobster'),"data","inputs","LFA34_Landings_1892-2004.txt"))
+		SeasonalLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","inputs","SeasonalSlipLand.csv"))
 	
 		Annual.dat<-reshape(AnnualLand.dat,idvar="YEAR",varying=names(AnnualLand.dat)[-1],times=substr(names(AnnualLand.dat)[-1],4,6),direction='long',timevar="LFA",v.names="CATCH")
 		Season.dat<-reshape(SeasonalLand.dat,idvar="SEASON",varying=names(SeasonalLand.dat)[-1],times=substr(names(SeasonalLand.dat)[-1],4,6),direction='long',timevar="LFA",v.names="CATCH")
@@ -76,7 +76,7 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRS
 		Season.dat$SYEAR<-as.numeric(substr(Season.dat$SEASON,6,9))
 		Landings.dat<-rbind(subset(Annual.dat,LFA<33&YEAR>1975,c("SYEAR","LFA","CATCH")),subset(Season.dat,select=c("SYEAR","LFA","CATCH")))
 
-		write.csv(Landings.dat,file.path( project.datadirectory("lobster"), "data","TotalLandings.csv"),row.names=F)
+		write.csv(Landings.dat,file.path( project.datadirectory("lobster"), "data","products","TotalLandings.csv"),row.names=F)
 
 	####### Length Compositions
 	#######

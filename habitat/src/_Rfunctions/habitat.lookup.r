@@ -1,9 +1,9 @@
  
-  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.005, 0.995) ) {
+  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.0005, 0.9995) ) {
     
     # wrapping function to provide a common intercae to various habitat related lookup routines
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
-    # x must contain plon, plat, and chron
+    # x must contain plon, plat, and chron (deprecated) or timstamp (posix)
     
     loadfunctions( "utility" )
     RLibrary (p$libs) 
@@ -28,21 +28,23 @@
     # time-invariant items 
     if ( DS %in% c( "depth", "depth.all", "substrate", "time.invariant", "baseline" )) {
       print( paste( "Looking up ", DS) )
-
       H = habitat.lookup.datasource( DS, p=p )  # bring in appropriate habitat data source
-      H$plon = grid.internal( H$plon, H$plons )
-      H$plat = grid.internal( H$plat, H$plats )
+      H$plon = grid.internal( H$plon, p$plons )
+      H$plat = grid.internal( H$plat, p$plats )
 	    H = H[ which( is.finite( H$plon + H$plat)), ]
       Hnames = names(H)
       out = merge( x, H, by=coords, all.x=T, all.y=F, suffixes=c("", ".duplicated"), sort=FALSE )
       rm(x); gc()
+
       newvars = setdiff( Hnames, xnames ) 
+
       if (length(newvars)==0) newvars= setdiff( intersect( xnames, Hnames ), coords )
       outnames = names(out)
       oo = grep("duplicated", outnames) 
       if (length(oo) > 0 ) {
         for ( o in oo ) {
           vn = gsub(  ".duplicated", "", outnames[o] )
+          newvars = c( newvars, vn )  # add to list to keep track of ..
           vnd = outnames[o]
           im = which( !is.finite( out[ , vn ] ) ) # missing in input data
           if (length( im) > 0 ) out[im,vn] = out[im,vnd] # overwrite missing with proposals
@@ -61,17 +63,23 @@
         }
       }
     }
-  
+
+
     # -------------------
     # yearly-varying items:
     if ( DS %in% c( "default", "all", "all.data", "environmentals", "temperature.all" )) {
+        
       if (! exists( "yr", x) ){
-        if ( any( grepl( "chron", names(x) ) )) {
-          x$yr = as.numeric( as.character( years( x$chron )))
+        if (exists( "timestamp", x )) {
+            x$yr = lubridate::year( x$timestamp ) 
+        } else if (exists( "chron" ) ) {  
+            x$timestamp = as.POSIXct( chron::as.chron( x$chron), origin=lubridate::origin )
+            x$yr = lubridate::year( x$timestamp ) 
+        } else {
+          stop( "yr is required")  # required
         }
       } 
-      if (! exists( "yr", x ) ) stop( "yr is required")  # required
- 
+
       yrs = sort( unique( x$yr ))
       print( paste( "Looking up ", DS) )
      
@@ -86,8 +94,8 @@
         print( yr )
         H = habitat.lookup.datasource( DS, yr=yr, p=p  )  # bring in appropriate habitat data source
 
-        H$plon = grid.internal( H$plon, H$plons )
-        H$plat = grid.internal( H$plat, H$plats )
+        H$plon = grid.internal( H$plon, p$plons )
+        H$plat = grid.internal( H$plat, p$plats )
 	      H = H[ which( is.finite( H$plon + H$plat)), ]
         
         ii = which( x$yr == yr )
@@ -122,42 +130,61 @@
     }
 
     # -------------------
-    # weekly-varying items:
-    if ( DS %in% c( "temperature", "temperature.weekly" )) {
-      if (! exists( "yr", x) ) {
-        if (any( grepl( "chron", names(x) ) )) {
-          x$yr = as.numeric( as.character( years( x$chron )))
+    # fine scale year+season varying items:
+    if ( DS %in% c( "temperature", "temperature.seasonal" )) {
+    
+      if (! exists( "yr", x) ){
+        if (exists( "timestamp", x )) {
+            x$yr = lubridate::year( x$timestamp ) 
+        } else if (exists( "chron" ) ) {  
+            x$timestamp = as.POSIXct( chron::as.chron( x$chron), origin=lubridate::origin )
+            x$yr = lubridate::year( x$timestamp ) 
+        } else {
+          stop( "yr is required")  # required
         }
       } 
-      if (! exists( "yr", x ) ) stop( "yr is required")  # required
-      
-      if (! exists("weekno", x) ) {
-        x$dayno = convert.datecodes(x$chron, "julian")  
-        x$weekno = ceiling (x$dayno / 365 * 52 )
-      }
-      if (! exists( "weekno", x ) ) stop( "weekno is required")  # required
 
       print( "Looking up temperature at weekly scales" )
-      #browser()
+      if (! exists( "dyear", x) ) { # dyear is the decimal year (fraction of a year)
+        if (exists( "timestamp", x )) {
+          x$dyear = lubridate::decimal_date( x$timestamp ) - x$yr 
+        } else if (exists( "chron" ) ) {  
+           x$timestamp = as.POSIXct( chron::as.chron( x$chron), origin=lubridate::origin )
+           x$dyear = lubridate::decimal_date( x$timestamp ) - x$yr  
+        } else {
+          stop( "dyear, the fractional year, is required")  # required
+        }
+      } 
+    
+      dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+      x$dyr = as.numeric( cut( x$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integerr representation of season
+       
+      print( "Looking up temperature at year+seasonal scales" )
 
       yrs = sort( unique( x$yr ))
-
-      B = bathymetry.db( p=p, DS="baseline" ) # already discretized to internal plons and plats
+        
+      B = bathymetry.db( p=p, DS="baseline") # temperature complete is discretized to the "baseline" internal plons and plats
+      B = B[, c("plon", "plat")]  # just locations
       B$row = 1:nrow(B)
-      B$z = NULL
+
+      p0 = spatial.parameters( type=p$default.spatial.domain )
+      BH = bathymetry.db( p=p, DS="baseline") # temperature complete is discretized to the "baseline" internal plons and plats
+      B = B[, c("plon", "plat")]  # just locations
+      B$row = 1:nrow(B)
+
 
       O = NULL
       for (yr in yrs) { 
-        print( yr )
-  
+        print( yr ) 
+           
         ii = which( x$yr == yr )
         if (length( ii) == 0) next()  
         X = merge( x[ii,], B, by=coords, all.x=T, all.y=F, sort=F, suffixes=c("", ".duplicated") )
-          
+         
         V = matrix( NA, ncol=2, nrow=length(ii) )	
         V[,1] = X$row
-        V[,2] = X$weekno
-
+        V[,2] = X$dyr
+ 
         H = habitat.lookup.datasource( DS=DS, yr=yr, p=p  )  # bring in appropriate habitat data source
         if (is.null(H)) next()
         X$t.H = H[V]
@@ -178,7 +205,7 @@
           distances[ which(distances > max.distance) ] = NA
           for( jj in 1:length( im ) ) {
             dd = which.min( distances[,jj] )
-            if (length(dd) > 0) X[ im[jj],vn ] = H[ dd, X[ im[jj],"weekno"] ]
+            if (length(dd) > 0) X[ im[jj],vn ] = H[ dd, X[ im[jj],"dyr"] ]
           }
         }
         O = rbind( O, X )
@@ -188,10 +215,11 @@
     
     # -------------------------------
     # final processing and formatting
-      varstodrop = which( names(res) %in% newvars )
-      if (length(varstodrop) > 0) res = res[ , -varstodrop ] # drop duplicates in advance of merge
+      # varstodrop = which( names(res) %in% newvars )
+      # if (length(varstodrop) > 0) res = res[ , -varstodrop ] # drop duplicates in advance of merge
 
-      res = merge( res, out[, c("hid", newvars )], by="hid", all.x=T, all.y=F, sort=T )
+      # res = merge( res, out[, c("hid", newvars )], by="hid", all.x=T, all.y=F, sort=T )
+      res = out
       res = res[ order( res$hid ) , ]
       if ( nrow( res ) != nx ) {
         print( "Merge error -- duplicated coords" )

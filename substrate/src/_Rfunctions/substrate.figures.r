@@ -7,7 +7,7 @@ substrate.figures = function( DS=NULL, p=NULL ) {
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
     pps  =  expand.grid( plons=p$plons, plats=p$plats)
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot
-    datarange = log( c( 5, 4000 ))
+    datarange = range( P[ which(is.finite(P[,2])),2] ) 
     dr = seq( datarange[1], datarange[2], length.out=100)
     oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="predictions" )
     levelplot( log( P[oc,2] ) ~ plons + plats, pps[oc,], aspect="iso", main=NULL, at=dr, col.regions=rev(color.code( "seis", dr)) ,

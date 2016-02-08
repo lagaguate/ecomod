@@ -243,7 +243,7 @@
         
         if  (DS %in% c("complete")) {
           # for backwards compatibility
-          Z = substrate.db( p=p, DS="spde_complete", return.format == "dataframe" )
+          Z = substrate.db( p=p, DS="spde_complete", return.format = "dataframe" )
           return (Z)
         }
 
@@ -261,11 +261,6 @@
         if ( file.exists ( fn) ) load( fn)
         if ( return.format == "dataframe" ) { ## default
           Z = as( brick(Z), "SpatialPointsDataFrame" ) 
-          return( Z )
-        } 
-        if ( return.format == "dataframe.filtered" ) {
-          Z = as( brick(Z), "SpatialPointsDataFrame" ) 
-          Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) 
           return( Z )
         } 
         if ( return.format %in% c("list") ) return( Z  )

@@ -185,7 +185,7 @@ options(stringsAsFactors=F)
 		if(!is.null(topolines)){
 			topo.lst<-list()
 			for(i in unique(ceiling(topolines/1000))){
-	 			load(file.path( project.datadirectory("lobster"), "data", "topex",paste0("topoPoly",i,".rdata")))
+	 			load(file.path( project.datadirectory("lobster"), "data", "maps","topex",paste0("topoPoly",i,".rdata")))
 	 			topo.lst[[i]]<-topo.poly
 	 		}
  			topo.poly<-do.call(rbind,topo.lst)

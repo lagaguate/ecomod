@@ -48,6 +48,8 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
       p$recode.data = T
       p$map.results=T
       
+
+      p$nw = 10  # from temperature.r, number of intervals in a year
       
       # p$kformula = as.formula( "kv ~ z + t + total.cpue" )  # model in 2006-2008
       # p$kformula = as.formula( "kv ~ z + t + tamp + wmin + dZ + ddZ + substrate.mean + total.cpue" )  # model in 2006-2008

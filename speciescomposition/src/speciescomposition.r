@@ -8,7 +8,7 @@
   
 
   p = list()
-  p$libs = RLibrary ( c("chron", "fields", "mgcv", "sp", "parallel")) 
+  p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel")) 
 
 	p$init.files = loadfunctions( c(
     "spacetime", "utility", "parallel", 

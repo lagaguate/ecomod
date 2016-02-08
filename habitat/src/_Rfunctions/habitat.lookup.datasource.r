@@ -9,38 +9,36 @@
         H = H[,  c("plon", "plat", p$varstomodel ) ]  # add variable names
       }
 
-      if ( DS=="depth") {
-        H = bathymetry.db( p=p, DS="baseline" )
+      if ( DS %in% c("depth", "depth.complete") ) {
+        H = bathymetry.db( p=p,  DS="spde_complete", return.format = "dataframe" )
       }
 
-      if ( DS=="depth.complete") {
-        H = bathymetry.db( p=p, DS="complete" )
-      }
-      
       if ( DS=="substrate") {
         H = substrate.db ( p=p, DS="planar")
         H$substrate.mean = log(H$grainsize)
         H = H[, c("plon", "plat", "substrate.mean") ]
       }
 
-      if ( DS %in% c("temperature", "temperature.weekly" ) ) {
-        H = temperature.db( p=p, DS="spatial.interpolation", yr=yr  )
+      if ( DS %in% c( "temperature.complete", "temperature.annual", "temperature", "temperature.seasonal", "temperature.climatology" ) ) {
+        if (is.null(yr)) {
+          # choose one,, any will do
+          if (exists("tyears", p)) yr = p$tyears[1] 
+          if (exists("tyears.climatology", p)) yr = p$tyears.climatology[1] 
+        }
+        if ( DS %in% c("temperature.climatology" ) ) {
+          H = temperature.db( p=p, DS="complete", year=yr  ) 
+          H = H[, c("plon", "plat", "tmean.cl", "tamp.cl", "wmin.cl", "thp.cl", "tsd.cl" )]
+        }
+        if ( DS %in% c( "temperature.annual", "temperature", "temperature.seasonal" ) ) {
+          # note this is valid only for the default spatial domain .. so must regrid
+          p0 = spatial.parameters( type=p$default.spatial.domain )
+          H = temperature.db( p=p0, DS="spatial.interpolation", yr=yr  ) 
+        }
+        if ( DS %in% c( "temperature.complete" ) ) {
+          H = temperature.db( p=p, DS="complete", year=yr  ) 
+          # nothing to do ... keep all
+        }
       }
- 
-      if ( DS %in% c("temperature.climatology" ) ) {
-        H = temperature.db( p=p, DS="complete", year=yr  ) 
-        keep = c("plon", "plat", "tmean.cl", "tamp.cl", "wmin.cl", "thp.cl", "tsd.cl" )
-        H = H[, keep]
-        # H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tmean" )
-      }
-
-      if ( DS %in% c( "temperature.complete" ) ) {
-        H = temperature.db( p=p, DS="complete", year=yr  ) 
-      }
-
-      if ( DS %in% c( "temperature.annual" ) ) {
-        H = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=yr )
-      }        
 
       if ( DS %in% c("default", "environmentals", "time.variant" ) ) {
         H = habitat.db( DS="environmentals", p=p, year=yr )  

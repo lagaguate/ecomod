@@ -33,13 +33,15 @@
 
 
         PS = habitat.db ( DS="complete", year=y, p=p )
-				PS$weekno = p$prediction.weekno  # must be same as above
+				PS$dyear = p$prediction.dyear  # must be same as above
 				PS$t = NA
          
         PST = temperature.db( p=p, DS="spatial.interpolation", yr=y  )
 				if (is.null(PST)) next ()
-				
-        PS$t = PST[, p$prediction.weekno ]
+				    
+        dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+        dyr = as.numeric( cut( p$prediction.dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integer representation of season
+        PS$t = PST[, dyr ]
         PS$t[ which(PS$t < -2) ] = -2
 			  PS$t[ which(PS$t > 30) ] = 30 
 

@@ -2,7 +2,7 @@
  
 habitat.estimate.global = function( DS="gam" ) {
    
-#RLibrary( "mgcv", "chron", "lattice"  ) 
+#RLibrary( "mgcv", "lubridate", "lattice"  ) 
 #loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
  
