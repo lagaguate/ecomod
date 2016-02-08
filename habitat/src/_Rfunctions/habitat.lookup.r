@@ -138,6 +138,7 @@
       if (! exists( "weekno", x ) ) stop( "weekno is required")  # required
 
       print( "Looking up temperature at weekly scales" )
+      #browser()
 
       yrs = sort( unique( x$yr ))
 

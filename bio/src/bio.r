@@ -21,15 +21,22 @@
 
   # load and glue data together
   bio.db( DS="set.init.redo", p=p )
+  print("Finished   bio.db( DS=set.init.redo, p=p )")
   bio.db( DS="cat.init.redo", p=p )
+  print("Finished   bio.db( DS=cat.init.redo, p=p )")
   bio.db( DS="det.init.redo", p=p )
+  print("Finished bio.db( DS=det.init.redo, p=p )")
 
 
   # sanity checking and creation of new variables
   bio.db( DS="set.intermediate.redo", p=p ) # adds temperature required for metabolism lookup in "det.redo"
+  print("Finished bio.db (DS=set.intermediate.redo)")
   bio.db( DS="det.redo", p=p ) # mass/length imputation and sanity checking
+  print ("Finished bio.db (DS=det.redo)")
   bio.db( DS="cat.redo", p=p ) # sanity checking and fixing mass estimates from det etc ... 
+  print ("Finished bio.db(DS=cat.redo)")
   bio.db( DS="set.redo", p=p ) # mass/length imputation and sanity checking
+  print ("Finished bio.db (DS=set.redo)")
   
 
     #  --- look in metabolism functions and complexity/condition
