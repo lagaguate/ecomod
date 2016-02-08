@@ -50,7 +50,7 @@
             #xlim=xlim, 
             ylim=(c(as.numeric(ylim[1]), as.numeric(ylim[2]))),
             scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
-              main="Recruits (t-1)", xlab=list("Year", cex=1), ylab=list("Geometric mean No. / km^2", cex=1),
+              main="Fishable Biomass", xlab=list("Year", cex=1), ylab=list("Geometric mean t / km^2", cex=1),
               #cex.lab=cex.lab, 
               cex.axis=cex.axis, 
               cex.main = cex.main,

@@ -959,7 +959,7 @@
       set$z = log( set$z )
 			
 		  # bring in time varing features:: temperature
-			#print ("Bring in temperature")
+			print ("Bring in temperature")
       set = habitat.lookup( set, p=p, DS="temperature" )
 
 			# bring in all other habitat variables, use "z" as a proxy of data availability

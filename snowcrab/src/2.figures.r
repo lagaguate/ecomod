@@ -89,9 +89,11 @@
     map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
     
   # ------------------------------------------
-  # Map:  Mean/geometric mean of various variables in the set data table
+  # Map:  Interpolated mean/geometric mean of various variables in the set data table
   p$do.parallel=F
     map.set.information( p, outdir=file.path( project.datadirectory("snowcrab"), "R", "maps", "survey" )  )
+    map.set.information.diff( p, outdir=file.path( project.datadirectory("snowcrab"), "R", "maps", "survey.diff" )  )
+    
 
   # ------------------------------------------
   # Map: Numerical density of by-catch species 
@@ -121,10 +123,12 @@
 
   # ------------------------------------------
   # Map: Crab movement from mark-recapture data
+    #MG I think Brent is primarily mapping this stuff now. Not sure the data has been updated in a while
     map.movement( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "mark.recapture") ) 
   
   # ------------------------------------------
   # Map: Spatial representation of maturity patterns of snow crab
+    #MG Not sure we use these maps either, check with Adam and Jae
     map.maturity( p, outdir=file.path(project.datadirectory("snowcrab"), "R", "maps", "maturity"), newyear=T ) 
 
   ##########################################################################

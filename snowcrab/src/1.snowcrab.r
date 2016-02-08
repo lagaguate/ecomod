@@ -117,9 +117,8 @@
 
 
   }  # end base data
-
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   parameters.initial = p  # copy here as the other calls below overwrites p
-
 # -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
 #     Bathymetry data :: 
