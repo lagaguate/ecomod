@@ -50,7 +50,7 @@ clip.grid_pr <- gIntersection(grid_pr, boundbox_pr)
 
 #'make our map
 #'This adds a bounding box, map, gridlines and grid labels
-png(filename="SampleRMap.png",
+png(filename="SampleRMapUTMZoneWeird.png",
     width = 1200, height = 1200, units = "px", pointsize = 12,
     bg = "white", res = NA, family = "", restoreConsole = TRUE,
     type = c("windows", "cairo", "cairo-png")
@@ -61,23 +61,6 @@ lines(clip.grid_pr, col="grey77", lty=2)                           #gridlines
 text(coordinates(gridat_pr),                                       #grid labels 
      labels=parse(text=as.character(gridat$labels)), 
      pos=gridat_pr$pos, offset=0.4, col="black", cex=1)
-# # #Example bathy data
-p = list( project.name = "bathymetry" )
-p$project.root = project.datadirectory( p$project.name )
-p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" ) )
-p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "geosphere", "sp", "raster", "colorspace" )
-p = spatial.parameters( type="canada.east.highres", p=p ) 
-depths = c(100, 200, 500, 1000) #, 2000, 5000 )
-plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
-#data must be clipped so it doesn't extend beyond the bounding box
-clip.100 <- gIntersection(spTransform(plygn["100"], CRS(crs.new)), boundbox_pr)
-clip.200 <- gIntersection(spTransform(plygn["200"], CRS(crs.new)), boundbox_pr)
-clip.500 <- gIntersection(spTransform(plygn["500"], CRS(crs.new)), boundbox_pr)
-clip.1000 <- gIntersection(spTransform(plygn["1000"], CRS(crs.new)), boundbox_pr)
-lines(spTransform(clip.100, CRS(crs.new)), col="darkslategray3")
-lines(spTransform(clip.200, CRS(crs.new)), col="deepskyblue")
-lines(spTransform(clip.500, CRS(crs.new)), col="dodgerblue2")
-lines(spTransform(clip.1000, CRS(crs.new)), col="darkslateblue")
 plot(boundbox_pr, border="black", add=T, lwd=3)                    #dark bbox
 title(main="Sample Map in R", sub="example_crs_map.R", line = -3,cex=2)
 dev.off()
@@ -88,3 +71,20 @@ dev.off()
 # proj4string(pts) <- CRS(crs.orig)
 # points(spTransform(pts, CRS(crs.new)), pch=20, col="red")
 
+# # #Example bathy data
+# p = list( project.name = "bathymetry" )
+# p$project.root = project.datadirectory( p$project.name )
+# p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" ) )
+# p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "geosphere", "sp", "raster", "colorspace" )
+# p = spatial.parameters( type="canada.east.highres", p=p ) 
+# depths = c(100, 200, 500, 1000) #, 2000, 5000 )
+# plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
+# #data must be clipped so it doesn't extend beyond the bounding box
+# clip.100 <- gIntersection(spTransform(plygn["100"], CRS(crs.new)), boundbox_pr)
+# clip.200 <- gIntersection(spTransform(plygn["200"], CRS(crs.new)), boundbox_pr)
+# clip.500 <- gIntersection(spTransform(plygn["500"], CRS(crs.new)), boundbox_pr)
+# clip.1000 <- gIntersection(spTransform(plygn["1000"], CRS(crs.new)), boundbox_pr)
+# lines(spTransform(clip.100, CRS(crs.new)), col="darkslategray3")
+# lines(spTransform(clip.200, CRS(crs.new)), col="deepskyblue")
+# lines(spTransform(clip.500, CRS(crs.new)), col="dodgerblue2")
+# lines(spTransform(clip.1000, CRS(crs.new)), col="darkslateblue")
