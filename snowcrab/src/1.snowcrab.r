@@ -118,8 +118,7 @@
 
   }  # end base data
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  parameters.initial = p  # copy here as the other calls below overwrites p
-# -------------------------------------------------------------------------------------
+  parameters.initial = p  # copy here as the other calls below overwrites p# -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
 #     Bathymetry data :: 
   loadfunctions("bathymetry", functionname="bathymetry.r" ) # if necessary
@@ -128,20 +127,20 @@
 #     Groundfish data :: 
 #     NOTE  groundfish.db( DS="odbc.redo" ) must first be done manually 
 #     on a windows machine and data snapshots moved to local system
-  loadfunctions( "groundfish", functionname="1.groundfish.r" ) 
+  loadfunctions( "groundfish", functionname="1.groundfish.r" ) #MG took 15-25 minutes to run
 #     Taxonomy :: 
-  loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary
+  loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary #MG takes about 30 minutes to run
 ## The following are very SLOW: 
 # Temperatures ::  
-  loadfunctions ( "temperature", functionname="temperature.r" )  # days
+  loadfunctions ( "temperature", functionname="temperature.r" )  # days to run
 # Habitat data ... environmentals only as it is used by bio.db etc
-  loadfunctions("habitat", functionname="habitat.r")
+  loadfunctions ( "habitat", functionname="habitat.r") #MG fairly quick to run
   #loadfunctions ( "habitat", functionname="habitat.temperatures.r" ) 
 # BIO db update :: 
 # must come after temperature interpolations to permit temperature lookups 
-  loadfunctions ( "bio", functionname="bio.r" )  
+  loadfunctions ( "bio", functionname="bio.r" )  #MG took about 20 minutes to run
 # the folllowing depends upon bio.db and temperature  
-  loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
+  loadfunctions ( "speciesarea", functionname="speciesarea.r" ) #MG too
   loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
   loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) #ran into problems with mapping these need to check sept 7 2014 
   loadfunctions ( "metabolism", functionname="metabolism.r" ) 
@@ -155,7 +154,7 @@
   
   p = parameters.initial
   
-  logbook.db( DS="fisheries.complete.redo", p=p )  
+  logbook.db( DS  ="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
   snowcrab.db( DS ="set.logbook.redo", yrs=1996:p$current.assessment.year ) # add gridded fisheries data
   snowcrab.db( DS ="set.logbook", yrs=1996:p$current.assessment.year ) 
