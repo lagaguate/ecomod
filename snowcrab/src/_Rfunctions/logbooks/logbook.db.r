@@ -162,7 +162,7 @@
       x$status = ""  # "" "" ""
 
       datelanded =  matrix(unlist(strsplit(x$date.landed, " ", fixed=T)), ncol=2, byrow=T)[,1]
-      x$date.landed = chron( dates.=datelanded, format=c(dates="y-m-d") )
+      x$date.landed = lubridate::ymd( datelanded )
       x$landings = x$pro_rated_slip_wt_lbs * 0.454  # convert to kg
       x$cpue = x$landings / x$effort
       x$depth = x$depth_fm*1.83
@@ -342,7 +342,7 @@
        da = substring(dt,7,8)
 
        logs[i, "date.landed"] = paste( mon, da, yr, sep="/")
-       logs$date.landed = chron( dates.=logs$date.landed, format=c(dates="m/d/y") )
+       logs$date.landed = lubridate::mdy( logs$date.landed)
 
        to.extract = c( "year","lat","lon","depth","landings","effort","soak.time",
                         "cpue","trap.type","cfv","status","licence",
@@ -374,7 +374,8 @@
       logbook$plon = grid.internal( logbook$plon, p$plons )
       logbook$plat = grid.internal( logbook$plat, p$plats )
 
-			logbook$chron = logbook$date.landed  # required for temperature lookups
+			logbook$timestamp = logbook$date.landed  # required for temperature lookups
+
       logbook = logbook[which(logbook$yr<=p$current.assessment.year),]
 			# bring in time invariant features:: depth
       logbook$z = logbook$depth
@@ -394,8 +395,6 @@
 			# bring in habitat variables
 			logbook = habitat.lookup( logbook, p=p, DS="all.data" )
       logbook$z = log(logbook$z) 
-
-      logbook$chron = NULL
 
 			save( logbook, file=fn, compress=T )
 

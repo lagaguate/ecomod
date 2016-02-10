@@ -21,7 +21,7 @@ p$libs = RLibrary( "mgcv", "chron", "lattice", "lattice", "grid", "fields", "par
   p$years.to.model=2004:2014
 
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-    	p$prediction.weekno = 39 # predict for ~ Sept 1 
+    	p$prediction.dyear = 9/12 # predict for ~ Sept 1 
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
  require(dplyr)   
@@ -31,13 +31,16 @@ params=p
 hab = NULL
 for(y in p$years.to.model) {
    PS = habitat.db ( DS="complete", year=y, p=params )
-   PS$weekno = 39
+   PS$dyear = p$prediction.dyear
    PS$t = NA
          
         PST = temperature.interpolations( p=params, DS="spatial.interpolation", yr=y  )
 				if (is.null(PST)) next ()
-				
-        PS$t = PST[, params$prediction.weekno ]
+				  
+        dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
+        dyr = as.numeric( cut( p$prediction.dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integer representation of season
+     
+        PS$t = PST[, dyr ]
         PS$t[ which(PS$t < -2) ] = -2
 			  PS$t[ which(PS$t > 30) ] = 30 
 	    PS = PS[,c('yr','z','t','plon','plat')]

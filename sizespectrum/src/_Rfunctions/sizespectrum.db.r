@@ -102,7 +102,7 @@
         nss = big.matrix( nrow=p$nsets, ncol=length(p$newvars), type="double" , init=NA, shared=TRUE )  
       }
 
-      p$bigmem.desc = describe(nss)
+      p$bigmem.desc = bigmemory::describe(nss)
   
       p = make.list( list( nsets=1:p$nsets ), Y=p ) 
   parallel.run( sizespectrum.compute, p=p, sm=sm )

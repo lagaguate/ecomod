@@ -27,7 +27,8 @@
       f = which(is.na(recaps$date))
       recaps[f, "date"] = 1  # assume first day of the month
       
-      recaps$jul = chron( dates.=paste(recaps$yr, recaps$month, recaps$date, sep="-"),
+      recaps$jul = lubridate::ymd( dates.=paste(recaps$yr, recaps$month, recaps$date, sep="-"))
+      recaps$jul = chron::chron( dates.=paste(recaps$yr, recaps$month, recaps$date, sep="-"),
         format=c(dates="y-m-d"), out.format=c(dates="year-m-d") )
 
       cc3 = which(recaps$cc %in% c(

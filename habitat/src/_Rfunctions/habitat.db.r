@@ -50,11 +50,12 @@
   
       PS = merge( Z, S, by  =c("plon", "plat"), all.x=T, all.y=F, sort=F )
      
-      print( "Interpolating missing data with inverse-distance weighted means" )
+      print( "Interpolating missing data where possible.." )
         vars = setdiff( names(PS), c("plon", "plat") )
         require (gstat)
         for (v in vars) {
           print(v)
+          
           for (dists in p$interpolation.distances) { 
             ii = which ( !is.finite( PS[, v]) )
             if (length(ii)==0) break()
@@ -90,11 +91,12 @@
         }
         return (PS)
       }
-
-      if (is.null(ip)) ip = 1:p$nruns
-
-      for (iy in ip) {
-        yr = p$runs[iy, "yrs"]
+     # if (!exists("ip")) ip = 1:p$nruns
+        yrs=p$yearstomodel
+        #for (iy in ip) {
+        for (yr in yrs) {
+        #yr = p$runs[iy, "yrs"]
+        print(yr)
         outfile =  file.path( outdir, paste( "PS", yr, "rdata", sep= ".") )
         PS = NULL
         PS = habitat.db( DS="baseline", p=p )  

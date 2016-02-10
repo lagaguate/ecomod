@@ -6,17 +6,17 @@
   p = list( project.name = "temperature" )
   p$project.root = project.datadirectory( p$project.name )
 
-  p$libs = RLibrary( c( "chron", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "fields" ) )
+  p$libs = RLibrary( c( "lubridate", "gstat", "sp", "rgdal", "parallel", "mgcv", "bigmemory", "fields" ) )
   p$init.files = loadfunctions( c( "spacetime", "parallel", "utility", "bathymetry", "polygons" , "temperature" ) ) 
 
   # p$tyears = c(1910:2013)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
   p$tyears = c(1950:2015)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
-  p$wtimes = 1:52 
-  p$nw = length(p$wtimes)
   p$ny = length(p$tyears)
+  p$nw = 10 # number of intervals in time within a year
+  p$dyears = (c(1:p$nw)-1)  / p$nw # intervals of decimal years... fractional year breaks 
   p$gam.optimizer = "nlm" ## other optimizers:: "bam" (slow), "perf"(ok), "nlm" (good), "bfgs" (ok), "newton" (default)
-  p$nMin.tbot = p$ny*2 # min number of data points req before attempting to model timeseries in a localized space 
-  p$dist.km = c( 2.5, 5, 7.5, 10, 15, 20) # "manhattan" distances to extend search for data
+  p$nMin.tbot = p$ny*3 # min number of data points req before attempting to model timeseries in a localized space 
+  p$dist.km = c( 2.5, 5, 7.5, 10, 12.5, 15 ) # "manhattan" distances to extend search for data
   p$maxdist = 20 # if using gstat  max dist to interpolate in space
   # choose: temporal interpolation method ... harmonic analysis seems most reasonable
   # .. do not use more than 2 as it chases noise too much .. 1 harmonic seems the best in terms of not chasing after noise 
@@ -25,12 +25,13 @@
   # p$spmethod = "inverse.distance"  ## too slow
   # p$spmethod = "gam" ## too smooth
   p$spmethod = "kernel.density" ## best
-  p$theta = 8 # dist to interpolate ~ 1/2 autocor range in method  p$spmethod = "kernel.density
-  p$nsd = 5 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
+  p$theta = 5 # FFT kernel bandwidth (SD of kernel) for method p$spmethod = "kernel.density"  
+  p$nsd = 6 # number of SD distances to pad boundaries with 0 for FFT  in method  p$spmethod = "kernel.density
 
   p$newyear = 2015
   
-  p$spatial.domain.default = "canada.east"
+  p$subregions = c("canada.east", "SSE", "SSE.mpa", "snowcrab" ) # target domains and resolution
+  p$spatial.domain.default = "canada.east"  
   p = spatial.parameters( p=p, type=p$spatial.domain.default )  # default grid and resolution
 
   # ------------------------------
@@ -45,9 +46,9 @@
     hydro.db( DS="osd.current", p=p, yr=2014:p$newyear ) # specify range or specific year 
 
     # Merge depth profiles from all data streams: OSD, groundfish, snowcrab
+    p = make.list( list( yrs=c(2008:p$newyear)), Y=p )   # specify range or specific year
     p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce ep = make.list( list( yrs=c(2008:p$newyear), Y=p ))   # specify range or specific year
-    p$current.assessment.year = p$newyear # required to access groundfish and snow crab data
-    hydro.db( DS="profiles.annual.redo", yr=c(2008:p$newyear), p=p  )  # specify range or specific year
+    hydro.db( DS="profiles.annual.redo", p=p  )  # specify range or specific year
     # parallel.run( hydro.db, p=p, yr=p$tyears, DS="profiles.annual.redo", init.files=p$init.files ) 
 
     # Extract bottom data from each profile
@@ -72,7 +73,7 @@
 
     # 2. temporal interpolations assuming some seasonal pattern 
     # 1950-2013, SSE took ~ 35 hrs on laptop (shared RAM, 24 CPU; 1950-2013 run April 2014 ) ... 17 GB req of shared memory
-    # 1950-2015, SSE 22 hrs, 42 GB RAM, 8 CPU on hyperion (10 Jan 2015), using BAM
+    # 1950-2015, SSE 22 hrs, 42 GB RAM, 8 CPU on hyperion (10 Jan 2015), using NLM .. not much longer for "canada.east"
     # define output mattrix
     # predictions are made upon the locations defined by bathymetry "baseline" 
     p$nP = nrow( bathymetry.db( p=p, DS="baseline" ) )
@@ -86,70 +87,71 @@
     p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using the beowulf network
     # p = make.list( list( loc=sample.int( p$nP) ), Y=p ) # random order helps use all cpus
     p = make.list( list( loc=sample.int( p$nP ) ), Y=p ) # random order helps use all cpus
-    # temperature.timeseries.interpolate ( p=p )
     parallel.run( temperature.timeseries.interpolate, p=p)
+    # temperature.timeseries.interpolate ( p=p )
     temperature.db( p=p, DS="temporal.interpolation.redo" ) # save interpolation as time slices to disk 
 
 
-    # 3. simple spatial interpolation (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
-    # temperature.db( p=p, DS="spatial.interpolation.redo" ) 
+    # 3. simple spatial interpolation 
+    # NOTE this one does a regridding as selected by p$subregions ... 
+    # ... it is required for the habitat lookup .. no way around it
+    # (complex/kriging takes too much time/cpu) ==> 3-4 hr/run
     # using localhost in 2014 6+ hr for each run but with multiple cycles ~ 10 hr total 
     # use all clusters if available
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p$clusters = rep("localhost", detectCores() ) 
     p = make.list( list( yrs=p$tyears), Y=p )
     parallel.run( temperature.db, p=p, DS="spatial.interpolation.redo" ) 
+    #  temperature.db( p=p, DS="spatial.interpolation.redo" ) # 2hr in serial mode
 
 
-    # 4. extract relevant statistics
-    # hydro.modelled.db(  p=p, DS="bottom.statistics.annual.redo" )
+    # 4. extract relevant statistics:: only for default grid . TODO might as well do for each subregion/subgrid
+    # temperature.db(  p=p, DS="bottom.statistics.annual.redo" )
     # or parallel runs: ~ 1 to 2 GB / process
     # 4 cpu's ~ 10 min
     p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
-    parallel.run( hydro.modelled.db, p=p, DS="bottom.statistics.annual.redo" ) 
+    parallel.run( temperature.db, p=p, DS="bottom.statistics.annual.redo" ) 
+    #  temperature.db( p=p, DS="bottom.statistics.annual.redo" ) 
 
 
-    # 5. climatology database 
-    # 4 cpu's ~ 5 min
-    p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
-    bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
-    # hydro.modelled.db(  p=p, DS="bottom.mean.redo", vname=bstats ) 
-    p = make.list( list( vname=bstats), Y=p )
-    parallel.run( hydro.modelled.db, p=p, DS="bottom.mean.redo", vname=bstats  )  
- 
 
-    # 6. glue climatological stats together
+    # 5. climatology database ... ~ 2 min :: only for  default grid . TODO might as well do for each subregion/subgrid
+    p$bstats = c("tmean", "tamplitude", "wmin", "thalfperiod", "tsd" )
+    p$tyears.climatology = p$tyears  # or redefine it with : p$tyears.climatology = 1950:2015  
     temperature.db ( p=p, DS="climatology.redo") 
 
   }
 
 
-  ### to this point everything is run on p$spatial.domain.default domain, now take subsets: 
+  ### to this point everything is run on p$spatial.domain.default domain (except spatial.interpolation), now take subsets: 
 
     # 7. downscale to appropriate domain: simple interpolations and maps
-    p$subregions = c("SSE", "SSE.mpa", "snowcrab", "canada.east") # target domains and resolution
-       
     # p$clusters = rep("localhost", detectCores() )  # run only on local cores ... file swapping seem to reduce efficiency using th
     # p$clusters = c( rep("kaos",23), rep("nyx",24), rep("tartarus",24) )
     p = make.list( list( yrs=p$tyears), Y=p )
-    parallel.run( temperature.db, p=p, DS="complete.redo") 
-    #  temperature.db( p=p, DS="complete.redo") 
-    
+   
     for ( gr in p$subregions ) {
+      print (gr)
       p = spatial.parameters(  p=p, type= gr )
-      parallel.run( hydro.map, p=p, type="annual"  ) 
-      parallel.run( hydro.map, p=p, type="global") 
-      # hydro.map( p=p, yr=p$tyears, type="annual" ) # or run parallel ;;; type="annual does all maps
-      # hydro.map( p=p, yr=p$tyears, type="global" ) # or run parallel ;;; type="annual does all maps
+      if ( length(p$clusters) > 1 ) {
+        parallel.run( temperature.db, p=p, DS="complete.redo") 
+        parallel.run( hydro.map, p=p, type="annual"  ) 
+        parallel.run( hydro.map, p=p, type="global") 
+      } else {      
+        temperature.db( p=p, DS="complete.redo") 
+        hydro.map( p=p, type="annual" ) 
+        hydro.map( p=p, type="global" ) 
+      }
     }
+
 
 
   # finished interpolations
 
 
   #-----------------------------------------
-  # the following a just for testing / notes
+  # the following is just for testing / notes
   
   if (0) { 
     # to access data:
@@ -163,7 +165,7 @@
     p = spatial.parameters( p=p, type="SSE" )
     testyear = 2006
     O = hydro.db( p=p, DS="bottom.gridded", yr=testyear )
-    O = O[, c("plon", "plat", "t", "yr", "weekno")]
+    O = O[, c("plon", "plat", "t", "yr", "dyr")]
     O = O[ which( is.finite(O$t)) ,]
     ee.g = gstat( id = "t", formula=t~plon+plat, locations=~plon+plat, data=O ) 
     vg <- variogram( ee.g, boundaries=c(2, 4, 8, 16, 20, 32, 40, 64, 80, 128, 150 ) )
@@ -187,7 +189,7 @@
     p = spatial.parameters( p=p, type="SSE" )
  
     O = hydro.db( p=p, DS="bottom.gridded.all"  )
-    O = O[, c("plon", "plat", "t", "yr", "weekno")]
+    O = O[, c("plon", "plat", "t", "yr", "dyear")]
     O = O[ which( is.finite(O$t)) ,]
 
    
@@ -199,13 +201,13 @@
 
     O = O[ i, ]
 
-    e = gam( t ~ s(yr, weekno) + s(plon, plat) , data=O[i,] )
+    e = gam( t ~ s(yr, dyear) + s(plon, plat) , data=O[i,] )
     e = gam( t ~ s(yr, ttime) + s(plon, plat) , data=O )
     e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1 ) )
     e = lme( t ~ yr + ttime  + plon+plat, data=O, random=list(yr=~1,ttime=~1 ) )
     e = gamm( t~ s(yr) + ttime + s(plon,plat), data=O, random=list(plonplat=~1 ) )
 
-    e = gamm( t~ s(yr,weekno) + s(plon,plat), data=O, random=list(plon=~1, plat=~1), correlation=corSpher( c(range, nugg), form = ~ plon+plat, nugget=T) )
+    e = gamm( t~ s(yr, dyear) + s(plon,plat), data=O, random=list(plon=~1, plat=~1), correlation=corSpher( c(range, nugg), form = ~ plon+plat, nugget=T) )
     summary(e)
     AIC(e)
     plot(e, all.terms=T, pers=T,theta=60)
@@ -219,13 +221,13 @@
     p$tyears = c(1950:2012)  # 1945 gets sketchy -- mostly interpolated data ... earlier is even more sparse.
     p = spatial.parameters( p=p, type= "SSE" )
     out = NULL
-    out = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=p$tyears[1] )
+    out = temperature.db( p=p, DS="bottom.statistics.annual", yr=p$tyears[1] )
     out = planar2lonlat( out, proj.type=p$internal.projection )
     out = out[ , c("lon", "lat", "tmean" ) ]
     names(out) = c( "lon", "lat", paste("tmean", p$tyears[1],sep="_") ) 
     for ( y in p$tyears[-1] ) {
       r = NULL 
-      r = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
+      r = temperature.db( p=p, DS="bottom.statistics.annual", yr=y )
       names(r) = paste( names(r), y, sep="_") 
       iname = grep( "tmean", names(r) )
       out = cbind( out, r[,iname] )

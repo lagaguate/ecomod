@@ -23,11 +23,11 @@
 
     debug = FALSE
     if(debug) {
-      OP$time = OP$yr + OP$weekno / 52
+      OP$time = lubridate::decimal_date( OP$date) 
       OP = OP[ order( OP$time ) ,]
       
       # STL method
-      OPts = ts( oH1[,vn] , start=c( min(p$tyears), 1), frequency=52 )  # testing oH1's fit
+      OPts = ts( oH1[,vn] , start=c( min(p$tyears), 1), frequency=12 )  # testing oH1's fit
       plot.default(  OPts, type="l" )
 
       OPstl = stl( OPts, s.window=4) # seasonal decomposition using loess 

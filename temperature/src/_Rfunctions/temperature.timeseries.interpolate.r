@@ -6,11 +6,11 @@
     if (is.null(ip)) ip = 1:p$nruns
 
     # default output grid
-    z0 = expand.grid( weekno=p$wtimes, yr=p$tyears )
+    z0 = expand.grid( dyear=1:p$nw, yr=p$tyears )
     attr( z0, "out.attrs" ) = NULL
     z0$fit = NA  # these will be filled in with predicted fits and se's
     z0$se  = NA
-    z0$tiyr = 2*pi* ( z0$yr + z0$weekno/52 )
+    z0$tiyr = z0$yr + (z0$dyear-0.5) / p$nw # mid-points
     z0 = z0[ order(z0$tiyr), ]
 
     if ( p$tsmethod %in% c("annual", "seasonal.basic", "seasonal.smoothed", "harmonics.1", "harmonics.2", "harmonics.3" ) ) {
@@ -21,8 +21,8 @@
     }
       
     B = hydro.db( p=p, DS="bottom.gridded.all"  )
-    B$tiyr = 2*pi* ( B$yr + B$weekno/52 )
-      
+    B$tiyr = lubridate::decimal_date ( B$date )
+ 
     # globally remove all unrealistic data  
     keep = which( B$t >= -3 & B$t <= 25 ) # hard limits
     if (length(keep) > 0 ) B = B[ keep, ]
@@ -40,30 +40,16 @@
       if ( !is.na( tbot[mm,1] )) next() # has a solution from previous run .. skip
       tbot[mm,1] = NaN # flag as being operated upon .. in case a restart is needed
       res = NULL
-      res = try( interpolate.ts ( p=p, B=B, g=P[mm,], z=z0 ) , silent=TRUE )
+      res = try( interpolate.ts ( p=p, bb=B, pp=P[mm,], zz=z0 ), silent=TRUE )
       if ( class(res) %in% "try-error" ) next()
       if ( any(is.finite(res$fit)) ) {
         print (mm)			
-        tbot[ mm,] <- res$fit
-        tbot.se[mm,] <- res$se
+        tbot[ mm,] = res$fit
+        tbot.se[mm,] = res$se
       }
     } # end each point
     
     return( "completed")
-
-      if (FALSE) {
-        #debugging ..
-        dm = 30
-        drange = c(-1,1) * dm
-        plon0 = g$plon + drange
-        plat0 = g$plat + drange
-        i = which( B$plon > plon0[1] & B$plon < plon0[2] & B$plat > plat0[1] & B$plat < plat0[2] )
-        x = B[i,] 
-        x$tiyr =  x$yr + x$weekno/52
-        res$tiyr = res$yr + res$weekno/52
-        plot( t~tiyr, x, xlim=range(res$tiyr), pch=20 )
-        lines( fit~ tiyr, res, col="green" )
-      }
   }
 
 
