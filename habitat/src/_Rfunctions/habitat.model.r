@@ -1,7 +1,5 @@
 
   habitat.model = function( ip=NULL, p=NULL, DS="saved", vn=NULL, yr=0 ) {
-    
-    
     # compute the spatial interpolation model
     
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
