@@ -1,6 +1,4 @@
 
-
-
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
