@@ -107,9 +107,9 @@ if (create.marport.database ) {
 
 # --- misc stats / analysis
 
-gs0 = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
+gs0 = scanmar.db( DS="bottom.contact", p=p )  # bring in estimates of bottom contact times from scanmar
 
-gs0$timediff_official =  as.numeric(gs0$edate - gs0$sdate) / 60
+gs0$timediff_official =  as.numeric(gs0$edate - gs0$sdate) / 60 # that which would have been used (if at all .. )
 gs0$bottom.dist = geosphere::distMeeus( gs0[, c("bc.lon0","bc.lat0")], gs0[, c("bc.lon1", "bc.lat1")])/1000
 
 
@@ -143,7 +143,9 @@ plot( door.mean ~ as.factor(yr), gs[ gs$yr> 2004,], ylab="Mean door width (m)", 
 plot( (door.mean) ~ log(bc.depth.mean), gs[ ,], col="slategray", cex=0.5, xlab="log Depth (m)", ylab="Mean door width (m)" )
 points( (door.mean) ~ log( bc.depth.mean), gs[gs$yr==2011 ,], pch=20, col="steelblue", cex=1.25 )
 
-
+# drop not reliable data
+not.reliable.doors = which( gs$yr==2011 )
+gs$door.mean[ not.reliable.doors ] = NA  
 
 
 
