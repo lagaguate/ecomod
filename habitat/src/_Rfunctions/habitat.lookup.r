@@ -153,7 +153,10 @@
     
       dyears = (c(1:(p$nw+1))-1)  / p$nw # intervals of decimal years... fractional year breaks
       x$dyr = as.numeric( cut( x$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integerr representation of season
-      
+     
+      # this lookup expected the variable "t" to be present. 
+      # if present then missing values are filled from the interpolated space-time fields
+      # if absent then it is created for the correct space-time information
       vn = "t"
       newvars = vn
       if ( !exists( vn, x) ) x[,vn] = NA
@@ -182,12 +185,12 @@
         H = habitat.lookup.datasource( DS=DS, yr=yr, p=p  )  # bring in appropriate habitat data source
         if (is.null(H)) next()
         
-        Xvnd = NULL   
+        Xvnd = NULL  # time and location speific estimate of temperature 
         Xvnd = H[V]
         im = which( !is.finite( X[,vn] ) ) # missing in input data
         if (length( im) > 0 ) X[im,vn] = Xvnd[im] # overwrite missing with proposals
 
-        # still missing .. interpolate
+        # still missing .. interpolate the straglers
         im = which( !is.finite( X[, vn] ) )
         if ( length( im ) > 0 ) {
           for( jj in 1:length( im ) ) {
@@ -198,9 +201,6 @@
         }
         O = rbind( O, X )
       } 
-      # fiddle with names as tmean is no longer used once passed this stage
-      O$t = O$tmean
-      O$tmean = NULL 
       out = O
     }
     
