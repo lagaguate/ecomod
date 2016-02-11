@@ -11,7 +11,8 @@
     }
 
     if (method =="R" ) {
-      # does not work ?? .. not sure why
+      # does not work ?? .. not sure why .. left here in case someone wants to try to use this method 
+      # still interfaces with chmod so I do not see the point, but a useful example [jae]
       if ( tolower( Sys.info()["sysname"] ) != "linux" ) stop( "This is for unix systems only" )
       dirs = list.dirs(loc, full.names = TRUE, recursive = TRUE)
       files = list.files(loc, all.files=TRUE, full.names=TRUE, recursive=TRUE, include.dirs=TRUE)
