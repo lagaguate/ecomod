@@ -12,7 +12,7 @@
 
   p = list()
  
-  p$libs = RLibrary ( c( "chron", "fields", "bigmemory", "mgcv", "sp", "parallel" )) 
+  p$libs = RLibrary ( c( "chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "temperature",  "habitat",  "taxonomy", "groundfish", "bio", "sizespectrum"  ) )
   
   
@@ -41,7 +41,7 @@
   
 
 
-  p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   
   # for spatial interpolation of nss stats
   p$varstomodel = c( "nss.rsquared", "nss.df", "nss.b0", "nss.b1", "nss.shannon" )
