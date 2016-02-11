@@ -33,6 +33,9 @@
   
   p$yearstomodel = 1970:2014
   p$habitat.predict.time.julian = "Sept-1" # Sept 1
+  p$default.spatial.domain = "canada.east"
+  p$prediction.dyear = 0.75
+  p$nw = 10
  
   p$spatial.knots = 100
   
