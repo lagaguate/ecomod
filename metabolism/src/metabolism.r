@@ -64,8 +64,8 @@
   if (p$movingdatawindow == 0 ) { 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
     
-    parallel.run( habitat.model, DS="redo", p=p ) 
-    # habitat.model ( DS="redo", p=p ) 
+    #parallel.run( habitat.model, DS="redo", p=p ) 
+     habitat.model ( DS="redo", p=p ) 
  
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
