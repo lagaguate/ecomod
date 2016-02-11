@@ -160,7 +160,6 @@
       x$dyr = as.numeric( cut( x$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integerr representation of season
        
       print( "Looking up temperature at year+seasonal scales" )
-      browser()
 
       yrs = sort( unique( x$yr ))
         
@@ -199,6 +198,7 @@
         }
         X[,vnd] = NULL
 
+      browser()
         # still missing .. interpolate
         im = which( !is.finite( X[, vn] ) )
         if ( length( im ) > 2 ) {

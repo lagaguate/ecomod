@@ -6,7 +6,7 @@
 
 # create base species area stats  ... a few hours
   p = list()
-  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel")) 
+  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
   # faster to use RAM-based data objects but this forces use only of local cpu's
@@ -84,7 +84,7 @@
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
 
-  #if (p$movingdatawindow == 0 ) { 
+  if (p$movingdatawindow == 0 ) { 
     ## no windowing
     ## create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
