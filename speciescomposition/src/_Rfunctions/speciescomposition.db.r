@@ -36,7 +36,7 @@
       sc = sc[ , c("id", "zn","spec_bio" ) ]  # zscore-transformed into 0,1
           
       set = bio.db( DS="set" ) # trip/set loc information
-      set = set[ ,  c("id", "yr", "julian", "sa", "lon", "lat", "t", "z" ) ]
+      set = set[ ,  c("id", "yr", "dyear", "sa", "lon", "lat", "t", "z" ) ]
       set = na.omit( set ) # all are required fields
       
       # filter area

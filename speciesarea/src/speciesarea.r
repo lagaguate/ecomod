@@ -4,10 +4,7 @@
   # groundfish: "sm.base", "set"
   # and the glue function "bio.db"
 
-
 # create base species area stats  ... a few hours
-
-	
   p = list()
   p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel")) 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
@@ -35,6 +32,7 @@
 
   # choose:
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
@@ -44,11 +42,13 @@
 
   p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
+  p$default.spatial.domain = "canada.east"
 
   p$modtype = "complex" 
   
-  p$habitat.predict.time.julian = "Sept-1" # Sept 1
- 
+ # p$habitat.predict.time.julian = "Sept-1" # Sept 1
+  p$prediction.dyear = 0.75
+  p$nw = 10
   p$spatial.knots = 100
     
   p$movingdatawindow = 0  # this signifies no moving window ... all in one model
@@ -65,12 +65,12 @@
 
 
   # count and record rarification curves from all available data --- refresh "bio.db" ~/ecomod/bio/src/bio.r  
-  speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
+  #speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
   
 
   # compute species-area relationships 
-  speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
-  speciesarea.db( DS="speciesarea.redo", p=p ) # intermediary file for modelling and interpolation ... lookup up missing data and covariates
+ # speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
+#  speciesarea.db( DS="speciesarea.redo", p=p ) # intermediary file for modelling and interpolation ... lookup up missing data and covariates
 
 
 
@@ -84,19 +84,19 @@
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
 
-  if (p$movingdatawindow == 0 ) { 
+  #if (p$movingdatawindow == 0 ) { 
     ## no windowing
     ## create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
-    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    parallel.run( habitat.model, DS="redo", p=p ) 
+   # p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+    #parallel.run( habitat.model, DS="redo", p=p ) 
     # habitat.model ( DS="redo", p=p ) 
   
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-    # habitat.interpolate( p=p, DS="redo" ) 
+    #parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+     habitat.interpolate( p=p, DS="redo" ) 
 
   
   

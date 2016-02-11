@@ -108,7 +108,8 @@
           rm( td); gc()
 
           hdat$yr = yr # update all other records
-          hdat$timestamp = as.Date( paste(yr, "01", "01", sep="-") ) + days( floor(365* p$prediction.dyear  ))
+         # hdat$timestamp = as.Date( paste(yr, "01", "01", sep="-") ) + days( floor(365* p$prediction.dyear  ))
+          hdat$timestamp = as.Date(paste (yr, "01", "01", sep="-")) +  floor(365*p$prediction.dyear)
           hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
 # to here
 

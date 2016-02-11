@@ -58,7 +58,8 @@
 
   p$timescale = c( 0,1,2,5 ) # yr  
   p$interpolation.distances =  25 # for interpolation of habitat vars
-
+  p$prediction.dyear = 0.75
+  p$nw = 10
 
   # for generation of nss
   p$ntimescale = length(p$timescale)
@@ -77,9 +78,9 @@
 # -------------------------------------------------------------------------------------
 
 
-  sizespectrum.db( DS="sizespectrum.by.set.redo", p=p ) 
-  sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  
-  sizespectrum.db( DS="sizespectrum.redo", p=p )  # all point data to be interpolated 
+  sizespectrum.db( DS="sizespectrum.by.set.redo", p=p ) #MG takes 1 minute
+  sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  #MG took 20 minutes
+  sizespectrum.db( DS="sizespectrum.redo", p=p )  # all point data to be interpolated #MG took 5 minutes
 
 
 # -------------------------------------------------------------------------------------
