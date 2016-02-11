@@ -36,7 +36,9 @@
   # p$clusters = rep( "localhost", 4 )
   # p$clusters = c( rep( "nyx.beowulf", 14), rep("tartarus.beowulf", 14), rep("kaos", 13 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-  p$clusters = rep("localhost", detectCores() )
+  # p$clusters = rep("localhost", detectCores() )
+   p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
+  
 
 
   p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
@@ -98,7 +100,7 @@
       # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
       p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
       parallel.run( habitat.model, DS="redo", p=p ) 
-      # habitat.model ( DS="redo", p=p ) 
+      #habitat.model ( DS="redo", p=p ) 
  
   
       # predictive interpolation to full domain (iteratively expanding spatial extent)
