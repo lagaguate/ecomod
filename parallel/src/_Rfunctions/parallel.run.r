@@ -66,6 +66,5 @@ parallel.run = function( FUNC, p, export=NULL, rndseed = 1, specific.allocation.
     }
   })
 
-  # if we are here then something went wrong .. maybe cluster definition?
-  return( "Warning, something went wrong in run.parallel .. ? " )
+  return( res )
 }
