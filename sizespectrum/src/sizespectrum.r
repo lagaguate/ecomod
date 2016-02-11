@@ -12,7 +12,7 @@
 
   p = list()
  
-  p$libs = RLibrary ( c( "chron", "fields", "bigmemory", "mgcv", "sp", "parallel" )) 
+  p$libs = RLibrary ( c( "chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "temperature",  "habitat",  "taxonomy", "groundfish", "bio", "sizespectrum"  ) )
   
   
