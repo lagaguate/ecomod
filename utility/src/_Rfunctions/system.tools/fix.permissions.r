@@ -1,11 +1,25 @@
-  fix.permissions = function( loc=ecomod.datadirectory, file.perm="ug+rw,o+r", dir.perm=" ug+rwX,o+rX" ) {
+  fix.permissions = function( loc=ecomod.datadirectory, file.perm="ug+rw,o+r", dir.perm=" ug+rwX,o+rX", method="unix" ) {
     #\\ File permissions can get messed up easily in a shared environment
     #\\ make permissions sensisble recursively inside directory "loc"
-    if ( tolower( Sys.info()$sysname ) != "linux" ) stop( "This is for unix systems only" )
-    system ( paste( "find", file.path(loc, ""), 
-      "\\( -type f -exec chmod", file.perm, " {} \\; \\) ,",
-      "\\( -type d -exec chmod", dir.perm, " {} \\; \\) " 
-    ))
+    if (method=="unix") {
+      if ( tolower( Sys.info()["sysname"] ) != "linux" ) stop( "This is for unix systems only" )
+      print( paste( "Operating upon ... ", loc ) )
+      system ( paste( "find", file.path(loc, ""), 
+        "\\( -type f -exec chmod", file.perm, " {} \\; \\) ,",
+        "\\( -type d -exec chmod", dir.perm, " {} \\; \\) " 
+      ))
+    }
+
+    if (method =="R" ) {
+      # does not work ?? .. not sure why
+      if ( tolower( Sys.info()["sysname"] ) != "linux" ) stop( "This is for unix systems only" )
+      dirs = list.dirs(loc, full.names = TRUE, recursive = TRUE)
+      files = list.files(loc, all.files=TRUE, full.names=TRUE, recursive=TRUE, include.dirs=TRUE)
+      Sys.chmod( dirs, "+0775" )
+      Sys.chmod( files, "664" )
+    }
+
+
   }
 
 
