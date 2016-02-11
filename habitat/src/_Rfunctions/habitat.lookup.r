@@ -171,7 +171,8 @@
         print( yr ) 
         ii = which( x$yr == yr )
         if (length( ii) == 0) next()  
-        X = merge( x[ii,], B, by=coords, all.x=T, all.y=F, sort=F, suffixes=c("", ".duplicated") )
+        X = x[ii,]
+        X = merge( B, x[ii,], by=coords, all.x=T, all.y=F, sort=F, suffixes=c("", ".duplicated") )
         X= X[ order(X$row),] 
 
         V = matrix( NA, ncol=2, nrow=length(ii) )	
@@ -181,7 +182,6 @@
         H = habitat.lookup.datasource( DS=DS, yr=yr, p=p  )  # bring in appropriate habitat data source
         if (is.null(H)) next()
         
-   browser() 
         Xvnd = NULL   
         Xvnd = H[V]
         im = which( !is.finite( X[,vn] ) ) # missing in input data
