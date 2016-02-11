@@ -140,7 +140,8 @@
 # must come after temperature interpolations to permit temperature lookups 
   loadfunctions ( "bio", functionname="bio.r" )  #MG took about 20 minutes to run
 # the folllowing depends upon bio.db and temperature  
-  loadfunctions ( "speciesarea", functionname="speciesarea.r" ) #MG too
+  #MG species area took 2 days to run in parallel, run some things on server if possible. It's quicker to run some things in serial though, ask Jae
+  loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
   loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
   loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) #ran into problems with mapping these need to check sept 7 2014 
   loadfunctions ( "metabolism", functionname="metabolism.r" ) 

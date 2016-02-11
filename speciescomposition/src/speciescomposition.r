@@ -20,6 +20,8 @@
   p$season = "allseasons"
   p$timescale = c( 0,1,2,5,10 ) # yr
   p$interpolation.distances =  25 # for interpolation of habitat vars
+  p$prediction.dyear = 0.75
+  p$nw = 10
 
   # choose:
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel

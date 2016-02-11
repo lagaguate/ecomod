@@ -1,6 +1,6 @@
  
   habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.0005, 0.9995) ) {
-    
+
     # wrapping function to provide a common intercae to various habitat related lookup routines
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
     # x must contain plon, plat, and chron (deprecated) or timstamp (posix)
@@ -160,6 +160,7 @@
       x$dyr = as.numeric( cut( x$dyear, breaks=dyears, include.lowest=T, ordered_result=TRUE ) ) # integerr representation of season
        
       print( "Looking up temperature at year+seasonal scales" )
+      browser()
 
       yrs = sort( unique( x$yr ))
         
@@ -200,7 +201,7 @@
 
         # still missing .. interpolate
         im = which( !is.finite( X[, vn] ) )
-        if ( length( im ) > 0 ) {
+        if ( length( im ) > 2 ) {
           distances =  rdist( B[,coords], X[im, coords ] )
           distances[ which(distances > max.distance) ] = NA
           for( jj in 1:length( im ) ) {
