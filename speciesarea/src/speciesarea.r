@@ -40,7 +40,7 @@
   #p$clusters = rep("localhost", detectCores() )
   
 
-  p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
   p$default.spatial.domain = "canada.east"
 
