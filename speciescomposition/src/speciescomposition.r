@@ -6,6 +6,9 @@
   
 
   p = list()
+  p$project.name = "speciescomposition"
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" ) #required for interpolations and mapping
+
   p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel", "rgdal")) 
 
 	p$init.files = loadfunctions( c(
@@ -59,9 +62,6 @@
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
 
-  #required for interpolations and mapping 
-  p$project.name = "speciescomposition"
-  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
 
  
