@@ -31,7 +31,7 @@
   p$clusters = rep("localhost", detectCores() )
 
  
-  p$yearstomodel = 1970:2014
+  p$yearstomodel = 1970:2015
   p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
   p$modtype = "complex"
