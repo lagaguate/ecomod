@@ -4,6 +4,7 @@
     if (method=="unix") {
       if ( tolower( Sys.info()["sysname"] ) != "linux" ) stop( "This is for unix systems only" )
       print( paste( "Operating upon ... ", loc ) )
+      system ( paste( "sudo chown -R 1001:1000", file.path(loc, "") ) ) # ecomod user id = 1001. ecomod group = 1000
       system ( paste( "find", file.path(loc, ""), 
         "\\( -type f -exec chmod", file.perm, " {} \\; \\) ,",
         "\\( -type d -exec chmod", dir.perm, " {} \\; \\) " 
