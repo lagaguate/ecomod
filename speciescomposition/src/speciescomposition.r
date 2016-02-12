@@ -1,6 +1,4 @@
 
-
-
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
@@ -8,7 +6,7 @@
   
 
   p = list()
-  p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel")) 
+  p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel", "rgdal")) 
 
 	p$init.files = loadfunctions( c(
     "spacetime", "utility", "parallel", 

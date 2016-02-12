@@ -1,14 +1,15 @@
-loadfunctions(c('lobster','utility','snowcrab'))
+loadfunctions(c('lobster','utility','growth'))
 options(stringsAsFactors=F)
 switch.ecomod.data.directory(2)
 
+FigLoc = file.path(project.figuredirectory('lobster'),'collectors')
+dir.create(FigLoc, showWarnings=F)
 fp = file.path(project.datadirectory('lobster'),'data')
 
 x = read.csv(file.path(fp,'CollectorData2016.csv'))
 
 x$Study.Area = trimws(x$Study.Area,'right') #lobster bay has space in name sometimes
 x = rename.df(x,"Size.CL..CW.or.TL",'Size')                   
-
 #set up counter for individuals
 x$n = 1
 
@@ -20,23 +21,24 @@ x$n = 1
 		x = merge(x,a,by=c('Year','Study.Area'))
 #cpue by area by year
 	ax = aggregate(n~Study.Area+Year+Collector.Count+Common.Name,data=x,FUN=sum)
-
+#ax$Density = ax$n / 0.56 #m2 of the traps to get to density per m2
 	ax$Density = ax$n/ax$Collector.Count
 
 	axL = ax[which(ax$Common.Name== 'American Lobster'),]
 	axL = axL[order(axL$Study.Area,axL$Year),]
 
-
+	
 #size frequencies
 	y = x[which(x$Common.Name=='American Lobster'),]
 
 	si = unique(y$Study.Area)
 
 for(s in si) {
+	pdf(file.path(FigLoc,paste(s,'sizeFrequency.pdf',sep="")))
 	yy = as.numeric(y[which(y$Study.Area==s),'Size'])
 	hist(yy,breaks = seq(1,100,2),main=s)
-	x11()
-}
+	dev.off()
+	}
 
 #lobster bay suction
 xs = read.csv(file.path(fp,'Suction2005-2013.csv')) #lobster Bay only

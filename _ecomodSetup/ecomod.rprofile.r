@@ -1,11 +1,11 @@
 
 # ecomod.directory
-if (is.null( ecomod.directory )) {
+if(!exists("ecomod.directory")){
 	stop( "Please define 'ecomod.directory' in your Rprofile.site (Windows) or .Rprofile (Linux/MacOS" ) 
 }
 
 # ecomod.workdirectory
-if (is.null( ecomod.workdirectory )) {
+if(!exists("ecomod.workdirectory")){
 	ecomod.workdirectory = getwd()
 } else {
 	dir.create( ecomod.workdirectory, showWarnings = FALSE, recursive = TRUE )

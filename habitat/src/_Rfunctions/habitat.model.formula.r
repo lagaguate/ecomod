@@ -5,7 +5,7 @@ habitat.model.formula = function( YY="presence", modeltype="complex", indicator=
   formu = NULL
   
   if (indicator %in% c( "default", "metabolism", "speciesarea", "sizespectrum", "speciescomposition", "condition" ) ) { 
-    
+
     formu = switch(  modeltype,
       
       debug = paste( 

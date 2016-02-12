@@ -22,9 +22,9 @@
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
+      p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
       p$upsampling = c( 1.1, 1.2, 1.5, 2, 2.5, 3 )  # local block search fractions
-      p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25 ) # local block search fractions  -- need to adjust based upon data density
+      p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
       p$expected.range = 50 #+units=km km , with dependent var on log scale
       p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
       p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
@@ -96,7 +96,16 @@
         # for checking status of outputs during parallel runs:
         bathymetry.figures( DS="statistics", p=p ) 
         bathymetry.figures( DS="predictions", p=p ) 
-        bathymetry.figures( DS="predictions.error", p=p ) 
+        bathymetry.figures( DS="predictions.error", p=p )
+
+        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+        S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+        hist(S[,1] )
+        o = which( S[,1] > 600 )
+        S[o,] = NA
+        S[sS$problematic,] = NA
+        o = which( S[,1] < 10 )
+        S[o,] = NA
       }
 
       # save to file 

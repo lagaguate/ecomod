@@ -6,7 +6,8 @@
 
 # create base species area stats  ... a few hours
   p = list()
-  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal")) 
+  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
+
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
   # faster to use RAM-based data objects but this forces use only of local cpu's
@@ -65,7 +66,7 @@
 
 
   # count and record rarification curves from all available data --- refresh "bio.db" ~/ecomod/bio/src/bio.r  
-  #speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
+  speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
   
 
   # compute species-area relationships 
@@ -89,8 +90,13 @@
     ## create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+<<<<<<< HEAD
+    parallel.run( habitat.model, DS="redo", p=p ) 
+    # habitat.model ( DS="redo", p=p ) 
+=======
     #parallel.run( habitat.model, DS="redo", p=p ) 
     habitat.model ( DS="redo", p=p ) 
+>>>>>>> develop
   
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
