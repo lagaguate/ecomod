@@ -9,7 +9,7 @@
      
   # load required functions and parameters 
   	
-    loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
     
   debug = FALSE
   if (debug) {

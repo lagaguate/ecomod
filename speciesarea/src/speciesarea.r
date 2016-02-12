@@ -90,14 +90,9 @@
     ## create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-<<<<<<< HEAD
     parallel.run( habitat.model, DS="redo", p=p ) 
     # habitat.model ( DS="redo", p=p ) 
-=======
-    #parallel.run( habitat.model, DS="redo", p=p ) 
-    habitat.model ( DS="redo", p=p ) 
->>>>>>> develop
-  
+
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
