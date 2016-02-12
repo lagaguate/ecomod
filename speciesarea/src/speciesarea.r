@@ -36,11 +36,11 @@
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-   p$clusters = rep( "localhost", 5 )
+   p$clusters = rep( "localhost", 3 )
   #p$clusters = rep("localhost", detectCores() )
   
 
-  p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
   p$default.spatial.domain = "canada.east"
 
@@ -84,7 +84,7 @@
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
 
-  #if (p$movingdatawindow == 0 ) { 
+  if (p$movingdatawindow == 0 ) { 
     ## no windowing
     ## create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
@@ -109,8 +109,8 @@
   
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-    # habitat.interpolate( p=p, DS="redo" ) 
+    #parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+     habitat.interpolate( p=p, DS="redo" ) 
 
   }
 
