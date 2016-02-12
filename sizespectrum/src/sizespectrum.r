@@ -37,7 +37,7 @@
   # p$clusters = c( rep( "nyx.beowulf", 14), rep("tartarus.beowulf", 14), rep("kaos", 13 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
   # p$clusters = rep("localhost", detectCores() )
-   p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
+  # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
   
 
 
@@ -82,6 +82,8 @@
 
   sizespectrum.db( DS="sizespectrum.by.set.redo", p=p ) #MG takes 1 minute
   sizespectrum.db( DS="sizespectrum.stats.redo", p=p )  #MG took 20 minutes
+  
+  p$clusters = rep( "localhost", 8 ) # the step uses bigmatrix in RAM .. only use localhost
   sizespectrum.db( DS="sizespectrum.redo", p=p )  # all point data to be interpolated #MG took 5 minutes
 
 
@@ -98,6 +100,8 @@
   if (p$movingdatawindow == 0 ) { 
       # create a spatial interpolation model for each variable of interest 
       # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+      # p$clusters = rep( "localhost", 4 )
+      p$clusters = c( rep( "nyx", 2), rep("tartarus", 2), rep("kaos", 2 ) )
       p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
       parallel.run( habitat.model, DS="redo", p=p ) 
       #habitat.model ( DS="redo", p=p ) 
@@ -105,6 +109,8 @@
   
       # predictive interpolation to full domain (iteratively expanding spatial extent)
       # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+      # p$clusters = rep( "localhost", 4 )
+      p$clusters = c( rep( "nyx", 14), rep("tartarus", 14), rep("kaos", 13 ) )
       p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
       parallel.run( habitat.interpolate, p=p, DS="redo" ) 
       # habitat.interpolate( p=p, DS="redo" ) 
@@ -123,6 +129,8 @@
 
  
   # map everything
+  # p$clusters = rep( "localhost", 8 )
+  p$clusters = c( rep( "nyx", 20), rep("tartarus", 20), rep("kaos", 20 ) )
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel ), Y=p )
   parallel.run( habitat.map, p=p ) 
   # habitat.map( p=p ) 
