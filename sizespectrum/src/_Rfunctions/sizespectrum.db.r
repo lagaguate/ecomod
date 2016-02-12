@@ -148,7 +148,7 @@
 
       sm = sizespectrum.db( DS="sizespectrum.stats", p=p )
       smg = groundfish.db( "set.base" )
-      
+      smg$dyear = lubridate::decimal_date( as.POSIXct(smg$chron) ) - smg$yr
       smg$z = smg$sdepth
       smg$t = smg$temp
       smg$sdepth = NULL

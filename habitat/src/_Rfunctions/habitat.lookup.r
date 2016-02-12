@@ -199,6 +199,8 @@
             if (length(dd) == 1 ) X[ im[jj],vn ] = H[ dd, X[ im[jj],"dyr"] ]
           }
         }
+        im = which( !is.finite( X[, vn] ) )
+        X[ im, vn ] = median( X[,vn], na.rm=TRUE )
         O = rbind( O, X )
       } 
       out = O

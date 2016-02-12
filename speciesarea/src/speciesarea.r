@@ -6,6 +6,10 @@
 
 # create base species area stats  ... a few hours
   p = list()
+  
+  p$project.name = "speciesarea"
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" ) # for interpolations and mapping 
+
   p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
@@ -33,13 +37,7 @@
 
   # choose:
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-  # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
-  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
-  # p$clusters = rep( "localhost", 2 )
-  # p$clusters = rep( "localhost", 8 )
-   p$clusters = rep( "localhost", 5 )
-  #p$clusters = rep("localhost", detectCores() )
-  
+  p$clusters = rep("localhost", detectCores() )  # GAM's RAM usage is quite low ..
 
   p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
@@ -79,10 +77,6 @@
 # Generic spatio-temporal interpolations and maping of data 
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
-
-  #required for interpolations and mapping 
-  p$project.name = "speciesarea"
-  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
 
   if (p$movingdatawindow == 0 ) { 
