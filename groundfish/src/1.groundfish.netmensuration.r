@@ -29,7 +29,6 @@ p$bc.badlist = c(
 ) 
 
 
-
 # steps required to recreate a local database of all data
 recreate.perley.db = FALSE
 if ( recreate.perley.db ) {
@@ -46,37 +45,6 @@ if ( recreate.perley.db ) {
 scanmar.db( DS="basedata.redo", p=p )        # Assimilate Scanmar files in raw data saves *.set.log files
 scanmar.db( DS="basedata.lookuptable.redo", p=p ) # match modern data to GSINF positions and extract Mission/trip/set ,etc
 scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
-
-p = list()
-p$libs = RLibrary("INLA", "numDeriv", "lubridate", "geosphere" )
-# this relies upon the gsinf table which is accessible from the groundfish functions
-p$inits = loadfunctions( "groundfish", functionname="load.groundfish.environment.r") 
-# define location of local data files 
-p$scanmar.dir = file.path( project.datadirectory("groundfish"), "data", "nets", "Scanmar" ) 
-p$marport.dir = file.path( project.datadirectory("groundfish"), "data", "nets", "Marport" ) 
-
-
-
-# pick the year to process:
-# p$netmensuration.years = p$current.year  ## for incremental/annual update
-## 2009 is the first year with set logs from scanmar available .. if more are found, alter this date
-p$current.year = 2015
-p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992 data really do not match the timestamps (and have no location info) 
-
-# p$netmensuration.years = p$current.year  
-
-# two depth sensors were used simultaneously but they are not calibrated!
-# they are remarkably hard to filter out while still maintaining current methods
-# instead: send a trigger to bottom.contact to operate on this properly
-p$id.double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
-
-
-# the data for these sets need to be checked?
-p$bc.badlist = c( 
-  "NED2012002.17", "TEL2005545.73","NED2015002.7", "NED2015002.8", "NED2015002.9"
-) 
-
-
 
 
 # WARNING:: the following may crash as INLA does not exit gracefully from some errors
@@ -139,29 +107,89 @@ if (create.marport.database ) {
 
 # --- misc stats / analysis
 
-gs = scanmar.db( DS="bottom.contact",  p=p )  # bring in estimates of bottom contact times from scanmar
+gs0 = scanmar.db( DS="bottom.contact", p=p )  # bring in estimates of bottom contact times from scanmar
 
-# figures for inclusion in document
-plot( door.sa ~ as.factor(yr), gs[ gs$yr> 2008,] )
-
-plot( (door.sa) ~ bc.depth.mean, gs[ ,], pch=".", col="red" )
-points( (door.sa) ~ bc.depth.mean, gs[gs$yr==2010 ,], pch="*", col="red" )
-points( (door.sa) ~ bc.depth.mean, gs[gs$yr==2011 ,], pch="*", col="blue" )
-points( (door.sa) ~ bc.depth.mean, gs[gs$yr==2012 ,], pch=22, col="orange" )
-points( (door.sa) ~ bc.depth.mean, gs[gs$yr==2013 ,], pch=19, col="brown", cex= 0.8 )
-points( (door.sa) ~ bc.depth.mean, gs[gs$yr==2014 ,], pch=19, col="brown", cex= 0.8 )
-points( (door.sa) ~ bc.depth.mean, gs[gs$yr==2015 ,], pch=19, col="red", cex= 0.8 ) 
+gs0$timediff_official =  as.numeric(gs0$edate - gs0$sdate) / 60 # that which would have been used (if at all .. )
+gs0$bottom.dist = geosphere::distMeeus( gs0[, c("bc.lon0","bc.lat0")], gs0[, c("bc.lon1", "bc.lat1")])/1000
 
 
-plot( door.mean ~ as.factor(yr), gs[ gs$yr> 2008,] )
+# settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
+        #  4=representative sp recorded(but only part of total catch), 5=comparative fishing experiment, 
+        #  6=tagging, 7=mesh/gear studies, 8=explorartory fishing, 9=hydrography
 
-plot( (door.mean) ~ bc.depth.mean, gs[ ,], pch=".", col="red" )
-points( (door.mean) ~ bc.depth.mean, gs[gs$yr==2010 ,], pch="*", col="red" )
-points( (door.mean) ~ bc.depth.mean, gs[gs$yr==2011 ,], pch="*", col="blue" )
-points( (door.mean) ~ bc.depth.mean, gs[gs$yr==2012 ,], pch=22, col="orange" )
-points( (door.mean) ~ bc.depth.mean, gs[gs$yr==2013 ,], pch=19, col="brown", cex= 0.8 )
-points( (door.mean) ~ bc.depth.mean, gs[gs$yr==2014 ,], pch=19, col="brown", cex= 0.8 )
-points( (door.mean) ~ bc.depth.mean, gs[gs$yr==2015 ,], pch=19, col="red", cex= 0.8 ) 
+# setype
+table(gs0$settype)
+   1    3    4    5    8    9 
+5333  294    1  608  147   59 
+
+
+# settype vs mean duration
+tapply( gs0$bottom_duration/60, gs0$settype, mean, na.rm=TRUE )
+       1        3        4        5        8        9 
+29.76567      NaN      NaN 28.45052      NaN      NaN 
+
+
+keep = which( gs0$settype %in% c( 1, 2, 5) ) # survey
+gs = gs0[ keep, ]
+
+
+
+
+
+# door width
+plot( door.mean ~ as.factor(yr), gs[ gs$yr> 2004,], ylab="Mean door width (m)", xlab="Year" )
+
+# door mean vs depth
+plot( (door.mean) ~ log(bc.depth.mean), gs[ ,], col="slategray", cex=0.5, xlab="log Depth (m)", ylab="Mean door width (m)" )
+points( (door.mean) ~ log( bc.depth.mean), gs[gs$yr==2011 ,], pch=20, col="steelblue", cex=1.25 )
+
+# drop not reliable data
+not.reliable.doors = which( gs$yr==2011 )
+gs$door.mean[ not.reliable.doors ] = NA  
+
+
+
+# trawl duration bias 
+plot( jitter(gs$timediff_official), jitter(gs$bottom_duration/60), xlim=c(10,40), cex=0.65, col="slateblue",
+     xlab="Trawl duration: official (minutes)", ylab="Trawl duration: computed (minutes)" )
+abline(a=0,b=1, col="grey" )
+
+
+# distance bias
+plot( jitter(gs$dist_km), jitter(gs$bottom.dist), xlim=c(1.5,4),ylim=c(0,5),cex=0.65, col="slateblue",
+     xlab="Trawl length: official (km)", ylab="Trawl length: computed from end points (km)" )
+abline(a=0,b=1, col="grey" )
+
+
+# distance bias
+plot( jitter(gs$bc.dist), jitter(gs$bottom.dist), xlim=c(1.5,4),ylim=c(0,5),cex=0.65, col="slateblue",
+     xlab="Trawl length: official (km)", ylab="Trawl length: computed from track(km)" )
+abline(a=0,b=1, col="grey" )
+
+
+# distance bias ( vert has no influence)
+plot( jitter(gs$bc.dist), jitter(gs$bc.dist.h), xlim=c(1.5,4),ylim=c(0,5),cex=0.65, col="slateblue",
+     xlab="Trawl length: total (km)", ylab="Trawl length: horiz (km)" )
+abline(a=0,b=1, col="grey" )
+
+
+
+
+
+
+# swept area (door width X distance)
+plot( door.sa ~ as.factor(yr), gs[ gs$yr> 2009,], ylab="Door width (m)", xlab="Year" )
+
+
+# Swept area vs depth
+plot( (door.sa) ~ log(bc.depth.mean), gs[ ,], col="slategray", cex=0.5, xlab="log Depth (m)", ylab="Swept area (km^2)" )
+
+# points( (door.sa) ~ log( bc.depth.mean), gs[gs$yr==2010 ,], pch="*", col="red" )
+points( (door.sa) ~ log( bc.depth.mean), gs[gs$yr==2011 ,], pch=20, col="steelblue", cex=1.25 )
+#points( (door.sa) ~ log( bc.depth.mean), gs[gs$yr==2012 ,], pch=22, col="orange" )
+#points( (door.sa) ~ log( bc.depth.mean), gs[gs$yr==2013 ,], pch=19, col="brown", cex= 0.8 )
+#points( (door.sa) ~ log( bc.depth.mean), gs[gs$yr==2014 ,], pch=19, col="brown", cex= 0.8 )
+#points( (door.sa) ~ log( bc.depth.mean), gs[gs$yr==2015 ,], pch=19, col="red", cex= 0.8 ) 
 
 
 plot( bottom_duration ~ as.factor( strat), gs[ gs$yr> 2008,] )

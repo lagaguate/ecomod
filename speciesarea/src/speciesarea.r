@@ -40,7 +40,7 @@
   #p$clusters = rep("localhost", detectCores() )
   
 
-  p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
   p$default.spatial.domain = "canada.east"
 
@@ -65,12 +65,12 @@
 
 
   # count and record rarification curves from all available data --- refresh "bio.db" ~/ecomod/bio/src/bio.r  
-  #speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
+  speciesarea.db( DS="speciesarea.counts.redo", p=p )  # 60 MB / process  -- can use all cpus
   
 
   # compute species-area relationships 
- # speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
-#  speciesarea.db( DS="speciesarea.redo", p=p ) # intermediary file for modelling and interpolation ... lookup up missing data and covariates
+  speciesarea.db( DS="speciesarea.stats.redo", p=p ) # ~ 1 minute
+  speciesarea.db( DS="speciesarea.redo", p=p ) # intermediary file for modelling and interpolation ... lookup up missing data and covariates
 
 
 
@@ -88,8 +88,8 @@
     ## no windowing
     ## create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
-   # p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    #parallel.run( habitat.model, DS="redo", p=p ) 
+    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+    parallel.run( habitat.model, DS="redo", p=p ) 
     # habitat.model ( DS="redo", p=p ) 
   
     # predictive interpolation to full domain (iteratively expanding spatial extent)
