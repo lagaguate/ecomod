@@ -34,7 +34,7 @@
 
   # choose:
   # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
-  p$clusters = rep("localhost", detectCores() )
+  p$clusters = rep("localhost", detectCores() )  # GAM's RAM usage is quite low ..
 
   p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
