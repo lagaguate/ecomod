@@ -41,9 +41,7 @@
   p$default.spatial.domain = "canada.east"
 
   p$modtype = "complex" 
-  
- # p$habitat.predict.time.julian = "Sept-1" # Sept 1
-  p$prediction.dyear = 0.75
+  p$prediction.dyear = 0.75 # =9/12 ie., 1 Sept
   p$nw = 10
   p$spatial.knots = 100
     
@@ -52,7 +50,6 @@
   p$movingdatawindowyears = length (p$movingdatawindow)
 
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
-
 
 
 # -------------------------------------------------------------------------------------
