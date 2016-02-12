@@ -49,7 +49,7 @@
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
-  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is newton, then this .. see GAM options
 
 
 # -------------------------------------------------------------------------------------
