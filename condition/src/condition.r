@@ -18,7 +18,7 @@
   
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "habitat", "bathymetry",
                                   "bio", "temperature", "taxonomy", "condition" ) )
-  p$libs = RLibrary( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice" ))
+  p$libs = RLibrary( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice", "rgdal" ))
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$season = "allseasons"
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64, 80 ) / 2 # half distances   
@@ -67,8 +67,8 @@
   # ~ 30 hrs with 2 CPUs @ 3.6 Ghz
   if (p$movingdatawindow == 0 ) { 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    #parallel.run( habitat.model, DS="redo", p=p ) 
-     habitat.model ( DS="redo", p=p ) 
+    parallel.run( habitat.model, DS="redo", p=p ) 
+    # habitat.model ( DS="redo", p=p ) 
  
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 

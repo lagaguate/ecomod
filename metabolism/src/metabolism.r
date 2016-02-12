@@ -14,7 +14,7 @@
 
   p = list()
 
-  p$libs = RLibrary ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel" ))
+  p$libs = RLibrary ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" ))
   p$init.files = loadfunctions( c(
 	  "spacetime", "utility", "parallel", "habitat", "bathymetry", "bio", "temperature", "taxonomy", "metabolism"
 	) )
@@ -60,12 +60,12 @@
 
 
   # create a spatial interpolation model for each variable of interest 
-  # full model requires 30-40 GB ! no parallel right now for that .. currently running moving time windowed approach
+  # full model requires 5-6 GB 
   if (p$movingdatawindow == 0 ) { 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
     
-    #parallel.run( habitat.model, DS="redo", p=p ) 
-     habitat.model ( DS="redo", p=p ) 
+    parallel.run( habitat.model, DS="redo", p=p ) 
+    # habitat.model ( DS="redo", p=p ) 
  
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
