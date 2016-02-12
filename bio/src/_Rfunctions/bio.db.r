@@ -12,7 +12,7 @@
         return ( set )
       }
       
-			set.names =  c("data.source", "id", "chron", "yr", "julian", "lon", "lat", 
+			set.names =  c("data.source", "id", "chron", "yr", "lon", "lat", 
                      "z", "t", "sal", "oxyml", "settype", "sa", "cfset") 
       if ( "groundfish" %in% p$data.sources ) {
         # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 
@@ -23,7 +23,7 @@
         y$sa = y$sakm2
         y$cfset = 1 / y$sa
 
-        set = rbind( set, y[ ,c("data.source", "id", "chron", "yr", "julian",  "lon", "lat", 
+        set = rbind( set, y[ ,c("data.source", "id", "chron", "yr", "lon", "lat", 
                                 "sdepth", "temp", "sal", "oxyml", "settype", "sa", "cfset") ] )
         names(set) = set.names
         set = set[ set$settype %in% c(1,2,5) ,] # remove bad sets
@@ -44,7 +44,8 @@
       }
       
       # set$chron = as.chron( as.numeric(string2chron( paste( paste( set$yr, "Jan", "01", sep="-" ), "12:00:00") )) + set$julian ) # required for time-dependent lookups
-      
+      set$timestamp = as.POSIXct( chron::as.chron( set$chron ) ) 
+                                 
       save( set, file=fn, compress=T )
       return (fn) 
     }

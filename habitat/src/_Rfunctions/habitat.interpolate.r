@@ -49,28 +49,23 @@
       for ( iip in ip ) { #if not moving window
         yr = p$runs[iip,"yrs"]
         print( p$runs[iip,])
-        
         td = temperature.db( year=yr, p=p, DS="complete")
         td$plon = grid.internal( td$plon, p$plons )
         td$plat = grid.internal( td$plat, p$plats )
- 
         td$platplon = paste( td$plat, td$plon, sep="_" ) 
         td = td[ , setdiff(names(td), c( "z", "yr", "plon", "plat") )  ]
         hdat = merge( P0, td, by="platplon", all.x=TRUE, all.y=FALSE )
         rm( td); gc()
-        
         hdat$yr = yr # update all other records
-        hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
-        hdat$julian = convert.datecodes(  hdat$chron, "julian" )
+        hdat$timestamp = as.Date( paste(yr, "01", "01", sep="-") ) + days( floor(365* p$prediction.dyear  ))
         hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
-
         for ( ww in p$varstomodel ) {
           mod.cond = habitat.model( p=p, vn=ww, yr=yr )
           if (is.null( mod.cond )) next()
-        fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
-        if(file.exists(fn)) next()
-        sol = try( predict( mod.cond, newdata=hdat, type="response", na.action="na.pass") )
-        if  ( "try-error" %in% class(sol) ) {
+          fn = file.path( outdir, paste( "interpolations", ww, yr, "rdata", sep=".") )
+          if(file.exists(fn)) next()
+          sol = try( predict( mod.cond, newdata=hdat, type="response", na.action="na.pass") )
+          if  ( "try-error" %in% class(sol) ) {
           hdat[,ww] = NA
         } else { 
           hdat[,ww] = sol
@@ -96,7 +91,7 @@
     if (p$movingdatawindow==0){
       for ( iip in ip ) {
         ww = p$runs[iip,"vars"]
-        mod.cond = habitat.model( p=p, vn=ww, yr=yr )
+        mod.cond = habitat.model( p=p, vn=ww )
         if (is.null( mod.cond )) next()
     
         for(yr in p$yearstomodel) {
@@ -108,9 +103,11 @@
           hdat = merge( P0, td, by="platplon", all.x=TRUE, all.y=FALSE )
           rm( td); gc()
 
+          # browser()
+          
           hdat$yr = yr # update all other records
-          hdat$chron = string2chron( paste( paste( yr, p$habitat.predict.time.julian, sep="-" ), "12:00:00") )  # for time-dependent lookups
-          hdat$julian = convert.datecodes(  hdat$chron, "julian" )
+         # hdat$timestamp = as.Date( paste(yr, "01", "01", sep="-") ) + days( floor(365* p$prediction.dyear  ))
+          hdat$timestamp = as.Date(paste (yr, "01", "01", sep="-")) +  floor(365*p$prediction.dyear)
           hdat = habitat.lookup( hdat, p=p, DS="temperature" ) 
 # to here
 

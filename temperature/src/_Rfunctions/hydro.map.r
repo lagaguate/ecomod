@@ -9,21 +9,22 @@
     if (is.null(ip)) ip = 1:p$nruns
 
 		require( lattice )
-		datarange = seq(-0.5,12, length.out=50)
+		datarange = seq(-0.5, p$nw, length.out=50)
     cols = color.code( "blue.black", datarange )
     
-    if ( type=="weekly" ) {
-      bottomdir.maps = file.path( project.datadirectory("temperature"), "maps", p$spatial.domain, "bottom.predictions", "weekly" )
+    if ( type=="dyear" ) {
+      warning( "This only works for the default spatial domain .. ")
+      bottomdir.maps = file.path( project.datadirectory("temperature"), "maps", p$spatial.domain, "bottom.predictions", "dyear" )
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
-      datarange = seq(-0.5,12, length.out=50)
+      datarange = seq(-0.5, p$nw, length.out=50)
       cols = color.code( "blue.black", datarange )
-      xyz = bathymetry.db( p=p, DS="Z.planar" )
+      xyz = bathymetry.db( p=p, DS="baseline" )
       xyz = xyz[, c("plon", "plat")]
       for (iy in ip ) {
         y = p$runs[iy, "yrs"] 
-        H = temperature.db( p=p, DS = "temporal.interpolation", yr=y  )
+        H = temperature.db( p=p, DS="temporal.interpolation", yr=y  )
         if (is.null(H)) next ()
-        for (w in 1:52) {
+        for (w in 1:p$nw ) {
           wchar = paste( "0", w, sep="" )
           wchar = substr( wchar, nchar(wchar)-1, nchar(wchar) )
           outfn = paste( "temperatures.bottom", y, wchar, sep=".")
@@ -36,7 +37,7 @@
       return( "Completed maps")
     } 
     
-    if ( type %in% c("annual", "amplitudes", "temperatures", "week.of.minima", "halfperiod", "tsd" ) ) {
+    if ( type %in% c("annual", "amplitudes", "temperatures", "dyear.of.minima", "halfperiod", "tsd" ) ) {
     
       bottomdir.maps = file.path( project.datadirectory("temperature"), "maps", p$spatial.domain , "bottom.predictions", "annual" )
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
@@ -45,7 +46,7 @@
         y = p$runs[iy, "yrs"] 
         print(y)
         
-        H = hydro.modelled.db( p=p, DS="bottom.statistics.annual", yr=y )
+        H = temperature.db( p=p, DS="complete", year=y )
         
         if ( p$spatial.domain=="snowcrab" ) {
           i = which( H$plon< 990 &  H$plon > 220  &   ## these are in planar coords  ..should fix this hack one day
@@ -67,7 +68,7 @@
         }  
     
         if (type %in% c("amplitudes", "annual") ) {
-          datacols = c("plon", "plat", "tamplitude")
+          datacols = c("plon", "plat", "tamp")
           datarange = seq(0,10, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "temperatures.bottom.amplitude", y, sep=".")
@@ -77,11 +78,11 @@
             corners=p$corners, spatial.domain=p$spatial.domain   )
         }  
     
-        if (type %in% c("week.of.minima", "annual") ) {
+        if (type %in% c("dyear.of.minima", "annual") ) {
           datacols = c("plon", "plat", "wmin")
-          datarange = seq(0,52, length.out=50)
+          datarange = seq(0,p$nw, length.out=50)
           cols = color.code( "blue.yellow.blue", datarange )
-          outfn = paste( "week.temperature.minima", y, sep=".")
+          outfn = paste( "dyear.temperature.minima", y, sep=".")
           annot = y
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
             fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
@@ -89,8 +90,8 @@
         }  
     
         if (type %in% c("halfperiod", "annual") ) {
-          datacols = c("plon", "plat", "thalfperiod")
-          datarange = seq(0, 20, length.out=50)
+          datacols = c("plon", "plat", "thp")
+          datarange = seq(0, p$nw, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "halfperiod.length", y, sep=".")
           annot = y
@@ -112,14 +113,15 @@
       
       } }
       
-      if ( type %in% c("global", "amplitudes", "temperatures", "week.of.minima", "halfperiod", "tsd" ) ) {
+      if ( type %in% c("global", "amplitudes", "temperatures", "dyear.of.minima", "halfperiod", "tsd" ) ) {
     
       bottomdir.maps = file.path( project.datadirectory("temperature"), "maps", p$spatial.domain, "bottom.predictions", "global" )
       dir.create( bottomdir.maps, recursive=T, showWarnings=F )
- 
+
+      H = temperature.db( p=p, DS="complete", year=p$tyears[1] )
+
         if (type %in% c("temperatures", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tmean" )
-          datacols = c("plon", "plat", "tmean")
+          datacols = c("plon", "plat", "tmean.cl")
           datarange = seq(-1,11, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "temperatures.bottom", sep=".")
@@ -130,8 +132,7 @@
         }  
     
         if (type %in% c("amplitudes", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tamplitude")
-          datacols = c("plon", "plat", "tamplitude")
+          datacols = c("plon", "plat", "tamp.cl")
           datarange = seq(0,10, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "temperatures.bottom.amplitude", sep=".")
@@ -141,22 +142,20 @@
             corners=p$corners , spatial.domain=p$spatial.domain )
         }  
     
-        if (type %in% c("week.of.minima", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="wmin")
-          datacols = c("plon", "plat", "wmin")
-          datarange = seq(0,52, length.out=50)
+        if (type %in% c("dyear.of.minima", "global") ) {
+          datacols = c("plon", "plat", "wmin.cl")
+          datarange = seq(0,p$nw, length.out=50)
           cols = color.code( "blue.yellow.blue", datarange )
-          outfn = paste( "week.temperature.minima", sep=".")
-          annot = paste("Week of temperature minima\n", sep="")
+          outfn = paste( "dyear.temperature.minima", sep=".")
+          annot = paste("Dyear of temperature minima\n", sep="")
           map( xyz=H[,datacols], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
             fn=outfn, loc=bottomdir.maps, at=datarange , col.regions=cols, 
             corners=p$corners , spatial.domain=p$spatial.domain )
                  }  
     
         if (type %in% c("halfperiod", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="thalfperiod" )
-          datacols = c("plon", "plat", "thalfperiod")
-          datarange = seq(0, 20, length.out=50)
+          datacols = c("plon", "plat", "thp.cl")
+          datarange = seq(0, p$nw/2, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "halfperiod.length", sep=".")
           annot = paste("Length of half-period\n", sep="")
@@ -165,8 +164,7 @@
             corners=p$corners , spatial.domain=p$spatial.domain )
         }
         if (type %in% c("tsd", "global") ) {
-          H = hydro.modelled.db( p=p, DS="bottom.mean",  vname="tsd" )
-          datacols = c("plon", "plat", "tsd")
+          datacols = c("plon", "plat", "tsd.cl")
           datarange = seq(0, 5, length.out=50)
           cols = color.code( "blue.black", datarange )
           outfn = paste( "temperatures.bottom.sd",  sep=".")

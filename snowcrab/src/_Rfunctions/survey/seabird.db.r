@@ -125,6 +125,7 @@
         return (res)
 
       }
+     # browser()
       
       # default action  is "stats.redo"
       
@@ -159,8 +160,8 @@
           M = sbRAW[ Mi, ]
          
 
-          M$timestamp = as.POSIXct( M$chron, tz=tzone )
-          settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone )
+          M$timestamp = as.POSIXct( M$chron, tz=tzone,origin=lubridate::origin )
+          settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone,origin=lubridate::origin )
           time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
      
           bcp = list( 
@@ -191,8 +192,8 @@
             
             res$t0 = bc$smooth.method0
             res$t1 = bc$smooth.method1
-            res$t0 = as.POSIXct(bc$smooth.method0,origin='1970-01-01', tz=tzone )
-            res$t1 = as.POSIXct(bc$smooth.method1,origin='1970-01-01', tz=tzone )
+            res$t0 = as.POSIXct(bc$smooth.method0,origin=lubridate::origin, tz=tzone )
+            res$t1 = as.POSIXct(bc$smooth.method1,origin=lubridate::origin, tz=tzone )
             res$dt = bc$smooth.method1 -  bc$smooth.method0
           } else if(any(is.na( res ))) {
               ## not sure what this step is trying to accomplish ? ... JC 
@@ -201,8 +202,8 @@
           } else if (all (!is.finite( bc$smooth.method) ) & all( res[,c('t0','t1','dt')]>0 ) ) {
             ## --- NOTE smooth (1)  seem to work best ... focus upon these methods with seabird data ... 
             ##  likely due to greater precision and data density relative to minilog
-            res$t0 = as.POSIXct(res$t0,origin='1970-01-01', tz=tzone )
-            res$t1 = as.POSIXct(res$t1,origin='1970-01-01', tz=tzone )
+            res$t0 = as.POSIXct(res$t0,origin=lubridate::origin, tz=tzone )
+            res$t1 = as.POSIXct(res$t1,origin=lubridate::origin, tz=tzone )
             res$dt = res$t1 -  res$t0
           }
 

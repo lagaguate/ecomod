@@ -2,20 +2,55 @@
   # Tables based upon data created by "1.snowcrab.r"
 	
 	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  library("xtable")
+  library("R2HTML")
 
   odb0 = observer.db("odb")
   regions = c("cfanorth", "cfasouth", "cfa4x")
   nregions = length(regions)
 
+  #------------------------------------------------
+  #Fisheries statistics per region
+  tabledir = file.path(project.datadirectory("snowcrab"), "data", "fisheries")
+  outtabledir= file.path(project.datadirectory("snowcrab"), "assessments", "2015", "tables", "logbook")
+  setwd(tabledir)
+  
+  NFS <- xtable(read.csv("NENS_FisherySummary.csv"))
+  SFS <- xtable(read.csv("SENS_FisherySummary.csv"))
+  Fx <- xtable(read.csv("4x_FisherySummary.csv"))
 
+  setwd(outtabledir)
+  print.xtable(NFS, type="latex", file="NENS_FisherySummary.tex")
+  print.xtable(NFS, type="html", file="NENS_FisherySummary.html")
+  
+  print.xtable(SFS, type="latex", file="SENS_FisherySummary.tex")
+  print.xtable(SFS, type="html", file="SENS_FisherySummary.html")
+
+  print.xtable(Fx, type="latex", file="4x_FisherySummary.tex")
+  print.xtable(Fx, type="html", file="4x_FisherySummary.html")
+  
+  #regions = c("cfaall")
+   #regions = c("cfanorth", "cfasouth", "cfa4x")
+   regions = c("cfanorth", "cfa23", "cfa24", "cfa4x")
+    l = NULL
+    for (r in regions) {
+      res = get.fishery.stats.by.region( Reg=r) #need to add the TACs per year and number of licences
+      #round the landings to ton
+      #round CPUE to no decimal places
+      #round the effort to per x1000 trap hauls
+      print(r)
+      print(res)
+      }
 # ----------------------------------------
 #  Carapace condition from observed data  < 95mm CW
+   
+    outtabledir= file.path(project.datadirectory("snowcrab"), "assessments", "2015", "tables", "observer")
 
-  
     odb = odb0
-    odb = odb[ which( odb$cw < 95 & odb$prodcd_id=="0" ) ,]  
+    odb = odb[ which( odb$cw < 95 & odb$prodcd_id=="0" ) ,] 
+    regions = c("cfanorth", "cfasouth", "cfa4x")
+    nregions = length(regions) 
     years = sort( unique( odb$fishyr ) )
-
 
     res = NULL
     for (r in p$regions) {
@@ -28,25 +63,31 @@
     colnames(res) = cnames
     print(res)
     res = as.data.frame(res)
+    res[is.na(res)] <- NA
+    ct <- c("CC1", "CC2", "CC3", "CC4", "CC5", "Total")
 
-    for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
+    setwd(outtabledir)
 
-    Rn = as.matrix( res[ which( res$region=="cfanorth") , as.character(c(1:5)) ] )
+    Rn= res[res$region=="cfanorth", 3:8]
+    print(Rn)
     rownames(Rn) = years
-    latex(Rn, file="", title="", label="table.CC.small.north.obs", rowlabel="Year", cgroup="Carapace condition", na.blank=T, caption="Carapace condition of crab smaller than 95 mm CW (percent by number) over time for N-ENS from at-sea-observed data.")
+    colnames(Rn) = ct
+    print.xtable(Rn, type="latex", file="table.CC.small.north.obs.tex")
+    HTML(Rn, file="table.CC.Small.north.obs.html")
 
-    Rs = as.matrix( res[ which(res$region=="cfasouth" ), as.character(c(1:5)) ] )
+    Rs= res[res$region=="cfasouth", 3:8]
     rownames(Rs) = years
-    latex(Rs, file="", title="", label="table.CC.small.south.obs", rowlabel="Year", cgroup="Carapace condition", na.blank=T, caption="Carapace condition of crab smaller than 95 mm CW (percent by number) over time for S-ENS from at-sea-observed data.")
+    colnames(Rs) = ct
+    print.xtable(Rs, type="latex", file="table.CC.small.south.obs.tex")
+    HTML(Rs, file="table.CC.small.south.obs.html")
 
-    Rx = as.matrix( res[ which(res$region=="cfa4x") , as.character(c(1:5)) ] )
+    Rx= res[res$region=="cfa4x", 3:8]
     rownames(Rx) = years
-    latex(Rx, file="", title="", label="table.CC.small.4x.obs", rowlabel="Year", cgroup="Carapace condition", na.blank=T, caption="Carapace condition of crab smaller than 95 mm CW (percent by number) over time for CFA 4X from at-sea-observed data.")
-
-
+    colnames(Rx) = ct
+    print.xtable(Rs, type="latex", file="table.CC.small.4x.obs.tex")
+    HTML(Rx, file="table.CC.small.4x.obs.html")
 # ----------------------------------------
 #  Carapace condition from observed data >=95mm CW
-
     odb = odb0
     odb = odb[ which( odb$cw >= 95 & odb$cw < 170 & odb$prodcd_id=="0" ) ,]  # commerical sized crab only
     years = sort( unique( odb$fishyr ) )
@@ -65,23 +106,32 @@
     cnames = c("region", "fishyr", c(1:5), "ntot")
     colnames(res) = cnames
     print(res)
-
     res = as.data.frame(res)
-    for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
+    res[is.na(res)] <- NA
+  #  for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
+    setwd(outtabledir)
 
-    Rn = as.matrix( res[ which(res$region=="cfanorth") , as.character(c(1:5)) ] )
+    ct <- c("CC1", "CC2", "CC3", "CC4", "CC5")
+    Rn = res[res$region=="cfanorth", 3:7]
+    #Rn = as.matrix( res[ which(res$region=="cfanorth") , as.character(c(1:5)) ] )
     rownames(Rn) = years
-    latex(Rn, file="", title="", label="table.CC.large.north.obs", rowlabel="Year", cgroup="Carapace condition", na.blank=T, caption="Carapace condition of crab larger than 95 mm CW (percent by number) over time for N-ENS from at-sea-observed data.")
+    colnames(Rn) = ct
+    print.xtable(Rn, type="latex", file="table.CC.large.north.obs.tex")
+    HTML(Rn, file="table.CC.large.north.obs.html")
 
-    Rs = as.matrix( res[ which(res$region=="cfasouth") , as.character(c(1:5)) ] )
+    #Rs = as.matrix( res[ which(res$region=="cfasouth") , as.character(c(1:5)) ] )
+    Rs = res[res$region=="cfasouth", 3:7]
     rownames(Rs) = years
-    latex(Rs, file="", title="", label="table.CC.large.south.obs", rowlabel="Year", cgroup="Carapace condition", na.blank=T, caption="Carapace condition of crab larger than 95 mm CW (percent by number) over time for S-ENS from at-sea-observed data.")
+    colnames(Rs) = ct
+    print.xtable(Rs, type="latex", file="table.CC.large.south.obs.tex")
+    HTML(Rs, file="table.CC.large.south.obs.html")
 
-    Rx = as.matrix( res[ which(res$region=="cfa4x") , as.character(c(1:5)) ] )
+    #Rx = as.matrix( res[ which(res$region=="cfa4x") , as.character(c(1:5)) ] )
+    Rx = res[res$region=="cfa4x", 3:7]
     rownames(Rx) = years
-    latex(Rx, file="", title="", label="table.CC.large.4x.obs", rowlabel="Year", cgroup="Carapace condition", na.blank=T, caption="Carapace condition of crab larger than 95 mm CW (percent by number) over time for CFA 4X from at-sea-observed data.")
-
-
+    colnames(Rx) = ct
+    print.xtable(Rx, type="latex", file="table.CC.large.4x.obs.tex")
+    HTML(Rx, file="table.CC.large.4x.obs.html")
 
 # ----------------------------------------
 #  Percent soft from observed data  

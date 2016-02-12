@@ -102,7 +102,7 @@
         nss = big.matrix( nrow=p$nsets, ncol=length(p$newvars), type="double" , init=NA, shared=TRUE )  
       }
 
-      p$bigmem.desc = describe(nss)
+      p$bigmem.desc = bigmemory::describe(nss)
   
       p = make.list( list( nsets=1:p$nsets ), Y=p ) 
   parallel.run( sizespectrum.compute, p=p, sm=sm )
@@ -148,7 +148,7 @@
 
       sm = sizespectrum.db( DS="sizespectrum.stats", p=p )
       smg = groundfish.db( "set.base" )
-      
+      smg$dyear = lubridate::decimal_date( as.POSIXct(smg$chron) ) - smg$yr
       smg$z = smg$sdepth
       smg$t = smg$temp
       smg$sdepth = NULL

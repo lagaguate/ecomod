@@ -1,4 +1,4 @@
-  figure.effort.timeseries = function( yearmax, outdir=NULL, outfile=NULL, type="line" ) {
+  figure.effort.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfile2=NULL, type="line" ) {
    
     regions = c("cfanorth", "cfasouth", "cfa4x")
     e = NULL
@@ -20,7 +20,9 @@
     dir.create( outdir, recursive=T, showWarnings=F )
     fn = file.path( outdir, paste(outfile,"png",sep="." ) )
    # Cairo( file=fn, type="png", bg="white",, pointsize=30, units="in", width=6, height=4, dpi=300  )
-    png( file=fn,units='in', width=15,height=12,pointsize=18, res=300,type='cairo')
+    fn2 = file.path( outdir, paste(outfile2,"png",sep="." ) )
+
+    png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
  
     if (type=="bar") {
       e[is.na(e)] = 0
@@ -36,14 +38,39 @@
       yrange = range (e, na.rm=T)
       yrange[1] = 0
       xrange = range(uyrs)
-      xrange[1] = xrange[1] - 0.5
-      xrange[2] = xrange[2] + 0.5
-      m=1; plot( uyrs, e[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], axes=F, xlim=xrange, ylim=yrange)
+      xrange[1] = xrange[1]
+      xrange[2] = xrange[2]
+      xlabels = seq(xrange[1]+1, xrange[2], 2)
+
+
+      m=1; plot( uyrs, e[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
       m=2; points(uyrs, e[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
       m=3; points(uyrs, e[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
-      axis( 1 )
+      axis( 1, at=xlabels, labels=FALSE )
+      text(x=xlabels+1, y=par('usr')[3], labels=xlabels, srt=45, adj=c(1.5,1), xpd=TRUE)
       axis( 2 )
-      legend(x=1980, y=100, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=3, pch=pts, col=cols, cex=1.4 )
+      legend(x=1980, y=100, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2 )
+      dev.off()
+
+      png(file=fn2 ,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
+      sm = e[, c(1, 3)]
+      pts = c(19, 24)
+      lns = c(1, 1)
+      cols = c("grey10", "grey20")
+      yrange = range (sm, na.rm=T)
+      yrange[1] = 0
+      xrange = range(uyrs)
+      xrange[1] = xrange[1]
+      xrange[2] = xrange[2]
+      xlabels = seq(xrange[1]+1, xrange[2], 2)
+
+
+      m=1; plot( uyrs, sm[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=4, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
+      m=2; points(uyrs, sm[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+      axis( 1, at=xlabels, labels=FALSE )
+      text(x=xlabels+1, y=par('usr')[3], labels=xlabels, srt=45, adj=c(1.5,1), xpd=TRUE)
+      axis( 2 )
+      legend(x=1985, y=45, c("N-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2 )
     }
     dev.off()
     cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )

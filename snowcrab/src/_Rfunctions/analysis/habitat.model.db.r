@@ -80,7 +80,8 @@
 #        set = rbind( set, aset[, names(set)] )
 #      }
 
-      set$weekno = floor(set$julian / 365 * 52) + 1
+      # set$weekno = floor(set$julian / 365 * 52) + 1
+      # set$dyear = floor(set$julian / 365 ) + 1
 
       set$plon = jitter(set$plon)
       set$plat = jitter(set$plat)  
@@ -101,7 +102,7 @@
       # remove extremes where variance is high due to small n
       # set = filter.independent.variables( x=set )
 
-      tokeep=  c( "Y", "yr",  "julian", "weekno", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
+      tokeep=  c( "Y", "yr",  "julian", "dyear", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
       # tokeep = intersect( names(set), tokeep) 
       
       set = set[ , tokeep ]

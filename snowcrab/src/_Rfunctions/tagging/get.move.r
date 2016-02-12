@@ -1,7 +1,7 @@
  
   get.move = function( redo=F ) {
     move = NULL
-    
+    require(chron) 
     tags.datadir= file.path( project.datadirectory("snowcrab"), "data", "tagging" )
     
     fn =file.path( tags.datadir, paste("move", "rdata", sep="." ) )

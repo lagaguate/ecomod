@@ -5,7 +5,6 @@
 
     minilog.dir = project.datadirectory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
-    years.with.sets.combined = 2014:p$current.assessment.year #the years where minilog not downloaded after each tow
 
     if (!is.null(Y)) {
       iY = which( Y>=1999 )  # no historical data prior to 1999
@@ -53,7 +52,7 @@
         }
         return( out )
       }
-
+p 
       # default is to "load"
       #
 
@@ -81,7 +80,7 @@
       filelist = filelist[ which( !is.na( filelist[,1] ) ) , ]
 
       set = snowcrab.db( DS="setInitial" )  # set$chron is in local time America/Halifax  
-    
+
       for ( yr in Y ) {
         print(yr)
         fn.meta = file.path( minilog.dir, paste( "minilog", "metadata", yr, "rdata", sep="." ) )
@@ -93,8 +92,11 @@
         basedata = NULL
         metadata = NULL
         for (f in 1:length(fs)) {
-          if(!yr %in% years.with.sets.combined) j = load.minilog.rawdata( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
-          if(yr %in% years.with.sets.combined) j = load.minilog.rawdata.one.file.per.day( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
+          if( yr >= 2014 ) {
+            j = load.minilog.rawdata.one.file.per.day( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
+          } else {
+            j = load.minilog.rawdata( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
+          }
           if (is.null(j)) next() 
           metadata = rbind( metadata, j$metadata)
           basedata = rbind( basedata, j$basedata)
@@ -180,8 +182,8 @@
           if (length( Mi) == 0 ) next()
           M = miniRAW[ Mi, ]
           
-          M$timestamp = as.POSIXct( M$chron, tz=tzone )
-          settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone )
+          M$timestamp = as.POSIXct( M$chron, tz=tzone, origin=lubridate::origin )
+          settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone , origin=lubridate::origin )
           time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
             
           print(id)

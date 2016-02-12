@@ -1,4 +1,5 @@
- map.survey.locations = function(p, basedir, newyear=T, map.method="GMT" ) {  
+ map.survey.locations = function(p, basedir, newyear=T, map.method="GMT" ) { 
+
 
     set = snowcrab.db( DS="set.clean")
     years = sort( unique( set$yr ) )
