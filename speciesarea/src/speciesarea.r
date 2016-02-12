@@ -36,8 +36,8 @@
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
-   p$clusters = rep( "localhost", 5 )
-  #p$clusters = rep("localhost", detectCores() )
+  # p$clusters = rep( "localhost", 5 )
+  p$clusters = rep("localhost", detectCores() )
   
 
   p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
