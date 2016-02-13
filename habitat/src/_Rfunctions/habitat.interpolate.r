@@ -14,8 +14,8 @@
       for ( vn in  p$varstomodel ) {
         fn = file.path( outdir, paste( "interpolations", vn, yr, "rdata", sep=".") )
         if( file.exists(fn)) {
-          load( fn)
-          hdat[, vn] = HD
+          load(fn)
+          hdat[,vn] = HD
         }
       }
       return ( hdat )
