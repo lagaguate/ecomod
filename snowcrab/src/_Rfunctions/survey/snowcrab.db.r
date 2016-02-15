@@ -266,8 +266,10 @@
       proj4string(sdf.set) <- CRS(p$geog.proj)
       shpdir = file.path(project.datadirectory("snowcrab"), "maps", "shapefiles", "survey")
       setwd(shpdir)
+      
       writeOGR(sdf.set, ".", "SurveyDataUpdate", driver="ESRI Shapefile", overwrite=T)
-      setwd("/home/michelle/tmp")
+      setwd("/home/michelle/tmp")  ## michelle:: please do not place hard-links into the code as this will force a fail for others ..
+
       shp.path <- paste("SurveyDataUpdate shapefile created at", shpdir, sep=" ")
       print(shp.path)
 
@@ -845,7 +847,7 @@
       if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
     
       set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
-      set2015 = set[which(set$yr==2015),]
+      set2015 = set[which(set$yr==2015),]  ## why are we doing this over here? and if you want to do this make it more generic rather than for a specific year? (Jae)
       print(head(set2015))
 
       return (set)
@@ -867,7 +869,12 @@
       }
    
       # first complete set by adding netmind data
-      set = snowcrab.db( DS="set.minilog.seabird" )
+      
+      set = snowcrab.db( DS="setInitial", p=p ) 
+      set = set[ , c("trip", "set")]
+
+      set = merge( set, snowcrab.db( DS="set.minilog.seabird" ), by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+
       nm = netmind.db( DS="stats" )
       nm = nm[,  c("trip","set","netmind_uid", "distance", "spread", "spread_sd", "surfacearea", "vel", "vel_sd", "netmind_n", "slon", "slat" ) ]
       #set = merge( set, nm, by =c("netmind_uid"), all.x=TRUE, all.y=FALSE )
