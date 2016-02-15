@@ -10,13 +10,13 @@
 
 	
 	# FSRS CPUE
-	shorts<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRSmodelresultsSHORT.csv"))
-	legals<-read.csv(file.path( project.datadirectory("lobster"), "data","FSRSmodelresultsLEGAL.csv"))
+	shorts<-read.csv(file.path( project.datadirectory("lobster"), "data","products","FSRSmodelresultsSHORT.csv"))
+	legals<-read.csv(file.path( project.datadirectory("lobster"), "data","products","FSRSmodelresultsLEGAL.csv"))
 
 
 
 	# shorts
-	pdf(file.path( project.datadirectory("lobster"),"R","FSRSshorts.pdf"),8, 10)
+	pdf(file.path( project.datadirectory("lobster"),"figures","FSRSshorts.pdf"),8, 10)
 
 
 	p <- ggplot()
@@ -32,7 +32,7 @@
 
 	# legals
 
-	pdf(file.path( project.datadirectory("lobster"),"R","FSRSlegals.pdf"),8, 10)
+	pdf(file.path( project.datadirectory("lobster"),"figures","FSRSlegals.pdf"),8, 10)
 
 	p <- ggplot()
 	p <- p + geom_point(data = legals, aes(y = mu, x = YEAR), shape = 16, size = 3)
@@ -54,6 +54,28 @@
 	# Logs CPUE
 	LOGcpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","CommercialCPUE_LFA.csv"))
 	cpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","CommercialCPUE.csv"))
+	vollog.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","VolLogsCPUE_LFA.csv"))
+
+	#Manon's Plot version
+	#Plot in update displays all commercial and voluntary log CPUEs. Long term mean CPUE from commercial logs (2008-2014) is also included.
+	long.term.mean<-ddply(subset(cpue.dat.0815,year<2015),c("lfa","subarea"),summarize,lt.mean=mean(cpue))
+	require(ggplot2)
+
+  pdf('Commercial.CPUE.LFA27-33.pdf',width=8,height=10)
+	ggplot(subset(cpue.dat,lfa<34),aes(x=as.factor(year),y=cpue, group=lfa)) + geom_point() + geom_line () + facet_wrap(~subarea, ncol=2) +
+	  geom_hline(aes(yintercept=lt.mean), colour="blue4", data=subset(long.term.mean,lfa<"34")) + geom_line(vollog.dat,aes(x=year,y=cpue)) +
+	  scale_y_continuous(limits=c(0,5.2), breaks=c(0,6,2)) + theme_bw() + theme(axis.text.x=element_text(size=10.0),strip.text=element_text(size=12.0),legend.position="none") +
+	  xlab("Year") + ylab("CPUE (Kg/Trap Haul)")
+	dev.off()
+
+	pdf('Commercial.CPUE.Vollog.LFA27-33.pdf',width=8,height=10)
+	ggplot(vollog.dat,aes(x=as.factor(year),y=cpue, group=lfa, colour="red")) + geom_line () + facet_wrap(~subarea, ncol=2) +
+	  geom_segment(aes(x='2008', y=lt.mean,xend='2014',yend=lt.mean), colour="cornflowerblue", data=subset(long.term.mean,lfa<"34")) + geom_line(data=subset(cpue.dat,lfa<34),colour="black") + 
+	  geom_point(data=subset(cpue.dat,lfa<34),colour="black") +scale_y_continuous(limits=c(0,2.2), breaks=c(0,1,2)) + scale_x_discrete(breaks=seq(1981,2015,4),
+	  labels=c('1981','1985','1989','1993','1997','2001','2005','2009','2013')) + 
+	  theme_bw() + theme(axis.text.x=element_text(size=10.0),strip.text=element_text(size=12.0),legend.position="none") + xlab("Year") + ylab("CPUE (Kg/Trap Haul)")
+	dev.off()
+
 	
 	x11(wd,ht)
 	xyplot(cpue~year|lfa, data=subset(cpue.dat,lfa%in%c('28','29','30','31A','31B','32')), ylab="CPUE (Kg / Trap Haul)",xlab= "Year", main="", as.table=T,type='b',ylim=c(0,2.2))
