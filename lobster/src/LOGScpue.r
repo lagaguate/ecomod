@@ -71,7 +71,7 @@ write.csv(LOGcpue.dat,file.path( project.datadirectory("lobster"), "data","produ
 
 for(i in 1:length(lfa)) {
 	for(j in 2008:2014){
-		pdf(file.path( project.datadirectory("lobster"),"R",paste0("CPUEhist",lfa[i],j,".pdf")),8,11)
+		pdf(file.path( project.datadirectory("lobster"),"figures",paste0("CPUEhist",lfa[i],j,".pdf")),8,11)
 		par(mfrow=c(3,2))
 		d<-subset(logsInSeason,LFA==lfa[i]&SYEAR==j)
 		brks=seq(0,max(d$CPUE)+1,0.1)
@@ -110,7 +110,7 @@ LobsterMap('34',poly.lst=cpuegrids)
 loadfunctions('lobster')
 catchgrids<-lobGridPlot(subset(logsInSeason,LFA=='34'&SYEAR==2014,c("LFA","GRID_NUM","WEIGHT_KG")),lvls=c(1000,50000,100000,200000,400000,600000,800000,1000000),FUN=sum,border=NA)
 	
-pdf(file.path( project.datadirectory("lobster"), "R","LFA34.pdf"),8,11)
+pdf(file.path( project.datadirectory("lobster"), "figures","LFA34.pdf"),8,11)
 
 LobsterMap('34',poly.lst=catchgrids[1:2],title="2014 Lobster Catch")
 ContLegend("bottomleft",lvls=catchgrids$lvls/1000,Cont.data=catchgrids,title="Catch (t)",inset=0.02,cex=0.8,bg='white')
@@ -125,7 +125,7 @@ dev.off()
 loadfunctions('lobster')
 catchgrids<-lobGridPlot(subset(logsInSeason,LFA=='34'&SYEAR==2014,c("LFA","GRID_NUM","WEIGHT_KG")),lvls=c(1000,50000,100000,200000,400000,600000,800000,1000000),FUN=sum,border=NA)
 	
-pdf(file.path( project.datadirectory("lobster"), "R","LFA34.pdf"),8,11)
+pdf(file.path( project.datadirectory("lobster"), "figures","LFA34.pdf"),8,11)
 
 LobsterMap('34',poly.lst=catchgrids[1:2],title="2014 Lobster Catch")
 ContLegend("bottomleft",lvls=catchgrids$lvls/1000,Cont.data=catchgrids,title="Catch (t)",inset=0.02,cex=0.8,bg='white')
