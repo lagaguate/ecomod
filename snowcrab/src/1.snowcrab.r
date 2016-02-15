@@ -55,6 +55,10 @@
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
  
+    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
+    set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
+    head(set2015)  
+
     # unless there are structural changes in approach, incremental update is fine
     seabird.yToload = p$current.assessment.year
     minilog.yToload = p$current.assessment.year
@@ -77,13 +81,10 @@
     #MG I'm not sure why these stats are not being written automatically, neet to set it in the code above to run these after data is loaded
     seabird.db (DS="stats.redo", Y=2014:p$current.assessment.year)
     minilog.db (DS="stats.redo", Y=2014:p$current.assessment.year)
-    netmind.db(DS="stats.redo", Y=p$current.assessment.year)
+    netmind.db (DS="stats.redo", Y=p$current.assessment.year)
     
-    snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )
+    snowcrab.db( DS="set.clean.redo", p=p, proj.type=p$internal.projection )
    
-    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-    set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
-    head(set2015)  
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
       problems = data.quality.check( set, type="position") 
