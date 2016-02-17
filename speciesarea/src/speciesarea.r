@@ -4,19 +4,18 @@
   # groundfish: "sm.base", "set"
   # and the glue function "bio.db"
 
-
 # create base species area stats  ... a few hours
-
-	
   p = list()
-  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel")) 
+  p$project.name = "speciesarea"
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )  #required for interpolations and mapping 
+  
+  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
   # faster to use RAM-based data objects but this forces use only of local cpu's
   # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
   p$use.bigmemory.file.backing = FALSE  
   # p$use.bigmemory.file.backing = TRUE  # file-backing is slower but can use all cpu's in a distributed cluster
-
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$data.sources = c("groundfish", "snowcrab") 
@@ -34,29 +33,23 @@
   p$season = "allseasons"
 
   # choose:
-  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
-  # p$clusters = rep( "localhost", 2 )
-  # p$clusters = rep( "localhost", 8 )
-   p$clusters = rep( "localhost", 5 )
-  #p$clusters = rep("localhost", detectCores() )
-  
+  # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
+  p$clusters = rep("localhost", detectCores() )  # GAM's RAM usage is quite low ..
 
-  p$yearstomodel = 1970:2014 # set map years separately to temporal.interpolation.redo allow control over specific years updated
+  p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
   p$varstomodel = c( "C", "Z", "T", "Npred" )
+  p$default.spatial.domain = "canada.east"
 
   p$modtype = "complex" 
-  
-  p$habitat.predict.time.julian = "Sept-1" # Sept 1
- 
+  p$prediction.dyear = 0.75 # =9/12 ie., 1 Sept
+  p$nw = 10
   p$spatial.knots = 100
     
   p$movingdatawindow = 0  # this signifies no moving window ... all in one model
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
-  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
-
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is newton, then this .. see GAM options
 
 
 # -------------------------------------------------------------------------------------
@@ -79,11 +72,6 @@
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
 
-  #required for interpolations and mapping 
-  p$project.name = "speciesarea"
-  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
-
-
   if (p$movingdatawindow == 0 ) { 
     ## no windowing
     ## create a spatial interpolation model for each variable of interest 
@@ -95,8 +83,8 @@
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-    # habitat.interpolate( p=p, DS="redo" ) 
+    #parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+     habitat.interpolate( p=p, DS="redo" ) 
 
   
   

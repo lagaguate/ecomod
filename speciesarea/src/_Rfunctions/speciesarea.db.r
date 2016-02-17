@@ -151,10 +151,6 @@
       # this forces resolution of p$pres=1km in SSE 
       ks$plon = grid.internal( ks$plon, p$plons )
       ks$plat = grid.internal( ks$plat, p$plats )
-
-      ks$platplon = paste( ks$plat, ks$plon, sep="_" )
-      
-      ks$plon = ks$plat = NULL
       ks$lon = ks$lat = NULL
       
       yrs = sort( unique( ks$yr ) )
@@ -172,13 +168,10 @@
       }
 
       P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
- 
-      SC = merge( ks, P0, by="platplon", all.x=T, all.Y=F, sort= F, , suffixes=c("", ".P0") )
+      SC = merge( ks, P0, by=c("plat", "plon"), all.x=T, all.Y=F, sort= F, , suffixes=c("", ".P0") )
       oo = which(!is.finite( SC$plon+SC$plat ) )
       if (length(oo)>0) SC = SC[ -oo , ]  # a required field for spatial interpolation
-      
       SC = habitat.lookup( SC, p=p, DS="environmentals" )
-
       save( SC, file=fn, compress=T )
       return (fn) 
     }

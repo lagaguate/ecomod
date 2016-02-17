@@ -753,7 +753,10 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gsinf0$bc.lon0 = NA
     gsinf0$bc.lon1 = NA
     gsinf0$bc.lat0 = NA
-    gsinf0$bc.lat0 = NA
+    gsinf0$bc.lat1 = NA
+    gsinf$bc.dist = NA
+    gsinf$bc.dist.v = NA
+    gsinf$bc.dist.h = NA
     gsinf0$bc.depth.mean = NA
     gsinf0$bc.depth.sd = NA
     gsinf0$bc.error.flag = NA
@@ -896,7 +899,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
               gsinf$bc.lon0[gii] = bc$plotdata$longitude[ bci[1] ]
               gsinf$bc.lon1[gii] = bc$plotdata$longitude[ bci[2] ]
               gsinf$bc.lat0[gii] = bc$plotdata$latitude[ bci[1] ]
-              gsinf$bc.lat0[gii] = bc$plotdata$latitude[ bci[2] ]
+              gsinf$bc.lat1[gii] = bc$plotdata$latitude[ bci[2] ]
+             
               gsinf$bc.depth.mean[gii] = bc$depth.mean
               gsinf$bc.depth.sd[gii] = bc$depth.sd
 
@@ -908,6 +912,9 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
                   if ( exists("wing.mean", bc$surface.area ) )  gsinf$wing.mean[gii] =  bc$surface.area$wing.mean
                   if ( exists("door.sd", bc$surface.area ) ) gsinf$door.sd[gii] =  bc$surface.area$door.sd
                   if ( exists("wing.sd", bc$surface.area ) ) gsinf$wing.sd[gii] =  bc$surface.area$wing.sd
+                  if ( exists("distances.total", bc$surface.area ) ) gsinf$bc.dist[gii] = max(bc$surface.area$distances.total, na.rm=TRUE)
+                  if ( exists("distances.vertical", bc$surface.area ) ) gsinf$bc.dist.v[gii]  =  max(bc$surface.area$distances.vertical, na.rm=TRUE)
+                  if ( exists("distances.horizontal", bc$surface.area ) ) gsinf$bc.dist.h[gii]  =  max(bc$surface.area$distances.horizontal, na.rm=TRUE)
                 }
               }
             } else {

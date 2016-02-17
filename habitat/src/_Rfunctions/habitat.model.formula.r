@@ -4,10 +4,8 @@ habitat.model.formula = function( YY="presence", modeltype="complex", indicator=
    
   formu = NULL
   
-  if (indicator %in% c( "default", "metabolism", "speciesarea", "speciescomposition", "sizespectrum", "condition" ) ) { 
+  if (indicator %in% c( "default", "metabolism", "speciesarea", "speciescomposition", "condition", "sizespectrum" ) ) { 
     
-    # "indicator" is not necessary right now but in case the model forms diverge in future
-
     formu = switch(  modeltype,
       
       debug = paste( 
@@ -48,7 +46,7 @@ habitat.model.formula = function( YY="presence", modeltype="complex", indicator=
       )
     )
   }
-
+  
   if ( !is.null(additional.terms)) formu = paste( formu, '+', additional.terms )
 
   out = formula ( paste( YY, "~", formu ) )

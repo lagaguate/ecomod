@@ -7,7 +7,7 @@
     if (DS == "metabolism")    return( metabolism.db( DS=DS, p=p ) )
     if (DS == "speciesarea")   return( speciesarea.db( DS=DS, p=p ) )
     if (DS == "speciescomposition")  return( speciescomposition.db( DS=DS, p=p ) )
- #   if (DS == "condition")  return( condition.db( DS=DS, p=p ) )
+    if (DS == "condition")  return( condition.db( DS=DS, p=p ) )
     if (DS == "biochem")  return( biochem.db( DS=DS, p=p ) )
 
  

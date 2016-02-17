@@ -1,7 +1,5 @@
 
   habitat.model = function( ip=NULL, p=NULL, DS="saved", vn=NULL, yr=0 ) {
-    #browser()
-    
     # compute the spatial interpolation model
     
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
@@ -12,8 +10,8 @@
     
     if (DS=="saved") {
       models = NULL
-     if(p$movingdatawindow!=0) fn.models =  file.path( outdir, paste("models", vn, yr, "rdata", sep=".") )
-     if(p$movingdatawindow==0) fn.models =  file.path( outdir, paste("models", vn, "rdata", sep=".") )
+      if(p$movingdatawindow!=0) fn.models =  file.path( outdir, paste("models", vn, yr, "rdata", sep=".") )
+      if(p$movingdatawindow==0) fn.models =  file.path( outdir, paste("models", vn, "rdata", sep=".") )
       if (file.exists( fn.models ) ) load( fn.models)
       return( models )
     }
