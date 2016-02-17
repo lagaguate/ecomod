@@ -1,4 +1,4 @@
-  fix.permissions = function( loc=ecomod.datadirectory, file.perm="ug+rw,o+r", dir.perm=" ug+rwX,o+rX", method="unix" ) {
+  fix.permissions = function( loc=ecomod.datadirectory, file.perm="ugo+rw", dir.perm=" ugo+rwx", method="unix" ) {
     #\\ File permissions can get messed up easily in a shared environment
     #\\ make permissions sensisble recursively inside directory "loc"
     if (method=="unix") {

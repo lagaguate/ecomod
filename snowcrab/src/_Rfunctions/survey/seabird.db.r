@@ -176,8 +176,25 @@
           print(id)
           #if(id=='seabird.S18112012.2.339.6.24.24') browser()
           bc = NULL
+<<<<<<< HEAD
           bc = bottom.contact( x=M, bcp=bcp )
           #browser()
+=======
+          bc = bottom.contact( x=M, bcp=bcp ) 
+          
+          if ( is.null(bc) ) {
+            # try once more with random settings
+             bcp$noisefilter.inla.h = bcp$noisefilter.inla.h * 2
+             bc = bottom.contact( x=M, bcp=bcp ) 
+          }
+       
+          if ( is.null(bc) ) {
+            # try once more with random settings
+            M$depth = jitter( M$depth, amount = bcp$eps.depth/4 ) 
+            bcp$noisefilter.inla.h =  bcp$eps.depth / 2
+            bc = bottom.contact( x=M, bcp=bcp ) 
+          }
+>>>>>>> 970c6bbdb73aaf74b911d3e0b051d320ae0d3b05
 
           if (plot) {
             # to visualize

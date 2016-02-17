@@ -108,7 +108,10 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
     netmind.db( DS="set.netmind.lookuptable.redo" )
     return ( netmind.dir  )
   }
-  
+ 
+
+   # ------------------
+
   
   if (DS %in% c("stats", "stats.redo" ) ) {
    # browser()
@@ -131,39 +134,80 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
       }
       
       netmind.stat$yr = NULL
-      
       nm = netmind.db( DS="set.netmind.lookuptable" )
-      
       res = merge( nm, netmind.stat,  by="netmind_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      
-      
       return (res)
     }
-    
     
     # "stats.redo" is the default action
     # bring in stats from each data stream and then calculate netmind stats
     # bring in minilog and seabird data that has t0, t1 times for start and stop of bottom contact
+<<<<<<< HEAD
     set = snowcrab.db( DS="set.minilog.seabird" )
     set2015 = set[which(set$yr == '2015'),]
     print(head(set2015))
             
     if(plot)pdf(paste0("netmind",yr,".pdf"))
 
+=======
+    
+    tzone = "America/Halifax"
+    set = snowcrab.db( DS="setInitial") 
+    
+    set.names= names(set)
+    
+    nm = netmind.db( DS="set.netmind.lookuptable" )
+    set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
+     
+    sbStats =  seabird.db( DS="stats" )
+    sbStats = sbStats[ , c('trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+    mlStats =  minilog.db( DS="stats" )
+    mlStats = mlStats[ , c('trip','set', "z",    "zsd",    "t",    "tsd",    "n",    "t0",    "t1",    "dt" ) ]
+    names( mlStats ) =   c('trip','set', "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
+
+    set = merge( set, sbStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+    set = merge( set, mlStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+    set$t0 = as.POSIXct(set$t0,format="%Y-%m-%d %H:%M:%S", tz=tzone, origin=lubridate::origin )
+    set$t1 = as.POSIXct(set$t1,format="%Y-%m-%d %H:%M:%S", tz=tzone, origin=lubridate::origin)
+    set = toNums(set,c('dt','t0.ml','t1.ml', 'dt.ml'))
+
+    # use seabird data as the standard, replace with minilog data where missing
+    ii = which(!is.finite( set$t0) )
+    if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin=lubridate::origin, tz=tzone)
+
+    ii = which(!is.finite( set$t1) )
+    if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t1.ml[ii],origin=lubridate::origin, tz=tzone)
+    
+    ii = which(!is.finite( set$z) )
+    if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]
+  
+    ii = which(!is.finite( set$zsd) )
+    if (length(ii) > 0 )  set$zsd[ ii] = set$zsd.ml[ii]
+     
+    ii = which(!is.finite( set$t) )
+    if (length(ii) > 0 )  set$t[ ii] = set$t.ml[ii]
+  
+    ii = which(!is.finite( set$tsd) )
+    if (length(ii) > 0 )  set$tsd[ ii] = set$tsd.ml[ii]
+
+    ii = which(!is.finite( set$dt) )
+    if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
+      
+    set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
+   
+>>>>>>> 970c6bbdb73aaf74b911d3e0b051d320ae0d3b05
     for ( yr in Y ) {
       print(yr)
       fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
       Stats = NULL
       basedata = netmind.db( DS="basedata", Y=yr )
-      
       ii = which( set$yr==yr & !is.na(set$netmind_uid) )
       nii =  length( ii ) 
-     # browser()
       if ( nii== 0 ) next()
-      
       rid = set[ ii,] 
       # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
       Stats = NULL
+<<<<<<< HEAD
      for ( i in 1:nii  ){ 
        print(i)
         id = rid$netmind_uid[i]
@@ -174,15 +218,29 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
         l$netmind_uid = id
         l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
         Stats = rbind( Stats, l )
+=======
+      for ( i in 1:nii ) { 
+         print(i)
+          id = rid$netmind_uid[i]
+          print(rid[i,])
+          N = basedata[ basedata$netmind_uid==id,]
+          if (nrow(N) == 0 ) next()
+          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr )
+          l$netmind_uid = id
+          l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
+          Stats = rbind( Stats, cbind( l, rid[ i, c("z", "zsd", "t", "tsd")] )  )
+>>>>>>> 970c6bbdb73aaf74b911d3e0b051d320ae0d3b05
       } 
-      
       save( Stats, file=fn, compress=TRUE )
     }
     if(plot)dev.off()
     return ( netmind.dir )
   }
+
+
+  # -------------------
   
-  
+
   if (DS %in% c("set.netmind.lookuptable", "set.netmind.lookuptable.redo") ) {
     
     fn = file.path( netmind.dir, "set.netmind.lookuptable.rdata" )

@@ -9,7 +9,7 @@
      
   # load required functions and parameters 
   	
-    loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
     
   debug = FALSE
   if (debug) {
@@ -55,35 +55,30 @@
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
  
-    # unless there are structural changes in approach, incremental update is fine
-    seabird.yToload = p$current.assessment.year
-    minilog.yToload = p$current.assessment.year
-    netmind.yToload = p$current.assessment.year
-      if (full.redo) {
-        seabird.yToload = 2012:p$current.assessment.year
-        minilog.yToload = 1999:p$current.assessment.year
-        netmind.yToload = 1999:p$current.assessment.year
-      }     
-     
+    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
+
+    seabird.yToload = 2012:p$current.assessment.year
+    minilog.yToload = 1999:p$current.assessment.year
+    netmind.yToload = 1999:p$current.assessment.year
+    esonar.yToload  = 2014:p$current.assessment.year
+
     # The following requires "setInitial", run this line if loading netmind data 2014 or after
     if(esnoar2netmind.conversion){
-      netmind.db(DS='esnoar2netmind.conversion',Y=2014:p$current.assessment.year) 
-      }
+      netmind.db(DS='esnoar2netmind.conversion',Y=esonar.yToload ) 
+    }
 
     seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012;
     minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
     netmind.db( DS="load", Y=netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
 
     #MG I'm not sure why these stats are not being written automatically, neet to set it in the code above to run these after data is loaded
-    seabird.db (DS="stats.redo", Y=2014:p$current.assessment.year)
-    minilog.db (DS="stats.redo", Y=2014:p$current.assessment.year)
-    netmind.db(DS="stats.redo", Y=p$current.assessment.year)
-    
-    snowcrab.db( DS="set.clean.redo", proj.type=p$internal.projection )
+    seabird.db (DS="stats.redo", Y=seabird.yToload )
+    minilog.db (DS="stats.redo", Y=minilog.yToload )
+    netmind.db (DS="stats.redo", Y=netmind.yToload )
    
-    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-    set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
-    head(set2015)  
+    # snowcrab.db( DS="set.minilog.seabird.redo" ) .. retired
+    snowcrab.db( DS="set.clean.redo", p=p, proj.type=p$internal.projection )
+   
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
       problems = data.quality.check( set, type="position") 
@@ -117,6 +112,8 @@
 
 
   }  # end base data
+  
+  
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
   parameters.initial = p  # copy here as the other calls below overwrites p# -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
