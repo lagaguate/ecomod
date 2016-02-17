@@ -1,6 +1,6 @@
 
   net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL ) {
-   #browser()
+   browser()
     
     tzone = "America/Halifax"  ## need to verify if this is correct
 
@@ -57,7 +57,8 @@
       bc = NULL
       bc = bottom.contact( x=M, bcp=bcp )
         
-      if (FALSE) {
+        browser()
+      if (TRUE) {
         # to visualize/debug
         bottom.contact.plot( bc) 
       }

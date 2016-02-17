@@ -1,4 +1,4 @@
-netmind.db = function( DS, Y=NULL ) {
+netmind.db = function( DS, Y=NULL, plot=FALSE ) {
   
   netmind.dir = project.datadirectory("snowcrab", "data", "netmind" )
   netmind.rawdata.location = file.path( netmind.dir, "archive" )
@@ -147,7 +147,9 @@ netmind.db = function( DS, Y=NULL ) {
     set = snowcrab.db( DS="set.minilog.seabird" )
     set2015 = set[which(set$yr == '2015'),]
     print(head(set2015))
-    
+            
+    if(plot)pdf(paste0("netmind",yr,".pdf"))
+
     for ( yr in Y ) {
       print(yr)
       fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
@@ -168,7 +170,7 @@ netmind.db = function( DS, Y=NULL ) {
         print(rid[i,])
         N = basedata[ basedata$netmind_uid==id,]
         if (nrow(N) == 0 ) next()
-        l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr )
+        l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr, plot=plot)
         l$netmind_uid = id
         l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
         Stats = rbind( Stats, l )
@@ -176,6 +178,7 @@ netmind.db = function( DS, Y=NULL ) {
       
       save( Stats, file=fn, compress=TRUE )
     }
+    if(plot)dev.off()
     return ( netmind.dir )
   }
   
