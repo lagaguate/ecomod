@@ -142,14 +142,12 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
     # "stats.redo" is the default action
     # bring in stats from each data stream and then calculate netmind stats
     # bring in minilog and seabird data that has t0, t1 times for start and stop of bottom contact
-<<<<<<< HEAD
     set = snowcrab.db( DS="set.minilog.seabird" )
     set2015 = set[which(set$yr == '2015'),]
     print(head(set2015))
             
     if(plot)pdf(paste0("netmind",yr,".pdf"))
 
-=======
     
     tzone = "America/Halifax"
     set = snowcrab.db( DS="setInitial") 
@@ -195,7 +193,6 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
       
     set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
    
->>>>>>> 970c6bbdb73aaf74b911d3e0b051d320ae0d3b05
     for ( yr in Y ) {
       print(yr)
       fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
@@ -207,7 +204,6 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
       rid = set[ ii,] 
       # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
       Stats = NULL
-<<<<<<< HEAD
      for ( i in 1:nii  ){ 
        print(i)
         id = rid$netmind_uid[i]
@@ -218,7 +214,6 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
         l$netmind_uid = id
         l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
         Stats = rbind( Stats, l )
-=======
       for ( i in 1:nii ) { 
          print(i)
           id = rid$netmind_uid[i]
@@ -229,7 +224,6 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
           l$netmind_uid = id
           l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
           Stats = rbind( Stats, cbind( l, rid[ i, c("z", "zsd", "t", "tsd")] )  )
->>>>>>> 970c6bbdb73aaf74b911d3e0b051d320ae0d3b05
       } 
       save( Stats, file=fn, compress=TRUE )
     }
