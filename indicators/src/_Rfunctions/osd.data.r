@@ -163,8 +163,9 @@
 
     if ( source %in% c("nao", "nao.refresh")) {
        
-      # http://www.meds-sdmm.dfo-mpo.gc.ca/zmp/climate/NAO_e.htm
-      loc = "http://www.meds-sdmm.dfo-mpo.gc.ca/alphapro/zmp/climate/NAO/odf_data_files/NAOIndex.odf"
+    
+     
+      loc = "http://www.meds-sdmm.dfo-mpo.gc.ca/alphapro/zmp/climate/NAO/odf_data_files/NAOINDEX_Nao_Index.odf"
       fn = file.path( osd.dir, basename(loc) )
       if ( source=="nao.refresh") download.file( url=loc, destfile=fn )
 
@@ -278,7 +279,7 @@
         names(d.met) = c("year", "month", "day", "hour", "P.sealevel.hPa", "P.sealevel.hPa.flag", "t.dewpoint.C", "t.dewpoint.C.flag", "t.dry",  "t.dry.flag", "wind.speed.horizontal", "wind.speed.horizontal.flag", "wind.direction.from", "wind.direction.from.flag", "total.cloud.prop", "total.cloud.prop.flag" )
 
 
-        fn0 = unz(fn.rain, "SABLE_ISLAND_HLY03.txt")
+        fn0 = unz(fn.rain, "Sable_Island_HLY03_1.txt")
         test = readLines( fn0, n=200)
         nheaderlines = grep( "end_of_header", test, ignore.case=T, perl=T, useBytes=T)
         d.rain = read.table( fn0, skip=nheaderlines, as.is=T)
@@ -293,7 +294,7 @@
 #[15] "\t 6 : Valid data|Donn\xe9e valide"     
        
 
-        fn0 = unz(fn.rad, "SABLE_ISLAND_HLY11_1.txt")
+        fn0 = unz(fn.rad, "Sable_Island_HLY11_1.txt")
         test = readLines( fn0, n=200)
         nheaderlines = grep( "end_of_header", test, ignore.case=T, perl=T, useBytes=T)
         d.rad1 = read.table( fn0, skip=nheaderlines, as.is=T)
@@ -308,7 +309,7 @@
 # [18] "\t 6 : Estimated, no snow cover|Estim\xe9e, pas de couverture neigeuse"        
 # [19] "\t 7 : Estimated, snow cover|Estim\xe9e, couverture neigeuse"          
         
-        fn0 = unz(fn.rad, "SABLE_ISLAND_HLY11_2.txt")
+        fn0 = unz(fn.rad, "Sable_Island_HLY11_2.txt")
         test = readLines( fn0, n=200)
         nheaderlines = grep( "end_of_header", test, ignore.case=T, perl=T, useBytes=T)
         d.rad2 = read.table( fn0, skip=nheaderlines, as.is=T)

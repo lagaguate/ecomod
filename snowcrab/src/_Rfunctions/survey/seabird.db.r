@@ -3,7 +3,7 @@
 	# some modifications to the 
  
 
-  seabird.db = function( DS="", Y=NULL ){
+  seabird.db = function( DS="", Y=NULL, plot=FALSE ){
     
     sb.dir = project.datadirectory("snowcrab", "data", "seabird" )
     seabird.rawdata.location = file.path( sb.dir, "archive" ) 
@@ -148,8 +148,9 @@
         if (nrow(rid) == 0 ) next()
         #prune down the rids to only a subset
         #rid = rid[grepl('S30092013',rid$seabird_uid),]
+        if(plot)pdf(paste0("seabird",yr,".pdf"))
         for ( i in 1:nrow(rid) ) {
-     
+          #browser()
           id = rid$seabird_uid[i]
           sso.trip = rid$trip[i] 
           sso.set = rid$set[i]
@@ -176,8 +177,23 @@
           #if(id=='seabird.S18112012.2.339.6.24.24') browser()
           bc = NULL
           bc = bottom.contact( x=M, bcp=bcp )
+          #browser()
+          bc = bottom.contact( x=M, bcp=bcp ) 
+          
+          if ( is.null(bc) ) {
+            # try once more with random settings
+             bcp$noisefilter.inla.h = bcp$noisefilter.inla.h * 2
+             bc = bottom.contact( x=M, bcp=bcp ) 
+          }
+       
+          if ( is.null(bc) ) {
+            # try once more with random settings
+            M$depth = jitter( M$depth, amount = bcp$eps.depth/4 ) 
+            bcp$noisefilter.inla.h =  bcp$eps.depth / 2
+            bc = bottom.contact( x=M, bcp=bcp ) 
+          }
 
-          if (FALSE) {
+          if (plot) {
             # to visualize
             bottom.contact.plot( bc )
           }
@@ -212,6 +228,7 @@
           res$dt = as.character(res$dt) 
           sbStats = rbind( sbStats, cbind( seabird_uid=id, res ) )
         }
+        if(plot)dev.off()
 
         sbStats$seabird_uid =  as.character(sbStats$seabird_uid)
 

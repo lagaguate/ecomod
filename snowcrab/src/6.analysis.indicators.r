@@ -10,7 +10,7 @@
       
       groundfish = indicators.db( db="groundfish.timeseries.redo" )
       snowcrab = indicators.db( db="snowcrab.timeseries.redo") 
-      #climate = indicators.db (db="climate.redo" )
+      climate = indicators.db (db="climate.redo" )
       shrimp = indicators.db( db="shrimp.timeseries.redo")
 
       sar = indicators.db( db="species.area.redo" )
@@ -23,7 +23,7 @@
       # hand constructed and updated .. TODO :: find solutions!
       #plankton = indicators.db( db="plankton.timeseries.redo" )
       human = indicators.db( db="demographics.redo" )
-      #climate = indicators.db (db="climate.redo" )
+     
       
       #seals = indicators.db( db="seal.timeseries.redo" ) 
       landedvalue = indicators.db( db="landedvalue.annual.redo", ref.year=2008 )
@@ -31,21 +31,19 @@
       
 
   
-  # refresh the survey data
-  # DEMOGRAPHICS goto:: http://www.gov.ns.ca/finance/communitycounts/dataview.asp?gnum=pro9012&gnum2=pro9012&chartid=&whichacct=&year2=&mapid=&ptype=&gtype=&yearid=2006&acctype=0&gname=&dcol=&group=&group1=&group2=&group3=&gview=3&table=table_d17&glevel=pro
   
   
   
-require( xlsReadWrite )
-data = read.xls( "mydata.xls", sheet="Sheet1" )
-
-for ( y in 
-http://www.gov.ns.ca/finance/communitycounts/export.asp?bExcel=1&page=table_d17&dgroup=&dgroup1=&dgroup2=&dgroup3=&dgroup4=&yearid=2011&gnum=pro9012&gname=Nova%20Scotia&range= 
-  
-require( XLConnect )
-fn = "~/Downloads/estimates.xls"
-wb <- loadWorkbook( fn) 
-data <- readWorksheet(wb)
+# require( xlsReadWrite )
+# data = read.xls( "mydata.xls", sheet="Sheet1" )
+# 
+# for ( y in 
+# http://www.gov.ns.ca/finance/communitycounts/export.asp?bExcel=1&page=table_d17&dgroup=&dgroup1=&dgroup2=&dgroup3=&dgroup4=&yearid=2011&gnum=pro9012&gname=Nova%20Scotia&range= 
+#   
+# require( XLConnect )
+# fn = "~/Downloads/estimates.xls"
+# wb <- loadWorkbook( fn) 
+# data <- readWorksheet(wb)
 
 
 
@@ -60,13 +58,13 @@ data <- readWorksheet(wb)
 
 
   t0 = 1960
-  t1 = 2014
+  t1 = 2015
 
   # ordination of selected key factors
   indic = indicators.db( db="indicators.all" )  
   
   d = indicators.subset ( indic, type="keyfactors" )
-  save( d, file="/home/adam/tmp/ordin.rdata", compress=TRUE )
+#  save( d, file="/home/adam/tmp/ordin.rdata", compress=TRUE )
   
   Y = pca.analyse.data(d, t0, t1, fname=file.path(project.datadirectory("indicators"), "keyfactors" ) )
   

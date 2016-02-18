@@ -8,7 +8,10 @@
   
 
   p = list()
-  p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel")) 
+  p$project.name = "speciescomposition"
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" ) #required for interpolations and mapping
+
+  p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel", "rgdal")) 
 
 	p$init.files = loadfunctions( c(
     "spacetime", "utility", "parallel", 
@@ -24,7 +27,7 @@
   p$nw = 10
 
   # choose:
-   p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
   # p$clusters = rep( "localhost", 24 )
@@ -32,29 +35,24 @@
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
    #p$clusters = rep("localhost", detectCores() )
 
+  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+  # p$clusters = c( rep( "nyx", 24), rep("tartarus", 24), rep("kaos", 24 ) )
+  p$clusters = rep("localhost", detectCores() )
  
   p$yearstomodel = 1970:2015
   p$varstomodel = c( "ca1", "ca2", "pca1", "pca2" )
 
   p$modtype = "complex"
-
-  p$habitat.predict.time.julian = "Sept-1" # Sept 1
-  
   p$spatial.knots = 100
-  
   p$movingdatawindow = 0  # this signifies no moving window ... all in one model
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
-
-  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
-
-
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is newton (default), then this .. see GAM options
 
   # ordination
   speciescomposition.db( DS="speciescomposition.ordination.redo", p=p )
   speciescomposition.db( DS="speciescomposition.redo", p=p )
 	
-
 
 # -------------------------------------------------------------------------------------
 # Generic spatio-temporal interpolations and maping of data 
@@ -65,7 +63,6 @@
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
 
- 
   if ( p$movingdatawindow == 0 ) { 
     ## NO windowing ... full model
 

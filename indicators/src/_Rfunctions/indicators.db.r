@@ -245,7 +245,7 @@
       return (lv)
     }
 
-    if (db %in% c("demographics" ) ) {
+    if (db %in% c("demographics.redo" ) ) {
       ### goto:: http://www.gov.ns.ca/finance/communitycounts/dataview.asp?gnum=pro9012&gnum2=pro9012&chartid=&whichacct=&year2=&mapid=&ptype=&gtype=&yearid=2006&acctype=0&gname=&dcol=&group=&group1=&group2=&group3=&gview=3&table=table_d17&glevel=pro
       
       infile = file.path( project.datadirectory("indicators"), "data", "human.csv")
@@ -629,7 +629,7 @@
 
       # hand constructed and updated ..
       plankton = indicators.db( db="plankton.timeseries" )
-      human = indicators.db( db="demographics" )
+      human = indicators.db( db="demographics.redo" )
       climate = indicators.db (db="climate" )
       
       seals = indicators.db( db="seal.timeseries" ) 

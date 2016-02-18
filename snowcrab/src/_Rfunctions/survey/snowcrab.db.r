@@ -266,8 +266,10 @@
       proj4string(sdf.set) <- CRS(p$geog.proj)
       shpdir = file.path(project.datadirectory("snowcrab"), "maps", "shapefiles", "survey")
       setwd(shpdir)
+      
       writeOGR(sdf.set, ".", "SurveyDataUpdate", driver="ESRI Shapefile", overwrite=T)
-      setwd("/home/michelle/tmp")
+      setwd("/home/michelle/tmp")  ## michelle:: please do not place hard-links into the code as this will force a fail for others ..
+
       shp.path <- paste("SurveyDataUpdate shapefile created at", shpdir, sep=" ")
       print(shp.path)
 
@@ -779,76 +781,87 @@
     # --------------------------------
     
   
-    if (DS=="set.minilog.seabird") {
+    if (DS %in% c("set.minilog.seabird.retired", "set.minilog.seabird.redo.retired")) {
       # merge setInitial with minilog stats, seabird stats to generate sensible start and end times 
       # used for creating netmind stats /metrics
-      tzone = "America/Halifax"
-      
-      set = snowcrab.db( DS="setInitial") 
-      set.names= names(set)
-      #set2015 = set[which(set$yr==2015),]
-      
-      #These have 2015 data in them
-      sb = seabird.db( DS="set.seabird.lookuptable" )
-      ml = minilog.db( DS="set.minilog.lookuptable" )
-      ml2015 = ml[grep("2015", ml$trip),]
-      nm = netmind.db( DS="set.netmind.lookuptable" )
+      fn = file.path( project.datadirectory( "snowcrab", "data"), "set.minilog.seabird.rdata" )
+    
+      if (DS=="set.minilog.seabird.redo.retired") {
+        set = NULL
+        if ( file.exists( fn) ) load (fn)
+        return (set)
+      }
 
-      set = merge( set, sb, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".seabird") )
-      set = merge( set, ml, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".minilog") )
-      set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
-      
-      set = set[ , c( set.names, "seabird_uid", "minilog_uid", "netmind_uid" ) ]
+      if (DS=="set.minilog.seabird.retired") {
+        tzone = "America/Halifax"
+        set = snowcrab.db( DS="setInitial") 
+        set.names= names(set)
+        #set2015 = set[which(set$yr==2015),]
+        
+        #These have 2015 data in them
+        sb = seabird.db( DS="set.seabird.lookuptable" )
+        ml = minilog.db( DS="set.minilog.lookuptable" )
+        # ml2015 = ml[grep("2015", ml$trip),]
+        nm = netmind.db( DS="set.netmind.lookuptable" )
 
-      #These do not have 2015 data in them 
-      sbStats =  seabird.db( DS="stats" )
- #     sbStats = sbStats[ , c("seabird_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
-      sbStats = sbStats[ , c("seabird_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
-      #sbStats2015= sbStats[grep("2015", sbStats$trip),]
-      mlStats =  minilog.db( DS="stats" )
- #     mlStats = mlStats[ , c("minilog_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
-      mlStats = mlStats[ , c("minilog_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
-       #mlStats2015= mlStats[grep("2015", mlStats$trip),]
+        set = merge( set, sb, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".seabird") )
+        set = merge( set, ml, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".minilog") )
+        set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
+        
+        set = set[ , c( set.names, "seabird_uid", "minilog_uid", "netmind_uid" ) ]
+
+        #These do not have 2015 data in them 
+        sbStats =  seabird.db( DS="stats" )
+   #     sbStats = sbStats[ , c("seabird_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+        sbStats = sbStats[ , c("seabird_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+        #sbStats2015= sbStats[grep("2015", sbStats$trip),]
+        mlStats =  minilog.db( DS="stats" )
+   #     mlStats = mlStats[ , c("minilog_uid", "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+        mlStats = mlStats[ , c("minilog_uid",'trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
+         #mlStats2015= mlStats[grep("2015", mlStats$trip),]
 
 
 
-      names( mlStats ) = c("minilog_uid",'trip','set', "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
+        names( mlStats ) = c("minilog_uid",'trip','set', "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
 
 #      set = merge( set, sbStats, by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
 #      set = merge( set, mlStats, by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
-      set = merge( set, sbStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-      set = merge( set, mlStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-      set$t0 = as.POSIXct(set$t0,format="%Y-%m-%d %H:%M:%S", tz=tzone,origin=lubridate::origin )
-      set$t1 = as.POSIXct(set$t1,format="%Y-%m-%d %H:%M:%S", tz=tzone ,origin=lubridate::origin)
-      set = toNums(set,c('dt','t0.ml','t1.ml', 'dt.ml'))
+        set = merge( set, sbStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+        set = merge( set, mlStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+        set$t0 = as.POSIXct(set$t0,format="%Y-%m-%d %H:%M:%S", tz=tzone,origin=lubridate::origin )
+        set$t1 = as.POSIXct(set$t1,format="%Y-%m-%d %H:%M:%S", tz=tzone ,origin=lubridate::origin)
+        set = toNums(set,c('dt','t0.ml','t1.ml', 'dt.ml'))
 
-      # use seabird data as the standard, replace with minilog data where missing
-      ii = which(!is.finite( set$t0) )
-      if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin=lubridate::origin, tz=tzone)
- 
-      ii = which(!is.finite( set$t1) )
-      if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t1.ml[ii],origin=lubridate::origin, tz=tzone)
+        # use seabird data as the standard, replace with minilog data where missing
+        ii = which(!is.finite( set$t0) )
+        if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin=lubridate::origin, tz=tzone)
+   
+        ii = which(!is.finite( set$t1) )
+        if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t1.ml[ii],origin=lubridate::origin, tz=tzone)
+        
+        ii = which(!is.finite( set$z) )
+        if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]
       
-      ii = which(!is.finite( set$z) )
-      if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]
-    
-      ii = which(!is.finite( set$zsd) )
-      if (length(ii) > 0 )  set$zsd[ ii] = set$zsd.ml[ii]
-       
-      ii = which(!is.finite( set$t) )
-      if (length(ii) > 0 )  set$t[ ii] = set$t.ml[ii]
-    
-      ii = which(!is.finite( set$tsd) )
-      if (length(ii) > 0 )  set$tsd[ ii] = set$tsd.ml[ii]
-       
-      ii = which(!is.finite( set$dt) )
-      if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
-    
-      set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
-      set2015 = set[which(set$yr==2015),]
-      print(head(set2015))
+        ii = which(!is.finite( set$zsd) )
+        if (length(ii) > 0 )  set$zsd[ ii] = set$zsd.ml[ii]
+         
+        ii = which(!is.finite( set$t) )
+        if (length(ii) > 0 )  set$t[ ii] = set$t.ml[ii]
+      
+        ii = which(!is.finite( set$tsd) )
+        if (length(ii) > 0 )  set$tsd[ ii] = set$tsd.ml[ii]
+        
 
-      return (set)
+
+        ii = which(!is.finite( set$dt) )
+        if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
+      
+        set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
+     #   set2015 = set[which(set$yr==2015),]  ## why are we doing this over here? and if you want to do this make it more generic rather than for a specific year? (Jae)
+     #   print(head(set2015))
+        save( set, file=fn, compress=TRUE)
+        return (fn)
+      }
     }
 
     # --------------------------------
@@ -857,8 +870,8 @@
 
     if ( DS %in% c("set.clean", "set.clean.redo") ) {
     
-      # after the merging of minilog and netmind data .. do some checks and cleaning
-      fn = project.datadirectory( "snowcrab", "data", "set.clean.rdata" )
+      # merge seabird, minilog and netmind data and do some checks and cleaning
+      fn = file.path( project.datadirectory( "snowcrab" ), "data", "set.clean.rdata" )
 
       if ( DS=="set.clean" ) {
         set= NULL
@@ -866,44 +879,24 @@
         return (set) 
       }
    
-      # first complete set by adding netmind data
-      set = snowcrab.db( DS="set.minilog.seabird" )
-      nm = netmind.db( DS="stats" )
-      nm = nm[,  c("trip","set","netmind_uid", "distance", "spread", "spread_sd", "surfacearea", "vel", "vel_sd", "netmind_n", "slon", "slat" ) ]
-      #set = merge( set, nm, by =c("netmind_uid"), all.x=TRUE, all.y=FALSE )
-      nm2015 = nm[grep("2015", nm$trip),]
-      print("nm2015")
-      print(head(nm2015))
+        tzone = "America/Halifax"
+        set = snowcrab.db( DS="setInitial") 
+        set.names= names(set)
+    
+        nm = netmind.db( DS="stats" )
+  
+        set = merge( set, nm, by =c("trip","set"), all.x=TRUE, all.y=FALSE, suffixes=c("", ".nm") )
 
-      set = merge( set, nm, by =c("trip","set"), all.x=TRUE, all.y=FALSE )
-
-      set = set[ order( set$yr, set$station, set$t0, set$chron) , ]
-      #set$dt = minutes(set$dt) + seconds(set$dt)/60  # convert to decimal minutes
-      
-      # merge in historical temp and depth records when no data are obtained from minilogs
-      q = which( !is.finite(set$t) )
-      if ( length(q)>0 ) set$t[q] = set$Tx[q]
-
-      q = which( !is.finite( set$z) )
-      if ( length(q)>0 ) set$z[q] = set$Zx[q]
-      
-      igood = which( is.finite( set$z+ set$Zx) )
-      rs = rstandard(  lm( z~Zx-1, set[igood,] ) )
-
-      irs = igood[ which( abs(rs) > 2 ) ]  # large outliers
-      set$z[irs] = NA  # will use bathymetry to fill in these values later
-
-      # fix t0
-      ii = which( is.na( set$t0 ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$t0[ii] = set$chron[ii]
-      }
+        ii = which( is.na( set$t0 ) )  # historical data do not have these fields filled .. fill 
+        if ( length (ii) > 0 ) {
+          set$t0[ii] = set$timestamp[ii]
+        }
  
-      # fix t1
-      ii = which( is.na( set$t1 ) )  # historical data do not have these fields filled .. fill 
-      if ( length (ii) > 0 ) {
-        set$t1[ii] = set$t0[ii] + median(set$dt, na.rm=TRUE )
-      }
+        # fix t1
+        ii = which( is.na( set$t1 ) )  # historical data do not have these fields filled .. fill 
+        if ( length (ii) > 0 ) {
+          set$t1[ii] = set$t0[ii] + median(set$dt, na.rm=TRUE )
+        }
 
       # positional data obtained directly from Netmind GPS and Minilog T0
       # overwrite all, where available 
@@ -917,6 +910,7 @@
       set$plon = grid.internal( set$plon, p$plons )
       set$plat = grid.internal( set$plat, p$plats )
 
+      # merge surfacearea from net mesnuration into the database 
       set = clean.surface.area( set )
          
       set$slon = NULL
@@ -927,8 +921,8 @@
       set$cfa = NULL
       set$gear = NULL
 
-      set2015= set[which(set$yr==2015),]
-      print(head(set2015))
+    #  set2015= set[which(set$yr==2015),]
+    #  print(head(set2015))
    
       save( set, file=fn, compress=TRUE )
       

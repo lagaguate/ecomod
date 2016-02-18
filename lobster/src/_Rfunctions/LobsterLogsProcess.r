@@ -87,7 +87,7 @@ LobsterLogsProcess<-function(){
 
 
 	# Save logsInSeason as working data
-	write.csv(logsInSeason,file.path( project.datadirectory("lobster"), "data","logsInSeason.csv"),row.names=F)
+	write.csv(logsInSeason,file.path( project.datadirectory("lobster"), "data"."products","logsInSeason.csv"),row.names=F)
 
 
 
