@@ -1,6 +1,5 @@
 
-  net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL ) {
-   browser()
+  net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL, plotdata=FASLE ) {
     
     tzone = "America/Halifax"  ## need to verify if this is correct
 
@@ -54,7 +53,7 @@
       bcp = list( 
         id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), 
         tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), 
-        depthproportion=0.6, noisefilter.inla.h = 0.02, eps.depth = 0.5 # m
+        depthproportion=0.6, noisefilter.inla.h = 0.02, eps.depth = 2 # m
       )
       
       bcp = bottom.contact.parameters( bcp ) # add other default parameters
@@ -62,11 +61,20 @@
       bc = NULL
       bc = bottom.contact( x=M, bcp=bcp )
         
-        browser()
-      if (TRUE) {
-        # to visualize/debug
-        bottom.contact.plot( bc) 
-      }
+            if ( is.null(bc) ) {
+              # try once more with random settings
+               bcp$noisefilter.inla.h = bcp$noisefilter.inla.h * 2
+               bc = bottom.contact( x=M, bcp=bcp ) 
+            }
+         
+            if ( is.null(bc) ) {
+              # try once more with random settings
+              M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+              bcp$noisefilter.inla.h =  bcp$eps.depth / 10
+              bc = bottom.contact( x=M, bcp=bcp ) 
+            }
+
+      if (plotdata)  bottom.contact.plot( bc)  # to visualize/debug
       
       if (is.null(t0) & !is.null(bc$bottom0) ) t0 = bc$bottom0
       if (is.null(t1) & !is.null(bc$bottom1) ) t1 = bc$bottom1
