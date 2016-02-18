@@ -1,7 +1,5 @@
 	
 	# mostly a copy over of the MINILOG functions with variable nemaes being replaced
-	# some modifications to the 
- 
 
   seabird.db = function( DS="", Y=NULL, plot=FALSE ){
     
@@ -118,7 +116,14 @@
         sb.meta = seabird.db( DS="metadata", Y=Y )
 
         res = merge( sb.meta, sb.stat,  by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
-        
+    
+        # TODO:: need to move this into the load.seabird function and remove chron dependence in it
+        # should not be required here .. but in case
+        res$t0 = lubridate::ymd_hms(res$t0)
+        res$t1 = lubridate::ymd_hms(res$t1)
+        res$dt = as.numeric( res$dt )  # minutes
+        res$timestamp = lubridate::ymd_hms(res$timestamp)
+ 
         if(any(duplicated(res[,c('trip','set')]))) {
             res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
           }
@@ -138,8 +143,11 @@
         sbStats = NULL
 
         sbRAW = seabird.db( DS="basedata", Y=yr )
-        
+        sbRAW$timestamp = lubridate::ymd_hms( sbRAW$chron)
+
         mta = seabird.db( DS="metadata", Y=yr )
+        mta$timestamp = ymd_hms( mta$timestamp )
+
         rid = seabird.db( DS="set.seabird.lookuptable" )
         rid = data.frame( seabird_uid=rid$seabird_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="seabird_uid", all.x=TRUE, all.y=FALSE )
@@ -159,16 +167,14 @@
           Mi = which( sbRAW$seabird_uid == id )
           if (length( Mi) == 0 ) next()
           M = sbRAW[ Mi, ]
-         
 
-          M$timestamp = as.POSIXct( M$chron, tz=tzone,origin=lubridate::origin )
-          settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone,origin=lubridate::origin )
+          settimestamp= rid$timestamp[i]
           time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
      
           bcp = list( 
             id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
-            tdif.min=3, tdif.max=9, time.gate=time.gate,
-            depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
+            tdif.min=3, tdif.max=9, time.gate=time.gate, noisefilter.inla.h=0.05 ,
+            depth.min=20, depth.range=c(-20,30), depthproportion=0.6, eps.depth = 2
           )
         
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
@@ -188,8 +194,8 @@
        
           if ( is.null(bc) ) {
             # try once more with random settings
-            M$depth = jitter( M$depth, amount = bcp$eps.depth/4 ) 
-            bcp$noisefilter.inla.h =  bcp$eps.depth / 2
+            M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+            bcp$noisefilter.inla.h =  bcp$eps.depth / 10
             bc = bottom.contact( x=M, bcp=bcp ) 
           }
 

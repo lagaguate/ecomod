@@ -57,7 +57,7 @@ bottom.contact = function( x, bcp ) {
   ## PRE-FILTER 4
   # time and depth-based gating
   mm = modes( x$depth  )
-  if (mm$sd < 0.001 || is.na(mm$sd)) return(NULL)  # there is no depth variation in the data ... likely a bad data series
+  if (mm$lb == mm$ub || is.na(mm$sd)) return(NULL)  # there is no depth variation in the data ... likely a bad data series
   mm.i = which( x$depth > (mm$lb2+bcp$depth.range[1]) & x$depth < (mm$ub2 + bcp$depth.range[2]) )
   O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
   O$good[mm.i] = TRUE
@@ -154,6 +154,7 @@ bottom.contact = function( x, bcp ) {
   res = try( bottom.contact.gating.variance ( x, O$good, bcp ), silent =TRUE )
 
   if ( ! "try-error" %in% class( res) )  {
+    if (exists( "bc0", res )) {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
       DT = abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
       if ( length(DT) == 1 ) {
@@ -165,7 +166,7 @@ bottom.contact = function( x, bcp ) {
         if (length( bad) > 0) O$good[ bad ] = FALSE
         x$depth[ !O$good ] = NA
       } }
-    }
+    }}
   }
 
   if(debug.plot) {
@@ -202,6 +203,7 @@ bottom.contact = function( x, bcp ) {
   res = NULL
   res = try( bottom.contact.modal( sm=sm0, bcp ), silent=TRUE )
     if ( ! "try-error" %in% class( res) ) {
+      if (exists( "bc0", res )) {
       if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
         DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
         if ( length(DT) == 1 ) {
@@ -210,7 +212,7 @@ bottom.contact = function( x, bcp ) {
           O$modal.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$modal.method.indices = which( x$timestamp >= res$bc0  &  x$timestamp <= res$bc1  ) # x correct
         } }
-      }
+      }}
     }  
      
   if(debug.plot) {
@@ -238,6 +240,7 @@ bottom.contact = function( x, bcp ) {
   res = try( 
     bottom.contact.smooth( sm=sm0, bcp=bcp ) , silent =TRUE)
     if ( ! "try-error" %in% class( res) ) {
+      if (exists( "bc0", res )) {
       if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
         DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
         if ( length(DT) == 1) { 
@@ -246,7 +249,7 @@ bottom.contact = function( x, bcp ) {
           O$smooth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
           O$smooth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
         } }
-      }
+      }}
     }  
       
   if(debug.plot) {
@@ -273,6 +276,7 @@ bottom.contact = function( x, bcp ) {
   res = try( bottom.contact.maxdepth( sm=sm0, O=O, bcmethods=bcmethods, bcp=bcp ) , silent=TRUE ) 
 
   if ( ! "try-error" %in% class( res) ) {
+    if (exists( "bc0", res )) {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
       DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
       if ( length(DT) == 1 ) {
@@ -281,7 +285,7 @@ bottom.contact = function( x, bcp ) {
         O$maxdepth.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$maxdepth.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
       }}
-    }
+    }}
   }  
  
   if(debug.plot) {
@@ -310,6 +314,7 @@ bottom.contact = function( x, bcp ) {
   res = try( bottom.contact.linear( sm=sm0, O=O, bcmethods=bcmethods, bcp=bcp ) , silent=TRUE )
 
   if ( ! "try-error" %in% class( res) ) {
+    if (exists( "bc0", res )) {
     if ( all(is.finite( c(res$bc0, res$bc1 )) ) ) {
       DT =  abs( as.numeric( difftime( res$bc0, res$bc1, units="mins" ) ) )
       if (  length(DT) == 1) {
@@ -318,7 +323,7 @@ bottom.contact = function( x, bcp ) {
         O$linear.method1 = res$bc1 #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
         O$linear.method.indices = which( x$timestamp >= res$bc0 &  x$timestamp <= res$bc1 ) # x correct
       } }
-    }
+    }}
   }  
   
  

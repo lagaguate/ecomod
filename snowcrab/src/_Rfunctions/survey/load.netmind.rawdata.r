@@ -147,6 +147,17 @@
           & set$yr==yr )  # less than 5 minutes away
         if ( length( sets.in.spatial.range ) == 1 ) setxi= sets.in.spatial.range
       }
+    
+      if (is.null ( setxi ) ) {
+        # check distances
+        ni = trunc( nrow(netmind) / 2 )
+        dx = abs( set$lon1 - netmind$lon[ni] )
+        dy = abs( set$lat1 - netmind$lat[ni] )
+        sets.in.spatial.range = which( dx < 5/60 & dy < 5/60 
+          & set$yr==yr )  # less than 5 minutes away
+        if ( length( sets.in.spatial.range ) == 1 ) setxi= sets.in.spatial.range
+      }
+
 
       if (is.null ( setxi ) ) {
         # check distances

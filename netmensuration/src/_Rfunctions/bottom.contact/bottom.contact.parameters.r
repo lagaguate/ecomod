@@ -1,18 +1,9 @@
 
   bottom.contact.parameters = function( bcp=list( datasource ="groundfish" ) ) {
     
-    if (bcp$datasource =="snowcrab") {
-      # snow crab specific defaults  
-      if ( !exists("eps.depth", bcp)) bcp$eps.depth = 0.25 # m
-      if ( !exists("noisefilter.inla.h", bcp)) bcp$noisefilter.inla.h = 0.02
-      if ( !exists("noisefilter.inla.diagonal", bcp)) bcp$noisefilter.inla.diagonal = 0.02
-      if ( !exists("smooth.filter.quants", bcp)) bcp$smooth.filter.quants=c(0.1, 0.9) # for dZ 
-      if ( !exists("modal.filter.quants", bcp)) bcp$modal.filter.quants = c(0.1, 0.9) # as above 
-    }
-
-
     if (bcp$datasource =="groundfish") {
-      # parameters tuned to different years of data for groundfish survey 
+      # parameters tuned to different years of data for groundfish survey .. 
+      # THIS SHOULD BE MOVED to groundfish project .. leaving only the defaults here
       bcp$depth.range = c(-65, 65)
     
       if ( exists( "nr", bcp ) ) {

@@ -454,7 +454,7 @@
       gsinf = convert.degmin2degdec(gsinf, vnames=c("lon.end", "lat.end") )
   
       gsinf$dist_km = gsinf$dist * 1.852  # nautical mile to km
-      gsinf$dist_pos = geosphere::distMeeus( gsinf[, c("lon","lat")], gsinf[, c("lon.end", "lat.end")])/1000  
+      gsinf$dist_pos = geosphere::distGeo( gsinf[, c("lon","lat")], gsinf[, c("lon.end", "lat.end")])/1000  
          
       ii = which( abs( gsinf$dist_km) > 10 ) # 10 km is safely too extreme 
       if (length(ii)> 0) {

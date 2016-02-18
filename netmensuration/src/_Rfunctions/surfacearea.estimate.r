@@ -109,7 +109,7 @@ surfacearea.estimate = function( bcp, O ) {
    
       # sometimes GPS loses contact and GPS position stays static though still moving .. 
       # elimiate zero/small values and interpolate where required 
-      H = geosphere::distMeeus ( nms[ 1:(nd-1), coords ], nms[ 2:nd, coords ] ) / 1000 ## in meters .. convert to km
+      H = geosphere::distGeo ( nms[ 1:(nd-1), coords ], nms[ 2:nd, coords ] ) / 1000 ## in meters .. convert to km
 
       oo = which( H < bcp$gps.distance.range.valid.km[1] | H > bcp$gps.distance.range.valid.km[2] )
       if (length( oo) > 1 ) {
@@ -119,7 +119,7 @@ surfacearea.estimate = function( bcp, O ) {
           trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
         nms$latitude = interpolate.xy.robust( nms[, c("ts", "latitude") ], method="sequential.linear" , 
           trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
-        H = geosphere::distMeeus ( nms[ 1:(nd-1), coords ], nms[ 2:nd, coords ] ) / 1000 ## in meters .. convert to km
+        H = geosphere::distGeo ( nms[ 1:(nd-1), coords ], nms[ 2:nd, coords ] ) / 1000 ## in meters .. convert to km
       }
 
       # recheck
