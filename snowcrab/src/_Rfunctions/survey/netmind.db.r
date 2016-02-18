@@ -208,30 +208,20 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
       rid = set[ ii,] 
       # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
       Stats = NULL
-     for ( i in 1:nii  ){ 
-       print(i)
-        id = rid$netmind_uid[i]
-        print(rid[i,])
-        N = basedata[ basedata$netmind_uid==id,]
-        if (nrow(N) == 0 ) next()
-        l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr, plot=plot)
-        l$netmind_uid = id
-        l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
-        Stats = rbind( Stats, l )
-      for ( i in 1:nii ) { 
+       for ( i in 1:nii  ){ 
          print(i)
           id = rid$netmind_uid[i]
           print(rid[i,])
           N = basedata[ basedata$netmind_uid==id,]
           if (nrow(N) == 0 ) next()
-          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$timestamp[i], yr=yr )
+          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr, plot=plot)
           l$netmind_uid = id
           l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
-          Stats = rbind( Stats, cbind( l, rid[ i, c("z", "zsd", "t", "tsd")] )  )
-      } 
-      save( Stats, file=fn, compress=TRUE )
+          Stats = rbind( Stats, l )
+          save( Stats, file=fn, compress=TRUE )
+      }
+      if(plot)dev.off()
     }
-    if(plot)dev.off()
     return ( netmind.dir )
   }
 
