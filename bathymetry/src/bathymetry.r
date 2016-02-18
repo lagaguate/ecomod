@@ -182,10 +182,10 @@
   p = spatial.parameters( type="canada.east.highres", p=p ) 
   b = bathymetry.db( p=p, DS="spde_complete" ) 
   
+  vn = "z"
   u = b[[vn]] [ is.finite( b[[vn]]) ]
   if (length( u) > 0 ) out = x[u]
 
-  vn = "z"
   mypalette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
   mybreaks = classIntervals( u, n=length(mypalette), style="quantile")$brks
   

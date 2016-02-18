@@ -1,8 +1,6 @@
 	
-
   minilog.db = function( DS="", Y=NULL ){
     
-
     minilog.dir = project.datadirectory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
 
@@ -12,9 +10,7 @@
       Y = Y[iY]
     }
 
-
     if ( DS %in% c("basedata", "metadata", "load") ) {
-       
       if (DS=="basedata" ){
         flist = list.files(path=minilog.dir, pattern="basedata", full.names=T, recursive=FALSE)
         if (!is.null(Y)) {
@@ -52,22 +48,14 @@
         }
         return( out )
       }
-p 
+ 
       # default is to "load"
-      #
-
       dirlist = list.files(path=minilog.rawdata.location, full.names=T, recursive=T)
       oo = grep("backup", dirlist)
       if (length(oo) > 0) {
         backups = dirlist[ oo ]
         dirlist = dirlist[-oo]
       }
-    #  ii = NULL
-    #  for(y in years.sets.combined) {
-    #      io = grep(y,dirlist)
-    #      ii = c(ii,io)
-    #      }
-
 
       nfiles = length(dirlist)
       filelist = matrix( NA, ncol=3, nrow=nfiles) 
@@ -125,6 +113,7 @@ p
       return ( minilog.dir )
     }
 
+    # -----------------------------------------------
 
     if (DS %in% c("stats", "stats.redo" ) ) {
       
@@ -149,7 +138,13 @@ p
         if(any(duplicated(res[,c('trip','set')]))) {
             res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
           }
-
+  
+        # TODO:: move the following to the load.minilog funcition .. and remove chron dependence
+        res$t0 = lubridate::ymd_hms(res$t0)
+        res$t1 = lubridate::ymd_hms(res$t1)
+        res$dt = as.numeric(res$t1 - res$t0  )
+        res$timestamp = lubridate::ymd_hms(res$timestamp)
+       
         return (res)
        }
 
@@ -162,8 +157,11 @@ p
         fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rdata", sep=".") )
         miniStats = NULL
         miniRAW = minilog.db( DS="basedata", Y=yr )
-        
+        miniRAW$timestamp = lubridate::ymd_hms( miniRAW$chron)
+
         mta = minilog.db( DS="metadata", Y=yr )
+        mta$timestamp = ymd_hms( mta$timestamp )
+
         rid = minilog.db( DS="set.minilog.lookuptable" )
         rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
@@ -216,9 +214,10 @@ p
             ndat = length(M$depth[!is.na(M$depth)])
             if( ndat > 15 ) {
               # defaults appropriate for more modern scanmar data have > 3500 pings
+              # depth resolution is about 4-5 m
               bcp = list( 
                 id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
-                tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30)
+                tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), eps.depth = 2
               )
             #if(id=="minilog.S18092004.6.392.13.9.326") browser()
              
