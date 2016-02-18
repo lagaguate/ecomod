@@ -5,8 +5,8 @@
   rjags::load.module("glm")
 
   
-  loadfunctions( "bayesian" )
-  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+	loadfunctions( "bayesian" )
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
   ###  all data follow this sequence: c("cfanorth", "cfasouth", "cfa4x")
@@ -149,7 +149,7 @@
 
   
   # ----------------
-  dir.output = file.path(project.datadirectory('snowcrab'),"assessments","2013")
+  dir.output = file.path(project.datadirectory('snowcrab'),"assessments","2015")
   y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter.final, thin=n.thin) # sample from posterior
   
   figure.bugs( type="timeseries", vname="biomass", y=y, sb=sb, fn=file.path(dir.output, "biomass.timeseries.png" ) ) 
@@ -189,10 +189,10 @@
   # final sampling from the posteriors
   #  y = jags.samples(m, variable.names=tomonitor, n.iter=10000, thin=20) # sample from posterior
     y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter.final, thin=n.thin) # sample from posterior
+		
     
-    
-    fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2014.survey_final.rdata" )
-    # fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2012_final.rdata" )
+    fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2015.survey_final.rdata" )
+		# fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2012_final.rdata" )
     # fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2012a.rdata" )
     save(y, file=fnres, compress=T)
     # load( fnres )

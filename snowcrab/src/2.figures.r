@@ -73,7 +73,25 @@
   # ------------------------------------------
   # Timeseries: geometric mean carapace width from at-sea observers 
     figure.timeseries.CW( outdir=file.path(p$annual.results,  "timeseries", "survey"), type="observer" )
-
+    
+  #Timeseries: geometric mean biomass of by-catch from snow crab survey
+    #cod, halibut, thornyskate, wolfish, lessertoadcrab, jonahcrab, smoothskate, winterskate, northernshrimp, 
+    #species = c(10, 30, 201, 50, 2521, 2511, 202, 204, 2211) 
+    #Predators
+    figure.timeseries.bycatch.halibut(outdir=file.path(p$annual.results, "timeseries", "survey")) #30
+    figure.timeseries.bycatch.cod(outdir=file.path(p$annual.results, "timeseries", "survey")) #10
+    figure.timeseries.bycatch.wolfish(outdir=file.path(p$annual.results, "timeseries", "survey")) #50
+    figure.timeseries.bycatch.thornyskate(outdir=file.path(p$annual.results, "timeseries", "survey")) #201
+    figure.timeseries.bycatch.smoothskate(outdir=file.path(p$annual.results, "timeseries", "survey")) #202
+    figure.timeseries.bycatch.winterskate(outdir=file.path(p$annual.results, "timeseries", "survey")) #204
+    
+    #Competitors
+    figure.timeseries.bycatch.lessertoadcrab(outdir=file.path(p$annual.results, "timeseries", "survey")) #2512
+    figure.timeseries.bycatch.jonahcrab(outdir=file.path(p$annual.results, "timeseries", "survey")) #2511
+    
+    #Prey
+    figure.timeseries.bycatch.northernshrimp(outdir=file.path(p$annual.results, "timeseries", "survey")) #2211
+    
   # ------------------------------------------
   # Map: Basemap of the Scotian Shelf used by all other mapping routines
   #   creating a partial postscript file via GMT 

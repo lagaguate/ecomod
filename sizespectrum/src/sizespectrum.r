@@ -42,6 +42,10 @@
   
   p$modtype =  "complex"  
   p$spatial.knots = 100
+  p$prediction.dyear = 0.75
+  p$nw = 10
+  p$default.spatial.domain = "canada.east"
+  
   
   p$movingdatawindow = 0  # this signifies no moving window ... all in one model
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 

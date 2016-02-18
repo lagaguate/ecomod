@@ -10,6 +10,7 @@
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )  #required for interpolations and mapping 
   
   p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
+
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
   # faster to use RAM-based data objects but this forces use only of local cpu's
@@ -33,6 +34,14 @@
   p$season = "allseasons"
 
   # choose:
+  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
+  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+  # p$clusters = rep( "localhost", 2 )
+  # p$clusters = rep( "localhost", 8 )
+  # p$clusters = rep( "localhost", 3 )
+ 
+  # p$clusters = rep("localhost", detectCores() )  # GAM's RAM usage is quite low ..
   # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
   p$clusters = rep("localhost", detectCores() )  # GAM's RAM usage is quite low ..
 
@@ -79,7 +88,7 @@
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
     parallel.run( habitat.model, DS="redo", p=p ) 
     # habitat.model ( DS="redo", p=p ) 
-  
+
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
@@ -97,8 +106,8 @@
   
     # predictive interpolation to full domain (iteratively expanding spatial extent)
     p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-    # habitat.interpolate( p=p, DS="redo" ) 
+    #parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+     habitat.interpolate( p=p, DS="redo" ) 
 
   }
 

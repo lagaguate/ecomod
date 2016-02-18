@@ -32,6 +32,11 @@
 
   p$varstomodel = c( "mr", "smr", "Pr.Reaction" , "Ea", "A", "zn", "zm", "qn", "qm", "mass", "len"  )
   p$yearstomodel = 1970:2015
+  p$habitat.predict.time.julian = "Sept-1" # Sept 1
+  p$default.spatial.domain = "canada.east"
+  p$prediction.dyear = 0.75
+  p$nw = 10
+ 
   p$spatial.knots = 100
   p$movingdatawindow = 0  # this signifies no moving window ... all in one model
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
