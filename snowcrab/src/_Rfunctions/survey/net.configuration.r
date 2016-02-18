@@ -1,5 +1,5 @@
 
-  net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL, plotdata=FASLE ) {
+  net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL, plotdata=FALSE ) {
     
     tzone = "America/Halifax"  ## need to verify if this is correct
 
@@ -61,18 +61,18 @@
       bc = NULL
       bc = bottom.contact( x=M, bcp=bcp )
         
-            if ( is.null(bc) ) {
-              # try once more with random settings
-               bcp$noisefilter.inla.h = bcp$noisefilter.inla.h * 2
-               bc = bottom.contact( x=M, bcp=bcp ) 
-            }
-         
-            if ( is.null(bc) ) {
-              # try once more with random settings
-              M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
-              bcp$noisefilter.inla.h =  bcp$eps.depth / 10
-              bc = bottom.contact( x=M, bcp=bcp ) 
-            }
+      if ( is.null(bc) ) {
+        # try once more with random settings
+         bcp$noisefilter.inla.h = bcp$noisefilter.inla.h * 2
+         bc = bottom.contact( x=M, bcp=bcp ) 
+      }
+   
+      if ( is.null(bc) ) {
+        # try once more with random settings
+        M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+        bcp$noisefilter.inla.h =  bcp$eps.depth / 10
+        bc = bottom.contact( x=M, bcp=bcp ) 
+      }
 
       if (plotdata)  bottom.contact.plot( bc)  # to visualize/debug
       

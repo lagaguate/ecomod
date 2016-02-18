@@ -1,4 +1,4 @@
-netmind.db = function( DS, Y=NULL, plot=FALSE ) {
+netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
   
   netmind.dir = project.datadirectory("snowcrab", "data", "netmind" )
   netmind.rawdata.location = file.path( netmind.dir, "archive" )
@@ -141,12 +141,8 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
     # "stats.redo" is the default action
     # bring in stats from each data stream and then calculate netmind stats
     # bring in minilog and seabird data that has t0, t1 times for start and stop of bottom contact
-    set = snowcrab.db( DS="set.minilog.seabird" )
-    set2015 = set[which(set$yr == '2015'),]
-    print(head(set2015))
             
-    if(plot)pdf(paste0("netmind",yr,".pdf"))
-
+    if(plotdata) pdf(paste0("netmind",yr,".pdf"))
     
     tzone = "America/Halifax"
     set = snowcrab.db( DS="setInitial") 
@@ -161,7 +157,7 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
      # mlStats$dt = as.numeric(mlStats$dt )
     mlv =  c('trip','set', "z",    "zsd",    "t",    "tsd",    "n",    "t0",    "t1",    "dt" ) 
     set_ml = merge( set[, c("trip", "set") ], mlStats[,mlv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-    # tapply( as.numeric(set_ml$dt), year(set_ml$t1), mean, na.rm=T )
+    # tapply( as.numeric(set_ml$dt), lubridate::year(set_ml$t1), mean, na.rm=T )
     # tapply( as.numeric(set_ml$dt), year(set_ml$t1), function(x) length(which(is.finite(x))) )
 
     set = merge( set, set_sb, by=c("trip", "set" ), all.x=TRUE, all.y=FALSE, sort=FALSE )
@@ -214,13 +210,13 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
           print(rid[i,])
           N = basedata[ basedata$netmind_uid==id,]
           if (nrow(N) == 0 ) next()
-          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr, plot=plot)
+          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr, plotdata=plotdata)
           l$netmind_uid = id
           l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
           Stats = rbind( Stats, l )
           save( Stats, file=fn, compress=TRUE )
       }
-      if(plot)dev.off()
+      if(plotdata)dev.off()
     }
     return ( netmind.dir )
   }
