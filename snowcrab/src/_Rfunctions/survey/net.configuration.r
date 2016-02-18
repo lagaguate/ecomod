@@ -6,14 +6,17 @@
 
     # N is netmind data 
     # t0 is current best estimate of start and end time 
-    # tchron is .. ?
-    if(length(t0)>1) {t0 = NULL}
+    # tchron is timestamp from set-log .. alternate if there is no other useful time marker 
+    
     # create default output should the following fail
     out = data.frame( slon=NA, slat=NA, distance=NA, spread=NA, spread_sd=NA, 
       surfacearea=NA, vel=NA, vel_sd=NA, netmind_n=NA, t0=NA, t1=NA, dt=NA, yr=NA )
     
     n.req = 30
     t0_multiple = NULL
+
+    if(length(t0)>1) {t0 = NULL}
+    
     #changed this switch from depgth filed to lat as if there is not depth info can still run script
 	  if ( length( which( is.finite( N$lat))) < n.req ) print(N[1,])
     
@@ -24,17 +27,16 @@
 
     # time checks
     if ( is.null(t0) & !is.null(tchron) ) {
-      t0 = tchron
-      tchron =NULL
+      t0 = tchron  # no data in t0 ,, use tchron as alternate 
+      tchron =NULL # remove to cause no more effects
     }
 
     if (!is.null(t0) & !is.null(tchron)  ) {
-     t0_multiple = t0 = c( as.POSIXct(tchron, tz=tzone, origin=lubridate::origin ), t0 )
-      tchron =NULL
+     t0_multiple = t0 = tchron
+     tchron =NULL
     }
   
     if(N$netmind_uid[1] =='netmind.S26092014.9.541.17.48.304') return(out)
-
  
     if ( any( is.null( t1 ) || is.null(t0) ) )   {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 
@@ -42,18 +44,21 @@
       N$timestamp =  as.POSIXct( N$chron , tz=tzone, origin=lubridate::origin )
       M = N[, c("timestamp", "depth") ]
       
-      if(!is.null(tchron)) settimestamp= as.POSIXct( tchron , tz=tzone, origin=lubridate::origin )
-      if(is.null(tchron)) settimestamp= as.POSIXct( t0 , tz=tzone, origin=lubridate::origin )
+      oo = which( is.finite( M$depth ))
+      if ( length(oo) < n.req ) return(out) 
+
+      if(!is.null(tchron)) settimestamp=tchron
+      if(is.null(tchron)) settimestamp=t0
       time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
       
       bcp = list( 
         id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), 
-        tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
+        tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), 
+        depthproportion=0.6, noisefilter.inla.h = 0.02, eps.depth = 0.5 # m
       )
       
       bcp = bottom.contact.parameters( bcp ) # add other default parameters
    
-
       bc = NULL
       bc = bottom.contact( x=M, bcp=bcp )
         
@@ -76,7 +81,6 @@
       t1_tmp = t1
     }
 
-
     # if we are here, it is because a reasonable amount of data is present ..
     # do some more checks and get a first estimate of some parameters in case other errors/limits are found
     
@@ -84,7 +88,6 @@
     out$slat=N$lat[1]
     out$spread=mean( N$doorspread, na.rm=T ) / 1000
     out$spread_sd=sd( N$doorspread, na.rm=T ) /1000
-
 
     # first set the impossible door spreads to NA and then interpolate based upon a 5 and 95 % quantiles
     # Netmind has very noisy data
@@ -142,12 +145,11 @@ if(length(t0)>1) t0 = NA
     }
 
     out$dt = t1 - t0
-if(!is.na(out$t0))    out$yr = as.numeric( as.character( years( out$t0) ))
-if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
 
-    if(is.chron(t0)) itime =  which( N$chron >= t0  &  N$chron <= t1 )
-    if(is.POSIXct(t0)) itime =  which( as.POSIXct(N$chron, tz=tzone , origin=lubridate::origin) >= t0  &  as.POSIXct(N$chron, tz=tzone , origin=lubridate::origin)  <= t1 )
-    
+    if(!is.na(out$t0))    out$yr = as.numeric( as.character( years( out$t0) ))
+    if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
+
+    itime =  which( N$chron >= t0  &  N$chron <= t1 )
     if ( length( itime) < n.req ) problem = T
 
     if (problem) {
@@ -160,19 +162,20 @@ if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
     # eOR checks
 
       N = N[ itime, ]
-if(nrow(N)>1) {
+
+      if(nrow(N)>1) {
   
-      # t1 gives the approximate time of net lift-off from bottom
-      # this is not good enough as there is a potential backdrift period before net lift off
-      # this means distance trawled calculations must use the geo-positioning of the boat
-      # at maximum tension and not the position at net movemnent up
-      # (otherwise, this would introduce a net bias towards smaller swept areas).
-      pos = c( "lon", "lat" )
-      distance.from.start = geosphere::distCosine(N[1, pos], N[, pos])/1000  #  in km^2
-      end = which.max( distance.from.start)
-      if( !is.finite(end) ) end=nrow(N)
-      n = N[ 1:end , ]
-      
+        # t1 gives the approximate time of net lift-off from bottom
+        # this is not good enough as there is a potential backdrift period before net lift off
+        # this means distance trawled calculations must use the geo-positioning of the boat
+        # at maximum tension and not the position at net movemnent up
+        # (otherwise, this would introduce a net bias towards smaller swept areas).
+        pos = c( "lon", "lat" )
+        distance.from.start = geosphere::distCosine(N[1, pos], N[, pos])/1000  #  in km^2
+        end = which.max( distance.from.start)
+        if( !is.finite(end) ) end=nrow(N)
+        n = N[ 1:end , ]
+        
 	      out$vel = mean(n$speed, na.rm=T, trim=0.1)
 	      out$vel_sd = sd(n$speed, na.rm=T)
 	      out$slon=n$lon[1]
@@ -180,11 +183,11 @@ if(nrow(N)>1) {
 	      out$netmind_n=end
 
       delta.distance = NULL
-	   n$distance = NA
+	    n$distance = NA
   
-     if(nrow(n)>10) {	
+     if (nrow(n) > 10) {	
       # integrate area:: piece-wise integration is used as there is curvature of the fishing track (just in case)
-      delta.distance = geosphere::distMeeus ( n[ 1:(end-1), pos ], n[ 2:end, pos ] ) / 1000 ## in meters convert to km 
+      delta.distance = geosphere::distGeo ( n[ 1:(end-1), pos ], n[ 2:end, pos ] ) / 1000 ## in meters convert to km 
       n$distances = c( 0, cumsum( delta.distance  ) ) # cumsum used to do piecewise integration of distance
 	
       # model/smooth/interpolate the spreads

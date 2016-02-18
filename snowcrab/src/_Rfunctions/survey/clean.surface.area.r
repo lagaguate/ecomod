@@ -1,103 +1,139 @@
 
 
-  clean.surface.area = function (set ) {
+  clean.surface.area = function (set,  qreject = c( 0.025, 0.975 )) {
+     # data extremes to accept/reject
   
+    # final edits / sanity checks
+    # many good tows where surface area was not recorded in the historical data
+    # filter : set missing values and any large extremes to year-specific medians
+    # historical data not touched except if missing
+   
 
-    #-- rerun netmind net metrics using new t0 t1 to determine sa
-
-    require (boot)
-      # final edits / sanity checks
-      # many good tows where surface area was not recorded in the historical data
-      # filter : set missing values and any large extremes to year-specific medians
-      # historical data not touched except if missing
-
-    years = sort(unique(set$yr))
-    
-    sa.all = mean( boot(set$sa, function(x,i) median( x[i], na.rm=T), R=1000 )$t )
-    
-    # up to this piint set$sa contains historical data, determined by "hand"
-    # Merge with modern data streams
-    # hard limits 
-    qsah = c( 0.001, 0.01 ) # more extreme than these are really not possible -- force as errors
-    qreject = c( 0.025, 0.975 ) # data extremes to accept/reject
-
-    # historical data
-    iqsah = which( set$sa < qsah[1] | set$sa > qsah[2] ) 
-    if (length( iqsah)>0 )  set$sa[iqsah] = NA
-    qsa = quantile( set$sa, qreject, na.rm=T )
-    iqsa = which( set$sa < qsa[1] | set$sa > qsa[2] ) 
-    if (length( iqsa)>0 )  set$sa[iqsa] = NA
-
-    # modern data streams ...
-    iqsah2 = which( set$surfacearea < qsah[1] | set$surfacearea > qsah[2] )
-    if (length( iqsah2)>0 )  set$surfacearea[iqsah2] = NA
-    qsa2 = quantile( set$surfacearea, qreject, na.rm=T ) # ~ 0.0028 0.0057
-    iqsa2 = which( set$surfacearea < qsa2[1] | set$surfacearea > qsa2[2] ) 
-    if (length( iqsa2)>0 )  set$surfacearea[iqsa2] = NA
-
-    iii = which( is.finite(set$surfacearea) & !is.finite( set$sa) )  # surafacearea is determined by automatic mechanisms 
-    set$sa[iii] = set$surfacearea[iii]   # sa was determined by Moncton by hand 
-
-
-    debug = F
-    if (debug) {
-      # data that need to be hand checked
-      iii = which( !is.finite(set$sa) )
-      print( "No SA data:" )
-      print( set[iii,] )
-    }
-
-    sa.thresholds = quantile( set$sa, qreject, na.rm=T )
+    # ----------------------------------------------------------
+    # tow distance
+    # quantile truncation of net mensuration-based estimates
     distance.thresholds = quantile( set$distance, probs=qreject, na.rm=T )  # recalc after removing unrealistic extremes
+    dist.throwout = which ( set$distance < distance.thresholds[1] | set$distance > distance.thresholds[2] )
+    if (length( dist.throwout) > 0 ) set$distance[ dist.throwout ] = NA
+
+    set$dist  = set$dist / 1000 # m->km; these are historical estimates from manually-determined examination (Moncton)
+    set$dist0 = set$dist0 / 1000 # distanced based upon logged records from touchdown/lift off records
+
+    # where net mensuration-based estimates deviate strongly from set-log (dist0), then throw out
+    j = which( is.finite( set$distance + set$dist0))
+    dm = rstandard( lm( distance ~ dist0, set[j,] ))
+    todrop = which( abs(dm) > 3 )
+    if (length( todrop) > 0 ) set$distance[ j[todrop] ] = NA 
+
+    # historical data assumed correct (Moncton source)
+    j = which( is.finite( set$dist) )
+    # plot( distance ~ dist, set[j,] )
+    if (length(j) > 0 ) set$distance[j] = set$dist[j]
+
+    # where distance is missing, assume ship log start-end positions correct
+    j = which( is.finite( set$dist0 ) & !is.finite( set$distance) ) 
+    # plot( dist0 ~ dist, set[j,] )
+    if (length(j) > 0 ) set$distance[j] = set$dist0[j]
+
+    # final pass for distances.. where missing, fill with average for each year
+    j = which( !is.finite( set$distance) ) 
+    if (length(j) > 0 ) {
+      distyear = tapply( set$distance, set$yr, mean, na.rm=TRUE )
+      set$distance[j] = distyear[ set$yr[j] ]
+    }
+    
+    j = which( !is.finite( set$distance) ) 
+    if (length(j) > 0 ) {
+      set$distance[j] = mean( set$distance, na.rm=TRUE )
+    }
+ 
+
+    #---------------------------------------------------------------
+    # net spread 
     spread.thresholds = c(0.004, 0.016) # initially fixed at realisitc values based upon net configuration 
+    j = which( set$spread < spread.thresholds[1] | set$spread > spread.thresholds[2] )
+    if (length( j >0 )) set$spread [ j] = NA
     
-    isp = which( set$spread < spread.thresholds[1] | set$spread > spread.thresholds[2] )
-    if (length( isp >0 )) set$spread [ isp] = NA
+    # quantile truncation
     spread.thresholds = quantile( set$spread, probs=qreject, na.rm=T ) # recalc after removing unrealistic extremes 
-    
+    j = which( set$spread < spread.thresholds[1]  | set$spread > spread.thresholds[2] ) 
+    if (length(j)>0) set$spread[ j ] = NA 
+ 
+    # .. where missing, fill with average for each year
+    j = which( !is.finite( set$spread) ) 
+    if (length(j) > 0 ) {
+      spreadyear = tapply( set$spread, set$yr, mean, na.rm=TRUE )
+      set$spread[j] = spreadyear[ set$yr[j] ]
+    }
+   
+    j = which( !is.finite( set$spread) ) 
+    if (length(j) > 0 ) {
+      set$spread[j] = mean( set$spread, na.rm=TRUE )
+    }
+     
+ 
+    # ------------------------------------------
+    # time 
     time.thresholds = c(4,10) # hard limits
     ith = which( set$dt < time.thresholds[1]  | set$dt > time.thresholds[2] )  
     if (length( ith >0 )) set$dt [ ith ] = NA
-    time.thresholds = quantile( set$dt, probs=qreject, na.rm=T ) # recalc after removing unrealistic extremes
-
-    # check tow distance set extremes to bounds
-    il = which(set$distance < distance.thresholds[1] ) 
-    if (length(il)>0) {
-      set$distance[ il ] = distance.thresholds[1]
-      set$sa[il] = set$distance[il] * set$spread[il]
-    }
-    il = which(set$distance > distance.thresholds[2] ) 
-    if (length(il)>0) {
-      set$distance[ il ] = distance.thresholds[2]
-      set$sa[il] = set$distance[il] * set$spread[il]
-    }
-   
-    # check net spread 
-    im = which( set$spread < spread.thresholds[1] ) 
-    if (length(im)>0) {
-      set$spread[ im ] = spread.thresholds[1] 
-      set$sa[ im ] = set$distance[ im ] * set$spread[ im ] 
-    }
-    im = which( set$spread > spread.thresholds[2] ) 
-    if (length(im)>0) {
-      set$spread[ im ] = spread.thresholds[2] 
-      set$sa[ im ] = set$distance[ im ] * set$spread[ im ] 
-    }
+    
+    time.quants = quantile( set$dt, probs=qreject, na.rm=T ) 
+    ith = which( set$dt < time.quants[1]  | set$dt > time.quants[2] )  
+    if (length( ith >0 )) set$dt [ ith ] = NA
   
-    for (y in years) {
+    j = which( !is.finite(set$dt) ) 
+    if (length(j) > 0) set$sa[ j ] = NA  ## if time is unreliable then so is surface area
    
-      iy = which( set$yr == y)
-      sa.y = mean( boot(set$sa[ iy ], function(x,i) median( x[i], na.rm=T), R=1000 )$t )
-
-      # check tow time /SA 
-      io = which( set$yr == y & ( set$dt < time.thresholds[1] |  set$dt > time.thresholds[2] 
-              | set$sa < sa.thresholds[1] | set$sa > sa.thresholds[2]  ) )
-      
-      if (length(io) > 0 ) set$sa[ io ] = sa.y
+    # .. where missing, fill with average for each year
+    j = which( !is.finite( set$dt) ) 
+    if (length(j) > 0 ) {
+      dtyear = tapply( set$dt, set$yr, mean, na.rm=TRUE )
+      set$dt[j] = dtyear[ set$yr[j] ]
+    }
+   
+    j = which( !is.finite( set$dt) ) 
+    if (length(j) > 0 ) {
+      set$dt[j] = mean( set$dt, na.rm=TRUE )
     }
 
-    ii = which( !is.finite( set$sa ) )
-    if (length(ii) > 0 ) set$sa[ ii ] = sa.all
+ 
+    #-----------------------------------------
+    # surface area
+    # up to this piint set$sa contains historical data, determined by "hand", now merge with modern data streams
+    
+    # hard limits (gating)
+    qsah = c( 0.001, 0.01 ) # more extreme than these are really not possible -- force as errors
+    iqsah = which( set$sa < qsah[1] | set$sa > qsah[2] ) # historical data
+    if (length( iqsah)>0 )  set$sa[iqsah] = NA
+    
+    iqsah2 = which( set$surfacearea < qsah[1] | set$surfacearea > qsah[2] ) # modern data
+    if (length( iqsah2)>0 )  set$surfacearea[iqsah2] = NA
+    
+    # quantile truncation
+    qsa = quantile( set$sa, qreject, na.rm=T )    # historical data
+    iqsa = which( set$sa < qsa[1] | set$sa > qsa[2] ) 
+    if (length( iqsa)>0 )  set$sa[iqsa] = NA
+    
+    qsa2 = quantile( set$surfacearea, qreject, na.rm=T ) # ~ 0.0028 0.0057    # modern data streams ...
+    iqsa2 = which( set$surfacearea < qsa2[1] | set$surfacearea > qsa2[2] ) 
+    if (length( iqsa2)>0 )  set$surfacearea[iqsa2] = NA
+
+    # surfacearea is determined by automatic mechanisms .. fill where no historical data
+    j = which( is.finite(set$surfacearea) & !is.finite( set$sa) )  
+    set$sa[j] = set$surfacearea[j]   
+
+    j = which( !is.finite( set$sa) )  
+    set$sa[j] = set$distance[j] * set$spread[j]
+   
+    j = which( !is.finite( set$sa ) )
+    if (length(j) > 0 ) {
+      sayear = tapply( set$sa, set$yr, mean, na.rm=TRUE )
+      set$sa[j] = sayear[ set$yr[j] ]
+    }
+
+    j = which( !is.finite( set$sa ) )
+    if (length(j) > 0 ) set$sa[ j ] = mean( set$sa, na.rm=TRUE )
 
     return (set)
   }

@@ -50,25 +50,28 @@
 # -------------------------------------------------------------------------------------
 # create base set data and add all historical data fixes
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-    if (get.base.data) {
+   
+  if (get.base.data) {
     # sequence is important ... do not change 
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
+    
+    seabird.yToload = p$current.assessment.year
+    minilog.yToload = p$current.assessment.year
+    netmind.yToload = p$current.assessment.year
+    esonar.yToload  = p$current.assessment.year
  
-    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-
-    seabird.yToload = 2012:p$current.assessment.year
-    minilog.yToload = 1999:p$current.assessment.year
-    netmind.yToload = 1999:p$current.assessment.year
-    esonar.yToload  = 2014:p$current.assessment.year
-
-    # The following requires "setInitial", run this line if loading netmind data 2014 or after
-    if(esnoar2netmind.conversion){
-      netmind.db(DS='esnoar2netmind.conversion',Y=esonar.yToload ) 
+    if (redo.all.data) {
+      seabird.yToload = 2012:p$current.assessment.year
+      minilog.yToload = 1999:p$current.assessment.year
+      netmind.yToload = 1999:p$current.assessment.year
+      esonar.yToload  = 2014:p$current.assessment.year
     }
 
     seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012;
     minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
+    
+    netmind.db( DS='esonar2netmind.conversion',Y=esonar.yToload ) 
     netmind.db( DS="load", Y=netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
 
     #MG I'm not sure why these stats are not being written automatically, neet to set it in the code above to run these after data is loaded

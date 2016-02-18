@@ -13,9 +13,8 @@ netmind.db = function( DS, Y=NULL ) {
     
     if(is.null(Y) | any(Y < 2014)) stop('This only begins in 2014')
     for(y in Y) {
-      esonar.raw.location = file.path(netmind.rawdata.location,y)
+      esonar.raw.location = file.path(netmind.rawdata.location, y)
       flist = list.files(path=esonar.raw.location, full.names=T, recursive=FALSE)
-      
       for(fl in  flist){
         esonar2netmind(fl)
       }
@@ -145,30 +144,29 @@ netmind.db = function( DS, Y=NULL ) {
     
     tzone = "America/Halifax"
     set = snowcrab.db( DS="setInitial") 
-    
-    set.names= names(set)
-    
-    nm = netmind.db( DS="set.netmind.lookuptable" )
-    set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
-     
-    sbStats =  seabird.db( DS="stats" )
-    sbStats = sbStats[ , c('trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" ) ]
-    mlStats =  minilog.db( DS="stats" )
-    mlStats = mlStats[ , c('trip','set', "z",    "zsd",    "t",    "tsd",    "n",    "t0",    "t1",    "dt" ) ]
-    names( mlStats ) =   c('trip','set', "z.ml", "zsd.ml", "t.ml", "tsd.ml", "n.ml", "t0.ml", "t1.ml", "dt.ml" )
 
-    set = merge( set, sbStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-    set = merge( set, mlStats, by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-    set$t0 = as.POSIXct(set$t0,format="%Y-%m-%d %H:%M:%S", tz=tzone, origin=lubridate::origin )
-    set$t1 = as.POSIXct(set$t1,format="%Y-%m-%d %H:%M:%S", tz=tzone, origin=lubridate::origin)
-    set = toNums(set,c('dt','t0.ml','t1.ml', 'dt.ml'))
+    sbStats =  seabird.db( DS="stats" )
+    sbv = c('trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" )
+    set_sb = merge( set[, c("trip", "set") ], sbStats[,sbv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+    # tapply( as.numeric(set_sb$dt), year(set_sb$t1), mean, na.rm=T )
+    # tapply( as.numeric(set_sb$dt), year(set_sb$t1), function(x) length(which(is.finite(x))) )
+
+    mlStats =  minilog.db( DS="stats" )
+     # mlStats$dt = as.numeric(mlStats$dt )
+    mlv =  c('trip','set', "z",    "zsd",    "t",    "tsd",    "n",    "t0",    "t1",    "dt" ) 
+    set_ml = merge( set[, c("trip", "set") ], mlStats[,mlv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+    # tapply( as.numeric(set_ml$dt), year(set_ml$t1), mean, na.rm=T )
+    # tapply( as.numeric(set_ml$dt), year(set_ml$t1), function(x) length(which(is.finite(x))) )
+
+    set = merge( set, set_sb, by=c("trip", "set" ), all.x=TRUE, all.y=FALSE, sort=FALSE )
+    set = merge( set, set_ml, by=c("trip", "set" ), all.x=TRUE, all.y=FALSE, sort=FALSE, suffixes=c("", ".ml" ))
 
     # use seabird data as the standard, replace with minilog data where missing
     ii = which(!is.finite( set$t0) )
-    if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct(set$t0.ml[ii],origin=lubridate::origin, tz=tzone)
+    if (length(ii) > 0 )  set$t0[ ii] = set$t0.ml[ii]
 
     ii = which(!is.finite( set$t1) )
-    if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct(set$t1.ml[ii],origin=lubridate::origin, tz=tzone)
+    if (length(ii) > 0 )  set$t1[ ii] = set$t1.ml[ii]
     
     ii = which(!is.finite( set$z) )
     if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]
@@ -184,8 +182,14 @@ netmind.db = function( DS, Y=NULL ) {
 
     ii = which(!is.finite( set$dt) )
     if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
-      
-    set = set[ ,c(set.names, "netmind_uid", "z", "zsd", "t", "tsd", "t0", "t1", "dt" ) ]
+   
+    tokeep = grep( "\\.ml$", colnames(set), invert=TRUE )
+    set = set[, tokeep]
+    # tapply( as.numeric(set$dt), year(set$t1), mean, na.rm=T )
+    # tapply( as.numeric(set$dt), year(set$t1), function(x) length(which(is.finite(x))) )
+
+    nm = netmind.db( DS="set.netmind.lookuptable" )
+    set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
    
     for ( yr in Y ) {
       print(yr)
@@ -204,7 +208,7 @@ netmind.db = function( DS, Y=NULL ) {
           print(rid[i,])
           N = basedata[ basedata$netmind_uid==id,]
           if (nrow(N) == 0 ) next()
-          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr )
+          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$timestamp[i], yr=yr )
           l$netmind_uid = id
           l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
           Stats = rbind( Stats, cbind( l, rid[ i, c("z", "zsd", "t", "tsd")] )  )
