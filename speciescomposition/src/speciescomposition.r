@@ -1,4 +1,6 @@
 
+
+
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
@@ -26,6 +28,14 @@
 
   # choose:
   # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+  # p$clusters = rep( "localhost", 2 )
+  # p$clusters = rep( "localhost", 8 )
+  # p$clusters = rep( "localhost", 24 )
+  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos.beowulf", 24 ) )
+  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+   #p$clusters = rep("localhost", detectCores() )
+
+  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = c( rep( "nyx", 24), rep("tartarus", 24), rep("kaos", 24 ) )
   p$clusters = rep("localhost", detectCores() )
  
@@ -48,15 +58,19 @@
 # Generic spatio-temporal interpolations and maping of data 
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
- 
+  #required for interpolations and mapping 
+  p$project.name = "speciescomposition"
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
+
+
   if ( p$movingdatawindow == 0 ) { 
     ## NO windowing ... full model
 
     # create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    parallel.run( habitat.model, DS="redo", p=p ) 
-    # habitat.model ( DS="redo", p=p ) 
+    #parallel.run( habitat.model, DS="redo", p=p ) 
+    habitat.model ( DS="redo", p=p ) 
  
     
     # predictive interpolation to full domain (iteratively expanding spatial extent)

@@ -1,6 +1,7 @@
 
   figure.timeseries.R0 = function( outdir, all.areas=T ) {
  #browser()
+    outdir=file.path(p$annual.results, "timeseries", "survey")
     set = snowcrab.db( DS="set.merge.det")
   
     if (all.areas) {
@@ -14,9 +15,11 @@
     n.regions = length(regions)
     n.areas = length(areas)
 
-    v = "R0.mass"
+    v = "ms.mass.30"
+    #cod, halibut, thornyskate, wolfish, lessertoadcrab, jonahcrab, smoothskate, winterskate, northernshrimp, 
+    #species = c(10, 30, 201, 50, 2521, 2511, 202, 204, 2211) 
 
-    td =  get.time.series ( from.file=T )
+    td =  get.time.series ( from.file=T, outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" ) )
     td = td[ which( td$variable == v) ,]
     td = td[ order(td$region, td$year) , ]
     td$region = factor(td$region, levels=areas, labels =regions)
@@ -32,7 +35,7 @@
     ylabels = round(seq(0, round(as.numeric(ylim[2]), 2), length.out=8), 2)
 
     dir.create( outdir, recursive=T, showWarnings=F )
-    fn = file.path( outdir, paste( v, "combined.png",  sep="." ) )
+    fn = file.path( outdir, paste( v, "png",  sep="." ) )
     cex.main = 1.4
     cex.lab = 1
     cex.axis = 0.2
@@ -50,7 +53,7 @@
             #xlim=xlim, 
             ylim=(c(as.numeric(ylim[1]), as.numeric(ylim[2]))),
             scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
-              main="Fishable Biomass", xlab=list("Year", cex=1), ylab=list("Geometric mean t / km^2", cex=1),
+              main="Halibut Biomass", xlab=list("Year", cex=1), ylab=list("Geometric mean kg / km^2", cex=1),
               #cex.lab=cex.lab, 
               cex.axis=cex.axis, 
               cex.main = cex.main,

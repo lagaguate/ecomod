@@ -82,6 +82,10 @@
     # snowcrab.db( DS="set.minilog.seabird.redo" ) .. retired
     snowcrab.db( DS="set.clean.redo", p=p, proj.type=p$internal.projection )
    
+    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
+    set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
+    head(set2015)  
+      
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
       problems = data.quality.check( set, type="position") 
@@ -164,7 +168,8 @@
   #in 2014 as there were reduced stations for comparison
   #make.timeseries.data(p=p, areas=p$regions,reduced.stations=F, vars='R0.mass' ) #  timeseries of means of all survey data
   make.timeseries.data(p=p, areas=NULL,reduced.stations=F, vars=NULL) #  timeseries of means of all survey data
-  
+  #make.timeseries.data(p=p, areas=NULL,reduced.stations=F, vars=c('ms.mass.10', 'ms.mass.30', 'ms.mass.201', 'ms.mass.50', 'ms.mass.2521', 'ms.mass.2511', 'ms.mass.202', 'ms.mass.204', 'ms.mass.2211'), outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" )) #  timeseries of means of all survey data
+
 
   #  tsdata = snowcrab.db("set.timerseries")
 
