@@ -6,10 +6,9 @@
 
 # create base species area stats  ... a few hours
   p = list()
-  
   p$project.name = "speciesarea"
-  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" ) # for interpolations and mapping 
-
+  p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )  #required for interpolations and mapping 
+  
   p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
@@ -18,7 +17,6 @@
   # configure SHM (shared RAM memory to be >18 GB .. in fstab .. in windows not sure how to do this?)
   p$use.bigmemory.file.backing = FALSE  
   # p$use.bigmemory.file.backing = TRUE  # file-backing is slower but can use all cpu's in a distributed cluster
-
 
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$data.sources = c("groundfish", "snowcrab") 
@@ -36,7 +34,7 @@
   p$season = "allseasons"
 
   # choose:
-  # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
+  # p$clusters = rep(c("kaos", "nyx", "tartarus"), 2)
   p$clusters = rep("localhost", detectCores() )  # GAM's RAM usage is quite low ..
 
   p$yearstomodel = 1970:2015 # set map years separately to temporal.interpolation.redo allow control over specific years updated
@@ -44,9 +42,7 @@
   p$default.spatial.domain = "canada.east"
 
   p$modtype = "complex" 
-  
- # p$habitat.predict.time.julian = "Sept-1" # Sept 1
-  p$prediction.dyear = 0.75
+  p$prediction.dyear = 0.75 # =9/12 ie., 1 Sept
   p$nw = 10
   p$spatial.knots = 100
     
@@ -54,8 +50,7 @@
   # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
   p$movingdatawindowyears = length (p$movingdatawindow)
 
-  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is bam, then this .. see GAM options
-
+  p$optimizer.alternate = c( "outer", "nlm" )  # first choice is newton, then this .. see GAM options
 
 
 # -------------------------------------------------------------------------------------
@@ -77,7 +72,6 @@
 # Generic spatio-temporal interpolations and maping of data 
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
-
 
   if (p$movingdatawindow == 0 ) { 
     ## no windowing
