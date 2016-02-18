@@ -1,4 +1,6 @@
 
+
+
   ### requires an update of databases entering into analysis: 
   # snow crab:  "cat" and "set.clean"
   # groundfish: "sm.base", "set"
@@ -6,7 +8,7 @@
   
 
   p = list()
-  p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel", "rgdal")) 
+  p$libs = RLibrary ( c("lubridate", "fields", "mgcv", "sp", "parallel")) 
 
 	p$init.files = loadfunctions( c(
     "spacetime", "utility", "parallel", 
@@ -22,13 +24,13 @@
   p$nw = 10
 
   # choose:
-  # p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
+   p$clusters = rep( "localhost", 1)  # if length(p$clusters) > 1 .. run in parallel
   # p$clusters = rep( "localhost", 2 )
   # p$clusters = rep( "localhost", 8 )
   # p$clusters = rep( "localhost", 24 )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos.beowulf", 24 ) )
   # p$clusters = c( rep( "nyx.beowulf", 24), rep("tartarus.beowulf", 24), rep("kaos", 24 ) )
-  p$clusters = rep("localhost", detectCores() )
+   #p$clusters = rep("localhost", detectCores() )
 
  
   p$yearstomodel = 1970:2015
@@ -58,7 +60,6 @@
 # Generic spatio-temporal interpolations and maping of data 
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
-
   #required for interpolations and mapping 
   p$project.name = "speciescomposition"
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
@@ -71,8 +72,8 @@
     # create a spatial interpolation model for each variable of interest 
     # full model requires 30-40 GB ! 
     p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    parallel.run( habitat.model, DS="redo", p=p ) 
-    # habitat.model ( DS="redo", p=p ) 
+    #parallel.run( habitat.model, DS="redo", p=p ) 
+    habitat.model ( DS="redo", p=p ) 
  
     
     # predictive interpolation to full domain (iteratively expanding spatial extent)

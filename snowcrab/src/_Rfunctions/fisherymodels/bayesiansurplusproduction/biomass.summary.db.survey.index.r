@@ -8,7 +8,6 @@
         if (file.exists(fn)) load(fn)
         return( out )
       }
-      
       L = biomass.summary.survey.db( DS="L.redo", p=p  )  # must go first as part of biomass estimates
       B = biomass.summary.survey.db( DS="B.redo", p=p )  # rename to avoid confusion below as B is also used
       B.sd = biomass.summary.survey.db( DS="B.sd.redo", p=p )  # rename to avoid confusion below as B is also used
@@ -388,3 +387,5 @@
 
 
 
+
+  
