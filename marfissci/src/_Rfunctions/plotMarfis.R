@@ -18,7 +18,7 @@ library(mapdata)  #for getting basemapobjects
 library(maptools) #for converting basemap lines to polygons
 
 # User Parameters ---------------------------------------------------------
-limits = data.frame(X=c(-68,-55),Y=c(42,50)) #boundaries of plot
+limits = data.frame(X=c(-65,-60),Y=c(43,45)) #boundaries of plot
 gridres = 1 #for now, limits should be divisible by gridres
 crs.orig = "+proj=longlat +datum=WGS84" #initial projection of all data
 crs.new = "+proj=utm +zone=20 +datum=WGS84"
@@ -32,14 +32,9 @@ pts = read.csv2("201502_GroundfishTest.csv")
 pts = read.csv("201502_MarfissciTest.csv")
 }
 req.fields = c("LAT","LON","LOG_EFRT_STD_INFO_ID")
-
-# #'Also tried groundfish data - for convenience, rename columns as necessary and 
-# #'drop sdate
-# pts=groundfish.track.selector()[[1]]
-# names(pts)[names(pts)=="LONG"]="LON"
-# pts$LOG_EFRT_STD_INFO_ID <- 1:nrow(pts) 
-# pts$SDATE=NULL
-
+#hack to keep data from overlapping gridlines
+pts$LAT=pts$LAT+(pi/10000000)
+pts$LON=pts$LON+(pi/10000000)
 # Create bounding boxes, make the grid, and convert it to polygons---------
 coordinates(limits) <- c("X", "Y")
 proj4string(limits) <- CRS(crs.orig)
@@ -54,9 +49,10 @@ boundbox <- SpatialPolygons(list(Polygons(list(Polygon(cbind(
   proj4str=CRS(crs.orig))
 
 #'from http://tinyurl.com/jjz4p3t
+bb <- boundbox@bbox
 cs <- c(gridres, gridres) #cellsize = 1deg*1deg
 cc <- bb[, 1] + (cs/2)  # cell offset
-cd <- ceiling(diff(t(boundbox@bbox))/cs)  # number of cells per direction
+cd <- ceiling(diff(t(bb))/cs)  # number of cells per direction
 grd <- GridTopology(cellcentre.offset=cc, cellsize=cs, cells.dim=cd)
 sp_grd <- SpatialGridDataFrame(grd,
                                data=data.frame(id=1:prod(cd)),
@@ -68,21 +64,18 @@ poly_grd=Grid2Polygons(sp_grd)
 pts = data.frame(pts[complete.cases(pts[req.fields]),])  
 coordinates(pts) <- c("LON", "LAT")
 proj4string(pts) <- CRS(crs.orig)
-ovr=over(poly_grd, pts, fn=length)[1] #find how many points in each poly
+#'find how many points in each poly using length
+#'could use mean or something too, but in that case, need to use an appropriate 
+#'field -- not "LOG_EFRT_STD_INFO_ID"
+ovr=over(poly_grd, pts, fn=length)[1] 
 colnames(ovr) = "COUNT"
 #join the count data to the correct polygon
 poly_grd@data=cbind(ovr[1], z=poly_grd@data[, "z"][match(rownames(ovr[1]), rownames(poly_grd@data))])
 
-
-
 # Get colours proportional to values of counted field ---------------------
-
 the.col.codes=seq(from=min(as.numeric(poly_grd@data$COUNT), na.rm =T), 
                   to=max(as.numeric(poly_grd@data$COUNT), na.rm =T),by=1)
 the.col.cols=color.code( type="colourblind1", n=length(the.col.codes) )
-
-  #colour.scale(type="mike", nlevels=length(the.col.codes)+1, x=poly_grd@data$COUNT, transparency=0.9)$cols
-#the.col.cols=paste("#", the.col.cols$code, sep="")
 color.df=cbind(COUNT=as.numeric(the.col.codes),colcode=the.col.cols)
 #join the colour to the correct polygon
 poly_grd@data=merge(poly_grd@data,color.df, by="COUNT", all.x=T)
@@ -93,18 +86,16 @@ p=map("worldHires", regions=c("Canada","USA", "Greenland"), col="navajowhite2",b
 IDs <- sapply(strsplit(p$names, ":"), function(x) x[1])
 basemap <- map2SpatialPolygons(p, IDs=IDs, proj4string=CRS(crs.orig))
 
-
 # Plot the results --------------------------------------------------------
-#sp::plot(poly_grd, col=poly_grd@data$colcode)
-plot(poly_grd, col=poly_grd@data$colcode)
-plot(basemap, 
-     col="navajowhite2",
-     border="navajowhite4", add=T)
-#points(pts,col="black", pch=20, cex=0.2)
+# #sp::plot(poly_grd, col=poly_grd@data$colcode)
+# plot(poly_grd, col=poly_grd@data$colcode)
+# plot(basemap, 
+#      col="navajowhite2",
+#      border="navajowhite4", add=T)
+# #points(pts,col="black", pch=20, cex=0.2)
 
-
-# Test reprojection -------------------------------------------------------
-plot(spTransform(poly_grd, CRS(crs.new)), col=poly_grd@data$colcode)
+# reproject to UTM- -------------------------------------------------------
+plot(spTransform(poly_grd, CRS(crs.new)), col=poly_grd@data$colcode, border="gray90")
 plot(spTransform(basemap, CRS(crs.new)), 
      col="navajowhite2",
      border="navajowhite4", add=T)
