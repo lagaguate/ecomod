@@ -286,7 +286,4 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
   }
   
 }
-
-
-
-
+}
