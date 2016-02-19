@@ -1,5 +1,5 @@
 
-	snowcrab.db = function( DS , yrs=NULL , proj.type="", p=NULL) {
+	snowcrab.db = function( DS, p=NULL, yrs=NULL) {
 		# long!
 		# handles all basic data tables, etc. ... can be broken into smaller pieces to make easier to maintain
 
@@ -243,6 +243,7 @@
       if ( nrow( set) != nset0 ) { print("Merge error"); stop() }
       
       set$lon = -set$lon # the data are stored as degress West convert to standard degrees E notation
+      set$lon1 = -set$lon1 # the data are stored as degress West convert to standard degrees E notation
      
       overwrite = which( is.na(set$stime))
       set$stime[overwrite] = set$patchtime[overwrite]
@@ -897,37 +898,94 @@
         if (file.exists( fn) ) load( fn )
         return (set) 
       }
-   
-        tzone = "America/Halifax"
-        set = snowcrab.db( DS="setInitial") 
-        set.names= names(set)
-    
-        nm = netmind.db( DS="stats" )
-  
-        set = merge( set, nm, by =c("trip","set"), all.x=TRUE, all.y=FALSE, suffixes=c("", ".nm") )
+      
+      # the beginning here is identical to the netmind.db( "stat.redo" ) .. simpler to keep it this way (jae)
+      tzone = "America/Halifax"
+      set = snowcrab.db( DS="setInitial") 
 
-        ii = which( is.na( set$t0 ) )  # historical data do not have these fields filled .. fill 
-        if ( length (ii) > 0 ) {
-          set$t0[ii] = set$timestamp[ii]
-        }
- 
-        # fix t1
-        ii = which( is.na( set$t1 ) )  # historical data do not have these fields filled .. fill 
-        if ( length (ii) > 0 ) {
-          set$t1[ii] = set$t0[ii] + median(set$dt, na.rm=TRUE )
-        }
+      sbStats =  seabird.db( DS="stats" )
+      sbv = c('trip','set', "z", "zsd", "t", "tsd", "n", "t0", "t1", "dt" )
+      set_sb = merge( set[, c("trip", "set") ], sbStats[,sbv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+      # tapply( as.numeric(set_sb$dt), year(set_sb$t1), mean, na.rm=T )
+      # tapply( as.numeric(set_sb$dt), year(set_sb$t1), function(x) length(which(is.finite(x))) )
+
+      mlStats =  minilog.db( DS="stats" )
+       # mlStats$dt = as.numeric(mlStats$dt )
+      mlv =  c('trip','set', "z",    "zsd",    "t",    "tsd",    "n",    "t0",    "t1",    "dt" ) 
+      set_ml = merge( set[, c("trip", "set") ], mlStats[,mlv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
+      # tapply( as.numeric(set_ml$dt), lubridate::year(set_ml$t1), mean, na.rm=T )
+      # tapply( as.numeric(set_ml$dt), year(set_ml$t1), function(x) length(which(is.finite(x))) )
+
+      set = merge( set, set_sb, by=c("trip", "set" ), all.x=TRUE, all.y=FALSE, sort=FALSE )
+      set = merge( set, set_ml, by=c("trip", "set" ), all.x=TRUE, all.y=FALSE, sort=FALSE, suffixes=c("", ".ml" ))
+
+      # use seabird data as the standard, replace with minilog data where missing
+      ii = which(!is.finite( set$t0) )
+      if (length(ii) > 0 )  set$t0[ ii] = set$t0.ml[ii]
+
+      ii = which(!is.finite( set$t1) )
+      if (length(ii) > 0 )  set$t1[ ii] = set$t1.ml[ii]
+      
+      ii = which(!is.finite( set$z) )
+      if (length(ii) > 0 )  set$z[ ii] = set$z.ml[ii]
+    
+      ii = which(!is.finite( set$zsd) )
+      if (length(ii) > 0 )  set$zsd[ ii] = set$zsd.ml[ii]
+       
+      ii = which(!is.finite( set$t) )
+      if (length(ii) > 0 )  set$t[ ii] = set$t.ml[ii]
+    
+      ii = which(!is.finite( set$tsd) )
+      if (length(ii) > 0 )  set$tsd[ ii] = set$tsd.ml[ii]
+
+      ii = which(!is.finite( set$dt) )
+      if (length(ii) > 0 )  set$dt[ ii] = set$dt.ml[ii]
+     
+      tokeep = grep( "\\.ml$", colnames(set), invert=TRUE )
+      set = set[, tokeep]
+      set$n = NULL
+      # tapply( as.numeric(set$dt), year(set$t1), mean, na.rm=T )
+      # tapply( as.numeric(set$dt), year(set$t1), function(x) length(which(is.finite(x))) )
+
+      # this is repeated to return to the same state as just prior to the netmind operations 
+      # merging there would have been easier but it is possible to merge here to make things more modular
+
+      nm = netmind.db( DS="stats" )
+      set = merge( set, nm, by =c("trip","set"), all.x=TRUE, all.y=FALSE, suffixes=c("", ".nm") )
+  
+      # last resort: use netmind data to fill
+      ii = which(!is.finite( set$t0) )
+      if (length(ii) > 0 )  set$t0[ ii] = as.POSIXct( set$t0.nm[ii], origin=lubridate::origin, tz=tzone)
+      set$t0.nm = NULL
+
+      ii = which(!is.finite( set$t1) )
+      if (length(ii) > 0 )  set$t1[ ii] = as.POSIXct( set$t1.nm[ii], origin=lubridate::origin, tz=tzone)
+      set$t1.nm = NULL
+   
+      ii = which( !is.finite( set$dt) )
+      if (length(ii) > 0 )  set$dt[ ii] =  set$dt.nm[ii]
+      set$dt.nm = NULL
+
+      # historical data do not have these fields filled .. fill
+      ii = which( is.na( set$t0 ) )   
+      if ( length (ii) > 0 ) {
+        set$t0[ii] = set$timestamp[ii]
+      }
+      # fix t1
+      ii = which( is.na( set$t1 ) )  # historical data do not have these fields filled .. fill 
+      if ( length (ii) > 0 ) {
+        set$t1[ii] = set$t0[ii] + median(set$dt, na.rm=TRUE )
+      }
 
       # positional data obtained directly from Netmind GPS and Minilog T0
       # overwrite all, where available
-      goodpositions = which( is.finite( set$dist0 ) )   # distance calcs seem OK ..
-      
       ilon = which( is.finite( set$slon)  )
       set$lon[ilon] = set$slon[ilon]
       
       ilat = which( is.finite( set$slat) )
       set$lat[ilat] = set$slat[ilat]
 
-      set = lonlat2planar(set, proj.type=proj.type) # get planar projections of lon/lat in km
+      set = lonlat2planar(set, proj.type=p$internal.projection) # get planar projections of lon/lat in km
       set$plon = grid.internal( set$plon, p$plons )
       set$plat = grid.internal( set$plat, p$plats )
 

@@ -1,4 +1,4 @@
-netmind.db = function( DS, Y=NULL, plot=FALSE ) {
+netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
   
   netmind.dir = project.datadirectory("snowcrab", "data", "netmind" )
   netmind.rawdata.location = file.path( netmind.dir, "archive" )
@@ -113,7 +113,6 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
 
   
   if (DS %in% c("stats", "stats.redo" ) ) {
-   # browser()
     
     if (DS %in% c("stats") ){
       
@@ -141,12 +140,8 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
     # "stats.redo" is the default action
     # bring in stats from each data stream and then calculate netmind stats
     # bring in minilog and seabird data that has t0, t1 times for start and stop of bottom contact
-    set = snowcrab.db( DS="set.minilog.seabird" )
-    set2015 = set[which(set$yr == '2015'),]
-    print(head(set2015))
             
-    if(plot)pdf(paste0("netmind",yr,".pdf"))
-
+    if(plotdata) pdf(paste0("netmind",yr,".pdf"))
     
     tzone = "America/Halifax"
     set = snowcrab.db( DS="setInitial") 
@@ -161,7 +156,7 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
      # mlStats$dt = as.numeric(mlStats$dt )
     mlv =  c('trip','set', "z",    "zsd",    "t",    "tsd",    "n",    "t0",    "t1",    "dt" ) 
     set_ml = merge( set[, c("trip", "set") ], mlStats[,mlv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
-    # tapply( as.numeric(set_ml$dt), year(set_ml$t1), mean, na.rm=T )
+    # tapply( as.numeric(set_ml$dt), lubridate::year(set_ml$t1), mean, na.rm=T )
     # tapply( as.numeric(set_ml$dt), year(set_ml$t1), function(x) length(which(is.finite(x))) )
 
     set = merge( set, set_sb, by=c("trip", "set" ), all.x=TRUE, all.y=FALSE, sort=FALSE )
@@ -191,47 +186,41 @@ netmind.db = function( DS, Y=NULL, plot=FALSE ) {
    
     tokeep = grep( "\\.ml$", colnames(set), invert=TRUE )
     set = set[, tokeep]
+    set$n = NULL
     # tapply( as.numeric(set$dt), year(set$t1), mean, na.rm=T )
     # tapply( as.numeric(set$dt), year(set$t1), function(x) length(which(is.finite(x))) )
 
     nm = netmind.db( DS="set.netmind.lookuptable" )
     set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
-   
+
+    # add more data .. t0,t1, dt where missing and width and SA estimates where possible
     for ( yr in Y ) {
       print(yr)
       fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
       Stats = NULL
       basedata = netmind.db( DS="basedata", Y=yr )
+      basedata$timestamp = as.POSIXct( basedata$chron , tz=tzone, origin=lubridate::origin )
+
       ii = which( set$yr==yr & !is.na(set$netmind_uid) )
       nii =  length( ii ) 
       if ( nii== 0 ) next()
       rid = set[ ii,] 
-      # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
       Stats = NULL
-     for ( i in 1:nii  ){ 
-       print(i)
+      for ( i in 1:nii  ){ 
+        print(i)
         id = rid$netmind_uid[i]
         print(rid[i,])
-        N = basedata[ basedata$netmind_uid==id,]
-        if (nrow(N) == 0 ) next()
-        l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr, plot=plot)
+        bdi = which( basedata$netmind_uid==id )
+        if (length(bdi) < 5 ) next()
+        N = basedata[ bdi ,]
+        l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$timestamp[i], yr=yr, plotdata=plotdata)
         l$netmind_uid = id
         l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
         Stats = rbind( Stats, l )
-      for ( i in 1:nii ) { 
-         print(i)
-          id = rid$netmind_uid[i]
-          print(rid[i,])
-          N = basedata[ basedata$netmind_uid==id,]
-          if (nrow(N) == 0 ) next()
-          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$timestamp[i], yr=yr )
-          l$netmind_uid = id
-          l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
-          Stats = rbind( Stats, cbind( l, rid[ i, c("z", "zsd", "t", "tsd")] )  )
-      } 
-      save( Stats, file=fn, compress=TRUE )
+        save( Stats, file=fn, compress=TRUE )
+      }
+      if(plotdata)dev.off()
     }
-    if(plot)dev.off()
     return ( netmind.dir )
   }
 

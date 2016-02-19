@@ -19,14 +19,9 @@
     set$dist  = set$dist / 1000 # m->km; these are historical estimates from manually-determined examination (Moncton)
     set$dist0 = set$dist0 / 1000 # distanced based upon logged records from touchdown/lift off records
 
-    # where net mensuration-based estimates deviate strongly from set-log (dist0), then throw out
-    j = which( is.finite( set$distance + set$dist0))
-    dm = rstandard( lm( distance ~ dist0, set[j,] ))
-    todrop = which( abs(dm) > 3 )
-    if (length( todrop) > 0 ) set$distance[ j[todrop] ] = NA 
-
     # historical data assumed correct (Moncton source)
     j = which( is.finite( set$dist) )
+    # plot( dist0 ~ dist, set[j,] )
     # plot( distance ~ dist, set[j,] )
     if (length(j) > 0 ) set$distance[j] = set$dist[j]
 
@@ -39,10 +34,10 @@
     j = which( !is.finite( set$distance) ) 
     if (length(j) > 0 ) {
       distyear = tapply( set$distance, set$yr, mean, na.rm=TRUE )
-      set$distance[j] = distyear[ set$yr[j] ]
+      set$distance[j] = distyear[ as.character(set$yr[j]) ]
     }
     
-    j = which( !is.finite( set$distance) ) 
+    j = which( !is.finite( set$distance) ) # should be zero 
     if (length(j) > 0 ) {
       set$distance[j] = mean( set$distance, na.rm=TRUE )
     }
@@ -63,7 +58,7 @@
     j = which( !is.finite( set$spread) ) 
     if (length(j) > 0 ) {
       spreadyear = tapply( set$spread, set$yr, mean, na.rm=TRUE )
-      set$spread[j] = spreadyear[ set$yr[j] ]
+      set$spread[j] = spreadyear[ as.character(set$yr[j]) ]
     }
    
     j = which( !is.finite( set$spread) ) 
@@ -89,7 +84,7 @@
     j = which( !is.finite( set$dt) ) 
     if (length(j) > 0 ) {
       dtyear = tapply( set$dt, set$yr, mean, na.rm=TRUE )
-      set$dt[j] = dtyear[ set$yr[j] ]
+      set$dt[j] = dtyear[ as.character(set$yr[j]) ]
     }
    
     j = which( !is.finite( set$dt) ) 
@@ -129,7 +124,7 @@
     j = which( !is.finite( set$sa ) )
     if (length(j) > 0 ) {
       sayear = tapply( set$sa, set$yr, mean, na.rm=TRUE )
-      set$sa[j] = sayear[ set$yr[j] ]
+      set$sa[j] = sayear[ as.character(set$yr[j]) ]
     }
 
     j = which( !is.finite( set$sa ) )

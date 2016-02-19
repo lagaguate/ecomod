@@ -79,12 +79,10 @@
     minilog.db (DS="stats.redo", Y=minilog.yToload )
     netmind.db (DS="stats.redo", Y=netmind.yToload )
    
-    # snowcrab.db( DS="set.minilog.seabird.redo" ) .. retired
-    snowcrab.db( DS="set.clean.redo", p=p, proj.type=p$internal.projection )
    
     set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-    set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
-    head(set2015)  
+    # set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
+    # head(set2015)  
       
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
@@ -107,10 +105,11 @@
       
       problems = data.quality.check( set, type="netmind.timestamp" )
 
+
+    snowcrab.db( DS="set.clean.redo", p=p )  # sanity checks
     #MG det.initial.redo updates and processes morphology. This code now identifies morphology errors, which must be
     #checked with written logs, then sent to database and put in debugging here and re-run
     snowcrab.db( DS="det.initial.redo", p=p )
-    
     snowcrab.db( DS="det.georeferenced.redo" ) 
     snowcrab.db( DS="cat.initial.redo", p=p )
     snowcrab.db( DS="cat.georeferenced.redo" )
