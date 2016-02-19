@@ -186,13 +186,14 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
    
     tokeep = grep( "\\.ml$", colnames(set), invert=TRUE )
     set = set[, tokeep]
+    set$n = NULL
     # tapply( as.numeric(set$dt), year(set$t1), mean, na.rm=T )
     # tapply( as.numeric(set$dt), year(set$t1), function(x) length(which(is.finite(x))) )
 
     nm = netmind.db( DS="set.netmind.lookuptable" )
     set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
-    set$n = NULL
 
+    # add more data .. t0,t1, dt where missing and width and SA estimates where possible
     for ( yr in Y ) {
       print(yr)
       fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
@@ -204,20 +205,19 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
       nii =  length( ii ) 
       if ( nii== 0 ) next()
       rid = set[ ii,] 
-      # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
       Stats = NULL
       for ( i in 1:nii  ){ 
-         print(i)
-          id = rid$netmind_uid[i]
-          print(rid[i,])
-          bdi = which( basedata$netmind_uid==id )
-          if (length(bdi) < 5 ) next()
-          N = basedata[ bdi ,]
-          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$timestamp[i], yr=yr, plotdata=plotdata)
-          l$netmind_uid = id
-          l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
-          Stats = rbind( Stats, l )
-          save( Stats, file=fn, compress=TRUE )
+        print(i)
+        id = rid$netmind_uid[i]
+        print(rid[i,])
+        bdi = which( basedata$netmind_uid==id )
+        if (length(bdi) < 5 ) next()
+        N = basedata[ bdi ,]
+        l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$timestamp[i], yr=yr, plotdata=plotdata)
+        l$netmind_uid = id
+        l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
+        Stats = rbind( Stats, l )
+        save( Stats, file=fn, compress=TRUE )
       }
       if(plotdata)dev.off()
     }
