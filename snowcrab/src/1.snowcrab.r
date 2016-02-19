@@ -83,8 +83,8 @@
     snowcrab.db( DS="set.clean.redo", p=p, proj.type=p$internal.projection )
    
     set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-    set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
-    head(set2015)  
+    # set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
+    # head(set2015)  
       
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")

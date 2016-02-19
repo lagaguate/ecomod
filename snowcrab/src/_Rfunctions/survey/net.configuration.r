@@ -1,8 +1,6 @@
 
   net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL, plotdata=FALSE ) {
     
-    tzone = "America/Halifax"  ## need to verify if this is correct
-
     # N is netmind data 
     # t0 is current best estimate of start and end time 
     # tchron is timestamp from set-log .. alternate if there is no other useful time marker 
@@ -21,7 +19,7 @@
     
     if(is.na(t0)) t0 = NULL
     if(is.na(t1)) t1 = NULL
-          
+    
     problem = F
 
     # time checks
@@ -40,7 +38,6 @@
     if ( any( is.null( t1 ) || is.null(t0) ) )   {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 
      
-      N$timestamp =  as.POSIXct( N$chron , tz=tzone, origin=lubridate::origin )
       M = N[, c("timestamp", "depth") ]
       
       oo = which( is.finite( M$depth ))
@@ -61,16 +58,27 @@
       bc = NULL
       bc = bottom.contact( x=M, bcp=bcp )
         
-      if ( is.null(bc) ) {
-        # try once more with random settings
-         bcp$noisefilter.inla.h = bcp$noisefilter.inla.h * 2
+      if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
          bc = bottom.contact( x=M, bcp=bcp ) 
       }
    
-      if ( is.null(bc) ) {
+      if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+        # try once more with random settings
+        bcp$noisefilter.inla.h =  0.1
+        bc = bottom.contact( x=M, bcp=bcp ) 
+      }
+   
+      if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
         # try once more with random settings
         M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
-        bcp$noisefilter.inla.h =  bcp$eps.depth / 10
+        bcp$noisefilter.inla.h =  0.01
+        bc = bottom.contact( x=M, bcp=bcp ) 
+      }
+  
+      if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+        # try once more with random settings
+        M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+        bcp$noisefilter.inla.h =  0.1
         bc = bottom.contact( x=M, bcp=bcp ) 
       }
 
@@ -81,11 +89,12 @@
       N = N[ bc$bottom.contact , ] 
     }
 
-    if (all(is.na(t0))) t0=NULL
-    if (all(is.na(t1))) t1=NULL
+    if (all(is.na(t0))) t0=NA
+    if (all(is.na(t1))) t1=NA
 
-    if ( is.null(t1) ) {
-      t1_tmp = t0 + 5 /50/24
+    if ( is.null(t1) || !is.finite(t1) ) {
+      # t1_tmp = t0 + 5 /50/24
+      t1_tmp = NA  # rather than guessing, flag and then fill later
     } else {
       t1_tmp = t1
     }
@@ -120,12 +129,12 @@
       }
     }
 
-    if (!is.null( t1) )    t1 = as.POSIXct(t1, origin=lubridate::origin, tz=tzone)
     
     if (!is.null( t0_multiple )) {
-        if( !any(is.na(t0_multiple) )) { # two estimates of t0
-      timediff = abs( as.numeric( t0_multiple[1] - t0_multiple[2] ))
       
+      if( !any(is.na(t0_multiple) )) { # two estimates of t0
+      timediff = abs( as.numeric( t0_multiple[1] - t0_multiple[2] ))
+      if ( is.finite( timediff )) { 
       if (timediff > 20 ) { # more than XX seconds
         # check bounds
         if (!is.null( t1) ) {
@@ -141,24 +150,21 @@
         }
       } else {
         t0 = min( t0_multiple ) # this is to be more conservative in SA estimates ... better to be wrong by estimating too large a SA
+      } 
       }
     }
-  }
-if(length(t0)>1) t0 = NA
+    }
+    
+    if ( length(t0)>1) t0 = NA
     out$t0 = t0
     out$t1 = t1
 
-    if ( is.null( t1) ) {
-      out$dt = 5/60/24
-      out$t1 = t1 = out$t0 + out$dt
-    }
-
-    out$dt = t1 - t0
+    out$dt = as.POSIXct(t1) - as.POSIXct(t0)  # minutes
 
     if(!is.na(out$t0))    out$yr = as.numeric( as.character( years( out$t0) ))
-    if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$chron[1]) ))
+    if(is.na(out$t0))    out$yr = as.numeric( as.character( years(N$timestamp[1]) ))
 
-    itime =  which( N$chron >= t0  &  N$chron <= t1 )
+    itime =  which( N$timestamp >= t0  &  N$timestamp <= t1 )
     if ( length( itime) < n.req ) problem = T
 
     if (problem) {

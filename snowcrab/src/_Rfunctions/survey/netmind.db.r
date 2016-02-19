@@ -113,7 +113,6 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
 
   
   if (DS %in% c("stats", "stats.redo" ) ) {
-   # browser()
     
     if (DS %in% c("stats") ){
       
@@ -192,25 +191,29 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
 
     nm = netmind.db( DS="set.netmind.lookuptable" )
     set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
-   
+    set$n = NULL
+
     for ( yr in Y ) {
       print(yr)
       fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
       Stats = NULL
       basedata = netmind.db( DS="basedata", Y=yr )
+      basedata$timestamp = as.POSIXct( basedata$chron , tz=tzone, origin=lubridate::origin )
+
       ii = which( set$yr==yr & !is.na(set$netmind_uid) )
       nii =  length( ii ) 
       if ( nii== 0 ) next()
       rid = set[ ii,] 
       # rid = rid[grepl('netmind.S19092004.8.389.15.48.325',rid$netmind_uid),]
       Stats = NULL
-       for ( i in 1:nii  ){ 
+      for ( i in 1:nii  ){ 
          print(i)
           id = rid$netmind_uid[i]
           print(rid[i,])
-          N = basedata[ basedata$netmind_uid==id,]
-          if (nrow(N) == 0 ) next()
-          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$chron[i], yr=yr, plotdata=plotdata)
+          bdi = which( basedata$netmind_uid==id )
+          if (length(bdi) < 5 ) next()
+          N = basedata[ bdi ,]
+          l = net.configuration( N, t0=rid$t0[i], t1=rid$t1[i], tchron=rid$timestamp[i], yr=yr, plotdata=plotdata)
           l$netmind_uid = id
           l[,c('t0','t1','dt')] = as.numeric(l[,c('t0','t1','dt')])
           Stats = rbind( Stats, l )

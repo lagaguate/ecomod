@@ -1,13 +1,12 @@
 
-bottom.contact = function( x, bcp ) {
+bottom.contact = function( x, bcp, debugrun=FALSE ) {
   
   #require(lubridate) 
   #require( numDeriv ) 
 
-  if (FALSE) {
-    x = mm
-    bcp = bottom.contact.parameters( data.source="groundfish", YR="default", nr="default" ) 
+  if (debugrun) {
     debug.plot = TRUE
+    browser()
   }
   
   debug.plot = FALSE
@@ -234,8 +233,6 @@ bottom.contact = function( x, bcp ) {
   O$smooth.method.indices = NA
   sm0 = x[ O$aoi, c("depth.smoothed", "timestamp", "ts")]  # Send all data within the aoi --- check this .. order is important
   
-  # browser()
-
   res = NULL
   res = try( 
     bottom.contact.smooth( sm=sm0, bcp=bcp ) , silent =TRUE)
@@ -477,8 +474,6 @@ bottom.contact = function( x, bcp ) {
   O$res = data.frame( cbind(z=O$depth.mean, t=tmean, zsd=O$depth.sd, tsd=tmeansd, 
                             n=O$depth.n, t0=O$bottom0, t1=O$bottom1, dt=O$bottom.diff ) ) # this is really for the snow crab system
 
-  
-
   if(debug.plot) {
     trange = range( x$ts[O$good], na.rm=TRUE )
     drange = c( quantile( x$depth, c(0.05, 0.975), na.rm=TRUE) , median( x$depth, na.rm=TRUE ) * 1.05 )
@@ -486,7 +481,6 @@ bottom.contact = function( x, bcp ) {
     mcol = "yellow"
     points( depth~ts, x[ O$maxdepth.method.indices, ], pch=20, col=mcol, cex=0.2)
   }
-
 
   print( O$summary)
 
