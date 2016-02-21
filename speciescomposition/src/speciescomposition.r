@@ -53,15 +53,14 @@
   #required for interpolations and mapping 
 
   p$clusters = rep("localhost", length( p$varstomodel ) ) 
-  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  p = make.list( list(vars= p$varstomodel ), Y=p ) 
   parallel.run( habitat.model, DS="redo", p=p ) 
   # habitat.model ( DS="redo", p=p ) 
   
-
   # predictive interpolation to full domain (iteratively expanding spatial extent)
   # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
   p$clusters = rep("localhost", 10) # 6 GB / process
-  p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
+  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
   parallel.run( habitat.interpolate, p=p, DS="redo" ) 
   # habitat.interpolate( p=p, DS="redo" ) 
 

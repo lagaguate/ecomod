@@ -7,6 +7,7 @@
   # and the glue function "bio.db" 
 
   p = list( project.name = "condition" )
+
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" ) #required for interpolations and mapping
   
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "habitat", "bathymetry",
@@ -52,7 +53,7 @@
   # ~ 30 hrs with 2 CPUs @ 3.6 Ghz 
   # 200 hr! in 2015
   p$clusters = rep("localhost", length( p$varstomodel ) ) 
-  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  p = make.list( list(vars= p$varstomodel ), Y=p ) 
   parallel.run( habitat.model, DS="redo", p=p ) 
   # habitat.model ( DS="redo", p=p ) 
 

@@ -11,8 +11,8 @@
   #   i.e., be careful with dependency order as metabolism will 
   #   eventually need a lookup method too !!!
   
-  p = list()
-  p$project.name = "metabolism"
+  p = list( project.name = "metabolism" )
+
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
   p$libs = RLibrary ( c("chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" ))
@@ -61,29 +61,21 @@
 
    # create a spatial interpolation model for each variable of interest 
   # full model requires 5-6 GB 
-  if (p$movingdatawindow == 0 ) { 
-    p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-    
-    parallel.run( habitat.model, DS="redo", p=p ) 
-    # habitat.model ( DS="redo", p=p ) 
+  
+  p$clusters = rep("localhost", length( p$varstomodel ) ) 
+  p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
  
-    # predictive interpolation to full domain (iteratively expanding spatial extent)
-    # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
-    p = make.list( list( yrs=p$yearstomodel ), Y=p )
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-  
-  } else {
-    p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
-    parallel.run( habitat.model, DS="redo", p=p ) 
-    # habitat.model ( DS="redo", p=p ) 
-  
-    p = make.list( list( yrs=p$yearstomodel ), Y=p )
-    parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-    # habitat.interpolate( p=p, DS="redo" ) 
-  }
-
+  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
+  p$clusters = rep("localhost", 10) # 6 GB / process
+  p = make.list( list( yrs=p$yearstomodel ), Y=p )
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+ 
    
   # map everything
+  p$clusters = rep("localhost", detectCores() )
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel ), Y=p )
   parallel.run( habitat.map, p=p  ) 
   # habitat.map( p=p  ) 

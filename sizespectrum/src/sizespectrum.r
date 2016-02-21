@@ -84,7 +84,7 @@
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
   p$clusters = rep("localhost", length( p$varstomodel ) ) 
-  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  p = make.list( list(vars= p$varstomodel ), Y=p ) 
   parallel.run( habitat.model, DS="redo", p=p ) 
   # habitat.model ( DS="redo", p=p ) 
 
