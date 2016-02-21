@@ -31,7 +31,7 @@
         ww = p$runs[iip,"vars"]
 
         hd = habitat.db( DS="baseline", p=p )  
-        hi = habitat.interpolate( p=p, yr=yr, vname=ww ) 
+        hi = habitat.interpolate( DS="saved", p=p, yr=yr, vname=ww ) 
         if (is.null(hi)) next()
         hd[,ww] =  hi
     

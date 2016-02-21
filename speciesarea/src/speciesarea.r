@@ -9,7 +9,7 @@
   p$project.name = "speciesarea"
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )  #required for interpolations and mapping 
   
-  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
+  p$libs = RLibrary ( c("lubridate", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal", "raster" )) 
 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
@@ -105,7 +105,8 @@
     # habitat.model ( DS="redo", p=p ) 
   
     # predictive interpolation to full domain (iteratively expanding spatial extent)
-    p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
+    p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+    # p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
     #parallel.run( habitat.interpolate, p=p, DS="redo" ) 
      habitat.interpolate( p=p, DS="redo" ) 
 

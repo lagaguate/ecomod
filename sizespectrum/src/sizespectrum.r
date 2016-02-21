@@ -15,7 +15,7 @@
   p$project.name = "sizespectrum"
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
-  p$libs = RLibrary ( c( "chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal" )) 
+  p$libs = RLibrary ( c( "chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal", "lattice" )) 
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "temperature",  "habitat",  "taxonomy", "groundfish", "bio", "sizespectrum"  ) )
   
   # faster to use RAM-based data objects but this forces use only of local cpu's
