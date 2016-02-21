@@ -10,12 +10,10 @@
 
   # create base species area stats  ... a few hours
 
-  p = list()
- 
-  p$project.name = "sizespectrum"
+  p = list( project.name = "sizespectrum" )
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )
 
-  p$libs = RLibrary ( c( "chron", "fields", "bigmemory", "mgcv", "sp", "parallel", "rgdal", "lattice" )) 
+  p$libs = RLibrary ( c( "lubridate", "chron", "fields", "bigmemory", "mgcv", "sp", "parallel",  "grid" , "lattice", "fields", "raster", "rgdal" )) 
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "temperature",  "habitat",  "taxonomy", "groundfish", "bio", "sizespectrum"  ) )
   
   # faster to use RAM-based data objects but this forces use only of local cpu's
@@ -85,39 +83,21 @@
 # Generic spatio-temporal interpolations and maping of data 
 # using the interpolating functions and models defined in ~ecomod/habitat/src/
 # -------------------------------------------------------------------------------------
+  p$clusters = rep("localhost", length( p$varstomodel ) ) 
+  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  parallel.run( habitat.model, DS="redo", p=p ) 
+  # habitat.model ( DS="redo", p=p ) 
 
-  if (p$movingdatawindow == 0 ) { 
-      # create a spatial interpolation model for each variable of interest 
-      # full model requires 5 GB
-      p$clusters = rep("localhost", detectCores() )
-      p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-      parallel.run( habitat.model, DS="redo", p=p ) 
-      #habitat.model ( DS="redo", p=p ) 
- 
-  
-      # predictive interpolation to full domain (iteratively expanding spatial extent)
-      # ~ 5 GB /process required so on a 64 GB machine = 64/5 = 12 processes 
-      p$clusters = rep("localhost", detectCores() )
-      p = make.list( list(vars= p$varstomodel ), Y=p )  # no moving window 
-      parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-      # habitat.interpolate( p=p, DS="redo" ) 
-  
-  } else {
-      p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
-      parallel.run( habitat.model, DS="redo", p=p ) 
-      # habitat.model ( DS="redo", p=p ) 
+  # predictive interpolation to full domain (iteratively expanding spatial extent)
+  p$clusters = rep("localhost", 10) # 6 GB / process
+  p = make.list( list(vars= p$varstomodel, yrs=p$yearstomodel ), Y=p ) 
+  parallel.run( habitat.interpolate, p=p, DS="redo" ) 
+  # habitat.interpolate( p=p, DS="redo" ) 
 
-      # predictive interpolation to full domain (iteratively expanding spatial extent)
-      p = make.list( list(yrs=p$yearstomodel ), Y=p ) 
-      parallel.run( habitat.interpolate, p=p, DS="redo" ) 
-      # habitat.interpolate( p=p, DS="redo" ) 
-  
-  }
 
- 
   # map everything
   # p$clusters = rep( "localhost", 8 )
-  p$clusters = c( rep( "nyx", 20), rep("tartarus", 20), rep("kaos", 20 ) )
+  p$clusters = rep("localhost", detectCores() )
   p = make.list( list(vars=p$varstomodel, yrs=p$yearstomodel ), Y=p )
   parallel.run( habitat.map, p=p ) 
   # habitat.map( p=p ) 
