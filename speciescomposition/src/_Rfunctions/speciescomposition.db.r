@@ -147,7 +147,8 @@
       # baseline is already gridded to internal resolution
       P0 = bathymetry.db( p=p, DS="baseline" )  # prediction surface appropriate to p$spatial.domain, already in ndigits = 2
 			SC = merge( ks, P0, by=c("plat", "plon"), all.x=T, all.Y=F, sort= F, suffixes=c("", ".P0"))
-			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
+	    oo = which(!is.finite( SC$plon+SC$plat ) )
+      if (length(oo)>0) SC = SC[ -oo , ]  # a required field for spatial interpolation
       SC = habitat.lookup( SC, p=p, DS="environmentals" )
       save( SC, file=fn, compress=T )
 			return (fn)
