@@ -9,7 +9,6 @@
         return( out )
       }
       
-
       L = biomass.summary.db( DS="L.redo", p=p  )  # must go first as part of biomass estimates
       B = biomass.summary.db( DS="B.redo", p=p )  # rename to avoid confusion below as B is also used
       B.sd = biomass.summary.db( DS="B.sd.redo", p=p )  # rename to avoid confusion below as B is also used

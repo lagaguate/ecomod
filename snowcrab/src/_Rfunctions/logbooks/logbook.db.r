@@ -374,7 +374,8 @@
       logbook$plon = grid.internal( logbook$plon, p$plons )
       logbook$plat = grid.internal( logbook$plat, p$plats )
 
-			logbook$timestamp = logbook$date.landed  # required for temperature lookups
+			logbook$timestamp = as.POSIXct( logbook$date.landed, tz="America/Halifax", origin=lubridate::origin  )  # required for temperature lookups
+      logbook$dyear = lubridate::decimal_date( logbook$timestamp ) - lubridate::year(logbook$timestamp )
 
       logbook = logbook[which(logbook$yr<=p$current.assessment.year),]
 			# bring in time invariant features:: depth

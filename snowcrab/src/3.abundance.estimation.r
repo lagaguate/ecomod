@@ -82,7 +82,7 @@
       print( "and in the model statement in ecomod/snowcrab/_Rfunctions/analysis/model.formula.r")
 
       # p$model.type = "gam.full" # choose method for habitat model :
-      p$model.type = "gam.simple" # choose method for habitat model :
+      # p$model.type = "gam.simple" # choose method for habitat model :
       
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
       p$optimizers = c( "perf", "nlm", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
@@ -110,8 +110,8 @@
       if(moving.window) p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
       if(!moving.window)p = make.list( list(v=p$vars.to.model  ), Y=p )
   
-      parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
-      # habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
+      # parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
+      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
       #  --- parallel mode is not completing ... FIXME
 
       # ---------------------
@@ -143,7 +143,7 @@
       # and then map, stored in R/gam/maps/
 
       p$vars.to.model= "R0.mass"
-      p$nsims = 2000 # n=1000 ~ 1 , 15 GB/run for sims 
+      p$nsims = 1000 # n=1000 ~ 1 , 15 GB/run for sims 
       p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
 
       # p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )
