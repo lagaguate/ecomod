@@ -1,5 +1,5 @@
 
-  figure.timeseries.halibut = function( outdir, all.areas=T ) {
+  figure.timeseries.bycatch.halibut = function( outdir, all.areas=T ) {
  #browser()
     outdir=file.path(p$annual.results, "timeseries", "survey")
     set = snowcrab.db( DS="set.merge.det")
@@ -19,7 +19,7 @@
     #cod, halibut, thornyskate, wolfish, lessertoadcrab, jonahcrab, smoothskate, winterskate, northernshrimp, 
     #species = c(10, 30, 201, 50, 2521, 2511, 202, 204, 2211) 
 
-    td =  get.time.series ( from.file=T, outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" ) )
+    td =  get.time.series ( from.file=T , outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" ))
     td = td[ which( td$variable == v) ,]
     td = td[ order(td$region, td$year) , ]
     td$region = factor(td$region, levels=areas, labels =regions)

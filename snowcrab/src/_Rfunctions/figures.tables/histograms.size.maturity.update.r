@@ -91,7 +91,7 @@
           axisnames = F
           if (year[y]==year[nrows]) axisnames=T  # last row
 
-          barplot(toplot, space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=1.5)
+          barplot(toplot, space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=0.5)
           
           if (areas[a]==areas[ncols]) {
             text( dim(toplot)[2]-4, ylim[2]*2/3, year[y], cex=1 )
@@ -161,7 +161,7 @@
           axisnames = F
           if (year[y]==year[nrows]) axisnames=T  # last row
 
-          barplot(toplot, space=0.1, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=1.5 )
+          barplot(toplot, space=0.1, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=0.7 )
 
           if (areas[a]==areas[ncols]) text( dim(toplot)[2]-4, ylim[2]*2/3, year[y], cex=1.2 )
 

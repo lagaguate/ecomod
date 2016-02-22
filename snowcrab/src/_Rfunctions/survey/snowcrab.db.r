@@ -621,6 +621,7 @@
     # -------------
 
     if ( DS %in% c("set.merge.det","set.merge.det.redo") ) {
+    # browser()
 
       fn = file.path( project.datadirectory("snowcrab"), "R", "set.biologicals.rdata")
 
@@ -632,8 +633,8 @@
       factors = c("trip", "set")
 
       X = snowcrab.db( DS="set.clean" )
-      X2015 = X[which(X$yr==2015),]
-      head(X2015)
+      #X2015 = X[which(X$yr==2015),]
+      #head(X2015)
       Y = snowcrab.db( DS="det.initial" )
  
       # add various variables to set-level data
@@ -1037,7 +1038,7 @@
 
 			# bring in all other habitat variables, use "z" as a proxy of data availability
 			# and then rename a few vars to prevent name conflicts
-		  set = habitat.lookup( set,  p=p, DS="all.data" )
+		 # set = habitat.lookup( set,  p=p, DS="all.data" )
 		
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )

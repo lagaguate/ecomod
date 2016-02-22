@@ -101,6 +101,8 @@
         B = B / 1000 # kt
         B = B[ , areas]
         B = as.data.frame(B)
+        print('Biomass Index Survey')
+        print(B)
         save( B, file=fn, compress=T )
         return (B)
     
