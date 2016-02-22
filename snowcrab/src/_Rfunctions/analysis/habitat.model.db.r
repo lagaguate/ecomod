@@ -144,7 +144,7 @@
       if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
       
-      if (!exists( "optimizers", p) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
+      if (!exists( "optimizers", p) ) p$optimizers = c( "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
 
       for ( iip in ip ) {
         v0 = v = p$runs[iip,"v"]
