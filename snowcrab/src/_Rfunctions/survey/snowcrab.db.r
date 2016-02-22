@@ -1023,9 +1023,8 @@
       }
       
       set = snowcrab.db( DS="set.merge.cat" )
-      set2015 = set[which(set$yr == 2015),]
-      print(head(set2015))
-      
+      # set2015 = set[which(set$yr == 2015),]
+      # print(head(set2015))
 
 			# bring in time invariant features:: depth
 			print ("Bring in depth")

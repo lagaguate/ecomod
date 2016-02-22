@@ -1,5 +1,5 @@
  
-  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.0005, 0.9995) ) {
+  habitat.lookup = function( x, p=NULL, DS="default", max.distance=5, truncatequantiles=c(0.0005, 0.9995), tzone="America/Halifax" ) {
 
     # wrapping function to provide a common intercae to various habitat related lookup routines
     # truncation by quantiles is the default behaviour, to turn off, an explicit truncatequantiles=FALSE must be given
@@ -142,12 +142,13 @@
       print( "Looking up temperature at weekly scales" )
       if (! exists( "dyear", x) ) { # dyear is the decimal year (fraction of a year)
         if (exists( "timestamp", x )) {
-          x$dyear = lubridate::decimal_date( x$timestamp ) - x$yr 
+          if ( !is.POSIXct ( x$timestamp) ) x$timestamp = as.POSIXct( x$timestamp, origin=lubridate::origin , tz=tzone )
+          x$dyear = lubridate::decimal_date( x$timestamp ) - lubridate::year( x$timestamp ) 
         } else if (exists( "chron" ) ) {  
            x$timestamp = as.POSIXct( chron::as.chron( x$chron), origin=lubridate::origin )
-           x$dyear = lubridate::decimal_date( x$timestamp ) - x$yr  
+           x$dyear = lubridate::decimal_date( x$timestamp ) - lubridate::year( x$timestamp ) 
         } else {
-          stop( "dyear, the fractional year, is required")  # required
+          stop( "timestamp needs to be in PSOIXct format, or send dyear instead")  # required
         }
       } 
     
