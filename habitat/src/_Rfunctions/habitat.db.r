@@ -1,7 +1,6 @@
 
   habitat.db = function( ip=NULL, DS="baseline", p=NULL, year=NULL ) {
 
-
     # simple wrappers to load relevant, uninterpolated point data 
     if (DS == "sizespectrum")  return( sizespectrum.db( DS=DS, p=p ) )
     if (DS == "metabolism")    return( metabolism.db( DS=DS, p=p ) )

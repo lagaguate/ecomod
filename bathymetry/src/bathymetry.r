@@ -3,6 +3,7 @@
 # warning: this will take weeks as it is an iterative process
 
   p = list( project.name = "bathymetry" )
+
   p$project.root = project.datadirectory( p$project.name )
          
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" )  )
