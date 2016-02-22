@@ -52,7 +52,7 @@
 # -------------------------------------------------------------------------------------
   #required for interpolations and mapping 
 
-  p$clusters = rep("localhost", length( p$varstomodel ) ) 
+  p$clusters = rep("localhost", length( p$varstomodel )  )   ### CAREFUL  .. 2015 req 16 GB per run!
   p = make.list( list(vars= p$varstomodel ), Y=p ) 
   parallel.run( habitat.model, DS="redo", p=p ) 
   # habitat.model ( DS="redo", p=p ) 

@@ -9,7 +9,7 @@
 
   p$project.outdir.root = project.datadirectory( p$project.name, "analysis" )  #required for interpolations and mapping 
   
-  p$libs = RLibrary ( c("lubridate", "chron",  "fields", "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice", "fields", "rgdal", "raster" )) 
+  p$libs = RLibrary ( c("lubridate", "chron", "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice", "fields", "rgdal", "raster" )) 
 
   p$init.files = loadfunctions( c("spacetime", "utility", "parallel", "bathymetry", "temperature", "habitat", "taxonomy", "bio", "speciesarea"  ) )
  
