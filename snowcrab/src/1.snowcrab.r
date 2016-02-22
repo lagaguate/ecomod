@@ -161,7 +161,7 @@
   logbook.db( DS  ="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
   snowcrab.db( DS ="set.logbook.redo", yrs=1996:p$current.assessment.year ) # add gridded fisheries data
-  snowcrab.db( DS ="set.logbook", yrs=1996:p$current.assessment.year ) 
+  # snowcrab.db( DS ="set.logbook", yrs=1996:p$current.assessment.year ) 
   
   #make.timeseries.data(p=p, areas=p$regions )  #  timeseries of means of all survey data
   #in 2014 as there were reduced stations for comparison

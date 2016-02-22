@@ -1,7 +1,7 @@
 
     model.formula = function( V="default", spatial.knots=100 ) {
       
-      if ( V %in% c("default") ) {
+      if ( V %in% c("R0.mass") ) {
           # basic model -- less spatial density .. all covariates
            out = formula( Y ~ s(dyear, bs="ts" ) 
             + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) 
@@ -41,7 +41,7 @@
    #        + s(nss.shannon, bs="ts" ) + s(nss.rsquared, bs="ts" ) 
    #        + s(plon, plat, k=200, bs="tp", by=as.factor(yr) ) + as.factor(yr)  ) 
    #  }
-  if ( V %in% c("R0.mass") ) {
+  if ( V %in% c("R0.mass.2014") ) {
         #  same as basic model but with higher spatial densities
           out = formula( Y ~ te(dyear, bs="cs" ) 
             + te(tmean,bs='cs') + te(dt.annual, bs="cs" ) + te(dt.seasonal, bs="cs" ) 
