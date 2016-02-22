@@ -178,13 +178,11 @@
       }
 
       sm = sm[ which( is.finite(sm$nss.b0) ) ,]
-      
 			SC = merge( sm, P0, by="platplon", all.x=T, all.Y=F, sort= F, suffixes=c("", ".P0") )
-			SC = SC[ -which(!is.finite( SC$plon+SC$plat ) ) , ]  # a required field for spatial interpolation
+		  oo = which(!is.finite( SC$plon+SC$plat ) )
+      if (length(oo)>0) SC = SC[ -oo , ]  # a required field for spatial interpolation
 		  rm(sm, P0); gc()
-      
       SC = habitat.lookup( SC, p=p, DS="environmentals" )
-
       save(SC, file=fn, compress=T ) 
       return ( "Done" )
     }
