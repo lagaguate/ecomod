@@ -17,11 +17,8 @@
     p$clusters= c("localhost")
   }
 
-  
-  # get data tables from Oracle server and store local copies
+    # get data tables from Oracle server and store local copies
   # !!!!!! --------- these should be run on a windows machine: !!!!!!!!! <--------- READ THIS
-
-
   if (obtain.database.snapshot) {
     snowcrab.db( DS="set.odbc.redo", yrs=1996:p$current.assessment.year ) # Copy over datadirectory ("snowcrab"), "data", "trawl", "SNCRABSETS"
     snowcrab.db( DS="det.odbc.redo", yrs=1996:p$current.assessment.year ) # Copy over datadirectory ("snowcrab"), "data", "trawl", "SNCRABDETAILS"
@@ -115,8 +112,6 @@
     snowcrab.db( DS="cat.georeferenced.redo" )
     snowcrab.db( DS="set.merge.det.redo" )
     snowcrab.db( DS="set.merge.cat.redo" )  
-
-
   }  # end base data
   
   
@@ -146,9 +141,9 @@
   #MG species area took 2 days to run in parallel, run some things on server if possible. It's quicker to run some things in serial though, ask Jae
   loadfunctions ( "speciesarea", functionname="speciesarea.r" ) 
   loadfunctions ( "speciescomposition", functionname="speciescomposition.r" ) 
-  loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) #ran into problems with mapping these need to check sept 7 2014 
+  loadfunctions ( "sizespectrum", functionname="sizespectrum.r" ) 
   loadfunctions ( "metabolism", functionname="metabolism.r" ) 
-  loadfunctions ( "condition", functionname="condition.r" ) 
+  loadfunctions ( "condition", functionname="condition.r" ) #MG this one took 8 days to run on the laptop, in serial...
 # Habitat data :: NOTE:: This glues all the above together in planar coord system 
 # to allow fast lookup of data for matching with set, logbook data
   loadfunctions ( "habitat", functionname="habitat.complete.r" ) 

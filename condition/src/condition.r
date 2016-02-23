@@ -22,9 +22,7 @@
   # p$clusters = c( rep("tartarus", 24), rep("kaos", 17 ) )
   p$clusters = rep("localhost", detectCores() )
 
-#  p$varstomodel = c( "coAll", "coFish", "coElasmo", "coGadoid", "coDemersal", "coPelagic", "coSmallPelagic", "coLargePelagic", "coSmallDemersal",   "coLargeDemersal" )
-  p$varstomodel = c( "coFish", "coElasmo", "coGadoid", "coDemersal", "coPelagic", 
-                     "coSmallPelagic", "coLargePelagic", "coSmallDemersal",   "coLargeDemersal" )
+  p$varstomodel = c( "coAll", "coFish", "coElasmo", "coGadoid", "coDemersal", "coPelagic", "coSmallPelagic", "coLargePelagic", "coSmallDemersal",   "coLargeDemersal" )
   
   p$yearstomodel = 1970:2015
   p$spatial.knots = 100

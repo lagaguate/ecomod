@@ -1,8 +1,8 @@
   make.timeseries.data = function( areas=NULL, p=NULL, outfile=NULL, reduced.stations=F,vars=NULL ) {
     set = snowcrab.db( DS ="set.complete", p=p )
-    set2015 = set[which(set$yr == 2015),]
-    print (head(set2015))
-
+    #set2015 = set[which(set$yr == 2015),]
+    #print (head(set2015))
+   
     
    # if (is.null(areas)) areas = c( "cfa20", "cfa21", "cfa22", "cfa23", "cfa24", "cfa4x", "cfa23slope", "cfa24slope", "cfaslope", "cfanorth", "cfasouth", "cfaall" )
    if (is.null(areas)) areas = c( "cfa4x", "cfanorth", "cfasouth")
