@@ -37,8 +37,8 @@ BarPlotCLF<-function(CLF,yrs=2005:2014,CLFyrs=yrs,bins=seq(0,220,5),filen='',row
 					legend(xlm[2]*0.8,yl2/1.3,paste(yrs[1],'-',yrs[length(yrs)-1]),bty='n',lty=1)
 				}
 			}
-			if(!is.null(LS))abline(v=LS,lwd=2,col='red')
-			if(!is.null(recline))abline(v=recline,lty=2)
+			if(!is.null(LS))abline(v=LS[y,i],lwd=2,col='red')
+			if(!is.null(recline))abline(v=recline,lty=2,col='red')
 			
 			mtext(as.character(CLFyrs[y]), 3, -3, adj=ylp,outer = F,cex=1)
 			if(!is.null(sample.size))mtext(paste("N =",sample.size[y]), 3, -3, adj=0.9,outer = F,cex=1)

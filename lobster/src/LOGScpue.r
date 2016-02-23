@@ -13,8 +13,18 @@ Landings.dat<-rbind(subset(Annual.dat,LFA<33&YEAR>1975,c("SYEAR","LFA","CATCH"))
 write.csv(Landings.dat,file.path( project.datadirectory("lobster"), "data","products","TotalLandings.csv"),row.names=F)
 
 
+	#Filtering by date trap and weight:
+	Fish.Date<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","FishingSeasonDates.csv"))
+	lfa <- unique(Fish.Date$LFA)
+	max_trap<-c(825,750,750,750,750,750,750,750,1126,1126,1126,1226)
+	max_lbs<-c(2750,2750,2750,2750,2750,2750,2750,10000,30000,30000,30000,30000)
+	Fish.Date$START_DATE<-as.Date(Fish.Date$START_DATE,"%d/%m/%Y")
+	Fish.Date$END_DATE<-as.Date(Fish.Date$END_DATE,"%d/%m/%Y")
+
+
 ## LOGS
 logsInSeason<-LobsterLogsProcess()
+	
 
 ### SUMMERIZE CPUE
 ### by subarea for 27 & 33, nogrid excluded
