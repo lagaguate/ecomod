@@ -48,7 +48,7 @@
       xrange = range(uyrs)
       xrange[1] = xrange[1]
       xrange[2] = xrange[2]
-      xlabels = seq(xrange[1], xrange[2], 2)
+      xlabels = seq(xrange[1] +1, xrange[2], 2)
 
       m=1; plot( uyrs, l[,m],  type="b", ylab="Landings (t)", xlab="Year", col=cols[m], lwd=4, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
       m=2; points(uyrs, l[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
@@ -70,7 +70,7 @@
       xrange = range(uyrs)
       xrange[1] = xrange[1]
       xrange[2] = xrange[2]
-      xlabels = seq(xrange[1], xrange[2], 2)
+      xlabels = seq(xrange[1]+1, xrange[2], 2)
 
       m=1; plot( uyrs, sm[,m],  type="b", ylab="Landings (t)", xlab="Year", col=cols[m], lwd=4, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
       m=2; points(uyrs, sm[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])

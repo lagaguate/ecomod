@@ -1037,7 +1037,7 @@
 
 			# bring in all other habitat variables, use "z" as a proxy of data availability
 			# and then rename a few vars to prevent name conflicts
-		 # set = habitat.lookup( set,  p=p, DS="all.data" )
+		  set = habitat.lookup( set,  p=p, DS="all.data" )
 		
       # return planar coords to correct resolution
       set = lonlat2planar( set, proj.type=p$internal.projection )

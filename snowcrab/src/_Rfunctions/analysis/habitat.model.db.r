@@ -1,6 +1,6 @@
 
   habitat.model.db = function( ip=NULL, DS=NULL, v=NULL, p=NULL, yr=NULL, debug=F ) {
-    browser()
+    #browser()
 
     # ~ 5hr , when k=200
     # variograms are not used .. the model solutions require > 3 days to complete! 

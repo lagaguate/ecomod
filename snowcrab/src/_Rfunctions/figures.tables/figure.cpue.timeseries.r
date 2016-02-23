@@ -25,7 +25,7 @@
     xrange[1] = xrange[1]
     xrange[2] = xrange[2]
 #    xlabels = c(xrange[1], xrange[1]+8, xrange[1]+18, xrange[1]+28, xrange[2])
-    xlabels = seq(xrange[1], xrange[2], 2)
+    xlabels = seq(xrange[1]+1, xrange[2], 2)
     
     dir.create( outdir, recursive=T, showWarnings=F  )
     fn = file.path( outdir, paste( outfile, "png", sep="." ) )

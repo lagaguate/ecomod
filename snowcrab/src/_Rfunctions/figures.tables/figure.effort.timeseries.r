@@ -40,7 +40,7 @@
       xrange = range(uyrs)
       xrange[1] = xrange[1]
       xrange[2] = xrange[2]
-      xlabels = seq(xrange[1], xrange[2], 2)
+      xlabels = seq(xrange[1]+1, xrange[2], 2)
 
 
       m=1; plot( uyrs, e[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
@@ -62,7 +62,7 @@
       xrange = range(uyrs)
       xrange[1] = xrange[1]
       xrange[2] = xrange[2]
-      xlabels = seq(xrange[1], xrange[2], 2)
+      xlabels = seq(xrange[1]+1, xrange[2], 2)
 
 
       m=1; plot( uyrs, sm[,m],  type="b", ylab="Effort (1000 trap hauls)", xlab="Year", col=cols[m], lwd=4, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
