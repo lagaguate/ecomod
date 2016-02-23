@@ -11,6 +11,7 @@ collectorTemperatureData <- function(base.dir = file.path(ecomod.datadirectory,'
 			names(h)[3] = 'Site'
 			k = rbind(k,h)
 			}
-		save(k,file=file.path(a,'combinedTemperatureData.Rdata'))
+			return(k)
+		#save(k,file=file.path(a,'combinedTemperatureData.Rdata'))
 		print('saved')
 }
