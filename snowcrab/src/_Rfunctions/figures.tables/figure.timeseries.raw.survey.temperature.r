@@ -1,6 +1,6 @@
 
   figure.timeseries.raw.survey.temperature = function( outdir, vars="t",  all.areas=T ) {
-    outdir=file.path(p$annual.results, "timeseries", "survey")
+    
     set = snowcrab.db( DS="set.merge.det")
   
     if (all.areas) {

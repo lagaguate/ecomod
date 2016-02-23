@@ -4,24 +4,27 @@
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
     
    # Think this is fixed now .. ?
-   # p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
-   p$do.parallel = TRUE  # mapping in parallel is broken .. must fix ::TODO
+  p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
+  #p$do.parallel = TRUE  # mapping in parallel is broken .. must fix ::TODO
 
    p$clusters = rep("localhost", 24 )
    p$clusters = rep("localhost", 3 )
 
   # ------------------------------------------
-  # Time-series: Fisheries landings
-    figure.landings.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts", outfile2="landings.ts.sm" )
-
+   # Time-series: Fisheries landings
+   figure.landings.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts", outfile2="landings.ts.sm" )
+   #figure.landings.timeseries( yearmax=2016, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts", outfile2="landings.ts.sm" )
+   
   # ------------------------------------------
   # Time-series: Fisheries effort 
-    figure.effort.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts", outfile2="effort.ts.sm" )
-
+   figure.effort.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts", outfile2="effort.ts.sm" )
+   #figure.effort.timeseries( yearmax=2016, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts", outfile2="effort.ts.sm" )
+   
   # ------------------------------------------
   # Time-series: Fisheries CPUE
-    figure.cpue.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts", outfile2="cpue.sm.ts" )
-
+   figure.cpue.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts", outfile2="cpue.sm.ts" )
+   #figure.cpue.timeseries( yearmax=2016, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts", outfile2="cpue.sm.ts" )
+   
   # ------------------------------------------
   # Size frequency distributions, broken down by moult category from at-sea observed data 
     figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )   
@@ -40,6 +43,10 @@
     #MG fix this one
     figure.timeseries.survey(p, areas=c("cfanorth", "cfasouth", "cfa4x"), from.file=F ) # goes to file.path( project.datadirectory("snowcrab"), "R", "timeseries", "survey"
 
+  #-----------------------------------------------
+  # Time series of survey temperature  
+    figure.timeseries.raw.survey.temperature (outdir=file.path(p$annual.results, "timeseries", "survey"))
+      
   # ------------------------------------------
   # Timeseries: geometric mean density of R-1 recruits
     #figure.timeseries.recruits( outdir=file.path(p$annual.results, "timeseries", "survey") )
@@ -48,11 +55,11 @@
     #MG Try to get a better measure of R1, not being used at this point because it seems to poorly represent recruits
     figure.timeseries.R1( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
-  #Timeseries: geometric mean density of R0
+  #Timeseries: geometric mean density of R0 (fishable Biomass)
     figure.timeseries.R0( outdir=file.path(p$annual.results, "timeseries", "survey") )
  
   #To represent the reduced set of stations in 2014
-    figure.timeseries.R0.reduced.stations( outdir=file.path(p$annual.results, "timeseries", "survey") )
+  #figure.timeseries.R0.reduced.stations( outdir=file.path(p$annual.results, "timeseries", "survey") )
 
   # ------------------------------------------
   # Timeseries: geometric mean density of CC5 crab
@@ -75,7 +82,7 @@
     figure.timeseries.CW( outdir=file.path(p$annual.results,  "timeseries", "survey"), type="observer" )
     
   #Timeseries: geometric mean biomass of by-catch from snow crab survey
-    #cod, halibut, thornyskate, wolfish, lessertoadcrab, jonahcrab, smoothskate, winterskate, northernshrimp, 
+    #cod, halibut, thornyskate, wolfish, lessertoadcrab, jonahcrab, smoothskate, winterskate, northernshrimp
     #species = c(10, 30, 201, 50, 2521, 2511, 202, 204, 2211) 
     #Predators
     figure.timeseries.bycatch.halibut(outdir=file.path(p$annual.results, "timeseries", "survey")) #30

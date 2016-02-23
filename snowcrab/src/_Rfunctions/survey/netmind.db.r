@@ -275,7 +275,3 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
   }
   
 }
-
-
-
-

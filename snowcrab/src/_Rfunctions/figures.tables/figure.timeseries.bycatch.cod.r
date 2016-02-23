@@ -1,5 +1,5 @@
 
-  figure.timeseries.cod = function( outdir, all.areas=T ) {
+  figure.timeseries.bycatch.cod = function( outdir, all.areas=T ) {
  #browser()
     outdir=file.path(p$annual.results, "timeseries", "survey")
 
@@ -19,15 +19,15 @@
     #cod, halibut, thornyskate, wolfish, lessertoadcrab, jonahcrab, smoothskate, winterskate, northernshrimp, 
     #species = c(10, 30, 201, 50, 2521, 2511, 202, 204, 2211) 
 
-    td =  get.time.series ( from.file=T, outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" ) )
+    td =  get.time.series ( from.file=T, outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" ))
     td = td[ which( td$variable == v) ,]
     td = td[ order(td$region, td$year) , ]
     td$region = factor(td$region, levels=areas, labels =regions)
     #   td[ which(td$region=="4X" & td$year < 2004), c("mean", "se", "ub", "lb", "n")] = NA
 
     ylim='NULL'
-    ylim[2]=max(td$ub)*0.8
-    ylim[1]=round(min(td$lb), 0) - (max(td$ub)*0.05)
+    ylim[2]=max(td$ub, na.rm=T)*0.8
+    ylim[1]=round(min(td$lb, na.rm=T), 0) - max(td$ub, na.rm=T)* 0.05
     #ylim=range(c(td$mean), na.rm=T); ylim[1]=ylim[1]-0.1*ylim[2]; ylim[2] = ylim[2]+ylim[2]*0.2
     xlim=range(td$year); xlim[1]=xlim[1]; xlim[2]=xlim[2]
 
