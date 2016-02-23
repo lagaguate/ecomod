@@ -1,7 +1,6 @@
 
   habitat.db = function( ip=NULL, DS="baseline", p=NULL, year=NULL ) {
 
-
     # simple wrappers to load relevant, uninterpolated point data 
     if (DS == "sizespectrum")  return( sizespectrum.db( DS=DS, p=p ) )
     if (DS == "metabolism")    return( metabolism.db( DS=DS, p=p ) )
@@ -76,12 +75,15 @@
     #  -------------------------------
 
 
-    if (DS %in% c("environmentals", "environmentals.redo") ) {
+    if (DS %in% c("environmentals", "environmentals.redo", "complete", "complete.redo") ) {
+
+### NOTE -- "complete", "complete.redo" here as a temporay measure to skip other indicators for 2015/2016
+      
       outdir =  file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "environmentals" )
       if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE","environmentals" )
       dir.create(outdir, recursive=T, showWarnings=F)
    
-      if ( DS=="environmentals" ) {
+      if ( DS %in% c( "environmentals", "complete")  ) {
         outfile =  file.path( outdir, paste( "PS", year, "rdata", sep= ".") )
         PS = NULL
         if ( file.exists( outfile ) ) load( outfile )
@@ -115,7 +117,8 @@
     #  -------------------------------
 
 
-    if (DS %in% c("complete", "complete.redo") ) {
+    
+    if (DS %in% c("complete.off", "complete.off.redo") ) {
       
       outdir =  file.path( project.datadirectory("habitat"), "data", p$spatial.domain, "complete" )
       if ( p$spatial.domain =="snowcrab" ) outdir = file.path( project.datadirectory("habitat"), "data", "SSE","complete" )

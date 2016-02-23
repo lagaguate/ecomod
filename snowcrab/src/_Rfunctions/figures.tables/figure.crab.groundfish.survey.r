@@ -13,28 +13,36 @@ figure.crab.groundfish.survey <- function(species , outdir=file.path(project.dat
 	      mi2ft = 5280
 	      sakm2 = (41 * ft2m * m2km ) * ( 1.75 * nmi2mi * mi2ft * ft2m * m2km )  # surface area sampled in km^2
 		
- 
+#	      species = c( "cod", "skates", "thornyskate", "northernshrimp",
+#	                   "brittlestar", "basketstar",
+#	                   "snowcrab",  "hermitcrab", "jonahcrab",
+#	                   "lessertoadcrab", "northernstonecrab", "porcupinestonecrab", "portlyspidercrab",
+#	                   "redcrab", "atlanticrockcrab", "toadcrab", "snowcrab",'atlanticwolffish','halibut','smoothskate','winterskate')
+	      #cod, halibut, thornyskate, wolfish, lessertoadcrab, jonahcrab, smoothskate, winterskate, northernshrimp, 
+	      species = c(10, 30, 201, 50, 2521, 2511, 202, 204, 2211) 
  set = snowcrab.db( DS="set.complete")
  set = set[which(set$yr>2003),]
-		 ii  = names(set)[grep(paste("^ms.mass.",species,"$",sep=""),names(set))]
-     if(length(ii)==1){
+ ii  = names(set)[grep(paste("^ms.mass.",species,"$",sep=""),names(set))]
+  
+    if(length(ii)==1){
 		 set = set[,c('yr','cfa',ii)]
 		 names(set)[3] = 'mass'
 		 ou = unique(set[,c('yr','cfa')])
 		 ou = ou[order(ou$cfa,ou$yr),]
 		 ou$mean = ou$upper = ou$lower = 0
 		 boot.mean <- function(x,i){mean(x[i])}
- #get the bs estimates for snowcrab
- for(j in 1:nrow(ou)) {
-  	lp = set[which(set$yr==ou[j,'yr'] & set$cfa==ou[j,'cfa']),'mass']
-if(all(lp==0)) next()
- 	ir = boot(lp,statistic=boot.mean,R=1000)
- 	irr = boot.ci(ir,type='bca')
- 	ou[j,c('lower','upper','mean')] = c(irr$bca[c(4,5)],ir$t0)
- }
-} else {
-  ou = NULL
-}
+     #get the bs estimates for snowcrab
+     
+		 for(j in 1:nrow(ou)) {
+  	  lp = set[which(set$yr==ou[j,'yr'] & set$cfa==ou[j,'cfa']),'mass']
+      if(all(lp==0)) next()
+ 	    ir = boot(lp,statistic=boot.mean,R=1000)
+ 	    irr = boot.ci(ir,type='bca')
+ 	    ou[j,c('lower','upper','mean')] = c(irr$bca[c(4,5)],ir$t0)
+      }
+      } else {
+      ou = NULL
+      }
 
  gr.dir = file.path(project.datadirectory('groundfish'),'analysis')
  gr.list = list()

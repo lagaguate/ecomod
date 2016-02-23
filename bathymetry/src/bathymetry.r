@@ -3,6 +3,7 @@
 # warning: this will take weeks as it is an iterative process
 
   p = list( project.name = "bathymetry" )
+
   p$project.root = project.datadirectory( p$project.name )
          
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" )  )
@@ -182,10 +183,10 @@
   p = spatial.parameters( type="canada.east.highres", p=p ) 
   b = bathymetry.db( p=p, DS="spde_complete" ) 
   
+  vn = "z"
   u = b[[vn]] [ is.finite( b[[vn]]) ]
   if (length( u) > 0 ) out = x[u]
 
-  vn = "z"
   mypalette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
   mybreaks = classIntervals( u, n=length(mypalette), style="quantile")$brks
   

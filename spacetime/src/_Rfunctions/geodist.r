@@ -1,6 +1,6 @@
   geodist = function (point, locations, method) {
 		
-    warning( "Deprecated. Consider using library geosphere::distVincentyEllipsoid(accurate), distMeeus(fast and accurate), distCosine, etc..")
+    warning( "Deprecated. Consider using library geosphere::distVincentyEllipsoid(accurate), distMeeus(fast and accurate), distCosine, distGeo (most accurate) etc..")
 
     a = 6378.13700          # WGS84 major axis in km
 	  f = 1/298.257223563   # the WGS84 flattening parameter .. do not simplify as round-off errors are important

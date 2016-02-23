@@ -21,6 +21,8 @@ bottom.contact.smooth = function( sm, bcp )  {
   Z0 = modes( sm$Z )
   aoi.i = which( sm$Z > (Z0$lb2 + bcp$depth.range[1]/2) &  sm$Z < (Z0$ub2 + bcp$depth.range[2]/2 ) )
   
+  if (length( which( is.finite( aoi.i))) < 30  ) return( res) # need some data
+
   ml0 = min(aoi.i + 5 ) ## move away from edge to avoid strange curvatures due to being on the tail
   mr0 = max(aoi.i - 5 )
   

@@ -49,6 +49,8 @@
     "tow_date", "date", 
     "start_long", "lon", 
     "start_lat", "lat", 
+    "end_lat", "lat1",
+    "end_long", "lon1",
     "start_time", "stime", 
     "board_date", "sdate",
 	"setcd_id","set_type") 

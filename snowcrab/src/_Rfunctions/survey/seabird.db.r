@@ -1,9 +1,7 @@
 	
 	# mostly a copy over of the MINILOG functions with variable nemaes being replaced
-	# some modifications to the 
- 
 
-  seabird.db = function( DS="", Y=NULL, plot=FALSE ){
+  seabird.db = function( DS="", Y=NULL, plotdata=FALSE ){
     
     sb.dir = project.datadirectory("snowcrab", "data", "seabird" )
     seabird.rawdata.location = file.path( sb.dir, "archive" ) 
@@ -78,7 +76,7 @@
         basedata = NULL
         metadata = NULL
         for (f in 1:length(fs)) {
-          j = load.seabird.rawdata( fn=fs, f=f, set=set, plot=T )  # variable naming conventions in the past
+          j = load.seabird.rawdata( fn=fs, f=f, set=set, plotdata=T )  # variable naming conventions in the past
           if (is.null(j)) next()
           metadata = rbind( metadata, j$metadata)
           basedata = rbind( basedata, j$basedata)
@@ -118,14 +116,22 @@
         sb.meta = seabird.db( DS="metadata", Y=Y )
 
         res = merge( sb.meta, sb.stat,  by="seabird_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
-        
+    
         if(any(duplicated(res[,c('trip','set')]))) {
-            res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
-          }
-        return (res)
-
+          res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
+        }
+     
+        # TODO:: need to move this into the load.seabird function and remove chron dependence in it
+        # should not be required here .. but in case
+        res$t0 = as.POSIXct( res$t0, origin=lubridate::origin, tz=tzone )
+        res$t1 = as.POSIXct( res$t1, origin=lubridate::origin, tz=tzone )
+        res$dt = as.numeric( res$dt )  # minutes
+        res$timestamp = lubridate::ymd_hms( res$timestamp)
+     
+        return(res)
       }
-     # browser()
+     
+      # browser()
       
       # default action  is "stats.redo"
       
@@ -138,8 +144,11 @@
         sbStats = NULL
 
         sbRAW = seabird.db( DS="basedata", Y=yr )
-        
+        sbRAW$timestamp = lubridate::ymd_hms( sbRAW$chron)
+
         mta = seabird.db( DS="metadata", Y=yr )
+        mta$timestamp = ymd_hms( mta$timestamp )
+
         rid = seabird.db( DS="set.seabird.lookuptable" )
         rid = data.frame( seabird_uid=rid$seabird_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="seabird_uid", all.x=TRUE, all.y=FALSE )
@@ -148,9 +157,10 @@
         if (nrow(rid) == 0 ) next()
         #prune down the rids to only a subset
         #rid = rid[grepl('S30092013',rid$seabird_uid),]
-        if(plot)pdf(paste0("seabird",yr,".pdf"))
         for ( i in 1:nrow(rid) ) {
           #browser()
+          print(i)
+          warnings()
           id = rid$seabird_uid[i]
           sso.trip = rid$trip[i] 
           sso.set = rid$set[i]
@@ -159,53 +169,63 @@
           Mi = which( sbRAW$seabird_uid == id )
           if (length( Mi) == 0 ) next()
           M = sbRAW[ Mi, ]
-         
 
-          M$timestamp = as.POSIXct( M$chron, tz=tzone,origin=lubridate::origin )
-          settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone,origin=lubridate::origin )
+          settimestamp= rid$timestamp[i]
           time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
      
           bcp = list( 
             id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
-            tdif.min=3, tdif.max=9, time.gate=time.gate,
-            depth.min=20, depth.range=c(-20,30), depthproportion=0.6 
+            tdif.min=3, tdif.max=9, time.gate=time.gate, noisefilter.inla.h=0.01,
+            depth.min=20, depth.range=c(-20,30), depthproportion=0.6, eps.depth = 2
           )
         
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
    
           print(id)
-          #if(id=='seabird.S18112012.2.339.6.24.24') browser()
+#          if( id=='seabird.S03092012.11.334.19.2.3') { browser() ; bc = bottom.contact( x=M, bcp=bcp, debugrun=TRUE ) }
+#          if (id=='seabird.S03092012.10.333.16.22.3') { browser() ; bc = bottom.contact( x=M, bcp=bcp, debugrun=TRUE ) }
+#          if (id=='seabird.S02112012.2.54.6.47.2') { browser() ; bc = bottom.contact( x=M, bcp=bcp, debugrun=TRUE ) }
+#          if (id=='seabird.S03092012.13.541.21.38.3') { browser() ; bc = bottom.contact( x=M, bcp=bcp, debugrun=TRUE ) }
+          
+#          if (id=='seabird.S03092012.10.333.16.22.3') { browser() }
           bc = NULL
           bc = bottom.contact( x=M, bcp=bcp )
           #browser()
-          bc = bottom.contact( x=M, bcp=bcp ) 
           
-          if ( is.null(bc) ) {
-            # try once more with random settings
-             bcp$noisefilter.inla.h = bcp$noisefilter.inla.h * 2
+          if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
              bc = bottom.contact( x=M, bcp=bcp ) 
           }
-       
-          if ( is.null(bc) ) {
+          if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
             # try once more with random settings
-            M$depth = jitter( M$depth, amount = bcp$eps.depth/4 ) 
-            bcp$noisefilter.inla.h =  bcp$eps.depth / 2
+            bcp$noisefilter.inla.h = 0.01 
+            bc = bottom.contact( x=M, bcp=bcp ) 
+          }
+          if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+            M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+            bcp$noisefilter.inla.h = 0.1
+            bc = bottom.contact( x=M, bcp=bcp ) 
+          }
+          if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+            M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+            bcp$noisefilter.inla.h = 0.01
             bc = bottom.contact( x=M, bcp=bcp ) 
           }
 
-          if (plot) {
-            # to visualize
-            bottom.contact.plot( bc )
-          }
-        
           # default, empty container
           res = data.frame(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA)
-          if (!is.null(bc)) res=bc$res 
+          if ( !is.null(bc$res) & exists( "res", bc) ) res = bc$res 
+          if (!is.null(bc)) {
+            if (plotdata) {
+              # to visualize
+              pdf( paste0("seabird",yr,".pdf"))
+                bottom.contact.plot( bc )
+              dev.off()
+            }
+          }
 
           if (all (is.finite( bc$smooth.method) ) & all(!is.null(bc)) ) {
             ## --- NOTE smooth (1)  seems to work best ... focus upon these methods with seabird data ... 
             ##  likely due to greater precision and data density relative to minilog
-            
             res$t0 = bc$smooth.method0
             res$t1 = bc$smooth.method1
             res$t0 = as.POSIXct(bc$smooth.method0,origin=lubridate::origin, tz=tzone )
@@ -223,20 +243,13 @@
             res$dt = res$t1 -  res$t0
           }
 
-          res$t0 = as.character(res$t0) 
-          res$t1 = as.character(res$t1) 
-          res$dt = as.character(res$dt) 
+          res$t0 = as.POSIXct(res$t0,origin=lubridate::origin, tz=tzone )
+          res$t1 = as.POSIXct(res$t0,origin=lubridate::origin, tz=tzone )
+          res$dt = as.numeric(res$dt) 
           sbStats = rbind( sbStats, cbind( seabird_uid=id, res ) )
         }
-        if(plot)dev.off()
 
         sbStats$seabird_uid =  as.character(sbStats$seabird_uid)
-
-        #sbdt = sbStats$dt
-        #sbStats$dt = NA
-        #i = which(!is.na( sbdt ) )
-
-        #if (length(i) >0 ) sbStats$dt[i] = times( sbdt[i] ) 
 
         save( sbStats, file=fn, compress=TRUE) 
 

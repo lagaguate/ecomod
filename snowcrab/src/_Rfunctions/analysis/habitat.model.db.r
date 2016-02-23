@@ -144,7 +144,7 @@
       if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
       
-      if (!exists( "optimizers", p) ) p$optimizers = c( "bam", "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
+      if (!exists( "optimizers", p) ) p$optimizers = c( "nlm", "bfgs", "perf", "newton", "optim", "nlm.fd")
 
       for ( iip in ip ) {
         v0 = v = p$runs[iip,"v"]
@@ -182,7 +182,7 @@
         Q = NULL
         .model = model.formula( v0 )
 
-        ntest = all.vars(.model) %in% names(set)
+        ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
           print ( all.vars(.model)[  which(ntest)] )
@@ -269,7 +269,7 @@
       if (exists( "init.files", p)) LoadFiles( p$init.files ) 
       if (exists( "libs", p)) RLibrary( p$libs ) 
 
-      if (is.null(p$optimizers) ) p$optimizers = c( "bam", "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
+      if (is.null(p$optimizers) ) p$optimizers = c( "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
       if (is.null(ip)) ip = 1:p$nruns
 
       for ( iip in ip ) {

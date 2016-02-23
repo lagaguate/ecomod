@@ -50,25 +50,28 @@
 # -------------------------------------------------------------------------------------
 # create base set data and add all historical data fixes
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-    if (get.base.data) {
+   
+  if (get.base.data) {
     # sequence is important ... do not change 
     # creates initial rdata and sqlite db
     snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
+    
+    seabird.yToload = p$current.assessment.year
+    minilog.yToload = p$current.assessment.year
+    netmind.yToload = p$current.assessment.year
+    esonar.yToload  = p$current.assessment.year
  
-    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
-
-    seabird.yToload = 2012:p$current.assessment.year
-    minilog.yToload = 1999:p$current.assessment.year
-    netmind.yToload = 1999:p$current.assessment.year
-    esonar.yToload  = 2014:p$current.assessment.year
-
-    # The following requires "setInitial", run this line if loading netmind data 2014 or after
-    if(esnoar2netmind.conversion){
-      netmind.db(DS='esnoar2netmind.conversion',Y=esonar.yToload ) 
+    if (redo.all.data) {
+      seabird.yToload = 2012:p$current.assessment.year
+      minilog.yToload = 1999:p$current.assessment.year
+      netmind.yToload = 1999:p$current.assessment.year
+      esonar.yToload  = 2014:p$current.assessment.year
     }
 
     seabird.db( DS="load", Y=seabird.yToload ) # this begins 2012;
     minilog.db( DS="load", Y=minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
+    
+    netmind.db( DS='esonar2netmind.conversion',Y=esonar.yToload ) 
     netmind.db( DS="load", Y=netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
 
     #MG I'm not sure why these stats are not being written automatically, neet to set it in the code above to run these after data is loaded
@@ -76,9 +79,11 @@
     minilog.db (DS="stats.redo", Y=minilog.yToload )
     netmind.db (DS="stats.redo", Y=netmind.yToload )
    
-    # snowcrab.db( DS="set.minilog.seabird.redo" ) .. retired
-    snowcrab.db( DS="set.clean.redo", p=p, proj.type=p$internal.projection )
    
+    set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
+    # set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
+    # head(set2015)  
+      
       problems = data.quality.check( set, type="stations")     
       problems = data.quality.check( set, type="count.stations")
       problems = data.quality.check( set, type="position") 
@@ -100,10 +105,11 @@
       
       problems = data.quality.check( set, type="netmind.timestamp" )
 
+
+    snowcrab.db( DS="set.clean.redo", p=p )  # sanity checks
     #MG det.initial.redo updates and processes morphology. This code now identifies morphology errors, which must be
     #checked with written logs, then sent to database and put in debugging here and re-run
     snowcrab.db( DS="det.initial.redo", p=p )
-    
     snowcrab.db( DS="det.georeferenced.redo" ) 
     snowcrab.db( DS="cat.initial.redo", p=p )
     snowcrab.db( DS="cat.georeferenced.redo" )
@@ -155,13 +161,14 @@
   logbook.db( DS  ="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
   snowcrab.db( DS ="set.logbook.redo", yrs=1996:p$current.assessment.year ) # add gridded fisheries data
-  snowcrab.db( DS ="set.logbook", yrs=1996:p$current.assessment.year ) 
+  # snowcrab.db( DS ="set.logbook", yrs=1996:p$current.assessment.year ) 
   
   #make.timeseries.data(p=p, areas=p$regions )  #  timeseries of means of all survey data
   #in 2014 as there were reduced stations for comparison
   #make.timeseries.data(p=p, areas=p$regions,reduced.stations=F, vars='R0.mass' ) #  timeseries of means of all survey data
   make.timeseries.data(p=p, areas=NULL,reduced.stations=F, vars=NULL) #  timeseries of means of all survey data
-  
+  #make.timeseries.data(p=p, areas=NULL,reduced.stations=F, vars=c('ms.mass.10', 'ms.mass.30', 'ms.mass.201', 'ms.mass.50', 'ms.mass.2521', 'ms.mass.2511', 'ms.mass.202', 'ms.mass.204', 'ms.mass.2211'), outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" )) #  timeseries of means of all survey data
+
 
   #  tsdata = snowcrab.db("set.timerseries")
 

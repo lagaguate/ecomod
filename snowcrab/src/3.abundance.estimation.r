@@ -4,7 +4,7 @@
   p= list()
 
 	p$init.files = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  p$libs = RLibrary( "mgcv", "lattice", "lattice", "grid", "fields", "parallel"  ) 
+  p$libs = RLibrary( "parallel", "lubridate", "chron",  "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice", "fields", "rgdal", "raster"   ) 
 
 
   # --------------------------
@@ -71,19 +71,25 @@
       # Define controlling parameters 
       p$auxilliary.data = c( 
             "t", "tmean", "tmean.cl", "tamp", "wmin", 
-            "z", "substrate.mean", "dZ", "ddZ", 
-            "ca1", "ca2", 
-            "nss.rsquared", "nss.shannon", 
-            "smr", "Ea", "A", "qm", "mass",
-            "Z", "Npred" ) 
+            "z", "substrate.mean", "dZ", "ddZ"
+            )
+            # "ca1", "ca2", 
+            # "nss.rsquared", "nss.shannon", 
+            # "smr", "Ea", "A", "qm", "mass",
+            # "Z", "Npred" ) 
 
       print( "Make sure variable list here matches those in ecomod/habitat/src/habitat.complete.r ") 
       print( "and in the model statement in ecomod/snowcrab/_Rfunctions/analysis/model.formula.r")
 
-      p$model.type = "gam.full" # choose method for habitat model :
+      # p$model.type = "gam.full" # choose method for habitat model :
+      # p$model.type = "gam.simple" # choose method for habitat model :
+      
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-      p$optimizers = c( "bam", "perf","nlm",   "bfgs", "newton", "Nelder-Mead" )  # used by GAM
+      p$optimizers = c( "perf", "nlm", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
 			p$prediction.dyear = 9/12 # predict for ~ Sept 1 
+      p$nw = 10
+      p$default.spatial.domain = "canada.east"
+
       p$threshold.distance = 15  # limit to extrapolation/interpolation in km
      
       p$use.annual.models = F  ## <<<<< new addition
@@ -104,8 +110,8 @@
       if(moving.window) p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
       if(!moving.window)p = make.list( list(v=p$vars.to.model  ), Y=p )
   
-      parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
-      # habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
+      # parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
+      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
       #  --- parallel mode is not completing ... FIXME
 
       # ---------------------
@@ -137,7 +143,7 @@
       # and then map, stored in R/gam/maps/
 
       p$vars.to.model= "R0.mass"
-      p$nsims = 2000 # n=1000 ~ 1 , 15 GB/run for sims 
+      p$nsims = 1000 # n=1000 ~ 1 , 15 GB/run for sims 
       p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
 
       # p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )

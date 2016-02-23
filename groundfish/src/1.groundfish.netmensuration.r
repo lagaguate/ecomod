@@ -110,7 +110,7 @@ if (create.marport.database ) {
 gs0 = scanmar.db( DS="bottom.contact", p=p )  # bring in estimates of bottom contact times from scanmar
 
 gs0$timediff_official =  as.numeric(gs0$edate - gs0$sdate) / 60 # that which would have been used (if at all .. )
-gs0$bottom.dist = geosphere::distMeeus( gs0[, c("bc.lon0","bc.lat0")], gs0[, c("bc.lon1", "bc.lat1")])/1000
+gs0$bottom.dist = geosphere::distGeo( gs0[, c("bc.lon0","bc.lat0")], gs0[, c("bc.lon1", "bc.lat1")])/1000
 
 
 # settype: 1=stratified random, 2=regular survey, 3=unrepresentative(net damage), 

@@ -1,8 +1,6 @@
 	
-
   minilog.db = function( DS="", Y=NULL ){
     
-
     minilog.dir = project.datadirectory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
 
@@ -12,9 +10,7 @@
       Y = Y[iY]
     }
 
-
     if ( DS %in% c("basedata", "metadata", "load") ) {
-       
       if (DS=="basedata" ){
         flist = list.files(path=minilog.dir, pattern="basedata", full.names=T, recursive=FALSE)
         if (!is.null(Y)) {
@@ -52,22 +48,14 @@
         }
         return( out )
       }
-p 
+ 
       # default is to "load"
-      #
-
       dirlist = list.files(path=minilog.rawdata.location, full.names=T, recursive=T)
       oo = grep("backup", dirlist)
       if (length(oo) > 0) {
         backups = dirlist[ oo ]
         dirlist = dirlist[-oo]
       }
-    #  ii = NULL
-    #  for(y in years.sets.combined) {
-    #      io = grep(y,dirlist)
-    #      ii = c(ii,io)
-    #      }
-
 
       nfiles = length(dirlist)
       filelist = matrix( NA, ncol=3, nrow=nfiles) 
@@ -125,6 +113,7 @@ p
       return ( minilog.dir )
     }
 
+    # -----------------------------------------------
 
     if (DS %in% c("stats", "stats.redo" ) ) {
       
@@ -149,7 +138,13 @@ p
         if(any(duplicated(res[,c('trip','set')]))) {
             res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
           }
-
+  
+        # TODO:: move the following to the load.minilog funcition .. and remove chron dependence
+        res$t0 = as.POSIXct( as.chron(res$t0), tz=tzone, origin=lubridate::origin )
+        res$t1 = as.POSIXct( as.chron(res$t1), tz=tzone, origin=lubridate::origin )
+        res$dt = as.numeric( res$t1 - res$t0  )
+        res$timestamp = lubridate::ymd_hms( res$timestamp)
+       
         return (res)
        }
 
@@ -162,8 +157,11 @@ p
         fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rdata", sep=".") )
         miniStats = NULL
         miniRAW = minilog.db( DS="basedata", Y=yr )
-        
+        miniRAW$timestamp = lubridate::ymd_hms( miniRAW$chron)
+
         mta = minilog.db( DS="metadata", Y=yr )
+        mta$timestamp = ymd_hms( mta$timestamp )
+
         rid = minilog.db( DS="set.minilog.lookuptable" )
         rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
@@ -184,31 +182,26 @@ p
           
           M$timestamp = as.POSIXct( M$chron, tz=tzone, origin=lubridate::origin )
           settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone , origin=lubridate::origin )
-          time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
+          time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(11) )
             
-          print(id)
+          print( paste( i, ":", id) )
      
           # default, empty container
           res = data.frame(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA)
 
           bad.list = c( 
-            'minilog.S20052000.10.NA.NA.NA.13', 
-            'minilog.S19092004.8.389.NA.NA.321',
-            'minilog.S19062000.8.NA.NA.NA.165' ,
-            "minilog.S07092002.12.NA.NA.NA.245",
-            "minilog.S08092002.10.NA.NA.NA.254",
-            'minilog.S12102002.8.NA.15.59.349',
-            'minilog.S28052002.10.NA.19.30.445',
-            "minilog.S24112009.4.370.NA.NA.276",
-              "minilog.S08092010.3.178.NA.NA.170",
-"minilog.S21102010.9.341.14.51.252",
- "minilog.S25092010.8.36.NA.NA.33",
- "minilog.S27102010.3.918.8.11.423"
-
-
-
-
-
+#'minilog.S20052000.10.NA.NA.NA.13', 
+#'minilog.S19092004.8.389.NA.NA.321',
+#'minilog.S19062000.8.NA.NA.NA.165' ,
+#"minilog.S07092002.12.NA.NA.NA.245",
+#"minilog.S08092002.10.NA.NA.NA.254",
+#'minilog.S12102002.8.NA.15.59.349',
+#'minilog.S28052002.10.NA.19.30.445'
+# "minilog.S24112009.4.370.NA.NA.276",
+# "minilog.S08092010.3.178.NA.NA.170",
+# "minilog.S21102010.9.341.14.51.252",
+# "minilog.S25092010.8.36.NA.NA.33",
+# "minilog.S27102010.3.918.8.11.423"
           ) 
           
           if (! ( id %in% bad.list ) ) { 
@@ -216,17 +209,43 @@ p
             ndat = length(M$depth[!is.na(M$depth)])
             if( ndat > 15 ) {
               # defaults appropriate for more modern scanmar data have > 3500 pings
+              # depth resolution is about 4-5 m
               bcp = list( 
                 id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
-                tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30)
+                tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), eps.depth = 1
               )
-            #if(id=="minilog.S18092004.6.392.13.9.326") browser()
-             
+ 
+              #if(id=="minilog.S18092004.6.392.13.9.326") browser()
+              # if(id=="minilog.S22061999.8.NA.NA.NA.84") browser()
+              # if(id=="minilog.S04102007.12.903.17.10.378") browser()
+
               bcp = bottom.contact.parameters( bcp ) # add other default parameters .. not specified above
               bc =  NULL
               bc = bottom.contact( x=M, bcp=bcp )
               ## bottom.contact.plot (bc)
-              if ( !is.null(bc$res) ) res = bc$res 
+    
+              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+                 bc = bottom.contact( x=M, bcp=bcp ) 
+              }
+           
+              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+                bcp$noisefilter.inla.h =0.1
+                bc = bottom.contact( x=M, bcp=bcp ) 
+              }
+   
+              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+                M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+                bcp$noisefilter.inla.h = 0.01
+                bc = bottom.contact( x=M, bcp=bcp ) 
+              }
+ 
+              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+                M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+                bcp$noisefilter.inla.h = 0.1
+                bc = bottom.contact( x=M, bcp=bcp ) 
+              }
+
+              if ( !is.null(bc$res) & exists( "res", bc) ) res = bc$res 
             } 
            
             if( ndat == 0) {
@@ -247,7 +266,9 @@ p
             #            res$t0 = bc$smooth.method[2]
             #            res$dt = bc$smooth.method[2] -  bc$smooth.method[1]
           }
-        
+          res$t0 = as.POSIXct(res$t0,origin=lubridate::origin, tz=tzone )
+          res$t1 = as.POSIXct(res$t1,origin=lubridate::origin, tz=tzone )
+          res$dt = as.numeric(res$dt) 
           miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
         }
         

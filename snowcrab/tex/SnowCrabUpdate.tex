@@ -1,0 +1,430 @@
+\documentclass[paper=a4, fontsize=11pt]{article} 
+\usepackage[T1]{fontenc} 
+\usepackage[english]{babel} 
+\usepackage{amsmath,amsfonts,amsthm} 
+\usepackage{sectsty} 
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{pdfpages}
+\usepackage{subfig}
+\usepackage{pdfcomment}
+\usepackage[top=2.54cm, bottom=1.9cm, left=2.54cm, right=2.54cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{chngcntr}
+\usepackage{float}
+\usepackage{lscape}
+
+\pagestyle{fancy}
+\setcounter{secnumdepth}{0}
+\allsectionsfont{\centering \normalfont\scshape} 
+\pagestyle{fancyplain} 
+\fancyhead{} 
+\fancyfoot[L]{} 
+\fancyfoot[C]{} 
+\fancyfoot[R]{\thepage} 
+\renewcommand{\headrulewidth}{0pt} 
+\renewcommand{\footrulewidth}{0pt} 
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+\newcommand{\D}{.}
+\setlength{\intextsep}{15pt plus 2.0pt minus 1.0pt}
+
+\counterwithout{figure}{section}
+\counterwithout{table}{section} 
+
+\setlength\parindent{0pt} 
+\newcommand{\e}{/home/michelle/ecomod_data/}
+\newcommand{\es}{snowcrab/}
+\newcommand{\Ay}{assessments/2015/}
+\newcommand{\A}{assessments/}
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 
+
+%title{
+%\normalfont \normalsize 
+%\textsc{DFO - Population Ecology} \\ 
+%\horrule{0.5pt} \\[0.4cm] 
+%\textsc{Update of Scotian Shelf Snowcrab in 2015}\\ 
+%\horrule{2pt} \\[0.5cm] 
+%}
+%\author{PED Snow Crab Team} 
+
+%\date{\normalsize\today} 
+
+%--------------basemap------------------------------------
+\begin{document}
+  \begin{titlepage}
+  \vspace*{\fill}
+  \begin{center}
+    {DFO - Population Ecology}\\[0.5cm]
+    {Assessment Results of Scotian Snowcrab in 2015}\\[0.4cm]
+    {\normalsize\today}
+\begin{figure} [h]
+\centering
+  \includegraphics[width=0.9\textwidth]{\e \es maps/Basemap.png}
+ \end{figure}
+ \end{center}
+\vspace*{\fill}
+\end{titlepage}
+
+
+%----------------------------------------------------------------------------------------
+\section{Fishery}
+The Snow Crab fishery in eastern Canada began in 1960 with incidental bycatches by groundfish draggers near Gaspe, Quebec. Its development was slow until the 1980s, when it began expanding rapidly to become one of the largest fisheries in Canada in terms of landings and landed value. On the Scotian Shelf, the fishery has been in existence since the early 1970s. The Scotian Shelf Snow Crab fishery lands only males with carapace width greater than or equal to 95 mm. There is also a concerted effort to avoid areas of newly moulted (soft shelled) crab and to discard immature males. Total landings increased to record levels of approximately 10 000t each year in the early 2000s and have surpassed these previous highs since 2009 (Figure 1). Landings in 2015 for N-ENS and S-ENS were 623 t and 11311 t, respectively, which represent a 20\% drop in landings for N-ENS, however this closely follows the total allowable catches (TACs) for each region. Landings in 4x for the 2014/2015season were 91 t, as of January 5, 2015, which already represents a 10\% increase over the 2014/2015 season, however the total allowable catch in this area was increased by 85\%. Total allowable catches in 2015 623 t, 11311 t, and 150 t for N-ENS, S-ENS and 4x, respectively (Figure 1, Tables 1-3). \\
+
+In 2015, the spatial distribution of landings were focused on mid-shore and offshore areas in S-ENS. The additional effort observed inshore in 2014 was not present in 2015. In N-ENS in 2015, effort was focused on the inner areas and the Glace Bay Hole (Figure 2). Non-standardized catch rates in 2015 were 99 kg/trap haul in N-ENS, 104 kg/trap haul in S-ENS, and 35 kg/trap haul in 4x in 2015/2015 (34 kg/trap haul in 4x in 2014/2015 - which relative to the previous year represents a decrease of 5\% N-ENS, decrease of 7\% S-ENS, and a 130\% increase in 4x (Tables 1-3, Figures 3-4). *Ben will update these numbers 
+%--------------landings------------------------------------
+\begin{figure} [h]
+	\subfloat{\includegraphics[width=0.48\textwidth]{\e \es \Ay timeseries/fishery/landings\D ts.png}}
+	\subfloat{\includegraphics[width=0.48\textwidth]{\e \es \Ay timeseries/fishery/landings\D ts\D sm.png}}
+
+	\caption{Temporal variations in the landings of snow crab on the Scotian Shelf (t). Note the sharp increase in landings associated with dramatic increases to total allowable catches (TACs) and a doubling of fishing effort in the year 2001. The landings follow the TACs with little deviation (Tables *). Year in 4X refers to the year at the start of the fishing season.}
+\end{figure}
+\clearpage
+
+%----------------------N-ENS Fisheries Summary table--------------------
+\begin{table}[h]
+\caption{ Summary of Snow Crab fisheries activity of N-ENS (top left), S-ENS (top right), and 4x (bottom). CPUE is measured as kg/trap hauled, while effort is measured per 1000 trap hauls.}
+\begin{tabular}{rrrrrrr}
+  \hline
+ Year & Licenses & TAC & Landings & CPUE & Effort \\ 
+  \hline
+1999 &  78 & 900 & 899 &  55 & 16.40 \\ 
+2000 &  79 & 1015 & 1017 &  68 & 14.90 \\ 
+2001 &  80 & 1065 & 1066 &  94 & 11.30 \\ 
+2002 &  80 & 1493 & 1495 & 101 & 14.80 \\ 
+2003 &  80 & 1493 & 1492 &  77 & 19.40 \\ 
+2004 &  79 & 1416 & 1418 &  61 & 23.40 \\ 
+2005 &  78 & 566 & 562 &  31 & 18.40 \\ 
+2006 &  78 & 487 & 486 &  36 & 13.70 \\ 
+2007 &  78 & 244 & 233 &  24 & 9.90 \\ 
+2008 &  78 & 244 & 238 &  34 & 7.00 \\ 
+2009 &  78 & 576 & 579 &  76 & 7.60 \\ 
+2010 &  78 & 576 & 576 &  55 & 10.50 \\ 
+2011 &  78 & 534 & 536 & 110 & 4.80 \\ 
+2012 &  78 & 603 & 603 & 117 & 5.10 \\ 
+2013 &  78 & 783 & 783 & 106 & 7.40 \\ 
+2014 &  78 & 783 & 778 & 104 & 7.40 \\ 
+2015 &  & 623 & 620 &  99 & 6.30 \\ 
+   \hline
+\end{tabular}
+\qquad
+%\end{table}
+%-----------------------S-ENS Fisheries Summary Table-------
+%\begin{table}[h]
+%\centering
+%\caption {Summary of Snow Crab fisheries activity of S-ENS. CPUE is measured as kg/trap hauled, while effort is measured per 1000 trap hauls.}
+\begin{tabular}{rrrrrrr}
+  \hline
+Year & Licenses & TAC & Landings & CPUE & Effort \\ 
+  \hline
+1999 & - & 2700 & 2700 &  71 & 38.00 \\ 
+2000 & 158 & 8799 & 8701 &  85 & 102.40 \\ 
+2001 & 163 & 9023 & 9048 &  88 & 103.10 \\ 
+2002 & 149 & 9022 & 8891 & 112 & 79.60 \\ 
+2003 & 145 & 9113 & 8836 &  99 & 89.60 \\ 
+2004 & 130 & 8241 & 8022 & 106 & 76.00 \\ 
+2005 & 114 & 6353 & 6407 & 110 & 58.50 \\ 
+2006 & 114 & 4510 & 4486 &  91 & 49.40 \\ 
+2007 & 115 & 4950 & 4942 & 100 & 49.30 \\ 
+2008 & 115 & 8316 & 8253 &  96 & 85.90 \\ 
+2009 & 116 & 10800 & 10645 &  90 & 118.80 \\ 
+2010 & 116 & 13200 & 13150 & 103 & 128.30 \\ 
+2011 & 116 & 12120 & 12135 & 106 & 118.80 \\ 
+2012 & 116 & 11707 & 11733 &  98 & 120.00 \\ 
+2013 & 116 & 11311 & 11309 & 104 & 108.70 \\ 
+2014 & 116 & 11311 & 11267 & 112 & 100.20 \\ 
+2015 &  & 11311 & 11302 & 104 & 109.00 \\ 
+   \hline
+\end{tabular}
+\newline
+\vspace*{1cm}
+%--------------------------4x Fisheries Summary Table-----------------------
+%\caption{Summary of Snow Crab fisheries activities of 4x, CPUE is measured as kg/trap hauled, while effort is measured per 1000 trap hauls.}
+\begin{center}
+\begin{tabular}{rrrrrrr}
+  \hline
+Year & Licenses & TAC\_t & Landings\_t & CPUE & Effort \\ 
+  \hline
+1998/09 &   4 & - &  70 & - & - \\ 
+1999/00 &   4 & - & 119 & - & - \\ 
+2000/01 &   6 & - & 213 & - & - \\ 
+2001/02 &   8 & 520 & 376 & - & - \\ 
+2002/03 &   9 & 600 & 221 & 10 & 21.9 \\ 
+2003/04 &   9 & 600 & 289 & 13 & 22.8 \\ 
+2004/05 &   9 & 600 & 413 & 20 & 20.8 \\ 
+2005/06 &   9 & 337.6 & 306 & 29 & 10.8 \\ 
+2006/07 &   9 & 337.6 & 317 & 28 & 11.5 \\ 
+2007/08 &   9 & 230 & 220 & 18 & 12.1 \\ 
+2008/09 &   9 & 230 & 229 & 28 & 8 \\ 
+2009/10 &   9 & 230 & 229 & 36 & 6.4 \\ 
+2010/11 &   9 & 346 & 345 & 38 & 9 \\ 
+2011/12 &   9 & 346 & 344 & 29 & 11.8 \\ 
+2012/13 &   9 & 263 & 118 & 13 & 9.6 \\ 
+2013/14 &   9 & 80 &  79 & 15 & 5.1 \\ 
+2014/15 &   9 & 80 &  82 & 34 & 2.4 \\ 
+2015/16 &  & 150 &  91 & 35 & 2.6 \\ 
+   \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+%--------------spatial distribution fishing landings from logbooks----------------
+\begin{figure}[h]
+	\centering
+	\subfloat{\includegraphics[width=0.75\textwidth]{\e \es maps/images/logbook/landings2014.png}}\
+	\subfloat{\includegraphics[width=0.75\textwidth]{\e \es maps/images/logbook/landings2015.png}}
+	\caption{Snow crab landings (kg/5 minite grid) from fisheries logbook data for 2014 (top) and 2015 (bottom). Note the decrease in landings inshore in S-ENS compared to 2014. For 4X, year refers to the starting year.}
+\end{figure}
+%--------------catch rates------------------------------------
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.65\textwidth]{\e \es \Ay timeseries/fishery/cpue\D ts.png}
+    \caption{Temporal variations in catch rates of snow crab on the Scotian Shelf, expressed as kg per trap haul. Trap design and size have changed over time. No correction for these varying trap-types nor soak time and bait-type has been attempted (see Methods). Year in 4X refers to the year at the start of the fishing season.}
+\end{figure}
+
+%-------------effort---------------------------------------------
+\begin{figure}[h]
+    \centering\
+    \subfloat{\includegraphics[width=0.45\textwidth]{\e \es \Ay timeseries/fishery/effort\D ts.png}}\
+    \subfloat{\includegraphics[width=0.45\textwidth]{\e \es \Ay timeseries/fishery/effort\D ts\D sm.png}}
+    \caption{Temporal variations in fising effort for snow crab on the Scotian Shelf, expressed as the number of trap hauls per 1 minute grid. Year in 4X refers to the year at the start of the fishing season.}
+\end{figure}
+%---------------Spatial distribution of catch rates from log books------------
+\begin{figure}[h]
+  \centering
+	\subfloat{\includegraphics[width=0.75\textwidth]{\e \es maps/images/logbook/cpue2014.png}}\
+	\subfloat{\includegraphics[width=0.75\textwidth]{\e \es maps/images/logbook/cpue2015.png}}
+	\caption{Snow crab catch rates (kg/trap haul) from fisheries logbook data for 2014 (top) and 2015 (bottom). Note the decrease in CPUE inshore in S-ENS and in the eastern portion of the Eastern Hole. For 4X, year refers to the starting year.}
+\end{figure}
+\clearpage
+
+%----------carapace condition------------------------------------------------
+\section{Carapace Condition}
+Carapace condition (CC) defines the approximate age (since terminal moult) of the crab based on the relative development and subsequent decay of the carapace. CC1 signifies a newly moulted crab, soft shelled, with no epibiont growth. The oldest carapace condition CC5 signifies extensive shell decay where there is no expectation of survival into the next year. In N-ENS, CC1 and CC2 crab collectively represented * of the total catch (Tables 4-6), relative to 19\% in 2014. .................
+There has been a shift towards larger animals in N-ENS catches in the past four years, suggesting higher survival of immature crab (lack of handling mortality of soft-shelled crab) and a decreased dependence on newly recruited animals (Figure *).\\
+
+The spring season (2008-present) was adopted to reduce fishing intensity in the summer season and also to encourage fishing during the earlier period when newly molted crab are too weak and soft to easily enter into traps. After a successful trial in 2008, the majority of landing ($\geq$ 65\%) from N-ENS were caught during the spring season from 2009-2013. 2015 spring landings represented *x* of the N-ENS total landings. *Ben to insert this statistic, and potentially a figure here. \\
+
+%---------------------------- Carapace-width at-sea-observers
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{\e \es \Ay timeseries/survey/cw\D combined\D observer.png}
+    \caption{Time series of geometric mean carapace width of commercial crab measured by at-sea-observers. Vertical lines represent 95\% confidence intervals. For 4X, the year refers to the starting year of the season.}
+\end{figure}
+
+\begin{landscape}
+%--------------size distribution from at sea observers------------------------------------
+\begin{figure}
+\centering
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfanorth2012.png}}\
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfanorth2013.png}}\\
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfanorth2014.png}}\
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfanorth2015.png}}\\ 
+\caption{Size frequency distribution of N-ENS at-sea-observer monitored snow crab broken down by carapace condition. For 4X, the year refers to the starting year of the season. Vertical lines indicate 95 mm CW.}
+\end{figure}
+\clearpage
+
+\begin{figure}
+\centering
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfasouth2012.png}}\ 
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfasouth2013.png}}\\
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfasouth2014.png}}\ 
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfasouth2015.png}}\\ 
+\caption{Size frequency distribution of S-ENS at-sea-observer monitored snow crab broken down by carapace condition. For 4X, the year refers to the starting year of the season. Vertical lines indicate 95 mm CW.}
+\end{figure}
+\clearpage
+
+\begin{figure}
+\centering
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfa4x2012.png}}\
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfa4x2013.png}}\\ 
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfa4x2014.png}}\
+\subfloat{\includegraphics[width=0.61\textwidth]{\e \es \Ay figures/size\D freq/observer/size\D freqcfa4x2015.png}}\\
+\caption{Size frequency distribution of 4x at-sea-observer monitored snow crab broken down by carapace condition. For 4X, the year refers to the starting year of the season. Vertical lines indicate 95 mm CW.}
+\end{figure}
+\end{landscape}
+\clearpage
+
+
+%----------Carapace condition N-ENS-------------------------------------------
+\begin{table}[h]
+\centering
+\caption{Carapace condition (CC) of crab $\geq$ 95 mm CW (percent by number) over time for N-ENS (top left), S-ENS (top right), and 4x (bottom) from at-sea-observed data. *Update these tables with new numbers and check with Ben's number....or Ben can input. Still need table for 4x.}
+\begin{tabular}{rrrrrr}
+  \hline
+Year & CC1 & CC2 & CC3 & CC4 & CC5 \\ 
+  \hline
+1999 & NaN & NaN & NaN & NaN & NaN \\ 
+  2004 & 1 & 0.17 & 56.64 & 40.86 & 1.33 \\ 
+  2005 & 1.75 & 1.75 & 44.32 & 49.31 & 2.86 \\ 
+  2006 & 8.12 & 25.91 & 43.84 & 17.65 & 4.48 \\ 
+  2007 & 48.18 & 15.2 & 30.4 & 4.86 & 1.37 \\ 
+  2008 & 11.97 & 13.3 & 66.78 & 7.14 & 0.8 \\ 
+  2009 & 1.36 & 12.13 & 82.11 & 4.27 & 0.14 \\ 
+  2010 & 3.44 & 5.21 & 86.37 & 4.62 & 0.36 \\ 
+  2011 & 0 & 12.39 & 76.99 & 10.62 & 0 \\ 
+  2012 & 0 & 0 & 93.1 & 6.9 & 0 \\ 
+  2013 & 0 & 20.83 & 65.62 & 10.42 & 3.12 \\ 
+  2014 & 0 & 27.45 & 68.63 & 3.92 & 0 \\ 
+  2015 & 0 & 0 & 100 & 0 & 0 \\ 
+   \hline
+\end{tabular}
+%----------Carapace condition S-ENS------------------------------------------
+\qquad
+%\caption{Carapace condition (CC) of crab $\geq$ 95 mm CW (percent by number) over time for S-ENS from at-sea-observer data.}
+\begin{tabular}{llllll}
+  \hline
+ Year & CC1 & CC2 & CC3 & CC4 & CC5 \\ 
+  \hline
+1999 & NaN & NaN & NaN & NaN & NaN \\ 
+  2004 & 2.29 & 4.18 & 74.56 & 18.19 & 0.78 \\ 
+  2005 & 4.94 & 11.42 & 68.48 & 14.42 & 0.74 \\ 
+  2006 & 6.16 & 17.85 & 68.45 & 7.24 & 0.3 \\ 
+  2007 & 7.95 & 15.61 & 58.48 & 16.32 & 1.63 \\ 
+  2008 & 10.12 & 8.57 & 67.93 & 12.34 & 1.03 \\ 
+  2009 & 8.41 & 7.4 & 64.77 & 16.9 & 2.52 \\ 
+  2010 & 2.5 & 9.75 & 79.53 & 7.25 & 0.96 \\ 
+  2011 & 0.57 & 9.22 & 85.42 & 4.71 & 0.09 \\ 
+  2012 & 0.29 & 10.16 & 85.28 & 4.2 & 0.07 \\ 
+  2013 & 0.25 & 2.78 & 94.14 & 2.81 & 0.02 \\ 
+  2014 & 1.08 & 23.48 & 69.45 & 5.82 & 0.17 \\ 
+  2015 & 0.56 & 8.97 & 83.25 & 6.92 & 0.29 \\ 
+   \hline
+\end{tabular}
+\end{table}
+\clearpage
+
+\section{Assessment}
+
+\subsection{Fishable Biomass Index}
+The fishable biomass (Figures *) is defined as the segment of the Snow Crab biomass that is male, mature, larger than 95 mm CW and hard-shelled (with a durometer measure of 68 or greater). The fishable biomass index is estimated from the area expanded trawl survey results. \\
+
+In N-ENS, the post-fishery biomass index of Snow Crab in 2015 was *, relative to 2075 t in 2014, representing a *\% decrease. This decreasing trend has been observed for the past *four years.\\
+
+In S-ENS, the post-fishery fishable biomass index of Snow Crab in 2015 was estimated to be *, relative to 40,119 t in 2014, representing a * decrease. \\
+
+In 4x, the pre-fishery fishable biomass was *, relative to 2,059 t in 2014. The biomass estimate in 4x was highly uncertain as only a subset of survey stations were completed in 2014. These estimates should be considered preliminary, pending further analysis of survey and commercial fishing data. \\
+
+
+
+%--------------Time series of fishable biomass from logistic population models--------------------------
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{\e \es \Ay figures/bugs/survey/biomass\D timeseries.png}
+    \caption{Time series of fishable biomass from the logistic population models. The fishable biomass index is shown in red dashed lines. The posterior mean fishable biomass estimated from the logistic model are shown as blue dashed lines. The density distribution of posterior fishable biomass estimates are presented (grey) with the darkest area being medians and the 95\% Credible Intervals (CI). A three year projection assuming a constant exploitation strategy of 20\% is also provided.}
+\end{figure}
+
+%--------------Map of fishable biomass------------------------------------
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{\e \es R/maps/survey/snowcrab/annual/R0\D mass/R0\D mass\D 2015.png}
+    \caption{Fishable biomass from the 2015 Snow Crab survey. Log10 scale.}
+\end{figure}
+
+\subsection{Recruitment}
+The index of recruitment into the fishable biomass was obtained from the research survey of mature males with CC1 and CC2 and durometer reading < 68, and CW > 95 mm. Determination of recruitment levels is confounded by terminal moult and the timing offset of moulting (spring) and the survey (fall). *Do we want to use this, since the index is so poor* Since the onset of the standardize snow crab survey in 2004, recruitment (by this measure) remains at relatively low or variable levels in S-ENS and N-ENS. Based on size-frequency histograms of the male snow crab population, similar to 2014, very limited internal recruitment to the fishery is expected in N-ENS and 4x (Figure *XX*). In N-ENS, there remains a persistent gap between 75 and 95 mm carapace width, which will likely maintain depressed recruitment levels for the next *no.years* without a immigration of crab from adjacent crab fishing areas. Area 4x also shows minimal potential for internal recruitment to the fishery for the foreseeable future. The pulse of small males observed below 50 mm carapace width should take **years** to enter the fishery. Movement is likely an important source of crab entering the fishery in this area and a lack of any commercial fishing effort on the western portion of CFA 24 potentially benefits 4x. In S-ENS, internal recruitment is expected to remain at moderate levels. The presence of small immature male snow crab spanning almost all size ranges in S-ENS (20-95 mm CW) observed by the survey suggests that recruitment to the fishery is probable for the next four to five years and beyond. Immigration of crab from outside a given area can represent recruitment to the fishery, however unreliable based on its episodic nature.
+
+\subsection{Reproduction}
+
+Sex ratios (proportion female) continued to be male dominated in N-ENS and S-ENS, however mature female abundance has increased slightly in N-ENS, while sex ratios are stabilizing at low levels in S-ENS (Figure xx). In 4x mature female abundance continues to be at moderate levels, with a slight increase from 2014. There was a pulse of immature female crab observed in the 2014 survey in all areas, which is beginning to enter into the fishery in N-ENS, and is expected to continue for at least a few years. S-ENS is expected to encounter consistent, but low, levels of newly mature female crab, while, in 4x we expect to see a pulse of mature crab over the next couple of years.
+\clearpage
+%-----------------------------Sex Ratio Mature-----------------------------------
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{\e \es \Ay timeseries/survey/sexratio\D mat.png}
+  \caption{Proportion of females in the mature population. Note the heterogeneous distribution of sexes in all areas.}
+\end{figure}
+\clearpage
+
+
+%--------------Size-frequency histograms of Male carapace width------------------------------------
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{\e \es \Ay figures/size\D freq/survey/male.png}
+    \caption{Size-frequency histograms of carapace width of male Snow Crabs. Note the relatively uniform distribution of adolescent crab across all size classes in S-ENS as compared to other areas. Also note that for S-ENS and 4x (but not in N-ENS) the spatial extent of the survey has changed over time, making a direct comparison of numerical density inappropriate. This figure provides information about the relative numbers within a given year. The vertical line represents the legal size (95 mm).}
+\end{figure}
+
+
+%------------------Size-frequency histograms of Female carapace width----------------------
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{\e \es \Ay figures/size\D freq/survey/female.png}
+    \caption{Size-frequency histograms of carapace width of female Snow Crabs. Note that for S-ENS and 4x (but not N-ENS) the spatial extent of the surveys have changed over time, making a direct comparison of numerical density inappropriate. This figure provides information about the relative numbers within a given year.}
+\end{figure}
+\clearpage
+
+\subsection{Fishing Mortality}
+The abundance estimates of old male crab (CC5) have been stable in the long-term record and below the detection limit on the Scotian Shelf. Their low representation in the survey data and the fishery-observed data may be indicative of high mortality rates of the fishable biomass (fishery-based and/or natural). 
+In N-ENS, Fishing Mortality (F) has been estimated to have been in the range of 0.1 to 0.9, peaking in 2004 (Figure *). In 2014, fishing mortality is estimated to have been above * and has been increasing over the past several years. A reduction in fishing mortality in 2008 was implemented reduce soft shell handling. 
+
+Estimated fishing mortality for S-ENS has historically ranged from 0.05 to 0.25, peaking in 2003/2004 (Figure *). In 2014, fishing mortality was estimated to have been *. Localized exploitation rates are likely higher, as not all areas where biomass estimates are provided are fished (e.g. continental slope areas and western, inshore areas of CFA24).
+
+In 4x, estimated fishing mortality has historically ranged from 0.2 to > 0.4, peaking in 2005 and 
+2011/2012 (Figure *). In 2014/2015, estimated fishing mortality was *. Realized exploitation rates are likely to be higher, since the computed exploitation rates incorporate biomass from throughout the 4x area and not just the fishery grounds.
+
+%--------------------------------------Fishing Mortality----------------------------------------
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.65\textwidth]{\e \es \Ay figures/bugs/survey/fishingmortality\D timeseries.png}
+    \caption{Time series of fishing mortality from the logistic population models for N-ENS, S-ENS and 4x. Posterior density distributions are presented in gray, with the darkest line being the median with 90\% CI. The red line is the estimated FMSY(F at Maximum Sustainable Yield) and the dark-dashed line is the 20\% harvest rate.}
+\end{figure}
+\clearpage
+
+\section{Ecosystem Considerations}
+A multivariate summary of key environmental, social, economic and fishery-related indicators (Figure *) suggest that a suite of coherent changes have occured on the Scotian Shelf since the early 1990s. The first axis of variation (accounting for * \% of the total variation) was dominated by the influence of....................
+
+\subsection{Temperature}
+
+Average bottom temperatures in 2015 were slightly lower in all areas, in comparison to 2014. This is in contrast to a general warming trend observed since the early-1990s (*check to see what's going on with the outliers in 98 and 99, those are not present in plots from previous years). The bottom temperatures decreased in 4x in the past three years, after the extreme warm water event of 2012, though it still remains at the long-term mean for the area. In S-ENS, and N-ENS temperatures decreased close to the long-term mean for the areas. Changing temperatures will have an impact on available Snow Crab habitat into the future. The surface area of potential Snow Crab habitat in the SSE was calculated as the arithmetic mean of the potential habitat area estimated in the previous five years (Figure **). 
+
+%---------------------------Annual variations in bottom temp. snow crab survey---------------------
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{\e \es \Ay timeseries/survey/temperature\D combined.png}
+    \caption{Annual variations in bottom temperature observed during the Snow Crab Survey. The horizontal line indicates the long-term median temperature within each sub-area. Error bars are 1 standard deviation from the mean.}
+\end{figure}
+
+
+\subsection{Bottom-up (Resource Limitation)}
+
+Food items such as Northern Shrimp are found in concentrations comparable to the long-term average in most core areas of S-ENS (based on the Snow Crab trawl survey; Figure **). *I still haven't found these time series plots, but the interpolated maps** 
+
+%-------------------------------Prey maps------------------------------------------------
+\begin{figure}[h]
+  \centering
+     \includegraphics[width=0.65\textwidth]{\e \es R/maps/species/snowcrab/northernshrimp/annual/totno/totno\D 2015.png}
+    \caption{Total number of Northern shrimp, a food item of Snow Crab. Log 10 scale.}
+\end{figure}
+
+\subsection{Top-down (Predations)}
+
+The capacity of predatory groundfish to opportunistically feed upon Snow Crab, in combination with their numerical dominance prior to the 1990s, suggests that they may have been an important regulating factor controlling the recruitment of Snow Crab. The demise of these predatory groundfish in the post-1990 period, and the resultant release from predation upon the immature and soft-shelled crabs, may have been an important determinant of the current rise to dominance of Snow Crab in the SSE. Based on stomach sampling, Atlantic Halibut, Atlantic Wolfish and skate species appear to be the predominant predators of Snow Crab, though it does not appear to represent more than 2.2\% of their diet on the Scotian Shelf. Of these species, Halibut biomass has been increasing in the Snow Crab survey since 2012, except in N-ENS where it decreased in 2015, however it is still above the long term mean. 
+
+Seals are considered by some fishers to be a predator of Snow Crab, and their continued increase in abundance is a source of concern for some fishers and scientists. While seals have been observed with Snow Crab in their stomachs, it should be emphasized that high concentrations of Snow Crab are found in the immediate vicinity of Sable Island, an area where the abundance of Grey Seals is extremely high. There is little evidence suggesting that seals have an overall negative influence on the Snow Crab population. Seal predation of groundfish could also lower potential lateral competition for Snow Crab food resources. 
+
+\subsection{Lateral (Competition)}
+
+Large mature males stabilize the Snow Crab population by maintaining and occupying prime crab habitat. Large mature males keep potential competitors (other crab species and groundfish) at bay. They also serve as strong mates for the current population of mature females, and are protectors of smaller females. Their over-exploitation can have various negative biological consequences. An important consequence of the extended period of low numbers of females to males (Figure **) is that poor egg and larval production area likely now occurring. Stabilization of such strong oscillations in abundance into the future may be possible if reproduction of the currently available females is supported by an adequate population of large males. 
+
+The diet of Snow Crab overlap in many ways with that of some groundfish species; thus, the demise of these groundfish groups in the late-1980s and early-1990s would have been doubly beneficial to Snow Crab through the reduction in both predation pressure and resource competition. 
+
+%------------------------------Predator Maps-------------------------------------------
+\begin{figure}[h]
+    \centering
+    \subfloat{\includegraphics[width=0.35\textwidth]{\e \es \Ay timeseries/survey/ms\D mass\D 30.png}}\   
+    \subfloat{\includegraphics[width=0.35\textwidth]{\e \es \Ay timeseries/survey/ms\D mass\D 10.png}}\\
+    \subfloat{\includegraphics[width=0.35\textwidth]{\e \es \Ay timeseries/survey/ms\D mass\D 50.png}}\
+    \subfloat{\includegraphics[width=0.35\textwidth]{\e \es \Ay timeseries/survey/ms\D mass\D 201.png}}\\
+
+    \caption{Trends in biomass for potential predators of Snow Crab on the Scotian Shelf, in the Snow Crab Survey: Halilbut, Cod, Wolfish, Thorny Skate.}
+\end{figure}
+\end{document}
+
