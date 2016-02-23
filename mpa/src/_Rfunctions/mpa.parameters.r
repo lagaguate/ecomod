@@ -9,26 +9,26 @@
       p$data.sources = c("groundfish", "snowcrab")  # for bio.db
       p$nw = 10 # number of intervals in time within a year in the temperature interpolations ( must match temperature.r 's value )
     
-      p$polygons$aoi = polygon.db( id="StAnnsBank_AOI" )
-      p$polygons$z1 = polygon.db( id="StAnnsBank_Zone1" )
-      p$polygons$z2 = polygon.db( id="StAnnsBank_Zone2" )
-      p$polygons$z3 = polygon.db( id="StAnnsBank_Zone3" )
-      p$polygons$z4 = polygon.db( id="StAnnsBank_Zone4" )
 
       return (p)
     }
  
 
     if ( DS=="mapping" ) {
-      mapping = list() 
-      mapping$xlim = c(-72, -56 ) # longitudes
-      mapping$ylim = c(42, 49) # latitudes
-      mapping$regions = c("Canada", "USA") # library "map" polygon designations
-      mapping$output.directory = file.path( p$project.outdir.root, "maps")
-      mapping$palette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
-      mapping$depthcontours = c(0, 10, 100, 200, 300, 400, 500 )
-      mapping$plygn = isobath.db( p=p, DS="isobath", depths=mapping$depthcontours, return.lonlat=TRUE  )
-      return (mapping)
+      p$mapping$regions = c("Canada", "USA") # library "map" polygon designations
+      p$mapping$output.directory = file.path( p$project.outdir.root, "maps")
+      p$mapping$palette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
+      p$mapping$contours = isobath.db( p=p, DS="isobath", depths=p$mapping$depthcontours, return.lonlat=FALSE  )
+      
+        aoi = polygon.db( id="StAnnsBank_AOI", returnvalue="sp.polygon", crs=p$internal.crs ),  
+        z1 = polygon.db( id="StAnnsBank_Zone1", returnvalue="sp.polygon", crs=p$internal.crs  ),
+        z2 = polygon.db( id="StAnnsBank_Zone2", returnvalue="sp.polygon" , crs=p$internal.crs ),
+        z3 = polygon.db( id="StAnnsBank_Zone3", returnvalue="sp.polygon", crs=p$internal.crs  ),
+        z4 = polygon.db( id="StAnnsBank_Zone4", returnvalue="sp.polygon", crs=p$internal.crs  )
+     
+      p$polygons = bind( aoi, z1, z2, z3, z4 ) 
+
+      return (p)
     }
   
   }
