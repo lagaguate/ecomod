@@ -1,7 +1,8 @@
 
-polygon.db = function( DS="load", p=NULL, id=NULL, crs="", plotmap=FALSE ) {
+polygon.db = function( DS="load", p=NULL, id=NULL, crs="", plotmap=FALSE, returnvalue="default" ) {
   #\\ create/extract polygons and/or return on a map
   #\\ if crs is passed, default storage/load CRS is assumed lonlat
+  #\\ default return value is lon/lat in data frame, also possible to return as a polygon
   require( rgdal)
   require( sp)
   library(maps) 
@@ -38,7 +39,8 @@ polygon.db = function( DS="load", p=NULL, id=NULL, crs="", plotmap=FALSE ) {
       }
       lines(X, col="green")
     }
-    return(X)
+    if (returnvalue=="default") return( X )
+    if (returnvalue=="sp.polygon") return( xy.to.SpatialPolygon(X, id=id, crs=as.character(crs) ) )
   }
 
   if (DS=="create") {
