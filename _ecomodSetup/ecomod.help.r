@@ -16,7 +16,7 @@ ecomod.help = function( h="ecomod.help", filepattern="\\.r$") {
     for ( f in fl ) {
       o = scan( f, "character", sep="\n", quiet=TRUE ) 
       k = try( grep ( "\\#('|\\/\\/)", o, ignore.case=TRUE  ), silent=TRUE )
-      res = "No help .. please add"
+      res = "No help .. please preface some comments with #// or #' to add some"
       if (! (class(k) %in% "try-error")) {
         if ( length(k) > 0) {
           res = gsub( "^[[:space:]]*\\#('|\\/\\/)[[:space:]]*", "", o[k] )
