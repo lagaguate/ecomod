@@ -15,11 +15,11 @@ ecomod.help = function( h="ecomod.help", filepattern="\\.r$") {
     docs = list()
     for ( f in fl ) {
       o = scan( f, "character", sep="\n", quiet=TRUE ) 
-      k = try( grep ( "\\#\\/\\/", o, ignore.case=TRUE  ), silent=TRUE )
+      k = try( grep ( "\\#('|\\/\\/)", o, ignore.case=TRUE  ), silent=TRUE )
       res = "No help .. please add"
       if (! (class(k) %in% "try-error")) {
         if ( length(k) > 0) {
-          res = gsub( "^[[:space:]]*\\#\\/\\/[[:space:]]*", "", o[k] )
+          res = gsub( "^[[:space:]]*\\#('|\\/\\/)[[:space:]]*", "", o[k] )
           res = list( res )
       }}
       docs[f] = res 

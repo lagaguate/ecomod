@@ -1,6 +1,6 @@
 
-  figure.timeseries.R1 = function( outdir, all.areas=T ) {
- 
+  figure.timeseries.R0 = function( outdir, all.areas=T ) {
+ #browser()
     set = snowcrab.db( DS="set.merge.det")
   
     if (all.areas) {
@@ -29,7 +29,7 @@
     xlim=range(td$year); xlim[1]=xlim[1]; xlim[2]=xlim[2]
 
     xlabels = seq(min(xlim), max(xlim), 1)
-    ylabels = round(seq(0, round(as.numeric(ylim[2]), -1), length.out=8), -2)
+    ylabels = round(seq(0, round(as.numeric(ylim[2]), 2), length.out=8), 2)
 
     dir.create( outdir, recursive=T, showWarnings=F )
     fn = file.path( outdir, paste( v, "combined.png",  sep="." ) )
@@ -50,15 +50,15 @@
             #xlim=xlim, 
             ylim=(c(as.numeric(ylim[1]), as.numeric(ylim[2]))),
             scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
-              main="Recruits (t-1)", xlab=list("Year", cex=1), ylab=list("Geometric mean No. / km^2", cex=1),
+              main="Fishable Biomass", xlab=list("Year", cex=1), ylab=list("Geometric mean t / km^2", cex=1),
               #cex.lab=cex.lab, 
               cex.axis=cex.axis, 
               cex.main = cex.main,
               panel = function(x, y, subscripts, ub, lb, ...) {
              larrows(x, lb[subscripts], x, ub[subscripts], angle = 90, code = 3, length=0.05)
              panel.xyplot(x, y, type="b", lty=1, lwd=1.5, pch=21, fill='darkgrey', col="black", ...)
-            # panel.abline(h=0.5, col="gray75", ...)
-         }
+             panel.abline(h=median(y), col="gray", ...)
+        }
       )
     
     print(pl)
