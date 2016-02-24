@@ -326,8 +326,8 @@
         
         Q = NULL
         .model = model.formula (v )
-   
-        ntest = all.vars(.model) %in% names(set)
+    
+        ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
           print ( all.vars(.model)[  which(!ntest)] )
