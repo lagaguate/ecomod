@@ -28,6 +28,7 @@
     ylim='NULL'
     ylim[2]=max(td$ub)
     ylim[1]=round(min(td$lb), 0) - (max(td$ub)*0.05)
+    
     #ylim=range(c(td$mean), na.rm=T); ylim[1]=ylim[1]-0.1*ylim[2]; ylim[2] = ylim[2]+ylim[2]*0.2
     xlim=range(td$year); xlim[1]=xlim[1]; xlim[2]=xlim[2]
 
@@ -35,12 +36,13 @@
     ylabels = round(seq(0, round(as.numeric(ylim[2]), -1), length.out=8), -1)
 
     dir.create( outdir, recursive=T, showWarnings=F )
-    fn = file.path( outdir, paste( v, "png",  sep="." ) )
+    fn = file.path( outdir, paste( v, "pdf",  sep="." ) )
     cex.main = 1.4
     cex.lab = 1
     cex.axis = 0.2
-
- Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=6.5, dpi=350 )
+ 
+    pdf(file=fn, width=5, height=6.5, bg='white')
+    #Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=6.5, dpi=350 )
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
           layout=c(1,n.regions),

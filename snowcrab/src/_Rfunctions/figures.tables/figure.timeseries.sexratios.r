@@ -22,7 +22,7 @@
 
     if (type=="mature") {
       v = "sexratio.mat"
-      outfile =  paste(v, ".png", sep="")
+      outfile =  paste(v, ".pdf", sep="")
       figure.title = "Sex ratios -- mature"
       td =  get.time.series ( from.file=T )
       td = td[ which( td$variable == v) ,]
@@ -43,7 +43,7 @@
 
     if (type=="immature") {
       v = "sexratio.imm"
-      outfile = paste (v, ".png", sep="")
+      outfile = paste (v, ".pdf", sep="")
       figure.title = "Sex ratios -- immature"
       td =  get.time.series ( from.file=T )
       td = td[ which( td$variable == v) ,]
@@ -66,7 +66,8 @@
 
     dir.create( outdir, recursive=T, showWarnings=F  )
     fn = file.path( outdir, outfile )
-    Cairo( file=fn, type="png", bg="white",  units="in", width=4, height=6, dpi=350)
+    pdf(file=fn, width=4, height=6, bg='white')
+    #Cairo( file=fn, type="png", bg="white",  units="in", width=4, height=6, dpi=350)
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
           layout=c(1,n.regions), 

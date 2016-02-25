@@ -28,11 +28,11 @@
     xlabels = seq(xrange[1]+1, xrange[2], 2)
     
     dir.create( outdir, recursive=T, showWarnings=F  )
-    fn = file.path( outdir, paste( outfile, "png", sep="." ) )
-    fn2 = file.path( outdir, paste(outfile2,"png",sep="." ) )
+    fn = file.path( outdir, paste( outfile, "pdf", sep="." ) )
 
     #Cairo( file=fn, type="png", bg="white", , pointsize=30, units="in", width=6, height=4, dpi=300 )
-     png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
+    pdf(file=fn, width=7, height=7, bg='white')
+    #png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
       m=1; plot( uyrs, k[,m],  type="b", ylab="Catch rate (kg/trap)", xlab="Year", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], xaxt="n", xlim=xrange, ylim=yrange)
       m=2; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
       m=3; points(uyrs, k[,m], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
@@ -44,7 +44,7 @@
     
     dev.off()
 
-    cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
+   # cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
     #table.view(k)
     return( fn )
   }

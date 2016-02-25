@@ -54,10 +54,12 @@
 
 
       # males
-      fn = file.path(  outdir, "male.png" )
+      fn = file.path(  outdir, "male.pdf" )
       
       #Cairo( file=fn, type="pdf", bg="white", units="in", width=6, height=8 )
-      Cairo( file=fn, type="png", bg="white", units="in", width=6, height=8, dpi=450 )  
+      #Cairo( file=fn, type="png", bg="white", units="in", width=6, height=8, dpi=450 )  
+      pdf(file=fn, width=6, height=8, bg='white')
+      
 
       ncols = length(areas)
       nrows = length(year)
@@ -123,9 +125,10 @@
   #cmd( "convert   -trim -quality 9  -geometry 200% -frame 2% -mattecolor white -antialias ", paste(fn, "pdf", sep="."),  paste(fn, "png", sep=".") )
    
       # females
-  fn = file.path(  outdir, "female.png" )
+  fn = file.path(  outdir, "female.pdf" )
   
-  Cairo( file=fn, type="png", bg="white", units="in", width=6, height=8, dpi=350 )  
+  pdf(file=fn, width=6, height=8, bg='white')
+  #Cairo( file=fn, type="png", bg="white", units="in", width=6, height=8, dpi=350 )  
   #Cairo( file=fn, type="pdf", bg="white", units="in", width=6, height=8 )
     
       ncols = length(areas)

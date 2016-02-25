@@ -32,12 +32,13 @@
     ylabels = round(seq(0, round(as.numeric(ylim[2]), 2), length.out=8), 2)
 
     dir.create( outdir, recursive=T, showWarnings=F )
-    fn = file.path( outdir, paste( v, "combined.png",  sep="." ) )
+    fn = file.path( outdir, paste( v, "pdf",  sep="." ) )
     cex.main = 1.4
     cex.lab = 1
     cex.axis = 0.2
 
- Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=6.5, dpi=350 )
+  pdf(file=fn, width=5, height=6, bg='white')
+  #  Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=6.5, dpi=350 )
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
           layout=c(1,n.regions),

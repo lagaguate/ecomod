@@ -43,14 +43,15 @@
         )
 
         dir.create( outdir, recursive=T, showWarnings=F  )
-        fn = file.path( outdir, paste("size.freq", reg, y, ".png", sep="") )
+        fn = file.path( outdir, paste("size.freq", reg, y, ".pdf", sep="") )
       #  Cairo( file=fn, type="png", bg="white",  units="in", width=6, height=4, pointsize=50, dpi=300 )
-        png( file=fn,units='in', width=15,height=12,pointsize=18, res=450,type='cairo')
+        #png( file=fn,units='in', width=15,height=12,pointsize=18, res=450,type='cairo')
+        pdf(file=fn, width=6, height=5, bg='white')
  
-           barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=8, 
+           barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=3, 
              main=maintitle, legend.text=legend.text, xlab="Carapace width (mm)", ylab="Number of crab",
              args.legend=list(x = "topright", cex=0.8) )
-           abline( v=12, lty="dashed", lwd=6)  
+           abline( v=12, lty="dashed", lwd=3)  
         dev.off()
 
         #cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )

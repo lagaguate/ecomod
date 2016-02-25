@@ -39,8 +39,9 @@
 
 
       dir.create( outdir, recursive=T, showWarnings=F )
-      fn = file.path( outdir, paste( v, "combined", "png", sep="." ) )
-      Cairo( file=fn, type="png", bg="white",  units="in", width=4, height=6, dpi=450)
+      fn = file.path( outdir, paste( v, "combined", "pdf", sep="." ) )
+      pdf(file=fn, width=4, height=6, bg='white')
+      #Cairo( file=fn, type="png", bg="white",  units="in", width=4, height=6, dpi=450)
       setup.lattice.options()
       pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
         layout=c(1,n.areas), 
