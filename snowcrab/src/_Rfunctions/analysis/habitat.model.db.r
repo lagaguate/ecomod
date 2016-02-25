@@ -114,8 +114,11 @@
 
     
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
+     # browser()
          
-      outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
+      #outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
+      outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "test" )
+      
       dir.create(path=outdir, recursive=T, showWarnings=F)
 
       if( DS=="habitat") {
@@ -132,7 +135,10 @@
         # ****************************************
         
         if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
+        #if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
+        
+        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitattest", v, "rdata", sep=".") )
+        
         
         if (file.exists(fn)) load(fn)
         return(Q)
@@ -254,6 +260,7 @@
 
 
     if ( DS %in% c("abundance.redo", "abundance" ) ) {
+    #  browser()
       
       outdir = file.path( project.datadirectory("snowcrab"), "R", "gam", "models", "abundance"  )
       dir.create(path=outdir, recursive=T, showWarnings=F)
@@ -327,7 +334,8 @@
         Q = NULL
         .model = model.formula (v )
    
-        ntest = all.vars(.model) %in% names(set)
+        ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
+        #ntest = all.vars(.model) %in% names(set)
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
           print ( all.vars(.model)[  which(!ntest)] )

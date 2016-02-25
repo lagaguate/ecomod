@@ -103,23 +103,37 @@
 				ckey <- list(at=quant, labels=list(at=quant.small))
 				#Plot the variable	
 				setwd(mapdir)
-			    fig.name <- paste(v, name, ".png", sep="")
-				png(filename=fig.name, width=6, height=5, units="in", res=450)		
-				print(levelplot(grid.sum, at=quant, colorkey=ckey, col.regions=seis, 
-				margin=F, xlab="", ylab="", main=name, scales = list(x=list(cex=0.7), y=list(cex=0.7))) + layer(sp.polygons(coast, fill='lightgrey'))+ layer(sp.polygons(coast, fill='lightgrey')) + layer(sp.lines(ib, col='gray10', alpha= 0.6, lwd= 0.6)))
+			    fig.name <- paste(v, name, ".pdf", sep="")
+				#png(filename=fig.name, width=6, height=5, units="in", res=450)
+				pdf(file=fig.name, width=6.5, height=4.8, bg='white')
+				#print(levelplot(grid.sum, at=quant, colorkey=ckey, col.regions=seis, 
+				#margin=F, xlab="", ylab="", main=name, scales = list(x=list(cex=0.7), y=list(cex=0.7))) + layer(sp.polygons(coast, fill='lightgrey'))+ layer(sp.polygons(coast, fill='lightgrey')) + layer(sp.lines(ib, col='gray10', alpha= 0.6, lwd= 0.6)))
+				
+				print(levelplot(grid.sum, at=quant, colorkey=ckey, col.regions=seis, alpha.regions=1,
+				                margin=F, xlab="", ylab="", main=name, scales = list(x=list(cex=0.7), y=list(cex=0.7))) 
+				      + layer(sp.polygons(coast, fill='lightgrey')) 
+				      + layer(sp.polygons(coast, fill='lightgrey')) 
+				      + layer(sp.lines(ib, col='gray10', 
+				          alpha= 0.1, 
+				          lwd= 0.3)))
 				dev.off()
 			}
-			stack.name<- paste(v, "stack", ".png", sep="")
+			stack.name<- paste(v, "stack", ".pdf", sep="")
 			par(mar=c(1,1,1,1))
  			par(oma=c(0,0,0,0))
-			png(filename=stack.name, width=6.5, height=5, units="in", res=300)
+			#png(filename=stack.name, width=6.5, height=5, units="in", res=300)
+			pdf(file=stack.name, width=6.5, height=5, bg='white')
  			par(mar=c(1,1,1,1))
  			par(oma=c(0,0,0,0))
 			max.plot <- length(sort(unique(M$yr)))-1
 			min.plot <- max.plot - 8
 			main <- y
-			print(levelplot(rstack[[min.plot:max.plot]], at=quant, colorkey=ckey, col.regions=seis, 
-				margin=F, xlab="", ylab="", par.strip.text=list(cex=0.7), scales = list(x=list(cex=0.5), y=list(cex=0.5), main=list(cex=0.5))) + layer(sp.polygons(coast, fill='lightgrey')) + layer(sp.lines(ib, col='dimgrey', alpha=0.6, lwd= 0.4)))
+			print(levelplot(rstack[[min.plot:max.plot]], at=quant, colorkey=ckey, col.regions=seis, alpha.regions=1,
+				margin=F, xlab="", ylab="", par.strip.text=list(cex=0.7), scales = list(x=list(cex=0.5), y=list(cex=0.5), main=list(cex=0.5))) 
+				+ layer(sp.polygons(coast, fill='lightgrey')) 
+				+ layer(sp.lines(ib, col='dimgrey', 
+				  alpha=0.6, 
+				  lwd= 0.4)))
 			dev.off()
 			to.print <- paste(v, "completed", sep=" ")
 			print(to.print)

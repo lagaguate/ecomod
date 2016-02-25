@@ -19,7 +19,7 @@
     if (type == "trawl") {
       set = snowcrab.db("set.merge.det")
       v = "cw.comm.mean"
-      fn = file.path( outdir, paste( v, "combined.png", sep="." ) )
+      fn = file.path( outdir, paste( v, "combined.pdf", sep="." ) )
       td =  get.time.series ( from.file=T )
       td = td[ which( td$variable == v) ,]
       td$mean =  10^td$mean
@@ -31,7 +31,7 @@
       odb = observer.db( DS="odb" )
       odb = odb[ which(odb$cw>=95),]
       v = "cw"
-      fn = file.path( outdir, paste( v, "combined.observer.png", sep="." ) )
+      fn = file.path( outdir, paste( v, "combined.observer.pdf", sep="." ) )
       td =  get.time.series (odb, areas, v, outfile=file.path(tempdir(), "ts.tmp.csv") )
     }
  
@@ -52,7 +52,8 @@
 
 
     dir.create( outdir, recursive=T, showWarnings=F  )
-    Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=8, dpi=350)
+    pdf(file=fn, width=5, height=8, bg='white')
+   # Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=8, dpi=350)
     setup.lattice.options()
     pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
     #    layout=c(1,n.areas), xlim=xlim, scales = list(y = "free"),

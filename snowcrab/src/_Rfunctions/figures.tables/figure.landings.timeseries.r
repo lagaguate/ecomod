@@ -23,14 +23,12 @@
     uyrs = as.numeric(rownames(l) ) 
 
     dir.create( outdir, recursive=T, showWarnings=F  )
-    fn = file.path( outdir, paste(outfile,"png",sep="." ) )
-    fn2 = file.path( outdir, paste(outfile2,"png",sep="." ) )
+    fn = file.path( outdir, paste(outfile,"pdf",sep="." ) )
+    fn2 = file.path( outdir, paste(outfile2,"pdf",sep="." ) )
 
-  #fn = file.path( outdir, outfile )
-  #png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
-  png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
+    pdf(file=fn, width=7, height=7, bg='white')
+  # png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
 
- #pdf( file=fn, bg="white",)
     if (type=="bar") {
       cols = c("grey10", "grey40",  "grey80")
       reverse = c(3,2,1)
@@ -59,8 +57,9 @@
       legend(x=1980, y=8500, c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
 
       dev.off()
-
-      png(file=fn2 ,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
+      pdf(file=fn2, width=7, height=7, bg='white')
+      
+      #png(file=fn2 ,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')
       sm = l[, c(1, 3)]
       pts = c(19, 24)
       lns = c(1, 1)
@@ -81,7 +80,6 @@
     }
     
    dev.off()
-   cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )
     #table.view( l )
    return( fn )
   }

@@ -1,5 +1,6 @@
 
   figure.timeseries.raw.survey.temperature = function( outdir, vars="t",  all.areas=T ) {
+
     
     set = snowcrab.db( DS="set.merge.det")
   
@@ -40,8 +41,9 @@
       #xlim=range(td$year); xlim[1]=xlim[1]-0.5; xlim[2]=xlim[2]+0.5
 
       dir.create( outdir, recursive=T, showWarnings=F )
-      fn = file.path( outdir, paste( 'temperature', "combined.png",  sep="." ) )
-      Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=8, dpi=450 )
+      fn = file.path( outdir, paste( 'temperature', "combined.pdf",  sep="." ) )
+      #Cairo( file=fn, type="png", bg="white",  units="in", width=5, height=8, dpi=450 )
+      pdf(file=fn, width=5, height=8, bg='white')
       setup.lattice.options()
       pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb,
           layout=c(1,n.regions), 
