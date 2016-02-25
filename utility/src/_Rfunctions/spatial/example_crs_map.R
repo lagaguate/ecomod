@@ -78,7 +78,7 @@ dev.off()
 # p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "geosphere", "sp", "raster", "colorspace" )
 # p = spatial.parameters( type="canada.east.highres", p=p ) 
 # depths = c(100, 200, 500, 1000) #, 2000, 5000 )
-# plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
+# plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 # #data must be clipped so it doesn't extend beyond the bounding box
 # clip.100 <- gIntersection(spTransform(plygn["100"], CRS(crs.new)), boundbox_pr)
 # clip.200 <- gIntersection(spTransform(plygn["200"], CRS(crs.new)), boundbox_pr)

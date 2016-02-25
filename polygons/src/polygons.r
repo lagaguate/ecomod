@@ -4,7 +4,7 @@
 # Example 
 
   # load helper functions
-  loadfunctions( "polygons" )  
+  loadfunctions( "polygons", "coastline" )  
 
   p = list() # start parameter list
   

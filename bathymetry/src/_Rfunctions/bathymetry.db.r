@@ -814,7 +814,7 @@
       Z0 = bathymetry.db( p=p0, DS="bathymetry.spacetime.finalize" )
       coordinates( Z0 ) = ~ plon + plat 
       crs(Z0) = crs( p0$interal.crs )
-      above.sealevel = which( Z0$z < 0 ) # depth values < 0 are above  
+      above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
       if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
  
       Z = list()

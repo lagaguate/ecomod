@@ -10,7 +10,7 @@
 		seis <- colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")
 		loadfunctions("bathymetry")
 		# in meters
-		ib = isobath.db( depths=c(100, 200) , return.lonlat=TRUE )
+		ib = isobath.db( depths=c(100, 200) )
 		
 
 		#Import coastline

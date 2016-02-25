@@ -1,8 +1,7 @@
 
-isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return.lonlat=FALSE ) {
+isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+init=epsg:4326" ) {
   #\\ create or return isobaths and coastlines/coast polygons
-  #\\ return.lonlat=TRUE forces spherical coords otherwise planar coords as defined in p
-  #browser()
+
   if (DS %in% c( "isobath", "isobath.redo" )) {
     fn.iso = file.path( project.datadirectory("bathymetry", "isobaths" ), "isobaths.rdata" ) 
     isobaths = NULL
@@ -12,78 +11,46 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return
       load(fn.iso)
       notfound = setdiff( as.character(depths), names(isobaths) )
       if (length( notfound)==0) {
-        if (!return.lonlat) isobaths = spTransform( isobaths, CRS(p$internal.crs))
-        if (DS=="isobath") return( isobaths[ as.character(depths) ] )
+        if ( proj4string( isobaths ) != as.character(crs) ) isobaths = spTransform( isobaths, CRS( crs ) )
+        return( isobaths[ as.character(depths) ] )
       }
     }
     
     p1 = spatial.parameters( type="canada.east.highres" )
     depths = sort( unique(c(depths, notfound) ))
-    addcoast = FALSE
-    if ( 0 %in% depths ) {
-      addcoast = TRUE
-      depths = setdiff(depths, 0)
-    }
-    Z = bathymetry.db( p=p1, DS="spde_complete", return.format="list" )$z  #planar coords
 
-    cl = contourLines( x=p$plons, y=p$plats, t(as.matrix( flip( Z, direction="y") )), levels=depths )
+    Z = bathymetry.db( p=p1, DS="spde_complete", return.format="list" )$z  # raster layer in planar coords
+    cl = contourLines( x=p1$plons, y=p1$plats, t(as.matrix( flip( Z, direction="y") )), levels=depths )
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=CRS( p1$internal.crs ) )
     row.names(slot(isobaths, "data")) = as.character(depths)
     for (i in 1:length(depths)) slot( slot(isobaths, "lines")[[i]], "ID") = as.character(depths[i])
     isobaths = as.SpatialLines.SLDF( isobaths )
     crs( isobaths ) =  crs ( p1$internal.crs )  # crs gets reset .. not sure why
     isobaths = spTransform( isobaths, CRS("+init=epsg:4326") )  ## longlat  as storage format
-    if (addcoast) {
-      # add coastline .. contour is too jagged.. used mapdata coastline 
-      coast = isobath.db( p=p1, DS="coastLine", return.lonlat=TRUE ) 
-      isobaths = rbind( coast, isobaths )
-    }
+
     save( isobaths, file=fn.iso, compress=TRUE) # save spherical
-    if (!return.lonlat) isobaths = spTransform( isobaths, CRS(p$internal.crs))
+    if ( ! proj4string( isobaths ) == as.character( crs) ) isobaths = spTransform( isobaths, CRS( crs ) )
     return( isobaths )
   }
 
   # ------------------------
   
   if (DS %in% c( "coastLine", "coastLine.redo")) {
-    fn.coastline = file.path( project.datadirectory("bathymetry", "isobaths" ), "coastline.rdata" )
-    if ( file.exists( fn.coastline)) {
-      load( fn.coastline) 
-      if (!return.lonlat) coastSp = spTransform( coastSp, crs(p$internal.crs) )
-      if (DS=="coastLine") return( coastSp )
-    }  
-      RLibrary( "maps", "mapdata", "maptools", "rgdal" )
-      coast = maps::map( database="worldHires", regions=c("Canada", "US"), fill=TRUE,
-                  ylim=c(37,50), xlim=c(-72,-48), resolution=0, plot=FALSE)
-      coastSp = map2SpatialLines( coast, IDs=sapply(coast$names, function(x) "0"),  # force all to be "0" elevation
-                  proj4string= crs("+init=epsg:4326"))
-      save( coastSp, file=fn.coastline ) ## save spherical
-      if (!return.lonlat) coastSp = spTransform( coastSp, crs(p$internal.crs) )
-      return( coastSp )
+    #\\ synomym for coastline.db ... left for historical compatibility .. deprecated
+    if (DS=="coastline") return( coastline.db( p=p, DS="mapdata.coastLine", crs=crs ) )
+    if (DS=="coastline.redo") return( coastline.db( p=p, DS="mapdata.coastLine.redo", crs=crs ) )
   }
   
   # ------------------------
 
   if (DS %in% c("coastPolygon", "coastPolygon.redo") ) {
-    fn.coastpolygon = file.path( project.datadirectory("bathymetry", "isobaths" ), "coastpolygon.rdata" )
-    if ( file.exists( fn.coastpolygon)) {
-      load( fn.coastpolygon) 
-      if (!return.lonlat) coastSp = spTransform( coastSp, crs(p$internal.crs) )
-      if (DS=="coastPolygon") return( coastSp )
-    } 
-      RLibrary( "maps", "mapdata", "maptools", "rgdal" )
-      coast = maps::map( database="worldHires", regions=c("Canada", "US"), fill=TRUE,
-                  ylim=c(37,50), xlim=c(-72,-48), resolution=0, plot=FALSE)
-      coastSp = map2SpatialPolygons( coast, IDs=sapply(coast$names, function(x) x[1]),
-                  proj4string= crs("+init=epsg:4326"))
-      save( coastSp, file=fn.coastpolygon )
-      if (!return.lonlat) coastSp = spTransform( coastSp, crs(p$internal.crs) )
-      return( coastSp )
+    #\\ synomym for coastline.db ... left for historical compatibility .. deprecated
+    if (DS=="coastPolygon") return( coastline.db( p=p, DS="mapdata.coastPolygon", crs=crs ) )
+    if (DS=="coastPolygon.redo") return( coastline.db( p=p, DS="mapdata.coastPolygon.redo", crs=crs ) )
   }
 
+  # -----------
 
-  # -----------------------------
-  
   if ( DS %in% c("gmt", "gmt.redo")) {
     # gmt methods are deprecated
     if (exists( "init.files", p)) LoadFiles( p$init.files ) 
@@ -155,6 +122,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", return
     }
     return(fn)
   }
+
 
 }
 

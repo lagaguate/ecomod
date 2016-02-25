@@ -100,6 +100,19 @@
         p$gmtproj = "-JQ-62/6.5i"  # Canada.east.PlateCarre-62
         p$region = "-R-72/-52/40/50"
       }
+   
+      if ( p$spatial.domain == "canada.east.highres" ) {
+        # 15 arc sec ... high res for 
+        p$res = "-I10m"
+        p$res.bathy = "-I10s"  # for bathymetry ... high res preferred
+        p$res.isobaths = "-I10s"  # isobaths to match bathy
+        p$isobaths = c(  200, 400, 600, 800 ) ## in GMT
+        p$bathy.zrange = "-Sa1010/NaN -Sb1/NaN"
+        p$basemap = file.path(basemap.location, "basemap.canada.east.highres.ps")
+        p$annot = "-B10neSW"
+        p$gmtproj = "-JQ-62/6.5i"  # Canada.east.PlateCarre-62
+        p$region = "-R-72/-52/40/50"
+      }
 
     } else {
       stop( " 'spatial.domain' not found ... this needs to be defined for GMT to work ")
