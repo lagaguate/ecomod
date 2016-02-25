@@ -1,5 +1,5 @@
 
-  mpa.db = function( p=NULL, DS="polygons" ) {
+  mpa.db = function( p=NULL, DS="polygons", crs=NULL ) {
 
     mpadir = project.datadirectory( "mpa", "data")
     
@@ -8,10 +8,15 @@
       if (DS == "polygons" ) {
         out = NULL
         if  (file.exists( fn)) load(fn)
+          if ( !is.null(crs)) {
+            out$map.contours = spTransform(out$map.contours, CRS(p$internal.crs))  
+            out$map.coastline = spTransform(out$map.coastline, CRS(p$internal.crs))  
+            out$sab.polygons = spTransform(out$sab.polygons, CRS(p$internal.crs))  
+          }
         return (out)
       }
 
-      crs = "+proj=longlat +ellps=WGS84 +datum=WGS84"
+      crs = "+init=epsg:4326"
       out = list()
       bbox = p$corners[ , c("lon", "lat")]
       colnames( bbox) = c("lon","lat")
@@ -28,15 +33,21 @@
       out$sab.polygons = bind( aoi, z1, z2, z3, z4, keepnames=TRUE ) 
       
       mc = isobath.db( p=p, DS="isobath", depths=p$map.depthcontours, crs=crs  )
-      mcnames = names( mc)
+      # mcnames = names( mc)
       # must crop each one separately
-      mcout = raster::crop( mc[1], bbox ) 
-      for (i in 2:length(mc) ) {
+      # mcout = raster::crop( mc[1], bbox ) 
+      # for (i in 2:length(mc) ) {
         mcout = bind( mcout, raster::crop( mc[i], bbox ), keepnames=FALSE )
-      }
-      out$map.contours = mcout
-      out$map.coastline = coastline.db( p=p, crs=crs )
+      # }
+      out$map.contours = isobath.db( p=p, DS="isobath", depths=p$map.depthcontours, crs=crs  )
+      out$map.coastline = coastline.db( DS=" gshhg coastline highres redo ", 
+        xlim=p$corners$lon, ylim=p$corners$lat, no.clip=FALSE, level=1 )
       save( out, file=fn, compress=TRUE )
+      if ( !is.null(crs)) {
+        out$map.contours = spTransform(out$map.contours, CRS(p$internal.crs))  
+        out$map.coastline = spTransform(out$map.coastline, CRS(p$internal.crs))  
+        out$sab.polygons = spTransform(out$sab.polygons, CRS(p$internal.crs))  
+      }
       return (out)
     }
 

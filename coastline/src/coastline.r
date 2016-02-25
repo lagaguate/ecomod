@@ -23,23 +23,23 @@
   # and ensure they are the largest domain for your use (here "canada.east.highres" )
   p = spatial.parameters( type="canada.east.highres", p=p ) 
   
-  u = coastline.db ( p=p, DS="gshhg coastline full" ) # full is all data
-  u = coastline.db ( p=p, DS="gshhg coastline highres" ) # highres is almost all data
-  u = coastline.db ( p=p, DS="gshhg coastline intermediate" ) # medium res
-  u = coastline.db ( p=p, DS="gshhg coastline low" ) # low res
-  u = coastline.db ( p=p, DS="gshhg coastline crude" ) # crude is very rough 
+  u = coastline.db ( p=p, DS="gshhg coastline full redo", no.clip=TRUE  ) # full is all data
+  u = coastline.db ( p=p, DS="gshhg coastline highres redo ", no.clip=TRUE  ) # highres is almost all data
+  u = coastline.db ( p=p, DS="gshhg coastline intermediate redo", no.clip=TRUE  ) # medium res
+  u = coastline.db ( p=p, DS="gshhg coastline low redo ", no.clip=TRUE  ) # low res
+  u = coastline.db ( p=p, DS="gshhg coastline crude redo ", no.clip=TRUE  ) # crude is very rough 
 
   # note you can also get rivers and political boundaries .. these are spatial Lines
-  u = coastline.db ( p=p, DS="gshhg rivers full" ) # crude is very rough 
-  u = coastline.db ( p=p, DS="gshhg rivers highres" ) # crude is very rough 
-  u = coastline.db ( p=p, DS="gshhg rivers intermediate" ) # crude is very rough 
+  u = coastline.db ( p=p, DS="gshhg rivers full redo " ) # crude is very rough 
+  u = coastline.db ( p=p, DS="gshhg rivers highres redo " ) # crude is very rough 
+  u = coastline.db ( p=p, DS="gshhg rivers intermediate redo " ) # crude is very rough 
   
-  u = coastline.db ( p=p, DS="gshhg borders full" ) # crude is very rough 
-  u = coastline.db ( p=p, DS="gshhg borders highres" ) # crude is very rough 
-  u = coastline.db ( p=p, DS="gshhg borders intermediate" ) # crude is very rough 
+  u = coastline.db ( p=p, DS="gshhg borders full redo " ) # crude is very rough 
+  u = coastline.db ( p=p, DS="gshhg borders highres redo " ) # crude is very rough 
+  u = coastline.db ( p=p, DS="gshhg borders intermediate redo " ) # crude is very rough 
 
   # to call without p$corners:
-  u = coastline.db ( DS="gshhg coastline full", xlim=p$corners$lon, ylim=p$corners$lat ) # full is all data
+  u = coastline.db ( DS="gshhg coastline full redo", xlim=p$corners$lon, ylim=p$corners$lat ) # full is all data
  
 
   #example plot 
