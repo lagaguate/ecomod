@@ -75,7 +75,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
     fn.coastline = file.path( datadir, "mapdata.coastline.rdata" )
     if ( file.exists( fn.coastline)) {
       load( fn.coastline) 
-      if ( ! proj4string( isobaths ) == crs ) coastSp = spTransform( coastSp, CRS(crs) )
+      if ( ! proj4string( coastSp ) ==  as.character(crs) ) coastSp = spTransform( coastSp, CRS(crs) )
       if (DS=="mapdata.coastLine") return( coastSp )
     }  
       coast = maps::map( database="worldHires", regions=c("Canada", "US"), fill=TRUE,
@@ -83,7 +83,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
       coastSp = map2SpatialLines( coast, IDs=sapply(coast$names, function(x) "0"),  # force all to be "0" elevation
                   proj4string= crs("+init=epsg:4326"))
       save( coastSp, file=fn.coastline ) ## save spherical
-      if ( ! proj4string( isobaths ) == crs ) coastSp = spTransform( coastSp, CRS(crs) )
+      if ( ! proj4string( coastSp ) == as.character(crs) ) coastSp = spTransform( coastSp, CRS(crs) )
       return( coastSp )
   }
   
@@ -93,7 +93,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
     fn.coastpolygon = file.path( datadir, "mapdata.coastpolygon.rdata" )
     if ( file.exists( fn.coastpolygon)) {
       load( fn.coastpolygon) 
-      if ( ! proj4string( isobaths ) == crs ) coastSp = spTransform( coastSp, CRS(crs) )
+      if ( ! proj4string( coastSp ) == as.character(crs) ) coastSp = spTransform( coastSp, CRS(crs) )
       if (DS=="mapdata.coastPolygon") return( coastSp )
     } 
       RLibrary( "maps", "mapdata", "maptools", "rgdal" )
@@ -102,7 +102,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
       coastSp = map2SpatialPolygons( coast, IDs=sapply(coast$names, function(x) x[1]),
                   proj4string= crs("+init=epsg:4326"))
       save( coastSp, file=fn.coastpolygon )
-      if ( ! proj4string( isobaths ) == crs ) coastSp = spTransform( coastSp, CRS(crs) )
+      if ( ! proj4string( coastSp) == as.character( crs) ) coastSp = spTransform( coastSp, CRS(crs) )
       return( coastSp )
   }
 

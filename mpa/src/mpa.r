@@ -37,7 +37,7 @@ polys = mpa.db( p=p, DS="polygons.redo" ) # obtain and save a local cache of pol
 figure.mpa.closeup(p )
 
 # 2. map of area of interest:
-figure.mpa.aoi(p, polys)
+figure.mpa.aoi(p )
 
 
 
