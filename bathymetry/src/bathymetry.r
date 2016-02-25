@@ -6,7 +6,7 @@
 
   p$project.root = project.datadirectory( p$project.name )
          
-  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" )  )
+  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "coastline", "polygons" )  )
   p$libs = RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",
     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" ) )
@@ -147,27 +147,26 @@
  
   # to recreate new polygons, run the following:
   bathyclines.redo = FALSE
-  depths = c(0, 10, 20, 50, 75, 100, 200, 250, 300, 400, 500, 600, 700, 750, 800, 900, 
+  depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 400, 500, 600, 700, 750, 800, 900, 
                1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
   if( bathyclines.redo ) {
     # note these polygons are created at the resolution specified in p$spatial.domain .. 
     # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ). 
     # For lower one specify an appropriate p$spatial.domain
-    coast = isobath.db( p=p, DS="coastLine.redo", return.lonlat=TRUE ) # flatten into one
-    coast = isobath.db( p=p, DS="coastPolygon.redo", return.lonlat=TRUE )
-    plygn = isobath.db( p=p, DS="isobath.redo", depths=depths, return.lonlat=TRUE  )
+    plygn = isobath.db( p=p, DS="isobath.redo", depths=depths  )
   }
   
-  plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
+  plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
-  plot( plygn[ as.character(c(0))], xlim=c(-68,-52), ylim=c(41,50), col="blue" )  # ie. coastline
-  lines( plygn[ as.character(c( 100, 200, 300 ))], col="lightgray" ) # for multiple polygons
-  lines( plygn[ as.character(c( 500, 1000))], col="gray" ) # for multiple polygons
+  coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )
+  plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
+  lines( plygn[ as.character(c( 100, 200, 300 ))], col="gray90" ) # for multiple polygons
+  lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygons
   # plot( plygn, xlim=c(-68,-52), ylim=c(41,50))  # all isobaths commented as it is slow ..
 
 
   # or to get in projected (planar) coords as defined by p$spatial domain
-  plygn = isobath.db( p=p, DS="isobath", depths=c(100)  ) # as SpatialLines
+  plygn = isobath.db( p=p, DS="isobath", depths=c(100) , crs=p$internal.crs ) # as SpatialLines
   plot(plygn)
 
   plygn_aslist = coordinates( plygn) 
@@ -175,7 +174,7 @@
   lapply( plygn_aslist[[1]], points, pch="." )
 
   plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
-  plot(plygn_as_xypoints, pch=".")
+  plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
 
 
   # a few plots :
@@ -190,8 +189,8 @@
   mypalette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
   mybreaks = classIntervals( u, n=length(mypalette), style="quantile")$brks
   
-  depths = c(0, 10, 100, 200, 300, 400, 500 )
-  plygn = isobath.db( p=p, DS="isobath", depths=depths, return.lonlat=TRUE  )
+  depths = c( 100, 200, 300, 400, 500 )
+  plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
   sab = as( Polygon( coords=polygon.db( id="aoi.st.anns") ), "SpatialPolygons" )
   sab = spTransform( sab, crs( plygn) )

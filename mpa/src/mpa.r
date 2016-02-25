@@ -14,7 +14,7 @@ p$libs = RLibrary ( c(
 p$init.files = loadfunctions( c(
   "utility", "groundfish", "snowcrab", "bio", "biochem", "indicators", "remote.sensing", "habitat", "taxonomy",
   "bathymetry", "substrate", "temperature", "polygons", "netmensuration", "spacetime", "sorted.ordination", "stomachs", 
-  "condition", "speciesarea", "speciescomposition", "metabolism", "sizespectrum", "mpa" ))
+  "condition", "speciesarea", "speciescomposition", "metabolism", "sizespectrum", "coastline", "mpa" ))
 
 p = spatial.parameters( p, "SSE.mpa" )  
 
@@ -27,19 +27,17 @@ p$nw = 10 # for lookup of temperature: number of intervals in time within a year
 p$map.regions = c("Canada", "USA") # library "map" coastline polygon designations
 p$map.output.directory = file.path( p$project.outdir.root, "maps")
 p$map.palette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
-p$map.depthcontours = c(0, 100, 200, 300, 400, 500, 600 ) # to plot on maps
-p$map.depthcontours.colours = c( "steelblue2", "gray90", "gray85", "gray80", "gray74", "gray72", "gray70" ) 
+p$map.depthcontours = c( 100, 200, 300, 400, 500, 600 ) # to plot on maps
+p$map.depthcontours.colours = c( "gray90", "gray85", "gray80", "gray74", "gray72", "gray70" ) 
 
-
-# obtain polygons of the mpa/aoi
-p = mpa.db( p=p, DS="polygons" )
+polys = mpa.db( p=p, DS="polygons.redo" ) # obtain and save a local cache of polygons of the mpa/aoi
 
 
 # 1. close-up map of area of interest:
-figure.mpa.closeup()
+figure.mpa.closeup(p )
 
 # 2. map of area of interest:
-figure.mpa.aoi()
+figure.mpa.aoi(p, polys)
 
 
 

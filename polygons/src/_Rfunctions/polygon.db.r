@@ -1,10 +1,11 @@
 
-polygon.db = function( DS="load", p=NULL, id=NULL, crs="", plotmap=FALSE, returnvalue="default" ) {
+polygon.db = function( DS="load", p=NULL, id=NULL, crs="+init=epsg:4326", plotmap=FALSE, returnvalue="default" ) {
   #\\ create/extract polygons and/or return on a map
   #\\ if crs is passed, default storage/load CRS is assumed lonlat
   #\\ default return value is lon/lat in data frame, also possible to return as a polygon
   require( rgdal)
   require( sp)
+  require(raster)
   library(maps) 
   library(mapdata)  # high resolution world coastlines/polygons  
 
@@ -24,12 +25,15 @@ polygon.db = function( DS="load", p=NULL, id=NULL, crs="", plotmap=FALSE, return
     }
     X = read.table (fn)
     colnames( X ) = c("lon", "lat" )
-    if ( crs!="") {
-      X = rgdal::project( as.matrix(X), proj=as.character(crs) ) 
-      colnames(X) = c("plon", "plat")
+    if ( as.character(crs) != "+init=epsg:4326" ) {
+      YY = X 
+      coordinates(YY) = ~lon+lat
+      proj4string( YY) =  "+init=epsg:4326" 
+      Z = spTransform( YY, CRS(crs) ) 
+      X = coordinates(Z)
     } 
     if (plotmap) {
-      if ( crs=="" ) {
+      if ( as.character(crs) != "+init=epsg:4326"  ) {
         polygon.db( DS="map.background", p=p) 
       } else {
         u = map( database="worldHires", regions=p$regions, xlim=p$xlim, ylim=p$ylim, fill=FALSE, plot=FALSE )  
