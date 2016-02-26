@@ -5,7 +5,10 @@ aggregate.marfis <-function(pts,
                             nclasses= 5, class.style="pretty",
                             plot.data= T, show.pts=F,
                             title="aggregate.marfis.R" ){
-#'MMM - Feb 2016
+#cheatsheet converting marfis coords to dd
+#df.qc$LAT = round(as.numeric(substr(df.qc$LATITUDE,1,2)) + as.numeric(substr(df.qc$LATITUDE,3,4))/60 + as.numeric(substr(df.qc$LATITUDE,5,6))/3600,4)
+#df.qc$LON = -1*round(as.numeric(substr(df.qc$LONGITUDE,1,2)) + as.numeric(substr(df.qc$LONGITUDE,3,4))/60 + as.numeric(substr(df.qc$LONGITUDE,5,6))/3600,4)
+  #'MMM - Feb 2016
 #'This function seeks to facilitate the distribution of marfis data by 
 #'automating the measures specified for protecting fishers' private information.
 #'It aggregates data while ensuring that each resultant cell has the minimum 
@@ -58,8 +61,7 @@ crs.new = "+proj=utm +zone=20 +datum=WGS84" #what proj to show result
 ruleOf = 5  #this many unique values of EACH of the privacy.field must be present
 
 req.fields = c("LAT","LON",anal.field, privacy.field)
-
-missing = req.fields[!(req.fields %in% colnames(df))]
+missing = req.fields[!(req.fields %in% colnames(pts))]
 if (length(missing)>0){
   errormsg=paste("The following field(s) are required for this analysis: "
                  , paste(missing, collapse = ', ')) 
