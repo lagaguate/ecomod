@@ -58,6 +58,7 @@ crs.new = "+proj=utm +zone=20 +datum=WGS84" #what proj to show result
 ruleOf = 5  #this many unique values of EACH of the privacy.field must be present
 
 req.fields = c("LAT","LON",anal.field, privacy.field)
+
 missing = req.fields[!(req.fields %in% colnames(df))]
 if (length(missing)>0){
   errormsg=paste("The following field(s) are required for this analysis: "
@@ -99,11 +100,7 @@ proj4string(pts) = CRS(crs.orig)
 
 # Determine the number of unique values for each privacy field  -----------
 # Privacy field counts are identified by the prefix 'cnt_' ----------------
-<<<<<<< HEAD
-priv_cnt = over(poly_grd, pts[privacy.fields], fn=function(x) length(unique(x)))
-=======
 priv_cnt = over(poly_grd, pts[privacy.field], fn=function(x) length(unique(x)))
->>>>>>> refs/remotes/origin/develop
 colnames(priv_cnt) <- paste("cnt", colnames(priv_cnt), sep = "_")
 priv_cnt$z = as.numeric(gsub("X","",rownames(priv_cnt)))
 
@@ -129,20 +126,13 @@ public=merge(public,res, by="z")
  #colcode = findColours(classes, c("#fee6ce","#fdae6b","#e6550d")) #colorblind-friendly oranges
  colcode = findColours(classes, c("#edf8b1","#7fcdbb","#2c7fb8")) #colorblind-friendly
  color.df = as.data.frame(cbind(varname=classes$var,colcode))
-<<<<<<< HEAD
- color.df$public = T
- names(color.df)[names(color.df)=="varname"] <- toString(anal.field)
- poly_grd@data = merge(poly_grd@data,unique(color.df), by= anal.field, all.x = T)
- poly_grd@data[which(is.na(poly_grd@data$public) & !is.na(poly_grd@data[anal.field])),]$public = F
- poly_grd@data = poly_grd@data[order(poly_grd@data$z),] #order by z to ensure correct coloring
 
-=======
  color.df$public = "Yes"
  names(color.df)[names(color.df)=="varname"] <- toString(anal.field)
  poly_grd@data = merge(poly_grd@data,unique(color.df), by= anal.field, all.x = T)
  poly_grd@data[which(is.na(poly_grd@data$public) & !is.na(poly_grd@data[anal.field])),]$public = "No"
  poly_grd@data = poly_grd@data[order(poly_grd@data$z),] #order by z to ensure correct coloring
->>>>>>> refs/remotes/origin/develop
+
  if (plot.data){
    library(mapdata)  #for getting basemapobjects
    library(maptools) #for converting basemap lines to polygons
@@ -162,19 +152,13 @@ public=merge(public,res, by="z")
  } 
  return(poly_grd)
 }
-# setwd("C:/Users/mcmahonm/Documents/Assistance/ChoiJ/20150209")
-# df = read.csv2("20160225.csv")
-#EXAMPLE
-#mygrid=aggregate.marfis(df, plot.data = T)
+#EXAMPLE USAGE
+#df = read.csv2("my_marfis_extraction.csv")
+#mygrid=aggregate.marfis(df, plot.data = F)
 #plot(spTransform(mygrid, CRS("+proj=utm +zone=20 +datum=WGS84")), 
 #col = mygrid@data$colcode, border = "gray90", 
 #main="aggregate.marfis.R \n Example Plot")
 #
 #Convert grid to shapefile
-<<<<<<< HEAD
-library(rgdal)
-writeOGR(mygrid, dsn = '.', layer = 'MARFIS_Grid', driver = "ESRI Shapefile")
-=======
 # library(rgdal)
 # writeOGR(mygrid, dsn = '.', layer = 'MARFIS_Grid', driver = "ESRI Shapefile")
->>>>>>> refs/remotes/origin/develop
