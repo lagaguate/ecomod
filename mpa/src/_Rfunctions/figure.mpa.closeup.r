@@ -12,13 +12,13 @@ figure.mpa.closeup = function( p ) {
   plot( aoi, type="n",  xaxs="i", yaxs="i", axes=TRUE, xlab="Easting (km)", ylab="Northing (km)" )
   for (i in 1: length(polys$map.contours) )  lines( polys$map.contours[i], col=p$map.depthcontours.colours[i] )
   lines( polys$sab.polygons, col="gray70", lwd=1 ) 
-  lines( polys$sab.polygons["StAnnsBank_AOI"], col="slateblue4", lwd=4 ) 
+  lines( polys$sab.polygons["StAnnsBank_AOI"], col="slateblue4", lwd=2.5 ) 
   lines( polys$map.coastline, col="steelblue"  )
   sp::compassRose( aoi@xmin + 18, aoi@ymax-18, cex= 0.75 )
   sab.loc = rowMeans( bbox( polys$sab.polygons["StAnnsBank_AOI"] ) )
-  text( sab.loc[1], sab.loc[2]+8, " St Anns Bank \n MPA ", pos=3, col="slateblue4", cex=1.1 )
-  text( sab.loc[1]-89, sab.loc[2]-17, " Cape Breton, \n Nova Scotia ", pos=3, col="steelblue", cex=1.1 )
-  text( sab.loc[1]+50, sab.loc[2]+65, " St. Lawrence \n Channel ", pos=3, col="steelblue", cex=1.1 )
+  text( sab.loc[1], sab.loc[2]+8, " St Anns Bank \n MPA ", pos=3, col="slateblue4", cex=0.8 )
+  text( sab.loc[1]-89, sab.loc[2]-17, " Cape Breton, \n Nova Scotia ", pos=3, col="steelblue", cex=0.8 )
+  text( sab.loc[1]+50, sab.loc[2]+65, " St. Lawrence \n Channel ", pos=3, col="steelblue", cex=0.8 )
   
   box()
 
