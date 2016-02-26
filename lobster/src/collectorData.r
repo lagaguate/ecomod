@@ -76,7 +76,7 @@
 
 
 #load the comparison data of yoy to one plus from the following year by site
-xc = read.csv(file.path(project.datadirectory('lobster'),'data','collectorYOYOnes.csv')
+xc = read.csv(file.path(project.datadirectory('lobster'),'data','collectorYOYOnes.csv'))
 xc$col = c(rep('red',14),rep('black',19))
 plot(xc$YOY,xc$One,xlab='Settlers',ylab='Ones',pch=16,col='black',ylim=c(0.5,1.4))
 	savePlot(file.path(getwd(),'YoyvOne.png'),'png')
