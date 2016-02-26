@@ -113,13 +113,15 @@ poly_grd@data = merge(poly_grd@data,priv_cnt, by="z")
 poly_grd@data = merge(poly_grd@data,res, by="z")
 
 #Find records where all privacy fields have sufficient unique records/cell
-  public = as.data.frame(priv_cnt[complete.cases(priv_cnt),])
+  public = as.data.frame(priv_cnt[complete.cases(priv_cnt),!(colnames(priv_cnt) == "z")])
   public = as.data.frame(public[apply(public, 1, function(row) {all(row >= ruleOf)}),])
+  public$z = as.numeric(gsub("X","",rownames(public)))
 
 if (nrow(public)<1) {
   stop(return(print("No data can be displayed - none meets privacy requirements")))
 }
-public=merge(public,res, by="z")
+
+public=merge(res, public, all.y=T, by="z")
 #  class intervals to bucket data for display --------------------------
  classes = classIntervals(public[[anal.field]], n=nclasses, style= class.style) 
  #colcode = findColours(classes, c("#deebf7", "#9ecae1","#3182bd")) #colorblind-friendly blues
@@ -161,4 +163,4 @@ public=merge(public,res, by="z")
 #
 #Convert grid to shapefile
 # library(rgdal)
-# writeOGR(mygrid, dsn = '.', layer = 'MARFIS_Grid', driver = "ESRI Shapefile")
+# writeOGR(mygrid, dsn = '.', layer = 'MARFIS_Grid', driver = "ESRI Shapefile", overwrite=T)
