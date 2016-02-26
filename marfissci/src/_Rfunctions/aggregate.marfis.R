@@ -1,4 +1,5 @@
-aggregate.marfis <-function(pts, xlim=c(-71,-56), ylim=c(40,48), gridres=1, 
+aggregate.marfis <-function(pts, show.pts=F,
+                            xlim=c(-71,-56), ylim=c(40,48), gridres=1, 
                             anal.fn = "mean", anal.field = "RND_WEIGHT_KGS",
                             privacy.fields = c("VR_NUMBER_FISHING"),
                             nclasses= 5, class.style="pretty",
@@ -120,7 +121,7 @@ plot(spTransform(poly_grd, CRS(crs.new)), col = poly_grd@data$colcode, border = 
 plot(spTransform(basemap, CRS(crs.new)), col = "navajowhite2", border = "navajowhite4", add = T)
      # points obviously shouldn't be plotted, but is shown here for purposes
      #  of initial validation of output
-     # points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
+      if (show.pts) points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
       legend("topleft", legend = c(names(attr(colcode, "table")),"no data"), 
              fill = c(attr(colcode, "palette"),"white"), 
              title = paste0(anal.fn, " ", anal.field, "  /cell"))
