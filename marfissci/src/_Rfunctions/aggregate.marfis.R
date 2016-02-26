@@ -1,7 +1,7 @@
 aggregate.marfis <-function(pts, show.pts=F,
                             xlim=c(-71,-56), ylim=c(40,48), gridres=1, 
                             anal.fn = "mean", anal.field = "RND_WEIGHT_KGS",
-                            privacy.fields = c("VR_NUMBER_FISHING"),
+                            privacy.fields = c("VR_NUMBER_FISHING","LICENCE_ID"),
                             nclasses= 5, class.style="pretty",
                             title="aggregate.marfis.R" ){
 #'MMM - Feb 2016
