@@ -1,8 +1,9 @@
-aggregate.marfis <-function(pts, show.pts=F,
+aggregate.marfis <-function(pts, 
                             xlim=c(-71,-56), ylim=c(40,48), gridres=1, 
                             anal.fn = "mean", anal.field = "RND_WEIGHT_KGS",
                             privacy.fields = c("VR_NUMBER_FISHING","LICENCE_ID"),
                             nclasses= 5, class.style="pretty",
+                            plot.data= T, show.pts=F,
                             title="aggregate.marfis.R" ){
 #'MMM - Feb 2016
 #'This function seeks to facilitate the distribution of marfis data by 
@@ -36,12 +37,10 @@ aggregate.marfis <-function(pts, show.pts=F,
 # Load the packages -------------------------------------------------------
 library(sp)
 library(Grid2Polygons) #for converting grid to polygons
-library(mapdata)  #for getting basemapobjects
-library(maptools) #for converting basemap lines to polygons
 library(classInt) #for generating classes of data
 
 crs.orig = "+proj=longlat +datum=WGS84" #initial projection of all data
-crs.new = "+proj=utm +zone=20 +datum=WGS84" #what proj to show fproduct
+crs.new = "+proj=utm +zone=20 +datum=WGS84" #what proj to show result
   
 # Privacy Controls ------------------------------------------------------- 
 ruleOf = 5  #this many unique values of EACH of the privacy.fields must be present
@@ -82,9 +81,9 @@ coordinates(pts) = c("LON", "LAT")
 proj4string(pts) = CRS(crs.orig)
 
 # Determine the number of unique values for each privacy field  -----------
-# Privacy field counts are identified by the prefix 'pri_' ----------------
+# Privacy field counts are identified by the prefix 'cnt_' ----------------
 priv_cnt = over(poly_grd, pts[privacy.fields], fn=function(x) length(unique(x)))
-colnames(priv_cnt) <- paste("priv", colnames(priv_cnt), sep = "_")
+colnames(priv_cnt) <- paste("cnt", colnames(priv_cnt), sep = "_")
 priv_cnt$z = as.numeric(gsub("X","",rownames(priv_cnt)))
 
 #perform desired analytic (anal.fn) on desired field (anal.field) in each cell 
@@ -103,29 +102,45 @@ if (nrow(public)<1) {
   stop(return(print("No data can be displayed - none meets privacy requirements")))
 }
 public=merge(public,res, by="z")
-
 #  class intervals to bucket data for display --------------------------
-classes = classIntervals(public[[anal.field]], n=nclasses, style= class.style) 
- colcode = findColours(classes, c("#edf8b1", "#081d58")) #colorblind-friendly blues
+ classes = classIntervals(public[[anal.field]], n=nclasses, style= class.style) 
+ #colcode = findColours(classes, c("#deebf7", "#9ecae1","#3182bd")) #colorblind-friendly blues
+ #colcode = findColours(classes, c("#fee6ce","#fdae6b","#e6550d")) #colorblind-friendly oranges
+ colcode = findColours(classes, c("#edf8b1","#7fcdbb","#2c7fb8")) #colorblind-friendly
  color.df = as.data.frame(cbind(varname=classes$var,colcode))
+ color.df$public = T
  names(color.df)[names(color.df)=="varname"] <- toString(anal.field)
  poly_grd@data = merge(poly_grd@data,unique(color.df), by= anal.field, all.x = T)
+ poly_grd@data[which(is.na(poly_grd@data$public) & !is.na(poly_grd@data[anal.field])),]$public = F
  poly_grd@data = poly_grd@data[order(poly_grd@data$z),] #order by z to ensure correct coloring
 
+ if (plot.data){
+   library(mapdata)  #for getting basemapobjects
+   library(maptools) #for converting basemap lines to polygons
  # Get basemap data --------------------------------------------------------
-p = map("worldHires", regions = c("Canada","USA", "Greenland"), col = "navajowhite2",border = "navajowhite4", xlim=limits$X, ylim=limits$Y, plot=F, fill=T)
-IDs = sapply(strsplit(p$names, ":"), function(x) x[1])
-basemap = map2SpatialPolygons(p, IDs = IDs, proj4string = CRS(crs.orig))
-
-plot(spTransform(poly_grd, CRS(crs.new)), col = poly_grd@data$colcode, border = "gray90", main=title)
-plot(spTransform(basemap, CRS(crs.new)), col = "navajowhite2", border = "navajowhite4", add = T)
-     # points obviously shouldn't be plotted, but is shown here for purposes
-     #  of initial validation of output
-      if (show.pts) points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
-      legend("topleft", legend = c(names(attr(colcode, "table")),"no data"), 
-             fill = c(attr(colcode, "palette"),"white"), 
-             title = paste0(anal.fn, " ", anal.field, "  /cell"))
-      # dev.off()    
+  p = map("worldHires", regions = c("Canada","USA", "Greenland"), col = "navajowhite2",border = "navajowhite4", xlim=limits$X, ylim=limits$Y, plot=F, fill=T)
+  IDs = sapply(strsplit(p$names, ":"), function(x) x[1])
+  basemap = map2SpatialPolygons(p, IDs = IDs, proj4string = CRS(crs.orig))
+  
+  plot(spTransform(poly_grd, CRS(crs.new)), col = poly_grd@data$colcode, border = "gray90", main=title)
+  plot(spTransform(basemap, CRS(crs.new)), col = "navajowhite2", border = "navajowhite4", add = T)
+       # points obviously shouldn't be plotted, but is shown here for purposes
+       #  of initial validation of output
+        if (show.pts) points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
+        legend("topleft", legend = c(names(attr(colcode, "table")),"no data"), 
+               fill = c(attr(colcode, "palette"),"white"), 
+               title = paste0(anal.fn, " ", anal.field, "  /cell"))
+ } 
+ return(poly_grd)
 }
 # setwd("C:/Users/mcmahonm/Documents/Assistance/ChoiJ/20150209")
 # df = read.csv2("20160225.csv")
+#EXAMPLE
+#mygrid=aggregate.marfis(df, plot.data = T)
+#plot(spTransform(mygrid, CRS("+proj=utm +zone=20 +datum=WGS84")), 
+#col = mygrid@data$colcode, border = "gray90", 
+#main="aggregate.marfis.R \n Example Plot")
+#
+#Convert grid to shapefile
+library(rgdal)
+writeOGR(mygrid, dsn = '.', layer = 'MARFIS_Grid', driver = "ESRI Shapefile")
