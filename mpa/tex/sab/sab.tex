@@ -5,19 +5,14 @@
 % fonts
 \usepackage[T1,T3]{fontenc}
 \usepackage{fourier}
-
-
 \usepackage[english]{babel}															% English language/hyphenation
 \usepackage[protrusion=true,expansion=true]{microtype}				% Better typography
-\usepackage{amsmath,amsfonts,amsthm}										% Math packages
 \usepackage[pdftex]{graphicx}														% Enable pdflatex
 \usepackage{url}
-
 
 %%% Custom sectioning (sectsty package)
 \usepackage{sectsty}												% Custom sectioning (see below)
 \allsectionsfont{\centering \normalfont\scshape}	% Change font of al section commands
-
 
 %%% Custom headers/footers (fancyhdr package)
 \usepackage{fancyhdr}
@@ -29,16 +24,14 @@
 \renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
 \setlength{\headheight}{13.6pt}
 
-
 %%% Equation and float numbering
+\usepackage{amsmath,amsfonts,amsthm}										% Math packages
 \numberwithin{equation}{section}		% Equationnumbering: section.eq#
 \numberwithin{figure}{section}			% Figurenumbering: section.fig#
 \numberwithin{table}{section}				% Tablenumbering: section.tab#
 
-
 %%% Maketitle metadata
 \newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
-
 \title{
 		%\vspace{-1in} 	
 		\usefont{OT1}{bch}{b}{n}
@@ -47,17 +40,14 @@
 		\huge Assessment Framework for the St Anns Bank Marine Protected Area  \\
 		\horrule{2pt} \\[0.5cm]
 }
-
 \author{
 		\normalfont \normalsize  Jae S. Choi, Angelia Vanderlaan, Gordana Lazin, \\
     \normalfont \normalsize  Mike McMahon,  Ben Zisserson, Brent Cameron, Jenna Munden \\ 		
-    \normalsize
     \\
-    \today
+    \normalsize \today
 }
 
 \date{}
-
 
 %%% misc commands
 \newcommand{\D}{.}  % period/dot is a special character .. use 'D' to represent it
@@ -68,15 +58,12 @@
 
 \begin{document}
 
-% \setlength\parindent{0pt} 
-% \setlength{\oddsidemargin}{2.54cm-1in}
-% \setlength{\textwidth}{\paperwidth - 2.54cm-2.54cm}
 \maketitle
-
 
 \setcounter{tocdepth}{2} % <-- 2 includes up to subsections in the ToC
 \setcounter{secnumdepth}{3} % <-- 3 numbers up to subsubsections
 \tableofcontents 
+
 \section*{Acknowledgements}
 
 We highlight the invaluable assistance of a great number of scientists that have been part of various surveys at the Bedford Institute of Oceanography. This report could not have been completed without their guidance and assitance: DataShop (Shelley Bond), Remote Sensing Group (Carla Caverhill, George White), AZMP (Catherine Johnson, Benoit Casault), Snow crab survey (Ben Zisserson, Brent Cameron, snow crab industry), Groundfish survey (Scott Wilson, Bill MacEachern, Don Clark), Clam survey (Dale Roddick), substrate grain size (Vladimir Kostelev, Charles Hannah), bathymetry data (Canadian Hydrographic Service), ocean temperature data (Roger Pettipas (Ocean Sciences).
