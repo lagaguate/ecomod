@@ -1,13 +1,11 @@
-aggregate.marfis <-function(pts, 
+aggregate.marfis <-function(pts, LatField="LAT", LonField="LON",
                             xlim=c(-71,-56), ylim=c(40,48), gridres=1, 
                             anal.fn = "mean", anal.field = "RND_WEIGHT_KGS",
                             privacy.field = c("VR_NUMBER_FISHING","LICENCE_ID"),
                             nclasses= 5, class.style="pretty",
                             plot.data= T, show.pts=F,
                             title="aggregate.marfis.R" ){
-#cheatsheet converting marfis coords to dd
-#df.qc$LAT = round(as.numeric(substr(df.qc$LATITUDE,1,2)) + as.numeric(substr(df.qc$LATITUDE,3,4))/60 + as.numeric(substr(df.qc$LATITUDE,5,6))/3600,4)
-#df.qc$LON = -1*round(as.numeric(substr(df.qc$LONGITUDE,1,2)) + as.numeric(substr(df.qc$LONGITUDE,3,4))/60 + as.numeric(substr(df.qc$LONGITUDE,5,6))/3600,4)
+
   #'MMM - Feb 2016
 #'This function seeks to facilitate the distribution of marfis data by 
 #'automating the measures specified for protecting fishers' private information.
@@ -60,7 +58,7 @@ crs.new = "+proj=utm +zone=20 +datum=WGS84" #what proj to show result
 # Privacy Controls ------------------------------------------------------- 
 ruleOf = 5  #this many unique values of EACH of the privacy.field must be present
 
-req.fields = c("LAT","LON",anal.field, privacy.field)
+req.fields = c(LatField, LonField, anal.field, privacy.field)
 missing = req.fields[!(req.fields %in% colnames(pts))]
 if (length(missing)>0){
   errormsg=paste("The following field(s) are required for this analysis: "
@@ -68,8 +66,8 @@ if (length(missing)>0){
   stop(return(print(errormsg)))
 }
 #hack to keep data from overlapping gridlines
-pts$LAT = pts$LAT+(pi/10000000)
-pts$LON = pts$LON+(pi/10000000)
+pts[[LatField]] = pts[[LatField]]+(pi/10000000)
+pts[[LonField]] = pts[[LonField]]+(pi/10000000)
 # Create bounding boxes, make the grid, and convert it to polygons---------
 limits = data.frame(X = xlim, Y = ylim) 
 
@@ -97,7 +95,7 @@ sp_grd = SpatialGridDataFrame(grd,
 poly_grd = Grid2Polygons(sp_grd)
 
 pts = data.frame(pts[complete.cases(pts[req.fields]),])  
-coordinates(pts) = c("LON", "LAT")
+coordinates(pts) = c(LonField, LatField)
 proj4string(pts) = CRS(crs.orig)
 
 # Determine the number of unique values for each privacy field  -----------
@@ -133,8 +131,13 @@ public=merge(res, public, all.y=T, by="z")
 
  color.df$public = "Yes"
  names(color.df)[names(color.df)=="varname"] <- toString(anal.field)
+ 
  poly_grd@data = merge(poly_grd@data,unique(color.df), by= anal.field, all.x = T)
- poly_grd@data[which(is.na(poly_grd@data$public) & !is.na(poly_grd@data[anal.field])),]$public = "No"
+ # browser()
+ if(NROW(poly_grd@data[which(is.na(poly_grd@data$public) && !is.na(poly_grd@data[anal.field])),])>0){
+   poly_grd@data[which(is.na(poly_grd@data$public) && !is.na(poly_grd@data[anal.field])),]$public = "No"
+ }
+
  poly_grd@data = poly_grd@data[order(poly_grd@data$z),] #order by z to ensure correct coloring
 
  if (plot.data){
@@ -158,11 +161,18 @@ public=merge(res, public, all.y=T, by="z")
 }
 #EXAMPLE USAGE
 #df = read.csv2("my_marfis_extraction.csv")
-#mygrid=aggregate.marfis(df, plot.data = F)
-#plot(spTransform(mygrid, CRS("+proj=utm +zone=20 +datum=WGS84")), 
-#col = mygrid@data$colcode, border = "gray90", 
-#main="aggregate.marfis.R \n Example Plot")
+#
+# mygrid=aggregate.marfis(this, LatField="Lat_DD", LonField="Long_DD", 
+#                         xlim=c(-66.275,-65.875), ylim=c(42.575,42.841), 
+#                         grid=0.033333, anal.field = "RND_WEIGHT", 
+#                         anal.fn = "sum", 
+#                         privacy.field = c("VRN","BUYER_BUYER_CODE","LIC_LICENCE_ID"), 
+#                         plot.data = T, show.pts = T)
 #
 #Convert grid to shapefile
 # library(rgdal)
 # writeOGR(mygrid, dsn = '.', layer = 'MARFIS_Grid', driver = "ESRI Shapefile", overwrite=T)
+#
+##cheatsheet converting marfis coords to dd
+#df.qc$LAT = round(as.numeric(substr(df.qc$LATITUDE,1,2)) + as.numeric(substr(df.qc$LATITUDE,3,4))/60 + as.numeric(substr(df.qc$LATITUDE,5,6))/3600,4)
+#df.qc$LON = -1*round(as.numeric(substr(df.qc$LONGITUDE,1,2)) + as.numeric(substr(df.qc$LONGITUDE,3,4))/60 + as.numeric(substr(df.qc$LONGITUDE,5,6))/3600,4)
