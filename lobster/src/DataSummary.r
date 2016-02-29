@@ -123,7 +123,7 @@ FSRScpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","prod
 		lobster.db('atSea')
 		Yrs<-1982:2014
 		atSea.LFA34.dat<-addSYEAR(subset(atSea,LFA==34))
-		atSea.LFA34.dat$YEARdata.frame(PID=1,POS=1:nrow(x),X=x$SET_LONG,Y=x$SET_LAT)<-year(atSea.LFA34.dat$SDATE)
+		atSea.LFA34.dat$YEAR<-year(atSea.LFA34.dat$SDATE)
 		atSea.LFA34.dat$SYEAR[month(atSea.LFA34.dat$SDATE)<12&atSea.LFA34.dat$YEAR<2001]<-atSea.LFA34.dat$YEAR[month(atSea.LFA34.dat$SDATE)<12&atSea.LFA34.dat$YEAR<2001]
 		atSea.LFA34.dat$SYEAR[month(atSea.LFA34.dat$SDATE)==12&atSea.LFA34.dat$YEAR<2000]<-atSea.LFA34.dat$YEAR[month(atSea.LFA34.dat$SDATE)==12&atSea.LFA34.dat$YEAR<2000]-1
 		atSea.LFA34.dat$Q<-quarter(atSea.LFA34.dat$SDATE)

@@ -39,11 +39,11 @@ ScallopSurveyProcess<-function(size.range=c(0,220),SPA,Years,bin.size=5,log=F){
 	sets<-unique(ScalSurvLob.dat$TOW_SEQ)
 	if(log==T){
 		CLF<-data.frame(TOW_SEQ=sets,t(sapply(sets,function(s){with(subset(ScalSurvLob.dat,TOW_SEQ==s&LOG_MEAS_VAL>=min(bins)&LOG_MEAS_VAL<max(bins)),hist(LOG_MEAS_VAL,breaks=bins,plot=F)$count)})))
-		names(CLF)[-1]<-paste0("LCL",bins[-1])
+		names(CLF)[-1]<-paste0("LCL",bins[-length(bins)])
 	}
 	if(log==F){
 		CLF<-data.frame(TOW_SEQ=sets,t(sapply(sets,function(s){with(subset(ScalSurvLob.dat,TOW_SEQ==s&MEAS_VAL>=min(bins)&MEAS_VAL<max(bins)),hist(MEAS_VAL,breaks=bins,plot=F)$count)})))
-		names(CLF)[-1]<-paste0("CL",bins[-1])
+		names(CLF)[-1]<-paste0("CL",bins[-length(bins)])
 	}
 	ScalSurvLob<-merge(ScalSurvLob,CLF,all=T)
 
