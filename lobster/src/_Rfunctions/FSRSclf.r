@@ -14,10 +14,18 @@ FSRSclf<-function(lfa= c("27", "28", "29", "30", "31.1", "31.2", "32", "33"), yr
 	fsrs<-subset(fsrs,SOAK_DAYS<=maxsoak&SEX%in%sex&SYEAR%in%yrs&LFA%in%lfa)	# Remove soak days greater than 5,  do not iclude berried females
 	fsrs$HAUL_DATE<-as.Date(fsrs$HAUL_DATE)
 
-	scd<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","FSRS_SIZE_CODES.csv"))
-	scd$pseudoCL<-rowMeans(scd[c("MIN_S","MAX_S")])
+	if(DS=="fsrs"){
 
-	fsrs<-merge(fsrs,scd[c("SIZE_CD","pseudoCL")])
+		names.keep<-names(LFdat)
+
+		scd<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","FSRS_SIZE_CODES.csv"))
+		scd$pseudoCL<-rowMeans(scd[c("MIN_S","MAX_S")])
+
+		LFdat<-merge(LFdat,scd[c("LENGTH","pseudoCL")])
+		LFdat$LENGTH<-LFdat$pseudoCL
+		LFdat<-LFdat[names.keep]
+
+	}
 
 	#MLS
 	mls<-read.csv(file.path( project.datadirectory("lobster"), "data","inputs","MinLegalSize.csv"))
@@ -33,5 +41,5 @@ FSRSclf<-function(lfa= c("27", "28", "29", "30", "31.1", "31.2", "32", "33"), yr
 	}
 	names(CLF)<-paste("LFA",lfa)		
 	BarPlotCLF(CLF,yrs=yrs,bins=bins,col='grey',filen=fn,rel=T,LS=cbind(mls[mls$Year%in%yrs,which(mlslfas%in%lfa)+1]),wd=9,...)
-	return(CLF)
+	return(list(CLF=CLF,yrs=yrs))
 }

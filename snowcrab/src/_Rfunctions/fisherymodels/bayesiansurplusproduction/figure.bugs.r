@@ -91,8 +91,8 @@
           pdat = as.vector(y$q[i,,])
         prr=NULL
         prr$class='uniform'
-        prr$max=7
-        prr$min=0.1
+        prr$max=1
+        prr$min=0.001
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" )   
       )}}
@@ -191,8 +191,8 @@
           abline (v=yrs.last , lwd=2, lty="dashed" )
           if (i==2) title( ylab="Fishable biomass (kt)" ) 
           if (i==3) title( xlab="Year" ) 
-          #points( yrs0, qIOA, pch=20, col="darkgreen" )
-          #lines ( yrs0, qIOA, lwd=3, col="darkgreen", lty="dashed" )
+          points( yrs0, qIOA, pch=20, col="darkgreen" )
+          lines ( yrs0, qIOA, lwd=3, col="darkgreen", lty="dashed" )
           lines ( yrs, meanval, lwd=2, col="blue", lty="dotted" )
           points( yrs0, IOA, pch=20, col="darkred" )
           lines( yrs0, IOA, lwd=3, lty="dashed", col="red" )
