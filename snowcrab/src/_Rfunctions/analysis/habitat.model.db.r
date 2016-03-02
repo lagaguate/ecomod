@@ -20,6 +20,7 @@
 
       # add groundfish data
       gf = snowcrab.external.db (p=p, DS="set.snowcrab.in.groundfish.survey", vname="R0.mass" )  ## right now, fixed only to R0.mass ... TO DO make more variable
+      
       # absense prior to 1999 is meaningless due to inconsistent recording
       ii = which( gf$n==0 & gf$yr<=1998)
       if (length(ii)>0) gf = gf[-ii,]
@@ -58,6 +59,7 @@
       ff = which( ee < p$threshold.distance ) # all within XX km of a good data point
       set = set[ ff, ]
 
+      if (exists("years.to.model", p) ) set = set[ set$yr %in% p$years.to.model ,]
       save ( set, file=fn, compress=TRUE )
       
       return (fn)
@@ -106,7 +108,9 @@
       # tokeep = intersect( names(set), tokeep) 
       
       set = set[ , tokeep ]
-
+    
+      if (exists("years.to.model", p) ) set = set[ set$yr %in% p$years.to.model ,]
+  
       return(set)
 
     }
