@@ -1,6 +1,6 @@
 figure.redfish.bugs <- function(y,sb =sb, DS) {
 
-if(DS='biomass.ts') {
+if(DS=='biomass.ts') {
 
 		        SI1 =  apply( y$q1, 1, mean, na.rm=T  )
             SI2 =  apply( y$q2, 1, mean, na.rm=T  )
@@ -33,7 +33,7 @@ if(DS='biomass.ts') {
           abline(h = qs*0.4,col='purple')
 		  abline(h = qs*0.8,col='purple')
 
-          }}
+          
           	}
        if ( DS=="FMSY" ) {
         qs = apply( y$r/2, 1, quantile, probs=c(0.025, 0.5, 0.975) )
@@ -42,7 +42,7 @@ if(DS='biomass.ts') {
           prr=NULL
           prr$class="none"
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
-      )}
+      }
 
 if ( DS=="r" ) {
         qs = apply( y$r/2, 1, quantile, probs=c(0.025, 0.5, 0.975) )
@@ -51,7 +51,7 @@ if ( DS=="r" ) {
           prr=NULL
           prr$class="none"
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
-      )}
+      }
     	
 
 if ( DS=="q" ) {
@@ -64,7 +64,7 @@ if ( DS=="q" ) {
           
           prr$class="uniform"
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
-      )}
+      }
 
 if ( DS=="BMSY" ) {
         qs = apply( y$K/2, 1, quantile, probs=c(0.025, 0.5, 0.975) )
@@ -84,6 +84,6 @@ if ( DS=="K" ) {
           
           prr$class="lognormal"
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
-      )}
+      }
 
 }

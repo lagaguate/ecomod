@@ -5,8 +5,8 @@
   rjags::load.module("glm")
 
   
-	loadfunctions( "bayesian" )
-	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  loadfunctions( "bayesian" )
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
 
 
   ###  all data follow this sequence: c("cfanorth", "cfasouth", "cfa4x")
@@ -17,27 +17,30 @@
   # curve( dgamma(x, shape=0.001, rate=0.001),  from=0.01, to=2  )
 
   
- redo.data=T
- if (redo.data) { 
-   biomass.summary.survey.db("complete.redo", p=p)
-   #biomass.summary.db("complete.redo", p=p)
- }
- res = biomass.summary.survey.db(p=p)
- #res = biomass.summary.db(p=p)
+  redo.data=T
+  if (redo.data) { 
+  #  biomass.summary.db("complete.redo", p=p) #Uses the model results to create a habitat area expanded survey index 
+  #  biomass.summary.survey.db("complete.redo", p=p)#Uses average surface area from the past 5 years if a habitat area expanded surface area is not possible
+    biomass.summary.survey.nosa.db("complete.redo", p=p) #Uses the geometric mean biomass from the survey
+  }
+ 
+  #  res =  biomass.summary.survey.db(p=p) 
+
+    res = biomass.summary.survey.nosa.db(p=p)
 #
 #load(file.path(project.datadirectory('snowcrab'),"R","assessmentmodeldata2014.Rdata"))
     
   sb = list( 
     b.min = 0.001, # scaled to 1 but allow overshooting
     b.max = 1.1, # scaled to 1 but allow overshooting
-    q.min = rep(0.1,3),  # max value of q , anything larger is not believable
-    q.max = rep(2,3),  # max value of q , anything larger is not believable
+    q.min = rep(0.001,3),  # max value of q , anything larger is not believable
+    q.max = rep(1,3),  # max value of q , anything larger is not believable
    # r.min = 0.3, #for hyperprior
    # r.max = 2.0,  #for hyperprior
-   bo.mup=rep(-2.5579,3),
-   bo.sdp=rep(0.47726,3),
+    bo.mup=rep(-2.5579,3),
+    bo.sdp=rep(0.47726,3),
     bp.mup=rep(-2.5579,3),
-   bp.sdp=rep(0.47726,3),
+    bp.sdp=rep(0.47726,3),
     rec.max= c( 10^3, 10^4, 10^2 ), 
     K.mu = c( 1.831139,4.170013,0.784308), #for ln
     K.sd = c(0.04595339,0.04350642,0.02571607), #for ln 
@@ -149,7 +152,7 @@
 
   
   # ----------------
-  dir.output = file.path(project.datadirectory('snowcrab'),"assessments","2015")
+  dir.output = file.path(project.datadirectory('snowcrab'),"assessments","2016")
   y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter.final, thin=n.thin) # sample from posterior
   
   figure.bugs( type="timeseries", vname="biomass", y=y, sb=sb, fn=file.path(dir.output, "biomass.timeseries.png" ) ) 
@@ -189,10 +192,10 @@
   # final sampling from the posteriors
   #  y = jags.samples(m, variable.names=tomonitor, n.iter=10000, thin=20) # sample from posterior
     y = jags.samples(m, variable.names=tomonitor, n.iter=n.iter.final, thin=n.thin) # sample from posterior
-		
     
-    fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2015.survey_final.rdata" )
-		# fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2012_final.rdata" )
+    
+    fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2016.survey_final.rdata" )
+    # fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2012_final.rdata" )
     # fnres =  file.path( project.datadirectory("snowcrab"), "R", "surplus.prod.mcmc.2012a.rdata" )
     save(y, file=fnres, compress=T)
     # load( fnres )

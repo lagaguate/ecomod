@@ -4,6 +4,7 @@
 
 #---------------------------------------------------------------------------Plots for Update
 	require(lattice)
+	require(plyr)
 
     # run script for modelling catch rates in FSRS traps
     loadfunctions( "lobster", functionname="FSRScpue.r") 
@@ -58,7 +59,7 @@
 
 	#Manon's Plot version
 	#Plot in update displays all commercial and voluntary log CPUEs. Long term mean CPUE from commercial logs (2008-2014) is also included.
-	long.term.mean<-ddply(subset(cpue.dat.0815,year<2015),c("lfa","subarea"),summarize,lt.mean=mean(cpue))
+	long.term.mean<-ddply(subset(cpue.dat,year<2015),c("lfa","subarea"),summarize,lt.mean=mean(cpue))
 	require(ggplot2)
 
   pdf('Commercial.CPUE.LFA27-33.pdf',width=8,height=10)
