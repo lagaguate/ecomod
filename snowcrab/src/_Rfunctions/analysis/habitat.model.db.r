@@ -187,7 +187,7 @@
         
         
         Q = NULL
-        .model = model.formula( v0 )
+        .model = model.formula( v0, 10 )
 
         ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
         if ( !all(ntest) ) {
