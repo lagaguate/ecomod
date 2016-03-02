@@ -85,7 +85,7 @@
       # p$model.type = "gam.simple" # choose method for habitat model :
       
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-      p$optimizers = c( "perf", "nlm", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
+      p$optimizers = c( "nlm", "perf", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
 			p$prediction.dyear = 9/12 # predict for ~ Sept 1 
       p$nw = 10
       p$default.spatial.domain = "canada.east"

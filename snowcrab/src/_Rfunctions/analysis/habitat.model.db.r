@@ -201,7 +201,8 @@
           print (o )
           print( Sys.time() )
           
-          
+         browser()
+
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
