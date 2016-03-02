@@ -3,23 +3,23 @@
       out = NULL
       if ( V %in% c("default", "R0.mass") ) {
           # basic model -- less spatial density .. all covariates
-           out = paste( ' Y ~ s(dyear, bs="ts" ) 
-            + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) 
-            + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) 
-            + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )             
-            + s(plon, plat, k=', spatial.knots, ', bs="tp", by=as.factor(yr) ) + as.factor(yr)'  )  }
+           out = paste( ' Y ~ s(dyear, bs="ts" ) ', 
+            ' + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) ', 
+            ' + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) ', 
+            ' + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )', 
+            ' + s(plon, plat, k=', spatial.knots, ', bs="tp", by=as.factor(yr) ) + as.factor(yr)'  )  }
            
       if ( V %in% c("default.2014") ) {
           # basic model -- less spatial density .. all covariates
-           out = paste( ' Y ~ s(dyear, bs="ts" ) 
-            + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) 
-            + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) 
-            + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )             
-            + s(ca1, bs="ts" ) + s(ca2, bs="ts" ) 
-            + s(Npred, bs="ts") + s(Z, bs="ts" ) 
-            + s(smr, bs="ts" ) + s(A, bs="ts" ) + s(Ea, bs="ts" )     
-            + s(nss.shannon, bs="ts" ) + s(nss.rsquared, bs="ts" ) 
-            + s(plon, plat, k=', spatial.knots, ', bs="tp", by=as.factor(yr) ) + as.factor(yr)'  ) 
+           out = paste( ' Y ~ s(dyear, bs="ts" ) ', 
+            ' + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) ', 
+            ' + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) ', 
+            ' + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )     ', 
+            ' + s(ca1, bs="ts" ) + s(ca2, bs="ts" ) ', 
+            ' + s(Npred, bs="ts") + s(Z, bs="ts" ) ', 
+            ' + s(smr, bs="ts" ) + s(A, bs="ts" ) + s(Ea, bs="ts" )    ', 
+            ' + s(nss.shannon, bs="ts" ) + s(nss.rsquared, bs="ts" ) ', 
+            ' + s(plon, plat, k=', spatial.knots, ', bs="tp", by=as.factor(yr) ) + as.factor(yr)'  ) 
       }
       
       if ( V %in% c("R0.mass.2014") ) {
@@ -101,8 +101,8 @@
             + s( plon, plat, bs="ts", k=200 )  ) 
       }
       print(out)
-
-      return ( as.formula( out ))
+      out = as.formula( out )
+      return ( out )
     }
 
 

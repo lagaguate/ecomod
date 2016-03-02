@@ -1,6 +1,5 @@
 
   habitat.model.db = function( ip=NULL, DS=NULL, v=NULL, p=NULL, yr=NULL, debug=F ) {
-    #browser()
 
     # ~ 5hr , when k=200
     # variograms are not used .. the model solutions require > 3 days to complete! 
@@ -114,7 +113,6 @@
 
     
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
-     # browser()
          
       #outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
       outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "test" )
@@ -145,9 +143,12 @@
       }
 
       if (exists( "init.files", p)) {
-        p0 = p; LoadFiles( p$init.files ) 
+        p0 = p; # copy as the next alters p and we do not want to lose it
+        LoadFiles( p$init.files ) 
         p=p0
         }
+
+
       if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
       
@@ -182,17 +183,15 @@
           next()
         } 
 
-
         set = set[ ist , ]        
         
-        
         Q = NULL
-        .model = model.formula( v0 )
+        modelform = model.formula( v0 )
 
-        ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
+        ntest = setdiff(all.vars(modelform), "spatial.knots") %in% names(set)
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
-          print ( all.vars(.model)[  which(ntest)] )
+          print ( all.vars(modelform)[  which(ntest)] )
           stop()
         }
 
@@ -201,17 +200,15 @@
           print (o )
           print( Sys.time() )
           
-         browser()
-
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-           # Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=F )
-            Q = try( bam( .model, data=set, family=fmly  ), silent=F )
+           # Q = try( bam( modelform, data=set, weights=wt, family=fmly  ), silent=F )
+            Q = try( bam( modelform, data=set, family=fmly  ), silent=F )
            
           } else {
-           # Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
-           Q = try( gam( .model, data=set, family=fmly, select=T, optimizer=ops ), silent=F )
+           # Q = try( gam( modelform, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
+           Q = try( gam( modelform, data=set, family=fmly, select=T, optimizer=ops ), silent=F )
           
           }
           
@@ -224,10 +221,11 @@
          
         # last resort
         if ( "try-error" %in% class(Q) ) {
+          print( Q)
           # last attempt with a simplified model and default optimizer
-          .model = model.formula ("simple" )
-         # Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = F )
-          Q = try( gam( .model, data=set,  family=fmly, select=T), silent = F )
+          modelform = model.formula ("simple" )
+         # Q = try( gam( modelform, data=set,  weights=wt, family=fmly, select=T), silent = F )
+          Q = try( gam( modelform, data=set,  family=fmly, select=T), silent = F )
           print(Q)
          
           if ( "try-error" %in% class(Q) ) {
@@ -261,7 +259,6 @@
 
 
     if ( DS %in% c("abundance.redo", "abundance" ) ) {
-    #  browser()
       
       outdir = file.path( project.datadirectory("snowcrab"), "R", "gam", "models", "abundance"  )
       dir.create(path=outdir, recursive=T, showWarnings=F)
@@ -275,7 +272,11 @@
         return(Q)
       }
  
-      if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+      if (exists( "init.files", p)) {
+        p0 = p 
+        LoadFiles( p$init.files ) 
+        p = p0
+      }
       if (exists( "libs", p)) RLibrary( p$libs ) 
 
       if (is.null(p$optimizers) ) p$optimizers = c( "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
@@ -333,10 +334,10 @@
         print( summary(set))
         
         Q = NULL
-        .model = model.formula (v )
+        modelform = model.formula (v )
 
     
-        ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
+        ntest = setdiff(all.vars(modelform), "spatial.knots") %in% names(set)
 
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
@@ -381,12 +382,12 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            #Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=F )
-            Q = try(  bam( .model, data=set, family=fmly ), silent=F )
+            #Q = try(  bam( modelform, data=set, weights=wgts, family=fmly ), silent=F )
+            Q = try(  bam( modelform, data=set, family=fmly ), silent=F )
          
            } else {
-            #Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
-            Q = try( gam( .model, data=set, optimizer=ops, family=fmly, select=T ), silent = F )
+            #Q = try( gam( modelform, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
+            Q = try( gam( modelform, data=set, optimizer=ops, family=fmly, select=T ), silent = F )
          
           }
           print(Q)
@@ -395,10 +396,11 @@
         
         # last resort
         if ( "try-error" %in% class(Q) ) {
+          print( Q)
           # last attempt with a simplified model
-          .model = model.formula ("simple" )
-          #Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = F )
-          Q = try( gam( .model, data=set, family=fmly, select=T), silent = F )
+          modelform = model.formula ("simple" )
+          #Q = try( gam( modelform, data=set, weights=wgts, family=fmly, select=T), silent = F )
+          Q = try( gam( modelform, data=set, family=fmly, select=T), silent = F )
          
           print(Q)
           if ( "try-error" %in% class(Q) ) {
