@@ -1,5 +1,6 @@
-% \documentclass[letterpaper,portrait,11pt]{article}
+
 \documentclass[letterpaper,portrait,11pt]{scrartcl}
+
 % fonts
 \usepackage[T1,T3]{fontenc}
 \usepackage{fourier}
@@ -9,18 +10,16 @@
 \usepackage{sectsty}
 \usepackage[toc,page]{appendix}
 
-
 % linking options
 \usepackage[pdftex]{graphicx}														% Enable pdflatex
-  \usepackage[pdftex,
+\usepackage[pdftex,
   colorlinks=true,
   urlcolor=blue,
   filecolor=blue,
   linkcolor=blue,
   citecolor=blue,
   pdftitle={St Anns Bank Framework Assessment},
-  pdfauthor={Choi et al.},
-  pdfsubject={Assessment},
+  pdfauthor={Jae S. Choi, Angelia Vanderlaan, Gordana Lazin, Mike McMahon,  Ben Zisserson, Brent Cameron, Jenna Munden},
   pdfkeywords={research document scotian shelf marine protected area assessment},
   pdfpagemode=None,
   bookmarksopen=true]{hyperref}
@@ -49,6 +48,7 @@
 
 %%% Maketitle metadata
 \newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+
 \title{
 		%\vspace{-1in} 	
 		\usefont{OT1}{bch}{b}{n}
@@ -69,25 +69,9 @@
 %%% misc commands
 \newcommand{\D}{.}  % period/dot is a special character .. use 'D' to represent it % required in graphics names as periods seem to confuse the parsing mechanism
 \newcommand{\ecomod}{\string~/ecomod_data/}   %  \string~ is a representation of the home directory 
-\newcommand{\mpa}{\string~/ecomod_data/mpa/}       %  \string~ is a representation of the home directory 
-\newcommand{\sab}{\string~/ecomod_data/mpa/sab/}   %  \string~ is a representation of the home directory 
-\newcommand{\analysis}{\string~/ecomod_data/mpa/analysis/}   %  \string~ is a representation of the 
-
-\newcommand{\lt}{$<$}
-\newcommand{\gt}{$>$}
-\newcommand{\minus}{$-$}
-\newcommand{\plus}{$+$}
-\newcommand{\sq}{$^2$}
-\newcommand{\cube}{$^3$}
-\newcommand{\thou}{10$^3$}
-\newcommand{\mill}{10$^6$}
-\newcommand{\mult}{$\times$}
-\newcommand{\kmsq}{km\sq}
-\newcommand{\Xthou}{$\times$~10$^3$}
-\newcommand{\Xmill}{$\times$~10$^6$}
-%\newcommand{\degreesC}{${}^\circ \mbox{C}$ {}}
-%\newcommand{\degreesK}{$\mbox{K}$}
-%\newcommand{\carbondioxide}{{CO${}_{2}$}}
+\newcommand{\mpa}{\ecomod/mpa/}       %  \string~ is a representation of the home directory 
+\newcommand{\sab}{\ecomod/mpa/sab/}   %  \string~ is a representation of the home directory 
+\newcommand{\analysis}{\ecomod/mpa/analysis/}   %  \string~ is a representation of the 
 
 
 \begin{document}
@@ -103,8 +87,7 @@
 
 \section*{Acknowledgements}
 
-
-We highlight the invaluable assistance of a great number of scientists that have been part of various surveys at the Bedford Institute of Oceanography. This report could not have been completed without their guidance and assitance: DataShop (Shelley Bond), Remote Sensing Group (Carla Caverhill, George White), AZMP (Catherine Johnson, Benoit Casault), Snow crab survey (Ben Zisserson, Brent Cameron, snow crab industry), Groundfish survey (Scott Wilson, Bill MacEachern, Don Clark), Clam survey (Dale Roddick), substrate grain size (Vladimir Kostelev, Charles Hannah), bathymetry data (Canadian Hydrographic Service), ocean temperature data (Roger Pettipas (Ocean Sciences).
+We highlight the invaluable assistance of a great number of scientists that have been part of the various surveys that inform this document. This report could not have been completed without their guidance and assistance: DataShop (Shelley Bond), Remote Sensing Group (Carla Caverhill, George White), AZMP (Catherine Johnson, Benoit Casault), Snow crab survey (Ben Zisserson, Brent Cameron, snow crab industry), Groundfish survey (Scott Wilson, Bill MacEachern, Don Clark), Clam survey (Dale Roddick), substrate grain size (Vladimir Kostelev, Charles Hannah), bathymetry data (Canadian Hydrographic Service), ocean temperature data (Roger Pettipas (Ocean Sciences).
 
 \section*{Abstract}
 \clearpage
@@ -115,29 +98,21 @@ We highlight the invaluable assistance of a great number of scientists that have
 The Health of the Oceans (HOTO, 2007-2012) and the National Conservation Plan (NCP, 2014-2019) initiatives support the conservation and restoration of lands and waters in Canada. In this context, DFO Science has been tasked with developing a monitoring approach for Marine Protected Areas (MPAs) and if possible to assess their effectiveness in meeting their objectives. 
 
 \subsection{Scope of this report}
-An MPA is defined in the Oceans Act 35(1) as, {``}An area of the sea that forms part of the internal waters of Canada, the territorial sea of Canada or the exclusive economic zone of Canada and has been designated under this section for special protection for one or more of the following reasons: 
+An MPA is defined in the Oceans Act 35(1) as, "An area of the sea that forms part of the internal waters of Canada, the territorial sea of Canada or the exclusive economic zone of Canada and has been designated under this section for special protection for one or more of the following reasons: 
 
 \begin{itemize}
   \item The conservation and protection of commercial and non-commercial fishery resources, including marine mammals, and their habitats; 
   \item The conservation and protection of endangered or threatened marine species, and their habitats; 
   \item The conservation and protection of unique habitats; 
   \item The conservation and protection of marine areas of high biodiversity or biological productivity; and; 
-  \item The conservation and protection of any other marine resource or habitat as is necessary to fulfill the mandate of the Minister.
+  \item The conservation and protection of any other marine resource or habitat as is necessary to fulfill the mandate of the Minister."
 \end{itemize}
 
-Thus, to reiterate, the focal ecosystem components of the Ocean's Act MPA's, include:
-
-\begin{itemize}
-  \item habitat
-  \item biodiversity
-  \item productivity 
-  \item	key species of interest
-\end{itemize}
-
-As a result, for the purposes of this report, we will likewise focus upon these key ecosystem components. In reality, however, there are many other attributes/components of ecosystems that are also known to be important and relevant. They include: ecological integrity and health, trophic structure and balance, ecosystem function, complexity, network structure, resilience and sustainability. These concepts will be touched upon where possible or necessary but will receive less attention as the legal mandate is quite clear. 
+As a result, for the purposes of this report, we will likewise focus upon these key ecosystem attributes or components: \textbf{productivity, biodiversity, habitat, and  species of interest}. In reality, however, there are many other attributes or components of ecosystems that are also known to be important and relevant. They include: ecological integrity and health, trophic structure and balance, ecosystem function, complexity, network structure, resilience and sustainability. These concepts will be touched upon where possible or necessary but will receive less attention as the legal mandate is quite clear. 
 
 \subsection{St. Anns Bank}
-The St. Anns Bank Marine Protected Area (herein, SAB) is an area of interest for eventual designation as an MPA. It is located east of Cape Breton Island, Nova Scotia, Canada (Figure 1.2-1). An advisory process (DFO 2012), identified the primary objectives of SAB are to conserve and protect and where appropriate restore, ecologically distinctive or significant areas, and overall, the ecosystem "health" of SAB. As in the Oceans Act, the focus was upon four ecosystem components: \textbf{productivity, biodiversity, habitat and species of interest}.
+The St. Anns Bank Marine Protected Area (herein, SAB) is an area of interest for eventual designation as an MPA. It is located east of Cape Breton Island, Nova Scotia, Canada (Figure 1.2-1). An advisory process (DFO 2012), identified the primary objectives of SAB as being to conserve, protect and where appropriate restore, ecologically distinctive or significant areas, and overall, the ecosystem "health" of SAB. As in the Oceans Act, the focus was upon the above four ecosystem components: \textbf{productivity, biodiversity, habitat and species of interest}.
+
 Other MPA goals were also expressed in DFO (2012), but these were less emphatic:
 
 \begin{itemize}
@@ -178,7 +153,7 @@ The primary objectives of this report are straightforward:
 The method by which this can be accomplished, however, is anything but straightforward. This is primarily due to the fact that SAB is:
 
 \begin{itemize}
-	\item large ecosystem and as such complex, operating at various space, time and organisational scales
+	\item large ecosystem and as such complex, operating at various space, time and organizational scales
 	\item Connected in various ways to the surrounding environment and so cannot be treated as an isolated system
 	\item Measures of system components of interest, namely, productivity, biodiversity, habitat and species of interest, are imperfect at best, and usually non-existent or poor in information quality/quantity.
 \end{itemize}
@@ -191,7 +166,7 @@ To this end, we will in the following, describe the data used for the assessment
 In this section we focus upon a basic description of the data chosen for inclusion in this assessment. The purpose of the section is basic: to clearly identify the data, sampling design and the associated assumptions and methods required/used to filter and integrate them in an informative manner. For the sake of transparency, all data assimilation and QA/QC methods have been encoded in R \cite{rCran} and made publicly accessible via \url{https://github.com/jae0/ecomod/} . 
 
 \subsection{Study area}
-Any evaluation of MPA status and effectiveness in meeting conservation objectives, requires explicit reference to changes both within and without the area of interest. Even in the most basic BACI-type design, this requirement is explicit (Green 1979, Underwood 1992). Although this will not alleviate problems associated with pseudo-(spatial, temporal)-replication (Hurlbert 1984), it is still a minimum requirement. For this reason, and also to facilitate evaluations of other potential MPAs in the region, a much larger surrounding area was chosen for analytical purposes. This surrounding area is the continental shelf region off Nova Scotia (Figure 2.1-1), bounded by latitudes 37N to 48N and longitudes from 48W to 71W.  
+Any evaluation of MPA status and effectiveness in meeting conservation objectives, requires explicit reference to changes both within and without the area of interest. Even in the most basic BACI-type design, this requirement is explicit (Green 1979, Underwood 1992). Although this will not alleviate problems associated with pseudo-(spatial, temporal)-replication (Hurlbert 1984), it is still a minimum requirement. For this reason, and also to facilitate evaluations of other potential MPAs in the region, a much larger surrounding area was chosen for analytical purposes. This area is the continental shelf region off Nova Scotia (Figure 2.1-1), bounded by latitudes 37N to 48N and longitudes from 48W to 71W.  
 
 \begin{figure}[h]
   \centering
@@ -247,40 +222,38 @@ To characterise human usage patterns, the following have been chosen for inclusi
   \item Source code: \url{https://github.com/jae0/ecomod/biochem/src/biochem.r}
 \end{itemize}
 
-Discrete bottle data consisting of chlorophyll-a and nutrient records (nitrate, phosphate and silicate) were obtained by laboratory analysis of water samples collected at discrete depths. For this study all available nutrient and chlorophyll-a discrete bottle data was extracted from DFO's BioChem database for the study area. This dataset contains more than 500 000 records with the earliest records starting in 1955. After QA/QC, the discrete bottle data retained for analysis was comprised of 143 499 profiles, collected on 829 missions.
+Discrete bottle data consisting of chlorophyll-a and nutrient records (nitrate, phosphate and silicate) were obtained by laboratory analysis of water samples collected at discrete depths. For this study all available nutrient and chlorophyll-a discrete bottle data was extracted from DFO's BioChem database for the study area. This dataset contains more than 500 000 records with the earliest records starting in 1955. After QA/QC, the discrete bottle data retained for analysis was comprised of 143 499 profiles, collected on 829 missions (Figure~\ref{figBottleMap}).
 
-The number of profiles available in each year (Figure 2.3.1-1) shows that there were few profiles taken until the mid 60's, and a relatively steady number of yearly profiles after the initiation of the Atlantic Zone Monitoring Program (AZMP) in 1999.The peak sampling during the period 1976-1982 corresponds to DFO's Scotian Shelf Ichthyoplankton Program (SSIP) and foreign research vessels sampling programs which were obtained from NOAA's National Oceanographic Data Center (Pierre Clement, personal communication).  Monthly distribution of the profiles (Figure 2.3.1-2)  demonstrates that most of the data was collected in July (mostly during DFO's groundfish surveys), followed by the months of September and April. Note that spatial distribution of the sampling varies among months with most data collected on the Scotian Shelf in July and the fewest data in January. All depth profiles of chlorophyll-a and nutrients are shown on Figures 2.3.1-5
+
+The number of profiles available in each year (Figure~\ref{figChloroMap}) shows that there were few profiles taken until the mid 60's, and a relatively steady number of yearly profiles after the initiation of the Atlantic Zone Monitoring Program (AZMP) in 1999.The peak sampling during the period 1976-1982 corresponds to DFO's Scotian Shelf Ichthyoplankton Program (SSIP) and foreign research vessels sampling programs which were obtained from NOAA's National Oceanographic Data Center (Pierre Clement, personal communication).  Monthly distribution of the profiles (Figure~\ref{figChloroFreq})  demonstrates that most of the data was collected in July (mostly during DFO's groundfish surveys), followed by the months of September and April. Note that spatial distribution of the sampling varies among months with most data collected on the Scotian Shelf in July and the fewest data in January (Figures~\ref{figBottleMap}, \ref{figChloroProfiles}.)
+
 
 \begin{figure}
   \centering
   \includegraphics[width=1.0\textwidth]{\sab 2.png}
   \caption{Number of chlorophyll and nutrient profiles extracted from the BioChem database for each year since 1955.}
-  \label{fig2.3.1-1}
-  % Figure 2.3.1-1
+  \label{figChloroMap}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{\sab 3.png}
   \caption{Number of chlorophyll and nutrient profiles extracted from the BioChem database for the time period 1955-2014, grouped monthly.}
-  \label{fig2.3.1-2}
-  % Figure 2.3.1-2:  
+  \label{figChloroFreq}
 \end{figure}
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=1.0\textwidth]{\sab 4.png}
   \caption{Monthly spatial distribution of discrete bottle data for the time period 1955-2014.}
-  \label{fig2.3.1-4}
-  % Figure 2.3.1-4: 
+  \label{figBottleMap}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=1.0\textwidth]{\sab 5.png}
   \caption{Depth profiles of chlorophyll-a and nutrients; all data for the time period 1955-2014.}
-  \label{fig2.3.1-5}
-  % Figure 2.3.1-5: 
+  \label{figChloroProfiles}
 \end{figure}
 
 
@@ -294,23 +267,22 @@ The number of profiles available in each year (Figure 2.3.1-1) shows that there 
   \item Source code: https://github.com/jae0/ecomod/biochem/src/biochem.r
 \end{itemize}
 
-Number of net deployments for each month is shown in Figure 2.3.2-1 and the corresponding spatial distribution of the net deployments are shown in Figure 2.3.2-2. Note that most of the net data was collected in July during summer groundfish survey missions and in April and October on AZMP spring and fall missions while winter months contain mostly fixed station data (Halifax 2 and Prince 5).
-The data that will be used for further analysis is represented in Figures 2.3.2-3 and 2.3.2-4.
+Number of net deployments for each month is shown in Figure~\ref{figAZMPdeploymentsMonthly} and the corresponding spatial distribution of the net deployments are shown in Figure~\ref{figAZMPdeploymentsMonthlyMap}. Note that most of the net data was collected in July during summer groundfish survey missions and in April and October on AZMP spring and fall missions while winter months contain mostly fixed station data (Halifax 2 and Prince 5).
+
+Abundance patterns are found in Figure~\ref{figAZMPBiomassMonthly}.
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{\sab 6.png}
   \caption{Total number of net deployments for each month during the time period 1999-2014.}
-  \label{fig2.3.2-1}
-  % Figure 2.3.2-1: 
+  \label{figAZMPdeploymentsMonthly}
 \end{figure}
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=1.0\textwidth]{\sab 7.png}
   \caption{Spatial distribution of net deployments included in the zooplankton dataset. }
-  \label{fig2.3.2-2}
-  % Figure 2.3.2-2:   
+  \label{figAZMPdeploymentsMonthlyMap}
 \end{figure}
 
 \begin{figure}[h]
@@ -323,9 +295,8 @@ The data that will be used for further analysis is represented in Figures 2.3.2-
       \includegraphics[width=0.5\textwidth]{\sab 10.png}
       \includegraphics[width=0.5\textwidth]{\sab 11.png}
   \end{tabular}
-  \caption{Monthly averages of all data from 1999 to 2014: total abundance (top left), total biomass computed from wet weight (top right), ratio of total biomass computed from wet weight  to total abundance (bottom center) as a potential measure of the average weight of the individual organism, Calanus finmarchicus, Calanus hyperboreus, and Calanus glacialis }
-  \label{fig2.3.2-3}
-  % Figure 2.3.2-3: 
+  \caption{Monthly averages of all data from 1999 to 2014: total abundance (top left), total biomass computed from wet weight (top right), ratio of total biomass computed from wet weight  to total abundance (bottom center) as a potential measure of the average weight of the individual organism, \textit{Calanus finmarchicus}, \textit{Calanus hyperboreus}, and \textit{Calanus glacialis} }
+  \label{figAZMPBiomassMonthly}
 \end{figure}
 
 
@@ -350,17 +321,17 @@ Ocean colour satellite data for this study was provided by the Remote Sensing Un
 
 Even though there is ocean color data available before MODIS launch it was decided to limit our dataset to a single sensor to avoid potential biases between the sensors. Due to the frequent cloud coverage of the NW Atlantic it was decided to use 8-day composite images as daily images would not provide sufficient number of valid pixels. 
 
-The values of chlorophyll-a pixels within St. Anns Bank polygon were extracted from each 8-day composite image and average chlorophyll-a concentration was computed for the polygon. The time series for the polygon and the associated climatology that was computed from time series data are showing characteristic spring bloom in March and April, with varying intensity and timing throughout the years (Figures 2.3.3-2 and 2.3.3-3). An example of MODIS semi-monthly chlorophyll-a products showing spring bloom progression in the St. Anns Bank area in 2012 is shown on Figure 2.3.3-1.
+The values of chlorophyll-a pixels within St. Anns Bank polygon were extracted from each 8-day composite image and average chlorophyll-a concentration was computed for the polygon. The time series for the polygon and the associated climatology that was computed from time series data show characteristic spring blooms in March and April, with varying intensity and timing throughout the years (Figures 2.3.3-2 and 2.3.3-3). An example of MODIS semi-monthly chlorophyll-a products showing spring bloom progression in the St. Anns Bank area in 2012 is shown on Figure 2.3.3-1.
 
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering
   \begin{tabular}{cc}
-    \includegraphics[width=0.5\textwidth]{\sab 12.jpg}
-    \includegraphics[width=0.5\textwidth]{\sab 13.jpg}
+    \includegraphics[width=0.45\textwidth]{\sab 12.jpg}
+    \includegraphics[width=0.45\textwidth]{\sab 13.jpg}
   \end{tabular}
   \begin{tabular}{cc}
-    \includegraphics[width=0.5\textwidth]{\sab 14.jpg}
-    \includegraphics[width=0.5\textwidth]{\sab 15.jpg}
+    \includegraphics[width=0.45\textwidth]{\sab 14.jpg}
+    \includegraphics[width=0.45\textwidth]{\sab 15.jpg}
   \end{tabular}
   \caption{MODIS semi-monthly Chl-a concentration showing spring bloom progression in the NW Atlantic in 2012. Note the intense bloom at St. Anns Bank during the last two weeks in March.}
   \label{fig2.3.3-1}
@@ -424,7 +395,7 @@ Sea Surface Temperature (SST) from space is measured using infrared channels of 
 
 The SST data for this study was provided by the Remote Sensing Unit from the Bedford Institute of Oceanography (BIO) that has been downlinking AVHRR data from the National Oceanographic Atmospheric Administration (NOAA) satellites since 1997 on an L-band satellite receiver that resides on the roof of the BIO. The received data is routinely processed by the RSU and is supplemented by the data stream from the AVHRR onboard the European satellites. Composite SST images of different time periods are operationally produced as part of the Atlantic Zone Monitoring Program (RSU Technical Document 1). Here we used 8-day composite images with the same spatial coverage and spatial resolution as the ocean colour chlorophyll data.
 
-The SST pixels within St. Anns Bank polygon were extracted from each 8-day composite image and average SST was computed for the polygon. The time series for the polygon and the associated climatology that was computed from time series data are shown on Figures x and y. An example of semi-monthly SST products corresponding to the spring bloom progression in the St. Anns Bank area in 2012 is shown on Figure z.
+The SST pixels within St. Anns Bank polygon were extracted from each 8-day composite image and average SST was computed for the polygon. The time series for the polygon and the associated climatology that was computed from time series data are shown on Figures~\ref{figSSTfromAVHRRmap} and \ref{figSSTfromAVHRRts}. An example of semi-monthly SST products corresponding to the spring bloom progression in the St. Anns Bank area in 2012 is shown on Figure z.
 
 \begin{figure}[h]
   \centering
@@ -437,7 +408,7 @@ The SST pixels within St. Anns Bank polygon were extracted from each 8-day compo
     \includegraphics[width=0.5\textwidth]{\sab 23.jpg}
   \end{tabular}
   \caption{Bi-weekly composites from AVHRR showing SST in the North West Atlantic in the spring of 2012, corresponding to the intense spring bloom at St.Anns bank shown on Figure x.}
-  \label{figz}
+  \label{figSSTfromAVHRRmap}
   % Figure z: 
 \end{figure}
 
@@ -445,7 +416,7 @@ The SST pixels within St. Anns Bank polygon were extracted from each 8-day compo
   \centering
   \includegraphics[width=1.0\textwidth]{\sab 24.png}
   \caption{Sea Surface Temperature (SST) extracted from 8-day AVHRR composite images for St.Anns bank polygon for the time period 1997-2015.}
-  \label{Figure x: }
+  \label{C}
 \end{figure}
 
 \begin{figure}[h]
@@ -633,89 +604,86 @@ Source code: https://github.com/jae0/ecomod/spacetime/
 
 All data extraction, quality control and processing methods are documented in R scripts found in https://github.com/jae0/ecomod/.
 
-\subsection{AZMP}
-\subsubsection{Discrete bottle data}
-Since most of the data contained within BioChem is generally not subject to any quality control and can contain erroneous records, substantial quality control was conducted in order to remove suspect data values. The quality control was based on the bottle data quality procedure designed at DFO's Institut Maurice-Lamontagne (IML). These were in turn was based on procedures developed by NOAA's National Oceanographic Data Center/World Ocean Database (Conkright et al. 2002) as well as many of the tests proposed in the GTSPP Real-Time Quality Control Manual (Unesco 1990). The quality control procedure was as follows:
-Step 1: Impossible dates
+\subsection{Discrete bottle data}
 
-Due to a known issue with dates, database query for nutrients and chlorophyll was designed to extract records for which the sampling date is within start and end dates of the mission. Another check includes comparing HEADER\_START and EVENT\_START dates which should be the same. It is often found that month and day were reversed in EVENT\_START field. Those records were retained and HEADER\_START was used as more reliable date.
+BioChem data are generally not subject to any quality control (QC). As such, substantial QC was required. The QC protocol used was based on procedures designed at DFO's Institut Maurice-Lamontagne (IML). These were in turn was based on procedures developed by NOAA's National Oceanographic Data Center/World Ocean Database (Conkright et al. 2002) as well as many of the tests proposed in the GTSPP Real-Time Quality Control Manual (Unesco 1990). The quality control procedure was as follows:
 
-Step 2: Quality control flags
-Small number of records in BioChem was subject to quality control and  include flags for position (POSITION\_QC\_CODE) and data (DATA\_QC\_CODE). The meaning of the codes is following:
-0: No quality control performed
-1: Value appears correct
-2: Value appears inconsistent
-3: Value appears doubtful
-4: Value  appears erroneous
-5: Value changed as result of quality control
+\textbf{Step 1: Impossible dates}
+
+Due to known issues with dates, database query for nutrients and chlorophyll were designed to extract records for which the sampling date is within start and end dates of the mission. Another check includes comparing HEADER\_START and EVENT\_START dates which should be the same. It is often found that month and day were reversed in EVENT\_START field. Those records were retained and HEADER\_START was used as a more reliable date.
+
+\textbf{Step 2: Quality control flags}
+
+Small number of records in BioChem was subject to quality control and  include flags for position (POSITION\_QC\_CODE) and data (DATA\_QC\_CODE). The meaning of the codes are as follows:
+
+\begin{table} [h]
+\begin{tabular}{ll}
+0 & No quality control performed \\
+1 & Value appears correct \\
+2 & Value appears inconsistent \\
+3 & Value appears doubtful \\
+4 & Value  appears erroneous \\
+5 & Value changed as result of quality control \\
+\end{tabular}
+\end{table}
+
 QC flags were checked for parameter and inconsistent (2), doubtful (3) and erroneous (4) values were removed from the dataset.
 
-Step 3: Depth check
+\textbf{Step 3: Depth check}
+
 For bottle data, start and end depth at which the water samples were collected are verified to be the same. Records with different start and end depths were removed from the dataset.
 
-Step 4: Duplicated records
+\textbf{Step 4: Duplicated records}
+
 BioChem often contains duplicated records as same data was sometimes loaded into database twice and treated as different records. Duplicated records were removed and the first record of each duplicate is kept in the dataset.
 
-Step 4: Suspect missions
-Missions with suspect data were identified and removed. Those missions often show unusual data values (for example, integer numbers without decimal places with only some values out of range) suggesting that the data for the whole mission might be compromised. The suspect mission for each parameter are following:
-	Chlorophyll-a: OC7908, 32G879008
-	Phosphate: 18HU88026
-	Silicate: 180167005, 31TR26870
+\textbf{Step 4: Suspect missions}
 
-Step 5: Global impossible parameter values 
+Missions with suspect data were identified and removed. Those missions often show unusual data values (for example, integer numbers without decimal places with only some values out of range) suggesting that the data for the whole mission might be compromised. The suspect mission for each parameter are following:
+
+\begin{table} [h]
+  \begin{tabular}{ll}
+	Chlorophyll-a & OC7908, 32G879008 \\
+  Phosphate & 18HU88026 \\
+  Silicate & 180167005, 31TR26870 \\
+  \end{tabular}
+\end{table}
+
+
+\textbf{Step 5: Global impossible parameter values}
+
 Chlorophyll and all nutrients values were examined if they fell within expected limits for NW Atlantic, which are adopted from IML quality control procedure (IML Test 2.1). The expected range of values are:
 \begin{itemize}
   \item Chlorophyll-a: 0-50 mg/m\textsuperscript{3}
   \item Nitrate: 0-515 mmol/m\textsuperscript{3}
-  \item Phosphate: 0-4.5 mmol/
-  
-  Any values outside of expected range were removed for open ocean data only.m\textsuperscript{3}
+  \item Phosphate: 0-4.5 mmol/m\textsuperscript{3}
   \item Silicate: 0-250 mmol/m\textsuperscript{3}
 \end{itemize}
 
 Any values outside of expected range were removed for open ocean data only. Coastal data ( up to 5km from the coast) were not filtered using expected ranges as in coastal water chlorophyll-a and nutrients concentrations can be higher. 
 
-Step 6: Profile envelope
+\textbf{Step 6: Profile envelope}
 
 Data  for each parameter are checked if they fall within the expected limits by depth interval, as shown in Table A.1.1-1 (IML Test 2.4). This test does not allow zero values for silicate and phosphate in the deep water. Again, only open ocean data were subject to the profile envelope test.
-%
-% Table begins
-% 
-\begin{table}[h]\begin{tabular}{|l|l|l|}
+
+\begin{table}[h]
+\label{tableBioChemQC}
+\caption{Expected ranges of parameters for the profile envelope test (IML Test 2.4)}
+\begin{tabular}{lll}
+Parameter & Depth interval & Expected Range \\
 \hline
-{{\large \textsf{Parameter}}}&
-{{\large \textsf{Depth interval}}}&
-{{\large \textsf{Expected Range}}}\\
-\hline
-{{\large \textsf{Chlorophyll-a}}}&
-{{\large \textsf{0-1500 m}}}&
-{{\large \textsf{0-50 mg/m}}}\textsuperscript{{{\scriptsize \textsf{3}}}}\\
-\hline
-{{\large \textsf{Silicate}}}&
-{{\large \textsf{0-150 m}}}&
-{{\large \textsf{0-250 mmol/m}}}\textsuperscript{{{\scriptsize \textsf{3}}}}\\
-\hline
-{{\large \textsf{Silicate}}}&
-{{\large \textsf{150-900 m}}}&
-{{\large \textsf{0.01-250 mmol/m}}}\textsuperscript{{{\scriptsize \textsf{3}}}}\\
-\hline
-{{\large \textsf{Phosphate}}}&
-{{\large \textsf{0-500 m}}}&
-{{\large \textsf{0-4.5 mmol/m3}}}\\
-\hline
-{{\large \textsf{Phosphate}}}&
-{{\large \textsf{150-1500 m}}}&
-{{\large \textsf{0.01-4.5 mmol/m}}}\textsuperscript{{{\scriptsize \textsf{3}}}}\\
-\hline
-{{\large \textsf{Nitrate}}}&
-{{\large \textsf{0-1500 m}}}&
-{{\large \textsf{0-515 mmol/m}}}\textsuperscript{{{\scriptsize \textsf{3}}}}\\
-\hline
+Chlorophyll-a & 0-1500 m & 0-50 mg/m$^{3}$ \\
+Silicate & 0-150 m & 0-250 mmol/m$^{3}$ \\
+Silicate & 150-900 m & 0.01-250 mmol/m$^{3}$ \\
+Phosphate & 0-500 m & 0-4.5 mmol/m$^{3}$ \\
+Phosphate & 150-1500 m & 0.01-4.5 mmol/m$^{3}$ \\
+Nitrate & 0-1500 m & 0-515 mmol/m$^{3}$ \\
 \end{tabular}
 \end{table}
-Table A.1.1-1: Expected ranges of parameters for the profile envelope test (IML Test 2.4)
 
-Step 7: Impossible profiles
+
+\textbf{Step 7: Impossible profiles}
+
 This check was not implemented in the code and impossible profiles were identified by investigating unusual outliers.
 Additional steps from IML QC procedure such as checks for constant profile, excessive gradient and inversions were not implemented in this quality control procedure. However, due to eutrophication from terrestrial sources, phosphate levels in coastal regions often exceeded the upper limits for globally and locally possible values, with the phosphate concentrations sometimes six times higher than the upper limits for the NW Atlantic in offshore waters. Therefore coastal and open ocean data were examined separately, non-coastal data were filtered using the expected limits for the NW Atlantic. Coastal data were defined as the ones collected less than 5 km away from the coast, where 5 km limit was chosen as an optimal distance at which all coastal inlets are included. Buffer polygons along the coastline were created (Figure A.1.1-1) and used for flagging the data as open ocean records (flag 1) and coastal records (flag 2).
 
@@ -729,39 +697,34 @@ Additional steps from IML QC procedure such as checks for constant profile, exce
 
 
 
+\subsection{Chlorophyll-a}
 
-\subsubsection{Chlorophyll-a methods}
+Chlorophyll-a data are derived from four methods. The methods are listed and described in Table~\ref{tableChlaMethods} and the aggregate time series  associated with each method is shown in Figure~\ref{figChlaTimeseries}. For most of the chlorophyll data the method is not specified (unknown); Holm-Hansen fluorometric method is the standard AZMP method and is the second most frequent; Welschmeyer fluorometric method is used least frequently, often by the Quebec and Newfoundland regions.
 
-Chlorophyll-a data are derived from four methods. The methods are listed and described in Table A.1.1.1-1 and the aggregate time series  associated with each method is shown in Figure A.1.1.1-1. For most of the chlorophyll data the method is not specified (unknown); Holm-Hansen fluorometric method is the standard AZMP method and is the second most frequent; Welschmeyer fluorometric method is used least frequently, often by the Quebec and Newfoundland regions.
-%
-% Table begins
-% 
-\begin{table}[h]\begin{tabular}{|l|l|}
-\hline
-{{\large \textsf{Method}}}&
-{{\large \textsf{Description}}}\\
-\hline
-{{\large \textsf{Chl\_a}}}&
-{{\large \textsf{Unknown method}}}\\
-\hline
-{{\large \textsf{Chl\_a\_Holm-Hansen\_F}}}&
-{{\large \textsf{Holm-Hansen method; Prefiltered; Frozen before analysis (-20°C)}}}\\
-\hline
-{{\large \textsf{Chl\_a\_Holm-Hansen\_sF}}}&
-{{\large \textsf{Holm-Hansen method ; Super Frozen before analysis (-196°C)}}}\\
-\hline
-{{\large \textsf{Chl\_a\_Welschmeyer\_sF}}}&
-{{\large \textsf{Welschmeyer method; Super Frozen before analysis  (-196°C)}}}\\
-\hline
-\end{tabular}
+In a number of cases, the same water sample was processed using two different methods, resulting in two sets of chlorophyll estimates for the same samples. Comparisons between these two sets of values are shown in Figure~\ref{figChlaComparison}. In both cases chlorophyll-a estimated by the Welschmeyer method are lower than the ones using the Holm-Hansen method or "unknown" method. Since there is more data mapped to the Holm-Hansen method than to the Welschmeyer method, only data derived from Chl\_a and Chl-a\_Holm\_Hansen\_sF methods were retained. No corrections were applied to correct for differences in methodology.
+
+
+\begin{table}[h]
+  \label{tableChlaMethods}
+  \caption{Methods associated with chlorophyll-a records in BioChem.}
+  \begin{tabular}{ll}
+    Method & Description \\ \hline
+    Chl\_a & Unknown method \\
+    Chl\_a\_Holm-Hansen\_F & Holm-Hansen method; Prefiltered; Frozen before analysis (-20 \textcelsius )  \\
+    Chl\_a\_Holm-Hansen\_sF & Holm-Hansen method ; Super Frozen before analysis (-196 \textcelsius) \\
+    Chl\_a\_Welschmeyer\_sF & Welschmeyer method; Super Frozen before analysis  (-196 \textcelsius) \\
+  \end{tabular}
 \end{table}
-Table A.1.1.1-1: Methods associated with chlorophyll-a records in BioChem.
 
 
-\includegraphics[width=1.0\textwidth]{\sab 27.png}
-Figure A.1.1.1-1: Time series of chlorophyll-a data from BioChem grouped by methods.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{\sab 27.png}
+  \caption{Time series of chlorophyll-a data from BioChem grouped by methods.}
+  \label{figChlaTimeseries}
+\end{figure}
 
-In a number of cases, the same water sample was processed using two different methods, resulting in two sets of chlorophyll estimates for the same samples. Comparisons between these two sets of values are shown in Figure A.1.1.1-2. In both cases chlorophyll-a estimated by the Welschmeyer method are lower than the ones using the Holm-Hansen method or {``}unknown'' method. Since there is more data mapped to the Holm-Hansen method than to the Welschmeyer method, only data derived from Chl\_a and Chl-a\_Holm\_Hansen\_sF methods were retained. No corrections were applied to correct for differences in methodology.
+
 
 
 \begin{figure}[h]
@@ -774,76 +737,63 @@ In a number of cases, the same water sample was processed using two different me
     \includegraphics[width=0.5\textwidth]{\sab 30.png}
     \includegraphics[width=0.5\textwidth]{\sab 31.png}
   \end{tabular}
-  \caption{Comparison of the chlorophyll-a values collected using different methods is shown on the scatterplots on the top panel and the geographical locations of those samples is shown on the maps in the bottom panel.}
-  \label{figA.1.1.1-2}
-  % Figure A.1.1.1-2 
+  \caption{Comparison of the chlorophyll-a values collected using different methods is shown on the scatter plots on the top panel and the geographical locations of those samples is shown on the maps in the bottom panel.}
+  \label{figChlaComparison}
 \end{figure}
 
 
-Nitrate
 
-Nitrate estimates are derived from 10 methods. The methods are listed and described in Table x and the time series of data associated with each method is shown in Figure x. Most of the methods measure nitrate and nitrite together. We also included data for nitrate only since  in most seawater the concentration of nitrite is small compared to that of nitrate.
-%
-% Table begins
-% 
-\begin{table}[h]\begin{tabular}{|l|l|}
-\hline
-{{\large \textsf{Method}}}&
-{{\large \textsf{Description}}}\\
-\hline
-{{\large \textsf{NO2NO3\_0}}}&
-{{\large \textsf{Nitrate+Nitrite / Unknown method}}}\\
-\hline
-{{\large \textsf{NO2NO3\_Alp\_F}}}&
-{{\large \textsf{Nitrate+Nitrite / Alpchem / Frozen}}}\\
-\hline
-{{\large \textsf{NO2NO3\_Alp\_SF}}}&
-{{\large \textsf{Nitrate+Nitrite / Alpchem / SuperFrozen}}}\\
-\hline
-{{\large \textsf{NO2NO3\_S\&P1968}}}&
-{{\large \textsf{Nitrate+Nitrite/ S\&P(1968) / filtered and frozen}}}\\
-\hline
-{{\large \textsf{NO2NO3\_Tech\_F}}}&
-{{\large \textsf{Nitrate+Nitrite / Technicon / Frozen}}}\\
-\hline
-{{\large \textsf{NO2NO3\_Tech\_Fsh}}}&
-{{\large \textsf{Nitrate + Nitrite / Technicon / Fresh / Strain / Unfiltered}}}\\
-\hline
-{{\large \textsf{NO2NO3\_Tech\_SF}}}&
-{{\large \textsf{Nitrate+Nitrite / Technicon / SuperFrozen}}}\\
-\hline
-{{\large \textsf{NO2NO3\_Tech2\_F}}}&
-{{\large \textsf{Nitrate+Nitrite / Technicon2 / Frozen}}}\\
-\hline
-{{\large \textsf{NO3\_Tech\_F}}}&
-{{\large \textsf{Nitrate / Technicon / Frozen, corrected for NO2}}}\\
-\hline
-{{\large \textsf{NO3\_Tech\_SF}}}&
-{{\large \textsf{Nitrate / Technicon / SuperFrozen}}}\\
-\hline
-\end{tabular}
-\end{table}
-Table x: Methods associated with nitrate records in BioChem.
-\includegraphics[height=16.385cm,width=14.883cm]{\sab 32.png}
-Figure x: Time series of nitrate data from BioChem grouped by methods.
-Phosphate
-Phosphate  data available in BioChem are mapped to 7 methods. The methods are listed and described in Table x and the time series of data associated with each method is shown in Figure x.
-%
+
+\subsubsection{Nitrate}
+
 % Table begins
 % 
 \begin{table}[h]
-\caption{Methods associated with phosphate records in BioChem.}
-\label{tablePhosphateMethods}
-\begin{tabular}{ll}
-Method & Description \\ \hline
-PO4\_0 & Phosphate / Unknown method  \\ 
-PO4\_Alp\_SF & Phosphate / Alpchem / SuperFrozen / Filtered \\ 
-PO4\_Tech\_2 & Phosphate / Murphy and Riley / filtered and frozen \\ 
-PO4\_Tech\_F & Phosphate / Technicon / Frozen / Unfiltered \\ 
-PO4\_Tech\_Fsh & Phosphate / Technicon / Fresh / Strain / Unfiltered \\
-PO4\_Tech\_SF & Phosphate / Technicon / SuperFrozen / Filtered \\
-PO4\_Tech2\_F & Phosphate / Technicon2 / Frozen / Unfiltered \\
-\end{tabular}
+  \label{tableNmethods}
+  \caption{Methods associated with nitrate records in BioChem.}
+  \begin{tabular}{ll}
+    Method & Description\\
+    \hline
+    NO2NO3\_0 & Nitrate+Nitrite / Unknown method \\
+    NO2NO3\_Alp\_F & Nitrate+Nitrite / Alpchem / Frozen \\
+    NO2NO3\_Alp\_SF & Nitrate+Nitrite / Alpchem / SuperFrozen \\
+    NO2NO3\_S\&P1968 & Nitrate+Nitrite/ S\&P(1968) / filtered and frozen \\
+    NO2NO3\_Tech\_F & Nitrate+Nitrite / Technicon / Frozen \\
+    NO2NO3\_Tech\_Fsh & Nitrate + Nitrite / Technicon / Fresh / Strain / Unfiltered \\
+    NO2NO3\_Tech\_SF & Nitrate+Nitrite / Technicon / SuperFrozen \\
+    NO2NO3\_Tech2\_F & Nitrate+Nitrite / Technicon2 / Frozen \\
+    NO3\_Tech\_F & Nitrate / Technicon / Frozen, corrected for NO2 \\
+    NO3\_Tech\_SF & Nitrate / Technicon / SuperFrozen\\
+  \end{tabular}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{\sab 32.png}
+  \caption{Time series of nitrate data from BioChem grouped by methods.}
+  \label{figNTimeseries}
+\end{figure}
+
+Nitrate estimates are derived from 10 methods. The methods are listed and described in Table~\ref{tableNmethods} and the time series of data associated with each method is shown in Figure~\ref{figNTimeseries}. Most of the methods measure nitrate and nitrite together. We also included data for nitrate only since  in most seawater the concentration of nitrite is small compared to that of nitrate.
+
+
+\subsection{Phosphate}
+
+Phosphate  data available in BioChem are mapped to 7 methods. The methods are listed and described in Table~\ref{tablePhosphateMethods} and the time series of data associated with each method is shown in Figure~\ref{figPhosphateTimeseries}.
+
+\begin{table}[h]
+  \caption{Methods associated with phosphate records in BioChem.}
+  \label{tablePhosphateMethods}
+  \begin{tabular}{ll}
+    Method & Description \\ \hline
+    PO4\_0 & Phosphate / Unknown method  \\ 
+    PO4\_Alp\_SF & Phosphate / Alpchem / SuperFrozen / Filtered \\ 
+    PO4\_Tech\_2 & Phosphate / Murphy and Riley / filtered and frozen \\ 
+    PO4\_Tech\_F & Phosphate / Technicon / Frozen / Unfiltered \\ 
+    PO4\_Tech\_Fsh & Phosphate / Technicon / Fresh / Strain / Unfiltered \\
+    PO4\_Tech\_SF & Phosphate / Technicon / SuperFrozen / Filtered \\
+    PO4\_Tech2\_F & Phosphate / Technicon2 / Frozen / Unfiltered \\
+  \end{tabular}
 \end{table}
 
 
@@ -851,26 +801,28 @@ PO4\_Tech2\_F & Phosphate / Technicon2 / Frozen / Unfiltered \\
   \centering
   \includegraphics[width=1.0\textwidth]{\sab 33.png}
   \caption{Time series of phosphate data from BioChem grouped by methods.}
-  \label{phosphateTimeseries}
+  \label{figPhosphateTimeseries}
 \end{figure}
 
-Silicate
-Silicate data available in BioChem are mapped to 8 methods. The methods are listed and described in Table \ref{tableSilicateMethods}x and the time series of data associated with each method is shown on Figure x.
+
+\subsection{Silicate}
+
+Silicate data available in BioChem are mapped to 8 methods (Table~\ref{tableSilicateMethods}). Their time series of are shown on Figure~\ref{silicateTimeseries}.
 
 \begin{table}[h]
-\caption{Methods associated with silicate records in BioChem.}
-\label{tableSilicateMethods}
-\begin{tabular}{ll}
-Method & Description \\ \hline
-SiO4\_0 & Silicate, Unknown methods and handling \\
-SiO4\_1 & Silicate / Mullin and Riley / filtered and frozen \\
-SiO4\_Alp\_F & Silicate / Alpchem / Frozen / Unfiltered \\
-SiO4\_Alp\_SF & Silicate / Alpchem / SuperFrozen / Filtered \\
-SiO4\_Tech\_F & Silicate / Technicon / Frozen / Strain / Unfiltered \\
-SiO4\_Tech\_Fsh & Silicate / Technicon /Fresh /Strain / Unfiltered \\
-SiO4\_Tech\_SF & Silicate / Technicon / SuperFrozen / Filtered \\
-SiO4\_Tech2\_F & Silicate / Technicon2 / Frozen \\
-\end{tabular}
+  \caption{Methods associated with silicate records in BioChem.}
+  \label{tableSilicateMethods}
+  \begin{tabular}{ll}
+    Method & Description \\ \hline
+    SiO4\_0 & Silicate, Unknown methods and handling \\
+    SiO4\_1 & Silicate / Mullin and Riley / filtered and frozen \\
+    SiO4\_Alp\_F & Silicate / Alpchem / Frozen / Unfiltered \\
+    SiO4\_Alp\_SF & Silicate / Alpchem / SuperFrozen / Filtered \\
+    SiO4\_Tech\_F & Silicate / Technicon / Frozen / Strain / Unfiltered \\
+    SiO4\_Tech\_Fsh & Silicate / Technicon /Fresh /Strain / Unfiltered \\
+    SiO4\_Tech\_SF & Silicate / Technicon / SuperFrozen / Filtered \\
+    SiO4\_Tech2\_F & Silicate / Technicon2 / Frozen \\
+  \end{tabular}
 \end{table}
 
 
@@ -882,7 +834,10 @@ SiO4\_Tech2\_F & Silicate / Technicon2 / Frozen \\
 \end{figure}
 
 
-\subsubsection{Zooplankton}
+
+
+
+\subsection{Zooplankton}
 
 Zooplankton data was extracted from DFO's BioChem database (DFO 2015, Devine et al. 2014) from 1914 to 2014. They were comprised of 687 missions and 53,787 samples, using 13 different kind of nets, 35 different mesh sizes ranging from 20 microns to 4.23 mm, and various net deployment and sample processing protocols.
 To ensure data consistency and comparability, only samples collected and analyzed using Atlantic Zone Monitoring Program (AZMP) protocol (Mitchell et al. 2002) were retained for study, reducing the time scope to 1999-2014. 
