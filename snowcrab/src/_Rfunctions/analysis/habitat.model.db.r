@@ -20,7 +20,7 @@
 
       # add groundfish data
       gf = snowcrab.external.db (p=p, DS="set.snowcrab.in.groundfish.survey", vname="R0.mass" )  ## right now, fixed only to R0.mass ... TO DO make more variable
-      
+
       # absense prior to 1999 is meaningless due to inconsistent recording
       ii = which( gf$n==0 & gf$yr<=1998)
       if (length(ii)>0) gf = gf[-ii,]
@@ -68,19 +68,19 @@
 
 
     if ( DS %in% c("basedata" ) ) {
-    
-      set = snowcrab.db( DS="set.logbook" )
+     set = snowcrab.db( DS="set.logbook" )
+
       set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-        
       set = presence.absence( X=set, vname=v, px=p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
       n0 = nrow(set)
 
       depthrange = range( set$z, na.rm= T) 
 
-#      if ( grepl("R0.mass", v) ) {   
-#        aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
-#        set = rbind( set, aset[, names(set)] )
-#      }
+   #   if ( grepl("R0.mass", v) ) {   
+   #     aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
+   #
+   #     set = rbind( set, aset[, names(set)] )
+   #   }
 
       # set$weekno = floor(set$julian / 365 * 52) + 1
       # set$dyear = floor(set$julian / 365 ) + 1
@@ -102,9 +102,10 @@
       set$wgts = 1
 
       # remove extremes where variance is high due to small n
-      # set = filter.independent.variables( x=set )
-
-      tokeep=  c( "Y", "yr",  "julian", "dyear", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
+      set = filter.independent.variables( x=set )
+      
+      tokeep=  c( "yr",  "julian", "dyear", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
+   
       # tokeep = intersect( names(set), tokeep) 
       
       set = set[ , tokeep ]

@@ -10,6 +10,8 @@
   # load required functions and parameters 
   	
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  
+  parameters.initial = p  # copy here as the other calls below overwrites p# -------------------------------------------------------------------------------------
     
   debug = FALSE
   if (debug) {
@@ -116,7 +118,6 @@
   
   
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  parameters.initial = p  # copy here as the other calls below overwrites p# -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
 #     Bathymetry data :: 
   loadfunctions("bathymetry", functionname="bathymetry.r" ) # if necessary

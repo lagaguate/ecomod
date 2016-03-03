@@ -3,6 +3,7 @@
 
   seabird.db = function( DS="", Y=NULL, plotdata=FALSE ){
     
+    tzone = "America/Halifax"
     sb.dir = project.datadirectory("snowcrab", "data", "seabird" )
     seabird.rawdata.location = file.path( sb.dir, "archive" ) 
     
@@ -123,8 +124,8 @@
      
         # TODO:: need to move this into the load.seabird function and remove chron dependence in it
         # should not be required here .. but in case
-        res$t0 = as.POSIXct( res$t0, origin=lubridate::origin, tz=tzone )
-        res$t1 = as.POSIXct( res$t1, origin=lubridate::origin, tz=tzone )
+        res$t0 = as.POSIXct( lubridate::ymd_hms(res$t0), origin=lubridate::origin, tz=tzone )
+        res$t1 = as.POSIXct( lubridate::ymd_hms(res$t1), origin=lubridate::origin, tz=tzone )
         res$dt = as.numeric( res$dt )  # minutes
         res$timestamp = lubridate::ymd_hms( res$timestamp)
      
@@ -135,7 +136,6 @@
       
       # default action  is "stats.redo"
       
-      tzone = "America/Halifax"
       
       for ( yr in Y ) {
         print (yr )
