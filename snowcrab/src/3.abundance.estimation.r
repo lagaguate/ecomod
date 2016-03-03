@@ -18,8 +18,13 @@
   # p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   # p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   p$years.to.model=2000:2015
+  p$nw = 10
 
-  
+  p$prediction.dyear = 9/12
+
+  p$movingdatawindow = 0 
+
+
   debug = F
   if (debug) {
     # identify areas to interpolate
@@ -112,7 +117,7 @@
   
       p = make.list( list(v=p$vars.to.model), Y=p )
       # parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
-      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
+      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )  # 10 hrs 
       #  --- parallel mode is not completing ... FIXME
 
       # ---------------------
@@ -139,7 +144,7 @@
       
       p = make.list( list(v=p$vars.to.model), Y=p )
       #parallel.run( habitat.model.db, DS="abundance.redo", p=p )
-      habitat.model.db( DS="abundance.redo", p=p) 
+      habitat.model.db( DS="abundance.redo", p=p)   # 1.5 hr for yrs: 2000:2015
       
       
       # ---------------------
@@ -147,7 +152,7 @@
       # and then map, stored in R/gam/maps/
 
       p$vars.to.model= "R0.mass"
-      p$nsims = 1000 # n=1000 ~ 1 , 15 GB/run for sims 
+      p$nsims = 2000 # n=2000 ~ 1 , 15 GB/run for sims 
       p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
 
       # p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )
@@ -155,7 +160,7 @@
       p$clusters = c( rep( "localhost", 2) )
       p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
       parallel.run( interpolation.db, DS="interpolation.redo", p=p )
-			# interpolation.db ( DS="interpolation.redo", p=p )
+			# interpolation.db ( DS="interpolation.redo", p=p )  ~ 30 min for 1 yr
 
       # collect all results into a single file and return: 
       K = interpolation.db( DS="interpolation.simulation", p=p  ) 

@@ -118,8 +118,8 @@
     
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
          
-      #outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
-      outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "test" )
+      outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
+      # outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "test" )
       
       dir.create(path=outdir, recursive=T, showWarnings=F)
 
@@ -137,9 +137,9 @@
         # ****************************************
         
         if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
-        #if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
+        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
         
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitattest", v, "rdata", sep=".") )
+        # if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitattest", v, "rdata", sep=".") )
         
         
         if (file.exists(fn)) load(fn)
@@ -148,7 +148,7 @@
 
       if (exists( "init.files", p)) {
         p0 = p; # copy as the next alters p and we do not want to lose it
-        LoadFiles( p$init.files ) 
+        LoadFiles( p0$init.files ) 
         p=p0
         }
 
@@ -278,7 +278,7 @@
  
       if (exists( "init.files", p)) {
         p0 = p 
-        LoadFiles( p$init.files ) 
+        LoadFiles( p0$init.files ) 
         p = p0
       }
       if (exists( "libs", p)) RLibrary( p$libs ) 

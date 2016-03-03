@@ -29,10 +29,13 @@
         return (PS)
       }
     
-      if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+      if (exists( "init.files", p)) {
+        p0 = p
+        LoadFiles( p0$init.files ) 
+        p=p0
+      }
       if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
-
 
       if (DS %in% c("interpolation.simulation")  ) {
         out = NULL
@@ -105,6 +108,7 @@
         PS$dt.seasonal = PS$tmean - PS$t 
         PS$dt.annual = PS$tmean - PS$tmean.cl
         PS$sa = 1
+        PS$dyear = p$prediction.dyear
 
 				# posterior simulations
         Hmodel = NULL

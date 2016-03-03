@@ -48,7 +48,7 @@
 		pp = spatial.parameters( type=spatial.domain )
 
     isobs = isobath.db( p=pp, depths=c( 100, 200, 300, 400, 500, 600, 700 ), crs=pp$internal.crs ) 
-    coast = coastline.db(pp, crs=pp$internal.crs)
+    coast = coastline.db(p=pp, crs=pp$internal.crs)
 
     lp = levelplot( z ~ plon+plat, data=xyz, aspect="iso", pts=pts, colpts=colpts, annot=annot, isobs=isobs, coast=coast,
       annot.cex=annot.cex, xlab="", ylab="", scales=list(draw=F), col.regions=col.regions, at=at, xlim=xlim, ylim=ylim, 

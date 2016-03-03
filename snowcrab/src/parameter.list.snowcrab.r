@@ -12,7 +12,7 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
     ) )
     
     p$init.files = loadfunctions( c( 
-      "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", "netmensuration", 
+      "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", "netmensuration", "coastline", 
       "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
 
     p$annual.results = file.path( project.datadirectory("snowcrab"), "assessments", current.assessment.year ) # output location for year-specific results
@@ -24,7 +24,6 @@ parameter.list.snowcrab = function ( p=list(), current.assessment.year, set="def
     p$ext2 = extent(matrix(c(-66.4, 42.2, -57.2, 47.4), nrow=2, ncol=2)) #MG extent of mapping frame
     p$extUTM = extent(matrix(c(219287.2, 4677581, 937584, 5265946), nrow=2, ncol=2)) #MG UTM extent of mapping frame
     p$geog.proj = "+proj=longlat +ellps=WGS84"
-
 
     p$annot.cex=2
 
