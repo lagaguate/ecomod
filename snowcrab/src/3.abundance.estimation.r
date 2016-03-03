@@ -17,7 +17,7 @@
   # p$vars.to.model = c("R0.mass",  "R1.no")
   # p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   # p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
-  p$years.to.model=2000:2015
+  p$years.to.model=1996:2015
   p$nw = 10
 
   p$prediction.dyear = 9/12
@@ -90,7 +90,7 @@
       # p$model.type = "gam.simple" # choose method for habitat model :
       
       p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-      p$optimizers = c( "nlm", "perf", "bfgs", "newton", "Nelder-Mead" )  # used by GAM
+      p$optimizers = c(  "bfgs", "nlm", "perf", "newton", "Nelder-Mead" )  # used by GAM
 			p$prediction.dyear = 9/12 # predict for ~ Sept 1 
       p$nw = 10
       p$default.spatial.domain = "canada.east"

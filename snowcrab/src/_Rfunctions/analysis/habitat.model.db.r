@@ -58,8 +58,27 @@
       ee = apply( dd, 1, min, na.rm=T ) 
       ff = which( ee < p$threshold.distance ) # all within XX km of a good data point
       set = set[ ff, ]
+		
+      # bring in time invariant features:: depth
+			print ("Bring in depth")
+      set = habitat.lookup( set,  p=p, DS="depth" )
+      set$z = log( set$z )
+			
+		  # bring in time varing features:: temperature
+			print ("Bring in temperature")
+      set = habitat.lookup( set, p=p, DS="temperature" )
 
-      if (exists("years.to.model", p) ) set = set[ set$yr %in% p$years.to.model ,]
+			# bring in all other habitat variables, use "z" as a proxy of data availability
+			# and then rename a few vars to prevent name conflicts
+		  set = habitat.lookup( set,  p=p, DS="all.data" )
+		
+      # return planar coords to correct resolution
+      set = lonlat2planar( set, proj.type=p$internal.projection )
+      
+      # complete area designations  
+      set = fishing.area.designations(set, type="lonlat")
+
+
       save ( set, file=fn, compress=TRUE )
       
       return (fn)
@@ -68,19 +87,35 @@
 
 
     if ( DS %in% c("basedata" ) ) {
-     set = snowcrab.db( DS="set.logbook" )
+      
+      tokeep=  c( "Y", "yr",  "julian", "dyear", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
 
-      set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
+      set = snowcrab.db( DS="set.logbook" )
+      if (exists("total.landings.scaled", set) ) {
+        set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
+      }
       set = presence.absence( X=set, vname=v, px=p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
       n0 = nrow(set)
 
+      ss = intersect( names(set), tokeep )
+      set = set[,ss]
+
       depthrange = range( set$z, na.rm= T) 
 
-   #   if ( grepl("R0.mass", v) ) {   
-   #     aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
-   #
-   #     set = rbind( set, aset[, names(set)] )
-   #   }
+      if ( grepl("R0.mass", v) ) {   
+        aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
+        if (exists("total.landings.scaled", aset) ) {
+          # used for abundance modelling
+          aset$total.landings.scaled = scale( aset$total.landings, center=T, scale=T )
+          aset$sa.scaled =rescale.min.max(aset$sa)
+          aset$sa.scaled[ which(aset$sa.scaled==0)] = min (aset$sa.scaled[ which(aset$sa.scaled>0)], na.rm=T) / 2
+          aset$wgts = ceiling( aset$sa.scaled * 1000 )
+        }
+        ass = intersect( names(aset), tokeep )
+        aset = aset[,ass]
+        aset[,v] = NA   ## just to make merging simpler ... not used otherwise as this is accessed for habitat p/a
+        set = rbind( set, aset[, names(set)] )
+      }
 
       # set$weekno = floor(set$julian / 365 * 52) + 1
       # set$dyear = floor(set$julian / 365 ) + 1
@@ -93,21 +128,15 @@
       
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
-      
-      # used for abundance modelling
-      set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-      set$sa.scaled =rescale.min.max(set$sa)
-      set$sa.scaled[ which(set$sa.scaled==0)] = min (set$sa.scaled[ which(set$sa.scaled>0)], na.rm=T) / 2
-      #set$wgts = ceiling( set$sa.scaled * 1000 )
       set$wgts = 1
+      set$dZ = log(set$dZ)
+      set$ddZ = log(set$ddZ)
+      if (exists("tamp", set)) set$tamp = log(set$tamp)
+      if (exists("tamp.cl", set)) set$tamp.cl = log(set$tamp.cl)
 
       # remove extremes where variance is high due to small n
       set = filter.independent.variables( x=set )
-      
-      tokeep=  c( "yr",  "julian", "dyear", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
-   
       # tokeep = intersect( names(set), tokeep) 
-      
       set = set[ , tokeep ]
     
       if (exists("years.to.model", p) ) set = set[ set$yr %in% p$years.to.model ,]
@@ -137,11 +166,7 @@
 
         # ****************************************
         
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
-        
-        # if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitattest", v, "rdata", sep=".") )
-        
+        fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
         
         if (file.exists(fn)) load(fn)
         return(Q)
@@ -161,28 +186,16 @@
 
       for ( iip in ip ) {
         v0 = v = p$runs[iip,"v"]
-        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
         print ( p$runs[iip,] )
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") ) #to turn off moving window
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") ) #to turn off moving window
+        fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") ) #to turn off moving window
         
         set = habitat.model.db( DS="basedata", p=p, v=v )
-            
-        if(any(p$movingdatawindow!=0)) yrsw = c( p$movingdatawindow + yr  ) #turn off moving window Feb 2015
-        if(all(p$movingdatawindow==0))     yrsw = p$years.to.model
+        
+        yrsw = p$years.to.model
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
-        if ( nyrsw  < p$movingdatawindowyears ) {
-          for ( ny in 1:5 ) {
-            yrsw = c( (min(yrsw)-1), yrsw, (max(yrsw)+1) )
-            ist = which( set$yr %in% yrsw ) # five year window
-            yrs_selected = sort( unique( set$yr[ ist ] ) )
-            nyrsw = length ( yrs_selected )
-            if (nyrsw == p$movingdatawindowyears ) break() 
-          }
-        }
-       
+            
         if ( length(ist) < 30 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
@@ -270,8 +283,7 @@
       
       if( DS=="abundance") {
         Q = NULL
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
         
         if (file.exists(fn)) load(fn)
         return(Q)
@@ -289,29 +301,17 @@
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
-        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
         print( p$runs[iip,])
-  if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-  if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
         set = habitat.model.db( DS="basedata", p=p, v=v )
         # set = snowcrab.db( DS="set.logbook" )
         set$Y = set[, v]  # override -- Y is P/A
        
-  if(any(p$movingdatawindow!=0))  yrsw = c( p$movingdatawindow + yr  )
-  if(all(p$movingdatawindow==0))  yrsw = c( p$years.to.model)
+        yrsw = c( p$years.to.model)
         
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
-        if ( nyrsw  < p$movingdatawindowyears ) {
-          for ( ny in 1:5 ) {
-            yrsw = c( (min(yrsw)-1), yrsw, (max(yrsw)+1) )
-            ist = which( set$yr %in% yrsw ) # five year window
-            yrs_selected = sort( unique( set$yr[ ist ] ) )
-            nyrsw = length ( yrs_selected )
-            if (nyrsw == p$movingdatawindowyears ) break() 
-          }
-        }
-
+ 
         if ( length(ist) < 30 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()

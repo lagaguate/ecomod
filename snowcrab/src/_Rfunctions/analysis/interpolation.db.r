@@ -109,6 +109,11 @@
         PS$dt.annual = PS$tmean - PS$tmean.cl
         PS$sa = 1
         PS$dyear = p$prediction.dyear
+  
+        # PS$dZ = log( PS$dZ)
+        # PS$ddZ = log( PS$ddZ)
+        if (exists("tamp", PS)) PS$tamp = log(PS$tamp)
+        if (exists("tamp.cl", PS)) PS$tamp.cl = log(PS$tamp.cl)
 
 				# posterior simulations
         Hmodel = NULL
