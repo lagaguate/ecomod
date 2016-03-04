@@ -28,9 +28,9 @@ process.marfis.mpa = function(df, save.csv=F){
   
   library(lubridate) 
   df$YEAR=year(df$DATE_FISHED)
-  combo=unique(test.df[c("YEAR","SPECIES_CODE")])
+  combo=unique(df[c("YEAR","SPECIES_CODE")])
   for (j in 1:NROW(combo)){
-    this.df=test.df[with(test.df, which(test.df$YEAR==combo[j,1] & test.df$SPECIES_CODE==combo[j,2])),]
+    this.df=df[with(df, which(df$YEAR==combo[j,1] & df$SPECIES_CODE==combo[j,2])),]
     namebit=paste0(combo[j,1],"_",combo[j,2])
     print(paste0("Working on marfis_",namebit))
     if(save.csv){
@@ -39,10 +39,10 @@ process.marfis.mpa = function(df, save.csv=F){
                    project.datadirectory("mpa"),"/csv/",namebit,"_marfis.csv"))
     }
     saveRDS(aggregate.marfis(this.df,  
-                     xlim=c(-74,-42), ylim=c(36,50), gridres=0.375, 
+                     xlim=c(-74,-42), ylim=c(36,50), gridres=1, 
                      anal.fn = "sum", anal.field = "RND_WEIGHT_KGS",
                      privacy.field = c("SETID"), ruleOf=1, 
-                     nclasses= 10, class.style="jenks",
+                     nclasses= 3, class.style="jenks",
                      show.pts=F,show.restricted=T, show.legend = T,
                      save.plot= T, figuredir = "mpa",
                      title=paste0("marfis ",namebit)),
@@ -57,8 +57,7 @@ process.marfis.mpa = function(df, save.csv=F){
   #df = read.csv2(paste0(project.datadirectory("mpa"),"/csv/get_marfis_20160303_1515.csv"))
   #df = read.csv2(paste0(project.datadirectory("mpa"),"/csv/2002_marfis.csv"))
 #use first x rows as test data
-#   test.df=head(df,10000)
-#   test.df$YEAR=year(df$DATE_FISHED)
+#   test.df=head(df,400)
   
 #run the script
   #process.marfis.mpa(test.df,F)
