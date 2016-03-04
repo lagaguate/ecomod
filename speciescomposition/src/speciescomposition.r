@@ -36,9 +36,6 @@
 
   p$modtype = "complex"
   p$spatial.knots = 100
-  p$movingdatawindow = 0  # this signifies no moving window ... all in one model
-  # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
-  p$movingdatawindowyears = length (p$movingdatawindow)
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is newton (default), then this .. see GAM options
 
   # ordination

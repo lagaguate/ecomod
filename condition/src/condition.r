@@ -30,9 +30,6 @@
   p$nw = 10
   p$default.spatial.domain = "canada.east"
   
-  p$movingdatawindow = 0  # this signifies no moving window ... all in one model
-  # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
-  p$movingdatawindowyears = length (p$movingdatawindow)
   p$optimizer.alternate = c( "outer", "nlm" )  # first choice is default (newton), then this as a failsafe .. see GAM options
 
   # p$mods = c("simple","simple.highdef", "complex", "full" )  # model types to attempt

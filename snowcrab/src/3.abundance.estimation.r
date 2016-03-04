@@ -1,28 +1,19 @@
 
   # --------------------------
   # 0. Initialise work space 
-  p= list()
 
-	p$init.files = loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  p$libs = RLibrary( "parallel", "lubridate", "chron",  "bigmemory", "mgcv", "sp", "parallel", "grid" , "lattice", "fields", "rgdal", "raster"   ) 
-
-
+	loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  
   # --------------------------
   # 1. Define some additional starting parameters for debugging
   #    choose various over-rides: these are initially defined in parameters.r
   
   p$regions = c("cfa4x", "cfanorth","cfasouth" )
-  
   p$vars.to.model = c("R0.mass")
   # p$vars.to.model = c("R0.mass",  "R1.no")
   # p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   # p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   p$years.to.model=1996:2015
-  p$nw = 10
-
-  p$prediction.dyear = 9/12
-
-  p$movingdatawindow = 0 
 
 
   debug = F
@@ -66,43 +57,27 @@
   # -----------------
   # 2. Abundance estimation via GAM   
 
-    # create some intermediary files to speed up analysis
+  # create some intermediary files to speed up analysis
+  habitat.model.db( DS="large.male.auxillary.data.redo", p=p )
 
-  #  habitat.model.db( DS="large.male.auxillary.data.redo", p=p )
+    # Define controlling parameters 
+    p$auxilliary.data = c( 
+      "t", "tmean", "tmean.cl", "tamp", "wmin", "z", "substrate.mean", "dZ", "ddZ"
+    )
+      # "ca1", "ca2", 
+      # "nss.rsquared", "nss.shannon", 
+      # "smr", "Ea", "A", "qm", "mass",
+      # "Z", "Npred" ) 
 
+    print( "Make sure variable list here matches those in ecomod/habitat/src/habitat.complete.r ") 
+    print( "and in the model statement in ecomod/snowcrab/_Rfunctions/analysis/model.formula.r")
 
- #   if (abundance.estimation.via.GAM) {
-      
-      # Define controlling parameters 
-      p$auxilliary.data = c( 
-            "t", "tmean", "tmean.cl", "tamp", "wmin", 
-            "z", "substrate.mean", "dZ", "ddZ"
-            )
-            # "ca1", "ca2", 
-            # "nss.rsquared", "nss.shannon", 
-            # "smr", "Ea", "A", "qm", "mass",
-            # "Z", "Npred" ) 
-
-      print( "Make sure variable list here matches those in ecomod/habitat/src/habitat.complete.r ") 
-      print( "and in the model statement in ecomod/snowcrab/_Rfunctions/analysis/model.formula.r")
-
-      # p$model.type = "gam.full" # choose method for habitat model :
-      # p$model.type = "gam.simple" # choose method for habitat model :
-      
-      p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
-      p$optimizers = c(  "bfgs", "nlm", "perf", "newton", "Nelder-Mead" )  # used by GAM
-			p$prediction.dyear = 9/12 # predict for ~ Sept 1 
-      p$nw = 10
-      p$default.spatial.domain = "canada.east"
-
-      p$threshold.distance = 15  # limit to extrapolation/interpolation in km
-     
-      p$use.annual.models = F  ## <<<<< new addition
-      p$movingdatawindow = 0 # c( -1:+1 )  # this is the range in years to supplement data to model 
-      p$movingdatawindowyears = length (p$movingdatawindow)
-
-
-
+    # p$model.type = "gam.full" # choose method for habitat model :
+    # p$model.type = "gam.simple" # choose method for habitat model :
+    
+    p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
+    p$threshold.distance = 15  # limit to extrapolation/interpolation in km ( over-ride default is 5)
+   
       # ---------------------
       # model habitat and intermediate predictions
       # ~ 1 MB / process  .. use all 24 CPUs
@@ -110,15 +85,9 @@
       # see: habitat.model.db( DS="habitat.redo" ... )
       
       p$clusters = rep("localhost", detectCores() )
-  
-      moving.window=F
-      if(moving.window) p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
-      if(!moving.window)p = make.list( list(v=p$vars.to.model  ), Y=p )
-  
       p = make.list( list(v=p$vars.to.model), Y=p )
       # parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
       habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )  # 10 hrs 
-      #  --- parallel mode is not completing ... FIXME
 
       # ---------------------
       testing.environmentals.only = FALSE
@@ -127,9 +96,10 @@
         p$clusters = c( rep( "localhost", 20) )
         # p$clusters = rep( "localhost", 2)  
         p = make.list( list(v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
-          habitat.model.db (DS="habitat.redo", p=p ) 
+        habitat.model.db (DS="habitat.redo", p=p ) 
+  
         p = make.list( list(y=1970:p$current.assessment.year, v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
-          parallel.run( snowcrab.habitat.db, p=p ) 
+        parallel.run( snowcrab.habitat.db, p=p ) 
         # or
         # snowcrab.habitat.db (p=p) -- working?    
       }      
@@ -137,11 +107,6 @@
 
       # ---------------------
       # model abundance and intermediate predictions 
-      moving.window=F
-      if(moving.window) p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
-      if(!moving.window)p = make.list( list(v=p$vars.to.model  ), Y=p )
-    
-      
       p = make.list( list(v=p$vars.to.model), Y=p )
       #parallel.run( habitat.model.db, DS="abundance.redo", p=p )
       habitat.model.db( DS="abundance.redo", p=p)   # 1.5 hr for yrs: 2000:2015
@@ -152,7 +117,7 @@
       # and then map, stored in R/gam/maps/
 
       p$vars.to.model= "R0.mass"
-      p$nsims = 2000 # n=2000 ~ 1 , 15 GB/run for sims 
+      p$nsims = 4000 # n=2000 ~ 1 , 15 GB/run for sims 
       p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
 
       # p$clusters = c( rep( "nyx.beowulf",3), rep("tartarus.beowulf",3), rep("kaos", 3 ) )
