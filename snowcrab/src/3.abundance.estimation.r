@@ -79,7 +79,7 @@
       
       p = make.list( list(v=p$vars.to.model), Y=p )
       # parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
-      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )  # 10 hrs 
+      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )  # 20 hrs 
 
       # ---------------------
       testing.environmentals.only = FALSE
@@ -98,7 +98,7 @@
       # model abundance and intermediate predictions 
       p = make.list( list(v=p$vars.to.model), Y=p )
       #parallel.run( habitat.model.db, DS="abundance.redo", p=p )
-      habitat.model.db( DS="abundance.redo", p=p)   # 1.5 hr for yrs: 2000:2015
+      habitat.model.db( DS="abundance.redo", p=p)   # 24 hrs for yrs: 2000:2015
       
       
       # ---------------------
