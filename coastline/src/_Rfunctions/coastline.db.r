@@ -43,6 +43,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
     if ( !grepl("redo", DS) ){
       if ( file.exists( fn.loc) ) {
         load( fn.loc )
+        if ( ! proj4string( out ) ==  as.character(crs) ) out = spTransform( out, CRS(crs) )
         return (out)
     }}
     # if here then none found .. create a new one
@@ -65,6 +66,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
     print( "The above is not a fatal error .. check your data: " )
     print (out)
     if ( length(out) > 0 ) save (out, file=fn.loc, compress=TRUE )
+    if ( ! proj4string( out ) ==  as.character(crs) ) out = spTransform( out, CRS(crs) )
     return(out)
   }
 
@@ -115,7 +117,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
     fn = file.path( datadir, paste( "coastline", p$spatial.domain, "rdata", sep=".") )
     p = gmt.parameters( p) 
     if ( DS == "gmt.coastline" ) {
-      out = NULL
+      isobath = NULL
       if (file.exists(fn) ) {
         load( fn)
         return (isobath)    

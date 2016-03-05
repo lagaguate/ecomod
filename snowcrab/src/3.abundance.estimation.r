@@ -67,7 +67,10 @@
     
     p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance
     p$threshold.distance = 15  # limit to extrapolation/interpolation in km ( over-ride default is 5)
-   
+    p$nsims = 4000 # n=2000 ~ 1 , 15 GB/run for sims 
+    p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
+
+  
       # ---------------------
       # model habitat and intermediate predictions
       # ~ 1 MB / process  .. use all 24 CPUs
@@ -86,9 +89,8 @@
         habitat.model.db (DS="habitat.redo", p=p ) 
   
         p = make.list( list(y=1970:p$current.assessment.year, v=c("R0.mass.environmentals.only", "R0.mass") ), Y=p )
-        parallel.run( snowcrab.habitat.db, p=p ) 
-        # or
-        # snowcrab.habitat.db (p=p) -- working?    
+        # parallel.run( snowcrab.habitat.db, p=p ) 
+        snowcrab.habitat.db (p=p) 
       }      
 
 
@@ -102,12 +104,7 @@
       # ---------------------
       # compute posterior simulated estimates using habitat and abundance predictions 
       # and then map, stored in R/gam/maps/
-
       # p$vars.to.model= "R0.mass"
-      p$nsims = 4000 # n=2000 ~ 1 , 15 GB/run for sims 
-      p$ItemsToMap = c( "map.habitat", "map.abundance", "map.abundance.estimation" )
-
-      
       p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
       parallel.run( interpolation.db, DS="interpolation.redo", p=p )
 			# interpolation.db ( DS="interpolation.redo", p=p )  ~ 30 min for 1 yr
