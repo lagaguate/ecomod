@@ -3,12 +3,13 @@
       out = NULL
       if ( V %in% c("default", "R0.mass") ) {
           # basic model -- less spatial density .. all covariates
-           out = paste( ' Y ~ s(dyear, bs="ts" ) ', 
-            ' + s(tmean) + s(dt.annual, bs="ts" ) + s(dt.seasonal, bs="ts" ) ', 
-            ' + s(tamp, bs="ts" )+ s(wmin, bs="ts" ) ', 
-            ' + s(z) + s(dZ, bs="ts" )  + s(substrate.mean, bs="ts" )', 
+           out = paste( ' Y ~ s(dyear, bs="cr" ) ', 
+            ' + s(tmean) + s(dt.annual, bs="cr" ) + s(dt.seasonal, bs="cr" ) ', 
+            ' + s(tamp, bs="cr" )+ s(wmin, bs="cr" ) ', 
+            ' + s(z) + s(dZ, bs="cr" )  + s(substrate.mean, bs="cr" )', 
             ' + s(plon, plat, k=', spatial.knots, ', bs="tp", by=as.factor(yr) ) + as.factor(yr)'  )  }
-           
+        
+         
       if ( V %in% c("default.2014") ) {
           # basic model -- less spatial density .. all covariates
            out = paste( ' Y ~ s(dyear, bs="ts" ) ', 

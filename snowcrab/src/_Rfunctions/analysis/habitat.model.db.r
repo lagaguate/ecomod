@@ -222,7 +222,7 @@
           if (o=="perf") ops=o
           if (o=="bam") {
            # Q = try( bam( modelform, data=set, weights=wt, family=fmly  ), silent=F )
-            Q = try( bam( modelform, data=set, family=fmly  ), silent=F )
+            Q = try( bam( modelform, data=set, family=fmly, cluster=4, samfrac=0.2  ), silent=F )
            
           } else {
            # Q = try( gam( modelform, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
