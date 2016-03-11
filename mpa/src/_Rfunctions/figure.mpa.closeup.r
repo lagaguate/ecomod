@@ -1,6 +1,5 @@
 
-figure.mpa.closeup = function( p ) {
-  polys=mpa.db( p=p, DS="polygons" )
+figure.mpa.closeup = function( p, polys ) {
   polys$map.contours = spTransform(polys$map.contours, CRS(p$internal.crs))  
   polys$map.coastline = spTransform(polys$map.coastline, CRS(p$internal.crs))  
   polys$sab.polygons = spTransform(polys$sab.polygons, CRS(p$internal.crs))  
@@ -18,7 +17,7 @@ figure.mpa.closeup = function( p ) {
   sab.loc = rowMeans( bbox( polys$sab.polygons["StAnnsBank_AOI"] ) )
   text( sab.loc[1], sab.loc[2]+8, " St Anns Bank \n MPA ", pos=3, col="slateblue4", cex=0.8 )
   text( sab.loc[1]-89, sab.loc[2]-17, " Cape Breton, \n Nova Scotia ", pos=3, col="steelblue", cex=0.8 )
-  text( sab.loc[1]+50, sab.loc[2]+65, " St. Lawrence \n Channel ", pos=3, col="steelblue", cex=0.8 )
+  text( sab.loc[1]+50, sab.loc[2]+65, " Laurentian \n Channel ", pos=3, col="steelblue", cex=0.8 )
   
   box()
 

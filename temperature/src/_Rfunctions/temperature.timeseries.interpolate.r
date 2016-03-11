@@ -19,7 +19,12 @@
     if (p$tsmethod %in% c("inla.ts.simple" ) ) {
         interpolate.ts = temperature.timeseries.interpolate.inla
     }
-      
+    
+    if ( p$tsmethod %in% c("ar" ) ) {
+        interpolate.ts = temperature.timeseries.interpolate.spectral  ## to do..
+    }
+    
+
     B = hydro.db( p=p, DS="bottom.gridded.all"  )
     B$tiyr = lubridate::decimal_date ( B$date )
  

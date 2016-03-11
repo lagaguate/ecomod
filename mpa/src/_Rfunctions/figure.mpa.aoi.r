@@ -1,12 +1,6 @@
 
-figure.mpa.aoi = function(p ) {
-  
-  polys = mpa.db( p=p, DS="polygons" )
-  
-  # redo coast to get unclipped version
-  coast = coastline.db( DS=" gshhg coastline full redo ", 
-        xlim=p$corners$lon, ylim=p$corners$lat, no.clip=TRUE, level=1 )
-  plot( coast, col="transparent", border="steelblue2" , 
+figure.mpa.aoi = function(p, polys ) {
+  plot( polys$map.coastline.unclipped, col="transparent", border="steelblue2" , 
      xlim=c(-68,-55), ylim=c(41,48),
      xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
   for (i in 1: length(polys$map.contours) ) lines( polys$map.contours[i], col=p$map.depthcontours.colours[i] )

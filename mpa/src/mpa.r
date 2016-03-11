@@ -27,19 +27,22 @@ p$nw = 10 # for lookup of temperature: number of intervals in time within a year
 p$map.regions = c("Canada", "USA") # library "map" coastline polygon designations
 p$map.output.directory = file.path( p$project.outdir.root, "maps")
 p$map.palette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
+p$map.depthcontours = c( 100, 200, 300, 400, 500, 600 ) # to plot on maps
+p$map.depthcontours.colours = c( "gray90", "gray85", "gray80", "gray74", "gray72", "gray70" ) 
 
 polys = mpa.db( p=p, DS="polygons.redo" ) # obtain and save a local cache of polygons of the mpa/aoi
+polys = mpa.db( p=p, DS="polygons" )
 
 
 # 1. close-up map of area of interest:
 pdf( file=file.path(p$project.outdir.root, "maps", "mpa_closeup.pdf") )
-  figure.mpa.closeup(p )
+  figure.mpa.closeup(p, polys )
 dev.off()
 
 
 # 2. map of area of interest:
 pdf( file=file.path(p$project.outdir.root, "maps", "mpa.pdf") )
-  figure.mpa.aoi(p )
+  figure.mpa.aoi(p, polys )
 dev.off()
 
 
@@ -49,10 +52,11 @@ pdf( file=file.path(p$project.outdir.root, "trawl.time.density.pdf") )
   plot( jitter( dyear) ~ jitter(yr), ss, pch=".", col=dscols[ss$data.source], xlab="Year", ylab="Fractional year", cex=1.5 )
 dev.off()
 
- 
 
 pdf( file=file.path(p$project.outdir.root, "maps", "trawl.spatial.density.pdf") )
-  figure.trawl.density(p)
+  ss = bio.db( DS="set" )
+  dscols = c( snowcrab="green", groundfish="orange" ) 
+  figure.trawl.density(p=p, ss=ss, polys=polys, dscols=dscols )
 dev.off()
 
 

@@ -6,12 +6,11 @@
   
   p$libs = RLibrary( "mgcv", "sp", "gstat",  "parallel", "fields", "chron", "lubridate", "raster", "rgdal"  ) 
   p$init.files = unique( c (
-    loadfunctions( c("spacetime", "utility", "parallel", "taxonomy", "bathymetry","temperature" )), 
+    loadfunctions( c("spacetime", "utility", "parallel", "taxonomy", "bathymetry", "temperature", "coastline", "polygons" )), 
     loadfunctions( c("groundfish", "habitat", "bio" )),
     loadfunctions( "snowcrab", functionname="default.project.environment" ) ))
 
   p$nw = 10 # number of intervals in time within a year in the temperature interpolations ( must match temperature.r 's value )
-  
 
   p$interpolation.distances = c( 2, 4, 8, 16, 32, 64 ) # pseudo-log-scale
   p$default.spatial.domain = "canada.east"  # for temperature lookups
@@ -41,6 +40,9 @@
   bio.db( DS="set.redo", p=p ) # mass/length imputation and sanity checking
   print ("Finished bio.db (DS=set.redo)")
   
+
+  # generic plots
+  figure.bio.map.survey.locations()  # see mpa/src/_Rfunctions/figure.trawl.density for more control
 
     #  --- look in metabolism functions and complexity/condition
 

@@ -23,6 +23,7 @@
 
     debug = FALSE
     if(debug) {
+
       OP$time = lubridate::decimal_date( OP$date) 
       OP = OP[ order( OP$time ) ,]
       
