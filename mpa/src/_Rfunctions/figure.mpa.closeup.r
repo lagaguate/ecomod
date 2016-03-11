@@ -17,7 +17,7 @@ figure.mpa.closeup = function( p, polys ) {
   sab.loc = rowMeans( bbox( polys$sab.polygons["StAnnsBank_AOI"] ) )
   text( sab.loc[1], sab.loc[2]+8, " St Anns Bank \n MPA ", pos=3, col="slateblue4", cex=0.8 )
   text( sab.loc[1]-89, sab.loc[2]-17, " Cape Breton, \n Nova Scotia ", pos=3, col="steelblue", cex=0.8 )
-  text( sab.loc[1]+50, sab.loc[2]+65, " St. Lawrence \n Channel ", pos=3, col="steelblue", cex=0.8 )
+  text( sab.loc[1]+50, sab.loc[2]+65, " Laurentian \n Channel ", pos=3, col="steelblue", cex=0.8 )
   
   box()
 

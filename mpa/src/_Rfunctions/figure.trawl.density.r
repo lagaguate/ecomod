@@ -1,6 +1,6 @@
 
-figure.trawl.density = function(p, ss, polys, coast, dscols=c( snowcrab="green", groundfish="orange" ) ) {
-  plot( coast, col="transparent", border="steelblue2" , 
+figure.trawl.density = function(p, ss, polys, dscols=c( snowcrab="green", groundfish="orange" ) ) {
+  plot( polys$map.coastline.unclipped, col="transparent", border="steelblue2" , 
      xlim=c(-68,-55), ylim=c(41,48),
      xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
   for (i in 1: length(polys$map.contours) ) {
