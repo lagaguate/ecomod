@@ -1,6 +1,5 @@
 
-figure.mpa.closeup = function( p ) {
-  polys=mpa.db( p=p, DS="polygons" )
+figure.mpa.closeup = function( p, polys ) {
   polys$map.contours = spTransform(polys$map.contours, CRS(p$internal.crs))  
   polys$map.coastline = spTransform(polys$map.coastline, CRS(p$internal.crs))  
   polys$sab.polygons = spTransform(polys$sab.polygons, CRS(p$internal.crs))  

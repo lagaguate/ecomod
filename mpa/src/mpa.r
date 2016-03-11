@@ -27,13 +27,16 @@ p$nw = 10 # for lookup of temperature: number of intervals in time within a year
 p$map.regions = c("Canada", "USA") # library "map" coastline polygon designations
 p$map.output.directory = file.path( p$project.outdir.root, "maps")
 p$map.palette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
+p$map.depthcontours = c( 100, 300, 500) 
+p$map.depthcontours.colours = c( ")
 
 polys = mpa.db( p=p, DS="polygons.redo" ) # obtain and save a local cache of polygons of the mpa/aoi
+polys = mpa.db( p=p, DS="polygons" )
 
 
 # 1. close-up map of area of interest:
 pdf( file=file.path(p$project.outdir.root, "maps", "mpa_closeup.pdf") )
-  figure.mpa.closeup(p )
+  figure.mpa.closeup(p, polys )
 dev.off()
 
 
@@ -52,7 +55,9 @@ dev.off()
  
 
 pdf( file=file.path(p$project.outdir.root, "maps", "trawl.spatial.density.pdf") )
-  figure.trawl.density(p)
+  ss = bio.db( DS="set" )
+  dscols = c( snowcrab="green", groundfish="orange" ) 
+  figure.trawl.density(p=p, ss=ss, polys=polys, dscols=dscols )
 dev.off()
 
 
