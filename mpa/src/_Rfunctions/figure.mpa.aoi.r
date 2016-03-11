@@ -1,5 +1,6 @@
 
-figure.mpa.aoi = function(p, polys ) {
+figure.mpa.aoi = function(p ) {
+  polys = mpa.db( p=p, DS="polygons" ) # load saved version made in ecomod/mpa/src/mpa.r
   plot( polys$map.coastline.unclipped, col="transparent", border="steelblue2" , 
      xlim=c(-68,-55), ylim=c(41,48),
      xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline

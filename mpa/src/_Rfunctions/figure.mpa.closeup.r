@@ -1,5 +1,7 @@
 
-figure.mpa.closeup = function( p, polys ) {
+figure.mpa.closeup = function( p ) {
+  
+  polys = mpa.db( p=p, DS="polygons" ) # load saved version made in ecomod/mpa/src/mpa.r
   polys$map.contours = spTransform(polys$map.contours, CRS(p$internal.crs))  
   polys$map.coastline = spTransform(polys$map.coastline, CRS(p$internal.crs))  
   polys$sab.polygons = spTransform(polys$sab.polygons, CRS(p$internal.crs))  

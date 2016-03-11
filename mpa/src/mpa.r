@@ -31,18 +31,18 @@ p$map.depthcontours = c( 100, 200, 300, 400, 500, 600 ) # to plot on maps
 p$map.depthcontours.colours = c( "gray90", "gray85", "gray80", "gray74", "gray72", "gray70" ) 
 
 polys = mpa.db( p=p, DS="polygons.redo" ) # obtain and save a local cache of polygons of the mpa/aoi
-polys = mpa.db( p=p, DS="polygons" )
+# polys = mpa.db( p=p, DS="polygons" )
 
 
 # 1. close-up map of area of interest:
 pdf( file=file.path(p$project.outdir.root, "maps", "mpa_closeup.pdf") )
-  figure.mpa.closeup(p, polys )
+  figure.mpa.closeup(p )
 dev.off()
 
 
 # 2. map of area of interest:
 pdf( file=file.path(p$project.outdir.root, "maps", "mpa.pdf") )
-  figure.mpa.aoi(p, polys )
+  figure.mpa.aoi(p )
 dev.off()
 
 
@@ -56,7 +56,7 @@ dev.off()
 pdf( file=file.path(p$project.outdir.root, "maps", "trawl.spatial.density.pdf") )
   ss = bio.db( DS="set" )
   dscols = c( snowcrab="green", groundfish="orange" ) 
-  figure.trawl.density(p=p, ss=ss, polys=polys, dscols=dscols )
+  figure.trawl.density(p=p, ss=ss, dscols=dscols )
 dev.off()
 
 
