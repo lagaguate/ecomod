@@ -44,7 +44,7 @@
       out$map.contours = isobath.db( p=p, DS="isobath", depths=p$map.depthcontours, crs=crs  )
       
       out$map.coastline = coastline.db( DS=" gshhg coastline highres redo ", 
-        xlim=p$corners$lon, ylim=p$corners$lat, no.clip=FALSE, level=1 )
+        xlim=p$corners$lon+c(-1,1), ylim=p$corners$lat+c(-1,1), no.clip=FALSE, level=1 )  # add a small buffer abound data
 
       out$map.coastline.unclipped = coastline.db( DS=" gshhg coastline full redo ", 
         xlim=p$corners$lon, ylim=p$corners$lat, no.clip=TRUE, level=1 )
