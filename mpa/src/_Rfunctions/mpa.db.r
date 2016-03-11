@@ -11,7 +11,6 @@
           if ( !is.null(crs)) {
             out$map.contours = spTransform(out$map.contours, CRS(p$internal.crs))  
             out$map.coastline = spTransform(out$map.coastline, CRS(p$internal.crs))  
-            out$map.coastline.unclipped = spTransform(out$map.coastline.unclipped, CRS(p$internal.crs))  
             out$sab.polygons = spTransform(out$sab.polygons, CRS(p$internal.crs))  
           }
         return (out)
@@ -43,17 +42,14 @@
       }
       out$map.contours = isobath.db( p=p, DS="isobath", depths=p$map.depthcontours, crs=crs  )
       
+      # add a small buffer around data and clip to make smaller
       out$map.coastline = coastline.db( DS=" gshhg coastline highres redo ", 
-        xlim=p$corners$lon+c(-1,1), ylim=p$corners$lat+c(-1,1), no.clip=FALSE, level=1 )  # add a small buffer abound data
+        xlim=p$corners$lon+c(-1,1), ylim=p$corners$lat+c(-1,1), no.clip=FALSE, level=1 )  
 
-      out$map.coastline.unclipped = coastline.db( DS=" gshhg coastline full redo ", 
-        xlim=p$corners$lon, ylim=p$corners$lat, no.clip=TRUE, level=1 )
-      
       save( out, file=fn, compress=TRUE )
       if ( !is.null(crs)) {
         out$map.contours = spTransform(out$map.contours, CRS(p$internal.crs))  
         out$map.coastline = spTransform(out$map.coastline, CRS(p$internal.crs))  
-        out$map.coastline.unclipped = spTransform(out$map.coastline.unclipped, CRS(p$internal.crs))  
         out$sab.polygons = spTransform(out$sab.polygons, CRS(p$internal.crs))  
       }
       return (out)
