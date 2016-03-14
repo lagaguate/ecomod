@@ -153,17 +153,16 @@ if (length(unique(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_gr
    #of colors doesn't modify ultimate product)
    if (show.restricted == F) plot.data@data[which(plot.data@data$public == "No"),]$colcode = NA
  # Get basemap data --------------------------------------------------------
-  p = map("worldHires", regions = c("Canada","USA", "Greenland"), 
-          col = "navajowhite2",border = "navajowhite4", xlim=limits$X, ylim=limits$Y, plot=F, fill=T)
+  p = map("worldHires", regions = c("Canada","USA", "Greenland"), col = "navajowhite2",border = "navajowhite4", xlim=limits$X, ylim=limits$Y, plot=F, fill=T)
   IDs = sapply(strsplit(p$names, ":"), function(x) x[1])
   basemap = map2SpatialPolygons(p, IDs = IDs, proj4string = CRS(crs.orig))
   filename=paste0(project.figuredirectory(figuredir),"/marfisAgg_",strftime(Sys.time(),"%Y%m%d_%H%M%S"),".png")
   if (save.plot) png(filename=filename, width=4, height = 4, units = 'in', pointsize = 4, res=600)
   plot(spTransform(plot.data, CRS(crs.new)), col = as.character(plot.data@data$colcode), border = "gray90", main=title)
   plot(spTransform(basemap, CRS(crs.new)), col = "navajowhite2", border = "navajowhite4", add = T)
-       # points obviously shouldn't be plotted, but is shown here for purposes
-       #  of initial validation of output
-        if (show.pts) points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
+  # it may be desirable to plot points for purposes of output validation
+  if (show.pts) points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
+  
   if(show.legend){
         legend("topleft", legend = c(names(attr(colcode, "table")),"no data"), 
                fill = c(attr(colcode, "palette"),"white"), 

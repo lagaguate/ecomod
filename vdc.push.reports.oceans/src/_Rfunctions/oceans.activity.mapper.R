@@ -1,7 +1,11 @@
+if (F){
+  loadfunctions("vdc.push.reports.oceans/src/_RFunctions") 
+  oceans.activity.mapper()
+}
 oceans.activity.mapper<-function(
   #default values
   dsn         = oracle.dsn,
-  user        = oracle.oceans.user,
+  user        = oracle.oceans.username,
   pw          = oracle.oceans.password,
   debug       = F, 
   last_n_days = 30,                          
