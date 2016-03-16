@@ -40,7 +40,7 @@ bottom.contact.modal = function( sm, bcp ) {
   aoi.trunc = trunc( aoi.n / 5 )
   aoi = aoi[ aoi.trunc] : aoi[ aoi.n-aoi.trunc ]  # trim off 1/5 off each tail
   
-  aoi.inner = trunc( length(aoi) / 3 )
+  aoi.inner = trunc( length(aoi) / 5 )
 
   left = min(aoi.i) + c( 0 : aoi.inner )
   right = max(aoi.i) + c( - aoi.inner : 0 )

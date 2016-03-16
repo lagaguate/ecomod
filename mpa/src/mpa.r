@@ -46,6 +46,7 @@ pdf( file=file.path(p$project.outdir.root, "maps", "mpa.pdf") )
 dev.off()
 
 
+# 3. bio.db trawl data summaries
 pdf( file=file.path(p$project.outdir.root, "trawl.time.density.pdf") )
   ss = bio.db( DS="set" )
   dscols = c( snowcrab="green", groundfish="orange" ) 
@@ -60,6 +61,8 @@ pdf( file=file.path(p$project.outdir.root, "maps", "trawl.spatial.density.pdf") 
 dev.off()
 
 
+# 4. net mensuration related figures
+figures.netmensuration( DS="all", p=p )
 
 
 

@@ -8,7 +8,7 @@
   if (!file.exists(R.gs)) dir.create(R.gs)
 # helper functions  
 init.files = loadfunctions( c( "plottingmethods", "spacetime", "utility", "parallel", "taxonomy", 
-  "netmensuration", "temperature", "habitat", "bathymetry", "bio", "groundfish"))#,"BIOsurvey" ) )
+  "netmensuration", "temperature", "habitat", "bathymetry", "bio", "groundfish", "polygons", "coastline" ))#,"BIOsurvey" ) )
   
 setwd( R.gs )
 

@@ -23,12 +23,6 @@ p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992
 p$id.double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
 
 
-# the data for these sets need to be checked?
-p$bc.badlist = c( 
-  "NED2012002.17", "TEL2005545.73","NED2015002.7", "NED2015002.8", "NED2015002.9"
-) 
-
-
 # steps required to recreate a local database of all data
 recreate.perley.db = FALSE
 if ( recreate.perley.db ) {
@@ -49,7 +43,6 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 
 # WARNING:: the following may crash as INLA does not exit gracefully from some errors
 # and R cannot catch the faults .. restart R or reboot the system (it can happen) 
-# and then re-run the line and it will continue from where it crashed ... update the bc.badlist too
 # doing it year by year is probably wise for now
 # usually insufficient data for these or just flat-lines .. no reliable data
 
@@ -59,7 +52,6 @@ if (FALSE) {
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004530.21") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004530.41") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.59") # simple, low n 
-
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004530.46") # complex hump, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004530.70") # simple, low n 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2010027.139" ) # n=1851
@@ -70,12 +62,11 @@ if (FALSE) {
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.27") # normal .. lots of data 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.59") # two depth sensors  in the same log ! --
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.64") # two depth sensors  --
-
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.3") # two depth sensors  --
   # to  load a single result and view
   bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2012002.97") #  strange wingspreads
   bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2010027.100") #  strange wingspreads ... esp in 210 :: NED2010027.xxx -- looks like wingspread did not function properly!!
   bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2010027.53") # strange wingspreads
-
   bottom.contact.plot( bc, netspread=TRUE )
 }
 
@@ -85,6 +76,9 @@ scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom con
 # this step estimates swept area for those where there was insufficient data to compute SA directly from logs, 
 # estimate via approximation using speed etc. 
 scanmar.db( DS="sweptarea.redo",  p=p ) 
+
+figures.netmensuration( DS="all", p=p )
+
 
 # netmind base data filtered for fishing periods .. not really used except for some plots
 scanmar.db( DS="scanmar.filtered.redo",  p=p )  
@@ -129,15 +123,13 @@ tapply( gs0$bottom_duration/60, gs0$settype, mean, na.rm=TRUE )
 29.76567      NaN      NaN 28.45052      NaN      NaN 
 
 
+
+
 keep = which( gs0$settype %in% c( 1, 2, 5) ) # survey
 gs = gs0[ keep, ]
 
-
-
-
-
 # door width
-plot( door.mean ~ as.factor(yr), gs[ gs$yr> 2004,], ylab="Mean door width (m)", xlab="Year" )
+plot( door.mean ~ as.factor(yr), gs[ gs$yr>= 2004,], ylab="Mean door width (m)", xlab="Year" )
 
 # door mean vs depth
 plot( (door.mean) ~ log(bc.depth.mean), gs[ ,], col="slategray", cex=0.5, xlab="log Depth (m)", ylab="Mean door width (m)" )
@@ -175,12 +167,12 @@ abline(a=0,b=1, col="grey" )
 
 
 
-
-
 # swept area (door width X distance)
 plot( door.sa ~ as.factor(yr), gs[ gs$yr> 2009,], ylab="Door width (m)", xlab="Year" )
 
-
+plot( door.sa ~ log(bottom_depth), gs[ ,], xlim=log(c(20,650)) )
+> plot( door.sa ~ log(bottom_depth), gs[ ,], xlim=log(c(20,650)) )
+> 
 # Swept area vs depth
 plot( (door.sa) ~ log(bc.depth.mean), gs[ ,], col="slategray", cex=0.5, xlab="log Depth (m)", ylab="Swept area (km^2)" )
 
@@ -193,7 +185,14 @@ points( (door.sa) ~ log( bc.depth.mean), gs[gs$yr==2011 ,], pch=20, col="steelbl
 
 
 plot( bottom_duration ~ as.factor( strat), gs[ gs$yr> 2008,] )
-plot( bottom_duration ~ salinity, gs[ gs$yr> 2008,] )
+plot( bottom_duration ~ bottom_salinity, gs[ ,], xlim=c(31,36) )
+plot( door.sa ~ bottom_salinity, gs[ ,], xlim=c(31,36) )
+plot( door.sa ~ bottom_depth, gs[ ,], xlim=c(31,36) )
+
+plot( door.sa ~ log(bottom_depth), gs[ ,], xlim=log(c(20,650)) )
+
+
+
 
 plot( bottom_duration ~ as.factor(yr), gs[ gs$yr> 2008,] )
 
