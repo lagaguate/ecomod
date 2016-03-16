@@ -11,13 +11,14 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
   
   debug.plot = FALSE
   n.min.required = 30 
+  nx = nrow(x)
 
   O = list()  # output list
   O$id = bcp$id
   O$error.flag = NA
-  O$good = rep(TRUE, nrow(x)) # rows that will contain data that passes each step of data quality checks
+  O$good = rep(TRUE, nx) # rows that will contain data that passes each step of data quality checks
 
-  if(length (which( (!is.na(x$depth)))) < n.min.required ) return( NULL )
+  if (length (which( (!is.na(x$depth)))) < n.min.required ) return( NULL )
 
 
   ##--------------------------------
@@ -55,10 +56,10 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
 
   ## PRE-FILTER 4
   # time and depth-based gating
-  mm = modes( x$depth  )
+  mm = modes( x$depth ) # naive first estimate of location of most data depths
   if (mm$lb == mm$ub || is.na(mm$sd)) return(NULL)  # there is no depth variation in the data ... likely a bad data series
   mm.i = which( x$depth > (mm$lb2+bcp$depth.range[1]) & x$depth < (mm$ub2 + bcp$depth.range[2]) )
-  O$good[ setdiff(1:nrow(x), mm.i)] = FALSE
+  O$good[ setdiff(1:nx, mm.i)] = FALSE
   O$good[mm.i] = TRUE
 
 
@@ -88,27 +89,25 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="loess", trim=0.05 ) 
 
-  nZ = nrow(x)
-  zs = zz = rep( 0, nZ )
-  mm = modes( x$depth ) # naive first estimate of location of most data depths
-  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas
+  zz = rep( 0, nx )
+  zz[ which(  x$dsm < ( mm$mode / 3 )) ] = 1  # flag shallow areas 
   inc.depth = abs( diff( x$dsm ) )
   
   # also capture strong noise - very obviously wrong data
-   rapid.depth.changes = which( inc.depth > bcp$maxdepthchange )   
+  rapid.depth.changes = which( inc.depth > bcp$maxdepthchange )   
   if ( length( rapid.depth.changes ) > 0 ) {
     zz[ rapid.depth.changes ] = 1
     zz[ rapid.depth.changes-1 ] = 1  # include adjecent points to remove
     zz[ rapid.depth.changes+1 ] = 1
   }
   dzz = diff(zz)
-  bnds = c(1, which( dzz != 0 ), nZ ) 
+  bnds = c(1, which( dzz != 0 ), nx ) 
   if ( length (bnds) > 2 ) {
     # i.e. , contaminated by noise or multiple tows
     segs = diff(bnds) # length of each segment
     longest = which.max( segs ) 
     gg = bnds[longest]:bnds[(longest+1)]
-    bad = setdiff( 1:nZ, gg)
+    bad = setdiff( 1:nx, gg)
     O$good[bad] = FALSE
   }
 
@@ -122,9 +121,14 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
 
   x$depth.smoothed = x$depth
   if ( ! "try-error" %in% class( res) )  {
-    x$depth.smoothed = res$depth.smoothed
-    O$good = res$good
+    # retain good/bad information only for the interval where there is data 
+    # .. this effectively does the filtering in the area of interest only and retains the tails 
+    # for further influence later
+    ig = range( which( res$good ))
+    igg = ig[1]:ig[2]
+    O$good[igg] = res$good[igg]
     x$depth[ !O$good ] = NA
+    x$depth.smoothed= res$depth.smoothed
   } 
 
   if(sum(x$depth-min(x$depth,na.rm=T),na.rm=T)==0) return( NULL )
@@ -196,7 +200,6 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
   O$modal.method0 = NA  #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$modal.method1 = NA  #### NOTE:: using the 'c' operator on posix strips out the timezone info! this must be retained
   O$modal.method.indices = NA
-
 
   sm0 = x[ O$aoi, c("depth.smoothed", "timestamp", "ts" ) ]  # send filtered data ... continuity not important .. order is important
   res = NULL
@@ -452,7 +455,7 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
   O$signal2noise = O$depth.n / length( fin.all )  # not really signal to noise but rather  % informations 
   
   O$bottom.contact.indices = fin.all
-  O$bottom.contact = rep( FALSE, nrow(x) )
+  O$bottom.contact = rep( FALSE, nx )
   O$bottom.contact[ fin.all ] = TRUE
 
 

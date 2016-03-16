@@ -62,7 +62,7 @@
     if ( !exists("noisefilter.target.r2", bcp)) bcp$noisefilter.target.r2 = 0.8 # for noise filtering  .. ignore variations less than this threshold
 
     if ( !exists("smooth.filter.quants", bcp)) bcp$smooth.filter.quants=c(0.05, 0.95) # for dZ 
-    if ( !exists("smooth.target.r2", bcp)) bcp$smooth.target.r2 = 0.8  # for smooth of dZ (slopes)
+    if ( !exists("smooth.target.r2", bcp)) bcp$smooth.target.r2 = 0.9  # for smooth of dZ (slopes)
     if ( !exists("smooth.windowsize",  bcp))  bcp$smooth.windowsize = 5  # number of data points to assess for consistent passage into the non-modal (slopes) area
     if ( !exists("smooth.threshold",  bcp))  bcp$smooth.threshold = 0.5  # proportion of data outside of mode in window to consider  consistent passage into the non-modal (slopes) area
  

@@ -1,3 +1,4 @@
+
 interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.05, probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.01 ), inla.model="rw2", smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=5, inla.h=0.1, inla.diagonal=0.01 ) {
   
   # simple interpolation methods
@@ -134,6 +135,11 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.0
     nw = length( which(is.finite( z$y)))
     nw0 = nw + 1
     count = 0
+    # inla's default RW2 resolution is too coarse, causing incomplete solution: 
+    # alter a bit as this is potentially a smoothed series
+    #menv = get("inla.models", INLA:::inla.get.inlaEnv())
+    #menv$latent$rw2$min.diff =1e-4
+    # assign("inla.models", menv, INLA:::inla.get.inlaEnv() )
     while ( nw != nw0 ) {
       count = count + 1
       if (count > nmax ) break() # this is CPU expensive ... try only a few times 
@@ -142,10 +148,11 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.0
       v = try( inla( FM, data=z, 
             control.inla=list(h=inla.h), 
             control.predictor=list( compute=TRUE) ), silent=TRUE )
-      
+
+
       if (!( "try-error" %in% class(v) ) ) {
 
-        if ( v$mode$mode.status > 0) {  # make sure Eignevalues of Hessian are appropriate (>0)
+        if ( v$mode$mode.status > 0 ) {  # make sure Eignevalues of Hessian are appropriate (>0)
           v = try( inla( FM, data = inputstack, 
             control.predictor=list (compute=TRUE ), 
             control.inla = list( h=1e-4, tolerance=1e-10), # increase in case values are too close to zero 
