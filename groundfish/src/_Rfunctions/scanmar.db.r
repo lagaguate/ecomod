@@ -953,12 +953,11 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       # empirical distribution suggests (above)  hard limits of rn, ~ same as gating limits 
       # .. too extreme means interpolation did not work well .. drop
       qnts = c( 0.005, 0.995 )
-      w2a = which( gsinf$geardesc == "Western IIA trawl" )     # for distribution checks for western IIA trawl
-
+      w2a = which( gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5) )     # for distribution checks for western IIA trawl
   
       if (0) hist( gsinf$wing.mean[w2a], "fd", xlim=c( 8,22) )
       rn = quantile( gsinf$wing.mean[w2a], probs=qnts, na.rm=TRUE )  # ranges from 11 to 20 
-      i = which( (gsinf$wing.mean < rn[1] | gsinf$wing.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$wing.mean < rn[1] | gsinf$wing.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5)  )
       if ( length(i) > 0) {
         gsinf$wing.mean[i] = NA
         gsinf$wing.sa[i] = NA
@@ -968,7 +967,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       
       if (0) hist( gsinf$door.mean[w2a], "fd", xlim=c( 0, 85 ) )
       rn = quantile( gsinf$door.mean[w2a], probs=qnts, na.rm=TRUE )  # ranges from 13 to 79 
-      i = which( (gsinf$door.mean < rn[1] | gsinf$door.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$door.mean < rn[1] | gsinf$door.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5)  )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
         gsinf$door.sa[i] = NA
@@ -978,7 +977,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       # unreliable SD
       if (0) hist( gsinf$wing.sd[w2a], "fd", xlim=c( 0.1, 5 ) )
       rn = quantile( gsinf$wing.sd[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.16 to 3.62 
-      i = which( (gsinf$wing.sd < rn[1] | gsinf$wing.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$wing.sd < rn[1] | gsinf$wing.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5) )
       if ( length(i) > 0) {
         gsinf$wing.mean[i] = NA
         gsinf$wing.sa[i] = NA
@@ -987,7 +986,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
       if (0) hist( gsinf$door.sd[w2a], "fd", xlim=c( 0.1, 20 ) )
       rn = quantile( gsinf$door.sd[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.42 to 16 .. using 0.1 to 20
-      i = which( (gsinf$door.sd < rn[1] | gsinf$door.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$door.sd < rn[1] | gsinf$door.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5) )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
         gsinf$door.sa[i] = NA
@@ -997,7 +996,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       # unreliable SA's
       if (0) hist( gsinf$wing.sa[w2a], "fd", xlim=c( 0.01, 0.08 ) )
       rn = quantile( gsinf$wing.sa[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.02 to 0.064 .. using 0.01 to 0.08
-      i = which( (gsinf$wing.sa < rn[1] | gsinf$wing.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$wing.sa < rn[1] | gsinf$wing.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5) )
       if ( length(i) > 0) {
         gsinf$wing.mean[i] = NA
         gsinf$wing.sa[i] = NA
@@ -1007,7 +1006,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
       if (0) hist( gsinf$door.sa[w2a], "fd" , xlim=c( 0.02, 0.30 ))
       rn = quantile( gsinf$door.sa[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.04 to 0.25 .. using 0.02 to 0.30
-      i = which( (gsinf$door.sa < rn[1] | gsinf$door.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$door.sa < rn[1] | gsinf$door.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5)  )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
         gsinf$door.sa[i] = NA
@@ -1018,7 +1017,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       # tow length est
       if (0) hist( gsinf$dist_wing[w2a], "fd", xlim=c( 1.75, 4.5 ) )
       rn = quantile( gsinf$dist_wing[w2a], probs=qnts, na.rm=TRUE )  # ranges from 2.06 to 4.2 .. using 1.75 to 4.5 
-      i = which( (gsinf$dist_wing < rn[1] | gsinf$dist_wing > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$dist_wing < rn[1] | gsinf$dist_wing > rn[2] ) & gsinf$geardesc == "Western IIA trawl"  & gsinf$settype %in% c(1,2,5) )
       if ( length(i) > 0) {
         gsinf$dist_wing[i] = NA
         gsinf$wing.mean[i] = NA
@@ -1028,7 +1027,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
       if (0) hist( gsinf$dist_door[w2a], "fd", xlim=c( 1.75, 4.5 )  )
       rn = quantile( gsinf$dist_door[w2a], probs=qnts, na.rm=TRUE )  # ranges from 2.03 to 4.2 .. using 1.75 to 4.5 
-      i = which( (gsinf$dist_door < rn[1] | gsinf$dist_door > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
+      i = which( (gsinf$dist_door < rn[1] | gsinf$dist_door > rn[2] ) & gsinf$geardesc == "Western IIA trawl" & gsinf$settype %in% c(1,2,5)  )
       if ( length(i) > 0) {
         gsinf$dist_door[i] = NA
         gsinf$door.mean[i] = NA
@@ -1036,162 +1035,124 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$door.sd[i] = NA
       }
 
-
-   # Figure wingspread vs doorspread -- differences in net configuration/performance/sensors !
-
-      if (0) {
-        plot(door.mean~wing.mean, gsinf[ w2a,], type="n", xlab=" Wing spread (m)", ylab="Door spread (m)" ) #
-        iold = which( gsinf$geardesc == "Western IIA trawl" & (gsinf$yr < 2011 | gsinf$yr==2012)  )
-        points ( door.mean ~ wing.mean, gsinf[iold, ], col="blue", pch=20, cex=0.8 ) 
- 
-        imed = which( gsinf$geardesc == "Western IIA trawl" & gsinf$yr %in% c( 2011 ) )
-        points ( door.mean ~ wing.mean, gsinf[imed, ], col="red", pch=20, cex=0.8 ) 
-
-        inew = which( gsinf$geardesc == "Western IIA trawl" & gsinf$yr >= 2013 )
-        points ( door.mean ~ wing.mean, gsinf[inew, ], col="green", pch=20, cex=0.8 ) 
-      }
-
-
-
-      if (0) {
-        # some test plots
-        w2a = which( gsinf$geardesc == "Western IIA trawl" )
-        plot(dist_km ~ dist_wing, gsinf, ylim=c(1.5, 4) )
-        plot(dist_km ~ dist_door, gsinf, ylim=c(1.5, 4) )
-        plot( wing.mean ~ door.mean, gsinf[w2a,], type="p", col="red" )  ## strange!
-        points( wing.mean ~ door.mean, gsinf[w2a,], col="black", pch=20, subset=which(gsinf$yr==2012) )  ## strange!
- 
-        boxplot( door.mean ~ yr, gsinf) 
-        boxplot( wing.mean ~ yr, gsinf, ylim=c(5,25) ) 
-   
-        boxplot( door.sa ~ yr, gsinf) 
-        boxplot( wing.sa ~ yr, gsinf) 
-    
-        boxplot( dist_door ~ yr, gsinf) 
-        boxplot( dist_wing ~ yr, gsinf) 
-        
-        plot( dist_wing ~ jitter(dist_km), gsinf, xlim=c(0.75, 3.75), col="red", pch=20, cex=0.4 )
-        dm = lm( dist_wing ~ dist_km -1, gsinf, na.action="na.omit") 
-        abline( dm)
-
-        bdl = scanmar.db( DS="basedata.lookuptable", p=p )
-        ww = which( bdl$id=="NED2009027.25" )
-        bdl[ww,]
-        xx = bdl[ which( gsinf$nm_id == bdl$nm_id[ww] ) , ]
-## bottom_depth (from sounders) are sometimes wrong .. eg:
-## gsinf[ which( gsinf$id=="NED2015002.40"),]  # VS:
-## gg =groundfish.db("gsinf")
-## gg[ which( gg$id=="NED2015002.40"),]
-## /home/jae/ecomod/groundfish/data/nets/Scanmar/bottom.contact/figures
-## 
-#                 id   yr               sdate               edate time strat area speed dist_km dist_pos    cftow      sakm2 settype gear          geardesc     lon      lat
-#16209 NED2015002.40 2015 2015-03-24 03:10:00 2015-03-24 03:40:00  210   5Z4  524   3.4  3.1484 3.212706 1.029412 0.03934492       1    9 Western IIA trawl -67.235 41.34933
-#        lon.end lat.end surface_temperature bottom_temperature bottom_salinity bottom_depth
-#16209 -67.27133   41.34                 4.1                4.1           33.33      93.2688
-#> gsinf[ which( gsinf$id=="NED2015002.40"),]
-#                 id   yr               sdate               edate time strat area speed dist_km dist_pos    cftow      sakm2 settype gear          geardesc     lon      lat
-#15419 NED2015002.40 2015 2015-03-24 03:10:00 2015-03-24 03:40:00  210   5Z4  524   3.4  3.1484 3.212706 1.029412 0.03934492       1    9 Western IIA trawl -67.235 41.34933
-#        lon.end lat.end surface_temperature bottom_temperature bottom_salinity bottom_depth bottom_duration        bc0.datetime        bc1.datetime   bc0.sd   bc1.sd bc0.n bc1.n
-#15419 -67.27133   41.34                 4.1                4.1           33.33      93.2688        1802.333 2015-03-24 02:11:14 2015-03-24 02:41:16 8.660254 7.571878     3     3
-#        door.sa    wing.sa door.mean wing.mean  door.sd   wing.sd  bc.lon0   bc.lon1  bc.lat0 bc.depth.mean bc.depth.sd bc.error.flag dist_wing dist_door distance  yr0
-#15419 0.1319711 0.04252784   41.5367  13.38397 1.175923 0.4046273 -67.2358 -67.27124 41.34014      48.20323    1.023166          <NA>  3.177521  3.177216 3.177521 2015
-#      sa.wing.crude sa.door.crude  sa.wing  sa.door
-#15419      42.52784      131.9837 42.52784 131.9837
-
-      }
-
-      # basic sanity checks finished .. 
+      # basic (gating) sanity checks finished .. 
       # now estimate swept area for data locations where estimates 
       # do not exist or are problematic from bottom contact approach
       
-      # estimate distance of tow track starting with most reliable to least
-      gsinf$distance = gsinf$dist_wing
+      ## dist_km is logged distance in gsinf 
+      ## dist_pos is distance based upon logged start/end locations
+      ## dist_bc is distance from bottom contact analysis
+      ## dist_wing / dist_door .. back caluculated distance from SA
       
-      ii = which( !is.finite( gsinf$distance ) ) 
+      # estimate distance of tow track starting with most reliable to least
+      gsinf$distance = NA
+      gsinf$distance[w2a] = gsinf$dist_wing[w2a]
+      
+      ii = intersect( which( !is.finite( gsinf$distance ) ) , w2a)  
       if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_door[ii]
       
-      ii = which( !is.finite( gsinf$distance ) ) 
+      ii = intersect( which( !is.finite( gsinf$distance ) ), w2a )
       if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_pos[ii]
 
-      ii = which( !is.finite( gsinf$distance ) ) 
+      ii = intersect( which( !is.finite( gsinf$distance ) ), w2a )
       if (length(ii) > 0) gsinf$distance[ii] = gsinf$dist_km[ii]
-  
-      todo = F
-      if (todo) {
-        # estimate distance = speed * duration ... 
-        # when distance is improper due to poor GPS data ... years <= 2009 ? ...  
-      }
 
-      # wing and door spread models: 
-      # assume all other nets are performing the same way ... not ideal but there is no data to estimate 
-      # influence of warp length should be comparable ... ?
+
+ 
+      # wing and door spread models  
+      # there are differences due to nets config and/or sensors each year .. 
       require(mgcv)
       gsinf$yr0 = gsinf$yr  # yr will be modified to permit prediction temporarilly 
 
-      w2a = which( gsinf$geardesc == "Western IIA trawl" )
-      ii = which( !is.finite( gsinf$wing.mean ))
+      ii = intersect( which( !is.finite( gsinf$wing.mean )) , w2a )
       if (length(ii)>0 & length(which( is.finite( gsinf$wing.mean))) > 100 ) {
-        wm = gam( wing.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/wing.sd^2, data= gsinf[ w2a,] ) 
-        #      summary(wm)
-        # R-sq.(adj) =  0.746   Deviance explained = 75.8%
-        # GCV = 3.4341  Scale est. = 3.3015    n = 1157
-        jj = which( ! gsinf$yr0 %in% as.numeric(as.character(wm$xlevels[["factor(yr)"]])) )
+        wm = gam( wing.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth)+s(door.mean), data= gsinf[ w2a,] ) 
+#R-sq.(adj) =  0.768   Deviance explained = 77.5%
+#GCV = 1.0159  Scale est. = 0.98308   n = 1193
+        jj = which( ! gsinf$yr %in% as.numeric(as.character(wm$xlevels[["factor(yr)"]])) )
         if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
         gsinf$wing.mean[ii] = predict( wm, newdata=gsinf[ii,], type="response" )
         gsinf$wing.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
       }
+
       
-      w2a = which( gsinf$geardesc == "Western IIA trawl" )
-      ii = which( !is.finite( gsinf$door.mean ))
+      ii = intersect( which( !is.finite( gsinf$wing.mean )) , w2a )
+      if (length(ii)>0 & length(which( is.finite( gsinf$wing.mean))) > 100 ) {
+        wm = gam( wing.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth), data= gsinf[ intersect( w2a, which(! is.na(gsinf$wing.sd))),] ) 
+ # summary(wm)
+ # R-sq.(adj) =  0.693   Deviance explained = 70.4%
+ # GCV = 1.3509  Scale est. = 1.3044    n = 1209
+        jj = which( ! gsinf$yr %in% as.numeric(as.character(wm$xlevels[["factor(yr)"]])) )
+        if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
+        gsinf$wing.mean[ii] = predict( wm, newdata=gsinf[ii,], type="response" )
+        gsinf$wing.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
+      }
+
+
+      ii = intersect( which( !is.finite( gsinf$wing.mean )) , w2a )
+      if (length(ii)>0 & length(which( is.finite( gsinf$wing.mean))) > 100 ) {
+         wm = gam( wing.mean ~ factor(yr) + s(lon,lat) , data= gsinf[ intersect( w2a, which(! is.na(gsinf$wing.sd))),] ) 
+ # summary(wm)
+# R-sq.(adj) =  0.486   Deviance explained = 50.2%
+# GCV = 2.2601  Scale est. = 2.1869    n = 1209
+        jj = which( ! gsinf$yr %in% as.numeric(as.character(wm$xlevels[["factor(yr)"]])) )
+        if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
+        gsinf$wing.mean[ii] = predict( wm, newdata=gsinf[ii,], type="response" )
+        gsinf$wing.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
+      }    
+     
+
+      ii = intersect( which( !is.finite( gsinf$door.mean )), w2a )
       if (length(ii)>0 & length(which( is.finite( gsinf$door.mean))) > 100 ) {
-        wd = gam( door.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/door.sd^2, data= gsinf[ w2a,] ) 
-        #      summary(wd)
-        # R-sq.(adj) =  0.563   Deviance explained =   58%
-        # GCV = 15.384  Scale est. = 14.796    n = 1080
+        wd = gam( door.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth)+s(wing.mean), data= gsinf[w2a,] ) 
+#R-sq.(adj) =  0.654   Deviance explained = 66.3%
+#GCV = 86.858  Scale est. = 84.594    n = 1454
         jj = which( ! as.character( gsinf$yr0) %in%  wd$xlevels[["factor(yr)"]] )
         if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
         gsinf$door.mean[ii] = predict( wd, newdata=gsinf[ii,], type="response" )
         gsinf$door.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
       }
-      
+     
+      ii = intersect( which( !is.finite( gsinf$door.mean )), w2a )
+      if (length(ii)>0 & length(which( is.finite( gsinf$door.mean))) > 100 ) {
+        wd = gam( door.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth), data= gsinf[ intersect( w2a, which(! is.na(gsinf$door.sd))),] ) 
+        #      summary(wd)
+# R-sq.(adj) =   0.58   Deviance explained = 59.2%
+# GCV = 105.65  Scale est. = 102.61    n = 1454
+        jj = which( ! as.character( gsinf$yr0) %in%  wd$xlevels[["factor(yr)"]] )
+        if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
+        gsinf$door.mean[ii] = predict( wd, newdata=gsinf[ii,], type="response" )
+        gsinf$door.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
+      }
+        
+      ii = intersect( which( !is.finite( gsinf$door.mean )), w2a )
+      if (length(ii)>0 & length(which( is.finite( gsinf$door.mean))) > 100 ) {
+        wd = gam( door.mean ~ factor(yr) + s(lon,lat) , data= gsinf[ intersect( w2a, which(! is.na(gsinf$door.sd))),] ) 
+        #      summary(wd)
+#R-sq.(adj) =  0.486   Deviance explained = 50.2%
+#GCV = 2.2601  Scale est. = 2.1869    n = 1209
+        jj = which( ! as.character( gsinf$yr0) %in%  wd$xlevels[["factor(yr)"]] )
+        if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
+        gsinf$door.mean[ii] = predict( wd, newdata=gsinf[ii,], type="response" )
+        gsinf$door.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
+      }
+
+ 
       # return correct years to data
       gsinf$yr =gsinf$yr0 
       gsinf$yr0 = NULL
 
+      # estimate SA:
+      gsinf$wing.sa.crude = gsinf$distance * gsinf$wing.mean /1000     
+      gsinf$door.sa.crude = gsinf$distance * gsinf$door.mean /1000
 
-
-   todo = FALSE
-
-if (todo) {
-
-  # estimate SA:
-      gsinf$sa.wing.crude = gsinf$distance * gsinf$wing.mean      
-      gsinf$sa.door.crude = gsinf$distance * gsinf$door.mean
-
-      ii = which( !is.finite( gsinf$sa.wing ) )
-      if (length(ii) > 0)  gsinf$sa.wing[ii] = gsinf$sa.wing.crude[ii]
+      ii = intersect( which( !is.finite( gsinf$wing.sa ) ), w2a)
+      if (length(ii) > 0)  gsinf$wing.sa[ii] = gsinf$wing.sa.crude[ii]
       
-      ii = which( !is.finite( gsinf$sa.door ) )
-      if (length(ii) > 0)  gsinf$sa.door[ii] = gsinf$sa.door.crude[ii]
+      ii = intersect( which( !is.finite( gsinf$door.sa ) ), w2a)
+      if (length(ii) > 0)  gsinf$door.sa[ii] = gsinf$door.sa.crude[ii]
   
-
-
-      # bottom contact data may be mismatched .. remove to ensure other corrections are OK .. 
-      # if there are any ambiguities ... drop
-      # id potential mismatches based upon depth difference
-      # hist( gsinf$bc.depth.mean - gsinf$bottom_depth , "fd" )
-      plot( bc.depth.mean ~ bottom_depth, gsinf, xlim=c(0,600) )
-      ii = which ( abs( gsinf$bc.depth.mean - gsinf$bottom_depth) > 25 )
-      points( bc.depth.mean ~ bottom_depth, gsinf[ii,], col="red" )
-      if (length(ii) > 0 ) {
-        for (nv in newvars) gsinf[ii, nv] = NA
-      }
-
-     
- #     more sanity checks on SA 
- #     fill in with annual means? 
-}
-
+    
     save( gsinf, file=fn, compress=TRUE )
 
     return( fn )
