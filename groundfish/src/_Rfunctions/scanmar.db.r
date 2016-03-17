@@ -721,22 +721,9 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       return(gs)
     }
     
-    fn.current = file.path( scanmar.bc.dir, "bottom.contact.tmp.current" )
-    fn.badlist = file.path( scanmar.bc.dir, "bottom.contact.badlist" )
-    fn.gsinf = file.path( scanmar.bc.dir, "bottom.contact.tmp.gsinf" )
-
-    if ( file.exists (fn.current) ) file.remove( fn.current )
-    if ( file.exists (fn.badlist) ) file.remove( fn.badlist )
-    if ( file.exists (fn.gsinf) ) file.remove( fn.gsinf )
-      
-    badlist = skip = cur = NULL
-
     gsinf0 = groundfish.db( DS="gsinf" )
- 
     gsinf0$year = lubridate::year( gsinf0$sdate )
-
     gsinf0.names = names( gsinf0 )
-
     gsinf0$bottom_duration = NA
     gsinf0$bc0.datetime = as.POSIXct(NA)
     gsinf0$bc1.datetime = as.POSIXct(NA)
@@ -754,9 +741,9 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gsinf0$bc.lon1 = NA
     gsinf0$bc.lat0 = NA
     gsinf0$bc.lat1 = NA
-    gsinf$bc.dist = NA
-    gsinf$bc.dist.v = NA
-    gsinf$bc.dist.h = NA
+    gsinf0$bc.dist = NA
+    gsinf0$bc.dist.v = NA
+    gsinf0$bc.dist.h = NA
     gsinf0$bc.depth.mean = NA
     gsinf0$bc.depth.sd = NA
     gsinf0$bc.error.flag = NA
@@ -778,6 +765,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       } else {
         nm = nm[which(is.finite(nm$depth)) ,  ]
         nm = nm[which(!is.na( nm$id ) ) , ]
+        nm = nm[ order( nm$timestamp) ,]
       }
 
       if (nrow( nm) < 1 ) {
@@ -802,133 +790,117 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
           }
       }
 
-      if ( ! skipyear ) {
+      if ( skipyear ) next()
 
-        ### if rerun necessary .. start from here until R-inla behaves more gracefully with faults
-        if ( file.exists (fn.current) ) {
-          # if there is something in the current id from a previous run, this indicates that this is likely a re-start
-          # reload saved data and skip ahead to the next id
-            cur = scan( fn.current, what="character", quiet=TRUE )
-            if ( length(cur) > 0 ) {
-              skip = which( uid==cur ) + 1
-              uid = uid[ skip: length(uid) ]
-              # load( fn.gsinf)  # as it is a restart ... load in the saved version instead of the initial version
-            }
+      ### if rerun necessary .. start from here until R-inla behaves more gracefully with faults
+
+      for ( id in uid) {
+        print( id)
+        ii = which( nm$id==id )  # rows of nm with scanmar/marport data
+        if ( length( which( is.finite(nm[ii, "depth"]))) < 30 ) next() 
+        gii = which( gsinf$id==id )  # row of matching gsinf with tow info
+        if (length(gii) != 1) next()  # no match in gsinf  
+       
+        nmii = nm[ which(nm$id==id) ,]
+
+        # for the Perley years, there is an issue with tows that cross midnight 
+        # they were stored (in Oracle) with an incorrect day (1 day offset) 
+        tmed = median( nmii$timestamp )
+        kk = which( nmii$timestamp < (tmed - dhours(1)) ) 
+        if (length(kk) > 10) nmii$timestamp[kk] = nmii$timestamp[kk] + ddays(1)
+        ll = which( nmii$timestamp > (tmed + dhours(1)) ) 
+        if (length(ll) > 10) nmii$timestamp[ll] = nmii$timestamp[ll] - ddays(1)
+        # final filter to retain a reasonable time range
+        uu = which( (nmii$timestamp > (tmed - dhours(1))) &  (nmii$timestamp > (tmed + dhours(1)) ) ) 
+        if (length(uu) > 30) nmii = nmii[uu,] 
+
+        # NOTE:: do not use time.gate for historical data .. inconsistent timestamps causes data loss 
+        # dropping time-gating as winch timestamps are too erratic and frequently wrong ... 
+        # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
+        # time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
+
+        # defaults appropriate for more modern scanmar data have > 3500 pings
+        bcp = list( id=id, datasource="groundfish", nr=nrow(nmii), tdif.min=9, tdif.max=45 )  ### yes some are as short as 9 min
+        bcp = bottom.contact.parameters( bcp ) # add other default parameters
+        
+        # low-level over-ride of bottom contact parameters for strange data
+        if (id=="NED2013028.172") bcp$depth.range = c(-70, 70) 
+        if (id=="NED2013022.192") bcp$depth.range = c(-300, 300) # not sure why this has such a large range! 
+        if (id=="NED2013022.193") bcp$depth.range = c(-250, 150) 
+        if (id=="TEL2004529.16")  bcp$depth.range = c(-150, 150) 
+
+        # two depth sensors were used simultaneously but they are not calibrated!
+        # remarkably hard to filter this out
+        # send a trigger to bottom.contact to operate on this properly
+        if ( id %in% p$id.double.depth.sensors ) bcp$double.depth.sensors = TRUE 
+
+        bc = NULL # 
+        bc = try( bottom.contact(nmii, bcp ), silent=TRUE )
+
+        if ( is.null(bc)) next()
+        if ( "try-error" %in% class(bc) ) next()
+        if ( !is.null( debugid ) ) browser()
+        if ( exists("error.flag", bc) && is.finite(bc$error.flag)) {
+          gsinf$bc.error.flag = bc$error.flag
+          print( bc$error.flag )
+          next()
+        }
+        if ( ! exists( "res", bc) ) {
+          gsinf$bc.error.flag = "No solution found"
+          print( bc$error.flag )
+          next()
+        }
+        if ( exists( "dt", bc$res) && length(bc$res$dt) == 0 ) {
+          gsinf$bc.error.flag = "No time solution found"
+          print( bc$error.flag )
+          next()
+        }
+        if ( exists( "dt", bc$res) && !is.finite(bc$res$dt) ) {
+          gsinf$bc.error.flag = "No time solution found"
+          print( bc$error.flag )
+          next()
         }
 
-        for ( id in uid) {
-          print( id)
-          if ( id %in% p$bc.badlist )  next()
-          if ( file.exists (fn.current) ) {
-            # if there is something in the current id from a previous run, this indicates that this is likely a re-start
-            # add it to the list of "bad.list" and skip over for manual analysis
-            cur = scan( fn.current, what="character", quiet=TRUE )
-            if ( length(cur) > 0 ) {
-              bad.list = NULL
-              if (file.exists(fn.badlist) ) {
-                bad.list = scan( fn.badlist, what="character", quiet=TRUE )
-              }
-              cat( unique( c(bad.list, cur)), file=fn.badlist )
-            }
+        bottom.contact.plot( bc )
+        plotfn = file.path( scanmar.bc.dir, "figures", paste(id, "pdf", sep="." ) )
+        print (plotfn)
+        dev.flush()
+        dev.copy2pdf( file=plotfn )
+
+        gsinf$bc0.datetime[gii] = bc$bottom0 
+        gsinf$bc1.datetime[gii] = bc$bottom1
+        gsinf$bottom_duration[gii] = bc$bottom.diff
+        gsinf$bc0.sd[gii] = bc$bottom0.sd
+        gsinf$bc1.sd[gii] = bc$bottom1.sd
+        gsinf$bc0.n[gii] =  bc$bottom0.n
+        gsinf$bc1.n[gii] =  bc$bottom1.n
+
+        bci = range(bc$bottom.contact.indices, na.rm=TRUE)
+        gsinf$bc.lon0[gii] = bc$plotdata$longitude[ bci[1] ]
+        gsinf$bc.lon1[gii] = bc$plotdata$longitude[ bci[2] ]
+        gsinf$bc.lat0[gii] = bc$plotdata$latitude[ bci[1] ]
+        gsinf$bc.lat1[gii] = bc$plotdata$latitude[ bci[2] ]
+       
+        gsinf$bc.depth.mean[gii] = bc$depth.mean
+        gsinf$bc.depth.sd[gii] = bc$depth.sd
+
+        if ( exists("surface.area", bc) ) {
+          # print( bc$surface.area )
+          if ( is.list( bc$surface.area )  & !is.na( bc$surface.area )  ) {
+            if ( exists("door.sa", bc$surface.area ) ) gsinf$door.sa[gii] =  bc$surface.area$door.sa
+            if ( exists("wing.sa", bc$surface.area ) ) gsinf$wing.sa[gii] =  bc$surface.area$wing.sa
+            if ( exists("door.mean", bc$surface.area ) ) gsinf$door.mean[gii] =  bc$surface.area$door.mean
+            if ( exists("wing.mean", bc$surface.area ) )  gsinf$wing.mean[gii] =  bc$surface.area$wing.mean
+            if ( exists("door.sd", bc$surface.area ) ) gsinf$door.sd[gii] =  bc$surface.area$door.sd
+            if ( exists("wing.sd", bc$surface.area ) ) gsinf$wing.sd[gii] =  bc$surface.area$wing.sd
+            if ( exists("distances.total", bc$surface.area ) ) gsinf$bc.dist[gii] = max(bc$surface.area$distances.total, na.rm=TRUE)
+            if ( exists("distances.vertical", bc$surface.area ) ) gsinf$bc.dist.v[gii]  =  max(bc$surface.area$distances.vertical, na.rm=TRUE)
+            if ( exists("distances.horizontal", bc$surface.area ) ) gsinf$bc.dist.h[gii]  =  max(bc$surface.area$distances.horizontal, na.rm=TRUE)
           }
-          
-          if ( file.exists (fn.badlist) ) {
-            bad.list = scan( fn.badlist, what="character", quiet=TRUE )
-            if ( id %in% bad.list ) next()
-          }
-         
-          cat( id, file = fn.current )
-
-
-          ii = which( nm$id==id )  # rows of nm with scanmar/marport data
-          if ( length( which( is.finite(nm[ii, "depth"]))) < 30 ) next() ## this will also add to the bad.list .. when insufficient data  
-          gii = which( gsinf$id==id )  # row of matching gsinf with tow info
-          if (length(gii) != 1) next()  # no match in gsinf  ## this will also add to the bad.list .. when insufficient data
-         
-          mm = nm[ which(nm$id==id) ,]
-           
-          # NOTE:: do not use time.gate for historical data .. inconsistent timestamps causes data loss 
-          # dropping time-gating as winch timestamps are too erratic and frequently wrong ... 
-          # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
-          # time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
-
-          # defaults appropriate for more modern scanmar data have > 3500 pings
-          bcp = list( id=id, datasource="groundfish", nr=nrow(mm), tdif.min=9, tdif.max=45 )  ### yes some are as short as 9 min
-          
-          bcp = bottom.contact.parameters( bcp ) # add other default parameters
-          
-          # low-level over-ride of bottom contact parameters for strange data
-          if (id=="NED2013028.172") bcp$depth.range = c(-70, 70) 
-          if (id=="NED2013022.192") bcp$depth.range = c(-300, 300) # not sure why this has such a large range! 
-          if (id=="NED2013022.193") bcp$depth.range = c(-250, 150) 
-          if (id=="TEL2004529.16")  bcp$depth.range = c(-150, 150) 
-
-
-          # two depth sensors were used simultaneously but they are not calibrated!
-          # remarkably hard to filter this out
-          # send a trigger to bottom.contact to operate on this properly
-          if ( id %in% p$id.double.depth.sensors ) bcp$double.depth.sensors = TRUE 
-
-          bc = NULL # 
-          bc = try( bottom.contact(mm, bcp ), silent=TRUE )
-          
-          if ( !is.null( debugid ) ) {
-            ## this is a debugging mode return results and escape
-            browser()
-            if (!is.null(bc)) bottom.contact.plot( bc )
-            return(bc)
-          }
-
-          if ( ! is.null(bc) & ( ! ( "try-error" %in% class(bc) ) ) ) { 
-            bottom.contact.plot( bc )
-              plotfn = file.path( scanmar.bc.dir, "figures", paste(id, "pdf", sep="." ) )
-              print (plotfn)
-              dev.flush()
-              dev.copy2pdf( file=plotfn )
-            
-            if ( ! exists("error.flag", bc) || is.na( bc$error.flag ) ) { 
-              gsinf$bc0.datetime[gii] = bc$bottom0 
-              gsinf$bc1.datetime[gii] = bc$bottom1
-              gsinf$bottom_duration[gii] = bc$bottom.diff
-              gsinf$bc0.sd[gii] = bc$bottom0.sd
-              gsinf$bc1.sd[gii] = bc$bottom1.sd
-              gsinf$bc0.n[gii] =  bc$bottom0.n
-              gsinf$bc1.n[gii] =  bc$bottom1.n
-
-              bci = range(bc$bottom.contact.indices, na.rm=TRUE)
-              gsinf$bc.lon0[gii] = bc$plotdata$longitude[ bci[1] ]
-              gsinf$bc.lon1[gii] = bc$plotdata$longitude[ bci[2] ]
-              gsinf$bc.lat0[gii] = bc$plotdata$latitude[ bci[1] ]
-              gsinf$bc.lat1[gii] = bc$plotdata$latitude[ bci[2] ]
-             
-              gsinf$bc.depth.mean[gii] = bc$depth.mean
-              gsinf$bc.depth.sd[gii] = bc$depth.sd
-
-              if ( exists("surface.area", bc) ) { 
-                if ( is.list( bc$surface.area )  & !is.na( bc$surface.area )  ) {
-                  if ( exists("door.sa", bc$surface.area ) ) gsinf$door.sa[gii] =  bc$surface.area$door.sa
-                  if ( exists("wing.sa", bc$surface.area ) ) gsinf$wing.sa[gii] =  bc$surface.area$wing.sa
-                  if ( exists("door.mean", bc$surface.area ) ) gsinf$door.mean[gii] =  bc$surface.area$door.mean
-                  if ( exists("wing.mean", bc$surface.area ) )  gsinf$wing.mean[gii] =  bc$surface.area$wing.mean
-                  if ( exists("door.sd", bc$surface.area ) ) gsinf$door.sd[gii] =  bc$surface.area$door.sd
-                  if ( exists("wing.sd", bc$surface.area ) ) gsinf$wing.sd[gii] =  bc$surface.area$wing.sd
-                  if ( exists("distances.total", bc$surface.area ) ) gsinf$bc.dist[gii] = max(bc$surface.area$distances.total, na.rm=TRUE)
-                  if ( exists("distances.vertical", bc$surface.area ) ) gsinf$bc.dist.v[gii]  =  max(bc$surface.area$distances.vertical, na.rm=TRUE)
-                  if ( exists("distances.horizontal", bc$surface.area ) ) gsinf$bc.dist.h[gii]  =  max(bc$surface.area$distances.horizontal, na.rm=TRUE)
-                }
-              }
-            } else {
-              gsinf$bc.error.flag = bc$error.flag
-            }
-      
-            save (gsinf, file=fn.gsinf)  # temporary save in case of a restart in required for the next id
-            fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
-            save ( bc, file=fn.bc, compress=TRUE )
-          }
-            
-          # if only the loop completes without error, reset the flag for current id on filesystem
-          cat("", file=fn.current )
         }
+
+        fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )  
+        save ( bc, file=fn.bc, compress=TRUE )
       }
 
       ## END of re-run area ... 
@@ -939,12 +911,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
    
     }  # end for years
 
-    print( "Troublesome id's have been stored in file:")
-    print( fn.badlist )
-    if (file.exists(fn.badlist)) print(  scan( fn.badlist, what="character", quiet=TRUE ) )
-
-    if (file.exists(fn.current)) file.remove( fn.current )
-    if (file.exists(fn.gsinf)) file.remove( fn.gsinf ) 
  
     return( YRS )
   }
@@ -978,46 +944,20 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     ng = nrow( gsinf)
     gsinf = merge( gsinf, gsinf_bc[,tokeep], by="id", all.x=TRUE, all.y=FALSE )
     if ( ng != nrow(gsinf) ) error("merge error" )
-  
+ 
     gsinf$dist_wing = gsinf$wing.sa / gsinf$wing.mean * 1000  # est of length of the tow (km)
     gsinf$dist_door = gsinf$door.sa / gsinf$door.mean * 1000 # est of length of the tow (km)
     gsinf$yr = lubridate::year(gsinf$sdate)
-
-      if (0) {
-        # distribution checks for western IIA trawl
-        w2a = which( gsinf$geardesc == "Western IIA trawl" )
-        
-        hist( gsinf$wing.mean[w2a], "fd" )
-        rn = quantile( gsinf$wing.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 11 to 20 .. using 9 to 22
-        
-        hist( gsinf$door.mean[w2a], "fd" )
-        rn = quantile( gsinf$door.mean[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 13 to 79 .. using 11 to 85
     
-        hist( gsinf$wing.sd[w2a], "fd" )
-        rn = quantile( gsinf$wing.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.16 to 3.62 .. using 0.1 to 5
-    
-        hist( gsinf$door.sd[w2a], "fd" )
-        rn = quantile( gsinf$door.sd[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.42 to 16 .. using 0.1 to 20
-     
-        hist( gsinf$wing.sa[w2a], "fd" )
-        rn = quantile( gsinf$wing.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.02 to 0.064 .. using 0.01 to 0.08
-    
-        hist( gsinf$door.sa[w2a], "fd" )
-        rn = quantile( gsinf$door.sa[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 0.04 to 0.25 .. using 0.02 to 0.30
-  
-        hist( gsinf$dist_wing[w2a], "fd" )
-        rn = quantile( gsinf$dist_wing[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.06 to 4.2 .. using 1.75 to 4.5 
-    
-        hist( gsinf$dist_door[w2a], "fd" )
-        rn = quantile( gsinf$dist_door[w2a], probs=c( 0.05, 0.99 ), na.rm=TRUE )  # ranges from 2.03 to 4.2 .. using 1.75 to 4.5 
-
-
-      }
+      
       # empirical distribution suggests (above)  hard limits of rn, ~ same as gating limits 
       # .. too extreme means interpolation did not work well .. drop
-      
-      # drop unreliable net width estimates ... 
-      rn = c( 9, 22 )
+      qnts = c( 0.005, 0.995 )
+      w2a = which( gsinf$geardesc == "Western IIA trawl" )     # for distribution checks for western IIA trawl
+
+  
+      if (0) hist( gsinf$wing.mean[w2a], "fd", xlim=c( 8,22) )
+      rn = quantile( gsinf$wing.mean[w2a], probs=qnts, na.rm=TRUE )  # ranges from 11 to 20 
       i = which( (gsinf$wing.mean < rn[1] | gsinf$wing.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$wing.mean[i] = NA
@@ -1025,7 +965,9 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 11, 85 )
+      
+      if (0) hist( gsinf$door.mean[w2a], "fd", xlim=c( 0, 85 ) )
+      rn = quantile( gsinf$door.mean[w2a], probs=qnts, na.rm=TRUE )  # ranges from 13 to 79 
       i = which( (gsinf$door.mean < rn[1] | gsinf$door.mean > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
@@ -1034,7 +976,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       }
 
       # unreliable SD
-      rn = c( 0.1, 5 )
+      if (0) hist( gsinf$wing.sd[w2a], "fd", xlim=c( 0.1, 5 ) )
+      rn = quantile( gsinf$wing.sd[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.16 to 3.62 
       i = which( (gsinf$wing.sd < rn[1] | gsinf$wing.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$wing.mean[i] = NA
@@ -1042,7 +985,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 0.1, 20 )
+      if (0) hist( gsinf$door.sd[w2a], "fd", xlim=c( 0.1, 20 ) )
+      rn = quantile( gsinf$door.sd[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.42 to 16 .. using 0.1 to 20
       i = which( (gsinf$door.sd < rn[1] | gsinf$door.sd > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
@@ -1051,7 +995,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       }
 
       # unreliable SA's
-      rn = c( 0.01, 0.08 )
+      if (0) hist( gsinf$wing.sa[w2a], "fd", xlim=c( 0.01, 0.08 ) )
+      rn = quantile( gsinf$wing.sa[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.02 to 0.064 .. using 0.01 to 0.08
       i = which( (gsinf$wing.sa < rn[1] | gsinf$wing.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$wing.mean[i] = NA
@@ -1059,7 +1004,9 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 0.02, 0.30 )
+
+      if (0) hist( gsinf$door.sa[w2a], "fd" , xlim=c( 0.02, 0.30 ))
+      rn = quantile( gsinf$door.sa[w2a], probs=qnts, na.rm=TRUE )  # ranges from 0.04 to 0.25 .. using 0.02 to 0.30
       i = which( (gsinf$door.sa < rn[1] | gsinf$door.sa > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$door.mean[i] = NA
@@ -1069,7 +1016,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
 
       # tow length est
-      rn = c( 1.75, 4.5 ) # ( km)
+      if (0) hist( gsinf$dist_wing[w2a], "fd", xlim=c( 1.75, 4.5 ) )
+      rn = quantile( gsinf$dist_wing[w2a], probs=qnts, na.rm=TRUE )  # ranges from 2.06 to 4.2 .. using 1.75 to 4.5 
       i = which( (gsinf$dist_wing < rn[1] | gsinf$dist_wing > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$dist_wing[i] = NA
@@ -1078,7 +1026,8 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.sd[i] = NA
       }
 
-      rn = c( 1.75, 4.5 )  # km
+      if (0) hist( gsinf$dist_door[w2a], "fd", xlim=c( 1.75, 4.5 )  )
+      rn = quantile( gsinf$dist_door[w2a], probs=qnts, na.rm=TRUE )  # ranges from 2.03 to 4.2 .. using 1.75 to 4.5 
       i = which( (gsinf$dist_door < rn[1] | gsinf$dist_door > rn[2] ) & gsinf$geardesc == "Western IIA trawl" )
       if ( length(i) > 0) {
         gsinf$dist_door[i] = NA
@@ -1086,6 +1035,23 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$door.sa[i] = NA
         gsinf$door.sd[i] = NA
       }
+
+
+   # Figure wingspread vs doorspread -- differences in net configuration/performance/sensors !
+
+      if (0) {
+        plot(door.mean~wing.mean, gsinf[ w2a,], type="n", xlab=" Wing spread (m)", ylab="Door spread (m)" ) #
+        iold = which( gsinf$geardesc == "Western IIA trawl" & (gsinf$yr < 2011 | gsinf$yr==2012)  )
+        points ( door.mean ~ wing.mean, gsinf[iold, ], col="blue", pch=20, cex=0.8 ) 
+ 
+        imed = which( gsinf$geardesc == "Western IIA trawl" & gsinf$yr %in% c( 2011 ) )
+        points ( door.mean ~ wing.mean, gsinf[imed, ], col="red", pch=20, cex=0.8 ) 
+
+        inew = which( gsinf$geardesc == "Western IIA trawl" & gsinf$yr >= 2013 )
+        points ( door.mean ~ wing.mean, gsinf[inew, ], col="green", pch=20, cex=0.8 ) 
+      }
+
+
 
       if (0) {
         # some test plots
@@ -1162,9 +1128,10 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       require(mgcv)
       gsinf$yr0 = gsinf$yr  # yr will be modified to permit prediction temporarilly 
 
-      wm = gam( wing.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/wing.sd^2, data= gsinf[ w2a,] ) 
+      w2a = which( gsinf$geardesc == "Western IIA trawl" )
       ii = which( !is.finite( gsinf$wing.mean ))
-      if (length(ii)>0) {
+      if (length(ii)>0 & length(which( is.finite( gsinf$wing.mean))) > 100 ) {
+        wm = gam( wing.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/wing.sd^2, data= gsinf[ w2a,] ) 
         #      summary(wm)
         # R-sq.(adj) =  0.746   Deviance explained = 75.8%
         # GCV = 3.4341  Scale est. = 3.3015    n = 1157
@@ -1173,15 +1140,15 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         gsinf$wing.mean[ii] = predict( wm, newdata=gsinf[ii,], type="response" )
         gsinf$wing.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
       }
-      ii = which( !is.finite( gsinf$wing.mean ))
-  
-      wd = gam( door.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/door.sd^2, data= gsinf[ w2a,] ) 
+      
+      w2a = which( gsinf$geardesc == "Western IIA trawl" )
       ii = which( !is.finite( gsinf$door.mean ))
-      if (length(ii)>0) {
+      if (length(ii)>0 & length(which( is.finite( gsinf$door.mean))) > 100 ) {
+        wd = gam( door.mean ~ factor(yr) + s(lon,lat) + s(bottom_depth) , weights=1/door.sd^2, data= gsinf[ w2a,] ) 
         #      summary(wd)
         # R-sq.(adj) =  0.563   Deviance explained =   58%
         # GCV = 15.384  Scale est. = 14.796    n = 1080
-        jj = which( ! as.character( gsinf$yr0) %in%  wm$xlevels[["factor(yr)"]] )
+        jj = which( ! as.character( gsinf$yr0) %in%  wd$xlevels[["factor(yr)"]] )
         if (length(jj)>0) gsinf$yr[jj] = 2004  # to minimise discontinuity across year (and also visually close to median level)
         gsinf$door.mean[ii] = predict( wd, newdata=gsinf[ii,], type="response" )
         gsinf$door.sd[ii] = NA  # ensure sd is NA to mark it as having been estimated after the fact
@@ -1225,7 +1192,9 @@ if (todo) {
  #     fill in with annual means? 
 }
 
-    return(gsinf)
+    save( gsinf, file=fn, compress=TRUE )
+
+    return( fn )
   }
 
 

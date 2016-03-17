@@ -14,7 +14,7 @@
   # p$vars.to.model = c("R0.mass",  "R1.no")
   # p$vars.to.model = c("R0.mass", "R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
   # p$vars.to.model = c("R0.no", "R1.no", "totno.female.primiparous","totno.female.multiparous", "totno.female.berried", "fecundity","totno.female.imm", "totno.male.imm" )  
-  p$years.to.model=1996:2015
+  p$years.to.model=1999:2015
 
 
   debug = F

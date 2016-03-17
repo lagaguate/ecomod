@@ -138,7 +138,6 @@ if (length(unique(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_gr
   poly_grd@data$colcode = NA
    return(poly_grd)
 }
-
  classes = classIntervals(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_grd@data) == "z")][[anal.field]], n=nclasses, style= class.style)
  colcode = findColours(classes, c("#edf8b1","#7fcdbb","#2c7fb8")) #colorblind-friendly yellow-blue
    #c("#deebf7", "#9ecae1","#3182bd") #colorblind-friendly blues
@@ -160,7 +159,7 @@ if (length(unique(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_gr
   basemap = map2SpatialPolygons(p, IDs = IDs, proj4string = CRS(crs.orig))
   filename=paste0(project.figuredirectory(figuredir),"/marfisAgg_",strftime(Sys.time(),"%Y%m%d_%H%M%S"),".png")
   if (save.plot) png(filename=filename, width=4, height = 4, units = 'in', pointsize = 4, res=600)
-  plot(spTransform(plot.data, CRS(crs.new)), col = plot.data@data$colcode, border = "gray90", main=title)
+  plot(spTransform(plot.data, CRS(crs.new)), col = as.character(plot.data@data$colcode), border = "gray90", main=title)
   plot(spTransform(basemap, CRS(crs.new)), col = "navajowhite2", border = "navajowhite4", add = T)
        # points obviously shouldn't be plotted, but is shown here for purposes
        #  of initial validation of output
