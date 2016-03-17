@@ -7,7 +7,7 @@ loadfunctions( "lobster", functionname="initialise.local.environment.r")
 ##### lumped function lobster.db
 
         # run in windows emvironment
-        lobster.db()
+        lobster.db(DS="complete.redo")
 
 
 	# load .RData objects
@@ -21,6 +21,12 @@ loadfunctions( "lobster", functionname="initialise.local.environment.r")
         lobster.db( DS="fsrs")		# FSRS recruitment traps
         lobster.db( DS="scallop")	# scallop survey bycatch
         lobster.db( DS="survey")	# ITLS Lobster Survey
+
+
+#### Data Processing
+
+
+
 
 
 #### FSRS recruitment traps only

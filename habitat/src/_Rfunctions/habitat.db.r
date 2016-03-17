@@ -245,34 +245,33 @@
         # --------------- 
         # Condition db
 
-    #   pm = p
-    #   pm$modtype = pm$condition.modeltype
-    #   pm$taxa = p$condition.taxa
-    #   pm$season = p$condition.season
-    #   pm$varstomodel = pm$condition.variables
-    #   pm$project.name = "condition"
-    #   pm$project.outdir.root = project.datadirectory( pm$project.name, "analysis" )
+       pm = p
+       pm$modtype = pm$condition.modeltype
+       pm$taxa = p$condition.taxa
+       pm$season = p$condition.season
+       pm$varstomodel = pm$condition.variables
+       pm$project.name = "condition"
+       pm$project.outdir.root = project.datadirectory( pm$project.name, "analysis" )
 
 
-    #   CD = habitat.interpolate ( DS="all", p=pm,  yr=max(1970,yr) )
-    #   
-    #   # remove duplicates derived from repeated tows --- slow ... 
-    #   oo = which( duplicated (CD$platplon ) )
-    #   if (length( oo)> 0 ) {
-    #     todrop= NULL
-    #     for (o in oo ) {
-    #       i = which( CD$platplon == CD$platplon[o] )
-    #       for (w in pm$condition.variables) {
-    #         CD[i[1],w] = mean(CD[i,w], na.rm=TRUE)
-    #         todrop = c(todrop, i[-1])
-    #       }
-    #     }
-    #     CD = CD[ -todrop, ]
-    #   }
-    #   CD = CD[ , c("plon", "plat", pm$condition.variables ) ]
-    #   PS = merge( PS, CD, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".CD" ) ) 
-    #   rm(CD)
-
+       CD = habitat.interpolate ( DS="all", p=pm,  yr=max(1970,yr) )
+       
+       # remove duplicates derived from repeated tows --- slow ... 
+       oo = which( duplicated (CD$platplon ) )
+       if (length( oo)> 0 ) {
+         todrop= NULL
+         for (o in oo ) {
+           i = which( CD$platplon == CD$platplon[o] )
+           for (w in pm$condition.variables) {
+             CD[i[1],w] = mean(CD[i,w], na.rm=TRUE)
+             todrop = c(todrop, i[-1])
+           }
+         }
+         CD = CD[ -todrop, ]
+       }
+       CD = CD[ , c("plon", "plat", pm$condition.variables ) ]
+       PS = merge( PS, CD, by =c("plon", "plat"), all.x=T, all.y=F, sort=F, suffixes=c("", ".CD" ) ) 
+       rm(CD)
 
 
 

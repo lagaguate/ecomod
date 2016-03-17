@@ -11,7 +11,6 @@ model.summaries = function( DS, yr=NULL, p=NULL ) {
   p$season = "allseasons"
   p = spatial.parameters( p, "SSE" )  # data are from this domain .. so far
   p$modtype = "complex"
-  p$movingdatawindow = 0  # this signifies no moving window ... all in one model
   
   
   for (var in vars){

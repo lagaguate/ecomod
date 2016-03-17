@@ -10,6 +10,7 @@
   # load required functions and parameters 
   	
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  
     
   debug = FALSE
   if (debug) {
@@ -46,7 +47,6 @@
 
 # -------------------------------------------------------------------------------------
 # create base set data and add all historical data fixes
-  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
    
   if (get.base.data) {
     # sequence is important ... do not change 
@@ -75,7 +75,6 @@
     seabird.db (DS="stats.redo", Y=seabird.yToload )
     minilog.db (DS="stats.redo", Y=minilog.yToload )
     netmind.db (DS="stats.redo", Y=netmind.yToload )
-   
    
     set <- snowcrab.db( DS="setInitial", p=p ) # this is required by the seabird.db (but not minilog and netmind) 
     # set2015 <- set[which(set$yr == '2015'),] #check to make sure 2015 data is in there properly
@@ -115,18 +114,21 @@
   }  # end base data
   
   
-  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  parameters.initial = p  # copy here as the other calls below overwrites p# -------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------
 # External Dependencies: (must be completed before the final lookup/mathcing phase)
-#     Bathymetry data :: 
+  
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+
+# Bathymetry data :: 
   loadfunctions("bathymetry", functionname="bathymetry.r" ) # if necessary
-#     Substrate type  :: 
+# Substrate type  :: 
   loadfunctions("substrate", functionname="substrate.r" ) # if necessary
-#     Groundfish data :: 
-#     NOTE  groundfish.db( DS="odbc.redo" ) must first be done manually 
-#     on a windows machine and data snapshots moved to local system
+# Groundfish data :: 
+# NOTE  groundfish.db( DS="odbc.redo" ) must first be done manually 
+# on a windows machine and data snapshots moved to local system
   loadfunctions( "groundfish", functionname="1.groundfish.r" ) #MG took 15-25 minutes to run
-#     Taxonomy :: 
+# Taxonomy :: 
   loadfunctions("taxonomy", functionname="taxonomy.r" ) # if necessary #MG takes about 30 minutes to run
 ## The following are very SLOW: 
 # Temperatures ::  
@@ -148,10 +150,13 @@
 # to allow fast lookup of data for matching with set, logbook data
   loadfunctions ( "habitat", functionname="habitat.complete.r" ) 
 
+
+
 # -------------------------------------------------------------------------------------
 # Final data lookup/matching .. AFTER refreshing all above tables (where relevent/possible)
   
-  p = parameters.initial
+  loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
+  
   
   logbook.db( DS  ="fisheries.complete.redo", p=p )  
   snowcrab.db( DS ="set.complete.redo", p=p )   
@@ -164,23 +169,20 @@
   make.timeseries.data(p=p, areas=NULL,reduced.stations=F, vars=NULL) #  timeseries of means of all survey data
   #make.timeseries.data(p=p, areas=NULL,reduced.stations=F, vars=c('ms.mass.10', 'ms.mass.30', 'ms.mass.201', 'ms.mass.50', 'ms.mass.2521', 'ms.mass.2511', 'ms.mass.202', 'ms.mass.204', 'ms.mass.2211'), outfile = file.path( project.datadirectory("snowcrab"), "R", "tsbycatch.rdata" )) #  timeseries of means of all survey data
 
-
   #  tsdata = snowcrab.db("set.timerseries")
 
 # create a new lookuptable for data transformations after refreshing set data/ranges
   REPOS = recode.variable.initiate.db ( db="snowcrab" )
 
 
+# -------------------------------------------------------------------------------------
 # snow crab found in external databases tapped into for habitat determination
   #for ( vs in c( "R0.mass", "male.large", "male.small", "female.large", "female.small" ) ) {
     ### -------- not yet finished this one ...  TODO
     vs="R0.mass"
     snowcrab.external.db(p=p, DS="set.snowcrab.in.groundfish.survey.redo", vname=vs )
 
-    ---- TODO !!! must replace this with bio.db proceeing step
-    
-    #}
-
+    # ---- TODO !!! must replace this with bio.db processing step
 
 
 # simple geometric means of raw data:  used by indicators ordination and some figures
@@ -191,16 +193,12 @@
 
 
 #  ----- experimental / tests / ideas
-testing = F
-if (testing) {
   s =  snowcrab.db( DS ="set.complete" )
   d =   snowcrab.db( DS ="det.georeferenced" ) 
   l = merge( d, s[, c("trip", "set", "t")], by=c("trip", "set"), all.x=T, all.y=F)
   rm(s,d); gc()
   l = l[ which( as.numeric(as.character(l$mat)) %in% c(mature, immature)  &
                 l$sex %in% c(male, female) ) , ]
-  l$sex[ which( l$sex ==male) ] = "male"
-  l$sex[ which( l$sex ==female) ] = "female"
 
   l$sex= factor( as.character(l$sex) )
   l$mat = factor( as.character( l$mat))
@@ -215,7 +213,7 @@ if (testing) {
 
 
   # -------------------------------------------------------------------------------------
-  # make size at maturity estimates in a spatial context
+  # test: make size at maturity estimates in a spatial context
 
   if( make.maturity.db ) {
     maturity = make.maturity.spatial( distance=50 )
@@ -223,13 +221,4 @@ if (testing) {
     # load(file.path( project.datadirectory("snowcrab"), "snowcrab", "R", "maturity.rdata"))
   }
 
-
-
-  # -------------------------------------------------------------------------------------
-  # example plot mechanism
-  p = spatial.parameters( p=p, type="snowcrab" )
-	xyz=bathymetry.db(p=p, DS="baseline.planar.500")
-  map( xyz, xyz.coords="planar", cfa.regions=T, depthcontours=T, pts=NULL, annot=NULL, fn="test", loc=getwd() )
-
-} # end testing
 

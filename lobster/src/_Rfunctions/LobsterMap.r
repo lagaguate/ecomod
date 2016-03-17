@@ -107,7 +107,7 @@ options(stringsAsFactors=F)
         nafo.dat<-merge(calcCentroid(nafo.sel),nafo.sel[c("PID","label")])[!duplicated(nafo.sel[c("PID","label")]),]
         nafo.dat$label[nafo.dat$label=="5ZC"]<-"5ZEM"
         
-		addPolys(nafo.xy,border='grey')
+		addPolys(nafo.xy,border='grey',col=NULL)
 		addLabels(nafo.dat,col=rgb(0.5,0.5,0.5,0.5),cex=2)
 	}
 	
@@ -122,7 +122,7 @@ options(stringsAsFactors=F)
 			  b = read.table(b)
 			  names(b) <- c('X','Y','PID')
 			  b = within(b,{POS <- ave(PID,list(PID),FUN=seq_along)})
-			  addPolys(b,lty=1,border='black')
+			  addPolys(b,lty=1,border='black',col=NULL)
 			 # addLabels(a,cex=0.6)
 			}
   # Boundries
@@ -139,7 +139,8 @@ options(stringsAsFactors=F)
 		if(lfa%in%LFAgrid$PID){
 			if(!is.na(lfa)){
 				grids<-subset(LFAgrid,PID==lfa)
-				addPolys(grids,border=rgb(0,0,0,0.2))
+				#browser()
+				addPolys(grids,border=rgb(0,0,0,0.2)),col=NULL)
 				if(labels=='grid'){
 					grids$label<-grids$SID
 	        		grids.dat<-merge(calcCentroid(grids),grids[c("PID","SID","label")])
@@ -147,7 +148,7 @@ options(stringsAsFactors=F)
 				}
 			}
 			else {
-				addPolys(LFAgrid,border=rgb(0,0,0,0.2))
+				addPolys(LFAgrid,border=rgb(0,0,0,0.2),col=NULL)
 			}
 		}
 		#browser()
@@ -166,7 +167,7 @@ options(stringsAsFactors=F)
 		SFA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SFA.csv"))
 		addLines(SFA)
 		SPA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SPA.csv"))
-		addPolys(SPA)
+		addPolys(SPA,col=NULL)
 	}
 		
 	EEZ<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","EEZ.csv"))

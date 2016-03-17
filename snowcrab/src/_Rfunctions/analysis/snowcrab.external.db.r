@@ -6,8 +6,9 @@
       loadfunctions( "groundfish", functionname="load.groundfish.environment.r" )
 
       ct = groundfish.db( "det" )
-      ct = taxonomy.filter.taxa( ct$spec, taxafilter="snowcrab", outtype="groundfishcodes" )
-     
+      cti  = taxonomy.filter.taxa( ct$spec, taxafilter="snowcrab", outtype="groundfishcodes" )
+      if (length(cti)> 0 ) ct = ct[cti,]
+
       imale = which( ct$sex==1 )
       ifemale = which( ct$sex==2 )
       
@@ -85,9 +86,9 @@
       set$temp = NULL
       set$sdepth = NULL
       set$cftow = NULL
-      
+      set$timestamp = as.POSIXct (set$chron)
       set$yr = lubridate::year(set$timestamp)
-      
+      set$dyear = lubridate::decimal_date( set$timestamp ) - lubridate::year( set$timestamp ) 
       # set$julian = convert.datecodes(set$chron, "julian")
       #set$weekno = floor(set$julian/365*52) + 1 
       #set$mon = floor(set$julian/365*12) + 1 
@@ -127,7 +128,6 @@
         jj = filter.region.polygon( set[, c("plon", "plat") ], region=r, planar=T, proj.type=p$internal.projection ) 
         set$cfa[jj] = r
       }
-
 
       # ---------------------------------
       # bring in fisheries stats

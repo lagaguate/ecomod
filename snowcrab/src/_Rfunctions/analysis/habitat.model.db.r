@@ -1,6 +1,5 @@
 
   habitat.model.db = function( ip=NULL, DS=NULL, v=NULL, p=NULL, yr=NULL, debug=F ) {
-    #browser()
 
     # ~ 5hr , when k=200
     # variograms are not used .. the model solutions require > 3 days to complete! 
@@ -21,6 +20,7 @@
 
       # add groundfish data
       gf = snowcrab.external.db (p=p, DS="set.snowcrab.in.groundfish.survey", vname="R0.mass" )  ## right now, fixed only to R0.mass ... TO DO make more variable
+
       # absense prior to 1999 is meaningless due to inconsistent recording
       ii = which( gf$n==0 & gf$yr<=1998)
       if (length(ii)>0) gf = gf[-ii,]
@@ -58,6 +58,26 @@
       ee = apply( dd, 1, min, na.rm=T ) 
       ff = which( ee < p$threshold.distance ) # all within XX km of a good data point
       set = set[ ff, ]
+		
+      # bring in time invariant features:: depth
+			print ("Bring in depth")
+      set = habitat.lookup( set,  p=p, DS="depth" )
+      set$z = log( set$z )
+			
+		  # bring in time varing features:: temperature
+			print ("Bring in temperature")
+      set = habitat.lookup( set, p=p, DS="temperature" )
+
+			# bring in all other habitat variables, use "z" as a proxy of data availability
+			# and then rename a few vars to prevent name conflicts
+		  set = habitat.lookup( set,  p=p, DS="all.data" )
+		
+      # return planar coords to correct resolution
+      set = lonlat2planar( set, proj.type=p$internal.projection )
+      
+      # complete area designations  
+      set = fishing.area.designations(set, type="lonlat")
+
 
       save ( set, file=fn, compress=TRUE )
       
@@ -67,19 +87,35 @@
 
 
     if ( DS %in% c("basedata" ) ) {
-    
+      
+      tokeep=  c( "Y", "yr",  "julian", "dyear", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
+
       set = snowcrab.db( DS="set.logbook" )
-      set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-        
+      if (exists("total.landings.scaled", set) ) {
+        set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
+      }
       set = presence.absence( X=set, vname=v, px=p$habitat.threshold.quantile )  # determine presence absence (Y) and weighting(wt)
       n0 = nrow(set)
 
+      ss = intersect( names(set), tokeep )
+      set = set[,ss]
+
       depthrange = range( set$z, na.rm= T) 
 
-#      if ( grepl("R0.mass", v) ) {   
-#        aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
-#        set = rbind( set, aset[, names(set)] )
-#      }
+      if ( grepl("R0.mass", v) ) {   
+        aset = habitat.model.db( DS="large.male.auxillary.data", p=p )
+        if (exists("total.landings.scaled", aset) ) {
+          # used for abundance modelling
+          aset$total.landings.scaled = scale( aset$total.landings, center=T, scale=T )
+          aset$sa.scaled =rescale.min.max(aset$sa)
+          aset$sa.scaled[ which(aset$sa.scaled==0)] = min (aset$sa.scaled[ which(aset$sa.scaled>0)], na.rm=T) / 2
+          aset$wgts = ceiling( aset$sa.scaled * 1000 )
+        }
+        ass = intersect( names(aset), tokeep )
+        aset = aset[,ass]
+        aset[,v] = NA   ## just to make merging simpler ... not used otherwise as this is accessed for habitat p/a
+        set = rbind( set, aset[, names(set)] )
+      }
 
       # set$weekno = floor(set$julian / 365 * 52) + 1
       # set$dyear = floor(set$julian / 365 ) + 1
@@ -92,32 +128,28 @@
       
       set$dt.seasonal = set$tmean -  set$t 
       set$dt.annual = set$tmean - set$tmean.cl
-      
-      # used for abundance modelling
-      set$total.landings.scaled = scale( set$total.landings, center=T, scale=T )
-      set$sa.scaled =rescale.min.max(set$sa)
-      set$sa.scaled[ which(set$sa.scaled==0)] = min (set$sa.scaled[ which(set$sa.scaled>0)], na.rm=T) / 2
-      #set$wgts = ceiling( set$sa.scaled * 1000 )
       set$wgts = 1
+      set$dZ = log(set$dZ)
+      set$ddZ = log(set$ddZ)
+      if (exists("tamp", set)) set$tamp = log(set$tamp)
+      if (exists("tamp.cl", set)) set$tamp.cl = log(set$tamp.cl)
 
       # remove extremes where variance is high due to small n
-      # set = filter.independent.variables( x=set )
-
-      tokeep=  c( "Y", "yr",  "julian", "dyear", "dt.annual", "dt.seasonal", "plon", "plat", "wt", "wgts",  v, p$auxilliary.data ) 
+      set = filter.independent.variables( x=set )
       # tokeep = intersect( names(set), tokeep) 
-      
       set = set[ , tokeep ]
-
+    
+      if (exists("years.to.model", p) ) set = set[ set$yr %in% p$years.to.model ,]
+  
       return(set)
 
     }
 
     
     if ( DS %in% c("habitat.redo", "habitat" ) ) {
-     # browser()
          
-      #outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
-      outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "test" )
+      outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "habitat" )
+      # outdir =  project.datadirectory("snowcrab", "R", "gam", "models", "test" )
       
       dir.create(path=outdir, recursive=T, showWarnings=F)
 
@@ -134,20 +166,19 @@
 
         # ****************************************
         
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v, yr, "rdata", sep=".") )
-        #if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
-        
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitattest", v, "rdata", sep=".") )
-        
+        fn = file.path( outdir, paste("habitat", v, "rdata", sep=".") )
         
         if (file.exists(fn)) load(fn)
         return(Q)
       }
 
       if (exists( "init.files", p)) {
-        p0 = p; LoadFiles( p$init.files ) 
+        p0 = p; # copy as the next alters p and we do not want to lose it
+        LoadFiles( p0$init.files ) 
         p=p0
         }
+
+
       if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
       
@@ -155,44 +186,30 @@
 
       for ( iip in ip ) {
         v0 = v = p$runs[iip,"v"]
-        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
         print ( p$runs[iip,] )
         if ( v0 =="R0.mass.environmentals.only" ) v="R0.mass"
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("habitat", v0, yr, "rdata", sep=".") ) #to turn off moving window
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") ) #to turn off moving window
+        fn = file.path( outdir, paste("habitat", v0, "rdata", sep=".") ) #to turn off moving window
         
         set = habitat.model.db( DS="basedata", p=p, v=v )
-            
-        if(any(p$movingdatawindow!=0)) yrsw = c( p$movingdatawindow + yr  ) #turn off moving window Feb 2015
-        if(all(p$movingdatawindow==0))     yrsw = p$years.to.model
+        
+        yrsw = p$years.to.model
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
-        if ( nyrsw  < p$movingdatawindowyears ) {
-          for ( ny in 1:5 ) {
-            yrsw = c( (min(yrsw)-1), yrsw, (max(yrsw)+1) )
-            ist = which( set$yr %in% yrsw ) # five year window
-            yrs_selected = sort( unique( set$yr[ ist ] ) )
-            nyrsw = length ( yrs_selected )
-            if (nyrsw == p$movingdatawindowyears ) break() 
-          }
-        }
-       
+            
         if ( length(ist) < 30 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
         } 
 
-
         set = set[ ist , ]        
         
-        
         Q = NULL
-        .model = model.formula( v0 )
+        modelform = model.formula( v0 )
 
-        ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
+        ntest = setdiff(all.vars(modelform), "spatial.knots") %in% names(set)
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
-          print ( all.vars(.model)[  which(ntest)] )
+          print ( all.vars(modelform)[  which(ntest)] )
           stop()
         }
 
@@ -201,16 +218,15 @@
           print (o )
           print( Sys.time() )
           
-          
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-           # Q = try( bam( .model, data=set, weights=wt, family=fmly  ), silent=F )
-            Q = try( bam( .model, data=set, family=fmly  ), silent=F )
+           # Q = try( bam( modelform, data=set, weights=wt, family=fmly  ), silent=F )
+            Q = try( bam( modelform, data=set, family=fmly  ), silent=F )
            
           } else {
-           # Q = try( gam( .model, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
-           Q = try( gam( .model, data=set, family=fmly, select=T, optimizer=ops ), silent=F )
+           # Q = try( gam( modelform, data=set, weights=wt, family=fmly, select=T, optimizer=ops ), silent=F )
+           Q = try( gam( modelform, data=set, family=fmly, select=T, optimizer=ops ), silent=F )
           
           }
           
@@ -223,10 +239,11 @@
          
         # last resort
         if ( "try-error" %in% class(Q) ) {
+          print( Q)
           # last attempt with a simplified model and default optimizer
-          .model = model.formula ("simple" )
-         # Q = try( gam( .model, data=set,  weights=wt, family=fmly, select=T), silent = F )
-          Q = try( gam( .model, data=set,  family=fmly, select=T), silent = F )
+          modelform = model.formula ("simple" )
+         # Q = try( gam( modelform, data=set,  weights=wt, family=fmly, select=T), silent = F )
+          Q = try( gam( modelform, data=set,  family=fmly, select=T), silent = F )
           print(Q)
          
           if ( "try-error" %in% class(Q) ) {
@@ -260,21 +277,23 @@
 
 
     if ( DS %in% c("abundance.redo", "abundance" ) ) {
-    #  browser()
       
       outdir = file.path( project.datadirectory("snowcrab"), "R", "gam", "models", "abundance"  )
       dir.create(path=outdir, recursive=T, showWarnings=F)
       
       if( DS=="abundance") {
         Q = NULL
-        if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-        if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
         
         if (file.exists(fn)) load(fn)
         return(Q)
       }
  
-      if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+      if (exists( "init.files", p)) {
+        p0 = p 
+        LoadFiles( p0$init.files ) 
+        p = p0
+      }
       if (exists( "libs", p)) RLibrary( p$libs ) 
 
       if (is.null(p$optimizers) ) p$optimizers = c( "nlm", "perf", "bfgs", "newton", "optim", "nlm.fd")
@@ -282,29 +301,17 @@
 
       for ( iip in ip ) {
         v = p$runs[iip, "v"]
-        if(any(p$movingdatawindow!=0)) yr = p$runs[iip,"yrs"]
         print( p$runs[iip,])
-  if(any(p$movingdatawindow!=0)) fn = file.path( outdir, paste("abundance", v, yr, "rdata", sep=".") )
-  if(all(p$movingdatawindow==0)) fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
+        fn = file.path( outdir, paste("abundance", v, "rdata", sep=".") )
         set = habitat.model.db( DS="basedata", p=p, v=v )
         # set = snowcrab.db( DS="set.logbook" )
         set$Y = set[, v]  # override -- Y is P/A
        
-  if(any(p$movingdatawindow!=0))  yrsw = c( p$movingdatawindow + yr  )
-  if(all(p$movingdatawindow==0))  yrsw = c( p$years.to.model)
+        yrsw = c( p$years.to.model)
         
         ist = which( set$yr %in% yrsw ) # default year window centered on focal year
         nyrsw = length ( unique( set$yr[ ist ] ) )
-        if ( nyrsw  < p$movingdatawindowyears ) {
-          for ( ny in 1:5 ) {
-            yrsw = c( (min(yrsw)-1), yrsw, (max(yrsw)+1) )
-            ist = which( set$yr %in% yrsw ) # five year window
-            yrs_selected = sort( unique( set$yr[ ist ] ) )
-            nyrsw = length ( yrs_selected )
-            if (nyrsw == p$movingdatawindowyears ) break() 
-          }
-        }
-
+ 
         if ( length(ist) < 30 ) {
             print( paste( "Insufficient data found for:", p$runs[iip,] ) )
           next()
@@ -332,10 +339,10 @@
         print( summary(set))
         
         Q = NULL
-        .model = model.formula (v )
+        modelform = model.formula (v )
 
     
-        ntest = setdiff(all.vars(.model), "spatial.knots") %in% names(set)
+        ntest = setdiff(all.vars(modelform), "spatial.knots") %in% names(set)
 
         if ( !all(ntest) ) {
           print( "Error. Data elements in set might be missing relative to those expected in the model formula: " )
@@ -380,12 +387,12 @@
           ops = c( "outer", o ) 
           if (o=="perf") ops=o
           if (o=="bam") {
-            #Q = try(  bam( .model, data=set, weights=wgts, family=fmly ), silent=F )
-            Q = try(  bam( .model, data=set, family=fmly ), silent=F )
+            #Q = try(  bam( modelform, data=set, weights=wgts, family=fmly ), silent=F )
+            Q = try(  bam( modelform, data=set, family=fmly ), silent=F )
          
            } else {
-            #Q = try( gam( .model, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
-            Q = try( gam( .model, data=set, optimizer=ops, family=fmly, select=T ), silent = F )
+            #Q = try( gam( modelform, data=set, optimizer=ops, weights=wgts, family=fmly, select=T ), silent = F )
+            Q = try( gam( modelform, data=set, optimizer=ops, family=fmly, select=T ), silent = F )
          
           }
           print(Q)
@@ -394,10 +401,11 @@
         
         # last resort
         if ( "try-error" %in% class(Q) ) {
+          print( Q)
           # last attempt with a simplified model
-          .model = model.formula ("simple" )
-          #Q = try( gam( .model, data=set, weights=wgts, family=fmly, select=T), silent = F )
-          Q = try( gam( .model, data=set, family=fmly, select=T), silent = F )
+          modelform = model.formula ("simple" )
+          #Q = try( gam( modelform, data=set, weights=wgts, family=fmly, select=T), silent = F )
+          Q = try( gam( modelform, data=set, family=fmly, select=T), silent = F )
          
           print(Q)
           if ( "try-error" %in% class(Q) ) {

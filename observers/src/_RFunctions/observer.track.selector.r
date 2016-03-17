@@ -1,14 +1,15 @@
-if (F) {
-  # load required ecomod functions
-  loadfunctions("observers/src/_RFunctions")
-  loadfunctions("utility/src/_Rfunctions/data.manipulation")
-  loadfunctions("utility/src/_Rfunctions/datetime")
-  loadfunctions("utility/src/_Rfunctions/sql.tools")
-  #connect to db
-  library(RODBC)
-  channel <-  odbcConnect("PTRAN",uid = oracle.personal.username,pwd = oracle.personal.password)
-}
 observer.track.selector<-function() {
+  if (F) {
+    # load required ecomod functions
+    loadfunctions("observers/src/_RFunctions")
+    loadfunctions("utility/src/_Rfunctions/data.manipulation")
+    loadfunctions("utility/src/_Rfunctions/datetime")
+    loadfunctions("utility/src/_Rfunctions/sql.tools")
+    #connect to db
+    library(RODBC)
+    channel <-  odbcConnect("PTRAN",uid = oracle.personal.username,pwd = oracle.personal.password)
+  }
+  
   library(sqldf)
   
   theFilters = c(
