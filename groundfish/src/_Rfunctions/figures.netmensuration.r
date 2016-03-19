@@ -23,11 +23,12 @@ figures.netmensuration = function( p, DS="", outdir = file.path( project.datadir
     print( fn )
   }
 
-  if (DS %in% c("", "all") ) {
-    fn = file.path( outdir, "toweddistance.pdf" )
+  if (DS %in% c("sa.comparison", "all") ) {
+    fn = file.path( outdir, "sa.comparison.pdf" )
     cols = c("slateblue", "red", "orange")
     pdf( file=fn )
-
+     ii = which ( is.finite( gsinf$wing.sd)  )  ## where good estimates exist
+     plot( wing.sa ~ sakm2, data=gsinf[ii,], col=cols[1], cex=0.5, pch=20 )
     dev.off()
     print( fn )
   }
@@ -39,8 +40,9 @@ figures.netmensuration = function( p, DS="", outdir = file.path( project.datadir
     cols = c("slateblue", "red", "orange")
     pdf( file=fn )
       layout(matrix(c(1,1,2,2), 2, 2, byrow = TRUE), respect = TRUE)
-      boxplot( door.mean ~ yr, gsinf, ylab="Door spread (m)" ) 
-      boxplot( wing.mean ~ yr, gsinf, ylab="Wing spread (m)", xlab="Year" ) 
+      ii = which ( is.finite( gsinf$wing.sd)  )  ## where good estimates exist
+      boxplot( door.mean ~ yr, gsinf[ii,], ylab="Door spread (m)" ) 
+      boxplot( wing.mean ~ yr, gsinf[ii,], ylab="Wing spread (m)", xlab="Year" ) 
     dev.off()
     print( fn )
   }
@@ -59,6 +61,20 @@ figures.netmensuration = function( p, DS="", outdir = file.path( project.datadir
     dev.off()
     print( fn )
   }
+
+
+  # -------
+  
+  if (DS %in% c("", "all") ) {
+    fn = file.path( outdir, "xxx.pdf" )
+    cols = c("slateblue", "red", "orange")
+    pdf( file=fn )
+        
+
+    dev.off()
+    print( fn )
+  }
+
 
 
  }

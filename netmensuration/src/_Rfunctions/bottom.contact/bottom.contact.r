@@ -83,7 +83,7 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
 
   ## SANITY CHECKS
   # sometimes multiple tows exist in one track ... 
-  # over-smooth depth to capture stange tows  
+  # over-smooth depth to capture strange tows  
   x$dsm = interpolate.xy.robust( x[, c("ts", "depth")], method="sequential.linear", trim=0.05 ) 
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="local.variance", trim=0.05 ) 
   x$dsm = interpolate.xy.robust( x[, c("ts", "dsm")], method="sequential.linear", trim=0.05 ) 
@@ -111,6 +111,26 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
     O$good[bad] = FALSE
   }
 
+  # fix tails
+  mm = modes( x$depth[ O$good ] ) # recompute after gating
+  mm.bot = which ( x$depth >= (mm$lb2*0.75) & x$depth <= (mm$ub2*1.25)  ) # first est of bottom
+  mm.med = median( mm.bot, na.rm=TRUE ) 
+  # fix tails when the tails are not a single smooth tail:
+  llim = mm$mode + bcp$depth.range[1]
+  for ( ll in mm.med:1 ) {
+    if ( is.finite( x$depth[ll]  ) ) {
+      if ( x$depth[ll] < llim ) break()
+    }
+  }
+  for ( uu in mm.med:nrow(x)) {
+    if ( is.finite( x$depth[uu]  ) ) {
+      if ( x$depth[uu] < llim ) break()
+    }
+  }
+  todrop = c( 1:ll, uu:nrow(x) )
+  x$depth[ todrop ] = NA
+  O$good[ todrop] = FALSE
+
 
   ## ------------------------------
   ## MAIN NOISE/INTERPOLATION FILTER
@@ -118,6 +138,16 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
 
   res = NULL
   res = try( bottom.contact.filter.noise ( x=x, good=O$good, bcp=bcp ), silent =TRUE )
+  if ( "try-error" %in% class(res) ) {
+    x$depth = jitter( x$depth ) 
+    res = try( bottom.contact.filter.noise ( x=x, good=O$good, bcp=bcp ), silent =TRUE )
+  }
+  if ( !"try-error" %in% class(res) ) {
+    if ( cor( x$depth, res$depth.smoothed, use="pairwise.complete.obs") > 0.98 ) {
+      bcp$noisefilter.target.r2 = 0.75
+      x$depth = jitter( x$depth ) 
+      res = try( bottom.contact.filter.noise ( x=x, good=O$good, bcp=bcp ), silent =TRUE )
+  }}
 
   x$depth.smoothed = x$depth
   if ( ! "try-error" %in% class( res) )  {

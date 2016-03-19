@@ -81,7 +81,8 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.0
       ii = setdiff( 1:nz, unique(m$loc) )
       if (length(ii) > 0)  {
         z$y[ii] = NA  
-        z$y[ii] = approx( x=z$x, y=z$y, xout=z$x[ii], method="linear", rule=2 )$y
+        afun = approxfun( x=z$x, y=z$y,  method="linear", rule=2  )
+        z$y[ii] = afun( z$x[ii] )
       }
     z$p = z$y
   }
@@ -102,7 +103,8 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.0
       qnts = quantile( z$Zvar, probs=(1-trim), na.rm=TRUE )  # remove upper quantile
       ii = which( z$Zvar > qnts )
       if (length(ii) > 0) z$p[ ii ] = NA
-      z$p[ii] = approx( x=z$x, y=z$p, xout=z$x[ii], method="linear", rule=2 )$y 
+      afun = approxfun( x=z$x, y=z$p,  method="linear", rule=2  )
+      z$p[ii] = afun( z$x[ii] )
       rsq = cor( z$p, z$y, use="pairwise.complete.obs" )^2
       if (!is.na(rsq)){
         if (rsq > target.r2 ) break()
@@ -250,7 +252,8 @@ interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.0
       if ( count > nmax ) break()  # in case of endless loop
       uu = smooth.spline( x=z$x, y=z$y, keep.data=FALSE, control.spar=list(tol=dd / 20) )
       if ( length(uu$x) != nrow(z)  ) {
-        vv = approx( x=uu$x, y=uu$y, xout=z$x ) 
+        afun = approxfun( x=uu$x, y=uu$y,  method="linear", rule=2  )
+        vv = afun( z$x )
         z$p = vv$y
       } else {
         z$p = uu$y 

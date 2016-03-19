@@ -837,6 +837,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         bc = NULL # 
         bc = try( bottom.contact(nmii, bcp ), silent=TRUE )
 
+
         if ( is.null(bc)) next()
         if ( "try-error" %in% class(bc) ) next()
         if ( !is.null( debugid ) ) browser()
