@@ -20,7 +20,7 @@ bottom.contact.modal = function( sm, bcp ) {
   # catch situations where there is no variance in data due to only bottom-track being recorded and truncated: 
   # no discrimination possible
   if ( !is.finite(Z0$sd) || Z0$sd < 1e-3) {
-    oo = which ( abs( sm$Z - Z0$mode ) < 1 )  # anything within 1 m of the "mode" 
+    oo = which ( abs( sm$Z - Z0$mode ) < bcp$eps.depth )  # anything within eps m of the "mode" 
     if (length(oo) > 50) {
       rr = range(oo)
       res = c( sm$timestamp[rr[1]], sm$timestamp[rr[2]] )

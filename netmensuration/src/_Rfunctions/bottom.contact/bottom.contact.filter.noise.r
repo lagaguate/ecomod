@@ -29,6 +29,8 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   x$sm.seq[aoi] = interpolate.xy.robust( x[aoi, c("ts", "Z")], method="sequential.linear",  
       trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
   kk = x$Z - x$sm.seq
+  ll =  which( abs(kk) < bcp$eps.depth )
+  if (length(ll) > 0) kk[ ll ] = 0 
   i = which.quantile ( kk[aoi], probs=bcp$noisefilter.quants, inside=FALSE ) 
   if (length(i) > 0) {
     good[aoi[i]] = FALSE
@@ -40,6 +42,8 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   x$sm.win[aoi] = interpolate.xy.robust( x[aoi, c("ts", "Z")], method="moving.window",  
       target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )
   kk = x$Z - x$sm.win
+  ll =  which( abs(kk) < bcp$eps.depth )
+  if (length(ll) > 0) kk[ ll ] = 0 
   i = which.quantile ( kk[aoi], probs=bcp$noisefilter.quants, inside=FALSE ) 
   if (length(i) > 0) {
     good[aoi[i]] = FALSE
@@ -51,6 +55,8 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   x$sm.var[aoi] = interpolate.xy.robust( x[aoi, c("ts", "sm.win")], method="local.variance",  
       target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )
   kk = x$Z - x$sm.var
+  ll =  which( abs(kk) < bcp$eps.depth )
+  if (length(ll) > 0) kk[ ll ] = 0 
   i = which.quantile ( kk[aoi], probs=bcp$noisefilter.quants, inside=FALSE ) 
   if (length(i) > 0) {
     good[aoi[i]] = FALSE
@@ -89,6 +95,8 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   tails = c( 1:(min(aoi)-1), (max(aoi)+1):nrow(x) ) 
   if (length( tails ) > 0 ) {
     kk = x$depth[tails] - x$Z.smoothed[tails]
+    ll =  which( abs(kk) < bcp$eps.depth )
+    if (length(ll) > 0) kk[ ll ] = 0 
     i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
     if (length(i) > 0 ) {
       good [ tails[i] ]  = FALSE
@@ -135,6 +143,8 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   }
 
   kk = x$depth - sm$Z
+  ll =  which( abs(kk) < bcp$eps.depth )
+  if (length(ll) > 0) kk[ ll ] = 0 
   i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
   if (length(i) > 0 ) {
     good[] = FALSE
