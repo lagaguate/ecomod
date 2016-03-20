@@ -12,15 +12,17 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   # 1. check range of the data and recheck using modal filter of the bottom part of the "good" area
   fr = range( which(good) )
   aoi = fr[1]:fr[2]
-  mm = modes( x$depth[aoi] )
-  mm.aoi =  which ( x$depth >= mm$lb2 & x$depth <= mm$ub2  ) # fisrt estimate of bottom
+  mm = modes( x$Z[aoi] )
+  mm.aoi =  which ( x$Z >= mm$lb2*0.9 & x$Z <= mm$ub2*1.1  ) # fisrt estimate of bottom
   
   # remove linear trend to make bottom contact times more precise
-  zlm = predict( lm ( depth ~ ts, x[mm.aoi,], na.action=na.exclude ) )
-  zdetrended = zlm - x$depth[mm.aoi]
+  zlm = predict( lm ( Z ~ ts, x[mm.aoi,], na.action=na.exclude ) )
+  zdetrended = zlm - x$Z[mm.aoi]
   zd = modes ( zdetrended )
   mm.good = which( zdetrended >= zd$lb2 & zdetrended <= zd$ub2 )  
   mm.bad = setdiff( 1:length(mm.aoi), which( zdetrended >= zd$lb2 & zdetrended <= zd$ub2 )  )
+
+#  browser()
 
   if ( length( mm.good ) > 0 ) {
     good[ mm.aoi[mm.good] ] = TRUE
@@ -42,14 +44,16 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
   # 2. focus upon aoi: identify data that are likely noise and mark them
   #  filter localized (adjacent) deviations
   tm0 = x[aoi, c("ts", "Z")]
- 
+
   tm = tm0
   tm$Z[ !good[aoi]] = NA
   test = try( interpolate.xy.robust( tm, method="sequential.linear",  
       trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants ), silent =TRUE  )
   if ( ! ( class( test ) %in% "try-error" | ( length( which(is.finite(test))) < 30)  ) ) {
     kk = x$Z[aoi] - test
-    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
+    # ll =  which( abs(kk) < bcp$eps.depth )
+    # i = intersect( ll, which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  )
+    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  
     j = setdiff(1:nx , i )
     if (length(i) > 0) good[aoi[i]] = FALSE
     if (length(j) > 0) good[aoi[j]] = TRUE
@@ -63,7 +67,9 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
       target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window ), silent =TRUE  )
   if ( ! ( class( test ) %in% "try-error" | ( length( which(is.finite(test))) < 30)  ) ) {
     kk = x$Z[aoi] - test
-    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
+    # ll =  which( abs(kk) < bcp$eps.depth )
+    # i = intersect( ll, which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  )
+    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  
     j = setdiff(1:nx, i )
     if (length(i) > 0) good[aoi[i]] = FALSE
     if (length(j) > 0) good[aoi[j]] = TRUE
@@ -77,7 +83,9 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
       target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window ) )
   if ( ! ( class( test ) %in% "try-error" | ( length( which(is.finite(test))) < 30)  ) ) {
     kk = x$Z[aoi] - test
-    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
+    # ll =  which( abs(kk) < bcp$eps.depth )
+    # i = intersect( ll, which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  )
+    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  
     j = setdiff(1:nx , i )
     if (length(i) > 0) good[aoi[i]] = FALSE
     if (length(j) > 0) good[aoi[j]] = TRUE
@@ -92,6 +100,8 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
       target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window ), silent =TRUE  )
   if ( ! ( class( test ) %in% "try-error" | ( length( which(is.finite(test))) < 30)  ) ) {
     kk = x$Z[aoi] - test
+    # ll =  which( abs(kk) < bcp$eps.depth )
+    # i = intersect( ll, which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  )
     i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
     j = setdiff(1:nx, i )
     if (length(i) > 0) good[aoi[i]] = FALSE
@@ -152,7 +162,9 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
 
   if (length( tails ) > 0 ) {
     kk = x$depth[tails] - x$Z.smoothed[tails]
-    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
+    # ll =  which( abs(kk) < bcp$eps.depth )
+    # i = intersect ( which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ),   ll )
+    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )
     if (length(i) > 0 ) good [ tails[i] ]  = FALSE
     j = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=TRUE ) 
     if (length(j) > 0 ) good [ tails[j] ]  = TRUE
@@ -172,7 +184,15 @@ bottom.contact.filter.noise = function( x, good, bcp ) {
     sm$Z = test
     sm$Z[ fr ] = Zupp 
   }
- 
+  
+  if ( cor( sm$Z, x$Z, use="pairwise.complete.obs" ) > 0.99 ) {
+    sm$Z = jitter(sm$Z)
+    test = try( interpolate.xy.robust( sm, method="loess", trim=0.025), silent=TRUE )
+    if ( ! ( class( test ) %in% "try-error" | ( length( which(is.finite(test))) < 30)  ) ) {
+      sm$Z=test 
+    }
+  }
+
   if ( cor( sm$Z, x$Z, use="pairwise.complete.obs" ) > 0.99 ) {
     sm$Z = jitter(sm$Z)
     test = try( interpolate.xy.robust( sm, method="loess", trim=0.05), silent=TRUE )

@@ -71,7 +71,7 @@ surfacearea.estimate = function( bcp, O ) {
         trim=bcp$noisefilter.trim, target.r2=bcp$noisefilter.target.r2, mv.win=bcp$noisefilter.var.window )
       
     kk = nms$doorspread - nms$sm
-    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
+    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  
     if (length(i) > 0) nms$doorspread [ i ] = NA
     
     # redo interpolation with filtered data removed
