@@ -369,6 +369,25 @@ Temporal coverage: July 2002 to December 2014, 150 monthly  images
 Source code: https://github.com/jae0/ecomod/remote.sensing/src/remoting.sensing.r
 Estimated from colour and temperature data.
 
+Marine primary production plays an important role in biogeochemical cycles, in food web dynamics, and in marine fisheries. It may be defined as the amount of organic material (or organic carbon) produced per unit area (or volume) per unit time by photosynthetic plants, predominately by phytoplankton.
+
+Primary production of the ocean on synoptic scale is estimated by models that use satellite data (SST, ocean colour chlorophyll, and available light estimates at the surface), shipborne in-situ information on the vertical distribution of phytoplankton in the water column, and the phytoplankton’s photosynthetic response to light.
+
+Monthly primary production data were provided by the Remote Sensing Unit (RSU) at BIO that routinely generates production maps for the NW Atlantic as part of the Atlantic Zone Monitoring Program. The general approach for the production computation is described in Platt et al. (2008) and employs chlorophyll and light estimates from MODIS, SST produced by the unit, and DFO’s archive of shipborne measured parameters. This particular production algorithm has been validated with in-situ measured production (Platt et al., 1988) and also has performed very well in global comparisons (Carr et al., 2006).
+
+Primary production for each pixel within St. Anns Bank polygon was extracted from the monthly images and average production was computed for the polygon. The time series for the polygon and the associated monthly climatology are showing peaks in primary production in spring and summer with varying intensity and timing throughout the years (Figure x and Figure y). 
+
+
+
+The figures are already in the report:
+Figure x: Annual monthly Primary Production (PP) computed from PP composite images for St.Anns bank polygon for the time period 2002-2014.
+
+Figure y: Average Primary Production (PP) computed from monthly composite images for St.Anns bank polygon for the time period 2002-2014.
+
+
+
+
+
 \begin{figure}[h]
   \centering
   \includegraphics[height=8.326cm,width=16.51cm]{\sab 18.png}
@@ -445,23 +464,58 @@ The SST pixels within St. Anns Bank polygon were extracted from each 8-day compo
 
 Numerous data sources have been compiled by Ocean Sciences Division. The data were QA/QC controlled and then modelled in a two-part process, temporal (first order harmonic analysis) and then simple spatial interpolations via localized Generalized Additive Models with a spatial extent that varied as a function of data density. 
 
-\subsection{Demersal fish (and macro-invertebrates)}
+
+
+\subsection{Demersal fish and macro-invertebrates}
 \begin{itemize}
   \item Relevance:  productivity, habitat, biodiversity and species of interest
-  \item Sampling:  Groundfish survey 
-  \item Spatial coverage: full extent, random stratified, \~{} 200?? stations
-  \item Temporal coverage: 1970 - present
-  \item Source code: https://github.com/jae0/ecomod/groundfish/src/groundfish.r
-\end{itemize}
+  \item Sampling:  Groundfish survey, Snow crab survey 
+  \item Spatial coverage
+    \begin{itemize*}
+      \item Groundfish: full extent, random stratified, \~{} 200?? stations
+      \item Snow crab: Colder water environment, ~ 400 stations / year
+    \end{itemize}*}
+  \item Temporal coverage
+    \begin{itemize*}
+      \item Groundfish: 2000 - present (started in 1970, but consistent sampling since 2000)
+      \item Snow crab: 2005 - present (started in 1996, but consistent sampling since 2005)
+    \end{itemize}*}
+
+  \item Source code
+      \begin{itemize*}
+        \item https://github.com/jae0/ecomod/groundfish/src/groundfish.r
+        \item https://github.com/jae0/ecomod/snowcrab/src/1.snowcrab.r
+      \end{itemize}*}
+  
+\end{itemize*}
 
 
 groundfish survey is still a major source of information
 - but consistency is questionable:: estimation procedure was incorrect due to timing/net mensuration methods being inadequate
-- attempts at developing methods to address standardization required and completed:: net mensuration methods : 
+- attempts at developing methods to address standardization required and completed:: 
+
+\subsubsection{net mensuration} 
 - analysis of depth and other factors upon bias
 - error estimates of relative abundance for data .. to inform historical estimates
 - predictive/corrective methods for historical tows ?
 - Provide link to Jenna's Tech report here
+
+Sensors measuring trawl net configuration and state are used by most modern surveys. In the snow crab survey, they have been used to determine swept area manually (since 1996) and/or with an automated procedure (since 2004).
+
+Sensors measuring trawl net configuration and state are used by most modern surveys. In the groundfish  survey, they have been collected sporadically since 2004. Swept area estimates have never been computed for the groundfish surveys. Generally, data are used with the assumption that each tow is equivalent in swept are or arealy adjusted with the assumption of linear distance from start and end positions. This is was found to be problematic as positional information was found to be recorded with error. Further, the actual time and distance of bottom contact was variable ranging from approximately 10 to 40 minutes and with distances ranging from xx to xx km. Net width always assumed constant at xx m. This assumption is also problematic in that the configuration of a trawl net can alter shape depending upon currents, surface sea state, net fullness/filtration efficiency due to contact with rocks/boulders/mud, etc (Munden and Choi, in prep). 
+
+To address these important and incorrect assumptions, algorithms were developed to automatically determine lift off and touch down times, locations and net width. Based upon random visual inspection, the skill was determined to be high with approximately 95\% of the cases having estimates within 15 seconds of a visual determination touch down/lift off points. Where bias was observed this was mostly to underestimate total contact time due to an over-smoothing of the lift off or touch down profiles. Unfortunately, net mensuration data is still not consistently recorded nor used in the groundfish surveys (Table XX -- number of sets with records of net config). As a result, it is not possible to satisfactorily estimate swept area for all historical sets. As a result, statistical methods have been developed to estimate these as much as possible and are used for the first time in this report. The estimation procedure was statistical using GAM-estimated relationships with location, depth and salinity ($R^2$ ranged from 60 to 40\%, depending upon availability of covariates). 
+
+
+Trawl data summary:
+
+-- add time and location information
+
+-- suggest utility for mutlispecies to start in 2010 (groundfish) and 2005 (snow crab)
+
+-- describe use of quantiles / Zscore
+
+
 
 
 
@@ -473,6 +527,9 @@ groundfish survey is still a major source of information
   \item Temporal coverage: 2000 - present
   \item Source code: https://github.com/jae0/ecomod/snowcrab/src/snowcrab.r
 \end{itemize}
+
+
+
 
 The 2015 snow crab trawl survey increased sampling in the St. Anns Banks area to provide additional information about the marine macro-fauna. Fourteen stations in (or adjacent to) the proposed MPA location were included in this additional sampling. These fourteen stations were locations traditionally sampled on the snow crab survey and represent varied depths and bottom- types, pseudo micro-habitats. The species composition of the catch at these stations varied greatly as expected with differences in depth and bottom type. The sampling at these stations included:
 
@@ -625,6 +682,9 @@ The satellite AIS data are available globally for the years 2013, 2014, and 2015
 \subsubsection{Stomach Database}
 Bottom trawl surveys have been conducted by DFO on the Scotian Shelf annual since 1970 using a stratified random design.  Sampling protocols changed in the late 1990s with the focus changing from commercially important finfish species to more comprehensive ecosystem monitoring that included the sampling of macroinvertebrates (Tremblay \textit{et al}. 2007).  Stomach contents samples were collected from finfish using a length-stratified sampling protocol.  Prey were quantified by weight and number, and often identified to the genus or family level, or to the species level when possible.  To determine if diet of finfish was different pre- and post- implementation of the MPA on St. Anns Bank or if there were differences within the MPA compared to other areas on the Scotia shelf, we explored the stomach database to determine if these dietary differences could be detected. Within the database, 54\% of the prey number observations were missing.  Due to the large interannual variation in prey weights estimating the prey number consistently from non-missing data where both the prey number and weight was available was determined to be impracticable and unreliable.  Due to the sampling stratification both by depth and length classes it was further determined that there would be insufficient samples available to reach the asymptote of prey species accumulation curves (Cook and Bundy 2010) and total diet composition could not be detected.  Prey species identified in the stomach samples could be used for quantifying biodiversity and species richness (Cook and Bundy 2012) for the proposed MPA and comparing it to similar ecosystem or pre- and post-implementation.
 
+
+
+
 \section{Methods}
 All methods have been implemented in R such that they are transparent and readily shared with all parties and improved by all interested users. It is structured that any additional data series can be easily added to the system to permit adaptive change.
 The main methods used/developed in this report will be described in this section.
@@ -634,10 +694,53 @@ Habitat  modeling also known as species distribution modeling was implemented us
 - GAM-based 
 - SPDE-based methods nearly completed
 
+
+Species of interest:
+
+Wolffish (stock assessments +++) : 
+etc.
+Large mammals
+-- ?
+Turtles
+Birds
+
+
+Species composition 
+
+The kinds of species found together in a given location and time represents an important source of information that informs not only the local habitat/environment but also an understanding of the whole ecosystem, in aggregate and in particular the relative abundance of a species of interest. These associations were quantified using a standard multivariate procedure, namely Correspondence Analysis which focuses upon a Chi-square type distance metric and Principal Components Analysis which focuses upon the correlational structure of the species assemblages. Both are known to behave well and interpretable and the latter was used as check to verify the stability of the former. The first two orthogonal axes (CA1, CA2) were sufficient to describe the majority of the variation in the data (Figure xx).
+
+$ SC(t) = SC(t-1) + rSC + e $
+
+Habitat:
+
+Habitat as a concept is an all encompassing notion that reflects the Hutchinsonian notion of "ecological niche". It is therefore a highly multi-dimensional concept, that incorporates, environmental variation, biological constraints related to these variations as well as the interspecific interactions (competition, predation) implict in any ecosystem -- all relative a given organism or species of interest. As it is such a "large" concept we estimate it using a simple first approximation as: the habitat space that is associated with a given set of "ensemble types". The latter "ensemble types" refers to the dominants patterns of species assemblages that have been determined for the area. In particular, two dominant assemblages were observed in the SSE, once that is rated to depth gradients and another related to temperature gradients. These groups can be categorized and then the relative habitat space for each "type" can be determined. However, even more direct, one can estimate the predicted axis scores given environmental conditions and so identify how the system is changing relative tot he species assemblage structure in time series..
+
+
+
+
 \subsection{Biodiversity and taxonomic diversity}
 taxonomy
 - estim the biological diversity as a network measure by location
 - fix strange results for some numbers
+
+Biodiversity is fundamentally a complex concept that ranges in focus from genetic and phenotypic varition within a local population, breeding populations to biome or even larger scaled genetics and phylogentic variability, both in terms of their number and relative dominance. As the spatial and temporal scales of the St. Anns Bank AOI is more or less constrained, we simplistically focus upon the simple number of unique species found in a given location (also called species richness). However, as this number is a function of sampling intensity, a statistical correction ("rarefaction") for spatial and temporal sampling intensity must be applied to be meaningfully comparable. Specifically, the model was:
+
+R = B0 + SA + TS + LN(e)
+
+The intent is to aggregate and convert in to a risk-based model of the following form: 
+
+dR / dt = R(t) - R(t-1) +  ... 
+
+
+
+
+\subsection{Productivity}
+
+Total system standing biomass is generally used as a proxy for productivity. They are not the same. But ...
+
+This is an approximation based upon sampling from groundfish and snow crab surveys. This can then be coupled with total system landings to estimate the biomass and secondary production associated with the biota and fishery exploitation/footprint. The model forumation will again be of the same risk-based form.
+
+
 
 \subsection{Spatial and temporal statistical modeling and interpolation}
 Source code: https://github.com/jae0/ecomod/spacetime/
@@ -650,6 +753,29 @@ Source code: https://github.com/jae0/ecomod/spacetime/
 - relationship with corelation dim and autocorelation:: one is number (in state space) the other is variance (geographic space), but variance and number relationships are such that they can be related?
 	stoch ts mod with habitat and bayes state space::
 
+
+\subsection{Connectivity -- space and time scales}
+
+passive -- currents ?
+
+active -- directed movement for mobile species .. snow crab, cod, wolfish, tagging with OTN , other tagging databases ?
+
+
+
+Correlation distance
+-- definitions
+
+Correlation time 
+-- definitions
+
+Zooplankton and phytoplankon:
+
+Zooplankton and phytoplankton standing biomass (and net production) will be examined to determine spatial and temporal correlation ranges. The expectation is that the scales will be broad (larger than the size of the AOI) and temporally short (annual to sub-decadal) due to a stronger influence of environmental/climatic scales of variation for these surface/planktonic processes. A risk-based model might be adopted depending upon availability of time and appropriateness of the space-time scales.
+
+
+
+
+
 \subsection{Risk modeling}
 
 - prod: total bottom, invert, pelagic zoopankton, chl, benthic fish?
@@ -661,6 +787,92 @@ Source code: https://github.com/jae0/ecomod/spacetime/
 	spatially explicit range estimates:
 - depth
 - others:: substrate?, temperature? chl? production? nutrients? biota? -- time dependent
+
+
+\subsubsection{Logistic model}
+
+As observed by Lotka (1925), the rate of change in time $t$ of any state $Y$ (in our context: abundance, species richness, "habitat", size) can be expected to be in some minimal way, a function of itself:  
+
+\begin{eqnarray} 
+\label{eqLogisticContinuous}
+dY / dt = g(Y)
+\end{eqnarray}
+
+It is expected that when $Y = 0$, $dY/dt$ will also be zero and so represents an algebraic root of $g$. A Taylor series expansion of $g$ near this root $Y=0$ gives:
+
+\begin{eqnarray*} 
+  \label{eqLogisticTaylorSeries}
+  dY / dt &=&  g'(0) Y + g''(0) Y^{2}/2  + \text{higher order terms} \dots; \\
+  &\approx& Y [g'(0) + g''(0) Y/2  ]
+\end{eqnarray*}
+
+
+With the identities $g'(0) = r$  and $g''(0) = - 2r/K$, the standard form of the logistic equation (also known as the Verhulst equation) is obtained:
+
+\begin{equation} 
+\label{eqLogistic}
+dY/dt \approx r Y (1 - Y/K)
+\end{equation}
+
+The intrinsic rate of increase, $r$, is therefore, some abstract function f that regulates increase or decrease of the system state $Y$. In biological systems, this means growth, recruitment, mortality,  movement, climatic change, etc. The carrying capacity $K$ represents the upper limit of the magnitude of the system state $Y$.
+
+With normalization by $K$ we obtain: $ y = Y/K $, which simplifies the basic model to:
+
+\begin{equation} 
+\label{eqLogisticBasic}
+dy/dt  \approx  r K y (1 - y)
+\end{equation}
+
+Many variations of this basic model have been used, mostly to adjust the shape of the curve and/or the location of the inflection point (i.e., $K/2$) mostly by adding additional parameters in the form of exponentiation of different components which amounts to adding higher order terms in the Taylor series) and also adding additional terms, $f$ (e.g., fishing, advection, diffusion, noise): 
+
+\begin{eqnarray} 
+\label{eqLogisticGeneral}
+dy / dt &=& rK^{\beta-\alpha} y^{\alpha} ( 1 - y^{\beta} )^{\gamma} + f 
+\end{eqnarray}
+
+For the purposes of this discussion, we will use only the basic model (Eq. \ref{eqLogisticBasic}), but the reader should be aware that other more flexible parameterizations are possible such as Eq. \ref{eqLogisticGeneral}, at the expense of greater model complexity. The utility of these other formulations will be explored at some future iteration. 
+
+In discrete form, where $\Delta t = 1 \; \text{year}$, the basic model becomes:
+
+\begin{equation} 
+\label{eqLogisticDiscrete}
+y_t  \approx y_{t-1} + r K y_{t-1} (1 - y_{t-1} )
+\end{equation}
+
+Perhaps the most powerful and flexible method of estimation of these parameters $\theta = \{r, K \}$ of the basic discrete model (Eq. \ref{eqLogisticDiscrete}) is a state space representation where an additional observation model is added to connect observed indices $O$ to the unobserved and (usually unobservable) real system state $y$. The simplest such model is a simple linear scaling factor, $q$: 
+
+\begin{equation} 
+\label{eqLogisticDiscreteStateSpace}
+O_t = q y_t
+\end{equation}
+
+
+The use of a Bayesian approach to solve the above nonlinear state space problem (Eqs. \ref{eqLogisticDiscrete}, \ref{eqLogisticDiscreteStateSpace} ) is frequently used as it provides an opportunity to: have greater numerical stability;  incorporate prior scientific knowledge in a formal manner; realistically propagate credible errors; estimate unobserved states (“true” fishable biomass); and simultaneously estimate model “process” errors and data “observation” errors. 
+
+Process errors ($\sigma^2_p$) are the uncertainties that feeds back into future states via error propagation – e.g., via the recursive form of the logistic equation (i.e., errors in $y_{t+1}$ in the state space of $y_t$ vs $y_{t+1}$). Observation errors ($\sigma^2_o$) refer to the uncertainties associated with measurement and observation (i.e., measurement/data-related errors of both variables in the state space of $y_t$ vs $y_{t+1}$). This latter ability is particularly important as parameter estimates and forecasts based on observation-only errors provide unrealistically optimistic (small and constant) error bounds; and parameter estimates and forecasts based on process-only errors expand rapidly into the future, resulting in potentially unrealistically pessimistic (large and usually growing) error bounds.
+%
+%The main distributional assumptions of the model of fishable biomass are as follows. The notation “$\sim$” indicates “distributed as”. The elements in the parentheses are (mean, variance), or in the case of the uniform distribution (lower interval, upper interval).  
+%
+%\begin{eqnarray*} 
+%\label{eqPriors}
+%  q &\sim& \text{Uniform} ( 0.1, 2 )  \\
+%  K  &\sim&  \text{Lognormal} ( \mu_K, \sigma^2_K ) \\
+%  r  &\sim&  \text{Normal} (\mu=0.96, \sigma^2=0.01) \\
+%  O_t  &\sim&  \text{Lognormal} ( log(q K y_t), \sigma^2_o ) \\
+%  y_t  &\sim&  \text{Lognormal} ( log(y_{t-1} + r_{t-1} y_{t-1} (1 - y_{t-1} ) ), \sigma^2_p ) \\
+%\end{eqnarray*}
+%
+%Most ecological variables follow a lognormal error distribution. A multiplicative observation error model was assumed. The scaling factor $q$, simplistically quantiﬁes the inﬂuence of a number of differing biases, including survey gear, survey protocols, areal expansion protocols, survey stratification and statistical modeling, etc. As such biases are non-constant over time and space it is hopelessly inadequate; however, it is retained for simplicity as a first order of magnitude estimate of such influences. The prior of q was assumed to be uniform in distribution, bounded by the interval (0.1, 2). Process error was assumed to follow a (multiplicative) lognormal distribution with variance $\sigma^2_p$ whose prior was lognormally distributed. Carrying capacity was assumed to follow a lognormal distribution. Where the area specific $\mu_K$ and $\sigma^2_K$ were chosen based on previous knowledge of the production in the area. The intrinsic rate of increase was assumed to be stationary with a prior of.
+%These priors were marginally informative. 
+
+The posterior distribution of the parameters of interest, $\theta$, conditional upon the data were estimated via MCMC (Gibbs) sampling using the JAGS platform (Plummer 2003, 2010). Three Markov chains were followed to ensure convergence; 4,000 simulations in the burn-in phase were sufficient to ensure such convergence for most of the Markov chains. Another 2,500,000 simulations were used to describe the posterior distributions of the parameters. A thinning of 500 simulations was required to minimize autocorrelation in the sampling chains.
+
+The JAGS model used for parameter estimation can be found at: \\
+
+https://github.com/jae0/ecomod/mpa/bugs/
+
+
+
 
 \section{Results}
 
