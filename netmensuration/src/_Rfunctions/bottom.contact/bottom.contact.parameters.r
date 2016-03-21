@@ -40,15 +40,15 @@
     if ( !exists("datasource", bcp)) bcp$datasource ="datasource"
     if ( !exists("nr", bcp)) bcp$nr = NA
 
-    if ( !exists("tdif.min", bcp)) bcp$tdif.min=10 # min time difference (minutes)
-    if ( !exists("tdif.max", bcp)) bcp$tdif.max=50  # max time difference (minutes) .. including tails
+    if ( !exists("tdif.min", bcp)) bcp$tdif.min=8 # min time difference (minutes)
+    if ( !exists("tdif.max", bcp)) bcp$tdif.max=52  # max time difference (minutes) .. including tails
     if ( !exists("depthproportion", bcp)) bcp$depthproportion=0.6  # depthproportion controls primary (coarse)gating
     if ( !exists("depth.min", bcp)) bcp$depth.min= 15
     if ( !exists("depth.range", bcp)) bcp$depth.range=c(-60,60)
     if ( !exists("time.gate", bcp)) bcp$time.gate=NA
-    if ( !exists("eps.depth", bcp)) bcp$eps.depth = 1 # m
+    if ( !exists("eps.depth", bcp)) bcp$eps.depth = 2 # m
  
-    if ( !exists("maxdepthchange", bcp)) bcp$maxdepthchange = 10 # max fluctuation in depth (m) between sensor pings
+    if ( !exists("maxdepthchange", bcp)) bcp$maxdepthchange = 15 # max fluctuation in depth (m) between sensor pings
 
     # expected distance between GPS pings .. i.e. 10 cm to 0.1 km  --- might need to modify depending upon ping rate 
     if ( !exists("gps.distance.range.valid.km", bcp)) bcp$gps.distance.range.valid.km =  c( 1e-4, 1e-1 )

@@ -62,13 +62,13 @@ if (FALSE) {
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.27") # normal .. lots of data 
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.59") # two depth sensors  in the same log ! --
   bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.64") # two depth sensors  --
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.3") # two depth sensors  --
   # to  load a single result and view
   bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2012002.97") #  strange wingspreads
   bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2010027.100") #  strange wingspreads ... esp in 210 :: NED2010027.xxx -- looks like wingspread did not function properly!!
   bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2010027.53") # strange wingspreads
   bottom.contact.plot( bc, netspread=TRUE )
 }
+
 
 scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 
@@ -103,6 +103,8 @@ if (create.marport.database ) {
 
 gs0 = scanmar.db( DS="bottom.contact", p=p )  # bring in estimates of bottom contact times from scanmar
 
+  
+
 gs0$timediff_official =  as.numeric(gs0$edate - gs0$sdate) / 60 # that which would have been used (if at all .. )
 gs0$bottom.dist = geosphere::distGeo( gs0[, c("bc.lon0","bc.lat0")], gs0[, c("bc.lon1", "bc.lat1")])/1000
 
@@ -124,22 +126,8 @@ tapply( gs0$bottom_duration/60, gs0$settype, mean, na.rm=TRUE )
 
 
 
-
-keep = which( gs0$settype %in% c( 1, 2, 5) ) # survey
-gs = gs0[ keep, ]
-
-# door width
-plot( door.mean ~ as.factor(yr), gs[ gs$yr>= 2004,], ylab="Mean door width (m)", xlab="Year" )
-
-# door mean vs depth
-plot( (door.mean) ~ log(bc.depth.mean), gs[ ,], col="slategray", cex=0.5, xlab="log Depth (m)", ylab="Mean door width (m)" )
-points( (door.mean) ~ log( bc.depth.mean), gs[gs$yr==2011 ,], pch=20, col="steelblue", cex=1.25 )
-
-# drop not reliable data
-not.reliable.doors = which( gs$yr==2011 )
-gs$door.mean[ not.reliable.doors ] = NA  
-
-
+w2a = which( gs0$geardesc == "Western IIA trawl" & gs0$settype %in% c(1,2,5) )     # for distribution checks for western IIA trawl
+gs = gs0[ w2a, ]
 
 # trawl duration bias 
 plot( jitter(gs$timediff_official), jitter(gs$bottom_duration/60), xlim=c(10,40), cex=0.65, col="slateblue",
@@ -154,7 +142,7 @@ abline(a=0,b=1, col="grey" )
 
 
 # distance bias
-plot( jitter(gs$bc.dist), jitter(gs$bottom.dist), xlim=c(1.5,4),ylim=c(0,5),cex=0.65, col="slateblue",
+plot( jitter(gs$bc.dist), jitter(gs$bottom.dist), xlim=c(1.5,6),ylim=c(0,6),cex=0.65, col="slateblue",
      xlab="Trawl length: official (km)", ylab="Trawl length: computed from track(km)" )
 abline(a=0,b=1, col="grey" )
 

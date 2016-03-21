@@ -62,7 +62,8 @@ dev.off()
 
 
 # 4. net mensuration related figures
-figures.netmensuration( DS="all", p=p )
+figures.netmensuration( DS="all", p=p, outdir=p$project.outdir.root  )
+
 
 
 

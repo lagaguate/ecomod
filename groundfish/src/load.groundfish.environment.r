@@ -1,5 +1,5 @@
 # libraries
-  RLibrary( "Hmisc", "date", "chron", "vegan", "fields" )
+  RLibrary( "Hmisc", "date", "chron", "vegan", "fields", "polygons", "coastline", "sp", "rgdal", "raster" )
 
   gs.srcdir   = file.path( project.codedirectory("groundfish"), "src" )
   data.dir  = file.path( project.datadirectory("groundfish"), "data")
