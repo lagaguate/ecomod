@@ -1,4 +1,4 @@
-process.marfis.mpa = function(df, save.csv=F){
+process.marfis.mpa = function(df, save.csv=F, just.make.rds=T,gridres=1, nclasses=5){
   if (F) {
     # load required ecomod functions
     loadfunctions("marfissci/src/_RFunctions")
@@ -27,8 +27,9 @@ process.marfis.mpa = function(df, save.csv=F){
   #'  
   
   library(lubridate) 
-  df$YEAR=year(df$DATE_FISHED)
-  combo=unique(df[c("YEAR","SPECIES_CODE")])
+  library(rgdal)
+  #df$YEAR=year(df$DATE_FISHED)
+  combo=unique(df[c("YEAR_FISHED","SPECIES_CODE")])
   for (j in 1:NROW(combo)){
     this.df=df[with(df, which(df$YEAR==combo[j,1] & df$SPECIES_CODE==combo[j,2])),]
     namebit=paste0(combo[j,1],"_",combo[j,2])
@@ -38,30 +39,43 @@ process.marfis.mpa = function(df, save.csv=F){
       print(paste0("CSV of ",combo[j,1]," spec ", combo[j,2]," written to ", 
                    project.datadirectory("mpa"),"/csv/",namebit,"_marfis.csv"))
     }
-    saveRDS(aggregate.marfis(this.df,  
-                     xlim=c(-74,-42), ylim=c(36,50), gridres=1, 
-                     anal.fn = "sum", anal.field = "RND_WEIGHT_KGS",
-                     privacy.field = c("SETID"), ruleOf=1, 
-                     nclasses= 3, class.style="jenks",
-                     show.pts=F,show.restricted=T, show.legend = T,
-                     save.plot= T, figuredir = "mpa",
-                     title=paste0("marfis ",namebit)),
-                     paste0(project.datadirectory("mpa"),"/polygons/",namebit,"_sp_polygon.rds"))
-    print(paste0("SpatialPolygonsDataFrame saved to ",
-                 project.datadirectory("mpa"),"/polygons/",namebit,"_sp_polygon.rds"))
-    rm(this.df)
+    #35,50 42,44
+    #-74,-42
+    the.rds = aggregate.marfis(this.df,  
+                               xlim=c(-74,-42), ylim=c(35,50), gridres=gridres,
+                               just.make.rds=F, 
+                               anal.fn = "sum", anal.field = "RND_WEIGHT_KGS",
+                               privacy.field = c("ROWNUM"), ruleOf=1, 
+                               nclasses= nclasses, class.style="jenks",
+                               show.pts=F,show.restricted=T, show.legend = T,
+                               save.plot= T, figuredir = "mpa",
+                               title=paste0("marfis ",namebit))
+
+
+      if (!is.character(the.rds)){
+        saveRDS(the.rds,paste0(project.datadirectory("mpa"),"/polygons/",namebit,"_sp_polygon.rds"))
+        print(paste0("SpatialPolygonsDataFrame saved to ", project.datadirectory("mpa"),"/polygons/",namebit,"_sp_polygon.rds"))
+        writeOGR(the.rds, dsn = paste0(project.datadirectory("mpa"),"/shapes"), layer = paste0(namebit,'_poly'), driver = "ESRI Shapefile", overwrite_layer = T)
+    } else {
+      print("no polygon generated")
+    }
+      rm(this.df)
   }
 }
 
 #get the source data
-  #df = read.csv2(paste0(project.datadirectory("mpa"),"/csv/get_marfis_20160303_1515.csv"))
-  #df = read.csv2(paste0(project.datadirectory("mpa"),"/csv/2002_marfis.csv"))
+#df = read.csv2(paste0(project.datadirectory("mpa"),"/get_marfis_grp_20160321_0835.csv"))
+#it would be better if ROWNUM was embedded in the output
+#colnames(df)[colnames(df)=="X"] = "ROWNUM"
 #use first x rows as test data
 #   test.df=head(df,400)
+#process.marfis.mpa(df,save.csv=F,nclasses=2,just.make.rds=T,gridres=0.1)
   
-#run the script
-  #process.marfis.mpa(test.df,F)
-
+#test the data on scallop initially
+#test.df=df[df$SPECIES_CODE==612,]
+##############
 #read in a resultant spatial polygon and plot it
-  #test=readRDS(paste0(project.datadirectory("mpa"),"/2002_sp_polygon.rds"))
+#test=readRDS(paste0(project.datadirectory("mpa"),"/polygons/2010_100_sp_polygon.rds"))
+#library(rgdal)
+#writeOGR(test, dsn = '.', layer = 'poly', driver = "ESRI Shapefile")
   #plot(test, col = test@data$colcode, border = "gray90")
