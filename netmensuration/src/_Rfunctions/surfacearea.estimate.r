@@ -12,6 +12,7 @@ surfacearea.estimate = function( bcp, O ) {
   nms$sm.wingspread = NA
   nms$sm.doorspread = NA 
 
+
   nd = nrow(nms)
   if (0) {
     plot( doorspread ~ timestamp, nms )
@@ -20,7 +21,6 @@ surfacearea.estimate = function( bcp, O ) {
     plot( wingspread ~ depth, nms, type="l" )
     plot( doorspread ~ depth, nms, type="l" )
   }
-
 
   # estimate/predict missing data where possible:
   jj = which( is.na( nms$doorspread ) & !is.na( nms$wingspread) )
@@ -37,7 +37,9 @@ surfacearea.estimate = function( bcp, O ) {
 
 
   ## smooth and filter wingspread
-  
+  ii = which( is.finite( nms$wingspread ) ) 
+  if (length(ii) > 10 ){
+
     nms$sm = interpolate.xy.robust( nms[, c("ts", "wingspread")], method="sequential.linear",  
         trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
     nms$sm = interpolate.xy.robust( nms[, c("ts", "sm")], method="moving.window", 
@@ -48,18 +50,20 @@ surfacearea.estimate = function( bcp, O ) {
     if (length(i) > 0) nms$wingspread [ i ] = NA
     
     # redo interpolation with filtered data removed
-    sm = interpolate.xy.robust( nms[, c("ts", "wingspread")], method="inla",
+    test = NULL
+    test = interpolate.xy.robust( nms[, c("ts", "wingspread")], method="sequential.linear",
       probs=bcp$noisefilter.quants, target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim )
-  
-    if ( "try-error" %in% class(sm) ) {
-      sm = interpolate.xy.robust( nms[, c("ts", "wingspread")], method="sequential.linear",  
+    if ( "try-error" %in% class(test) ) {
+      test = interpolate.xy.robust( nms[, c("ts", "wingspread")], method="moving.window",  
         trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
     }
-
-    nms$sm.wingspread = sm
-
+    nms$sm.wingspread = test 
+  }
 
     ### --- doorspread
+
+  ii = which( is.finite( nms$doorspread ) ) 
+  if (length(ii) > 10 ) {
 
     nms$sm = interpolate.xy.robust( nms[, c("ts", "doorspread")], method="sequential.linear" , 
         trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
@@ -67,18 +71,20 @@ surfacearea.estimate = function( bcp, O ) {
         trim=bcp$noisefilter.trim, target.r2=bcp$noisefilter.target.r2, mv.win=bcp$noisefilter.var.window )
       
     kk = nms$doorspread - nms$sm
-    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE ) 
+    i = which.quantile ( kk, probs=bcp$noisefilter.quants, inside=FALSE )  
     if (length(i) > 0) nms$doorspread [ i ] = NA
     
     # redo interpolation with filtered data removed
-    sm  = interpolate.xy.robust( nms[, c("ts", "doorspread")], method="inla", 
+    test =NULL
+    test  = interpolate.xy.robust( nms[, c("ts", "doorspread")], method="sequential.linear", 
         probs=bcp$noisefilter.quants, target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim )
-    if ( "try-error" %in% class(sm) ) {
-      sm = interpolate.xy.robust( nms[, c("ts", "doorspread")], method="sequential.linear" , 
+    if ( "try-error" %in% class(test) ) {
+      test = interpolate.xy.robust( nms[, c("ts", "doorspread")], method="moving.window" , 
         trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
     }
 
-    nms$sm.doorspread = sm
+    nms$sm.doorspread = test
+  }
 
     ## depths -- smooth and filter one last time
 
@@ -86,15 +92,14 @@ surfacearea.estimate = function( bcp, O ) {
     # dv = NULL  # incremental distance vertical 
     # smooth again as there is occasionally v. high freq noise still in the depth data
     depth.smoothed = O$depth.smoothed [ O$bottom.contact ]
-    depth.smoothed = interpolate.xy.robust( cbind( nms$ts, depth.smoothed), method="moving.window",  
-        target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )  
+#    depth.smoothed = interpolate.xy.robust( cbind( nms$ts, depth.smoothed), method="moving.window",  
+#        target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )  
 
     dv = c(0, abs( diff( depth.smoothed )) / 1000 ) # km  .. incremental difference in vertical distance
     dv = interpolate.xy.robust( cbind( nms$ts, dv), method="sequential.linear" , 
         trim=bcp$noisefilter.trim, probs=bcp$noisefilter.quants )
     dv = interpolate.xy.robust( cbind( nms$ts, dv), method="moving.window",  
         target.r2=bcp$noisefilter.target.r2, trim=bcp$noisefilter.trim, mv.win=bcp$noisefilter.var.window )  
-
 
 
     # determine the algorithm to use for use to determine tow distance
