@@ -158,7 +158,7 @@
   
   plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
-  coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )
+  coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap 
   plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
   lines( plygn[ as.character(c( 100, 200, 300 ))], col="gray90" ) # for multiple polygons
   lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygons
