@@ -1,5 +1,6 @@
 aggregate.marfis <-function(pts, LatField="LAT", LonField="LON",
                             xlim=c(-71,-56), ylim=c(40,48), gridres=1, 
+                            just.make.rds=F,
                             anal.fn = "mean", anal.field = "RND_WEIGHT_KGS",
                             privacy.field = c("VR_NUMBER_FISHING","LICENCE_ID"),
                             ruleOf=5,
@@ -99,7 +100,7 @@ poly_grd = Grid2Polygons(sp_grd)
 
 coordinates(pts) = c(LonField, LatField)
 proj4string(pts) = CRS(crs.orig)
-
+#browser()
 # Determine the number of unique values for each privacy field  -----------
 # Privacy field counts are identified by the prefix 'cnt_' ----------------
 priv_cnt = over(poly_grd, pts[privacy.field], fn=function(x) length(unique(x)))
@@ -114,6 +115,7 @@ results$z = as.numeric(gsub("X","",rownames(results)))
 poly_grd@data = merge(poly_grd@data,priv_cnt, by="z")
 poly_grd@data = merge(poly_grd@data,results, by="z")
 
+if (just.make.rds==T){
 #Find records where all privacy fields have sufficient unique records/cell
 public = as.data.frame(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_grd@data) == "z")])
 public = as.data.frame(public[apply(public, 1, function(row) {all(row >= ruleOf)}),])
@@ -172,6 +174,7 @@ if (length(unique(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_gr
     dev.off()
     print(paste0("Figure saved to ", filename))
   }
+}
  return(poly_grd)
 }
 #EXAMPLE USAGE
