@@ -117,3 +117,15 @@
 	LobsterMap('33',poly.lst=list(subset(LFAgrid,PID==33),polyprop33),boundaries='none',isobaths=c(seq(50,450,50),seq(500,1000,100)),bathcol=rgb(0,0,1,0.3))
 	legend('bottomright',c("West","East"),fill=c(rgb(1,0,0,0.5),rgb(0,0,1,0.5)))
 	dev.off()
+
+	subareas<-read.csv(file.path( project.datadirectory("lobster"), "data","LFA2733subarea.csv"))
+	polyprop<-merge(subset(subareas,LFA%in%c(27,33)),data.frame(LFA=c(27,27,33,33),subarea=c("27 North","27 South","33 West","33 East"),lty=2),all=T)
+	names(polyprop)[1:3]<-c("PID","label","SID")
+	LFAgrid<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","LFAgridPolys.csv"))
+
+	pdf(file.path( project.datadirectory("lobster"),"R","LFA33map.pdf"),8, 8)
+	LobsterMap('33',poly.lst=list(subset(LFAgrid,PID==33),polyprop33),boundaries='none',isobaths=c(seq(50,450,50),seq(500,1000,100)),bathcol=rgb(0,0,1,0.3))
+	legend('bottomright',c("West","East"),fill=c(rgb(1,0,0,0.5),rgb(0,0,1,0.5)))
+	dev.off()
+
+	LobsterMap(xlim=c(-67,-58),ylim=c(42,48),subareas=T)
