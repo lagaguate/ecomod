@@ -133,9 +133,9 @@ In, An Ecological Overview and Assessment Report for SAB, Ford and Serdynska (20
 \begin{figure}[h]
   \centering
   %\includegraphics[width=0.6\textwidth]{\analysis/maps/mpa_closeup.pdf}
-  \includegraphics[width=0.6\textwidth]{\sab SAB_AOI.pdf}
+  \includegraphics[width=0.6\textwidth]{\sab SAB_MPA.pdf}
   
-  \caption{Approximate configuration of the proposed St Anns Bank MPs relative to the coastline of Cape Breton, Nova Scotia (left) , Laurentian Channel (right) and depth variations (contours are at every 100 m). See Figure 2.1-1 for geographic location in a larger map.}
+  \caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with the proposed St Anns Bank Marine Protected Area (thick maroon polygon) and limited fishing zones (maroon lined polygons). See Figure 2.1-1 for geographic location in a larger map.}
   \label{figSABCloseup}
 \end{figure}
 
@@ -193,8 +193,8 @@ The decision criteria for inclusion of data in this study was as follows:
 The same decision criteria were applied to human usage data. The result was to include the following data streams for MPA characterisation:
 
 \begin{itemize}
-	\item Chlorophyll-a and Nutrients: BioChem bottle data (AZMP, DFO 2015, Devine et al. 2014) 
-  \item Zooplankton: BioChem database (AZMP, DFO 2015, Devine et al. 2014) 
+	\item Chlorophyll-a and Nutrients: BioChem bottle data (AZMP, DFO 2015, Devine \textit{et al}. 2014) 
+  \item Zooplankton: BioChem database (AZMP, DFO 2015, Devine \textit{et al}. 2014) 
   \item Remote Sensing Data: ocean colour and SST (Remote Sensing Group)
   \item Groundfish: Research Vessel Surveys (DFO \ldots{} ?)  focus upon demersal fish species
   \item Snow crab surveys ( \ldots{} ) focus upon benthic invertebrates
@@ -317,7 +317,7 @@ Abundance patterns are found in Figure~\ref{figAZMPBiomassMonthly}.
 
 Ocean colour refers to the spectral distribution of light emerging from the ocean which carries information about water constituents, particularly about biologically useful chlorophyll concentration in the surface layer. When measured from satellites it provides unique synoptic view of chlorophyll spatial distribution over large areas of the ocean on a daily time scale.
 
-The nominal uncertainty of chlorophyll products derived from ocean colour satellites is 35\%, with better agreement with in-situ chlorophyll for the open ocean (Moore et al. 2008) while overestimation is often observed in the coastal ocean (Darecki and Stramski 2004). This is due to the inability of the algorithms to distinguish chlorophyll from suspended particulate matter and colored dissolved organic matter often present in the coastal waters, as for example in the Bay of Fundy and Northumberland Strait.
+The nominal uncertainty of chlorophyll products derived from ocean colour satellites is 35\%, with better agreement with in-situ chlorophyll for the open ocean (Moore \textit{et al}. 2008) while overestimation is often observed in the coastal ocean (Darecki and Stramski 2004). This is due to the inability of the algorithms to distinguish chlorophyll from suspended particulate matter and colored dissolved organic matter often present in the coastal waters, as for example in the Bay of Fundy and Northumberland Strait.
 
 Ocean colour satellite data for this study was provided by the Remote Sensing Unit (RSU) from the Bedford Institute of Oceanography (DFO) as 8-day composite chlorophyll images which are routinely produced by the unit for the Atlantic Zone Monitoring Program (AZMP). The dataset was created using the Moderate Resolution Imaging Spectroradiometer (MODIS-Aqua) data, where the chlorophyll-a values are based on the 2012 reprocessing carried by the National Aeronautics and Space Administration (NASA) using OC3 chlorophyll algorithm. Composite images were created from daily Level-2 MODIS-Aqua files downloaded from NASA by averaging valid chlorophyll-a values for each pixel using all available daily images within that time period (RSU Technical document 5). The dataset comprises years 2002 to 2015 and area 39 N to 62.5 N and 42 W to 71 W, with spatial resolution of about 1.5 km per pixel. 
 
@@ -504,7 +504,10 @@ Direct impacts of commercial fishing can be measured using data form the Marine 
   \item Source code: https://github.com/jae0/ecomod/XXX/src/XXX.r
 \end{itemize}	
 
-St. Anns Bank Area of Interest has four zones within it with various levels of fishing restrictions (figure).  These areas require monitoring to ensure that fishers are complying with regulations.  Monitoring could be done through a variety of techniques and data sources, including data reported in the MARFIS database, Vessel Monitoring System (VMS) data that allow the direct monitoring of fishing activities. Automatic Identification System (AIS) data may also be used to monitoring fishing activities if the vessel is large enough to require AIS ($\geq$ 300 gross registered tonnes) or if a fishing vessel has voluntarily installed an AIS system onboard.  
+
+
+
+St. Anns Bank Area of Interest has four zones within it with various levels of fishing restrictions (Figure \ref{figSABCloseup}). Commercial fishing is restricted from Zone 1, the largest area, with the exception of the seal harvest.  The MPA requires monitoring to ensure that fishers are complying with regulations.  Monitoring could be done through a variety of techniques and data sources, including data reported in the MARFIS database, Vessel Monitoring System (VMS) data that allow the direct monitoring of fishing activities. Automatic Identification System (AIS) data may also be used to monitoring fishing activities if the vessel is large enough to require AIS ($\geq$ 300 gross registered tonnes) or if a fishing vessel has voluntarily installed an AIS system onboard.  
 
 
 
@@ -512,36 +515,70 @@ St. Anns Bank Area of Interest has four zones within it with various levels of f
 \subsection{Vessel activity}
 Commercial shipping can have various direct and indirect effects on an ecosystem. Direct effects including the contamination of the ecosystem from the discharge of contaminates, radiated underwater noise, the introduction of aquatic invasive species, and vessel-strike risk to marine mammals and sea turtles.  Spatia-temporal data on vessel traffic is needed to determine the probability and/or magnitude of these effects on ecosystems.  Such information is available through AIS data.  
 
-The International Maritime Organization (IMO) requires AIS transponders on all international vessels $\geq$ 300 gross tonnage and all passenger vessels.  Many studies have used AIS data to examine risk of lethal vessel collisions to large whales (e.g. Vanderlaan and Taggart (2009), Wiley et al. (2011), Redfern et al. (2013),  Guzman (2013)) or to assess and monitor ship noise and assess the impact on marine mammals (Hatch et al. (2008) McKenna et al. (2012) Hatch et al. (2012) Merchant et al. (2014)).    Similar exercises can be done in the St. Anns Bank AOI with AIS data.
+The International Maritime Organization (IMO) requires AIS transponders on all international vessels $\geq$ 300 gross tonnage and all passenger vessels.  Many studies have used AIS data to examine risk of lethal vessel collisions to large whales (e.g. Vanderlaan and Taggart 2009, Wiley \textit{et al}. 2011, Redfern \textit{et al}. 2013,  Guzman \textit{et al}. 2013) or to assess and monitor ship noise and assess the impact on marine mammals (Hatch \textit{et al}. 2008 McKenna \textit{et al}. 2012,  Hatch \textit{et al}. 2012, Merchant \textit{et al}. 2014).    Similar exercises can be done in the proposed St. Anns Bank MPA with AIS data. 
 
-Fisheries and Oceans Canada has access to two different sources of AIS data.  The first is from the Canadian Coast Guard (CCG) terrestrial system that was developed to track and monitoring coastal shipping and provides a real-time, continuous stream of AIS vessel positions.  Archived historical data from this system is available for January 2012 through December 2015 and data from 2016 is currently streaming and archiving to a server within DFO. Decoding routines have been developed using native R methods for this data.
+Fisheries and Oceans Canada has access to two different sources of AIS data.  The first is from the Canadian Coast Guard (CCG) terrestrial system that was developed to track and monitoring coastal shipping and provides a real-time, continuous stream of AIS vessel positions.  Archived historical data from this system is available for January 2012 through December 2015 and data from 2016 is currently streaming and archiving to a server within DFO. Decoding routines have been developed using native R methods for these data.   Both sources of data provide dynamic and static data, where the dynamic data includes information on vessel identity, speed, and location, and static data includes information vessel identity, name, size, and type.   
 
-The CCG terrestrial system as 21 AIS coastal receiving stations in in the Maritime region and 19 AIS coastal receiving stations in Newfoundland and Labrador.  These receiving stations have limited detectability of AIS transmission that is primary based on tower’s height above sea level as AIS data is transmitted via Very High Frequency (VHF) marine radio on two channels (161.9765 and 162.025 MHz).  Based on the height of the associated towers and a vessel with an AIS antenna 100 m high, line of sight calculations for VHF provide a reception range of  57 to 113 m (Fig ~\ref{fig:LOF}).  However there are several other factors that will contribute to transmission range including weather conditions and the height of the AIS transmitter aboard each vessel.  Simard et al. (2014) estimated that coastal antennas within this network generally provide a reception range of ~100 km (Fig. ~\ref{fig:DetAIS}).  In either case the terrestrial network is insufficient to monitor vessels across the entire AOI and just north of the AOI. This data can be combined with satellite AIS data, available from exactEarth.
+The CCG terrestrial system as 21 AIS coastal receiving stations in in the Maritime region and 19 AIS coastal receiving stations in Newfoundland and Labrador.  These receiving stations have limited detectability (Figure \ref{fig:TAIS}) as AIS transmission detectability are primarily a function of the receiving tower\textquoteright height above sea level and the height of the AIS antenna on the transmitting vessel.  AIS data is transmitted via Very High Frequency (VHF) marine radio on two channels (161.9765 and 162.025 MHz).  Based on the height of the associated towers and a vessel with an AIS antenna 100 m high, line of sight calculations for VHF provide a reception range of  57 to 113 m (Figure ~\ref{fig:LOF}).  However there are several other factors that will contribute to transmission range including weather conditions and the height of the AIS transmitter aboard each vessel.  Simard \textit{et al}. (2014) estimated that coastal antennas within this network generally provide a reception range of ~100 km (Figure ~\ref{fig:DetAIS}).  In either case the terrestrial network is insufficient to monitor vessels across the entire AOI and just north of the AOI. This data can be combined with satellite AIS data, available from exactEarth.
 
-\begin{figure}
+
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=1.0\textwidth]{\sab LineofSight.pdf}
-	\caption{Line of sight detection circles for the terrestrial AIS receiving stations around St. Anns Bank Area of Interest}
+	\includegraphics[width=1.0\textwidth]{\sab Line_of_Sight.pdf}
+	\caption{AIS data collected from the Canadian Coast Guard terrestrial network of AIS receiving stations.  Each colour represents data from a unique vessel.}
+	\label{fig:TAIS}
+\end{figure}
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1.0\textwidth]{\sab Line_of_Sight.pdf}
+	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with line of sight detection (red circles) for the terrestrial AIS receiving stations (red dots) around St. Anns Bank Area of Interest.}
 	\label{fig:LOF}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=1.0\textwidth]{\sab SimardSight.pdf}
-	\caption{Simard et al. (2014) estimated vessel detection circles for the terrestrial AIS receiving stations around St. Anns Bank Area of Interest}
+	\includegraphics[width=1.0\textwidth]{\sab Simard_Sight.pdf}
+	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with Simard \textit{et al}. (2014) estimated vessel detection distances (blue circles) for the terrestrial AIS receiving stations (blue dots) around St. Anns Bank Area of Interest}
 	\label{fig:DetAIS}
 \end{figure}
 
 
-The satellite AIS data are available globally for the years 2013, 2014, and 2015 with on-going data collection for 2016. Although satellite AIS data coverage it is global, data is limited with temporally and often large sections of vessel transits are unavailable due to satellite positions.   
+The satellite AIS data are available globally for the years 2013, 2014, and 2015 with on-going data collection for 2016. Although satellite AIS data coverage if global, data are limited temporally as large sections of vessel transits are unavailable due (see Figure \ref{fig:astar})to a limited number of satellites (n = 8) and their orbital paths.  Spatial interpolation must be completed to \textquotedblleft fill in\textquotedblright  missing data.  Spatial interpolation is achieved using an astar function (Hart \textit{et al}. 1968)  that estimates the minimum cost to get from one point to another based on a cost map.  The coast map was estimated from seasonally aggregated annual density distributions of satellite AIS data for the years 2013 through 2015 (Figure \ref{fig:costmap}).  Grid resolution for this analysis was set to 0.01 degrees and within each grid square the number of unique vessels, identified by the vessel’s Maritime Mobile Service Identity (MMSI) number was counted daily and summed through time.  Cost maps were estimated quarterly.  Two different cost maps were developed for the St. Anns Bank area to interpolate vessel transits north of Cape Breton into and out of the Gulf of St. Lawrence.  Interpolation was heavily influenced by the ferries transiting between Cape Breton and Newfoundland, and therefore a cost map was developed without the data derived from these ferries.  A bathymetric restriction can also be build into the cost maps.
 
-Spatial interpolation must be completed to “fill in” missing data.  Spatial interpolation is achieved using an astar function (Hart et al. 1968)  that estimates the minimum cost to get from one point to another based on a cost map.  The coast map was estimated from seasonally aggregated annual density distributions of satellite AIS data for the years 2013 through 2015.  Grid resolution for this analysis was set to 0.01 degrees and within each grid square the number of unique vessels, identified by the vessel’s Maritime Mobile Service Identity (MMSI) number was counted daily and summed through time.  Cost maps were estimated quarterly.  Two different cost maps were developed for the St. Anns Bank area to interpolate vessel transits north of Cape Breton into and out of the Gulf of St. Lawrence.  Interpolation was heavily influenced by the ferries transiting between Cape Breton and Newfoundland, and therefore a cost map was developed without the data derived from these ferries.  A bathymetric restriction can also be build into the cost maps.
-
-\begin{figure}
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=1.0\textwidth]{\sab SimardSight.pdf}
-	\caption{Simard et al. (2014) estimated vessel detection circles for the terrestrial AIS receiving stations around St. Anns Bank Area of Interest}
-	\label{fig:DetAIS}
+	\begin{tabular}{cc}
+	\includegraphics[width=0.5\textwidth]{\sab Interpolation_Example.pdf} &
+    \includegraphics[width=0.5\textwidth]{\sab Interpolation_Example3.pdf}
+	\end{tabular}
+	\caption{Detected vessel positions (large filled circles) and interpolated vessel positions (lines) for three unique vessels transiting through the St. Anns Bank Area, where each colour represents a unique vessel. The left panel represents interpolated vessel position where a bathymetric restriction of 20 m was imposed on the astar function that interpolates positions based on cost maps.}
+	\label{fig:astar}
+\end{figure}
+
+
+\begin{figure}[h]
+	\centering
+	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{\sab Counts_2013-2015_Q1.pdf} &
+		\includegraphics[width=0.5\textwidth]{\sab Counts_2013-2015_Q1_NNF.pdf}
+	\end{tabular}
+	\caption{Vessel density maps for the first quarter of a year based on satellite AIS data from 2013-2015 for all vessels (left panel) and all vessels except of the Newfoundland ferries (right panel).}
+	\label{fig:countmaps}
+\end{figure}
+
+
+
+
+\begin{figure}[h]
+	\centering
+	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{\sab Cost_2013-2015_Q1.pdf} &
+		\includegraphics[width=0.5\textwidth]{\sab Cost_2013-2015_Q1_NNF.pdf}
+	\end{tabular}
+	\caption{Cost maps developed for the astar function to interpolate undetected vessel positions as vessels transit in and out of the Gulf of St. Lawrence.}
+	\label{fig:costmap}
 \end{figure}
 
 
@@ -579,7 +616,11 @@ Spatial interpolation must be completed to “fill in” missing data.  Spatial 
   \item benthic / pelagic coupling and nutrient cycling
   \item genetic diversity 
   \item vulnerable life-history traits
+  
 \end{itemize}	
+
+\subsubsection{Stomach Database}
+Bottom trawl surveys have been conducted by DFO on the Scotian Shelf annual since 1970 using a stratified random design.  Sampling protocols changed in the late 1990s with the focus changing from commercially important finfish species to more comprehensive ecosystem monitoring that included the sampling of macroinvertebrates (Tremblay \textit{et al}. 2007).  Stomach contents samples were collected from finfish using a length-stratified sampling protocol.  Prey were quantified by weight and number, and often identified to the genus or family level, or to the species level when possible.  To determine if diet of finfish was different pre- and post- implementation of the MPA on St. Anns Bank or if there were differences within the MPA compared to other areas on the Scotia shelf, we explored the stomach database to determine if these dietary differences could be detected. Within the database, 54\% of the prey number observations were missing.  Due to the large interannual variation in prey weights estimating the prey number consistently from non-missing data where both the prey number and weight was available was determined to be impracticable and unreliable.  Due to the sampling stratification both by depth and length classes it was further determined that there would be insufficient samples available to reach the asymptote of prey species accumulation curves (Cook and Bundy 2010) and total diet composition could not be detected.  Prey species identified in the stomach samples could be used for quantifying biodiversity and species richness (Cook and Bundy 2012) for the proposed MPA and comparing it to similar ecosystem or pre- and post-implementation.
 
 \section{Methods}
 All methods have been implemented in R such that they are transparent and readily shared with all parties and improved by all interested users. It is structured that any additional data series can be easily added to the system to permit adaptive change.
@@ -647,7 +688,7 @@ All data extraction, quality control and processing methods are documented in R 
 
 \subsection{Discrete bottle data}
 
-BioChem data are generally not subject to any quality control (QC). As such, substantial QC was required. The QC protocol used was based on procedures designed at DFO's Institut Maurice-Lamontagne (IML). These were in turn was based on procedures developed by NOAA's National Oceanographic Data Center/World Ocean Database (Conkright et al. 2002) as well as many of the tests proposed in the GTSPP Real-Time Quality Control Manual (Unesco 1990). The quality control procedure was as follows:
+BioChem data are generally not subject to any quality control (QC). As such, substantial QC was required. The QC protocol used was based on procedures designed at DFO's Institut Maurice-Lamontagne (IML). These were in turn was based on procedures developed by NOAA's National Oceanographic Data Center/World Ocean Database (Conkright \textit{et al}. 2002) as well as many of the tests proposed in the GTSPP Real-Time Quality Control Manual (Unesco 1990). The quality control procedure was as follows:
 
 \textbf{Step 1: Impossible dates}
 
@@ -881,8 +922,8 @@ Silicate data available in BioChem are mapped to 8 methods (Table~\ref{tableSili
 
 \subsection{Zooplankton}
 
-Zooplankton data was extracted from DFO's BioChem database (DFO 2015, Devine et al. 2014) from 1914 to 2014. They were comprised of 687 missions and 53,787 samples, using 13 different kind of nets, 35 different mesh sizes ranging from 20 microns to 4.23 mm, and various net deployment and sample processing protocols.
-To ensure data consistency and comparability, only samples collected and analyzed using Atlantic Zone Monitoring Program (AZMP) protocol (Mitchell et al. 2002) were retained for study, reducing the time scope to 1999-2014. 
+Zooplankton data was extracted from DFO's BioChem database (DFO 2015, Devine \textit{et al}. 2014) from 1914 to 2014. They were comprised of 687 missions and 53,787 samples, using 13 different kind of nets, 35 different mesh sizes ranging from 20 microns to 4.23 mm, and various net deployment and sample processing protocols.
+To ensure data consistency and comparability, only samples collected and analyzed using Atlantic Zone Monitoring Program (AZMP) protocol (Mitchell \textit{et al}. 2002) were retained for study, reducing the time scope to 1999-2014. 
 
 As AZMP samples are not always properly flagged in the BioChem database, a list of missions that followed the AZMP protocol were provided by Ocean and Ecosystem Science Division (OESD) and Ocean Data and Information Services (ODIS). The relevant missions include AZMP spring and fall cruises, summer and winter groundfish survey missions, bi-weekly sampling at fixed stations (Halifax Station 2 and Prince 5) and samples collected on the Scotian Shelf during Labrador Sea missions. 
 
