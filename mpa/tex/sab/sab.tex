@@ -87,7 +87,7 @@
 
 \section*{Acknowledgements}
 
-We highlight the invaluable assistance of a great number of scientists that have been part of the various surveys that inform this document. This report could not have been completed without their guidance and assistance: DataShop (Shelley Bond), Remote Sensing Group (Carla Caverhill, George White), AZMP (Catherine Johnson, Benoit Casault), Snow crab survey (Ben Zisserson, Brent Cameron, snow crab industry), Groundfish survey (Scott Wilson, Bill MacEachern, Don Clark), Clam survey (Dale Roddick), substrate grain size (Vladimir Kostelev, Charles Hannah), bathymetry data (Canadian Hydrographic Service), ocean temperature data (Roger Pettipas (Ocean Sciences).
+We highlight the invaluable assistance of a great number of scientists that have been part of the various surveys that inform this document. This report could not have been completed without their guidance and assistance: DataShop (Shelley Bond), Remote Sensing Group (Carla Caverhill, George White), AZMP (Catherine Johnson, Benoit Casault), Snow crab survey (Ben Zisserson, Brent Cameron, snow crab industry), Groundfish survey (Scott Wilson, Bill MacEachern, Don Clark), Clam survey (Dale Roddick), substrate grain size (Vladimir Kostelev, Charles Hannah), bathymetry data (Canadian Hydrographic Service), ocean temperature data (Roger Pettipas (Ocean Sciences), vessel data (Tanya Koropatrick and Norman Cochrane).
 
 \section*{Abstract}
 \clearpage
@@ -567,11 +567,11 @@ An overview (in Google Earth format) of the catch and sampling at these stations
   
 \clearpage
 
-\subsection{Fishery activity}
-Commercial-fishing activities can modify the habitat and ecosystem and contribute to changes in the structure and functioning of exploited marine communities.  Fishing impacts can be direct, such as the reduction of targeted and non-targeted species, as well as their truncations in age and size compositions.  Other direct effects due to fishing activities include habitat alterations and substrate modifications through interactions with fishing gear. Fishing can also cause indirect impacts with changes foodweb structure within an ecosystem.  
+\subsection{Fisheries activity}
+Commercial-fishing activities can modify the habitat and ecosystem and contribute to changes in the structure and functioning of exploited marine communities.  Fishing impacts can be direct, such as the reduction of targeted and non-targeted species, as well as truncations in age and size distributions.  Other direct effects due to fishing activities include habitat alterations and substrate modifications through interactions with fishing gear. Fishing can also cause indirect impacts with changes foodweb structure within an ecosystem.  
 
-Direct impacts of commercial fishing can be measured using data form the Marine Fish (MARFIS) database that provides information on commercial fishing activities.  For most fisheries the fishing position, gear type, catch per unit effort, estimated weight of catch by species information is available from the database. The MARFIS database detail information for all fishing trips where a landing is reported within the DFO Maritimes region and includes data from 2002 through 2015.  
-
+Direct impacts of commercial fishing can be measured using data form the Marine Fish (MARFIS) database that provides information on commercial-fishing activities.  For most fisheries the fishing position, gear type, catch per unit effort, estimated weight of catch by species information is available from the database. The MARFIS database detail information for all fishing trips where a landing is reported within the DFO Maritimes region and includes data from 2002 through 2015.    The exploitation of marine species and entanglement threat to cetaceans and sea turtles will be quantified from data derived from the MARFIS database.
+   
 \begin{itemize}
   \item Relevance:  productivity, habitat, biodiversity and species of interest
   \item Sampling:  Marfis
@@ -580,7 +580,7 @@ Direct impacts of commercial fishing can be measured using data form the Marine 
   \item Source code: https://github.com/jae0/ecomod/XXX/src/XXX.r
 \end{itemize}	
 
-
+Trawling and dredging disturbances to the sea floor will require different estimation techniques.  Vessel Monitoring System (VMS) point locations have been used to estimate fishing-effort distributions (e.g. Lee \textit{et al}. 2010) and to estimated impacts on the seabed (Gerritsen \textit{et al}. 2013).  Similar techniques can be developed within R to estimated the impacts to benthos from trawling and dredging activities within the St. Anns Bank area.   
 
 
 St. Anns Bank Area of Interest has four zones within it with various levels of fishing restrictions (Figure \ref{fig:SABCloseup}). Commercial fishing is restricted from Zone 1, the largest area, with the exception of the seal harvest.  The MPA requires monitoring to ensure that fishers are complying with regulations.  Monitoring could be done through a variety of techniques and data sources, including data reported in the MARFIS database, Vessel Monitoring System (VMS) data that allow the direct monitoring of fishing activities. Automatic Identification System (AIS) data may also be used to monitoring fishing activities if the vessel is large enough to require AIS ($\geq$ 300 gross registered tonnes) or if a fishing vessel has voluntarily installed an AIS system onboard.  
@@ -636,7 +636,7 @@ The CCG terrestrial system as 21 AIS coastal receiving stations in in the Mariti
 \begin{figure}[h]
 	\label{fig:TAIS}
   \centering
-	\includegraphics[width=1.0\textwidth]{\sab Line_of_Sight.pdf}
+	\includegraphics[width=1.0\textwidth]{\sab CCG_AIS.pdf}
 	\caption{AIS data collected from the Canadian Coast Guard terrestrial network of AIS receiving stations.  Each colour represents data from a unique vessel.}
 \end{figure}
 
