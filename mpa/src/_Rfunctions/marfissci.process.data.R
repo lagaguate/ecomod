@@ -14,7 +14,27 @@ marfissci.process.data <- function(df, write.shp=T, agg=0.05){
   #'generates a shapefile on command
   #'
   library(lubridate) 
+  library(sp) 
   df$YEAR_FISHED=year(df$DATE_FISHED)
+  df.sp = df
+  
+  #SPATIAL IDENTIFICATION OF IMPROPERLY POSITIONED CATCH (i.e. 
+  #on land)
+  #use coastline to find those points that are inland 
+  #Assign it to 35N,-50W (and apply agg rounding)
+  print("Verifying that data is a valid, marine location...")
+  coast = coastline.db( p=p, DS=" gshhg coastline highres", no.clip=TRUE )
+  coast = spTransform(coast, CRS("+proj=longlat +datum=WGS84"))
+  coordinates(df.sp) = c("LON", "LAT")
+  proj4string(df.sp) = CRS("+proj=longlat +datum=WGS84")
+  df.sp@data$INLAND =over(df.sp,coast) #Anything other than NA is inland
+  df = cbind(df,INLAND = df.sp@data$INLAND)
+  df[!is.na(df$INLAND),]$LAT = -50
+  df[!is.na(df$INLAND),]$LON = 35
+  rm(df.sp)
+  print("...Continuing Analysis")
+  
+  
   #  round the coordinates to the desired aggregation so we can group by the new 
   # 'points', giving a lot less data to process
   df$LATAGG = (round(df$LAT/agg)*agg)+0.5*agg
@@ -32,27 +52,16 @@ marfissci.process.data <- function(df, write.shp=T, agg=0.05){
                                LAT = df$LATAGG, 
                                LON = df$LONAGG), 
                        FUN="sum")
-  rm(df)
-  
-  #SPATIAL IDENTIFICATION OF IMPROPERLY POSITIONED CATCH (i.e. 
-  #on land) SHOULD BE HERE!!  Assign it to 35N,-50W (and apply agg rounding)
+ # rm(df)
    
-  
-   
-  #identify, capture and then remove data with unknown positions (assigned 35N,
-  #-50W)
-  #For now, I'm only dealing with those without appropriate coordinates, but
-  #data falling on land should be identified at this stage too (prior to 
-  #determining the proportions, below)
- 
+  #identify, capture and remove data with unknown positions (assigned 35N,-50W)
   orphaned.weight=data.agg[data.agg$LAT == (round(35/agg)*agg)+0.5*agg & data.agg$LON == (round(-50/agg)*agg)-0.5*agg,]$RND_WEIGHT_KGS 
   data.agg=data.agg[!(data.agg$LAT == (round(35/agg)*agg)+0.5*agg & data.agg$LON == (round(-50/agg)*agg)-0.5*agg),] 
   
   #determine the proportion of the rnd weight in each cell
   data.agg$PROP = prop.table(as.table(as.matrix(data.agg[,5])))
   data.agg$PROP_RND_WEIGHT_KGS = (orphaned.weight*data.agg$PROP)+data.agg$RND_WEIGHT_KGS
-  
-  
+ 
   #make a descriptive name so we know what we've got
   if (range(data.agg$SPECIES_CODE)[1] == range(data.agg$SPECIES_CODE)[2]) {
     spp.file = range(data.agg$SPECIES_CODE)[1]
@@ -65,21 +74,22 @@ marfissci.process.data <- function(df, write.shp=T, agg=0.05){
     years.file = paste(range(data.agg$YEAR_FISHED),collapse = "_")
   }
   agg.file=gsub("\\.","_",agg)
-  filename = paste0("pts_",agg.file,"_",years.file,"_",spp.file)
+  the.filename = paste0("pts_",agg.file,"_",years.file,"_",spp.file)
   
   if (write.shp) {
     library(rgdal)
-    coordinates(data.agg) = c("LON", "LAT")
-    proj4string(data.agg) = CRS("+proj=longlat +datum=WGS84")
-    writeOGR(data.agg, dsn = paste0(project.datadirectory("mpa"),"/shapes"), layer = filename, driver = "ESRI Shapefile", overwrite_layer = T)
     
+    data.agg.sp = data.agg
+    coordinates(data.agg.sp) = c("LON", "LAT")
+    proj4string(data.agg.sp) = CRS("+proj=longlat +datum=WGS84")
+     writeOGR(data.agg.sp, dsn = paste0(project.datadirectory("mpa"),"/shapes"), layer = the.filename, driver = "ESRI Shapefile", overwrite_layer = T)
     message = paste0("Shapefile written to ",filename,".shp")
   }else{
-    write.csv(data.agg, paste0(filename,".csv"), row.names = F)
-    message = paste0("CSV written to ",filename,".csv")
+    write.csv(data.agg, paste0(the.filename,".csv"), row.names = F)
+    message = paste0("CSV written to ",the.filename,".csv")
   }
   rm(data.agg)
   return(message)
 }
 #df = read.csv(paste0(project.datadirectory("mpa"),"/csv/raw_2010_612.csv"))
-#process.marfis.data(df, write.shp=T, agg = 0.05)
+#marfissci.process.data(df, write.shp=T, agg = 0.05)
