@@ -291,17 +291,17 @@ Abundance patterns are found in Figure~\ref{fig:AZMPBiomassMonthly}.
   \label{fig:AZMPBiomassMonthly}
   \centering
   \begin{tabular}{cc}
-      \includegraphics[width=0.5\textwidth]{\sab 8.png}
-      \includegraphics[width=0.5\textwidth]{\sab 9.png}
+      \includegraphics[width=0.45\textwidth]{\sab 8.png}
+      \includegraphics[width=0.45\textwidth]{\sab 9.png}
   \end{tabular}
   \begin{tabular}{cc}
-      \includegraphics[width=0.5\textwidth]{\sab 10.png}
-      \includegraphics[width=0.5\textwidth]{\sab 11.png}
+      \includegraphics[width=0.45\textwidth]{\sab 10.png}
+      \includegraphics[width=0.45\textwidth]{\sab 11.png}
   \end{tabular}
   \caption{Monthly averages of all data from 1999 to 2014: total abundance (top left), total biomass computed from wet weight (top right), ratio of total biomass computed from wet weight  to total abundance (bottom center) as a potential measure of the average weight of the individual organism, \textit{Calanus finmarchicus}, \textit{Calanus hyperboreus}, and \textit{Calanus glacialis} }
 \end{figure}
 
-
+\clearpage
 
 \subsection{Remote Sensing Data} 
 
@@ -393,7 +393,7 @@ Primary production for each pixel within St. Anns Bank polygon was extracted fro
   \caption{Average Primary Production (PP) computed from monthly composite images for St.Anns bank polygon for the time period 2002-2014.}
 \end{figure}
 
-
+\clearpage
 
 \paragraph{Sea Surface Temperature}
 
@@ -440,6 +440,7 @@ The SST pixels within St. Anns Bank polygon were extracted from each 8-day compo
   \caption{Average Sea Surface Temperature (SST) computed from 8-day AVHRR composite images for St.Anns bank polygon for the time period 1997-2015.}
 \end{figure}
 
+\clearpage
 
 
 \subsection{Bottom temperatures}
@@ -454,7 +455,7 @@ The SST pixels within St. Anns Bank polygon were extracted from each 8-day compo
 
 Numerous data sources have been compiled by Ocean Sciences Division. The data were QA/QC controlled and then modelled in a two-part process, temporal (first order harmonic analysis) and then simple spatial interpolations via localized Generalized Additive Models with a spatial extent that varied as a function of data density. 
 
-
+\clearpage
 
 \subsection{Demersal fish and macro-invertebrates}
 \begin{itemize}
@@ -480,13 +481,52 @@ Numerous data sources have been compiled by Ocean Sciences Division. The data we
 \end{itemize}
 
 
+\subsubsection{Groundfish survey}
+
+The Groundfish survey utilizes a Western II-A net ...config ..
+A standard tow is a 30 minute tow at xx knots.
+It operates night and day.
+
+
 \subsubsection{Net mensuration} 
 
 The groundfish survey is still a major source of information for many studies and stock assessments. However, historical estimation procedures were incorrect due to timing/net mensuration methods being inadequate. Sensors measuring trawl net configuration and state are used by most modern surveys. For example, in the snow crab survey, they have been used to determine swept area manually (since 1996) and/or with an automated procedure (since 2004).
 
-In the groundfish  survey, they have been collected sporadically since 2004. Swept area estimates have never been computed for the groundfish surveys. Generally, data are used with the assumption that each tow is equivalent in swept are or arealy adjusted with the assumption of linear distance from start and end positions. This is was found to be problematic as positional information was found to be recorded with error. Further, the actual time and distance of bottom contact was variable ranging from approximately 10 to 40 minutes and with distances ranging from xx to xx km. Net width always assumed constant at xx m. This assumption is also problematic in that the configuration of a trawl net can alter shape depending upon currents, surface sea state, net fullness/filtration efficiency due to contact with rocks/boulders/mud, etc (Munden and Choi, in prep). 
+In the groundfish survey, net configuration data have been collected sporadically since 2004. However, swept area estimates have never been computed for the groundfish surveys. Generally, data seem to be used with the assumption that each tow is equivalent in swept area or adjusted by the linear distance from start and end positions (assuming a fixed net width). The latter approach is problematic (Figures~\ref{fig:groundfishWingDoorAnnual}, \ref{fig:groundfishWingDoorComparison}). Recorded positional information was also found to be recorded with error (Figure~\ref{fig:groundfishTowDistance} resulting in appropriate estimates of swept area (Figure~\ref{fig:groundfishSweptArea}. Further, the actual time and distance of bottom contact was variable ranging from approximately 10 to 40 minutes and with distances ranging from xx to xx km. Net width always assumed constant at xx m. This assumption is also problematic in that the configuration of a trawl net can alter shape depending upon currents, surface sea state, net fullness/filtration efficiency due to contact with rocks/boulders/mud, etc. (Munden and Choi, in prep). 
 
 To address these important and incorrect assumptions, algorithms were developed to automatically determine lift off and touch down times, locations and net width. Based upon random visual inspection, the skill was determined to be high with approximately 95\% of the cases having estimates within 15 seconds of a visual determination touch down/lift off points. Where bias was observed this was mostly to underestimate total contact time due to an over-smoothing of the lift off or touch down profiles. Unfortunately, net mensuration data is still not consistently recorded nor used in the groundfish surveys (Table XX -- number of sets with records of net config). As a result, it is not possible to satisfactorily estimate swept area for all historical sets. As a result, statistical methods have been developed to estimate these as much as possible and are used for the first time in this report. The estimation procedure was statistical using GAM-estimated relationships with location, depth and salinity ($R^2$ ranged from 60 to 40\%, depending upon availability of covariates). 
+
+\begin{figure}[h]
+  \label{fig:groundfishTowDistance}
+  \centering
+  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/toweddistance.pdf}
+  \caption{Towed distance comparisons in the groundfish survey.}
+\end{figure}
+
+
+\begin{figure}[h]
+  \label{fig:groundfishWingDoorAnnual}
+  \centering
+  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/{wing.v.door.byyear}.pdf}
+  \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly larger from 2013 to 2015.}
+\end{figure}
+
+
+\begin{figure}[h]
+  \label{fig:groundfishWingDoorComparison}
+  \centering
+  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/{wing.v.door}.pdf}
+  \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
+\end{figure}
+
+
+\begin{figure}[h]
+  \label{fig:groundfishSweptArea}
+  \centering
+  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/{sa.comparison}.pdf}
+  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration.}
+\end{figure}
+
 
 
 Trawl data summary:
@@ -497,24 +537,16 @@ Trawl data summary:
 
 -- describe use of quantiles / Zscore
 
+\clearpage
 
 
+\subsubsection{Snow crab survey}
 
+A \textit{Bigouden Nephrops} trawl, a net originally designed to dig into soft sediments for the capture of lobsters in Europe was used to sample the substrate (headline of 20~m, 27.3~m foot rope mounted with a 3.2~m long 8~mm chain, with a mesh size of 80~mm in the wings and 60~mm in the belly and 40~mm in the cod-end). Tows were conducted for $\sim$~5~minutes in duration with actual duration of bottom contact being monitored by Netmind sensors. The width of the mouth of the net was also monitored with Netmind sensors. The ship speed was maintained at $\sim 2$~knots. The warp length was $\sim 3 \times$ the depth. Positional information as well as water temperature measurements were collected using a global positioning system and Minilog data recorders, respectively. The surface area swept by the net was calculated from swept distance and net width information.
 
+\subsubsection{MPA stations}
 
-\subsection{Benthic macroinvertebrates (and demersal fish)}
-\begin{itemize}
-  \item Relevance:  productivity, habitat, biodiversity and species of interest
-  \item Sampling:  snow crab survey, benthic trawl 
-  \item Spatial coverage: 
-  \item Temporal coverage: 2000 - present
-  \item Source code: https://github.com/jae0/ecomod/snowcrab/src/snowcrab.r
-\end{itemize}
-
-
-
-
-The 2015 snow crab trawl survey increased sampling in the St. Anns Banks area to provide additional information about the marine macro-fauna. Fourteen stations in (or adjacent to) the proposed MPA location were included in this additional sampling. These fourteen stations were locations traditionally sampled on the snow crab survey and represent varied depths and bottom- types, pseudo micro-habitats. The species composition of the catch at these stations varied greatly as expected with differences in depth and bottom type. The sampling at these stations included:
+The 2015 snow crab trawl survey increased sampling in the St. Anns Banks area to provide additional information about the marine macro-fauna. Fourteen stations in (or adjacent to) the proposed MPA location were included in this additional sampling. These fourteen stations were locations traditionally sampled on the snow crab survey and represent varied depths and bottom- types, micro-habitats. The species composition of the catch at these stations varied greatly as expected with differences in depth and bottom type. The sampling at these stations included:
 
 \begin{itemize}
   \item all catch identified to species level
@@ -533,9 +565,10 @@ An overview (in Google Earth format) of the catch and sampling at these stations
    \item bird observations carried out by Canadian Wildlife Service, 
 \end{itemize}	
   
+\clearpage
 
 \subsection{Fishery activity}
-Commercial-fishing activities can modify the habitat and ecosystem and contribute to changes in the structure and functioning of exploited marine communities.  Fishing impacts can be direct, such as the reduction of targeted and non-targeted species, as well as their truncations in age and size compositions.  Other direct effects due to fishing activities include habitat alterations and substrate modifications through interactions with fishing gear.  Fishing can also cause indirect impacts with changes foodweb structure within an ecosystem.  
+Commercial-fishing activities can modify the habitat and ecosystem and contribute to changes in the structure and functioning of exploited marine communities.  Fishing impacts can be direct, such as the reduction of targeted and non-targeted species, as well as their truncations in age and size compositions.  Other direct effects due to fishing activities include habitat alterations and substrate modifications through interactions with fishing gear. Fishing can also cause indirect impacts with changes foodweb structure within an ecosystem.  
 
 Direct impacts of commercial fishing can be measured using data form the Marine Fish (MARFIS) database that provides information on commercial fishing activities.  For most fisheries the fishing position, gear type, catch per unit effort, estimated weight of catch by species information is available from the database. The MARFIS database detail information for all fishing trips where a landing is reported within the DFO Maritimes region and includes data from 2002 through 2015.  
 
@@ -553,7 +586,42 @@ Direct impacts of commercial fishing can be measured using data form the Marine 
 St. Anns Bank Area of Interest has four zones within it with various levels of fishing restrictions (Figure \ref{fig:SABCloseup}). Commercial fishing is restricted from Zone 1, the largest area, with the exception of the seal harvest.  The MPA requires monitoring to ensure that fishers are complying with regulations.  Monitoring could be done through a variety of techniques and data sources, including data reported in the MARFIS database, Vessel Monitoring System (VMS) data that allow the direct monitoring of fishing activities. Automatic Identification System (AIS) data may also be used to monitoring fishing activities if the vessel is large enough to require AIS ($\geq$ 300 gross registered tonnes) or if a fishing vessel has voluntarily installed an AIS system onboard.  
 
 
+\subsubsection{MarFIS data extraction and manipulation}
 
+In consultation with Commercial Data Division staff (Robert Grandy, Greg Croft and Krista Wry), prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers' logs.
+
+Most logs include coordinates describing the location of the catch, but it is not uncommon to also find those that don't.  Coordinates were used preferentially in the following order:
+\begin{itemize}
+  \item LOG\_EFRT\_STD\_INFO\_ID.ENT\_
+  \item LOG\_EFRT\_STD\_INFO\_ID.DET\_
+  \item Centroid of the determined (NAFO) Fishing Area
+\end{itemize}
+
+Those catches that did not have associated coordinates were identified so that significant catches would not be accidentally overlooked. Catches without associated coordinates or those falling on land will be spread over the whole spatial area of the species, with weights distributed in proportion to known catch locations for a given year.
+
+In addition to the landings, we have also included several other forms of catch so as to better reflect the removal of biomass. These catches include those used as bait or discarded (including live, dead and unspecified). The position logic was the same as that used above. Additionally, these catches are self-reported in a variety of units, so they are converted to kg as necessary to match the logged landings The catch consisting of "live discards" will not be included in the final report.
+
+The extraction logic is captured in the script found at: \\
+
+ url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/get.marfis.data.R}
+
+\subsubsection{Data Layer Generation}
+
+Data was aggregated at a 6 minute grid, and individual polygon files were created for each unique combination of YEAR and SPECIES. (Note: The aggregation will ultimately be at 3 minute grids, which was selected since it is an even division of a degree, with no potential for rounding errors: 
+
+\begin{eqnarray*}
+3 \: \text{minutes} &:& 1/60*3 = 0.05 \\
+2 \: \text{minutes} &:& 1/60*2 = 0.0\dot{3}
+\end{eqnarray*}
+
+
+The data aggregation logic is captured in 2 scripts: \\
+
+url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/process.marfis.mpa.R} \\
+url{https://github.com/jae0/ecomod/marfissci/src/\_Rfunctions/aggregate.marfis.R}
+
+
+\clearpage
 
 \subsection{Vessel activity}
 Commercial shipping can have various direct and indirect effects on an ecosystem. Direct effects including the contamination of the ecosystem from the discharge of contaminates, radiated underwater noise, the introduction of aquatic invasive species, and vessel-strike risk to marine mammals and sea turtles.  Spatia-temporal data on vessel traffic is needed to determine the probability and/or magnitude of these effects on ecosystems.  Such information is available through AIS data.  
@@ -595,7 +663,7 @@ The satellite AIS data are available globally for the years 2013, 2014, and 2015
 	\centering
 	\begin{tabular}{cc}
 	\includegraphics[width=0.5\textwidth]{\sab Interpolation_Example.pdf} &
-    \includegraphics[width=0.5\textwidth]{\sab Interpolation_Example3.pdf}
+  \includegraphics[width=0.5\textwidth]{\sab Interpolation_Example3.pdf}
 	\end{tabular}
 	\caption{Detected vessel positions (large filled circles) and interpolated vessel positions (lines) for three unique vessels transiting through the St. Anns Bank Area, where each colour represents a unique vessel. The left panel represents interpolated vessel position where a bathymetric restriction of 20 m was imposed on the astar function that interpolates positions based on cost maps.}
 \end{figure}
@@ -666,8 +734,7 @@ The satellite AIS data are available globally for the years 2013, 2014, and 2015
 Bottom trawl surveys have been conducted by DFO on the Scotian Shelf annual since 1970 using a stratified random design.  Sampling protocols changed in the late 1990s with the focus changing from commercially important finfish species to more comprehensive ecosystem monitoring that included the sampling of macroinvertebrates (Tremblay \textit{et al}. 2007).  Stomach contents samples were collected from finfish using a length-stratified sampling protocol.  Prey were quantified by weight and number, and often identified to the genus or family level, or to the species level when possible.  To determine if diet of finfish was different pre- and post- implementation of the MPA on St. Anns Bank or if there were differences within the MPA compared to other areas on the Scotia shelf, we explored the stomach database to determine if these dietary differences could be detected. Within the database, 54\% of the prey number observations were missing.  Due to the large interannual variation in prey weights estimating the prey number consistently from non-missing data where both the prey number and weight was available was determined to be impracticable and unreliable.  Due to the sampling stratification both by depth and length classes it was further determined that there would be insufficient samples available to reach the asymptote of prey species accumulation curves (Cook and Bundy 2010) and total diet composition could not be detected.  Prey species identified in the stomach samples could be used for quantifying biodiversity and species richness (Cook and Bundy 2012) for the proposed MPA and comparing it to similar ecosystem or pre- and post-implementation.
 
 
-
-
+\clearpage
 \section{Methods}
 
 All methods have been and will continue to be implemented in R, an open-sourced programming environment. The methods are shared via http://github.com using the git revisioning system. These architectural choices were adopted to enhance the transparency and ease of sharing and collaborating with all interested parties. It is structured such that any additional data series can be easily added to the system to permit adaptive change. In this way, the approaches developed represents a true \textbf{structural framework} in which to further develop methods and approaches. 
@@ -686,7 +753,7 @@ R = B0 + SA + TS + LN(e)
 
 The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
-
+\clearpage
 \subsection{Productivity}
 
 Total system standing biomass is generally used as a proxy for productivity. They are not the same. But ...
@@ -700,7 +767,7 @@ This can then be coupled with total system landings to estimate the biomass and 
 
 The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
-
+\clearpage
 \subsection{Habitat}
 
 The Hutchinsonian notion of "ecological niche" is closely tied to the general understanding of "habitat". It is a multi-dimensional concept, that incorporates, environmental variation, biological constraints related to these variations implict in any ecosystem -- all relative to a given organism or species of interest. It is a highly context/organism-specific concept. 
@@ -712,13 +779,13 @@ One frequently encountered means of describing this organism-specific habitat is
 
 The simplest approach is to model the presence or absence as a Bernoulli process. In particular, the binomial or negative binomial representation of this process lends itself to a probability model that can be readily formulated as a simplistic binomial General Linear Model. However, as species-specific environmental constraints are generally modal in form, a nonlinear model is more useful. Generalized Additive Model (GAM; via the mgcv library) and a Stochastic Partial Differential Equation approach (SPDE/INLA; via the RINLA library) are two methods that can deal with these environmental constraints in a simple and efficient manner. They are used in this framework.
 
-The intent is to develop simple predictive habitat models for wolffish, cod, and other species of interest to assess changes in the habitat area available. At present, only the models for snow crab have been completed (Figure~\ref{fig:snowcrabHabitat}). It is possible to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. The likelihood of it being completed depends upon the time/resources available. No promises are being made here.
+The intent is to develop simple predictive habitat models for wolffish, cod, and other species of interest to assess changes in the habitat area available. At present, only the models for snow crab have been completed (Figure~\ref{fig:snowcrabHabitat}; see \cite{snowcrabResDoc} for more details). It is possible to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. The likelihood of it being completed depends upon the time/resources available. No promises are being made here.
 
-\begin{figure}[h]
+\begin{figure}
   \label{fig:snowcrabHabitat}
   \centering
   \includegraphics[width=1\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
-  \caption{Predicted probability of observing snow crab in Maritimes Region. See \cite{snowcrabResDoc} for more details.}
+  \caption{Predicted probability of observing snow crab in Maritimes Region.}
 \end{figure}
 
 
@@ -732,7 +799,7 @@ These associations are quantified using a standard multivariate procedure, namel
 
 The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
-
+\clearpage
 \subsection{Spatial and temporal statistical modeling and interpolation}
 \label{sec:interpolation}
 Source code: https://github.com/jae0/ecomod/spacetime/
@@ -985,7 +1052,7 @@ Additional steps from IML QC procedure such as checks for constant profile, exce
   \caption{Polygons used for separation of coastal and ocean data, arbitrarily assumed to be a 5 km buffer from the coastline.}
 \end{figure}
 
-
+\clearpage
 
 \subsection{Chlorophyll-a}
 
@@ -1031,6 +1098,7 @@ In a number of cases, the same water sample was processed using two different me
 
 
 
+\clearpage
 
 \subsection{Nitrate}
 
@@ -1064,7 +1132,7 @@ In a number of cases, the same water sample was processed using two different me
 
 Nitrate estimates are derived from 10 methods. The methods are listed and described in Table~\ref{table:Nmethods} and the time series of data associated with each method is shown in Figure~\ref{fig:NTimeseries}. Most of the methods measure nitrate and nitrite together. We also included data for nitrate only since  in most seawater the concentration of nitrite is small compared to that of nitrate.
 
-
+\clearpage
 \subsection{Phosphate}
 
 Phosphate  data available in BioChem are mapped to 7 methods. The methods are listed and described in Table~\ref{table:PhosphateMethods} and the time series of data associated with each method is shown in Figure~\ref{fig:PhosphateTimeseries}.
@@ -1093,7 +1161,7 @@ Phosphate  data available in BioChem are mapped to 7 methods. The methods are li
 \end{figure}
 
 
-
+\clearpage
 \subsection{Silicate}
 
 Silicate data available in BioChem are mapped to 8 methods (Table~\ref{table:SilicateMethods}). Their time series of are shown on Figure~\ref{fig:silicateTimeseries}.
@@ -1122,7 +1190,7 @@ Silicate data available in BioChem are mapped to 8 methods (Table~\ref{table:Sil
   \caption{Time series of silicate data from BioChem grouped by methods.}
 \end{figure}
 
-
+\clearpage
 \subsection{Zooplankton}
 
 Zooplankton data was extracted from DFO's BioChem database (DFO 2015, Devine \textit{et al}. 2014) from 1914 to 2014. They were comprised of 687 missions and 53,787 samples, using 13 different kind of nets, 35 different mesh sizes ranging from 20 microns to 4.23 mm, and various net deployment and sample processing protocols.
