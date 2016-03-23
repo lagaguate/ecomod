@@ -87,7 +87,7 @@
 
 \section*{Acknowledgements}
 
-We highlight the invaluable assistance of a great number of scientists that have been part of the various surveys that inform this document. This report could not have been completed without their guidance and assistance: DataShop (Shelley Bond), Remote Sensing Group (Carla Caverhill, George White), AZMP (Catherine Johnson, Benoit Casault), Snow crab survey (Ben Zisserson, Brent Cameron, snow crab industry), Groundfish survey (Scott Wilson, Bill MacEachern, Don Clark), Clam survey (Dale Roddick), substrate grain size (Vladimir Kostelev, Charles Hannah), bathymetry data (Canadian Hydrographic Service), ocean temperature data (Roger Pettipas (Ocean Sciences), and vessel data (Tanya Koropatrick and Norman Cochrane).
+We highlight the invaluable assistance of a great number of scientists that have been part of the various surveys that inform this document. This report could not have been completed without their guidance and assistance: DataShop (Shelley Bond), Remote Sensing Group (Carla Caverhill, George White), Atlantic Zone Monitoring Progarm (AZMP; Catherine Johnson, Benoit Casault), Snow crab survey (Ben Zisserson, Brent Cameron, snow crab industry), Groundfish survey (Scott Wilson, Bill MacEachern, Don Clark), Clam survey (Dale Roddick), substrate grain size (Vladimir Kostelev, Charles Hannah), bathymetry data (Canadian Hydrographic Service), ocean temperature data (Roger Pettipas (Ocean Sciences), Commercial Data Division (Robert Grandy, Greg Croft and Krista Wry) and vessel data (Tanya Koropatnick and Norman Cochrane).
 
 \section*{Abstract}
 \clearpage
@@ -172,7 +172,7 @@ In this section we focus upon a description of the data chosen for inclusion in 
 
 
 \subsection{Study area}
-Any evaluation of MPA status and effectiveness in meeting conservation objectives, requires explicit reference to changes both within and without the area of interest. Even in the most basic BACI-type design, this requirement is explicit (Green 1979, Underwood 1992). Although this will not alleviate problems associated with pseudo-(spatial, temporal)-replication (Hurlbert 1984), it is still a minimum requirement. For this reason, and also to facilitate evaluations of other potential MPAs in the region, a much larger surrounding area was chosen for analytical purposes. This area is the continental shelf region off Nova Scotia (Figure~\ref{fig:SAB}), bounded by latitudes 37N to 48N and longitudes from 48W to 71W.  
+Any evaluation of MPA status and effectiveness in meeting conservation objectives, requires explicit reference to changes both within and without the area of interest. Even in the most basic BACI-type design, this requirement is explicit (Green 1979, Underwood 1992). Although this will not alleviate problems associated with pseudo-(spatial, temporal)-replication (Hurlbert 1984), it is still a minimum requirement. For this reason, and also to facilitate evaluations of other potential MPAs in the region, a much larger surrounding area was chosen for analytical purposes. This area is the continental shelf region off Nova Scotia (Figure~\ref{fig:SAB}), bounded by latitudes 37N to 48N and longitudes from 48W to 71W.  ``
 
 \begin{figure}[h]
   \label{fig:SAB}
@@ -514,51 +514,51 @@ The groundfish survey is a major source of information for many stock assessment
 
 To address these important and incorrect assumptions, algorithms were developed to automatically determine lift off and touch down times, locations and net width. Based upon random visual inspection, the skill was determined to be high with approximately 95\% of the cases having estimates within 15 seconds of a visual determination touch down/lift off points. Where bias was observed this was mostly to underestimate total contact time due to an over-smoothing of the lift off or touch down profiles. Unfortunately, net mensuration data is still not consistently recorded nor used in the groundfish surveys (Figure~\ref{fig:groundfishNoSets}). As a result, it is not possible to satisfactorily estimate swept area for all historical sets. Statistical methods have been developed to estimate swept area in these sets and are used for the first time in this report (Figure~\ref{fig:groundfishSweptAreaAll}). The estimation procedure was statistical using GAM-estimated relationships with location, depth and salinity ($R^2$ ranged from 60 to 40\%, depending upon availability of covariates). 
 
-\begin{figure}
-  \label{fig:groundfishTowDistance}
-  \centering
-  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/toweddistance.pdf}
-  \caption{Towed distance comparisons in the groundfish survey.}
-\end{figure}
+%\begin{figure}
+%  \label{fig:groundfishTowDistance}
+%  \centering
+%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/toweddistance.pdf}
+%  \caption{Towed distance comparisons in the groundfish survey.}
+%\end{figure}
 
 
-\begin{figure}
-  \label{fig:groundfishWingDoorAnnual}
-  \centering
-  \includegraphics[width=0.8\textwidth]{\ecomod mpa/analysis/{wing.v.door.byyear}.pdf}
-  \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly larger from 2013 to 2015.}
-\end{figure}
+%\begin{figure}
+%  \label{fig:groundfishWingDoorAnnual}
+%  \centering
+%  \includegraphics[width=0.8\textwidth]{\ecomod mpa/analysis/{wing.v.door.byyear}.pdf}
+%  \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly %larger from 2013 to 2015.}
+%\end{figure}
 
 
-\begin{figure}
-  \label{fig:groundfishWingDoorComparison}
-  \centering
-  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{wing.v.door}.pdf}
-  \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
-\end{figure}
+%\begin{figure}
+%  \label{fig:groundfishWingDoorComparison}
+%  \centering
+%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{wing.v.door}.pdf}
+%  \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
+%\end{figure}
 
 
-\begin{figure}
-  \label{fig:groundfishSweptArea}
-  \centering
-  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison}.pdf}
-  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration.}
-\end{figure}
+%\begin{figure}
+%  \label{fig:groundfishSweptArea}
+%  \centering
+%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison}.pdf}
+ % \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration.}
+%\end{figure}
 
-\begin{figure}
-  \label{fig:groundfishSweptAreaAll}
-  \centering
-  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison.all}.pdf}
-  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration as well as modelled solutions.}
-\end{figure}
+%\begin{figure}
+%  \label{fig:groundfishSweptAreaAll}
+%  \centering
+%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison.all}.pdf}
+%  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration as well as modelled solutions.}
+%\end{figure}
 
 
-\begin{figure}
-  \label{fig:groundfishNoSets}
-  \centering
-  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/numberOfSets.pdf}
-  \caption{Number of sets in the Groundfish surveys and the number of sets with usable net configuration data.}
-\end{figure}
+%\begin{figure}
+%  \label{fig:groundfishNoSets}
+%  \centering
+%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/numberOfSets.pdf}
+%  \caption{Number of sets in the Groundfish surveys and the number of sets with usable net configuration data.}
+%\end{figure}
 
 
 
@@ -609,45 +609,97 @@ Trawling and dredging disturbances to the sea floor will require different estim
 St. Anns Bank Area of Interest has four zones within it with various levels of fishing restrictions (Figure \ref{fig:SABCloseup}). Commercial fishing is restricted from Zone 1, the largest area, with the exception of the seal harvest.  The MPA requires monitoring to ensure that fishers are complying with regulations.  Monitoring could be done through a variety of techniques and data sources, including data reported in the MARFIS database, Vessel Monitoring System (VMS) data that allow the direct monitoring of fishing activities. Automatic Identification System (AIS) data may also be used to monitoring fishing activities if the vessel is large enough to require AIS ($\geq$ 300 gross registered tonnes) or if a fishing vessel has voluntarily installed an AIS system onboard.  
 
 
-\subsubsection{MarFIS data extraction and manipulation}
+\subsubsection{MarFIS data extraction}
 
-In consultation with Commercial Data Division staff (Robert Grandy, Greg Croft and Krista Wry), prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers' logs.
+Prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers’ logs.  
 
-Most logs include coordinates describing the location of the catch, but it is not uncommon to also find those that don't.  Coordinates were used preferentially in the following order:
-\begin{itemize}
-  \item LOG\_EFRT\_STD\_INFO\_ID.ENT\_
-  \item LOG\_EFRT\_STD\_INFO\_ID.DET\_
-  \item Centroid of the determined (NAFO) Fishing Area
-\end{itemize}
+In addition to the landings, we also included several other forms of catch so as to better reflect the removal of biomass. These catches were identified by their \textquotedblleft CATCH \textunderscore USAGE\textunderscore CODE\textquotedblright, and include biomass used as bait or discarded (sometimes identified as dead).  Live discards were not included.  These catches were self-reported in a variety of units, so they have been converted to kg as necessary to match the logged landings. 
 
-Those catches that did not have associated coordinates were identified so that significant catches would not be accidentally overlooked. Catches without associated coordinates or those falling on land will be spread over the whole spatial area of the species, with weights distributed in proportion to known catch locations for a given year.
+Most log records included the spatial location of the catch, and some catches have multiple sets of coordinates available within the table MARFISSCI. LOG\textunderscore EFRT\textunderscore STD\textunderscore INFO\textunderscore ID.  ENT\textunderscore LATITUDE and ENT\textunderscore LONGITUDE are physically entered into the logbook by the fisher, and were used preferentially over DET\textunderscore LATITUDE  and DET\textunderscore LONGITUDE, which are determined from other sources (like Loran-C).  
 
-In addition to the landings, we have also included several other forms of catch so as to better reflect the removal of biomass. These catches include those used as bait or discarded (including live, dead and unspecified). The position logic was the same as that used above. Additionally, these catches are self-reported in a variety of units, so they are converted to kg as necessary to match the logged landings The catch consisting of "live discards" will not be included in the final report.
+Many logs have no usable coordinates \textendash  either they are left blank, or they are clearly incorrect (i.e. on land).  Rather than discarding this data, we still extracted it, and attempted to account for this biomass in the next.
 
-The extraction logic is captured in the script found at: \\url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/get.marfis.data.R}
+The extraction logic is captured in the script found at:
+\url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/marfissci.get.data.R}.
 
-\subsubsection{Data Layer Generation}
+The script above allows the user to specify one or more species and on or more years, and the data will be extracted and saved in a local file.  This file serves as the input to the next step – Data Layer Aggregation.
 
-Data was aggregated at a 6 minute grid, and individual polygon files were created for each unique combination of YEAR and SPECIES. (Note: The aggregation will ultimately be at 3 minute grids, which was selected since it is an even division of a degree, with no potential for rounding errors: 
-
-\begin{eqnarray*}
-3 \: \text{minutes} &:& 1/60*3 = 0.05 \\
-2 \: \text{minutes} &:& 1/60*2 = 0.0\dot{3}
-\end{eqnarray*}
+identified all \textquotedblleft un-positionable\textquotedblright  data and re-distributed the total weight over the whole spatial area in proportion to the known locations of catches (for each species/year combination).  For example, if 40\% of the catch for a species in a given year was identified as coming from grid cell \textquotedblleft x\textquotedblright, than 40\% of the \textquotedblleft un-positionable \textquotedblright catch would be added to that cell. 
 
 
-The data aggregation logic is captured in 2 scripts: 
-\\url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/process.marfis.mpa.R} 
-\\url{https://github.com/jae0/ecomod/marfissci/src/\_Rfunctions/aggregate.marfis.R}
+
+%In consultation with Commercial Data Division staff (Robert Grandy, Greg Croft and Krista Wry), prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers' logs.
+
+%Most logs include coordinates describing the location of the catch, but it is not uncommon to also find those that don't.  Coordinates were used preferentially in the following order:
+%\begin{itemize}
+%  \item LOG\_EFRT\_STD\_INFO\_ID.ENT\_
+%  \item LOG\_EFRT\_STD\_INFO\_ID.DET\_
+%  \item Centroid of the determined (NAFO) Fishing Area
+%\end{itemize}
+
+%Those catches that did not have associated coordinates were identified so that significant catches would not be accidentally overlooked. Catches without associated coordinates or those falling on land will be spread over the whole spatial area of the species, with weights distributed in proportion to known catch locations for a given year.
+
+%In addition to the landings, we have also included several other forms of catch so as to better reflect the removal of biomass. These catches include those used as bait or discarded (including live, dead and unspecified). The position logic was the same as that used above. Additionally, these catches are self-reported in a variety of units, so they are converted to kg as necessary to match the logged landings The catch consisting of "live discards" will not be included in the final report.
+
+%The extraction logic is captured in the script found at: \url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/get.marfis.data.R}
+
+\subsubsection{MarFIS data quality control and aggregation}
+Once data was extracted, it was processed through a second script, \textquotedblleft marfissci.process.data.r\textquotedblright.  This script serves to QC and aggregate the data, as well as apply un-positionable catches of a species proportionally to the positioned data.
+
+QC occurs in 2 stages, and is quite simple.  First, all records without coordinates are identified and retained, but removed from the main dataset.  Next, all remaining data is compared against a high resolution coastline (the same as is shown in Figure \ref{fig:SAB}), and those points falling on land are identified and retained, but removed from the main dataset.
+
+The remaining data is considered good, and this data is then aggregated.  The aggregation level is user-defined, but will likely be a scale of 3 minutes since it is an even division of a degree, with no potential for rounding errors (i.e. 3' = 1/60*3 = 0.05 vs 2' = 0.033333).  The aggregation process outputs a single record with a single position for all of the catch in the area.
+
+Following aggregation, the proportion of the total catch attributable to each cell is calculated.  The data that failed the QC tests are then summed into a single value, representing the total catch that can\textquoteright t be positioned.  These data is then added to all of the cells in the same proportion as was calculated in the previous step.
+
+For example, one cell might have a total catch of 3269.7 kg, and this cell represents 0.002167 of the total catch.  If there are 5954.101 kgs of un-positioned data, then the \textquotedblleft corrected\textquotedblright value for the weight attributed to this cell would be calculated as:
+3269.7 kg + (55954.101 kg * 0.002167) = 3390.93951 kg.
 
 
-An example of the annually aggregated (2010) reported commercial catches for sea scallops (\textit{Placopecten magellanicus}) is presented in Figure \ref{fig:Scallop}.  Nominal catches ranged from 1kg to $\sim$ 5360000 kg) in Bay of Fundy, Georges Bank, and the Scotian Shelf.  Data presented here are uncorrected for fishing position reported on land and missing fishing locations.  
+The data QC and aggregation logic is captured in the script found at:
+\url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/marfissci.process.data.R}.
+
+The script above allows the user to specify the input data, the aggregation level, and how the results should be output.
+
+An example of the annually aggregated (2010) reported commercial catches for sea scallops (\textit{Placopecten magellanicus}) is presented in Figure \ref{fig:Scallop}. Nominal catches ranged to 14,073.78  kg in Bay of Fundy, Georges Bank, and the Scotian Shelf.
+
+
+%Data was aggregated at a 6 minute grid, and individual polygon files were created for each unique combination of YEAR and SPECIES. (Note: The aggregation will ultimately be at 3 minute grids, which was selected since it is an even division of a degree, with no potential for rounding errors: 
+
+%\begin{eqnarray*}
+%3 \: \text{minutes} &:& 1/60*3 = 0.05 \\
+%2 \: \text{minutes} &:& 1/60*2 = 0.0\dot{3}
+%\end{eqnarray*}
+
+
+%The data aggregation logic is captured in 2 scripts: 
+%\\url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/process.marfis.mpa.R} 
+%\\url{https://github.com/jae0/ecomod/marfissci/src/\_Rfunctions/aggregate.marfis.R}
+
+
+%An example of the annually aggregated (2010) reported commercial catches for sea scallops (\textit{Placopecten magellanicus}) is presented in Figure \ref{fig:Scallop}.  Nominal catches ranged from 1kg to $\sim$ 5360000 kg) in Bay of Fundy, Georges Bank, and the Scotian Shelf.  Data presented here are uncorrected for fishing position reported on land and missing fishing locations.  
+
+
+
 
 \begin{figure}[h]
 	\label{fig:Scallop}
 	\centering
-	\includegraphics[width=1.0\textwidth]{\sab GriddedScallop_1.png}
-	\caption{Commercial catch weights of sea scallops ((\textit{Placopecten magellanicus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.  Data are uncorrected for positions reported on land and missing fishing locations.}
+	\includegraphics[width=1.0\textwidth]{\sab Rplot.png}
+	\caption{Commercial catch weights of sea scallops (\textit{Placopecten magellanicus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
+\end{figure}
+
+
+
+Similarly, an example of annually aggregated (2011) reported commercial catches for Halibut (\textit{Hippoglossus hippoglossus}) is shown in Figure \ref{fig:halibut}.  Nominal catches ranged to ~ 9626.91 kg in the same area.
+
+
+
+\begin{figure}[h]
+	\label{fig:halibut}
+	\centering
+	\includegraphics[width=1.0\textwidth]{\sab Rplot01.png}
+	\caption{Commercial catch weights of halibut (\textit{Hippoglossus hippoglossus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
 \end{figure}
 
 
@@ -978,7 +1030,7 @@ Process errors ($\sigma^2_p$) are the uncertainties that feeds back into future 
 
 The posterior distribution of the parameters of interest, $\theta$, conditional upon the data were estimated via MCMC (Gibbs) sampling using the JAGS platform (Plummer 2003, 2010). The JAGS model used for parameter estimation can be found at: \\
 
-url{https://github.com/jae0/ecomod/mpa/bugs/}
+/url{https://github.com/jae0/ecomod/mpa/bugs/}
 
 
 
