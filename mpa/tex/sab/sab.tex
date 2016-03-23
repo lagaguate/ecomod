@@ -111,7 +111,7 @@ An MPA is defined in the Oceans Act 35(1) as, "An area of the sea that forms par
 As a result, for the purposes of this report, we will likewise focus upon these key ecosystem attributes or components, namely: \textbf{productivity, biodiversity, habitat, and  species of interest}. In reality, however, there are many other attributes or components of ecosystems that are also known to be important and relevant. They include: ecological integrity and health, trophic structure and balance, ecosystem function, complexity, network structure, resilience, sustainability as well an open-ended number of species or life history stages of the resident species. These other components will be touched upon where possible or necessary but will receive less attention as the legislated mandate is quite clear. 
 
 \subsection{St. Anns Bank}
-The St. Anns Bank Marine Protected Area (herein, SAB) is an area of interest for eventual designation as an MPA. It is located east of Cape Breton Island, Nova Scotia, Canada (Figure~\ref{figSABCloseup}). An advisory process (DFO 2012), identified the primary objectives of SAB as being to conserve, protect and where appropriate restore, ecologically distinctive or significant areas, and overall, the ecosystem "health" of SAB. As in the Oceans Act, the focus was upon the above four ecosystem components: \textbf{productivity, biodiversity, habitat and species of interest}.
+The St. Anns Bank Marine Protected Area (herein, SAB) is an area of interest for eventual designation as an MPA. It is located east of Cape Breton Island, Nova Scotia, Canada (Figure~\ref{fig:SABCloseup}). An advisory process (DFO 2012), identified the primary objectives of SAB as being to conserve, protect and where appropriate restore, ecologically distinctive or significant areas, and overall, the ecosystem "health" of SAB. As in the Oceans Act, the focus was upon the above four ecosystem components: \textbf{productivity, biodiversity, habitat and species of interest}.
 
 Other MPA goals were also expressed in DFO (2012), but these were less emphatic:
 
@@ -154,20 +154,20 @@ The primary objectives of this report are straightforward:
 The method by which this can be accomplished, however, is anything but straightforward. This is primarily due to the fact that SAB is:
 
 \begin{itemize}
-	\item large ecosystem and as such complex, operating at various space, time and organizational scales
+	\item A large ecosystem and as such complex, operating at various space, time and organizational scales
 	\item Connected in various ways to the surrounding environment and so cannot be treated as an isolated system
-	\item Measures of system components of interest, namely, productivity, biodiversity, habitat and species of interest, are imperfect at best, and usually non-existent or poor in information quality/quantity.
+	\item Measures of system components of interest, namely, productivity, biodiversity, habitat and species of interest, are ambiguous and imperfect at best, and usually non-existent or poor in information quality/quantity.
 \end{itemize}
 
-As such, we emphasize that this report is a simplistic first attempt at developing a general approach towards assessing MPAs, given the above challenges. It is best viewed as a work in progress that will require further precision and improvement.
-To this end, we will in the following, describe the data used for the assessment (Section 2); outline the methods and assumptions associated with the modelling of this data (Section 3); summarize the primary results of this analysis (Section 4); provide some discussion of salient points (Section 5); and conclude with general recommendations (Section 6). The technical aspects of data QA/QC and associated assumptions are identified in Appendix A. 
+As such, we emphasize that this report is a simplistic first attempt at developing a general approach towards assessing MPAs, given the above significant challenges. It is best viewed as a work in progress that will require further precision and improvement. To this end, we will in the following, describe the data used for the assessment (Section 2); outline the methods and assumptions associated with the modelling of this data (Section 3); summarize the primary results of this analysis (Section 4); provide some discussion of salient points (Section 5); and conclude with general recommendations (Section 6). The technical aspects of data QA/QC and associated assumptions are identified in Appendix A. 
 
 \medskip
 
-\textbf{NOTE: The primary purpose of this first document is upon Section 2 (data) and Section 3 (proposed methods). There are no Results nor Conclusions to report. }
+\textbf{NOTE: The primary purpose of this document is Section 2 (data) and to begin a discussion of Section 3 (proposed methods). There are no Results nor Conclusions to report at this point. }
+
 
 \section{Data} 
-In this section we focus upon a basic description of the data chosen for inclusion in this assessment. The purpose of the section is basic: to clearly identify the data, sampling design and the associated assumptions and methods required/used to filter and integrate them in an informative manner. For the sake of transparency, all data assimilation and QA/QC methods have been encoded in R \cite{rCran} and made publicly accessible via \url{https://github.com/jae0/ecomod/} . 
+In this section we focus upon a description of the data chosen for inclusion in this assessment. The purpose of the section is basic: to clearly identify the data, sampling design and the associated assumptions and methods required/used to filter and integrate them in an informative manner. For the sake of transparency, all data assimilation and QA/QC methods have been encoded in an open-sourced analytical environment R \cite{rCran} and made publicly accessible and revision controlled via \url{https://github.com/jae0/ecomod/}. As such, we try to ensure that this work is a real and flexible \textbf{structural framework} from which a common and vetted data system can be used coherently by multiple parties to develop further methods and approaches. 
 
 
 \subsection{Study area}
@@ -182,14 +182,13 @@ Any evaluation of MPA status and effectiveness in meeting conservation objective
 
 
 \subsection{Data selection criteria}
-Exhaustive surveys of available data have been compiled by Ford and Serdynska (2013). Their conclusions were that most biological data and environmental conditions are poorly sampled in the SAB area. 
-The decision criteria for inclusion of data in this study was as follows:
+Exhaustive surveys of available data have been compiled by Ford and Serdynska (2013). Their conclusions were that most biological data and environmental conditions are poorly sampled in the SAB area. The decision criteria for inclusion of data in this study was as follows:
 
 \begin{itemize}
-	\item Part of an \textbf{on-going sampling }program. This is because the design principle behind this project is that the underlying  assessment will become a routine monitoring approach into the future.
-  \item	Sufficient and regular \textbf{spatial} coverage ( $>$ XX sampling locations ) inside MPA and throughout the study area
-  \item Sufficient and regular \textbf{temporal} coverage ( \~{} annual, $>$ XX years ) inside MPA and throughout the study area
-  \item \textbf{Informative} ( i.e., high data quality ) in some manner to productivity, biodiversity, habitat and species of interest
+	\item Part of an \textbf{on-going sampling} program. This is because the design principle behind this project is that the underlying assessment must smoothly transition into a routine monitoring approach into the future.
+  \item	Sufficient and regular \textbf{spatial} coverage ($>$ XX sampling locations) inside MPA and throughout the study area
+  \item Sufficient and regular \textbf{temporal} coverage ($\approx$ annual, $>$~10 years) inside MPA and throughout the study area
+  \item \textbf{Informative} -- high data quality that is in some manner related to productivity, biodiversity, habitat and species of interest
 \end{itemize}
 
 The same decision criteria were applied to human usage data. The result was to include the following data streams for MPA characterisation:
@@ -217,16 +216,14 @@ To characterise human usage patterns, the following have been chosen for inclusi
 \subsection{Discrete Bottle Data: Chlorophyll-a and Nutrients}
 
 \begin{itemize}
-  \item Relevance:  productivity, biodiversity, habitat and species of interest (in relative order)
-  \item Sampling:  AZMP surveys, Groundfish surveys, pelagic net tows and water profiles
-  \item Spatial coverage: XXX stations, 143,499 records, 829 missions
+  \item Relevance: productivity, biodiversity, habitat and species of interest (in relative order)
+  \item Sampling: AZMP surveys, Groundfish surveys, pelagic net tows and water profiles
+  \item Spatial coverage: variable no. stations, 143,499 records, 829 missions
   \item Temporal coverage:,  1955 to present, annual surveys
   \item Source code: \url{https://github.com/jae0/ecomod/biochem/src/biochem.r}
 \end{itemize}
 
-Discrete bottle data consisting of chlorophyll-a and nutrient records (nitrate, phosphate and silicate) were obtained by laboratory analysis of water samples collected at discrete depths. For this study all available nutrient and chlorophyll-a discrete bottle data was extracted from DFO's BioChem database for the study area. This dataset contains more than 500 000 records with the earliest records starting in 1955. After QA/QC, the discrete bottle data retained for analysis was comprised of 143 499 profiles, collected on 829 missions (Figure~\ref{fig:BottleMap}).
-
-
+Discrete bottle data consisting of chlorophyll-a and nutrient records (nitrate, phosphate and silicate) were obtained by laboratory analysis of water samples collected at discrete depths. For this study all available nutrient and chlorophyll-a discrete bottle data were extracted from DFO's BioChem database for the study area. This dataset contains more than 500,000 records with the earliest records starting in 1955. After QA/QC, the discrete bottle data retained for analysis was comprised of 143,499 profiles, collected on 829 missions (Figure~\ref{fig:BottleMap}).
 
 The number of profiles available in each year (Figure~\ref{fig:ChloroMap}) shows that there were few profiles taken until the mid 60's, and a relatively steady number of yearly profiles after the initiation of the Atlantic Zone Monitoring Program (AZMP) in 1999.The peak sampling during the period 1976-1982 corresponds to DFO's Scotian Shelf Ichthyoplankton Program (SSIP) and foreign research vessels sampling programs which were obtained from NOAA's National Oceanographic Data Center (Pierre Clement, personal communication).  Monthly distribution of the profiles (Figure~\ref{fig:ChloroFreq})  demonstrates that most of the data was collected in July (mostly during DFO's groundfish surveys), followed by the months of September and April. Note that spatial distribution of the sampling varies among months with most data collected on the Scotian Shelf in July and the fewest data in January (Figures~\ref{fig:BottleMap}, \ref{fig:ChloroProfiles}.)
 
@@ -456,7 +453,14 @@ The SST pixels within St. Anns Bank polygon were extracted from each 8-day compo
 
 Numerous data sources have been compiled by Ocean Sciences Division. The data were QA/QC controlled and then modelled in a two-part process, temporal (first order harmonic analysis) and then simple spatial interpolations via localized Generalized Additive Models with a spatial extent that varied as a function of data density. 
 
-\clearpage
+
+\begin{figure}[h]
+  \label{fig:TemperatureBottomMap}
+  \centering
+  \includegraphics[width=0.65\textwidth]{\ecomod temperature/maps/SSE/bottom.predictions/global/{temperatures.bottom}.png}
+  \caption{Average bottom temperatures computed from all available data 1950-2016.}
+\end{figure}
+
 
 \subsection{Demersal fish and macro-invertebrates}
 \begin{itemize}
@@ -464,8 +468,8 @@ Numerous data sources have been compiled by Ocean Sciences Division. The data we
   \item Sampling:  Groundfish survey, Snow crab survey 
   \item Spatial coverage
     \begin{itemize}
-      \item Groundfish: full extent, random stratified, \~{} 200?? stations
-      \item Snow crab: Colder water environment, geostatistical grids of \~10 minutes, \~400 stations
+      \item Groundfish: full extent, random stratified, variable number of stations
+      \item Snow crab: Colder water environment, geostatistical grids of \~10 minutes, \~400 stations 
     \end{itemize}
   \item Temporal coverage
     \begin{itemize}
@@ -484,70 +488,86 @@ Numerous data sources have been compiled by Ocean Sciences Division. The data we
 
 \subsubsection{Groundfish survey}
 
-The Groundfish survey utilizes a Western II-A net ...config ..
-A standard tow is a 30 minute tow at xx knots.
-It operates night and day.
-
-
-\subsubsection{Net mensuration} 
-
-The groundfish survey is still a major source of information for many studies and stock assessments. However, historical estimation procedures were incorrect due to timing/net mensuration methods being inadequate. Sensors measuring trawl net configuration and state are used by most modern surveys. For example, in the snow crab survey, they have been used to determine swept area manually (since 1996) and/or with an automated procedure (since 2004).
-
-In the groundfish survey, net configuration data have been collected sporadically since 2004. However, swept area estimates have never been computed for the groundfish surveys. Generally, data seem to be used with the assumption that each tow is equivalent in swept area or adjusted by the linear distance from start and end positions (assuming a fixed net width). The latter approach is problematic (Figures~\ref{fig:groundfishWingDoorAnnual}, \ref{fig:groundfishWingDoorComparison}). Recorded positional information was also found to be recorded with error (Figure~\ref{fig:groundfishTowDistance} resulting in appropriate estimates of swept area (Figure~\ref{fig:groundfishSweptArea}. Further, the actual time and distance of bottom contact was variable ranging from approximately 10 to 40 minutes and with distances ranging from xx to xx km. Net width always assumed constant at xx m. This assumption is also problematic in that the configuration of a trawl net can alter shape depending upon currents, surface sea state, net fullness/filtration efficiency due to contact with rocks/boulders/mud, etc. (Munden and Choi, in prep). 
-
-To address these important and incorrect assumptions, algorithms were developed to automatically determine lift off and touch down times, locations and net width. Based upon random visual inspection, the skill was determined to be high with approximately 95\% of the cases having estimates within 15 seconds of a visual determination touch down/lift off points. Where bias was observed this was mostly to underestimate total contact time due to an over-smoothing of the lift off or touch down profiles. Unfortunately, net mensuration data is still not consistently recorded nor used in the groundfish surveys (Table XX -- number of sets with records of net config). As a result, it is not possible to satisfactorily estimate swept area for all historical sets. As a result, statistical methods have been developed to estimate these as much as possible and are used for the first time in this report. The estimation procedure was statistical using GAM-estimated relationships with location, depth and salinity ($R^2$ ranged from 60 to 40\%, depending upon availability of covariates). 
+The Groundfish survey (Figure~\ref{fig:trawlLocationsMap}) utilizes a Western II-A Otter Trawl net with an assumed wingspread of 12.5 m and a target distance of 1.75 nautical miles (3.24 km) and/or a 20-30min tow. This net was used from 1982 to the present. Prior to this period, a Yankee 36 ft trawl was used with unmeasured net configuration data. It operates night and day. Sampling occurrence as a function of time and season are shown in Figure~\ref{fig:trawlTimes}. Trawl type was altered a number of times in the past. The consistent identification of invertebrates in this survey began in approximately the year 2000. All species assemblage analyses will use data from the post 2000 period.
 
 \begin{figure}[h]
+  \label{fig:trawlLocationsMap}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\analysis maps/{trawl.spatial.density}.pdf}
+  \caption{Survey locations in the Groundfish survey (orange) and snow crab survey (green).}
+\end{figure}
+
+
+\begin{figure}[h]
+  \label{fig:trawlTimes}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\analysis {trawl.time.density}.pdf}
+  \caption{Timing of surveys in the Groundfish survey (orange) and snow crab survey (green).}
+\end{figure}
+
+
+\paragraph{Net mensuration} 
+
+The groundfish survey is a major source of information for many stock assessments. However, historical estimation procedures were incorrect due to improper timing/net mensuration methods. Sensors measuring trawl net configuration and state are used by most modern surveys. For example, in the snow crab survey, they have been used to determine swept area manually (since 1996) and/or with an automated procedure (since 2004). In the groundfish survey, net configuration data have been collected sporadically since 2004. However, swept area estimates have never been computed for the groundfish surveys. Generally, data seem to be used with the assumption that each tow is equivalent in swept area or adjusted by the linear distance from start and end positions (assuming a fixed net width). The latter approach is problematic (Figures~\ref{fig:groundfishWingDoorAnnual}, \ref{fig:groundfishWingDoorComparison}). Recorded positional information was also found to be recorded with error (Figure~\ref{fig:groundfishTowDistance} resulting in appropriate estimates of swept area (Figure~\ref{fig:groundfishSweptArea}. Further, the actual time and distance of bottom contact was variable ranging from approximately 10 to 40 minutes and with distances ranging from xx to xx km. Net width always assumed constant at xx m. This assumption is also problematic in that the configuration of a trawl net can alter shape depending upon currents, surface sea state, net fullness/filtration efficiency due to contact with rocks/boulders/mud, etc. (Munden and Choi, in prep). 
+
+To address these important and incorrect assumptions, algorithms were developed to automatically determine lift off and touch down times, locations and net width. Based upon random visual inspection, the skill was determined to be high with approximately 95\% of the cases having estimates within 15 seconds of a visual determination touch down/lift off points. Where bias was observed this was mostly to underestimate total contact time due to an over-smoothing of the lift off or touch down profiles. Unfortunately, net mensuration data is still not consistently recorded nor used in the groundfish surveys (Figure~\ref{fig:groundfishNoSets}). As a result, it is not possible to satisfactorily estimate swept area for all historical sets. Statistical methods have been developed to estimate swept area in these sets and are used for the first time in this report (Figure~\ref{fig:groundfishSweptAreaAll}). The estimation procedure was statistical using GAM-estimated relationships with location, depth and salinity ($R^2$ ranged from 60 to 40\%, depending upon availability of covariates). 
+
+\begin{figure}
   \label{fig:groundfishTowDistance}
   \centering
-  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/toweddistance.pdf}
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/toweddistance.pdf}
   \caption{Towed distance comparisons in the groundfish survey.}
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}
   \label{fig:groundfishWingDoorAnnual}
   \centering
-  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/{wing.v.door.byyear}.pdf}
+  \includegraphics[width=0.8\textwidth]{\ecomod mpa/analysis/{wing.v.door.byyear}.pdf}
   \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly larger from 2013 to 2015.}
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}
   \label{fig:groundfishWingDoorComparison}
   \centering
-  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/{wing.v.door}.pdf}
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{wing.v.door}.pdf}
   \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}
   \label{fig:groundfishSweptArea}
   \centering
-  \includegraphics[width=1\textwidth]{\ecomod groundfish/analysis/{sa.comparison}.pdf}
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison}.pdf}
   \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration.}
+\end{figure}
+
+\begin{figure}
+  \label{fig:groundfishSweptAreaAll}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison.all}.pdf}
+  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration as well as modelled solutions.}
+\end{figure}
+
+
+\begin{figure}
+  \label{fig:groundfishNoSets}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/numberOfSets.pdf}
+  \caption{Number of sets in the Groundfish surveys and the number of sets with usable net configuration data.}
 \end{figure}
 
 
 
-Trawl data summary:
-
--- add time and location information
-
--- suggest utility for mutlispecies to start in 2010 (groundfish) and 2005 (snow crab)
-
--- describe use of quantiles / Zscore
-
-\clearpage
-
-
 \subsubsection{Snow crab survey}
 \label{(se:snowcrab)}
-A \textit{Bigouden Nephrops} trawl, a net originally designed to dig into soft sediments for the capture of lobsters in Europe was used to sample the substrate (headline of 20~m, 27.3~m foot rope mounted with a 3.2~m long 8~mm chain, with a mesh size of 80~mm in the wings and 60~mm in the belly and 40~mm in the cod-end). Tows were conducted for $\sim$~5~minutes in duration with actual duration of bottom contact being monitored by Netmind sensors. The width of the mouth of the net was also monitored with Netmind sensors. The ship speed was maintained at $\sim 2$~knots. The warp length was $\sim 3 \times$ the depth. Positional information as well as water temperature measurements were collected using a global positioning system and Minilog data recorders, respectively. The surface area swept by the net was calculated from swept distance and net width information.
 
-\subsubsection{MPA stations}
+A \textit{Bigouden Nephrops} trawl (Figure~\ref{fig:trawlLocationsMap}) , a net originally designed to dig into soft sediments for the capture of lobsters in Europe was used to sample the substrate (headline of 20~m, 27.3~m foot rope mounted with a 3.2~m long 8~mm chain, with a mesh size of 80~mm in the wings and 60~mm in the belly and 40~mm in the cod-end). Tows were conducted for $\sim$~5~minutes in duration with actual duration of bottom contact being monitored by Netmind sensors. The width of the mouth of the net was also monitored with Netmind sensors. The ship speed was maintained at $\sim 2$~knots. The warp length was $\sim 3 \times$ the depth. Positional information as well as water temperature measurements were collected using a global positioning system and Minilog data recorders, respectively. The surface area swept by the net was calculated from swept distance and net width information.
 
-The 2015 snow crab trawl survey increased sampling in the St. Anns Banks area to provide additional information about the marine macro-fauna. Fourteen stations in (or adjacent to) the proposed MPA location were included in this additional sampling. These fourteen stations were locations traditionally sampled on the snow crab survey and represent varied depths and bottom- types, micro-habitats. The species composition of the catch at these stations varied greatly as expected with differences in depth and bottom type. The sampling at these stations included:
+\paragraph{Supplemental SAB stations}
+
+The 2015 snow crab trawl survey increased sampling in the St. Anns Banks area to provide additional information about the marine macro-fauna. Fourteen stations in (or adjacent to) the proposed MPA location were included in this additional sampling. These locations were close to snow crab survey station and represent varied depths and bottom-types and habitats. The species composition of the catch at these stations varied greatly as expected with differences in depth and bottom type. The sampling at these stations included:
 
 \begin{itemize}
   \item all catch identified to species level
@@ -556,7 +576,7 @@ The 2015 snow crab trawl survey increased sampling in the St. Anns Banks area to
   \item stomach samples taken from fin-fish for diet studies
 \end{itemize}
 
-An overview (in Google Earth format) of the catch and sampling at these stations can be found at: http://www.enssnowcrab.com/mpa/mpatows.kmz
+An overview (in Google Earth format) of the catch and sampling at these stations can be found at: \url{http://www.enssnowcrab.com/mpa/mpatows.kmz}
 
 \subsection{Other ecosystem data not being considered}
 \begin{itemize}
@@ -576,9 +596,9 @@ Direct impacts of commercial fishing can be measured using data form the Marine 
 \begin{itemize}
   \item Relevance:  productivity, habitat, biodiversity and species of interest
   \item Sampling:  Marfis
-  \item Spatial coverage: full extent, XXX ?
-  \item Temporal coverage: XXXX - present
-  \item Source code: https://github.com/jae0/ecomod/XXX/src/XXX.r
+  \item Spatial coverage: full extent 
+  \item Temporal coverage: 2004 - present
+  \item Source code: url{https://github.com/jae0/ecomod/marfissci/src/}
 \end{itemize}	
 
 Trawling and dredging disturbances to the sea floor will require different estimation techniques.  Vessel Monitoring System (VMS) point locations have been used to estimate fishing-effort distributions (e.g. Lee \textit{et al}. 2010) and to estimated impacts on the seabed (Gerritsen \textit{et al}. 2013).  Similar techniques can be developed within R to estimated the impacts to benthos from trawling and dredging activities within the St. Anns Bank area.   
@@ -625,6 +645,7 @@ url{https://github.com/jae0/ecomod/marfissci/src/\_Rfunctions/aggregate.marfis.R
 \clearpage
 
 \subsection{Vessel activity}
+
 Commercial shipping can have various direct and indirect effects on an ecosystem. Direct effects including the contamination of the ecosystem from the discharge of contaminates, radiated underwater noise, the introduction of aquatic invasive species, and vessel-strike risk to marine mammals and sea turtles.  Spatia-temporal data on vessel traffic is needed to determine the probability and/or magnitude of these effects on ecosystems.  Such information is available through AIS data.  
 
 The International Maritime Organization (IMO) requires AIS transponders on all international vessels $\geq$ 300 gross tonnage and all passenger vessels.  Many studies have used AIS data to examine risk of lethal vessel collisions to large whales (e.g. Vanderlaan and Taggart 2009, Wiley \textit{et al}. 2011, Redfern \textit{et al}. 2013,  Guzman \textit{et al}. 2013) or to assess and monitor ship noise and assess the impact on marine mammals (Hatch \textit{et al}. 2008 McKenna \textit{et al}. 2012,  Hatch \textit{et al}. 2012, Merchant \textit{et al}. 2014).    Similar exercises can be done in the proposed St. Anns Bank MPA with AIS data. 
@@ -637,7 +658,7 @@ The CCG terrestrial system as 21 AIS coastal receiving stations in in the Mariti
 \begin{figure}[h]
 	\label{fig:TAIS}
   \centering
-	\includegraphics[width=1.0\textwidth]{\sab CCG_AIS.pdf}
+%	\includegraphics[width=1.0\textwidth]{\sab CCG_AIS.pdf}
 	\caption{AIS data collected from the Canadian Coast Guard terrestrial network of AIS receiving stations.  Each colour represents data from a unique vessel.}
 \end{figure}
 
@@ -709,7 +730,7 @@ The satellite AIS data are available globally for the years 2013, 2014, and 2015
 \begin{itemize}
   \item human activities::
   \item other Fishing: 
-  \item Snow crab pot\\Lobster pot\\Otter trawl (e.g., for redfish and potentially cod)\\Redfish midwater trawl\\Groundfish seine\\Halibut longline\\Herring or mackerel gillnet 
+  \item Snow crab pot, Lobster pot\\Otter trawl (e.g., for redfish and potentially cod)\\Redfish midwater trawl\\Groundfish seine\\Halibut longline\\Herring or mackerel gillnet 
   \item cnsopb /oil and gas ?Seismic +Drilling (exploratory or production) 
   \item pollution monitoring ?
   \item Ballast water exchange 
@@ -771,32 +792,37 @@ The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpola
 
 \subsection{Habitat}
 
-The Hutchinsonian notion of "ecological niche" is closely tied to the general understanding of "habitat". It is a multi-dimensional concept, that incorporates, environmental variation, biological constraints related to these variations implict in any ecosystem -- all relative to a given organism or species of interest. It is a highly context/organism-specific concept. 
+The basic Hutchinsonian notion of "ecological niche" is closely tied to our current understanding of "habitat". It is a multi-dimensional concept in that it incorporates an undefined set of  environmental variables and the associated biological constraints/specialisations/requirements (e.g., nutrients, thermal, oxygen, pH, etc.) pertinent to an organism of interest. 
+
+Two notions of habitat can be discriminated, depending upon outlook: 
+
+\begin{itemize}
+  \item Deconstructive -- make increasing more precise habitat definitions by adding more environmental and biological factors for increasingly more precise categories of organisms   
+  \item Integrative -- the biota living in a given time and location represent the true integration of all interacting environmental and biological factors and so in effect characterises the full system-level concept of "habitat space" 
+\end{itemize}
 
 
-\subsubsection{Habitat modeling -- species level}
+\subsubsection{Deconstructive-habitat modeling}
 \label{sec:habitatSpecies}
-One frequently encountered means of describing this organism-specific habitat is to examine the presence or absence of an organism as a function of environmental and/or biological constraints. The probability of a given location to be potential habitat for a species of interest. The utility of such an approach is most relevant for sessile and slow moving organisms with highly specific habitat requirements. 
 
-The simplest approach is to model the presence or absence as a Bernoulli process. In particular, the binomial or negative binomial representation of this process lends itself to a probability model that can be readily formulated as a simplistic binomial General Linear Model. However, as species-specific environmental constraints are generally modal in form, a nonlinear model is more useful. Generalized Additive Model (GAM; via the mgcv library) and a Stochastic Partial Differential Equation approach (SPDE/INLA; via the RINLA library) are two methods that can deal with these environmental constraints in a simple and efficient manner. They are used in this framework.
+An immediately evident way of describing \textbf{Deconstructive-habitat} space of an organism is to examine the presence-absence or relative abundance of organisms as a function of environmental gradients and biological/life history constraints. From such information, the likelihood of a given location to be potential habitat for an organism of interest can be derived. The simplest method is to develop a probability model under the assumption that the presence or absence of an organism is a Bernoulli process. This can be readily parameterised using standard Generalized Linear Models. However, as environmental constraints are almost always modal in influence given a wide enough environmental gradient, a nonlinear model is more useful. Generalized Additive Models and Autoregressive Models are two methods that can deal with these environmental constraints in a simple and efficient manner. The utility of such an approach is most relevant for organisms with highly specific habitat requirements. They are used in this framework.
 
-The intent is to develop simple predictive habitat models for wolffish, cod, and other species of interest to assess changes in the habitat area available. At present, only the models for snow crab have been completed (Figure~\ref{fig:snowcrabHabitat}; see \cite{snowcrabResDoc} for more details). It is possible to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. The likelihood of it being completed depends upon the time/resources available. No promises are being made here.
+The intent is to develop such Deconstructive habitat models for key species of interest: wolffish, cod, etc., to assess changes in their available "habitat". Though the Deconstructive-habitat concept itself does not exclude species interactions, in actual practice, they are generally ignored as they make the statistical estimation impossibly over-parameterized (but see \cite{snowcrabResdoc} for one possible solution). Further, as there will always be factors that are either poorly known, poorly sampled, or poorly parameterized (e.g., dissolved oxygen, pH, redox, bacteria, jellyfish, squid, pollution, substrate type, etc.), these models will always necessarily be incomplete. At present, only the models for snow crab have been completed using this method (Figure~\ref{fig:snowcrabHabitat}; see \cite{snowcrabResDoc} for more details). Further, it is possible to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then "integrate" them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit more formal statements of risk and probability of exceeding thresholds. 
 
 \begin{figure}[h]
   \label{fig:snowcrabHabitat}
   \centering
   \includegraphics[width=0.6\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
-  \caption{Predicted probability of observing snow crab in Maritimes Region.}
+  \caption{Predicted probability of observing snow crab in Maritimes Region based upon a Deconstructive-habitat method.}
 \end{figure}
 
 
-\subsubsection{Integrative habitat -- community level}
+\subsubsection{Integral habitat -- whole system level}
+\label{sec:integralHabitat}
 
-Over and above the rather simplistic species-habitat concept described in the previous section~\ref{sec:habitatSpecies}, there exists the more encompassing or integrative notion of habitat in the whole system context. Though the species-habitat concept itself does not exclude species interactions, in actual practice, they are generally ignored as they make the statistical estimation impossibly over-parameterized (but see snow crab assessment methods that makes it possible to incorporate some of them -- \cite{}). However, the result of these biological interactions are exactly what are reflected in the observed species assemblages. 
+While the Deconstructive habitat concept is interesting and useful when a reductionistic understanding is imperative, the monitoring and assessment requirements for an MPA  demands also a whole system understanding. The hypothesis put forward is that the relative abundance of organisms found in a given location and time defines and mirrors the kind of habitat in which they live. Sessile organisms that require high flow environments and associated biota tend to be of one groups of organisms; and they are different from those that require cold waters and minimal water flow, etc. Thus if we can quantify the observed species composition in a given location and time, we would, in effect, be describing the habitat. That is species assemblage information can reflect all these biological and environmental interactions, measured and unmeasured. These associations are readily quantified using a standard multivariate procedures. Here we focus upon, Principal Components Analysis which focuses upon the correlational structure of the species assemblages and Correspondence Analysis which focuses upon chi-squared differences (Figure~\ref{fig:speciesCompositionMap}). We will define this as \textbf{Integral-habitat}. 
 
-For example, two dominant species assemblages (communities) are known in the SSE, one that is related to depth gradients and another to temperature gradients. One can therefore examine solely these associated environmental forcing factors (temperature and depth) and determine the overall "habitat" space for the organisms extant in the system. However, this would ignore other factors that are either poorly known, poorly sampled, or poorly parameterized (e.g., dissolved oxygen, pH, redox, bacteria, jellyfish, squid, pollution, substrate type, etc.), factors that are theoretically important but difficult to demonstrate in practice. In contrast, the observed species composition would reflect all these and other unmeasured influences as they manifest the state of the system, that is, the full habitat to which these organisms are exposed.   
-
-These associations are quantified using a standard multivariate procedure, namely Principal Components Analysis which focuses upon the correlational structure of the species assemblages (Figure~\ref{fig:speciesCompositionMap}) 
+The intent is to develop spatio-temporal models of Integral-habitat and then similarly integrate and model them in a risk-based approach to permit more formal statements of risk and probability of exceeding thresholds  (Section~\ref{sec:riskapproach}).
 
 \begin{figure}[h]
   \label{fig:speciesCompostionMap}
@@ -812,14 +838,6 @@ The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpola
 
 \subsection{Spatial and temporal statistical modeling and interpolation}
 \label{sec:interpolation}
-Source code: https://github.com/jae0/ecomod/spacetime/
-	spde::spat.time
-- mult/single what is the best approach?
-- simultaneous covar/depend var estimation
-- dynamic time series model method using the parameterization of Schnute?
-- estimate spatially explicit timeseries autocorrelation for each main variable --- very do-able!
-- relationship with corelation dim and autocorelation:: one is number (in state space) the other is variance (geographic space), but variance and number relationships are such that they can be related?
-	stoch ts mod with habitat and bayes state space::
 
 
 \subsection{Connectivity: space and time scales}
@@ -876,18 +894,9 @@ Mark-recapture information for sea turtles, seals, and various other species exi
 \subsection{Risk modeling}
 \label{sec:riskapproach}
 
-The estimation of risk requires a reliable estimation of error. One way to propagate the errors from observations to predictions is to build either a deterministic model and then using well-understood approximations or simulations to ultimately determine the errors distributions of interest. A second method is more phenomenological, quantifying empirically the errors and propagating them via statistical/correlational methods. The latter is chosen in this framework as it is more general and simpler. There is known no operating model of an ecosystem that can be said to be able to perform with sufficient skill to be able to propagate errors, let alone, magnitudes. 
+The estimation of risk requires a reliable estimation of error and trajectory. One way to propagate the errors from observations to predictions is to build either a deterministic model and then using well-understood approximations or simulations to ultimately determine the errors distributions of interest. A second method is more phenomenological, quantifying empirically the errors and propagating them via statistical/correlational methods. The latter is chosen in this framework as it is more general and simpler. There is known no operating model of an ecosystem that can be said to be able to perform with sufficient skill to be able to propagate errors, let alone, magnitudes. 
 
-The proposed candidate approach is to use a the logistic equation, a well known approach that was made popular by Verhulst, Pearl and Lotka in the late 1800s and early 1900s and then again by the "Systems Theorists" in the 1960-1970s.  
-
-- diversity: total, zooplankton, benthic invert, demersal fish?
-- habitat space ..
-- habitat defined as {``}habitat for species assemblage 1, 2, 3 (from classification methods? ) or
-- simply habitat of a few charismatic species
-- charismatic species: cod, wolffish, etc.
-	spatially explicit range estimates:
-- depth
-- others:: substrate?, temperature? chl? production? nutrients? biota? -- time dependent
+The proposed approach is to use a the logistic equation, a well known approach that was made popular by Verhulst, Pearl and Lotka in the late 1800s and early 1900s and then again by the "Systems Theorists" in the 1960-1970s to describe patterns of asymptotic increase (population growth, economic growth, etc).  The very same can be done for aggregate estimates of biomass (productivity), biodiversity (biodiversity change), habitat (habitat change). Similar techniques can be applied to the other indicators of interest and may be applied depending upon availability of time.
 
 
 \subsubsection{Logistic model}
@@ -951,24 +960,10 @@ O_t = q y_t
 The use of a Bayesian approach to solve the above nonlinear state space problem (Eqs. \ref{eqLogisticDiscrete}, \ref{eqLogisticDiscreteStateSpace} ) is frequently used as it provides an opportunity to: have greater numerical stability;  incorporate prior scientific knowledge in a formal manner; realistically propagate credible errors; estimate unobserved states ("true" fishable biomass); and simultaneously estimate model "process" errors and data "observation" errors. 
 
 Process errors ($\sigma^2_p$) are the uncertainties that feeds back into future states via error propagation -- e.g., via the recursive form of the logistic equation (i.e., errors in $y_{t+1}$ in the state space of $y_t$ vs $y_{t+1}$). Observation errors ($\sigma^2_o$) refer to the uncertainties associated with measurement and observation (i.e., measurement/data-related errors of both variables in the state space of $y_t$ vs $y_{t+1}$). This latter ability is particularly important as parameter estimates and forecasts based on observation-only errors provide unrealistically optimistic (small and constant) error bounds; and parameter estimates and forecasts based on process-only errors expand rapidly into the future, resulting in potentially unrealistically pessimistic (large and usually growing) error bounds.
-%
-%The main distributional assumptions of the model of fishable biomass are as follows. The notation "$\sim$" indicates "distributed as". The elements in the parentheses are (mean, variance), or in the case of the uniform distribution (lower interval, upper interval).  
-%
-%\begin{eqnarray*} 
-%\label{eqPriors}
-%  q &\sim& \text{Uniform} ( 0.1, 2 )  \\
-%  K  &\sim&  \text{Lognormal} ( \mu_K, \sigma^2_K ) \\
-%  r  &\sim&  \text{Normal} (\mu=0.96, \sigma^2=0.01) \\
-%  O_t  &\sim&  \text{Lognormal} ( log(q K y_t), \sigma^2_o ) \\
-%  y_t  &\sim&  \text{Lognormal} ( log(y_{t-1} + r_{t-1} y_{t-1} (1 - y_{t-1} ) ), \sigma^2_p ) \\
-%\end{eqnarray*}
-%
-%Most ecological variables follow a lognormal error distribution. A multiplicative observation error model was assumed. The scaling factor $q$, simplistically quantiﬁes the inﬂuence of a number of differing biases, including survey gear, survey protocols, areal expansion protocols, survey stratification and statistical modeling, etc. As such biases are non-constant over time and space it is hopelessly inadequate; however, it is retained for simplicity as a first order of magnitude estimate of such influences. The prior of q was assumed to be uniform in distribution, bounded by the interval (0.1, 2). Process error was assumed to follow a (multiplicative) lognormal distribution with variance $\sigma^2_p$ whose prior was lognormally distributed. Carrying capacity was assumed to follow a lognormal distribution. Where the area specific $\mu_K$ and $\sigma^2_K$ were chosen based on previous knowledge of the production in the area. The intrinsic rate of increase was assumed to be stationary with a prior of.
-%These priors were marginally informative. 
 
 The posterior distribution of the parameters of interest, $\theta$, conditional upon the data were estimated via MCMC (Gibbs) sampling using the JAGS platform (Plummer 2003, 2010). The JAGS model used for parameter estimation can be found at: \\
 
-https://github.com/jae0/ecomod/mpa/bugs/
+url{https://github.com/jae0/ecomod/mpa/bugs/}
 
 
 

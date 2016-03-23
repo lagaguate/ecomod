@@ -62,10 +62,9 @@ dev.off()
 
 
 # 4. net mensuration related figures
+p$scanmar.dir = file.path( project.datadirectory("groundfish"), "data", "nets", "Scanmar" ) 
+p$marport.dir = file.path( project.datadirectory("groundfish"), "data", "nets", "Marport" ) 
 figures.netmensuration( DS="all", p=p, outdir=p$project.outdir.root  )
-
-
-
 
 
 #  mybreaks = classIntervals( u, n=length(mypalette), style="quantile")$brks
