@@ -780,7 +780,7 @@ Biodiversity is seemingly a simple concept that in fact fundamentally complex. I
 R = B0 + SA + TS + LN(e)
 \]
 
-The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
+The intent is to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
 \clearpage
 \subsection{Productivity}
@@ -794,7 +794,7 @@ This is an approximation based upon sampling from groundfish and snow crab surve
 
 This can then be coupled with total system landings to estimate the biomass and secondary production associated with the biota and fishery exploitation/footprint. 
 
-The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
+The intent is to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
 \clearpage
 \subsection{Habitat}
@@ -814,7 +814,7 @@ Two notions of habitat can be discriminated, depending upon outlook:
 
 An immediately evident way of describing \textbf{Deconstructive-habitat} space of an organism is to examine the presence-absence or relative abundance of organisms as a function of environmental gradients and biological/life history constraints. From such information, the likelihood of a given location to be potential habitat for an organism of interest can be derived. The simplest method is to develop a probability model under the assumption that the presence or absence of an organism is a Bernoulli process. This can be readily parameterised using standard Generalized Linear Models. However, as environmental constraints are almost always modal in influence given a wide enough environmental gradient, a nonlinear model is more useful. Generalized Additive Models and Autoregressive Models are two methods that can deal with these environmental constraints in a simple and efficient manner. The utility of such an approach is most relevant for organisms with highly specific habitat requirements. They are used in this framework.
 
-The intent is to develop such Deconstructive habitat models for key species of interest: wolffish, cod, etc., to assess changes in their available "habitat". Though the Deconstructive-habitat concept itself does not exclude species interactions, in actual practice, they are generally ignored as they make the statistical estimation impossibly over-parameterized (but see \cite{snowcrabResdoc} for one possible solution). Further, as there will always be factors that are either poorly known, poorly sampled, or poorly parameterized (e.g., dissolved oxygen, pH, redox, bacteria, jellyfish, squid, pollution, substrate type, etc.), these models will always necessarily be incomplete. At present, only the models for snow crab have been completed using this method (Figure~\ref{fig:snowcrabHabitat}; see \cite{snowcrabResDoc} for more details). Further, it is possible to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then "integrate" them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit more formal statements of risk and probability of exceeding thresholds. 
+The intent is to develop such Deconstructive habitat models for key species of interest: wolffish, cod, etc., to assess changes in their available "habitat". Though the Deconstructive-habitat concept itself does not exclude species interactions, in actual practice, they are generally ignored as they make the statistical estimation impossibly over-parameterized (but see \cite{snowcrabResdoc} for one possible solution). Further, as there will always be factors that are either poorly known, poorly sampled, or poorly parameterized (e.g., dissolved oxygen, pH, redox, bacteria, jellyfish, squid, pollution, substrate type, etc.), these models will always necessarily be incomplete. At present, only the models for snow crab have been completed using this method (Figure~\ref{fig:snowcrabHabitat}; see \cite{snowcrabResDoc} for more details). Further, it is possible to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then "integrate" them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit more formal statements of risk and probability of exceeding thresholds. 
 
 \begin{figure}
   \label{fig:snowcrabHabitat}
@@ -839,29 +839,23 @@ These associations are quantified using a standard multivariate procedure, namel
   \caption{Species composition variations in Maritimes Region.}
 \end{figure}
 
-The intent is to model the spatial/temporal patterns (Section~\ref{sec:interpolation}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
+The intent is to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
 
-
-\subsection{Spatial and temporal statistical modeling and interpolation}
-\label{sec:interpolation}
-Source code: https://github.com/jae0/ecomod/spacetime/
-	spde::spat.time
-- mult/single what is the best approach?
-- simultaneous covar/depend var estimation
-- dynamic time series model method using the parameterization of Schnute?
-- estimate spatially explicit timeseries autocorrelation for each main variable --- very do-able!
-- relationship with corelation dim and autocorelation:: one is number (in state space) the other is variance (geographic space), but variance and number relationships are such that they can be related?
-	stoch ts mod with habitat and bayes state space::
 
 
 \subsection{Connectivity: space and time scales}
 
 \subsubsection{Spatial scale}
+\label{sec:interpolationSpatial}
 
-The spatial scale of productivity, diversity and habitat will determine which processes will be relevant to an MPA. If the spatial variations in the productivity of a species of interest is small relative to the size of an MPA, the chances of the MPA having an influence upon the species is enhanced. This is usually the case when short-range processes dominate (e.g., less mobile species, weakly dispersing, low currents, hhabitat heterogeneity at small scales). If, however, the spatial scale is larger than the MPA, then it would mean that broader, regional processes were influencing the productivity of the species (e.g., higher mobility or dispersal processes/current, and stronger spatial connectivity, habitat heterogeneity at larger scales) -- resulting a lower likelihood of the MPA having an influence upon the species. 
+MPAs exist in a spatial context. The characteristic spatial scale of productivity, diversity and habitat found in the MPA will determine which processes will be relevant to an MPA. If the spatial variations in the productivity of a species of interest is small relative to the size of an MPA, the chances of the MPA having an influence upon the species is enhanced. This is usually the case when short-range processes dominate (e.g., less mobile species, weakly dispersing, low currents, habitat heterogeneity at small scales). If, however, the spatial scale is larger than the MPA, then it would mean that broader, regional processes were influencing the productivity of the species (e.g., higher mobility or dispersal processes/current, and stronger spatial connectivity, habitat heterogeneity at larger scales) -- resulting in a lower likelihood of the MPA having an influence upon the species. 
 
-For this rather simple reason, defining the spatial scale of a given observation or process is critical for the development of any assessment or monitoring of MPAs. To this end, we mush define what we mean by spatial scale. Any spatially defined observation can be seen as a realization of some stochastic spatial process. Such  processes are known as \textbf{spatial random fields} or \textbf{spatial stochastic process}, $y$, defined at some location $x$. The manner in which the variability of $y$ changes as a function of distance $\Delta x$ is very informative and is known as the \textbf{semivariogram} $\gamma$:
+A second important and immediate implication is the relationship of the characteristic spatial scale to monitoring. As organisms exist at a given spatial scale in a given area, a sampling/monitoring protocol must reference these spatial scales. For example, when a spatial feature (e.g., biodiverity) demonstrates short characteristic spatial scales (i.e., a lot of spatial structure at smaller scales), any sampling approach must respect this and similarly operate at such shorter scales or even smaller if one is to be able to resolve the patterns and describe properly the subject of interest. Similarly, if a feature (e.g., biodiverity) is long-ranged and one wishes to resolve the patterns properly, then a sampling protocol must be similarly long-ranged to resolve the pattern. A sampling program much smaller than the characteristic spatial scale would be beneficial, but this benefits accrued would be diminishing, in that time, effort and resources requirements generally increase more rapidly than any benefit (e.g., in the simplest case, if one is looking at standard error as a measure of benefit, then it would increase asymptotically with increased effort with a power of $-1/2$). 
+
+For these rather simple reasons, defining the spatial scale of a given observation or process is critical for the development of any assessment or monitoring of MPAs. To this end, we mush define what we mean by spatial scale carefully:
+
+Any spatially defined observation can be seen as a realization of some stochastic spatial process. Such  processes are known as \textbf{spatial random fields} or \textbf{spatial stochastic process}, $y$, defined at some location $x$. The manner in which the variability of $y$ changes as a function of distance $\Delta x$ is very informative and is known as the \textbf{semivariogram} $\gamma$:
 
 \begin{eqnarray*}
 \label{eq:semivariogram}
@@ -869,7 +863,7 @@ For this rather simple reason, defining the spatial scale of a given observation
 &=& \sigma^2 [1-c(x)] 
 \end{eqnarray*}
 
-where $\sigma^2$ is the total variance in observations $y$. It has a clear relationship to the spatial correlation function $c(x)$. 
+where $\sigma^2$ is the total variance in observations $y$. It has a clear relationship to the spatial correlation function $c(x)$ and therefore related to the fractal dimension of the system (\cite{fractals2002}). 
 
 Empirically, one generally observes that the variability is lower between locations closer together and higher for locations further apart. Eventually this variability levels off where observations at one location is completely disconnected from another. This spatial dependence or autocorrelation is important as it defines the spatial scales of a given process. 
 
@@ -889,6 +883,19 @@ Here, $\tau^2$ is the variance offset often known as the nugget variance, the va
   \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
   \caption{Matern semivariance as a function of distance for different values of $\nu$.}
 \end{figure}
+
+
+\subsubsection{Temporal scale}
+\label{sec:interpolationTS}
+
+MPAs also exist in a dynamic frame. As such, similar to the above spatial considerations, there also exists some characteristic temporal scale upon which an MPA and its subcomponents operate. If the overall temporal variations of the biota and environment is small relative to the overall life of an MPA, the chances of the MPA having an influence upon the species is enhanced. Presumably, the longevity of MPAs will be long lasting, and so will guarantee some influence, however small that may be; an effect that would be enhanced if the subject is shorter-ranged in spatial scales.
+
+Again, this also has a simple and obvious implication in terms of monitoring and assessment. If the goal is to resolve short-term processes then sampling must also, of necessity be more frequent. 
+
+For this rather simple reason, defining the spatial scale of a given observation or process is critical for the development of any assessment or monitoring of MPAs. To this end, we mush define what we mean by spatial scale. Any spatially defined observation can be seen as a realization of some stochastic spatial process. Such  processes are known as \textbf{spatial random fields} or \textbf{spatial stochastic process}, $y$, defined at some location $x$. The manner in which the variability of $y$ changes as a function of distance $\Delta x$ is very informative and is known as the \textbf{semivariogram} $\gamma$:
+
+
+
 
 \subsubsection{Environmental data}
 
@@ -941,27 +948,27 @@ dY/dt \approx r Y (1 - Y/K)
 
 The intrinsic rate of increase, $r$, is therefore, some abstract function f that regulates increase or decrease of the system state $Y$. In biological systems, this means growth, recruitment, mortality,  movement, climatic change, etc. The carrying capacity $K$ represents the upper limit of the magnitude of the system state $Y$.
 
-With normalization by $K$ we obtain: $ y = Y/K $, which simplifies the basic model to:
+With normalization by $K$ such that $ y = Y/K $:
 
 \begin{equation} 
 \label{eqLogisticBasic}
-dy/dt  \approx  r K y (1 - y)
+dy/dt  \approx  r y (1 - y)
 \end{equation}
 
 Many variations of this basic model have been used, mostly to adjust the shape of the curve and/or the location of the inflection point (i.e., $K/2$) mostly by adding additional parameters in the form of exponentiation of different components which amounts to adding higher order terms in the Taylor series) and also adding additional terms, $f$ (e.g., fishing, advection, diffusion, noise): 
 
 \begin{eqnarray} 
 \label{eqLogisticGeneral}
-dy / dt &=& rK^{\beta-\alpha} y^{\alpha} ( 1 - y^{\beta} )^{\gamma} + f 
+dy / dt &=& r y^{\alpha} ( 1 - y )^{\beta} + f 
 \end{eqnarray}
 
-For the purposes of this discussion, we will use only the basic model and estimate the parameters of interest, $\theta = \{r, K \}$ (Eq. \ref{eqLogisticBasic}), but the reader should be aware that other parameterizations are possible such as Eq. \ref{eqLogisticGeneral}, at the expense of course, a slightly greater model complexity $\theta=\{r,K,\alpha,\beta,\gamma\}$. The utility of these other formulations will be explored once all data assimilation has been completed. 
+For the purposes of this discussion, we will use only the basic model and estimate the parameters of interest, $\theta = \{r, K \}$ (Eq. \ref{eqLogisticBasic}), but the reader should be aware that other parameterizations are possible such as Eq. \ref{eqLogisticGeneral}, at the expense of course, a slightly greater model complexity $\theta=\{r,K,\alpha,\beta\}$. The intent is to explore the utility of this more flexible formulations as compared to the basic model. 
 
-In discrete form, where $\Delta t = 1 \; \text{year}$, the basic model becomes:
+In discrete form, where $\Delta t = 1 \; \text{year}$ and a Euler discretization, the basic model becomes:
 
 \begin{equation} 
 \label{eqLogisticDiscrete}
-y_t  \approx y_{t-1} + r K y_{t-1} (1 - y_{t-1} )
+y_t  \approx r y_{t-1} (1 - y_{t-1} )
 \end{equation}
 
 Perhaps the most powerful and flexible method of estimation of $\theta$ in (Eq. \ref{eqLogisticDiscrete}) is a state space representation where an additional observation model is added to connect observed indices $O$ to the unobserved and (usually unobservable) real system state $y$. The simplest such model is a simple linear scaling factor, $q$: 
@@ -982,7 +989,6 @@ url{https://github.com/jae0/ecomod/mpa/bugs/}
 
 
 
-
 \section{Results}
 
 NA
@@ -990,6 +996,9 @@ NA
 \section{Discussion}
 
 NA
+
+
+% One can resolve spatial temporal variations with increase intensity of effort. But more important is the ability to say, some given level of resolution is sufficient. What are the space time scales that interest us, must therefore be made explicit.
 
 \section{Conclusions and recommendations}
 
