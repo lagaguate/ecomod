@@ -155,7 +155,7 @@ The method by which this can be accomplished, however, is anything but straightf
 \end{itemize}
 
 
-As such, we emphasize that this report is a simplistic first attempt at developing a general approach towards assessing MPAs, given the above significant challenges. It is best viewed as a work in progress that will require further precision and improvement. To this end, we will in the following, describe the data used for the assessment (Section 2); outline the methods and assumptions associated with the modelling of this data (Section 3); summarize the primary results of this analysis (Section 4); provide some discussion of salient points (Section 5); and conclude with general recommendations (Section 6). The technical aspects of data QA/QC and associated assumptions are identified in Appendix A. 
+As such, we emphasize that this report is a simplistic first attempt at developing a general approach towards assessing MPAs, given the above significant challenges. It is best viewed as a work in progress that will require further precision and improvement. To this end, we will in the following, describe the data used for the assessment (Section 2); outline the methods and assumptions associated with the modeling of this data (Section 3); summarize the primary results of this analysis (Section 4); provide some discussion of salient points (Section 5); and conclude with general recommendations (Section 6). The technical aspects of data QA/QC and associated assumptions are identified in Appendix A. 
 
 \medskip
 
@@ -512,51 +512,51 @@ The groundfish survey is a major source of information for many stock assessment
 
 To address these important and incorrect assumptions, algorithms were developed to automatically determine lift off and touch down times, locations and net width. Based upon random visual inspection, the skill was determined to be high with approximately 95\% of the cases having estimates within 15 seconds of a visual determination touch down/lift off points. Where bias was observed this was mostly to underestimate total contact time due to an over-smoothing of the lift off or touch down profiles. Unfortunately, net mensuration data is still not consistently recorded nor used in the groundfish surveys (Figure~\ref{fig:groundfishNoSets}). As a result, it is not possible to satisfactorily estimate swept area for all historical sets. Statistical methods have been developed to estimate swept area in these sets and are used for the first time in this report (Figure~\ref{fig:groundfishSweptAreaAll}). The estimation procedure was statistical using GAM-estimated relationships with location, depth and salinity ($R^2$ ranged from 60 to 40\%, depending upon availability of covariates). 
 
-%\begin{figure}
-%  \label{fig:groundfishTowDistance}
-%  \centering
-%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/toweddistance.pdf}
-%  \caption{Towed distance comparisons in the groundfish survey.}
-%\end{figure}
+\begin{figure}[h]
+  \label{fig:groundfishTowDistance}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/toweddistance.pdf}
+  \caption{Towed distance comparisons in the groundfish survey.}
+\end{figure}
 
 
-%\begin{figure}
-%  \label{fig:groundfishWingDoorAnnual}
-%  \centering
-%  \includegraphics[width=0.8\textwidth]{\ecomod mpa/analysis/{wing.v.door.byyear}.pdf}
-%  \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly %larger from 2013 to 2015.}
-%\end{figure}
+\begin{figure}[h]
+  \label{fig:groundfishWingDoorAnnual}
+  \centering
+  \includegraphics[width=0.8\textwidth]{\ecomod mpa/analysis/{wing.v.door.byyear}.pdf}
+ \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly larger from 2013 to 2015.}
+\end{figure}
 
 
-%\begin{figure}
-%  \label{fig:groundfishWingDoorComparison}
-%  \centering
-%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{wing.v.door}.pdf}
-%  \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
-%\end{figure}
+\begin{figure}[h]
+  \label{fig:groundfishWingDoorComparison}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{wing.v.door}.pdf}
+  \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
+\end{figure}
 
 
-%\begin{figure}
-%  \label{fig:groundfishSweptArea}
-%  \centering
-%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison}.pdf}
- % \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration.}
-%\end{figure}
+\begin{figure}[h]
+  \label{fig:groundfishSweptArea}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison}.pdf}
+  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration.}
+\end{figure}
 
-%\begin{figure}
-%  \label{fig:groundfishSweptAreaAll}
-%  \centering
-%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison.all}.pdf}
-%  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration as well as modelled solutions.}
-%\end{figure}
+\begin{figure}[h]
+  \label{fig:groundfishSweptAreaAll}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/{sa.comparison.all}.pdf}
+  \caption{Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration as well as modelled solutions.}
+\end{figure}
 
 
-%\begin{figure}
-%  \label{fig:groundfishNoSets}
-%  \centering
-%  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/numberOfSets.pdf}
-%  \caption{Number of sets in the Groundfish surveys and the number of sets with usable net configuration data.}
-%\end{figure}
+\begin{figure}[h]
+  \label{fig:groundfishNoSets}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod mpa/analysis/numberOfSets.pdf}
+  \caption{Number of sets in the Groundfish surveys and the number of sets with usable net configuration data.}
+\end{figure}
 
 
 
@@ -578,15 +578,6 @@ The 2015 snow crab trawl survey increased sampling in the St. Anns Banks area to
 
 An overview (in Google Earth format) of the catch and sampling at these stations can be found at: \url{http://www.enssnowcrab.com/mpa/mpatows.kmz}
 
-\subsection{Other ecosystem data not being considered}
-\begin{itemize}
-   \item Halibut survey - hook methodology and associated bias, hook saturation, targetting only large species, by catch not complete 
-   \item 4Vn Sentinel survey .. very location specific
-   \item including benthic sampling in the AOI, 
-   \item bird observations carried out by Canadian Wildlife Service
-\end{itemize}	
-  
-\clearpage
 
 \subsection{Fisheries activity}
 Commercial-fishing activities can modify the habitat and ecosystem and contribute to changes in the structure and functioning of exploited marine communities.  Fishing impacts can be direct, such as the reduction of targeted and non-targeted species, as well as truncations in age and size distributions.  Other direct effects due to fishing activities include habitat alterations and substrate modifications through interactions with fishing gear. Fishing can also cause indirect impacts with changes foodweb structure within an ecosystem.  
@@ -607,7 +598,7 @@ Trawling and dredging disturbances to the sea floor will require different estim
 St. Anns Bank Area of Interest has four zones within it with various levels of fishing restrictions (Figure \ref{fig:SABCloseup}). Commercial fishing is restricted from Zone 1, the largest area, with the exception of the seal harvest.  The MPA requires monitoring to ensure that fishers are complying with regulations.  Monitoring could be done through a variety of techniques and data sources, including data reported in the MARFIS database, Vessel Monitoring System (VMS) data that allow the direct monitoring of fishing activities. Automatic Identification System (AIS) data may also be used to monitoring fishing activities if the vessel is large enough to require AIS ($\geq$ 300 gross registered tonnes) or if a fishing vessel has voluntarily installed an AIS system onboard.  
 
 
-\subsubsection{MarFIS data extraction}
+\subsubsection{MARFIS data extraction}
 
 Prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers' logs.  
 
@@ -617,7 +608,7 @@ Most log records included the spatial location of the catch, and some catches ha
 
 Many logs have no usable coordinates \textendash  either they are left blank, or they are clearly incorrect (i.e. on land).  Rather than discarding this data, we still extracted it, and attempted to account for this biomass in the next.
 
-The extraction logic is captured in the script found at:
+The extraction logic is captured in the script found at: \\
 \url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/marfissci.get.data.R}.
 
 The script above allows the user to specify one or more species and on or more years, and the data will be extracted and saved in a local file.  This file serves as the input to the next step – Data Layer Aggregation.
@@ -626,6 +617,7 @@ identified all \textquotedblleft un-positionable\textquotedblright  data and re-
 
 
 
+\clearpage
 %In consultation with Commercial Data Division staff (Robert Grandy, Greg Croft and Krista Wry), prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers' logs.
 
 %Most logs include coordinates describing the location of the catch, but it is not uncommon to also find those that don't.  Coordinates were used preferentially in the following order:
@@ -641,7 +633,7 @@ identified all \textquotedblleft un-positionable\textquotedblright  data and re-
 
 %The extraction logic is captured in the script found at: \url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/get.marfis.data.R}
 
-\subsubsection{MarFIS data quality control and aggregation}
+\subsubsection{MARFIS data quality control and aggregation}
 Once data was extracted, it was processed through a second script, \textquotedblleft marfissci.process.data.r\textquotedblright.  This script serves to QC and aggregate the data, as well as apply un-positionable catches of a species proportionally to the positioned data.
 
 QC occurs in 2 stages, and is quite simple.  First, all records without coordinates are identified and retained, but removed from the main dataset.  Next, all remaining data is compared against a high resolution coastline (the same as is shown in Figure \ref{fig:SAB}), and those points falling on land are identified and retained, but removed from the main dataset.
@@ -654,7 +646,8 @@ For example, one cell might have a total catch of 3269.7 kg, and this cell repre
 3269.7 kg + (55954.101 kg * 0.002167) = 3390.93951 kg.
 
 
-The data QC and aggregation logic is captured in the script found at:
+The data QC and aggregation logic is captured in the script found at: \\
+
 \url{https://github.com/jae0/ecomod/mpa/src/\_Rfunctions/marfissci.process.data.R}.
 
 The script above allows the user to specify the input data, the aggregation level, and how the results should be output.
@@ -783,37 +776,21 @@ The satellite AIS data are available globally for the years 2013, 2014, and 2015
 \end{itemize}	
 
 
-\subsection{Other human usage data not being considered}
-\begin{itemize}
-  \item human activities::
-  \item other Fishing: 
-  \item Snow crab pot, Lobster pot\\Otter trawl (e.g., for redfish and potentially cod)\\Redfish midwater trawl\\Groundfish seine\\Halibut longline\\Herring or mackerel gillnet 
-  \item cnsopb /oil and gas ?Seismic +Drilling (exploratory or production) 
-  \item pollution monitoring ?
-  \item Ballast water exchange 
-  \item Recreation and tourism
-  \item Research surveys
-  \item Debris (garbage, persistent litter) 
-  \item other ?
-\end{itemize}	
-  
+
+
 \subsection{Data gaps}
-\begin{itemize}
-  \item pelagic system:: fish, zoopl, nutrients 
-  \item substrate characterisation ?  / multibeam data for whole shelf ?
-  \item demersal fish -- high density/coherent survey
-  \item marine mammals, reptiles, birds
-  \item benthic / pelagic coupling and nutrient cycling
-  \item genetic diversity 
-  \item vulnerable life-history traits
-  
-\end{itemize}	
+
+\subsubsection{(Other human usage metrics)}
+A large number of variables and ecosystem descriptors are of course being ignored. In particular are human influences such as seismic activity, pollution, ballast water, etc. for which there is little useful information has been found. 
+
+\subsubsection{(Other ecosystem metrics)}
+On the side of ecosystem characterization, data gaps in the following are evident: pelagic fish and invertebrates, substrate characterisation via multibeam surveys, marine mammals, reptiles, birds and genetic diversity. They are gaps in that they are expensive to monitor and/or with information that is not readily available. 
 
 \subsubsection{Stomach Database}
 
 Bottom trawl surveys have been conducted by DFO on the Scotian Shelf annual since 1970 using a stratified random design.  Sampling protocols changed in the late 1990s with the focus changing from commercially important finfish species to more comprehensive ecosystem monitoring that included the sampling of macroinvertebrates (Tremblay \textit{et al}. 2007).  Stomach contents samples were collected from finfish using a length-stratified sampling protocol.  Prey were quantified by weight and number, and often identified to the genus or family level, or to the species level when possible.  
 
-For the purpose of determining any change in the diet of finfish pre- and post- implementation of the MPA on St. Anns Bank or if there were differences within the MPA compared to other areas on the Scotia shelf, we explored the stomach database to determine if these dietary differences could be described and detected. Within the database, 54\% of the prey number observations were missing.  Due to the large interannual variation in prey weights estimating the prey number consistently from non-missing data where both the prey number and weight was available was determined to be impracticable and unreliable.  Due to the sampling stratification both by depth and length classes it was further determined that there would be insufficient samples available to reach the asymptote of prey species accumulation curves (Cook and Bundy 2010) and total diet composition could not be detected.  Prey species identified in the stomach samples could be used for quantifying biodiversity and species richness (Cook and Bundy 2012) for the proposed MPA and comparing it to similar ecosystem or pre- and post-implementation.
+For the purpose of determining any change in the diet of finfish pre- and post- implementation of the MPA on St. Anns Bank or if there were differences within the MPA compared to other areas on the Scotian shelf, we explored the stomach database to determine if these dietary differences could be described and detected. Within the database, 54\% of the prey number observations were missing.  Due to the large interannual variation in prey weights estimating the prey number consistently from non-missing data where both the prey number and weight was available was determined to be impracticable and unreliable.  Due to the sampling stratification both by depth and length classes it was further determined that there would be insufficient samples available to reach the asymptote of prey species accumulation curves (Cook and Bundy 2010) and total diet composition could not be detected.  Prey species identified in the stomach samples could be used for quantifying biodiversity and species richness (Cook and Bundy 2012) for the proposed MPA and comparing it to similar ecosystem or pre- and post-implementation.
 
 
 \clearpage
@@ -829,7 +806,7 @@ The main methods used/developed in this report will be described in this section
 
 Biodiversity is seemingly a simple concept that in fact fundamentally complex. It ranges in focus from genetic and phenotypic variations within a local population, breeding populations to biome or even larger scaled genetic and phylogentic and community variability, both in terms of their number and relative dominance. Any and all of these aspects of biodiversity can be estimated. However, it is the number of unique kinds of organisms found in a given location (commonly called taxonomic richness) that is most readily quantified and monitored. 
 
-However, taxonomic richness is known to increase asymptotically with sampling intensity. As such, a statistical correction ("rarefaction") for spatial and temporal sampling intensity must be applied to be meaningfully comparable across locations and time. Specifically, the model was:
+Taxonomic richness is known to increase asymptotically with sampling intensity. As such, a statistical correction ("rarefaction") for spatial and temporal sampling intensity must be applied to be meaningfully comparable across locations and time. Specifically, the model was:
 
 \[
 log(R) = B0 + log(SA) + log(TS) + e
@@ -928,7 +905,7 @@ Here, $\tau^2$ is the variance offset often known as the nugget variance, the va
 
 MPAs also exist in a dynamic frame. As such, similar to the above spatial considerations, there also exists some characteristic temporal scale upon which an MPA and its subcomponents operate. If the overall temporal variations of the biota and environment is small relative to the overall life of an MPA, the chances of the MPA having an influence upon the species is enhanced. Presumably, the longevity of MPAs will be long lasting, and so will guarantee some influence, however small that may be; an effect that would be enhanced if the subject is shorter-ranged in spatial scales.
 
-Again, this also has a simple and obvious implication in terms of monitoring and assessment. 
+Again, similar to the spatial scale case, this also has a simple and obvious implication in terms of monitoring and assessment. Short-range variations require higher sampling effort to resolve/understand the issues and vice-versa.
 
 As the temporal scale is an informative metric for monitoring and assessment of an MPA, we must be precise in its definition. Similar to the spatial case, we focus upon how the correlation and variability of some quantity changes with greater difference in time. The analogue to the semivariogram in a timeseries context is known as a \textbf{cumulative periodogram}. 
 
@@ -958,7 +935,9 @@ Mark-recapture information for sea turtles, seals, sharks and various other spec
 \subsection{Risk modeling}
 \label{sec:riskapproach}
 
-The estimation of risk requires a reliable estimation of error and trajectory. One way to propagate the errors from observations to predictions is to build either a deterministic model and then using well-understood approximations or simulations to ultimately determine the errors distributions of interest. A second method is more phenomenological, quantifying empirically the errors and propagating them via statistical/correlational methods. The latter is chosen in this framework as it is more general and simpler. There is known no operating model of an ecosystem that can be said to be able to perform with sufficient skill to be able to propagate errors, let alone, magnitudes. 
+Risk means many things to many people. We use the term specifically in the sense of having a believable error distribution of some quantity of interest. Once this is known, one can make probablity statements related to have likely the current state is different from some threshold. 
+
+The estimation of such risk requires a reliable a method to propagate the errors from observations to predictions. One venerable method is to build either a deterministic model and then using well-understood approximations or simulations to ultimately determine the errors distributions of interest. A second method is more phenomenological, quantifying empirically the errors and propagating them via statistical/correlational methods. The latter is chosen in this framework as it is more general and simpler. There is known no operating model of an ecosystem that can be said to be able to perform with sufficient skill to be able to propagate errors, let alone, magnitudes. 
 
 The proposed approach is to use a the logistic equation, a well known approach that was made popular by Verhulst, Pearl and Lotka in the late 1800s and early 1900s and then again by the "Systems Theorists" in the 1960-1970s to describe patterns of asymptotic increase (population growth, economic growth, etc).  The very same can be done for aggregate estimates of biomass (productivity), biodiversity (biodiversity change), habitat (habitat change). Similar techniques can be applied to the other indicators of interest and may be applied depending upon availability of time.
 
@@ -1029,11 +1008,12 @@ The posterior distribution of the parameters of interest, $\theta$, conditional 
 
 \url{https://github.com/jae0/ecomod/mpa/bugs/}
 
-
+\subsection{Anthropogenic Threats}
+Productivity and biodiversity monitoring is essential to determine if MPAs are achieving their primary objectives. It is also essential to examine the anthropogenic threats in the St. Anns bank area and examine the cumulative impacts on productivity, biodiversity, and endangered or threatened species.  From the data available we can examine trawling and dredging disturbances, exploitation of marine resources by fisheries, fishing-gear entanglement threats to marine mammals and sea turtles, and vessel collision threats due to marine traffic, and vessel-noise disturbances.  Each threat can be normalised on a zero-one scale to compare the intensity of threats across the region and then weighted and combined to examine cumulative anthropogenic threats as in \textcite{coll:2012:mediterranean}.
 
 \section{Results and Discussion}
 
-Most analyses have not been completed. The effort so far has been to assimilate and develop the scaffolding to support the analyses and future monitoring and assessment. However, some preliminary results can be reported upon. We highlight a few of these results but emphasize their very preliminary nature. 
+Most analyses have not been completed. The effort so far has been to assimilate and develop the scaffolding to support the analyses and future monitoring and assessment. These headings are here mostly as place holders. However, some preliminary results can be reported upon. We highlight a few of these results but emphasize their very preliminary nature. 
 
 \subsection{Biodiversity}
 
@@ -1099,7 +1079,7 @@ An example of Integral habitat as expressed through an ordination of taxa found 
 
 \section{Conclusions and Recommendations}
 
-NA
+
 
 
 
