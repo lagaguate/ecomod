@@ -832,10 +832,10 @@ Biodiversity is seemingly a simple concept that in fact fundamentally complex. I
 However, taxonomic richness is known to increase asymptotically with sampling intensity. As such, a statistical correction ("rarefaction") for spatial and temporal sampling intensity must be applied to be meaningfully comparable across locations and time. Specifically, the model was:
 
 \[
-R = B0 + SA + TS + LN(e)
+log(R) = B0 + log(SA) + log(TS) + e
 \]
 
-and used to predict an expected richness at a standard surface area and time depth. 
+and used to predict an expected richness $R$ at a standard surface area and time depth. The other terms are $B0$ a constant, $SA$ surface area (ranging from 1 to 50 km, radial length scale), $TS$, the number of years entering into the count (ranging from 0 to 5 years) and $e$ is Gaussian error.  
 
 The intent is to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
@@ -846,9 +846,9 @@ Total system standing biomass is generally used as a proxy for productivity. The
 
 To estimate true production, a modeled approach is necessary. These indices can then be coupled with spatially explicit total landings to estimate the biomass and secondary production associated with the biota and fishery exploitation/footprint. 
 
-The intent is, therefore, to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds and estimate true (net production). 
+The intent is, therefore, to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds and perhaps even estimate net production. 
 
-\clearpage
+
 \subsection{Habitat}
 
 The basic Hutchinsonian notion of "ecological niche" is closely tied to our current understanding of "habitat". It is a multi-dimensional concept in that it incorporates an undefined set of  environmental variables and the associated biological constraints/specialisations/requirements (e.g., nutrients, thermal, oxygen, pH, etc.) pertinent to an organism of interest. 
@@ -1075,7 +1075,6 @@ An example of Integral habitat as expressed through an ordination of taxa found 
   %  \includegraphics[width=0.75\textwidth]{\ecomod speciescomposition/analysis/SSE/allseasons/complex/maps/{maps.pca1.2010}.png}
   \includegraphics[width=1.0\textwidth]{\mpa oneoffs/ca.png}
   \caption{Integral habitat based upon species composition variations in Maritimes Region.}
-  
 \end{figure}
 
 
@@ -1083,7 +1082,12 @@ An example of Integral habitat as expressed through an ordination of taxa found 
 
 \subsubsection{Spatial scale}
 
--- bathymetry
+\begin{figure}[h]
+  \label{fig:spatialrangeBathy}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\mpa oneoffs/{range.bathy}.jpg}
+  \caption{First estimate of log(spatial range; km) based upon depth variations.}
+\end{figure}
 
 \subsubsection{Temporal scale}
 
