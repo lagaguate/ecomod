@@ -8,8 +8,8 @@
 \usepackage{fullpage}
 \usepackage{sectsty}
 \usepackage[toc,page]{appendix}
-
-%% test addition 2
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
 
 % linking options
 \usepackage[pdftex]{graphicx}														% Enable pdflatex
@@ -25,21 +25,16 @@
   pdfpagemode=None,
   bookmarksopen=true]{hyperref}
 
-%% biblio
-%\usepackage[backend=biber,style=alphabetic,sorting=ynt]{biblatex}
-%\addbibresource{sab.bib}  %% the bibtex file
-%\usepackage{natbib}
-%\bibpunct[, ]{(}{)}{;}{a}{}{,}
-% \citeindextrue
-% see  /usr/share/texmf/tex/latex/natbib/natbib.sty for more codes
-% natbib examples
-%\citet{goossens93}     Goossens et al. (1993)
-%\citep{goossens93}     (Goossens et al., 1993)
-%\citet*{goossens93}    Goossens, Mittlebach, and Samarin (1993)
-%\citep*{goossens93}    (Goossens, Mittlebach, and Samarin, 1993)
-%\citeyear, \citeauthor
-%\citealt
+\usepackage[
+  backend=biber,
+  style=alphabetic,
+  citestyle=authoryear,
+  style=apa,
+  language=american]{biblatex} 
+\DeclareLanguageMapping{american}{american-apa}   
+\addbibresource{sab.bib} 
 
+%apa style instructions:  http://ctan.math.ca/tex-archive/macros/latex/contrib/biblatex-contrib/biblatex-apa/biblatex-apa-test.pdf
 
 %%% Equation and float numbering
 \usepackage{amsmath,amsfonts,amsthm}										% Math packages
@@ -111,9 +106,9 @@ An MPA is defined in the Oceans Act 35(1) as, "An area of the sea that forms par
 As a result, for the purposes of this report, we will likewise focus upon these key ecosystem attributes or components, namely: \textbf{productivity, biodiversity, habitat, and  species of interest}. In reality, however, there are many other attributes or components of ecosystems that are also known to be important and relevant. They include: ecological integrity and health, trophic structure and balance, ecosystem function, complexity, network structure, resilience, sustainability as well an open-ended number of species or life history stages of the resident species. These other components will be touched upon where possible or necessary but will receive less attention as the legislated mandate is quite clear. 
 
 \subsection{St. Anns Bank}
-The St. Anns Bank Marine Protected Area (herein, SAB) is an area of interest for eventual designation as an MPA. It is located east of Cape Breton Island, Nova Scotia, Canada (Figure~\ref{fig:SABCloseup}). An advisory process (DFO 2012), identified the primary objectives of SAB as being to conserve, protect and where appropriate restore, ecologically distinctive or significant areas, and overall, the ecosystem "health" of SAB. As in the Oceans Act, the focus was upon the above four ecosystem components: \textbf{productivity, biodiversity, habitat and species of interest}.
+The St. Anns Bank Marine Protected Area (herein, SAB) is an area of interest for eventual designation as an MPA. It is located east of Cape Breton Island, Nova Scotia, Canada (Figure~\ref{fig:SABCloseup}). Previous advisory processes \parencites{DFO:2012:conservation, Kenchington:2013:sab}, identified the primary objectives of SAB as being to conserve, protect and where appropriate restore, ecologically distinctive or significant areas, and overall, the ecosystem "health" of SAB. As in the Oceans Act, the focus was upon the above four ecosystem components: \textbf{productivity, biodiversity, habitat and species of interest}.
 
-Other MPA goals were also expressed in DFO (2012), but these were less emphatic:
+Other MPA goals were also expressed in DFO \cite{}, but these were less emphatic:
 
 \begin{itemize}
 	\item Contribute to the health, resilience and restoration of the Eastern Scotian Shelf ecosystem
@@ -121,7 +116,7 @@ Other MPA goals were also expressed in DFO (2012), but these were less emphatic:
 	\item Promote scientific research and monitoring to further understand and protect SAB
 \end{itemize}
 
-In, An Ecological Overview and Assessment Report for SAB, Ford and Serdynska (2013), make more precise the ecological components that SAB might help to protect and conserve, in alignment with the Oceans Act's definition of MPAs:
+In, An Ecological Overview and Assessment Report for SAB \parencite{Ford:2013:sab},  the ecological components that SAB might help to protect and conserve are made more precise, as they align with the Oceans Act's definition of MPAs:
 
 \begin{itemize}
 	\item Commercial and non-commercial fishery resources, including marine mammals, and their habitats (e.g., habitat for Atlantic cod, redfish, American plaice, sea urchins, white hake, witch flounder, sea anemones, sponges, and sea pens)
@@ -322,7 +317,7 @@ Ocean colour refers to the spectral distribution of light emerging from the ocea
 
 The nominal uncertainty of chlorophyll products derived from ocean colour satellites is 35\%, with better agreement with in-situ chlorophyll for the open ocean (Moore \textit{et al}. 2008) while overestimation is often observed in the coastal ocean (Darecki and Stramski 2004). This is due to the inability of the algorithms to distinguish chlorophyll from suspended particulate matter and colored dissolved organic matter often present in the coastal waters, as for example in the Bay of Fundy and Northumberland Strait.
 
-Ocean colour satellite data for this study was provided by the Remote Sensing Unit (RSU) from the Bedford Institute of Oceanography (DFO) as 8-day composite chlorophyll images which are routinely produced by the unit for the Atlantic Zone Monitoring Program (AZMP). The dataset was created using the Moderate Resolution Imaging Spectroradiometer (MODIS-Aqua) data, where the chlorophyll-a values are based on the 2012 reprocessing carried by the National Aeronautics and Space Administration (NASA) using OC3 chlorophyll algorithm. Composite images were created from daily Level-2 MODIS-Aqua files downloaded from NASA by averaging valid chlorophyll-a values for each pixel using all available daily images within that time period (RSU Technical document 5, \cite{feldman:2015}). The dataset comprises years 2002 to 2015 and area 39 N to 62.5 N and 42 W to 71 W, with spatial resolution of about 1.5 km per pixel. 
+Ocean colour satellite data for this study was provided by the Remote Sensing Unit (RSU) from the Bedford Institute of Oceanography (DFO) as 8-day composite chlorophyll images which are routinely produced by the unit for the Atlantic Zone Monitoring Program (AZMP). The dataset was created using the Moderate Resolution Imaging Spectroradiometer (MODIS-Aqua) data, where the chlorophyll-a values are based on the 2012 reprocessing carried by the National Aeronautics and Space Administration (NASA) using OC3 chlorophyll algorithm. Composite images were created from daily Level-2 MODIS-Aqua files downloaded from NASA by averaging valid chlorophyll-a values for each pixel using all available daily images within that time period (\cite{Caverhill:2015:modis}, \cite{feldman:2015}). The dataset comprises years 2002 to 2015 and area 39 N to 62.5 N and 42 W to 71 W, with spatial resolution of about 1.5 km per pixel. 
 
 Even though there is ocean color data available before MODIS launch it was decided to limit our dataset to a single sensor to avoid potential biases between the sensors. Due to the frequent cloud coverage of the NW Atlantic it was decided to use 8-day composite images as daily images would not provide sufficient number of valid pixels. 
 
@@ -907,7 +902,7 @@ Any spatially defined observation can be seen as a realization of some stochasti
 &=& \sigma^2 [1-c(x)] 
 \end{eqnarray*}
 
-where $\sigma^2$ is the total variance in observations $y$. It has a clear relationship to the spatial correlation function $c(x)$ and therefore related to the fractal dimension of the system (\cite{fractals2002}). 
+where $\sigma^2$ is the total variance in observations $y$. It has a clear relationship to the spatial correlation function $c(x)$ and therefore related to the fractal dimension of the system (\cite{Schepers:2002:fractals}). 
 
 Empirically, one generally observes that the variability is lower between locations closer together and higher for locations further apart. Eventually this variability levels off where observations at one location is completely disconnected from another. This spatial dependence or autocorrelation is important as it defines the spatial scales of a given process. 
 
@@ -1032,7 +1027,7 @@ Process errors ($\sigma^2_p$) are the uncertainties that feeds back into future 
 
 The posterior distribution of the parameters of interest, $\theta$, conditional upon the data were estimated via MCMC (Gibbs) sampling using the JAGS platform (Plummer 2003, 2010). The JAGS model used for parameter estimation can be found at: \\
 
-/url{https://github.com/jae0/ecomod/mpa/bugs/}
+\url{https://github.com/jae0/ecomod/mpa/bugs/}
 
 
 
@@ -1108,10 +1103,9 @@ NA
 
 \clearpage
 
-\bibliographystyle{unsrt}
-\bibliography{sab.bib}
 
-%\printbibliography
+
+\printbibliography
 
 
 \clearpage \newpage
