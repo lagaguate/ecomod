@@ -1,5 +1,5 @@
   
-timeseries.autocorrelation = function( x, method="spec.pgram", quant=0.95, taper=0.05, kernel= kernel("modified.daniell", c(1,1))  ) {
+timeseries.autocorrelation = function( x, method="spec.pgram", quant=0.95, taper=0.05, kernel= kernel("modified.daniell", c(1,1)) , freq=1 ) {
   #\\ estimate simple time series autocorrelation (serial)
   # x = sunspot.year
 
@@ -23,7 +23,7 @@ timeseries.autocorrelation = function( x, method="spec.pgram", quant=0.95, taper
     I = Mod(fft(z))^2 /nx 
     I[1L] = 0
     u$spec = (4/nx)*I[1:nx2]    # "scaled periodogram"
-    u$freq = (0:nx2)*freq/nx
+    u$freq = (0:(nx2-1))*freq/nx
   }
 
   if (method=="cpgram") {

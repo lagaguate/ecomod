@@ -168,7 +168,10 @@ As such, we emphasize that this report is a simplistic first attempt at developi
 
 
 \section{Data} 
-In this section we focus upon a description of the data chosen for inclusion in this assessment. The purpose of the section is basic: to clearly identify the data, sampling design and the associated assumptions and methods required/used to filter and integrate them in an informative manner. For the sake of transparency, all data assimilation and QA/QC methods have been encoded in an open-sourced analytical environment R \cite{rCran} and made publicly accessible and revision controlled via \url{https://github.com/jae0/ecomod/}. As such, we try to ensure that this work is a real and flexible \textbf{structural framework} from which a common and vetted data system can be used coherently by multiple parties to develop further methods and approaches. 
+
+In this section we focus upon a description of the data chosen for inclusion in this assessment. The purpose of the section is basic: to clearly identify the data, sampling design and the associated assumptions and methods required/used to filter and integrate them in an informative manner. 
+
+For the sake of transparency, all data assimilation and QA/QC methods have been encoded in an open-sourced analytical environment R \cite{rCran} and made publicly accessible at \url{https://github.com/jae0/ecomod/} to permit flexible and adaptive multiuser contributions through the \textbf{Git revision control system} and a uniform and vetted data system. This approach permits the development of a coherent and vetted data system that can be used by multiple parties to develop further methods and approaches. In this way, we see this project as a real and flexible \textbf{structural framework} in the sense of a scaffolding, to build a monitoring and assessment system that can be easily transfered to other Regions and domains. 
 
 
 \subsection{Study area}
@@ -371,9 +374,9 @@ The values of chlorophyll-a pixels within St. Anns Bank polygon were extracted f
 
 Marine primary production plays an important role in biogeochemical cycles, in food web dynamics, and in marine fisheries. It may be defined as the amount of organic material (or organic carbon) produced per unit area (or volume) per unit time by photosynthetic plants, predominately by phytoplankton.
 
-Primary production of the ocean on synoptic scale is estimated by models that use satellite data (SST, ocean colour chlorophyll, and available light estimates at the surface), shipborne in-situ information on the vertical distribution of phytoplankton in the water column, and the phytoplankton’s photosynthetic response to light.
+Primary production of the ocean on synoptic scale is estimated by models that use satellite data (SST, ocean colour chlorophyll, and available light estimates at the surface), shipborne in-situ information on the vertical distribution of phytoplankton in the water column, and the phytoplankton's photosynthetic response to light.
 
-Monthly primary production data were provided by the Remote Sensing Unit (RSU) at BIO that routinely generates production maps for the NW Atlantic as part of the Atlantic Zone Monitoring Program. The general approach for the production computation is described in Platt et al. (2008) and employs chlorophyll and light estimates from MODIS, SST produced by the unit, and DFO’s archive of shipborne measured parameters. This particular production algorithm has been validated with in-situ measured production (Platt et al., 1988) and also has performed very well in global comparisons (Carr et al., 2006).
+Monthly primary production data were provided by the Remote Sensing Unit (RSU) at BIO that routinely generates production maps for the NW Atlantic as part of the Atlantic Zone Monitoring Program. The general approach for the production computation is described in Platt et al. (\cite{platt2008}) and employs chlorophyll and light estimates from MODIS, SST produced by the unit, and DFO's archive of shipborne measured parameters. This particular production algorithm has been validated with in-situ measured production (\cite{platt1988}) and also has performed very well in global comparisons (Carr et al., 2006).
 
 Primary production for each pixel within St. Anns Bank polygon was extracted from the monthly images and average production was computed for the polygon. The time series for the polygon and the associated monthly climatology are showing peaks in primary production in spring and summer with varying intensity and timing throughout the years (Figure~\ref{fig:ppTSmonthly} and Figure~\ref{fig:ppTSannual}). 
 
@@ -448,8 +451,8 @@ The SST pixels within St. Anns Bank polygon were extracted from each 8-day compo
 \begin{itemize}
   \item Relevance:  productivity, habitat, biodiversity and species of interest
   \item Sampling:  Groundfish survey, snow crab survey, AZMP profiles 
-  \item Spatial coverage: full extent, varied sampling, XXX stations
-  \item Temporal coverage: 1950 - present
+  \item Spatial coverage: full extent, varied sampling
+  \item Temporal coverage: 1950 - present (more historical data present but coverage is variable)
   \item Source code: https://github.com/jae0/ecomod/temperature/src/temperature.r
 \end{itemize}
 
@@ -471,7 +474,7 @@ Numerous data sources have been compiled by Ocean Sciences Division. The data we
   \item Spatial coverage
     \begin{itemize}
       \item Groundfish: full extent, random stratified, variable number of stations
-      \item Snow crab: Colder water environment, geostatistical grids of \~10 minutes, \~400 stations 
+      \item Snow crab: Colder water environment, geostatistical grids of $\approx$~10 minutes, $\approx$~400 stations 
     \end{itemize}
   \item Temporal coverage
     \begin{itemize}
@@ -585,7 +588,7 @@ An overview (in Google Earth format) of the catch and sampling at these stations
    \item Halibut survey - hook methodology and associated bias, hook saturation, targetting only large species, by catch not complete 
    \item 4Vn Sentinel survey .. very location specific
    \item including benthic sampling in the AOI, 
-   \item bird observations carried out by Canadian Wildlife Service, 
+   \item bird observations carried out by Canadian Wildlife Service
 \end{itemize}	
   
 \clearpage
@@ -611,7 +614,7 @@ St. Anns Bank Area of Interest has four zones within it with various levels of f
 
 \subsubsection{MarFIS data extraction}
 
-Prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers’ logs.  
+Prorated landings for all species from 2002 onwards were extracted from MARFIS. The proration process distributes the actual reported weights across the reported efforts as identified within the fishers' logs.  
 
 In addition to the landings, we also included several other forms of catch so as to better reflect the removal of biomass. These catches were identified by their \textquotedblleft CATCH \textunderscore USAGE\textunderscore CODE\textquotedblright, and include biomass used as bait or discarded (sometimes identified as dead).  Live discards were not included.  These catches were self-reported in a variety of units, so they have been converted to kg as necessary to match the logged landings. 
 
@@ -685,7 +688,7 @@ An example of the annually aggregated (2010) reported commercial catches for sea
 \begin{figure}[h]
 	\label{fig:Scallop}
 	\centering
-	\includegraphics[width=1.0\textwidth]{\sab Rplot.png}
+%	\includegraphics[width=1.0\textwidth]{\sab Rplot.png}
 	\caption{Commercial catch weights of sea scallops (\textit{Placopecten magellanicus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
 \end{figure}
 
@@ -698,7 +701,7 @@ Similarly, an example of annually aggregated (2011) reported commercial catches 
 \begin{figure}[h]
 	\label{fig:halibut}
 	\centering
-	\includegraphics[width=1.0\textwidth]{\sab Rplot01.png}
+%	\includegraphics[width=1.0\textwidth]{\sab Rplot01.png}
 	\caption{Commercial catch weights of halibut (\textit{Hippoglossus hippoglossus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
 \end{figure}
 
@@ -812,7 +815,10 @@ The satellite AIS data are available globally for the years 2013, 2014, and 2015
 \end{itemize}	
 
 \subsubsection{Stomach Database}
-Bottom trawl surveys have been conducted by DFO on the Scotian Shelf annual since 1970 using a stratified random design.  Sampling protocols changed in the late 1990s with the focus changing from commercially important finfish species to more comprehensive ecosystem monitoring that included the sampling of macroinvertebrates (Tremblay \textit{et al}. 2007).  Stomach contents samples were collected from finfish using a length-stratified sampling protocol.  Prey were quantified by weight and number, and often identified to the genus or family level, or to the species level when possible.  To determine if diet of finfish was different pre- and post- implementation of the MPA on St. Anns Bank or if there were differences within the MPA compared to other areas on the Scotia shelf, we explored the stomach database to determine if these dietary differences could be detected. Within the database, 54\% of the prey number observations were missing.  Due to the large interannual variation in prey weights estimating the prey number consistently from non-missing data where both the prey number and weight was available was determined to be impracticable and unreliable.  Due to the sampling stratification both by depth and length classes it was further determined that there would be insufficient samples available to reach the asymptote of prey species accumulation curves (Cook and Bundy 2010) and total diet composition could not be detected.  Prey species identified in the stomach samples could be used for quantifying biodiversity and species richness (Cook and Bundy 2012) for the proposed MPA and comparing it to similar ecosystem or pre- and post-implementation.
+
+Bottom trawl surveys have been conducted by DFO on the Scotian Shelf annual since 1970 using a stratified random design.  Sampling protocols changed in the late 1990s with the focus changing from commercially important finfish species to more comprehensive ecosystem monitoring that included the sampling of macroinvertebrates (Tremblay \textit{et al}. 2007).  Stomach contents samples were collected from finfish using a length-stratified sampling protocol.  Prey were quantified by weight and number, and often identified to the genus or family level, or to the species level when possible.  
+
+For the purpose of determining any change in the diet of finfish pre- and post- implementation of the MPA on St. Anns Bank or if there were differences within the MPA compared to other areas on the Scotia shelf, we explored the stomach database to determine if these dietary differences could be described and detected. Within the database, 54\% of the prey number observations were missing.  Due to the large interannual variation in prey weights estimating the prey number consistently from non-missing data where both the prey number and weight was available was determined to be impracticable and unreliable.  Due to the sampling stratification both by depth and length classes it was further determined that there would be insufficient samples available to reach the asymptote of prey species accumulation curves (Cook and Bundy 2010) and total diet composition could not be detected.  Prey species identified in the stomach samples could be used for quantifying biodiversity and species richness (Cook and Bundy 2012) for the proposed MPA and comparing it to similar ecosystem or pre- and post-implementation.
 
 
 \clearpage
@@ -823,30 +829,29 @@ All methods have been and will continue to be implemented in R, an open-sourced 
 The main methods used/developed in this report will be described in this section.
 
 
-\subsection{Biodiversity and taxonomic diversity}
+\subsection{Biodiversity and taxonomic richness}
 
 
-Biodiversity is seemingly a simple concept that in fact fundamentally complex. It ranges in focus from genetic and phenotypic varition within a local population, breeding populations to biome or even larger scaled genetics and phylogentic variability, both in terms of their number and relative dominance. As the spatial and temporal scales of the St. Anns Bank AOI is more or less constrained, we simplistically focus upon the number of unique species found in a given location (commonly called species richness). However, as this number is a function of sampling intensity, a statistical correction ("rarefaction") for spatial and temporal sampling intensity must be applied to be meaningfully comparable. Specifically, the model was:
+Biodiversity is seemingly a simple concept that in fact fundamentally complex. It ranges in focus from genetic and phenotypic variations within a local population, breeding populations to biome or even larger scaled genetic and phylogentic and community variability, both in terms of their number and relative dominance. Any and all of these aspects of biodiversity can be estimated. However, it is the number of unique kinds of organisms found in a given location (commonly called taxonomic richness) that is most readily quantified and monitored. 
+
+However, taxonomic richness is known to increase asymptotically with sampling intensity. As such, a statistical correction ("rarefaction") for spatial and temporal sampling intensity must be applied to be meaningfully comparable across locations and time. Specifically, the model was:
 
 \[
 R = B0 + SA + TS + LN(e)
 \]
+
+and used to predict an expected richness at a standard surface area and time depth. 
 
 The intent is to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
 
 \clearpage
 \subsection{Productivity}
 
-Total system standing biomass is generally used as a proxy for productivity. They are not the same. But ...
+Total system standing biomass is generally used as a proxy for productivity. They are not the same, however, they will be used to describe aggregate abundance of: various categories of organisms such as total bottom biomass, macroinvertebrates, zoopankton, phytoplanton, chlorophyll-a, etc. 
 
-- prod: total bottom, invert, pelagic zoopankton, chl, benthic fish?
+To estimate true production, a modeled approach is necessary. These indices can then be coupled with spatially explicit total landings to estimate the biomass and secondary production associated with the biota and fishery exploitation/footprint. 
 
-
-This is an approximation based upon sampling from groundfish and snow crab surveys. 
-
-This can then be coupled with total system landings to estimate the biomass and secondary production associated with the biota and fishery exploitation/footprint. 
-
-The intent is to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
+The intent is, therefore, to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds and estimate true (net production). 
 
 \clearpage
 \subsection{Habitat}
@@ -856,44 +861,31 @@ The basic Hutchinsonian notion of "ecological niche" is closely tied to our curr
 Two notions of habitat can be discriminated, depending upon outlook: 
 
 \begin{itemize}
-  \item Deconstructive -- make increasing more precise habitat definitions by adding more environmental and biological factors for increasingly more precise categories of organisms   
-  \item Integrative -- the biota living in a given time and location represent the true integration of all interacting environmental and biological factors and so in effect characterises the full system-level concept of "habitat space" 
+  \item Functional -- make increasing more precise habitat definitions by adding more environmental and biological factors for increasingly more precise categories of organisms   
+  \item Integrative -- the biota living in a given time and location represent a full integration of all relevant environmental and biological factors at their proper space time scales and so in effect characterises the full system-level concept of "habitat space" 
 \end{itemize}
 
 
-\subsubsection{Deconstructive-habitat modeling}
+\subsubsection{Functional-habitat modeling}
 \label{sec:habitatSpecies}
 
-An immediately evident way of describing \textbf{Deconstructive-habitat} space of an organism is to examine the presence-absence or relative abundance of organisms as a function of environmental gradients and biological/life history constraints. From such information, the likelihood of a given location to be potential habitat for an organism of interest can be derived. The simplest method is to develop a probability model under the assumption that the presence or absence of an organism is a Bernoulli process. This can be readily parameterised using standard Generalized Linear Models. However, as environmental constraints are almost always modal in influence given a wide enough environmental gradient, a nonlinear model is more useful. Generalized Additive Models and Autoregressive Models are two methods that can deal with these environmental constraints in a simple and efficient manner. The utility of such an approach is most relevant for organisms with highly specific habitat requirements. They are used in this framework.
+A utilitarian way of describing \textbf{Functional-habitat} space of an organism is to examine the presence-absence or relative abundance of organisms as a function of environmental gradients and biological/life history constraints. From such information, the likelihood of a given location to be potential habitat for an organism of interest can be derived. The simplest method is to develop a probability model under the assumption that the presence or absence of an organism is a Bernoulli process. This can be readily parameterised using standard Generalized Linear Models. However, as environmental constraints are almost always modal in influence given a wide enough environmental gradient, a nonlinear model is more useful. Generalized Additive Models and Autoregressive Models are two methods that can deal with these environmental constraints in a simple and efficient manner. 
 
-The intent is to develop such Deconstructive habitat models for key species of interest: wolffish, cod, etc., to assess changes in their available "habitat". Though the Deconstructive-habitat concept itself does not exclude species interactions, in actual practice, they are generally ignored as they make the statistical estimation impossibly over-parameterized (but see \cite{snowcrabResdoc} for one possible solution). Further, as there will always be factors that are either poorly known, poorly sampled, or poorly parameterized (e.g., dissolved oxygen, pH, redox, bacteria, jellyfish, squid, pollution, substrate type, etc.), these models will always necessarily be incomplete. At present, only the models for snow crab have been completed using this method (Figure~\ref{fig:snowcrabHabitat}; see \cite{snowcrabResDoc} for more details). Further, it is possible to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then "integrate" them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit more formal statements of risk and probability of exceeding thresholds. 
+The utility of such an approach is most relevant for organisms with highly specific habitat requirements. They are used in this framework. The intent is to develop such Functional habitat models for key species of interest: wolffish, cod, etc., to assess changes in their available "habitat". Though the Functional-habitat concept itself does not exclude species interactions, in actual practice, they are generally ignored as they make the statistical estimation impossibly over-parameterized (but see \cite{choi:2012:resdoc} for one possible solution). Further, as there will always be factors that are either poorly known, poorly sampled, or poorly parameterized (e.g., dissolved oxygen, pH, redox, bacteria, jellyfish, squid, pollution, substrate type, etc.), these models will always necessarily be incomplete. 
 
-\begin{figure}
-  \label{fig:snowcrabHabitat}
-  \centering
-  \includegraphics[width=0.6\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
-  \caption{Predicted probability of observing snow crab in Maritimes Region based upon a Deconstructive-habitat method.}
-\end{figure}
+It is possible to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then "integrate" them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit more formal statements of risk and probability of exceeding thresholds. 
 
 
 \subsubsection{Integral habitat -- whole system level}
 \label{sec:integralHabitat}
 
-While the Deconstructive habitat concept is interesting and useful when a reductionistic understanding is imperative, the monitoring and assessment requirements for an MPA  demands also a whole system understanding. The hypothesis put forward is that the relative abundance of organisms found in a given location and time defines and mirrors the kind of habitat in which they live. Sessile organisms that require high flow environments and associated biota tend to be of one groups of organisms; and they are different from those that require cold waters and minimal water flow, etc. Thus if we can quantify the observed species composition in a given location and time, we would, in effect, be describing the habitat. That is species assemblage information can reflect all these biological and environmental interactions, measured and unmeasured. These associations are readily quantified using a standard multivariate procedures. Here we focus upon, Principal Components Analysis which focuses upon the correlational structure of the species assemblages and Correspondence Analysis which focuses upon chi-squared differences (Figure~\ref{fig:speciesCompositionMap}). We will define this as \textbf{Integral-habitat}. 
+While the Functional habitat concept is interesting and pragmatic, it is decidedly a reductionistic perspective. The monitoring and assessment requirements for an MPA also demands a whole system perspective. The \textit{assumption} we make is that \textbf{the relative abundance of organisms found in a given location and time defines and mirrors the kind of habitat in which they live}. Sessile organisms that require high flow environments and associated biota tend to exist and flourish with a given group of other organisms similarly adapted; and they are different from those that require cold waters and minimal water flow, etc. 
 
-These associations are quantified using a standard multivariate procedure, namely Principal Components Analysis which focuses upon the correlational structure of the species assemblages. Figure (xxx) 
+Thus, if we can quantify the observed species composition in a given location and time, we would, in effect, be describing the habitat. That is species assemblage information can directly reflect all these biological and environmental interactions, measured and unmeasured. These associations are readily quantified using a standard multivariate procedures. Here we focus upon, Principal Components Analysis which focuses upon the correlational structure of the species assemblages and Correspondence Analysis which focuses upon chi-squared differences (Figure~\ref{fig:speciesCompositionMap}). We will define this as \textbf{Integral-habitat}. 
 
-\begin{figure}[h]
-  \label{fig:speciesCompostionMap}
-  \centering
-  %  \includegraphics[width=0.75\textwidth]{\ecomod speciescomposition/analysis/SSE/allseasons/complex/maps/{maps.pca1.2010}.png}
-  \includegraphics[width=1.0\textwidth]{\mpa oneoffs/ca.png}
-  \caption{Species composition variations in Maritimes Region.}
-\end{figure}
+These associations are quantified using any number of standard multivariate procedures. Here we choose Principal Components Analysis which focuses upon the correlational structure of the species assemblages and Correspondence Analysis which focuses upon the Chi-square distances between assemblages. Both are well known methods that are simple and easily understood. 
 
 The intent is to model the spatial/temporal patterns (Sections~\ref{sec:interpolationTS}, ~\ref{sec:interpolationSpatial}) and then integrate them in a risk-based approach (Section~\ref{sec:riskapproach}) to permit formal statements of risk and probability of exceeding thresholds. 
-
-
 
 
 \subsection{Connectivity: space and time scales}
@@ -907,7 +899,7 @@ A second important and immediate implication is the relationship of the characte
 
 For these rather simple reasons, defining the spatial scale of a given observation or process is critical for the development of any assessment or monitoring of MPAs. To this end, we mush define what we mean by spatial scale carefully:
 
-Any spatially defined observation can be seen as a realization of some stochastic spatial process. Such  processes are known as \textbf{spatial random fields} or \textbf{spatial stochastic process}, $y$, defined at some location $x$. The manner in which the variability of $y$ changes as a function of distance $\Delta x$ is very informative and is known as the \textbf{semivariogram} $\gamma$:
+Any spatially defined observation can be seen as a realization of some stochastic spatial process. Such  processes are known as \textbf{spatial random fields} or \textbf{spatial stochastic process}, $y$, defined at some location $x$. The manner in which the variability of $y$ changes as a function of distance $\Delta x$ is informative and is known as the \textbf{semivariogram} $\gamma$:
 
 \begin{eqnarray*}
 \label{eq:semivariogram}
@@ -919,15 +911,14 @@ where $\sigma^2$ is the total variance in observations $y$. It has a clear relat
 
 Empirically, one generally observes that the variability is lower between locations closer together and higher for locations further apart. Eventually this variability levels off where observations at one location is completely disconnected from another. This spatial dependence or autocorrelation is important as it defines the spatial scales of a given process. 
 
-Numerous models are used to parameterize this shape of this relationship. Well known ones include: spherical, exponential, Gaussian and Mat\'{e}rn models. In this report, we utilize the Mat\'{e}rn due to its flexibility and direct relationship to Stochastic Partial Differential Equations (SPDE's) which will become important later for interpolation purposes. 
+Numerous models are used to parameterize the shape of this relationship. Well known ones include: spherical, exponential, Gaussian and Mat\'{e}rn models. In this report, we utilize the Mat\'{e}rn due to its flexibility and direct relationship to Stochastic Partial Differential Equations (SPDE's) which will become important later for interpolation purposes. 
 
 \begin{equation}
 \gamma(x) = \tau^2 + \sigma^2 [ 1 - \frac{{(2\sqrt{\nu}x)}^\nu}{2^{\nu-1} \rho^{\nu} \Gamma(\nu)}
  K_\nu(\frac{2\sqrt{\nu}x}{\rho} ) ]
 \end{equation}
 
-Here, $\tau^2$ is the variance offset often known as the nugget variance, the variability at local scales (usually associated with sampling error; $\nu$ controls smoothness/curviness; $\Gamma(\nu)$ is the Gamma function; and $K_{\nu}$ is the modified Bessel function of the second kind and order $\nu$. When $\nu=1/2$ then this become the exponential (or Laplacian) model. When $\nu \longrightarrow \infty$, the model becomes the Gaussian model. The spatial range can be recovered from this as the distance at which spatial correlation drops to some low level. In the RINLA estimation procedure (\cite{rinla}), this happens to be when correlation drops to $\approx$~0.13 which will also be used to define spatial range in this report. 
-
+Here, $\tau^2$ is the variance offset often known as the nugget variance, the variability at local scales (usually associated with sampling error; $\nu$ controls smoothness/curviness; $\Gamma(\nu)$ is the Gamma function; and $K_{\nu}$ is the modified Bessel function of the second kind and order $\nu$. When $\nu=1/2$ then this become the exponential (or Laplacian) model. When $\nu \longrightarrow \infty$, the model becomes the Gaussian model. The spatial range can be recovered from this as the distance at which spatial dependence drops to some arbitrary asymptotic low level. The RINLA estimation procedure (\cite{rinla}) happens to define this to be when the spatial variance increases asymptotically to $\approx~0.75\%$ of the total variance. We will use this threshold to define the spatial range in this report. Further, our intent is to focus upon spatial patterns larger than 1 km in resolution. Smaller scales are beyond current computational limits, given the scope of the larger study area.
 
 \begin{figure}
   \label{fig:matern}
@@ -942,27 +933,31 @@ Here, $\tau^2$ is the variance offset often known as the nugget variance, the va
 
 MPAs also exist in a dynamic frame. As such, similar to the above spatial considerations, there also exists some characteristic temporal scale upon which an MPA and its subcomponents operate. If the overall temporal variations of the biota and environment is small relative to the overall life of an MPA, the chances of the MPA having an influence upon the species is enhanced. Presumably, the longevity of MPAs will be long lasting, and so will guarantee some influence, however small that may be; an effect that would be enhanced if the subject is shorter-ranged in spatial scales.
 
-Again, this also has a simple and obvious implication in terms of monitoring and assessment. If the goal is to resolve short-term processes then sampling must also, of necessity be more frequent. 
+Again, this also has a simple and obvious implication in terms of monitoring and assessment. 
 
-For this rather simple reason, defining the spatial scale of a given observation or process is critical for the development of any assessment or monitoring of MPAs. To this end, we mush define what we mean by spatial scale. Any spatially defined observation can be seen as a realization of some stochastic spatial process. Such  processes are known as \textbf{spatial random fields} or \textbf{spatial stochastic process}, $y$, defined at some location $x$. The manner in which the variability of $y$ changes as a function of distance $\Delta x$ is very informative and is known as the \textbf{semivariogram} $\gamma$:
+As the temporal scale is an informative metric for monitoring and assessment of an MPA, we must be precise in its definition. Similar to the spatial case, we focus upon how the correlation and variability of some quantity changes with greater difference in time. The analogue to the semivariogram in a timeseries context is known as a \textbf{cumulative periodogram}. 
 
+A periodogram expresses the amount of variance found at different wavelengths ($\omega$). It is a discrete sample estimate of the continuous concept of spectral density $\gamma(t)$: 
 
+\begin{equation}
+  \label{eq:spectraldDensity}
+  \gamma(t) = \int_{-1/2}^{1/2} e^{2\pi i \omega t} f(\omega) d \omega
+\end{equation}
 
+It is easily obtained from a Fast Fourier Transform of any arbitrary time-series and so the cumulative distribution permits a rapid identification of the time scale at which correlation drops to some arbitrary level. To be approximately comparable to the spatial scale, we define the temporal scale as the time difference by which the Cumulative Power Spectral Density increases to 75\% of the total variance.
 
-\subsubsection{Environmental data}
+If the goal is to resolve short-term processes then sampling must also, of necessity be more frequent. However, similar to spatial scale issues, there is a point where there will be diminishing returns for any increase in the resolution of a temporal signal. It is the intent of this framework to operate upon timescale of 1 yr or greater. Sub-annual signals where they are available would be used to decompose the seasonal signals from the inter-annual signals to avoid bias due to discretization errors. 
 
+\subsubsection{Space-time models}
 
+In reality, spatial and temporal patterns coexist and evolve. They are also correlated processes and as such a challenge to model properly except the simplest of additive/multiplicative models. Nonetheless, new developments in computational methods are bringing such models within range of use for a framework such as this. This includes the Stochastic Partial Differential Equation representation of Random Markov field processes and their relationship to the Mat\'{e}rn model. However, we cannot commit to this approach as yet until the full computational limitations of the approach have been explored. It is a work in progress.
 
-\subsubsection{Zooplankton and phytoplankon}
-
-Zooplankton and phytoplankton standing biomass (and net production) will be examined to determine spatial and temporal ranges. The same will be attempted for satellite imagery data. The expectation is that the scales will be broad (larger than the size of SAB) and temporally short (annual to sub-decadal) due to a stronger influence of environmental/climatic scales of variation for these surface/planktonic processes. A risk-based model might be adopted depending upon availability of time and appropriateness of the space-time scales.
 
 \subsubsection{Tagging, mark-recapture}
-Increased tagging efforts have been made in the vicinity of SAB. Most of the effort has been driven by industry, Ocean Tracking Network, and Emera interest in snow crab movement near SAB (see Section~\ref{(se:snowcrab)}. However, acoustic tagging of other species of interest will be completed for cod, wolfish, halibut and others. This information will also help define the spatial connectivity and range of the species of interest. The intent is to develop movement models where possible and estimate spatial range directly.  
 
-Mark-recapture information for sea turtles, seals, and various other species exist in the area. This data has not been examined. It is a data gap at present. 
+A tangible way of quantifying time and space scales (connectivity) is to demonstrate movement and genetic similarity. In the latter, no effort has been made.  In the former, due to synergies with the fishing industry, increased tagging efforts have been made in the vicinity of SAB. Most of the effort has been driven by industry, Ocean Tracking Network, and Emera interest in snow crab movement near SAB (see Section~\ref{(se:snowcrab)}. However, acoustic tagging of other species of interest will be completed for cod, wolfish, halibut and others. This information will also help define the spatial connectivity and range of the species of interest. The intent is to develop movement models where possible and estimate spatial range directly.  
 
-
+Mark-recapture information for sea turtles, seals, sharks and various other species exist in the area. This data has not been examined nor are they always available. It is a data gap at present. 
 
 
 \subsection{Risk modeling}
@@ -975,7 +970,7 @@ The proposed approach is to use a the logistic equation, a well known approach t
 
 \subsubsection{Logistic model}
 
-As observed by Lotka (1925), the rate of change in time $t$ of any state $Y$ (in our context: abundance, species richness, "habitat", size) can be expected to be in some minimal way, a function of itself:  
+As observed by Lotka (\cite{lotka1925}), the rate of change in time $t$ of any state $Y$ (in our context: abundance, species richness, "habitat", size) can be expected to be in some minimal way, a function of itself:  
 
 \begin{eqnarray} 
 \label{eqLogisticContinuous}
@@ -1041,18 +1036,69 @@ The posterior distribution of the parameters of interest, $\theta$, conditional 
 
 
 
-\section{Results}
+\section{Results and Discussion}
 
-NA
+Most analyses have not been completed. The effort so far has been to assimilate and develop the scaffolding to support the analyses and future monitoring and assessment. However, some preliminary results can be reported upon. We highlight a few of these results but emphasize their very preliminary nature. 
 
-\section{Discussion}
+\subsection{Biodiversity}
 
-NA
+-- maps
+
+\subsection{Productivity}
+-- maps
+
+
+\subsection{Habitat}
+
+\subsubsection{Functional Habitat}
+
+At present, only the models for snow crab have been completed using this method (Figure~\ref{fig:snowcrabHabitat}; \ref{fig:snowcrabHabitatTS}; see \cite{choi:2012:resdoc} for more details). 
+
+\begin{figure}[h]
+  \label{fig:snowcrabHabitat}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
+  \caption{Predicted probability of observing snow crab in Maritimes Region based upon a Functional-habitat method.}
+\end{figure}
+
+\begin{figure}[h]
+  \label{fig:snowcrabHabitatTS}
+  \centering
+  \includegraphics[width=0.6\textwidth]{\ecomod snowcrab/assessments/2012/timeseries/interpolated/{snowcrab.habitat.sa}.png}
+  \caption{Surface area of potential habitat of snow crab in Maritimes Region based upon a Functional-habitat method.}
+\end{figure}
+
+
+\clearpage
+\subsubsection{Integral Habitat}
+
+An example of Integral habitat as expressed through an ordination of taxa found together in various bottom trawls (Figure~\ref{fig:speciesCompostionMap}).
+
+\begin{figure}[h]
+  \label{fig:speciesCompostionMap}
+  \centering
+  %  \includegraphics[width=0.75\textwidth]{\ecomod speciescomposition/analysis/SSE/allseasons/complex/maps/{maps.pca1.2010}.png}
+  \includegraphics[width=1.0\textwidth]{\mpa oneoffs/ca.png}
+  \caption{Integral habitat based upon species composition variations in Maritimes Region.}
+  
+\end{figure}
+
+
+\subsection{Connectivity}
+
+\subsubsection{Spatial scale}
+
+-- bathymetry
+
+\subsubsection{Temporal scale}
+
+
+\subsubsection{Tagging}
 
 
 % One can resolve spatial temporal variations with increase intensity of effort. But more important is the ability to say, some given level of resolution is sufficient. What are the space time scales that interest us, must therefore be made explicit.
 
-\section{Conclusions and recommendations}
+\section{Conclusions and Recommendations}
 
 NA
 
@@ -1062,10 +1108,10 @@ NA
 
 \clearpage
 
-%\bibliographystyle{unsrt}
-%\bibliography{sab.bib}
+\bibliographystyle{unsrt}
+\bibliography{sab.bib}
 
-% \printbibliography
+%\printbibliography
 
 
 \clearpage \newpage
@@ -1193,7 +1239,7 @@ In a number of cases, the same water sample was processed using two different me
 \begin{figure}[h]
   \label{fig:ChlaTimeseries}
   \centering
-  \includegraphics[width=1.0\textwidth]{\sab 27.png}
+  \includegraphics[width=0.8\textwidth]{\sab 27.png}
   \caption{Time series of chlorophyll-a data from BioChem grouped by methods.}
 \end{figure}
 
@@ -1213,13 +1259,10 @@ In a number of cases, the same water sample was processed using two different me
 \end{figure}
 
 
-
-\clearpage
-
 \subsection{Nitrate}
 
-% Table begins
-% 
+Nitrate estimates are derived from 10 methods. The methods are listed and described in Table~\ref{table:Nmethods} and the time series of data associated with each method is shown in Figure~\ref{fig:NTimeseries}. Most of the methods measure nitrate and nitrite together. We also included data for nitrate only since  in most seawater the concentration of nitrite is small compared to that of nitrate.
+
 \begin{table}[h]
   \label{table:Nmethods}
   \caption{Methods associated with nitrate records in BioChem.}
@@ -1246,9 +1289,6 @@ In a number of cases, the same water sample was processed using two different me
   \caption{Time series of nitrate data from BioChem grouped by methods.}
 \end{figure}
 
-Nitrate estimates are derived from 10 methods. The methods are listed and described in Table~\ref{table:Nmethods} and the time series of data associated with each method is shown in Figure~\ref{fig:NTimeseries}. Most of the methods measure nitrate and nitrite together. We also included data for nitrate only since  in most seawater the concentration of nitrite is small compared to that of nitrate.
-
-\clearpage
 \subsection{Phosphate}
 
 Phosphate  data available in BioChem are mapped to 7 methods. The methods are listed and described in Table~\ref{table:PhosphateMethods} and the time series of data associated with each method is shown in Figure~\ref{fig:PhosphateTimeseries}.
@@ -1277,7 +1317,6 @@ Phosphate  data available in BioChem are mapped to 7 methods. The methods are li
 \end{figure}
 
 
-\clearpage
 \subsection{Silicate}
 
 Silicate data available in BioChem are mapped to 8 methods (Table~\ref{table:SilicateMethods}). Their time series of are shown on Figure~\ref{fig:silicateTimeseries}.
@@ -1305,6 +1344,7 @@ Silicate data available in BioChem are mapped to 8 methods (Table~\ref{table:Sil
   \includegraphics[width=1.0\textwidth]{\sab 34.png}
   \caption{Time series of silicate data from BioChem grouped by methods.}
 \end{figure}
+
 
 \clearpage
 \subsection{Zooplankton}
