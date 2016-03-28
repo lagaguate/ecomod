@@ -530,7 +530,6 @@
     \item Groundfish: 2000 - present (started in 1970, but consistent sampling since 2000)
     \item Snow crab: 2005 - present (started in 1996, but consistent sampling since 2005)
   \end{itemize}
-  
   \item Source code
   \begin{itemize}
     \item url{https://github.com/jae0/ecomod/groundfish/src/groundfish.r}
@@ -541,33 +540,262 @@
 
 % ----------------------------------------------------------------
 
-%\begin{frame}[shrink]
-%\end{frame}
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  	\begin{tabular}{cc}
+      \includegraphics[width=0.5\textwidth]{\analysis maps/{trawl.spatial.density}.pdf} &
+      \includegraphics[width=0.5\textwidth]{\analysis {trawl.time.density}.pdf}
+    \end{tabular}
+  \caption{Left: Survey locations in the Groundfish survey (orange) and snow crab survey (green). Right: Timing of surveys in the Groundfish survey (orange) and snow crab survey (green). }
+   \label{fig:trawlLocationsMap}
+\end{figure}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+\frametitle{Net mensuration issues}
+\begin{itemize}
+  \item Historical assumption: fixed width (12.5 m); length 3.24 km
+  \item Observed: wing spread, tow length are variable
+  \item Problem: net mensuration not recorded systematically 
+  \item Historical data needs to be adjusted as much as possible
+\end{itemize}
+
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  	\begin{tabular}{cc}
+      \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/numberOfSets.pdf}
+      \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/toweddistance.pdf}
+    \end{tabular}
+   \caption{Left: Number of sets in the Groundfish surveys and the number of sets with usable net configuration data. Right: Towed distance comparisons in the groundfish survey.}
+   \label{fig:trawlLocationsMap}
+\end{figure}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{\ecomod mpa/analysis/{wing.v.door.byyear}.pdf}
+ \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly larger from 2013 to 2015.}
+   \label{fig:groundfishWingDoorAnnual}
+\end{figure}
+
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/{wing.v.door}.pdf}
+  \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
+  \label{fig:groundfishWingDoorComparison}
+\end{figure}
+
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+
+\begin{figure}
+  \centering
+  \begin{tabular}{cc}
+  \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/{sa.comparison}.pdf} &
+  \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/{sa.comparison.all}.pdf}
+  \end{tabular}
+  \caption{Left: Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration. Right: Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration \textbf{as well as modeled solutions}.}
+   \label{fig:groundfishSweptArea}
+\end{figure}
+
+\end{frame}
+
+
+\subsection{Fishery activity}
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\frametitle{MARFIS: Fishery footprint}
+\begin{itemize}
+	\item Relevance:  productivity, habitat, biodiversity and species of interest
+	\item Sampling:  MarfIS and ZIFF
+	\item Spatial coverage: full extent 
+	\item Temporal coverage: 1999 - present
+	\item Source code: \url{https://github.com/jae0/ecomod/marfissci/src/}
+\end{itemize}	
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{\sab Rplot01.png}
+	\caption{Commercial catch weights of halibut (\textit{Hippoglossus hippoglossus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
+	\label{fig:halibut}
+\end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\begin{figure}[h]
+	\centering
+ \includegraphics[width=0.8\textwidth]{\sab Rplot.png}
+	\caption{Commercial catch weights of sea scallops (\textit{Placopecten magellanicus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
+		\label{fig:Scallop}
+\end{figure}
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\frametitle{Vessel activity}
+\begin{itemize}
+	\item Relevance:  habitat, biodiversity and species of interest
+	\item Sampling:  AIS
+	\item Spatial coverage: Global for satellite AIS, coastal ($\sim$ 100km) for Canadian Coast Guard terrestrial AIS network.
+	\item Temporal coverage: 2013 - present
+	\item Source code: https://github.com/jae0/ecomod/AIS/src/ais.r
+\end{itemize}	
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+
+\begin{figure}[h]
+  \centering
+	\includegraphics[width=1.0\textwidth]{\sab CCG_AIS.pdf}
+	\caption{Automatic Identification System (AIS) data collected from the Canadian Coast Guard terrestrial network of AIS receiving stations on 08 Dec 2015. A total of 127 vessels were detected in the area with each colour representing a unique vessel.}
+    \label{fig:TAIS}
+\end{figure}
+
+
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{\sab Line_of_Sight.pdf}
+	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with line of sight detection (red circles) for the terrestrial AIS receiving stations (red dots) around St. Anns Bank Area of Interest.}
+   \label{fig:LOF}
+\end{figure}
+
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{\sab Simard_Sight.pdf}
+	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with  \textcite{Simard2014shipping} estimated vessel detection distances (blue circles) for the terrestrial AIS receiving stations (blue dots) around St. Anns Bank Area of Interest.}
+  \label{fig:DetAIS}
+\end{figure}
+
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1.0\textwidth]{\sab Interpolation_Example1.pdf}
+	\caption{Detected vessel positions (large filled circles) and interpolated vessel positions (lines) for three unique vessels transiting through the St. Anns Bank Area, where each colour represents a unique vessel.}
+	\label{fig:astar}
+\end{figure}
+
+\end{frame}
+% ----------------------------------------------------------------
+
+\begin{frame}
+\begin{figure}[h]
+
+	\centering
+	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{\sab Counts_2013-2015_Q1.pdf} &
+		\includegraphics[width=0.5\textwidth]{\sab Counts_2013-2015_Q1_NNF.pdf}
+	\end{tabular}
+	\caption{Vessel density maps for the first quarter of a year based on satellite AIS data from 2013-2015 for all vessels (left panel) and all vessels except of the Newfoundland ferries (right panel).}
+	\label{fig:countmaps}
+\end{figure}
+\end{frame}
+
+
+
+
+
+% ---------------------------------------------------------------
+\begin{frame}
+  
+\begin{figure}[h]
+	\centering
+	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{\sab Cost_2013-2015_Q1.pdf} &
+		\includegraphics[width=0.5\textwidth]{\sab Cost_2013-2015_Q1_NNF.pdf}
+	\end{tabular}
+	\caption{Cost maps developed for the A$^{\star}$ function to interpolate undetected vessel positions as vessels transit in and out of the Gulf of St. Lawrence.}
+  \label{fig:costmap}
+\end{figure}
+
+
+\end{frame}
+
+
+\section{Methods}
+% ----------------------------------------------------------------
+
+\begin{frame}
+  
+All methods have been and will continue to be implemented in R, an open-sourced programming environment. The methods are shared via http://github.com using the git revisioning system. These architectural choices were adopted to enhance the transparency and ease of sharing and collaborating with all interested parties. It is structured such that any additional data series can be easily added to the system to permit adaptive change. In this way, the approaches developed represents a true \textbf{structural framework} in which to further develop methods and approaches. 
+
+\end{frame}
+
 
 % ----------------------------------------------------------------
 
 %\begin{frame}[shrink]
 %\end{frame}
 
-% ----------------------------------------------------------------
 
-%\begin{frame}[shrink]
-%\end{frame}
 
 % ----------------------------------------------------------------
 
 %\begin{frame}[shrink]
 %\end{frame}
 
-% ----------------------------------------------------------------
 
-%\begin{frame}[shrink]
-%\end{frame}
 
-% ----------------------------------------------------------------
 
-%\begin{frame}[shrink]
-%\end{frame}
+
 
 % ----------------------------------------------------------------
 % ----------------------------------------------------------------
