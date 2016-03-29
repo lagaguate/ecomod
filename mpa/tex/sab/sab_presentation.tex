@@ -679,7 +679,7 @@
 
 % ----------------------------------------------------------------
 
-\begin{frame}
+\begin{frame}[shrink]
 
 \begin{figure}[h]
   \centering
@@ -695,7 +695,7 @@
 
 % ----------------------------------------------------------------
 
-\begin{frame}
+\begin{frame}[shrink]
 
 \begin{figure}[h]
 	\centering
@@ -710,12 +710,11 @@
 
 % ----------------------------------------------------------------
 
-\begin{frame}
-
+\begin{frame}[shrink]
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{\sab Simard_Sight.pdf}
-	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with  \textcite{Simard2014shipping} estimated vessel detection distances (blue circles) for the terrestrial AIS receiving stations (blue dots) around St. Anns Bank Area of Interest.}
+	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with estimated vessel detection distances (blue circles) for the terrestrial AIS receiving stations (blue dots) around St. Anns Bank Area of Interest.}
   \label{fig:DetAIS}
 \end{figure}
 
@@ -724,7 +723,7 @@
 
 % ----------------------------------------------------------------
 
-\begin{frame}
+\begin{frame}[shrink]
   
 \begin{figure}[h]
 	\centering
@@ -736,7 +735,7 @@
 \end{frame}
 % ----------------------------------------------------------------
 
-\begin{frame}
+\begin{frame}[shrink]
 \begin{figure}[h]
 
 	\centering
@@ -754,7 +753,7 @@
 
 
 % ---------------------------------------------------------------
-\begin{frame}
+\begin{frame}[shrink]
   
 \begin{figure}[h]
 	\centering
@@ -770,35 +769,377 @@
 \end{frame}
 
 
+% ---------------------------------------------------------------
+\begin{frame}
+\frametitle{Data gaps}
+Expensive and/or difficult to monitor and/or with information that is not readily available at present.
+\begin{itemize}
+  \item Feeding relationships -- Stomach Database .. not usable
+  \item Pelagic fish (small and large bodied) 
+  \item Pelagic invertebrates (e.g., squid, jellyfish)
+  \item Substrate characterisation 
+  \item Large marine mammals, reptiles, birds 
+  \item Genetic diversity
+  \item Seismic activity
+  \item Pollution
+  \item Ballast water
+\end{itemize}
+\end{frame}
+
+
+
+% ---------------------------------------------------------------
 \section{Methods}
-% ----------------------------------------------------------------
+% ---------------------------------------------------------------
+
+
 
 \begin{frame}
+\frametitle{Biodiversity} 
+  \begin{itemize}
+    \item Complex idea: space, time, organisational/phylogenetic components
+    \item Control space and time (via "rarefaction" and interpolation) and aggregate taxonomic richness $R$
   
-All methods have been and will continue to be implemented in R, an open-sourced programming environment. The methods are shared via http://github.com using the git revisioning system. These architectural choices were adopted to enhance the transparency and ease of sharing and collaborating with all interested parties. It is structured such that any additional data series can be easily added to the system to permit adaptive change. In this way, the approaches developed represents a true \textbf{structural framework} in which to further develop methods and approaches. 
+  \[
+  log(R) = B0 + log(SA) + log(TS) + e
+  \]
+  
+  \item Estimate dynamics of $R$ via a modeled solution to logistic state space model.
+     
+  \end{itemize}
+  
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Productivity}
+
+    \begin{columns}[c]
+      \begin{column}{.5\textwidth}
+        \begin{itemize}
+          \item Complex idea: space, time, organisational components
+          \item Production is not the same as standing biomass 
+          \item Control space and time (via interpolation) and aggregate on total and species of interest 
+          \item Estimate production via a modeled solution to logistic state space model
+        \end{itemize}
+      \end{column}
+      \begin{column}{.5\textwidth}
+        \begin{figure}[h]
+          \caption{Predicted biomass density of snow crab in Maritimes Region based upon a combination of a Functional-habitat method and simple spatial interpolation.}
+          \label{fig:snowcrabAbundance}
+          \centering
+          \includegraphics[width=1.0\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.abundance.mean.R0.mass.2010}.png}
+        \end{figure}
+      \end{column}
+    \end{columns}    
+
 
 \end{frame}
 
 
-% ----------------------------------------------------------------
-
-%\begin{frame}[shrink]
-%\end{frame}
 
 
+% ---------------------------------------------------------------
 
-% ----------------------------------------------------------------
+\begin{frame}[shrink]
+  \frametitle{Habitat}
+  \begin{itemize}
+    \item Hutchinson's multidimensional niche concept, $H$
+    \item Extra complex idea: space, time, organisational components $\bigotimes$~$H$
+    \item Two approaches:
+    \begin{itemize}
+      \item \textbf{Functional} 
+      \begin{itemize}
+        \item make increasingly more precise habitat definitions by adding more environmental and biological factors for increasingly more precise categories of organisms
+        \item due to natural complexity, such models will always necessarily be incomplete
+      \end{itemize}
+      \item \textbf{Integrative} 
+      \begin{itemize}
+        \item the biota living in a given time and location fully integrates of all relevant environmental and biological factors at their proper space time scales, including the cumulative effects
+        \item characterising taxonomic composition will estimate "habitat space"
+      \end{itemize}
+    \end{itemize}
+    \item Estimate dynamics via a modeled solution to logistic state space model
+  \end{itemize}
+\end{frame}
 
-%\begin{frame}[shrink]
-%\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Functional-habitat}
+    \begin{columns}[c]
+      \begin{column}{.4\textwidth}
+        \begin{itemize}  
+          \item Bernoulli process $\sim$ environmental factors/gradients
+          \item Problem: how do we put the egg back together again
+        \end{itemize}
+      \end{column}
+      \begin{column}{.6\textwidth}
+        \begin{figure}[h]
+          \caption{Predicted probability of observing snow crab in Maritimes Region based upon a Functional-habitat method.}
+          \label{fig:snowcrabHabitat}
+          \centering
+          \includegraphics[width=1.0\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
+        \end{figure}      
+      \end{column}
+    \end{columns}    
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Functional-habitat}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{\ecomod snowcrab/assessments/2012/timeseries/interpolated/{snowcrab.habitat.sa}.png}
+    \caption{Surface area of potential habitat of snow crab in Maritimes Region based upon a Functional-habitat method.}
+    \label{fig:snowcrabHabitatTS}
+  \end{figure}
+\end{frame}  
 
 
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Integral habitat}
+  \begin{itemize}  
+    \item Organism community indicates/reflects the type of habitat ($\equiv$~all biological and environmental interactions, short and long time and space scales, instantaneous and cumulative)
+    \item Metric: Standard multivariate methods of data ordination. 
+    \begin{itemize}
+      \item Principal Components Analysis -- correlational structure
+      \item Correspondence Analysis -- Chi-squared differences
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
 
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Integral habitat}
+  \begin{figure}[h]
+    \centering
+    %  \includegraphics[width=0.75\textwidth]{\ecomod speciescomposition/analysis/SSE/allseasons/complex/maps/{maps.pca1.2010}.png}
+    \includegraphics[width=1.0\textwidth]{\mpa oneoffs/ca.png}
+    \caption{Integral habitat based upon species composition variations in Maritimes Region. Note the first (left) is primarily a temperature gradient expressed through species composition and the second (right) is a depth-related gradient in species assemblages.}
+    \label{fig:speciesCompostionMap}
+  \end{figure}
+\end{frame}
 
 
-% ----------------------------------------------------------------
-% ----------------------------------------------------------------
-% ----------------------------------------------------------------
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: spatial scale}
+  \begin{itemize}
+    \item MPAs exist in a spatial context
+    \item Spatial scale will determine which processes will be relevant
+    \begin{itemize}
+      \item If spatial variations in the productivity of a species of interest is small relative to the size of an MPA, the chances of the MPA having an influence upon the species is enhanced. This is usually the case when short-range processes dominate (e.g., less mobile species, weakly dispersing, low currents, habitat heterogeneity at small scales). 
+      \item If spatial scale is larger than the MPA, then it would mean that broader/larger processes were influencing the productivity of the species (e.g., higher mobility or dispersal processes/current, and stronger spatial connectivity, habitat heterogeneity at larger scales) -- resulting in a lower likelihood of the MPA having an influence upon the species or components of interest.
+      \item Monitoring and assessment must respect the spatial scales implicated if one is to resolve such patterns, with a focus upon scales > 1 km 
+      \item Measure via semivariogram
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Semi-variogram}
+    \begin{columns}[c]
+      \begin{column}{.4\textwidth}
+        \begin{itemize}
+          \item Spatial stochastic process, $y$ defined at some location $x$
+          
+          \item Then the variability of $y$ changes as a function of distance $\Delta x$: 
+        \end{itemize}
+        
+          \begin{eqnarray*}
+            \label{eq:semivariogram}
+            \gamma(x) &=& \frac{1}{2} \ \textrm{Var} [ y(x) - y(x + \Delta x)]  \\
+          \end{eqnarray*}
+          
+          DEFINE: Spatial scale = distance at which the variance increases asymptotically to $\sim~0.75\%$ of the total variance.
+        \end{column}
+        \begin{column}{.6\textwidth}
+         \begin{figure}
+           \centering
+           \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
+           \caption{Mat\'{e}rn semivariance as a function of distance for different values of $\nu$.}
+           \label{fig:matern}
+          \end{figure}
+        \end{column}
+      \end{columns}    
+                
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: spatial scale}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{\mpa oneoffs/{range.bathy}.jpg}
+    \caption{First estimate of log(spatial range; km) based upon depth variations.}
+    \label{fig:spatialrangeBathy}
+  \end{figure}
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: temporal scale}
+  \begin{itemize}
+    \item MPAs exist in a temporal context
+    \item Temporal scale will determine which processes will be relevant and intensity of monitoring effort
+    \begin{itemize}
+      \item Short-range variations require higher sampling effort to resolve/understand the issues and vice-versa.
+      \item Measure: cumulative periodogram -- the cumulative variance found at different wavelengths ($\omega$). It is a discrete sample estimate of the continuous concept of spectral density $\gamma(t)$ 
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+
+\begin{frame}
+  \frametitle{cumulative periodogram}
+  \begin{columns}[c]
+    \begin{column}{.4\textwidth}
+      \begin{itemize}
+        \item Temporal stochastic process, $y$ defined at some time $t$
+        \item Then the variability of $y$ changes as a function of wavelength $\omega x$: 
+      \end{itemize}
+      
+      \begin{equation}
+      \label{eq:spectraldDensity}
+      \gamma(t) = \int_{-1/2}^{1/2} e^{2\pi i \omega t} f(\omega) d \omega
+      \end{equation}
+      
+      DEFINE: Temporal scale = time at which the cumulative variance increases asymptotically to $\sim~0.75\%$ of the total variance.
+    \end{column}
+    \begin{column}{.6\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
+        \caption{Different expectations of cumulative variance as a function of time.}
+        \label{fig:matern}
+      \end{figure}
+    \end{column}
+  \end{columns}    
+  
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: Space-time models}
+\begin{itemize}
+  \item Spatial and temporal patterns coexist and are correlated
+  \item Recent methods, using a Markov Random Field representation of $y$ permits some interesting classes of space-time models to be parameterized. 
+  \item Another class of models known as Stochastic spatio-temporal simulation models, also known as birth-death models show promise.  
+  \item Problem: both are still computationally demanding. 
+\end{itemize} 
+\end{frame}
+
+% ---------------------------------------------------------------
+\begin{frame}
+  \frametitle{Connectivity: Tagging, mark-recapture}
+  \begin{itemize} 
+    \item movement: Acoustic tags (OTN, EMERA, snow crab industry, Oceans)
+    \item mark-recapture studies: sea turtles, seals, sharks ... Data gaps
+    \item genetic similarity (no work) .. Data gap
+  \end{itemize}
+    
+\end{frame}
+
+
+% ---------------------------------------------------------------
+\begin{frame}
+  \frametitle{Risk modeling}
+  \begin{itemize}
+    \item Risk = probability inference 
+    \item Methods of error propagation
+    \begin{itemize}
+      \item Deterministic: Mechanistic model $\rightarrow$ approximations or simulations  $\rightarrow$ error distribution of $y$
+      \item Phenomenological: Aggregate statistical model $\rightarrow$ statistical models $\rightarrow$ error distribution of $y$
+    \end{itemize}
+  \end{itemize}
+  
+  Focus upon the phenomenolgoical approach.
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Logistic model}
+  \begin{itemize}
+    \item Describe system state, $y$ (e.g., biomass, biodiversity, habitat, etc) as a logistic equation
+    \item 
+  \end{itemize}
+ 
+Use on aggregate estimates of biomass (productivity), biodiversity (biodiversity change), habitat (habitat change) and other indicators of interest
+The discrete form the basic normalised logistic equation is:
+
+\begin{equation} 
+\label{eqLogisticDiscrete}
+y_t  \approx r y_{t-1} (1 - y_{t-1} )
+\end{equation}
+
+with parameters, $\theta=\{r,K\}$
+
+A state space representation where an additional observation model:
+
+\begin{equation} 
+\label{eqLogisticDiscreteStateSpace}
+O_t = q y_t
+\end{equation}
+
+with parameters, $\theta=\{r,K,q\}$.
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+\frametitle{Estimation method}
+\begin{itemize}
+  \item Bayesian approach to solve the above nonlinear state space problem
+  \begin{itemize}
+    \item Greater numerical stability
+    \item Incorporate prior scientific knowledge in a formal manner
+    \item Realistically propagate credible errors
+    \item Estimate unobserved states ("true" states)
+    \item Simultaneously estimate model "process" errors ($\sigma^2_p$) and data "observation" errors ($\sigma^2_o$).
+  \end{itemize}
+  \item MCMC (Gibbs) sampling using the JAGS platform (Plummer 2003, 2010)
+\end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+
+\begin{frame} 
+  \frametitle{Anthropogenic threats and pressures}
+  \begin{itemize}
+    \item Trawling and dredging disturbances
+    \item Exploitation of marine resources by fisheries
+    \item Fishing-gear entanglement threats to marine mammals and sea turtles
+    \item Vessel collision threats due to marine traffic
+    \item Vessel-noise disturbances
+  \end{itemize}
+
+Question: How to express the cumulative impacts on productivity, habitat, biodiversity, and endangered or threatened species    
+Way forward: normalise each threat on a zero-one scale to compare the intensity of threats across the region 
+weighted and combined to examine cumulative anthropogenic threats 
+
+\end{frame}
+
 
 \end{document}
