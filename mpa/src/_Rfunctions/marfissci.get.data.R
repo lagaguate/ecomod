@@ -1,4 +1,4 @@
-marfissci.get.data <- function(spp = NULL, years = NULL) {
+marfissci.get.data <- function(spp = NULL, gear=NULL, years = NULL) {
   library(RODBC)
   channel <-
     odbcConnect("PTRAN",uid = oracle.personal.username,pwd = oracle.personal.password)
@@ -18,6 +18,11 @@ marfissci.get.data <- function(spp = NULL, years = NULL) {
     spp.tweak = paste0("AND SPECIES_CODE IN (",paste(spp, collapse = ","),")")
   }else{
     spp.tweak = ""
+  }
+  if (!is.null(gear)) {
+    gear.tweak = paste0("AND GEAR_CODE IN (",paste(gear, collapse = ","),")")
+  }else{
+    gear.tweak = ""
   }
   if (!is.null(years)) {
     years.tweak = paste0("AND to_char(DATE_FISHED,'YYYY') IN (",paste(years, collapse =","),")")
@@ -133,27 +138,39 @@ marfissci.get.data <- function(spp = NULL, years = NULL) {
     )
     WHERE 1 = 1
     ", spp.tweak,"
+    ", gear.tweak,"
     ", years.tweak,"
     "
   )
   data.raw = sqlQuery(channel,query.raw)
   
   #make a descriptive name so we know what we've got
-  if (range(spp)[1] == range(spp)[2]) {
-    spp.file = range(spp)[1]
+  if (is.null(spp)){
+    spp.file = ""
+  }else if(range(spp)[1] == range(spp)[2]) {
+    spp.file = paste0("_",range(spp)[1])
   }else{
-    spp.file = paste(range(spp),collapse = "_")
+    spp.file = paste0("_",paste(range(spp),collapse = "_"))
   }
-  if (range(years)[1] == range(years)[2]) {
-    years.file = range(years)[1]
+  if (is.null(gear)){
+    gear.file = ""
+  }else if (range(gear)[1] == range(gear)[2]) {
+    gear.file = paste0("_",range(gear)[1])
   }else{
-    years.file = paste(range(years),collapse = "_")
+    gear.file = paste0("_",paste(range(gear),collapse = "_"))
   }
-  file.output = paste0(project.datadirectory("mpa"),"/csv/raw_",years.file,"_",spp.file,".csv")
+  if (is.null(years)){
+    years.file = ""
+  }else if (range(years)[1] == range(years)[2]) {
+    years.file = paste0("_",range(years)[1])
+  }else{
+    years.file = paste0("_",paste(range(years),collapse = "_"))
+  }
+  file.output = paste0(project.datadirectory("mpa"),"/csv/raw",years.file,gear.file,spp.file,".csv")
   write.csv(data.raw, file.output, row.names = F)
   message = paste0("CSV written to ",file.output)
   rm(data.raw)
   odbcClose(channel)
   return(message)
 }
-#e.g. marfissci.get.data(spp= c(612), years=c(2010))
+#e.g. marfissci.get.data(spp=NULL, gear=51, years=2008)
