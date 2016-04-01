@@ -57,7 +57,7 @@ options(stringsAsFactors=F)
 
 
 	#par(...)
-	plotMap(coast,xlim=xlim,ylim=ylim,...)
+	plotMap(coast,xlim=xlim,ylim=ylim,border=NA,...)
 	#addLines(rivers)
 	
 	if(lol)addPolys(coast,border=bathcol,lwd=6)
@@ -136,7 +136,7 @@ options(stringsAsFactors=F)
 
 		if(area=='31a')area<-311
 		if(area=='31b')area<-312
-		if(addsubareas)addPolys(subareas,lty=3)
+		if(addsubareas)addPolys(subset(subareas,SID==1),lty=3)
 	
 		lfa<-as.numeric(area)
 		if(lfa%in%LFAgrid$PID){
@@ -178,8 +178,8 @@ options(stringsAsFactors=F)
 	
 	# plots land
 	if(LT){
-		addPolys(coast,col=land.col)
-		if(plot.rivers)addLines(rivers)
+		addPolys(coast,col=land.col,...)
+		if(plot.rivers)addLines(rivers,...)
 	}
 	
 	if(stippling)addStipples (coast, pch='.')
@@ -220,6 +220,7 @@ options(stringsAsFactors=F)
 	if('lfa'%in%labels) addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0,0,0,0.5),cex=labcex,font=2)
 	if('grid'%in%labels) addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=labcex)
 	if('subarea'%in%labels) addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=labcex)
+	else addLabels(labels[[1]],polyProps=labels[[2]])
 
 
 	box(lwd=2)

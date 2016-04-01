@@ -77,29 +77,63 @@
 	  theme_bw() + theme(axis.text.x=element_text(size=10.0),strip.text=element_text(size=12.0),legend.position="none") + xlab("Year") + ylab("CPUE (Kg/Trap Haul)")
 	dev.off()
 
+	#Individual Plots for Presentations
+	lfa<-unique(vollog.dat$lfa)
+	for(a in (lfa)){
+			vollog.lfa<-subset(vollog.dat,lfa==a) #lfa 31A and 31B have to be added to file
+			lt.mean.lfa<-subset(long.term.mean,lfa==a)
+	        cpue.lfa<-subset(cpue.dat,lfa==a)
+
+		p<-ggplot(vollog.lfa,aes(x=as.factor(year),y=cpue, group=lfa, colour="red")) + geom_line () + facet_wrap(~subarea, ncol=1) +
+  		geom_segment(aes(x='2008', y=lt.mean,xend='2014',yend=lt.mean), colour="cornflowerblue", data=lt.mean.lfa) + geom_line(data=cpue.lfa,colour="black") + 
+  		geom_point(data=cpue.lfa,colour="black") + scale_x_discrete(breaks=seq(1985,2015,4),
+  		labels=c('1985','1989','1993','1997','2001','2005','2009','2013')) + theme_bw() + theme(axis.text.x=element_text(size=10.0),strip.text=element_text(size=12.0),legend.position="none") + xlab("Year") + ylab("CPUE (Kg/Trap Haul)")
+		
+		pdf(file.path(project.datadirectory('lobster'),"figures","Commercial CPUE",paste0("CommercialCPUE",a,".pdf")))
+		print(p)
+		
+		dev.off()
+
+	}
+
 	
-	x11(wd,ht)
-	xyplot(cpue~year|lfa, data=subset(cpue.dat,lfa%in%c('28','29','30','31A','31B','32')), ylab="CPUE (Kg / Trap Haul)",xlab= "Year", main="", as.table=T,type='b',ylim=c(0,2.2))
-	x11(wd*wd.r,ht*ht.r)
-	xyplot(cpue~year|subarea, data=subset(cpue.dat,lfa=='27'), ylab="CPUE (Kg / Trap Haul)",xlab= "Year", as.table=T,type='b',ylim=c(0,2.2))
-	x11(wd*wd.r,ht*ht.r)
-	xyplot(cpue~year|subarea, data=subset(cpue.dat,lfa=='33'), ylab="CPUE (Kg / Trap Haul)",xlab= "Year", as.table=T,type='b',ylim=c(0,2.2))
+	# Landings, including Gulf landings portion, USR and LRP. Note that LFA33 USR and LRP are calculated from last data export and differs
+	# from reference point document
+	LandingsUpdate<-read.csv(file.path( project.datadirectory("lobster"), "data","Landings.27-33.1947.2015.csv"),header=T)
 
+	pdf('Commercial.Landings.LFA27-33.pdf',width=8,height=10)
 
-	# Landings
-	LandingsUpdate<-read.table(file.path( project.datadirectory("lobster"), "data","Landings.27-33.1947.2014.txt"),header=T)
+    cbPalette <- c("#000000","#D55E00")
+    p1<-ggplot(subset(LandingsUpdate,LFA<28),aes(x=YR,y=Landings.tons,fill=factor(LFA))) + geom_bar(stat='identity', width=1.0) +
+     scale_y_continuous(limits=c(0,5000),breaks=seq(0, 5000, 1000))  + scale_x_continuous(breaks=seq(1947, 2015, 4)) + 
+     ggtitle("LFA 27") + theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
+     panel.border=element_rect(fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),axis.title.y= element_text(size=15)) +
+     xlab('') + ylab('Landings (MT)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=1629,xend=2015,yend=1629),
+     col="#0072B2",linetype="dashed", size=1.0) + geom_segment(aes(x=1947,y=814,xend=2015,yend=814),col="#009E73",linetype="solid", size=1.0) +
+     geom_text(aes(1947,4500,label = '- - - USR (80%)'),col="#0072B2",size=4,hjust=0) + geom_text(aes(1947,4000,label = '------ LRP (40%)'),col="#009E73",size=4,hjust=0) + 
+     geom_text(aes(1947,3500,label = 'Gulf Landings'),col="#D55E00",size=4,hjust=0)
+ 
+    p2<-ggplot(subset(LandingsUpdate,LFA==28.32),aes(x=YR,y=Landings.tons,fill=factor(LFA))) + geom_bar(stat='identity', width=1.0) +
+     scale_y_continuous(limits=c(0,5000),breaks=seq(0, 5000, 1000))  + scale_x_continuous(breaks=seq(1947, 2015, 4)) +
+     ggtitle("LFA 28-32") + theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
+     panel.border=element_rect(fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),axis.title.y= element_text(size=15)) + 
+     xlab('') + ylab('Landings (MT)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=691,xend=2015,yend=691), 
+     col="#0072B2",linetype="dashed", size=1.0) + geom_segment(aes(x=1947,y=346,xend=2015,yend=346), col="#009E73",linetype="solid", size=1.0) +
+     geom_text(aes(1947,4500,label = '- - - USR (80%)'),col="#0072B2",size=4,hjust=0) + geom_text(aes(1947,4000,label = '------ LRP (40%)'),col="#009E73",size=4,hjust=0)
+ 
+    p3<-ggplot(subset(LandingsUpdate,LFA==33),aes(x=YR,y=Landings.tons,colour=TYPE, group=TYPE)) + 
+     geom_bar(data=subset(LandingsUpdate,c(LFA==33&TYPE=='Annual'&YR<1976)),fill='black',colour='black',stat='identity', width=1.0) +
+     geom_bar(data=subset(LandingsUpdate,c(LFA=33&TYPE=='Seasonal')),fill='darkgray',colour='darkgray', stat='identity',width=1.0) +
+     scale_y_continuous(limits=c(0,8000),breaks=seq(0, 8000, 1000)) + scale_x_continuous(breaks=seq(1947, 2015, 4)) + ggtitle("LFA 33") +
+     theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
+         panel.border=element_rect(,fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),
+         axis.title.y= element_text(size=15)) + xlab('') + ylab('Landings (MT)') +
+     geom_segment(aes(x=1947,y=1794,xend=2015,yend=1794), col="#0072B2",linetype="dashed", size=1.0) +
+     geom_segment(aes(x=1947,y=897,xend=2015,yend=897),col="#009E73",linetype="solid", size=1.0) + 
+     geom_text(aes(1947,7000,label = '- - - USR (80%)'),col="#0072B2",size=4, hjust=0) + geom_text(aes(1947,6300,label = '----- LRP (40%)'),col="#009E73",size=4,hjust=0)
+    grid.arrange(p1,p2,p3,ncol=1) 
 
-	x11(6.5,8)
-	bwd<-8
-	par(mfrow=c(3,1),las=1,mar=c(2,2,2,2),omi=c(0.2,0.8,0.2,0.2))
-	plot(Landings.tons~YR,subset(LandingsUpdate,LFA==27),type='h',lwd=bwd,lend=3,xlab='',ylab='',main="LFA 27",ylim=c(0,6000))
-	axis(1,at=subset(LandingsUpdate,LFA==27)$YR,lab=F,tck=-0.01)
-	plot(Landings.tons~YR,subset(LandingsUpdate,LFA==28.32),type='h',lwd=bwd,lend=3,xlab='',ylab='',main="LFA 28-32",ylim=c(0,6000))
-	axis(1,at=subset(LandingsUpdate,LFA==27)$YR,lab=F,tck=-0.01)
-	plot(Landings.tons~YR,subset(LandingsUpdate,LFA==33),type='h',lwd=bwd,lend=3,xlab='',ylab='',main="LFA 33",ylim=c(0,6000))
-	axis(1,at=subset(LandingsUpdate,LFA==27)$YR,lab=F,tck=-0.01)
-
-	mtext("Landings (mt)",2,3,outer=T,las=0)
+ dev.off()
 
 	# for LFA33 presentation
 	pdf(file.path( project.datadirectory("lobster"),"R","FSRScpueLFA33.pdf"),8, 5)
@@ -128,4 +162,8 @@
 	legend('bottomright',c("West","East"),fill=c(rgb(1,0,0,0.5),rgb(0,0,1,0.5)))
 	dev.off()
 
-	LobsterMap(xlim=c(-67,-58),ylim=c(42,48),subareas=T)
+	LFAlabels<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","LFAlabels.csv"))
+
+	lab.lst=list(LFAlabels,data.frame(PID=c(27:33,311,312,271,272,331,332),cex=c(rep(0.8,9),rep(0.6,4)),font=c(rep(2,9),rep(3,4))),col='black')
+
+	LobsterMap(xlim=c(-67,-57.5),ylim=c(42.5,48),addsubareas=T,labels=lab.lst,isobath=c(100,200,300,400,500),land.col='grey90',mapRes="MR")
