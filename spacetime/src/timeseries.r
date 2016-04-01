@@ -23,7 +23,10 @@
   time.diff = mean(diff(o$timestamp)) # unit of time
   plot(sunspots,type="b")
 
-  o = timeseries.autocorrelation( x=  sunspot.year )
+  x = sunspot.year
+  x = sunspots
+  o = timeseries.autocorrelation( x=x, freq=frequency(x) ) # default = spec.pgram
+  o = timeseries.autocorrelation( x=x, method="fft", freq=frequency(x) )
 
 
 

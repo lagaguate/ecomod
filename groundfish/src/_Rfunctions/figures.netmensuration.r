@@ -28,7 +28,19 @@ figures.netmensuration = function( p, DS="", outdir = file.path( project.datadir
     cols = c("slateblue", "red", "orange")
     pdf( file=fn )
      ii = which ( is.finite( gsinf$wing.sd)  )  ## where good estimates exist
-     plot( wing.sa ~ sakm2, data=gsinf[ii,], col=cols[1], cex=0.5, pch=20 )
+     plot( wing.sa ~ jitter(sakm2), data=gsinf[ii,], col=cols[1], cex=0.5, pch=20, ylab="Net configuration analysis surface area (km^2)", xlab="GSINF start-end surface area (km^2)" )
+      abline( a=0, b=1, col="orange" )
+    dev.off()
+    print( fn )
+  }
+
+
+  if (DS %in% c("sa.comparison.all", "all") ) {
+    fn = file.path( outdir, "sa.comparison.all.pdf" )
+    cols = c("slateblue", "red", "orange")
+    pdf( file=fn )
+     plot( wing.sa ~ jitter(sakm2), data=gsinf[,], col=cols[1], cex=0.5, pch=20, ylab="Net configuration analysis and modelled surface area (km^2)", xlab="GSINF start-end surface area (km^2)" )
+      abline( a=0, b=1, col="orange" )
     dev.off()
     print( fn )
   }
@@ -55,6 +67,8 @@ figures.netmensuration = function( p, DS="", outdir = file.path( project.datadir
       plot( jitter(dist_km) ~ dist_pos , gsinf, xlim=c(0, 8.5) ,  ylim=c(0, 8.5), col=cols[1], pch=20, cex=0.5, ylab="Tow distance (km)", xlab="Tow distance logged in GSINF (km)" )
 
       points( bc.dist ~ dist_pos, gsinf, col=cols[2], pch=20, cex=0.5 ) # bottom contact
+      abline( a=0, b=1, col="orange" )
+       
       legend( "bottomright",  legend=c("Logged positions", "Bottom contact analysis"),  text.col=cols, pch=20, col=cols )   
       text( 4, 8, "Western II-A, \n Set types 1, 2, 5 \n (stratified random, regular survey, comparative fishing)" ) 
 
@@ -65,14 +79,33 @@ figures.netmensuration = function( p, DS="", outdir = file.path( project.datadir
 
   # -------
   
+  if (DS %in% c("noSets", "all") ) {
+    fn = file.path( outdir, "numberOfSets.pdf" )
+    cols = c("slateblue", "orange")
+    gsinf = scanmar.db( DS="sweptarea",  p=p ) # use all data not just western 2a 
+    m = tapply( rep(1,nrow(gsinf)), gsinf$yr, sum)
+    bc2 = gsinf[ is.finite(gsinf$bottom_duration) , ]
+    n = tapply( rep(1,nrow(bc2)), bc2$yr, sum)
+    pdf( file=fn )
+      plot( m ~ as.numeric(names(m)), type="b", pch=20, col=cols[1], ylim=c(0, max(m)), ylab="", xlab="Year"  )
+      lines( n ~ as.numeric(names(n)), type="b", pch=20, col=cols[2] )
+      legend( "topleft", legend=c("No. of sets completed in Groundfish survey", "No. of sets in Groundfish survey with usable bottom contact data"),  text.col=cols, pch=20, col=cols)
+    dev.off()
+    print( fn )
+  }
+
+
+
+  # -------
+  
   if (DS %in% c("", "all") ) {
     fn = file.path( outdir, "xxx.pdf" )
     cols = c("slateblue", "red", "orange")
-    pdf( file=fn )
+    #pdf( file=fn )
         
 
-    dev.off()
-    print( fn )
+    #dev.off()
+    #print( fn )
   }
 
 
