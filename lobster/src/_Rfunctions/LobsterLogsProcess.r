@@ -1,4 +1,4 @@
-LobsterLogsProcess<-function(){
+LobsterLogsProcess<-function(bumpup=F){
 
 
 	loadfunctions("lobster")
@@ -11,8 +11,8 @@ LobsterLogsProcess<-function(){
 	lfa <- unique(Fish.Date$LFA)
 	max_trap<-c(825,750,750,750,750,750,750,750,1126,1126,1126,1226)
 	max_lbs<-c(2750,2750,2750,2750,2750,2750,2750,10000,30000,30000,30000,30000)
-	Fish.Date$START_DATE<-as.Date(Fish.Date$START_DATE,"%d/%m/%Y")
-	Fish.Date$END_DATE<-as.Date(Fish.Date$END_DATE,"%d/%m/%Y")
+	Fish.Date$START_DATE<-as.Date(Fish.Date$START_DATE)
+	Fish.Date$END_DATE<-as.Date(Fish.Date$END_DATE)
 
 
 	# import logs from marfis
@@ -75,13 +75,16 @@ LobsterLogsProcess<-function(){
 	TotalLandings<-read.csv(file.path( project.datadirectory("lobster"), "data","products","TotalLandings.csv"))
 		
 	# add BUMPUP column: total landings/sum of logs for each year  & LFA
-	logsInSeason$BUMPUP<-NA
-	lfa<-unique(TotalLandings$LFA)	
-	for(i in 1:length(lfa)){
-		logs<-subset(logsInSeason,LFA==lfa[i])
-		yrs<-sort(unique(logs$SYEAR))
-		for(y in 1:length(yrs)){
-			logsInSeason$BUMPUP[logsInSeason$SYEAR==yrs[y]&logsInSeason$LFA==lfa[i]]<-TotalLandings$CATCH[TotalLandings$SYEAR==yrs[y]&TotalLandings$LFA==lfa[i]]*1000/sum(logs$WEIGHT_KG[logs$SYEAR==yrs[y]],na.rm=T)
+	if(bumpup){
+		logsInSeason$BUMPUP<-NA
+		lfa<-unique(TotalLandings$LFA)	
+		for(i in 1:length(lfa)){
+			tmplogs<-subset(logsInSeason,LFA==lfa[i])
+			yrs<-sort(unique(tmplogs$SYEAR))
+			browser()
+			for(y in 1:length(yrs)){
+				logsInSeason$BUMPUP[logsInSeason$SYEAR==yrs[y]&logsInSeason$LFA==lfa[i]]<-TotalLandings$C[TotalLandings$SYEAR==yrs[y]&TotalLandings$LFA==lfa[i]]*1000/sum(tmplogs$WEIGHT_KG[tmplogs$SYEAR==yrs[y]],na.rm=T)
+			}
 		}
 	}
 
