@@ -13,7 +13,7 @@ catch<-read.csv(paste0(project.datadirectory("offshoreclams"),"/Combined/Combine
 bycatch<-read.csv(paste0(project.datadirectory("offshoreclams"),"/Combined/Combined_ByCatch_DataMMM.csv"))
 bycatch<-bycatch[bycatch$ITIS_CODE==80983,] #only surfclams
 
-catchtow<-merge(tows, catch, by="INDX")
+catchtow<-merge(tows, catch, by=c("INDX"), all.x = T)
 catchtow$SURVEY.y<-NULL
 catchtow$BLADE_WIDTH<-0
 type1<-c("CK2003-01","CK2004-01","CK2006-01","T12008-01","T12009-01","T12010-01") #69.5 blades
