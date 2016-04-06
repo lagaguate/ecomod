@@ -48,10 +48,13 @@ marfissci.process.data <- function(df, agg.minutes=2,
     
   }
   buff = agg*78847  #meters in 1 degree of longitude @45N 
-  writeLines(paste0("Buffering the coastline to ",round(buff/1000,1), " km... 
+  if (!exists("coast.aea.buff")) {
+    writeLines(paste0("Buffering the coastline to ",round(buff/1000,1), " km... 
 "))
-  coast.aea.buff <- gBuffer(coast.aea, byid=TRUE, width=-1*buff)
-  writeOGR(spatpoly_to_spatpolydf(coast.aea.buff),dsn='.', layer='buffCheck', driver='ESRI Shapefile', overwrite_layer=TRUE)
+    temp.buff <- gBuffer(coast.aea, byid=TRUE, width=-1*buff)
+    assign("coast.aea.buff",temp.buff, envir = .GlobalEnv)
+  }
+  #writeOGR(spatpoly_to_spatpolydf(coast.aea.buff),dsn='.', layer='buffCheck', driver='ESRI Shapefile', overwrite_layer=TRUE)
   
   df.sp = df #create temporary spatial df for terrestrial check
   coordinates(df.sp) = c("LON", "LAT")
@@ -78,7 +81,11 @@ aggregated field) were poorly positioned.  These had either no positions, or wer
 determined to be terrestrial.  This total amount will be applied proportionately 
 across all other validly positioned data in a new field called 'WEIGHTED'
 "))
-  }  
+  }else{
+    writeLines(paste0("No invalid data was found (i.e. all positions were reasonably close to
+the ocean). Despite this, a new field called 'WEIGHTED' will be output, but will 
+simply be populated with identical values as ",agg.field))
+    }
   #Beyond this step, we will lose all initial details - e.g. catch usages, 
   #reported units, gear types etc will be combined
   if (agg.by.year){
@@ -106,22 +113,24 @@ across all other validly positioned data in a new field called 'WEIGHTED'
     )))
   }
   #rm(df)
-  valid.data=df.agg[df.agg$VALIDITY=="VALID",]
-  invalid.data = df.agg[!df.agg$VALIDITY=="VALID",]
-  
-  #get the proportion of the total sum of all attributable to each (valid) loc
-  valid.data$PROP = prop.table(as.table(as.matrix(valid.data$AGG_FIELD.SUM)))[,1]
-  
-  invalid.data$PROP = 0
-  invalid.total = sum(invalid.data$AGG_FIELD.SUM)
-     
-  valid.data$WEIGHTED = (valid.data$PROP * invalid.total) + valid.data$AGG_FIELD.SUM
-  invalid.data$WEIGHTED = 0
-  
-  df.agg = rbind(valid.data,invalid.data)
-  df.agg$PROP = NULL
-  rm(valid.data)
-  rm(invalid.data)
+
+ 
+  if(NROW(df[df$VALIDITY!="VALID",])>0) { 
+    valid.data=df.agg[df.agg$VALIDITY=="VALID",]
+    #get the proportion of the total sum of all attributable to each (valid) loc
+    valid.data$PROP = prop.table(as.table(as.matrix(valid.data$AGG_FIELD.SUM)))[,1]
+    invalid.data = df.agg[!df.agg$VALIDITY=="VALID",]
+    invalid.data$PROP = 0
+    invalid.total = sum(invalid.data$AGG_FIELD.SUM)
+    valid.data$WEIGHTED = (valid.data$PROP * invalid.total) + valid.data$AGG_FIELD.SUM
+    invalid.data$WEIGHTED = 0
+    df.agg = rbind(valid.data,invalid.data)
+    df.agg$PROP = NULL
+    rm(valid.data)
+    rm(invalid.data)
+  } else {
+    df.agg$PROP = df.agg$AGG_FIELD.SUM
+  }
   
   if (save.RDS) {
     #make a descriptive name so we know what we've got
@@ -139,7 +148,7 @@ across all other validly positioned data in a new field called 'WEIGHTED'
     }else{
       years.file =""
     }
-    agg.amt=gsub("\\.","_",agg)
+    agg.amt=paste0(agg.minutes,"min")
     the.filename = paste0("pts_",agg.amt,"_",years.file,"_",agg.file)
     
     df.agg.sp = df.agg
