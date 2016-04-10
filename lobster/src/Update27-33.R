@@ -20,14 +20,14 @@
 	pdf(file.path( project.datadirectory("lobster"),"figures","FSRSshorts.pdf"),8, 10)
 
 
-	p <- ggplot()
-	p <- p + geom_point(data = shorts, aes(y = mu, x = YEAR), shape = 16, size = 3)
-	p <- p + xlab("Year") + ylab("Lobsters / Trap")
-	p <- p + theme(text = element_text(size=15)) + theme_bw()
-	p <- p + geom_line(data = shorts, aes(x = YEAR, y = mu), colour = "black")
-	p <- p + geom_ribbon(data = shorts, aes(x = YEAR, ymax = ub, ymin = lb ), alpha = 0.5)
-	p <- p + facet_wrap(  ~Area, ncol=2,scales = "fixed")
-	p
+	sp <- ggplot()
+	sp <- sp + geom_point(data = shorts, aes(y = mu, x = YEAR), shape = 16, size = 3)
+	sp <- sp + xlab("Year") + ylab("Lobsters / Trap")
+	sp <- sp + theme(text = element_text(size=15)) + theme_bw()
+	sp <- sp + geom_line(data = shorts, aes(x = YEAR, y = mu), colour = "black")
+	sp <- sp + geom_ribbon(data = shorts, aes(x = YEAR, ymax = ub, ymin = lb ), alpha = 0.5)
+	sp <- sp + facet_wrap(  ~Area, ncol=2,scales = "fixed")
+	sp
 
 	dev.off()
 
@@ -35,14 +35,14 @@
 
 	pdf(file.path( project.datadirectory("lobster"),"figures","FSRSlegals.pdf"),8, 10)
 
-	p <- ggplot()
-	p <- p + geom_point(data = legals, aes(y = mu, x = YEAR), shape = 16, size = 3)
-	p <- p + xlab("Year") + ylab("Lobsters / Trap")
-	p <- p + theme(text = element_text(size=15)) + theme_bw()
-	p <- p + geom_line(data = legals, aes(x = YEAR, y = mu), colour = "black")
-	p <- p + geom_ribbon(data = legals, aes(x = YEAR, ymax = ub, ymin = lb ), alpha = 0.5)
-	p <- p + facet_wrap(  ~Area, ncol=2,scales = "fixed")
-	p
+	lp <- ggplot()
+	lp <- lp + geom_point(data = legals, aes(y = mu, x = YEAR), shape = 16, size = 3)
+	lp <- lp + xlab("Year") + ylab("Lobsters / Trap")
+	lp <- lp + theme(text = element_text(size=15)) + theme_bw()
+	lp <- lp + geom_line(data = legals, aes(x = YEAR, y = mu), colour = "black")
+	lp <- lp + geom_ribbon(data = legals, aes(x = YEAR, ymax = ub, ymin = lb ), alpha = 0.5)
+	lp <- lp + facet_wrap(  ~Area, ncol=2,scales = "fixed")
+	lp
 
 	dev.off()
 
