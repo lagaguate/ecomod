@@ -1,0 +1,1145 @@
+\documentclass{beamer}
+
+\usepackage{default}
+
+\mode<presentation> {
+  % \usetheme{Hannover}
+  % \usetheme{Boadilla}
+  % \usecolortheme{dolphin}
+  % \usecolortheme{seagull}
+  \beamertemplatenavigationsymbolsempty % turn off navigation
+  \hypersetup{pdfstartview={Fit}} % fits the presentation to the window when first displayed
+}
+
+
+\usepackage{fourier}
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}				% Better typography
+
+\usepackage[toc,page]{appendix}
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+\usepackage{hyperref}
+
+% linking options
+%%% Equation and float numbering
+\usepackage{amsmath,amsfonts,amsthm}										% Math packages
+\numberwithin{equation}{section}		% Equationnumbering: section.eq#
+\numberwithin{figure}{section}		% Figurenumbering: section.fig#
+\numberwithin{table}{section}				% Tablenumbering: section.tab#
+
+\usepackage{graphicx} % Allows including images
+\usepackage{graphics}
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+\newcommand{\ecomod}{\string~/ecomod_data/}   %  \string~ is a representation of the home directory 
+\newcommand{\mpa}{\ecomod/mpa/}       %  \string~ is a representation of the home directory 
+\newcommand{\sab}{\ecomod/mpa/sab/}   %  \string~ is a representation of the home directory 
+\newcommand{\analysis}{\ecomod/mpa/analysis/}   %  \string~ is a representation of the 
+
+
+%%% Title page
+
+
+
+\title[SAB/MPA Framework]{Assessment Framework for the St Anns Bank Marine Protected Area} 
+
+\author[Choi, et al.]{
+  Jae S. Choi, Angelia S.M. Vanderlaan, Gordana Lazin, \\
+  Mike McMahon,  Ben Zisserson, Brent Cameron, \\ 
+  Jenna Munden 
+}
+
+\institute[DFO] {
+  Population Ecology Division \\ 
+  Fisheries and Oceans Canada \\ 
+  Bedford Institute of Oceanography \\
+}
+
+\date{\textsc{\today}} % Date, can be changed to a custom date
+
+\begin{document}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \titlepage % Print the title page as the first slide
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Overview} % Table of contents slide, comment this block out to remove it
+  \tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+% ----------------------------------------------------------------
+\section{Purpose}
+
+\begin{frame}
+  \frametitle{Terms of reference}
+  \vspace*{-1.0cm}
+    
+    \begin{itemize}
+      \item Health of the Oceans (HOTO, 2007-2012)
+      \item National Conservation Plan (NCP, 2014-2019)
+      \item Develop a monitoring approach for Marine Protected Areas (MPAs) 
+      \item Assess their effectiveness in meeting their objectives. 
+    \end{itemize}
+    
+  
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{MPA: To conserve and protect}
+
+  \begin{itemize}
+    \item Commercial and non-commercial fishery resources, including marine mammals, and their \textbf{habitats}; 
+    \item Endangered or threatened marine species, and their \textbf{habitats}; 
+    \item Unique \textbf{habitats}; 
+    \item Marine areas of high \textbf{biodiversity} or biological \textbf{productivity};  
+    \item Any other marine resource or habitat as is necessary to fulfill the mandate of the Minister.
+\end{itemize}
+
+\medskip
+
+\textbf{Bottom line}: productivity, biodiversity, habitat \& species of interest
+
+\end{frame}
+  
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{St Anns Bank (SAB)}
+    \begin{columns}[c]
+      \begin{column}{.6\textwidth}
+        \begin{figure}[h]
+          \centering
+          %\includegraphics[width=0.6\textwidth]{\analysis/maps/mpa_closeup.pdf}
+          \includegraphics[width=1.0\textwidth]{\sab SAB_MPA.pdf}
+          %\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with the proposed St Anns Bank Marine Protected Area (thick maroon polygon) and limited fishing zones (maroon lined polygons). See Figure\ref{fig:SAB} for geographic location in a larger map.}
+          \label{fig:SABCloseup}
+        \end{figure} 
+      \end{column}
+      \begin{column}{.4\textwidth}
+        Previous discussions of SAB:
+        \begin{itemize}
+          \item DFO 2012
+          \item Kenchington 2013
+          \item Ford \& Serdynska 2013
+        \end{itemize}
+      \end{column}
+    \end{columns}
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Objectives}
+  \begin{block}{}
+    \begin{itemize}
+    \item	monitor and assess the status/effectiveness of an MPA;
+    \item identify data gaps and sources of uncertainty. 
+    \end{itemize}
+  \end{block}
+  
+  \begin{block}{}
+\begin{flushright}
+\emph{... But how?}
+\end{flushright}
+  \end{block}
+  
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{A few "minor" issues...}
+  \begin{block}{SAB is:}
+    \begin{itemize}
+      \item a large ecosystem and as such complex, operating at various space, time and organizational scales;
+      \item connected in various ways to the surrounding environment and so cannot be treated as an isolated system;
+      \item measures of system components of interest, namely, productivity, biodiversity, habitat and species of interest, are ambiguous and imperfect at best, and usually non-existent or poor in information quality/quantity.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Design principles}
+  \begin{block}{}
+  \begin{itemize}
+    \item Expansive area of interest (whole shelf sea)
+    \item Leverage data from \textbf{on-going sampling} programs to smoothly transition into a routine monitoring approach into the future.
+    \begin{itemize}
+      \item Data that are clearly and directly related to MPA objectives/priorities
+      \item	Sufficient and regular \textbf{spatial} coverage ($>$ 100 sampling locations) inside MPA and throughout the study area.
+      \item Sufficient and regular \textbf{temporal} coverage ($\sim$ annual, $>$~10 years) inside MPA and throughout the study area
+      \item \textbf{Informative} -- high data quality that is in some manner related to productivity, biodiversity, habitat and species of interest.
+    \end{itemize}
+    \item Methods that are transparent, collaboratively developed and easily transferable to other regions
+
+  \end{itemize}
+  \end{block}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Data sources being considered}
+\begin{itemize}
+	\item AZMP/chlorophyll-a and nutrients: BioChem bottle data 
+  \item AZMP/Zooplankton: BioChem database 
+  \item Remote Sensing Data: ocean colour and SST (Remote Sensing Group)
+  \item Temperature records: from various sources, especially, Groundfish, Snow crab and AZMP surveys
+  \item Salinity (Groundfish surveys/AZMP, BioChem)
+  \item Oxygen and pH (once the data have been reloaded; Groundfish surveys/AZMP, BioChem)
+  \item Bathymetry (CHS, Groundfish survey, Snow crab survey )
+  \item Groundfish: Research Vessel Surveys focus upon demersal fish species, since $\sim$ 2000, upon invertebrates as well
+  \item Snow crab survey, focus upon benthic invertebrates
+  \item Clam survey data in Banquereau and Western Banks (though it does not pass the temporal coverage conditions, it offers very high resolution multispecies data on the banks)
+  \item Logbook records of catch and effort (MARFIS/ZIFF)
+  \item AIS tracks -- Radio-based Automatic Identification System
+  \item VMS potentially -- Satellite-based Vessel Monitoring System
+\end{itemize}
+    
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{BioChem Discrete Bottle Data: Chlorophyll-a and Nutrients}
+\begin{itemize}
+  \item Relevance: productivity, biodiversity, habitat and species of interest (in relative order)
+  \item Sampling: AZMP surveys, Groundfish surveys, pelagic net tows and water profiles
+  \item Spatial coverage: variable no. stations, 143,499 records, 829 missions
+  \item Temporal coverage: 1955 to present, annual surveys
+  \item Source code: \url{https://github.com/jae0/ecomod/biochem/src/biochem.r}
+\end{itemize}
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+\section{Data}
+\begin{frame}
+  \frametitle{}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.7\textwidth]{\sab 2.png}
+        \caption{Number of chlorophyll and nutrient profiles extracted from the BioChem database for each year since 1955.}
+        \label{fig:ChloroMap}
+      \end{figure}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{\sab 3.png}
+        \caption{Number of chlorophyll and nutrient profiles extracted from the BioChem database for the time period 1955-2014, grouped monthly.}
+        \label{fig:ChloroFreq}
+      \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{\sab 4.png}
+    \caption{Monthly spatial distribution of discrete bottle data for the time period 1955-2014.}
+    \label{fig:BottleMap}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{}
+  \begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{\sab 5.png}
+    \caption{Depth profiles of chlorophyll-a and nutrients; all data for the time period 1955-2014.}
+    \label{fig:ChloroProfiles}
+  \end{figure}
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{BioChem: Zooplankton}
+  \begin{itemize}  
+    \item Relevance:  productivity, biodiversity, species of interest, habitat (in relative order)
+    \item Sampling:  AZMP surveys, Groundfish surveys, pelagic net tows, 400 taxonomic species
+    \item Spatial coverage: 2367 net deployments, 126 missions 
+    \item Temporal coverage:,  1999 to 2014, annual surveys
+    \item Source code: https://github.com/jae0/ecomod/biochem/src/biochem.r
+  \end{itemize}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{\sab 6.png}
+    \caption{Total number of net deployments for each month during the time period 1999-2014.}
+    \label{fig:AZMPdeploymentsMonthly}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+
+\begin{frame}[shrink]
+\begin{figure}
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[width=0.3\textwidth]{\sab 8.png}
+    \includegraphics[width=0.3\textwidth]{\sab 9.png}
+  \end{tabular}
+  \begin{tabular}{cc}
+    \includegraphics[width=0.3\textwidth]{\sab 10.png}
+    \includegraphics[width=0.3\textwidth]{\sab 11.png}
+  \end{tabular}
+  \caption{Monthly averages of all data from 1999 to 2014: total abundance (top left), total biomass computed from wet weight (top right), ratio of total biomass computed from wet weight  to total abundance (bottom left) as a potential measure of the average weight of the individual organism, and abundance of \textit{Calanus finmarchicus}, \textit{Calanus hyperboreus}, and \textit{Calanus glacialis} (botton right) }
+  \label{fig:AZMPBiomassMonthly}
+\end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  % \frametitle{}
+  \begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{\sab 7.png}
+    \caption{Spatial distribution of net deployments included in the zooplankton dataset. }
+    \label{fig:AZMPdeploymentsMonthlyMap}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Remote Sensing Data: Chlorophyll-a}
+    \begin{itemize}
+      \item Relevance:  productivity, habitat, biodiversity and species of interest (in relative order) 
+      \item Sampling:  Moderate Resolution Imaging Spectroradiometer (MODIS-Aqua; NASA, RSU)
+      \item Spatial coverage: 39 N to 62.5 N and 42 W to 71 W, resolution of 1.5 km
+      \item Temporal coverage: August 2002 to March 2015, 610 quarter-monthly (8-day) composite  images
+      \item Source code:  \url{https://github.com/jae0/ecomod/remote.sensing/src/remoting.sensing.r}
+    \end{itemize}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \begin{figure}[ht]
+    \centering
+    \begin{tabular}{cc}
+      \includegraphics[width=0.45\textwidth]{\sab 12.jpg}
+      \includegraphics[width=0.45\textwidth]{\sab 13.jpg}
+    \end{tabular}
+    \begin{tabular}{cc}
+      \includegraphics[width=0.45\textwidth]{\sab 14.jpg}
+      \includegraphics[width=0.45\textwidth]{\sab 15.jpg}
+    \end{tabular}
+    \caption{MODIS semi-monthly Chl-a concentration showing spring bloom progression in the NW Atlantic in 2012. Note the intense bloom at St. Anns Bank during the last two weeks in March.}
+    \label{fig:MapChlaBloomSpring}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{\sab 16.png}
+    \caption{Chlorophyll-a concentration extracted from MODIS 8-day composite images for St.Anns Bank polygon for the time period 2002-2015.}
+    \label{fig:modisChlaTS}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{\sab 17.png}
+    \caption {Average Chorophyll-a concentration computed from 8-day composite images for St.Anns bank polygon for the time period 2002-2015. }
+    \label{fig:ChlaSeasonal}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Remote Sensing Data: Primary production}
+  \begin{itemize}
+    \item Relevance:  productivity, habitat, biodiversity and species of interest (in relative order)
+    \item Sampling:  MODIS, ...
+    \item Spatial coverage: 39 N to 62.5 N and 42 W to 71 W, resolution of 1.5 km
+    \item Temporal coverage: July 2002 to December 2014, 150 monthly  images
+    \item Source code \url{https://github.com/jae0/ecomod/remote.sensing/src/remoting.sensing.r}
+  \end{itemize}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{\sab 18.png}
+    \caption{Annual monthly Primary Production (PP) computed from PP composite images for St.Anns bank polygon for the time period 2002-2014.}
+    \label{fig:ppTSmonthly}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{\sab 19.png}
+    \caption{Average Primary Production (PP) computed from monthly composite images for St.Anns bank polygon for the time period 2002-2014.}
+    \label{fig:ppTSannual}
+  \end{figure}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Remote Sensing Data: Sea Surface Temperature (SST)}
+  \begin{itemize}
+  \item Relevance:  productivity, habitat, biodiversity and species of interest (in relative order)
+  \item Sampling:  Advanced Very High Resolution Radiometer (AVHRR; NOAA, RSU)
+  \item Spatial coverage: 39 N to 62.5 N and 42 W to 71 W, resolution of 1.5 km
+  \item Temporal coverage: December 1997 to March 2015, 845 8-day composite images
+  \item Source code: \url{https://github.com/jae0/ecomod/remote.sensing/src/remoting.sensing.r}
+  \end{itemize}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  
+  \begin{figure}[h]
+    \centering
+    \begin{tabular}{cc}
+      \includegraphics[width=0.5\textwidth]{\sab 20.jpg}
+      \includegraphics[width=0.5\textwidth]{\sab 21.jpg} 
+    \end{tabular}
+    \begin{tabular}{cc}
+      \includegraphics[width=0.5\textwidth]{\sab 22.jpg}
+      \includegraphics[width=0.5\textwidth]{\sab 23.jpg}
+    \end{tabular}
+    \caption{Bi-weekly composites from AVHRR showing SST in the North West Atlantic in the spring of 2012, corresponding to the intense spring bloom at St.Anns bank shown in Figure~\ref{fig:ChlaSeasonal}.}
+    \label{fig:SSTfromAVHRRmap}
+  \end{figure}
+
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{\sab 24.png}
+    \caption{Sea Surface Temperature (SST) extracted from 8-day AVHRR composite images for St.Anns bank polygon for the time period 1997-2015.}
+    \label{fig:SSTfromAVHRRts}
+  \end{figure}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{\sab 25.png}
+    \caption{Average Sea Surface Temperature (SST) computed from 8-day AVHRR composite images for St.Anns bank polygon for the time period 1997-2015.}
+    \label{fig:SstSeasonal}
+  \end{figure}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+\frametitle{Bottom temperatures}
+  \begin{itemize}
+    \item Relevance:  productivity, habitat, biodiversity and species of interest
+    \item Sampling:  Groundfish survey, snow crab survey, AZMP profiles 
+    \item Spatial coverage: full extent, varied sampling
+    \item Temporal coverage: 1950 - present (more historical data present but coverage is variable)
+    \item Source code: https://github.com/jae0/ecomod/temperature/src/temperature.r
+  \end{itemize}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{\ecomod temperature/maps/SSE/bottom.predictions/global/{temperatures.bottom}.png}
+    \caption{Average bottom temperatures computed from all available data 1950-2016.}
+    \label{fig:TemperatureBottomMap}
+  \end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+\frametitle{Demersal fish and macro-invertebrates}
+\begin{itemize}
+  \item Relevance:  productivity, habitat, biodiversity and species of interest
+  \item Sampling:  Groundfish survey, Snow crab survey 
+  \item Spatial coverage
+  \begin{itemize}
+    \item Groundfish: full extent, random stratified, variable number of stations
+    \item Snow crab: Colder water environment, geostatistical grids of $\sim$~10 minutes, $\sim$~400 stations 
+  \end{itemize}
+  \item Temporal coverage
+  \begin{itemize}
+    \item Groundfish: 2000 - present (started in 1970, but consistent sampling since 2000)
+    \item Snow crab: 2005 - present (started in 1996, but consistent sampling since 2005)
+  \end{itemize}
+  \item Source code
+  \begin{itemize}
+    \item url{https://github.com/jae0/ecomod/groundfish/src/groundfish.r}
+    \item url{https://github.com/jae0/ecomod/snowcrab/src/1.snowcrab.r}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  	\begin{tabular}{cc}
+      \includegraphics[width=0.5\textwidth]{\analysis maps/{trawl.spatial.density}.pdf} &
+      \includegraphics[width=0.5\textwidth]{\analysis {trawl.time.density}.pdf}
+    \end{tabular}
+  \caption{Left: Survey locations in the Groundfish survey (orange) and snow crab survey (green). Right: Timing of surveys in the Groundfish survey (orange) and snow crab survey (green). }
+   \label{fig:trawlLocationsMap}
+\end{figure}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+\frametitle{Net mensuration issues}
+\begin{itemize}
+  \item Historical assumption: fixed width (12.5 m); length 3.24 km
+  \item Observed: wing spread, tow length are variable
+  \item Problem: net mensuration not recorded systematically 
+  \item Historical data needs to be adjusted as much as possible
+\end{itemize}
+
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  	\begin{tabular}{cc}
+      \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/numberOfSets.pdf}
+      \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/toweddistance.pdf}
+    \end{tabular}
+   \caption{Left: Number of sets in the Groundfish surveys and the number of sets with usable net configuration data. Right: Towed distance comparisons in the groundfish survey.}
+   \label{fig:trawlLocationsMap}
+\end{figure}
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{\ecomod mpa/analysis/{wing.v.door.byyear}.pdf}
+ \caption{Net spread variations by year. Note in 2011, the doorspread sensors seem to have failed completely. Note also that wingspread has been significantly larger from 2013 to 2015.}
+   \label{fig:groundfishWingDoorAnnual}
+\end{figure}
+
+\end{frame}
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/{wing.v.door}.pdf}
+  \caption{Net spread variations: doorspread vs wingspread. Note also that wingspread has been significantly larger from 2013 to 2015 but not doorspread.}
+  \label{fig:groundfishWingDoorComparison}
+\end{figure}
+
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}
+
+\begin{figure}
+  \centering
+  \begin{tabular}{cc}
+  \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/{sa.comparison}.pdf} &
+  \includegraphics[width=0.5\textwidth]{\ecomod mpa/analysis/{sa.comparison.all}.pdf}
+  \end{tabular}
+  \caption{Left: Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration. Right: Surface area estimates based on GSINF logged start-end positions vs computed surface area estimated from tow track and net configuration \textbf{as well as modeled solutions}.}
+   \label{fig:groundfishSweptArea}
+\end{figure}
+
+\end{frame}
+
+
+\subsection{Fishery activity}
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\frametitle{MARFIS: Fishery footprint}
+\begin{itemize}
+	\item Relevance:  productivity, habitat, biodiversity and species of interest
+	\item Sampling:  MarfIS and ZIFF
+	\item Spatial coverage: full extent 
+	\item Temporal coverage: 1999 - present
+	\item Source code: \url{https://github.com/jae0/ecomod/marfissci/src/}
+\end{itemize}	
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{\sab Rplot01.png}
+	\caption{Commercial catch weights of halibut (\textit{Hippoglossus hippoglossus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
+	\label{fig:halibut}
+\end{figure}
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\begin{figure}[h]
+	\centering
+ \includegraphics[width=0.8\textwidth]{\sab Rplot.png}
+	\caption{Commercial catch weights of sea scallops (\textit{Placopecten magellanicus}) on Georges Bank, the Scotian Shelf, and in the Bay of Fundy.}
+		\label{fig:Scallop}
+\end{figure}
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\frametitle{Vessel activity}
+\begin{itemize}
+	\item Relevance:  habitat, biodiversity and species of interest
+	\item Sampling:  AIS
+	\item Spatial coverage: Global for satellite AIS, coastal ($\sim$ 100km) for Canadian Coast Guard terrestrial AIS network.
+	\item Temporal coverage: 2013 - present
+	\item Source code: https://github.com/jae0/ecomod/AIS/src/ais.r
+\end{itemize}	
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+
+\begin{figure}[h]
+  \centering
+	\includegraphics[width=1.0\textwidth]{\sab CCG_AIS.pdf}
+	\caption{Automatic Identification System (AIS) data collected from the Canadian Coast Guard terrestrial network of AIS receiving stations on 08 Dec 2015. A total of 127 vessels were detected in the area with each colour representing a unique vessel.}
+    \label{fig:TAIS}
+\end{figure}
+
+
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{\sab Line_of_Sight.pdf}
+	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with line of sight detection (red circles) for the terrestrial AIS receiving stations (red dots) around St. Anns Bank Area of Interest.}
+   \label{fig:LOF}
+\end{figure}
+
+\end{frame}
+
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{\sab Simard_Sight.pdf}
+	\caption{Bathymetic (100 m resolution) chart of the  St. Anns Bank area with estimated vessel detection distances (blue circles) for the terrestrial AIS receiving stations (blue dots) around St. Anns Bank Area of Interest.}
+  \label{fig:DetAIS}
+\end{figure}
+
+\end{frame}
+
+
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+  
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1.0\textwidth]{\sab Interpolation_Example1.pdf}
+	\caption{Detected vessel positions (large filled circles) and interpolated vessel positions (lines) for three unique vessels transiting through the St. Anns Bank Area, where each colour represents a unique vessel.}
+	\label{fig:astar}
+\end{figure}
+
+\end{frame}
+% ----------------------------------------------------------------
+
+\begin{frame}[shrink]
+\begin{figure}[h]
+
+	\centering
+	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{\sab Counts_2013-2015_Q1.pdf} &
+		\includegraphics[width=0.5\textwidth]{\sab Counts_2013-2015_Q1_NNF.pdf}
+	\end{tabular}
+	\caption{Vessel density maps for the first quarter of a year based on satellite AIS data from 2013-2015 for all vessels (left panel) and all vessels except of the Newfoundland ferries (right panel).}
+	\label{fig:countmaps}
+\end{figure}
+\end{frame}
+
+
+
+
+
+% ---------------------------------------------------------------
+\begin{frame}[shrink]
+  
+\begin{figure}[h]
+	\centering
+	\begin{tabular}{cc}
+		\includegraphics[width=0.5\textwidth]{\sab Cost_2013-2015_Q1.pdf} &
+		\includegraphics[width=0.5\textwidth]{\sab Cost_2013-2015_Q1_NNF.pdf}
+	\end{tabular}
+	\caption{Cost maps developed for the A$^{\star}$ function to interpolate undetected vessel positions as vessels transit in and out of the Gulf of St. Lawrence.}
+  \label{fig:costmap}
+\end{figure}
+
+
+\end{frame}
+
+
+% ---------------------------------------------------------------
+\begin{frame}
+\frametitle{Data gaps}
+Expensive and/or difficult to monitor and/or with information that is not readily available at present.
+\begin{itemize}
+  \item Feeding relationships -- Stomach Database .. not usable
+  \item Pelagic fish (small and large bodied) 
+  \item Pelagic invertebrates (e.g., squid, jellyfish)
+  \item Substrate characterisation 
+  \item Large marine mammals, reptiles, birds 
+  \item Genetic diversity
+  \item Seismic activity
+  \item Pollution
+  \item Ballast water
+\end{itemize}
+\end{frame}
+
+
+
+% ---------------------------------------------------------------
+\section{Methods}
+% ---------------------------------------------------------------
+
+
+
+\begin{frame}
+\frametitle{Biodiversity} 
+  \begin{itemize}
+    \item Complex idea: space, time, organisational/phylogenetic components
+    \item Control space and time (via "rarefaction" and interpolation) and aggregate taxonomic richness $R$
+  
+  \[
+  log(R) = B0 + log(SA) + log(TS) + e
+  \]
+  
+  \item Estimate dynamics of $R$ via a modeled solution to logistic state space model.
+     
+  \end{itemize}
+  
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Productivity}
+
+    \begin{columns}[c]
+      \begin{column}{.5\textwidth}
+        \begin{itemize}
+          \item Complex idea: space, time, organisational components
+          \item Production is not the same as standing biomass 
+          \item Control space and time (via interpolation) and aggregate on total and species of interest 
+          \item Estimate production via a modeled solution to logistic state space model
+        \end{itemize}
+      \end{column}
+      \begin{column}{.5\textwidth}
+        \begin{figure}[h]
+          \caption{Predicted biomass density of snow crab in Maritimes Region based upon a combination of a Functional-habitat method and simple spatial interpolation.}
+          \label{fig:snowcrabAbundance}
+          \centering
+          \includegraphics[width=1.0\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.abundance.mean.R0.mass.2010}.png}
+        \end{figure}
+      \end{column}
+    \end{columns}    
+
+
+\end{frame}
+
+
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Habitat}
+  \begin{itemize}
+    \item Hutchinson's multidimensional niche concept, $H$
+    \item Extra complex idea: space, time, organisational components $\bigotimes$~$H$
+    \item Two approaches:
+    \begin{itemize}
+      \item \textbf{Functional} 
+      \begin{itemize}
+        \item make increasingly more precise habitat definitions by adding more environmental and biological factors for increasingly more precise categories of organisms
+        \item due to natural complexity, such models will always necessarily be incomplete
+      \end{itemize}
+      \item \textbf{Integrative} 
+      \begin{itemize}
+        \item the biota living in a given time and location fully integrates of all relevant environmental and biological factors at their proper space time scales, including the cumulative effects
+        \item characterising taxonomic composition will estimate "habitat space"
+      \end{itemize}
+    \end{itemize}
+    \item Estimate dynamics via a modeled solution to logistic state space model
+  \end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Functional-habitat}
+    \begin{columns}[c]
+      \begin{column}{.4\textwidth}
+        \begin{itemize}  
+          \item Bernoulli process $\sim$ environmental factors/gradients
+          \item Problem: how do we put the egg back together again
+        \end{itemize}
+      \end{column}
+      \begin{column}{.6\textwidth}
+        \begin{figure}[h]
+          \caption{Predicted probability of observing snow crab in Maritimes Region based upon a Functional-habitat method.}
+          \label{fig:snowcrabHabitat}
+          \centering
+          \includegraphics[width=1.0\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
+        \end{figure}      
+      \end{column}
+    \end{columns}    
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}[shrink]
+  \frametitle{Functional-habitat}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{\ecomod snowcrab/assessments/2012/timeseries/interpolated/{snowcrab.habitat.sa}.png}
+    \caption{Surface area of potential habitat of snow crab in Maritimes Region based upon a Functional-habitat method.}
+    \label{fig:snowcrabHabitatTS}
+  \end{figure}
+\end{frame}  
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Integral habitat}
+  \begin{itemize}  
+    \item Organism community indicates/reflects the type of habitat ($\equiv$~all biological and environmental interactions, short and long time and space scales, instantaneous and cumulative)
+    \item Metric: Standard multivariate methods of data ordination. 
+    \begin{itemize}
+      \item Principal Components Analysis -- correlational structure
+      \item Correspondence Analysis -- Chi-squared differences
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Integral habitat}
+  \begin{figure}[h]
+    \centering
+    %  \includegraphics[width=0.75\textwidth]{\ecomod speciescomposition/analysis/SSE/allseasons/complex/maps/{maps.pca1.2010}.png}
+    \includegraphics[width=1.0\textwidth]{\mpa oneoffs/ca.png}
+    \caption{Integral habitat based upon species composition variations in Maritimes Region. Note the first (left) is primarily a temperature gradient expressed through species composition and the second (right) is a depth-related gradient in species assemblages.}
+    \label{fig:speciesCompostionMap}
+  \end{figure}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: spatial scale}
+  \begin{itemize}
+    \item MPAs exist in a spatial context
+    \item Spatial scale will determine which processes will be relevant
+    \begin{itemize}
+      \item If spatial variations in the productivity of a species of interest is small relative to the size of an MPA, the chances of the MPA having an influence upon the species is enhanced. This is usually the case when short-range processes dominate (e.g., less mobile species, weakly dispersing, low currents, habitat heterogeneity at small scales). 
+      \item If spatial scale is larger than the MPA, then it would mean that broader/larger processes were influencing the productivity of the species (e.g., higher mobility or dispersal processes/current, and stronger spatial connectivity, habitat heterogeneity at larger scales) -- resulting in a lower likelihood of the MPA having an influence upon the species or components of interest.
+      \item Monitoring and assessment must respect the spatial scales implicated if one is to resolve such patterns, with a focus upon scales > 1 km 
+      \item Measure via semivariogram
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Semi-variogram}
+    \begin{columns}[c]
+      \begin{column}{.4\textwidth}
+        \begin{itemize}
+          \item Spatial stochastic process, $y$ defined at some location $x$
+          
+          \item Then the variability of $y$ changes as a function of distance $\Delta x$: 
+        \end{itemize}
+        
+          \begin{eqnarray*}
+            \label{eq:semivariogram}
+            \gamma(x) &=& \frac{1}{2} \ \textrm{Var} [ y(x) - y(x + \Delta x)]  \\
+          \end{eqnarray*}
+          
+          DEFINE: Spatial scale = distance at which the variance increases asymptotically to $\sim~0.75\%$ of the total variance.
+        \end{column}
+        \begin{column}{.6\textwidth}
+         \begin{figure}
+           \centering
+           \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
+           \caption{Mat\'{e}rn semivariance as a function of distance for different values of $\nu$.}
+           \label{fig:matern}
+          \end{figure}
+        \end{column}
+      \end{columns}    
+                
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: spatial scale}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{\mpa oneoffs/{range.bathy}.jpg}
+    \caption{First estimate of log(spatial range; km) based upon depth variations.}
+    \label{fig:spatialrangeBathy}
+  \end{figure}
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: temporal scale}
+  \begin{itemize}
+    \item MPAs exist in a temporal context
+    \item Temporal scale will determine which processes will be relevant and intensity of monitoring effort
+    \begin{itemize}
+      \item Short-range variations require higher sampling effort to resolve/understand the issues and vice-versa.
+      \item Measure: cumulative periodogram -- the cumulative variance found at different wavelengths ($\omega$). It is a discrete sample estimate of the continuous concept of spectral density $\gamma(t)$ 
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+
+\begin{frame}
+  \frametitle{cumulative periodogram}
+  \begin{columns}[c]
+    \begin{column}{.4\textwidth}
+      \begin{itemize}
+        \item Temporal stochastic process, $y$ defined at some time $t$
+        \item Then the variability of $y$ changes as a function of wavelength $\omega x$: 
+      \end{itemize}
+      
+      \begin{equation}
+      \label{eq:spectraldDensity}
+      \gamma(t) = \int_{-1/2}^{1/2} e^{2\pi i \omega t} f(\omega) d \omega
+      \end{equation}
+      
+      DEFINE: Temporal scale = time at which the cumulative variance increases asymptotically to $\sim~0.75\%$ of the total variance.
+    \end{column}
+    \begin{column}{.6\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
+        \caption{Different expectations of cumulative variance as a function of time.}
+        \label{fig:matern}
+      \end{figure}
+    \end{column}
+  \end{columns}    
+  
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Connectivity: Space-time models}
+\begin{itemize}
+  \item Spatial and temporal patterns coexist and are correlated
+  \item Recent methods, using a Markov Random Field representation of $y$ permits some interesting classes of space-time models to be parameterized. 
+  \item Another class of models known as Stochastic spatio-temporal simulation models, also known as birth-death models show promise.  
+  \item Problem: both are still computationally demanding. 
+\end{itemize} 
+\end{frame}
+
+% ---------------------------------------------------------------
+\begin{frame}
+  \frametitle{Connectivity: Tagging, mark-recapture}
+  \begin{itemize} 
+    \item movement: Acoustic tags (OTN, EMERA, snow crab industry, Oceans)
+    \item mark-recapture studies: sea turtles, seals, sharks ... Data gaps
+    \item genetic similarity (no work) .. Data gap
+  \end{itemize}
+    
+\end{frame}
+
+
+% ---------------------------------------------------------------
+\begin{frame}
+  \frametitle{Risk modeling}
+  \begin{itemize}
+    \item Risk = probability inference 
+    \item Methods of error propagation
+    \begin{itemize}
+      \item Deterministic: Mechanistic model $\rightarrow$ approximations or simulations  $\rightarrow$ error distribution of $y$
+      \item Phenomenological: Aggregate statistical model $\rightarrow$ statistical models $\rightarrow$ error distribution of $y$
+    \end{itemize}
+  \end{itemize}
+  
+  Focus upon the phenomenolgoical approach.
+\end{frame}
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+  \frametitle{Logistic model}
+  \begin{itemize}
+    \item Describe system state, $y$ (e.g., biomass, biodiversity, habitat, etc) as a logistic equation
+    \item 
+  \end{itemize}
+ 
+Use on aggregate estimates of biomass (productivity), biodiversity (biodiversity change), habitat (habitat change) and other indicators of interest
+The discrete form the basic normalised logistic equation is:
+
+\begin{equation} 
+\label{eqLogisticDiscrete}
+y_t  \approx r y_{t-1} (1 - y_{t-1} )
+\end{equation}
+
+with parameters, $\theta=\{r,K\}$
+
+A state space representation where an additional observation model:
+
+\begin{equation} 
+\label{eqLogisticDiscreteStateSpace}
+O_t = q y_t
+\end{equation}
+
+with parameters, $\theta=\{r,K,q\}$.
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+\begin{frame}
+\frametitle{Estimation method}
+\begin{itemize}
+  \item Bayesian approach to solve the above nonlinear state space problem
+  \begin{itemize}
+    \item Greater numerical stability
+    \item Incorporate prior scientific knowledge in a formal manner
+    \item Realistically propagate credible errors
+    \item Estimate unobserved states ("true" states)
+    \item Simultaneously estimate model "process" errors ($\sigma^2_p$) and data "observation" errors ($\sigma^2_o$).
+  \end{itemize}
+  \item MCMC (Gibbs) sampling using the JAGS platform (Plummer 2003, 2010)
+\end{itemize}
+\end{frame}
+
+
+% ---------------------------------------------------------------
+
+
+\begin{frame} 
+  \frametitle{Anthropogenic threats and pressures}
+  \begin{itemize}
+    \item Trawling and dredging disturbances
+    \item Exploitation of marine resources by fisheries
+    \item Fishing-gear entanglement threats to marine mammals and sea turtles
+    \item Vessel collision threats due to marine traffic
+    \item Vessel-noise disturbances
+  \end{itemize}
+
+Question: How to express the cumulative impacts on productivity, habitat, biodiversity, and endangered or threatened species    
+Way forward: normalise each threat on a zero-one scale to compare the intensity of threats across the region 
+weighted and combined to examine cumulative anthropogenic threats 
+
+\end{frame}
+
+
+\end{document}

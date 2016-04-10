@@ -938,7 +938,12 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     if (is.null (YRS) ) YRS = p$netmensuration.years 
     gsinf = groundfish.db( DS="gsinf" )
     gsinf_bc = scanmar.db( DS="bottom.contact", p=p )
-    
+   
+    toreject = which( !is.na( gsinf_bc$bc.error.flag ) )
+
+    gsinf_bc$wing.sa [ toreject] = NA  
+    gsinf_bc$door.sa [ toreject] = NA  
+
     newvars = setdiff( names( gsinf_bc ), names( gsinf)  )
     tokeep = c("id", newvars )
 
@@ -1147,13 +1152,40 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       gsinf$wing.sa.crude = gsinf$distance * gsinf$wing.mean /1000     
       gsinf$door.sa.crude = gsinf$distance * gsinf$door.mean /1000
 
+      # gating
+      bad = intersect( which( gsinf$wing.sa.crude > 0.09 ) , w2a)
+      gsinf$wing.sa.crude[bad] = NA
+
+      bad = intersect( which( gsinf$door.sa.crude > 0.03 ), w2a)
+      gsinf$door.sa.crude[bad] = NA
+ 
+      bad = intersect( which( gsinf$wing.sa > 0.09 ) , w2a)
+      gsinf$wing.sa[bad] = NA
+
+      bad = intersect( which( gsinf$door.sa > 0.03 ), w2a)
+      gsinf$door.sa[bad] = NA
+
       ii = intersect( which( !is.finite( gsinf$wing.sa ) ), w2a)
-      if (length(ii) > 0)  gsinf$wing.sa[ii] = gsinf$wing.sa.crude[ii]
+      if (length(ii) > 0) gsinf$wing.sa[ii] = gsinf$wing.sa.crude[ii] 
       
       ii = intersect( which( !is.finite( gsinf$door.sa ) ), w2a)
-      if (length(ii) > 0)  gsinf$door.sa[ii] = gsinf$door.sa.crude[ii]
-  
+      if (length(ii) > 0) gsinf$door.sa[ii] = gsinf$door.sa.crude[ii]
+
+      sayrw =  tapply( gsinf$wing.sa, gsinf$yr, mean, na.rm=TRUE)
+      sayrd =  tapply( gsinf$door.sa, gsinf$yr, mean, na.rm=TRUE)
+      sayrp =  tapply( gsinf$sakm2, gsinf$yr, mean, na.rm=TRUE)
+      
+
+      ii = intersect( which( !is.finite( gsinf$wing.sa ) ), w2a)
+      if (length(ii) > 0 ) gsinf$wing.sa[ii] = sayrw[as.character(gsinf$yr[ii])]
+
+      ii = intersect( which( !is.finite( gsinf$wing.sa ) ), w2a)
+      if (length(ii) > 0 ) gsinf$wing.sa[ii] = sayrp[as.character(gsinf$yr[ii])]
     
+      ii = intersect( which( !is.finite( gsinf$door.sa ) ), w2a)
+      if (length(ii) > 0 ) gsinf$door.sa[ii] = sayrd[as.character(gsinf$yr[ii])]
+
+
     save( gsinf, file=fn, compress=TRUE )
 
     return( fn )
