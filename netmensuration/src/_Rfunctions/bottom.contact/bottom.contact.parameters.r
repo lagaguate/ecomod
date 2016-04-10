@@ -40,15 +40,15 @@
     if ( !exists("datasource", bcp)) bcp$datasource ="datasource"
     if ( !exists("nr", bcp)) bcp$nr = NA
 
-    if ( !exists("tdif.min", bcp)) bcp$tdif.min=10 # min time difference (minutes)
-    if ( !exists("tdif.max", bcp)) bcp$tdif.max=50  # max time difference (minutes) .. including tails
+    if ( !exists("tdif.min", bcp)) bcp$tdif.min=8 # min time difference (minutes)
+    if ( !exists("tdif.max", bcp)) bcp$tdif.max=52  # max time difference (minutes) .. including tails
     if ( !exists("depthproportion", bcp)) bcp$depthproportion=0.6  # depthproportion controls primary (coarse)gating
     if ( !exists("depth.min", bcp)) bcp$depth.min= 15
     if ( !exists("depth.range", bcp)) bcp$depth.range=c(-60,60)
     if ( !exists("time.gate", bcp)) bcp$time.gate=NA
-    if ( !exists("eps.depth", bcp)) bcp$eps.depth = 1 # m
+    if ( !exists("eps.depth", bcp)) bcp$eps.depth = 2 # m
  
-    if ( !exists("maxdepthchange", bcp)) bcp$maxdepthchange = 10 # max fluctuation in depth (m) between sensor pings
+    if ( !exists("maxdepthchange", bcp)) bcp$maxdepthchange = 15 # max fluctuation in depth (m) between sensor pings
 
     # expected distance between GPS pings .. i.e. 10 cm to 0.1 km  --- might need to modify depending upon ping rate 
     if ( !exists("gps.distance.range.valid.km", bcp)) bcp$gps.distance.range.valid.km =  c( 1e-4, 1e-1 )
@@ -62,7 +62,7 @@
     if ( !exists("noisefilter.target.r2", bcp)) bcp$noisefilter.target.r2 = 0.8 # for noise filtering  .. ignore variations less than this threshold
 
     if ( !exists("smooth.filter.quants", bcp)) bcp$smooth.filter.quants=c(0.05, 0.95) # for dZ 
-    if ( !exists("smooth.target.r2", bcp)) bcp$smooth.target.r2 = 0.8  # for smooth of dZ (slopes)
+    if ( !exists("smooth.target.r2", bcp)) bcp$smooth.target.r2 = 0.9  # for smooth of dZ (slopes)
     if ( !exists("smooth.windowsize",  bcp))  bcp$smooth.windowsize = 5  # number of data points to assess for consistent passage into the non-modal (slopes) area
     if ( !exists("smooth.threshold",  bcp))  bcp$smooth.threshold = 0.5  # proportion of data outside of mode in window to consider  consistent passage into the non-modal (slopes) area
  

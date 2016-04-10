@@ -16,6 +16,7 @@
         return (out)
       }
 
+      # storage/internal format is lon/lat:
       crs = "+init=epsg:4326"
       out = list()
       bbox = p$corners[ , c("lon", "lat")]
@@ -33,15 +34,18 @@
       out$sab.polygons = bind( aoi, z1, z2, z3, z4, keepnames=TRUE ) 
       
       mc = isobath.db( p=p, DS="isobath", depths=p$map.depthcontours, crs=crs  )
-      # mcnames = names( mc)
+      mcnames = names( mc)
       # must crop each one separately
-      # mcout = raster::crop( mc[1], bbox ) 
-      # for (i in 2:length(mc) ) {
+      mcout = raster::crop( mc[1], bbox ) 
+      for (i in 2:length(mc) ) {
         mcout = bind( mcout, raster::crop( mc[i], bbox ), keepnames=FALSE )
-      # }
+      }
       out$map.contours = isobath.db( p=p, DS="isobath", depths=p$map.depthcontours, crs=crs  )
+      
+      # add a small buffer around data and clip to make smaller
       out$map.coastline = coastline.db( DS=" gshhg coastline highres redo ", 
-        xlim=p$corners$lon, ylim=p$corners$lat, no.clip=FALSE, level=1 )
+        xlim=p$corners$lon+c(-1,1), ylim=p$corners$lat+c(-1,1), no.clip=FALSE, level=1 )  
+
       save( out, file=fn, compress=TRUE )
       if ( !is.null(crs)) {
         out$map.contours = spTransform(out$map.contours, CRS(p$internal.crs))  

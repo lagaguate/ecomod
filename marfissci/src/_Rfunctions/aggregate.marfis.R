@@ -1,5 +1,6 @@
 aggregate.marfis <-function(pts, LatField="LAT", LonField="LON",
                             xlim=c(-71,-56), ylim=c(40,48), gridres=1, 
+                            just.make.rds=F,
                             anal.fn = "mean", anal.field = "RND_WEIGHT_KGS",
                             privacy.field = c("VR_NUMBER_FISHING","LICENCE_ID"),
                             ruleOf=5,
@@ -99,7 +100,7 @@ poly_grd = Grid2Polygons(sp_grd)
 
 coordinates(pts) = c(LonField, LatField)
 proj4string(pts) = CRS(crs.orig)
-
+#browser()
 # Determine the number of unique values for each privacy field  -----------
 # Privacy field counts are identified by the prefix 'cnt_' ----------------
 priv_cnt = over(poly_grd, pts[privacy.field], fn=function(x) length(unique(x)))
@@ -114,6 +115,7 @@ results$z = as.numeric(gsub("X","",rownames(results)))
 poly_grd@data = merge(poly_grd@data,priv_cnt, by="z")
 poly_grd@data = merge(poly_grd@data,results, by="z")
 
+if (just.make.rds==T){
 #Find records where all privacy fields have sufficient unique records/cell
 public = as.data.frame(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_grd@data) == "z")])
 public = as.data.frame(public[apply(public, 1, function(row) {all(row >= ruleOf)}),])
@@ -138,7 +140,6 @@ if (length(unique(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_gr
   poly_grd@data$colcode = NA
    return(poly_grd)
 }
-
  classes = classIntervals(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_grd@data) == "z")][[anal.field]], n=nclasses, style= class.style)
  colcode = findColours(classes, c("#edf8b1","#7fcdbb","#2c7fb8")) #colorblind-friendly yellow-blue
    #c("#deebf7", "#9ecae1","#3182bd") #colorblind-friendly blues
@@ -154,17 +155,16 @@ if (length(unique(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_gr
    #of colors doesn't modify ultimate product)
    if (show.restricted == F) plot.data@data[which(plot.data@data$public == "No"),]$colcode = NA
  # Get basemap data --------------------------------------------------------
-  p = map("worldHires", regions = c("Canada","USA", "Greenland"), 
-          col = "navajowhite2",border = "navajowhite4", xlim=limits$X, ylim=limits$Y, plot=F, fill=T)
+  p = map("worldHires", regions = c("Canada","USA", "Greenland"), col = "navajowhite2",border = "navajowhite4", xlim=limits$X, ylim=limits$Y, plot=F, fill=T)
   IDs = sapply(strsplit(p$names, ":"), function(x) x[1])
   basemap = map2SpatialPolygons(p, IDs = IDs, proj4string = CRS(crs.orig))
   filename=paste0(project.figuredirectory(figuredir),"/marfisAgg_",strftime(Sys.time(),"%Y%m%d_%H%M%S"),".png")
   if (save.plot) png(filename=filename, width=4, height = 4, units = 'in', pointsize = 4, res=600)
-  plot(spTransform(plot.data, CRS(crs.new)), col = plot.data@data$colcode, border = "gray90", main=title)
+  plot(spTransform(plot.data, CRS(crs.new)), col = as.character(plot.data@data$colcode), border = "gray90", main=title)
   plot(spTransform(basemap, CRS(crs.new)), col = "navajowhite2", border = "navajowhite4", add = T)
-       # points obviously shouldn't be plotted, but is shown here for purposes
-       #  of initial validation of output
-        if (show.pts) points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
+  # it may be desirable to plot points for purposes of output validation
+  if (show.pts) points(spTransform(pts, CRS(crs.new)),col = "red", pch = 20, cex = 0.2)
+  
   if(show.legend){
         legend("topleft", legend = c(names(attr(colcode, "table")),"no data"), 
                fill = c(attr(colcode, "palette"),"white"), 
@@ -174,6 +174,7 @@ if (length(unique(poly_grd@data[complete.cases(poly_grd@data),!(colnames(poly_gr
     dev.off()
     print(paste0("Figure saved to ", filename))
   }
+}
  return(poly_grd)
 }
 #EXAMPLE USAGE

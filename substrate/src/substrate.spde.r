@@ -10,7 +10,7 @@
   p = list( project.name = "substrate" )
   p$project.root = project.datadirectory( p$project.name )
          
-  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons", "substrate" ) )
+  p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons", "substrate", "coastline" ) )
   p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "geosphere", 
                      "sp", "raster", "colorspace" ,  "splancs", "fields",
                      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )

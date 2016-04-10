@@ -33,11 +33,15 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
     # construct the gshhg data filename appropriate to above choices:
     fn = file.path( datadir, "gshhg", paste( fn.root, fn.suffix, sep="_" ) )
     # local saves to speed things up a little 
-    domain = "notspecified"
+    domain = "canada.east.highres"  # defaulting to largest extent and highest resolution
+    
     if (!is.null(p)) {
       if ( exists("spatial.domain", p ) ) {
         domain = p$spatial.domain 
-    }}
+      } else {
+        print( "Defaulting to spatial.domain='canada.east.highres' as p$spatial.domain was not specified" )
+      }
+    }
     fn.loc = paste( fn, domain, "rdata", sep="." )
     out = NULL
     if ( !grepl("redo", DS) ){
@@ -60,7 +64,7 @@ coastline.db = function( DS="gshhg coastline highres", crs="+init=epsg:4326", p=
       coastline.db( DS="gshhg.download")
     }
     print ("Don't panic about  the following .. Rgshhs is just being fussy:")
-    out = maptools::getRgshhsMap( fn, xlim=xlim, ylim=ylim, level=level, verbose=FALSE, ... )
+    out = maptools::getRgshhsMap( fn, xlim=xlim + c(-1,1), ylim=ylim+c(-1,1), level=level, verbose=FALSE, ... )
     print ("")
     print ("")
     print( "The above is not a fatal error .. check your data: " )
