@@ -12,7 +12,7 @@
     if ( length(gg)>0 ) {
       pp = grep("predictions", obj )
       if ( length(pp) > 0 ) {
-        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+        p = spacetime.db( p=p, DS="bigmemory.filenames" )
  
         pps  =  expand.grid( plons=p$plons, plats=p$plats)
         P = attach.big.matrix( p$descriptorfile.P , path=p$tmp.datadir ) 

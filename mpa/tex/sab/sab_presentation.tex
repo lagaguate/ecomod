@@ -1,3 +1,20 @@
+
+
+% to reduce the size of the PDF:
+% use ghostscript:
+% gs -q -dSAFER -dNOPAUSE -sDEVICE=pdfwrite -sPDFSETTINGS=printer -sOutputFile="resdoc2006sc.pdf" resdoc2006sc.pdf 
+
+% the key being sPDFSETTINGS: with options: default, screen, ebook, printer, preprint
+% try also:  -sCompressPages=true
+% -sDownsampleColorImages=true
+% -sColorImageResolution=300
+% -sGrayImageResolution=300
+% -sMonoImageResolution=300
+% final choice to get it under 8MB :
+
+% gs -q -dSAFER -dNOPAUSE -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dColorImageResolution=150 -dMonoImageResolution=150 -dGrayImageResolution=150  -dCompatibilityLevel=1.4 -sOutputFile="resdoc2006sc.printer.pdf" resdoc2006sc.pdf  < /dev/null
+
+
 \documentclass{beamer}
 
 \usepackage{default}
@@ -816,15 +833,15 @@ Expensive and/or difficult to monitor and/or with information that is not readil
   \frametitle{Productivity}
 
     \begin{columns}[c]
-      \begin{column}{.5\textwidth}
+      \begin{column}{.6\textwidth}
         \begin{itemize}
-          \item Complex idea: space, time, organisational components
-          \item Production is not the same as standing biomass 
+          \item Complex idea: space, time, biocomplexity (== phylogeny, phenotypes, abundance, size structure, functional groups, growth, etc.)
+          \item Production is not the same as standing biomass (though correlated)
           \item Control space and time (via interpolation) and aggregate on total and species of interest 
           \item Estimate production via a modeled solution to logistic state space model
         \end{itemize}
       \end{column}
-      \begin{column}{.5\textwidth}
+      \begin{column}{.4\textwidth}
         \begin{figure}[h]
           \caption{Predicted biomass density of snow crab in Maritimes Region based upon a combination of a Functional-habitat method and simple spatial interpolation.}
           \label{fig:snowcrabAbundance}
@@ -842,74 +859,73 @@ Expensive and/or difficult to monitor and/or with information that is not readil
 
 % ---------------------------------------------------------------
 
-\begin{frame}[shrink]
+\begin{frame}
   \frametitle{Habitat}
   \begin{itemize}
     \item Hutchinson's multidimensional niche concept, $H$
-    \item Extra complex idea: space, time, organisational components $\bigotimes$~$H$
+    \item Extra complex idea: space, time, organisation $\bigotimes$~$H$
     \item Two approaches:
     \begin{itemize}
-      \item \textbf{Functional} 
-      \begin{itemize}
-        \item make increasingly more precise habitat definitions by adding more environmental and biological factors for increasingly more precise categories of organisms
-        \item due to natural complexity, such models will always necessarily be incomplete
-      \end{itemize}
-      \item \textbf{Integrative} 
-      \begin{itemize}
-        \item the biota living in a given time and location fully integrates of all relevant environmental and biological factors at their proper space time scales, including the cumulative effects
-        \item characterising taxonomic composition will estimate "habitat space"
-      \end{itemize}
+      \item \textbf{Functional}  -- $H_f$ : binomial model
+      \item \textbf{Integrative} -- $H_i$ : ordination
     \end{itemize}
-    \item Estimate dynamics via a modeled solution to logistic state space model
+    \item Estimate dynamics of $H_f$ and $H_i$ via a modeled solution to logistic state space model
   \end{itemize}
 \end{frame}
 
 
 % ---------------------------------------------------------------
 
-\begin{frame}[shrink]
+\begin{frame}
   \frametitle{Functional-habitat}
-    \begin{columns}[c]
-      \begin{column}{.4\textwidth}
-        \begin{itemize}  
-          \item Bernoulli process $\sim$ environmental factors/gradients
-          \item Problem: how do we put the egg back together again
-        \end{itemize}
-      \end{column}
-      \begin{column}{.6\textwidth}
-        \begin{figure}[h]
-          \caption{Predicted probability of observing snow crab in Maritimes Region based upon a Functional-habitat method.}
-          \label{fig:snowcrabHabitat}
-          \centering
-          \includegraphics[width=1.0\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
-        \end{figure}      
-      \end{column}
-    \end{columns}    
+  \begin{itemize}  
+  \item $H_f$ $\sim$ Bernoulli process (environmental factors/gradients)
+  \item Easily modeled
+  \item Make increasingly more precise habitat definitions by adding more environmental and biological factors for increasingly more precise categories of organisms
+  \item Problem: due to natural complexity, such models will also, always be \textbf{incomplete}
+  \item Problem: determinism .. how do we put the egg back together again?
+  \item Suitability: species of interest as very specific
+  \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------------
 
 \begin{frame}[shrink]
-  \frametitle{Functional-habitat}
+\frametitle{Functional-habitat}
+\begin{columns}[c]
+\begin{column}{.5\textwidth}
+
+\begin{figure}[h]
+\caption{Predicted probability of observing snow crab in Maritimes Region based upon a Functional-habitat method.}
+\label{fig:snowcrabHabitat}
+\centering
+\includegraphics[width=1.0\textwidth]{\ecomod snowcrab/R/gam/maps/{prediction.habitat.mean.R0.mass.2010}.png}
+\end{figure}      
+\end{column}
+\begin{column}{.5\textwidth}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=0.6\textwidth]{\ecomod snowcrab/assessments/2012/timeseries/interpolated/{snowcrab.habitat.sa}.png}
+    \includegraphics[width=0.8\textwidth]{\ecomod snowcrab/assessments/2012/timeseries/interpolated/{snowcrab.habitat.sa}.png}
     \caption{Surface area of potential habitat of snow crab in Maritimes Region based upon a Functional-habitat method.}
     \label{fig:snowcrabHabitatTS}
   \end{figure}
-\end{frame}  
+\end{column}
+\end{columns}
 
+\end{frame}
 
 % ---------------------------------------------------------------
 
 \begin{frame}
   \frametitle{Integral habitat}
   \begin{itemize}  
-    \item Organism community indicates/reflects the type of habitat ($\equiv$~all biological and environmental interactions, short and long time and space scales, instantaneous and cumulative)
-    \item Metric: Standard multivariate methods of data ordination. 
+    \item \textbf{Assumption}: Organism community found living in a location indicates/reflects the local habitat 
+    \item That is, the biotic community fully integrates all relevant biological and environmental interactions, short and long time and space scales, instantaneous and cumulative
+    \item Characterising taxonomic composition will estimate "habitat space"    
+    \item $H_i$ $\sim$ Eigenanalysis of: 
     \begin{itemize}
-      \item Principal Components Analysis -- correlational structure
-      \item Correspondence Analysis -- Chi-squared differences
+      \item Correlational structure (Principal Components Analysis)
+      \item Chi-squared differences (Correspondence Analysis)
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -931,17 +947,15 @@ Expensive and/or difficult to monitor and/or with information that is not readil
 
 % ---------------------------------------------------------------
 
-\begin{frame}
+\begin{frame}[shrink]
   \frametitle{Connectivity: spatial scale}
   \begin{itemize}
     \item MPAs exist in a spatial context
-    \item Spatial scale will determine which processes will be relevant
-    \begin{itemize}
-      \item If spatial variations in the productivity of a species of interest is small relative to the size of an MPA, the chances of the MPA having an influence upon the species is enhanced. This is usually the case when short-range processes dominate (e.g., less mobile species, weakly dispersing, low currents, habitat heterogeneity at small scales). 
-      \item If spatial scale is larger than the MPA, then it would mean that broader/larger processes were influencing the productivity of the species (e.g., higher mobility or dispersal processes/current, and stronger spatial connectivity, habitat heterogeneity at larger scales) -- resulting in a lower likelihood of the MPA having an influence upon the species or components of interest.
-      \item Monitoring and assessment must respect the spatial scales implicated if one is to resolve such patterns, with a focus upon scales > 1 km 
-      \item Measure via semivariogram
-    \end{itemize}
+    \item Spatial scale ($S_s$) will determine which processes will be relevant
+    \item If $S_s$ is small relative to the size of an MPA, the chances of the MPA having an influence is enhanced: i.e., short-range processes dominate (e.g., less mobile species, weakly dispersing, low currents, habitat heterogeneity at small scales). 
+    \item If $S_s$ is large relative to the size of an MPA, then it would mean that broader/larger processes were influencing the productivity of the species (e.g., higher mobility or dispersal processes/current, and stronger spatial connectivity, habitat heterogeneity at larger scales) -- resulting in a lower likelihood of the MPA having an influence upon the species or components of interest.
+    \item Monitoring and assessment must respect the spatial scales implicated if one is to resolve such patterns, with a focus upon scales > 1 km 
+    \item Measure via semi-variogram
   \end{itemize}
 \end{frame}
 
@@ -950,43 +964,45 @@ Expensive and/or difficult to monitor and/or with information that is not readil
 
 \begin{frame}
   \frametitle{Semi-variogram}
-    \begin{columns}[c]
-      \begin{column}{.4\textwidth}
-        \begin{itemize}
-          \item Spatial stochastic process, $y$ defined at some location $x$
-          
-          \item Then the variability of $y$ changes as a function of distance $\Delta x$: 
-        \end{itemize}
+
+      \begin{itemize}
+        \item Spatial stochastic process, $y$ defined at some location $x$
         
-          \begin{eqnarray*}
-            \label{eq:semivariogram}
-            \gamma(x) &=& \frac{1}{2} \ \textrm{Var} [ y(x) - y(x + \Delta x)]  \\
-          \end{eqnarray*}
-          
-          DEFINE: Spatial scale = distance at which the variance increases asymptotically to $\sim~0.75\%$ of the total variance.
-        \end{column}
-        \begin{column}{.6\textwidth}
-         \begin{figure}
-           \centering
-           \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
-           \caption{Mat\'{e}rn semivariance as a function of distance for different values of $\nu$.}
-           \label{fig:matern}
-          \end{figure}
-        \end{column}
-      \end{columns}    
-                
+        \item Then the variability of $y$ changes as a function of distance $\Delta x$: 
+      \end{itemize}
+      
+      \begin{eqnarray*}
+        \label{eq:semivariogram}
+        \gamma(x) &=& \frac{1}{2} \ \textrm{Var} [ y(x) - y(x + \Delta x)]  \\
+      \end{eqnarray*}
+      
+      DEFINE: $S_s$ = distance at which the variance increases asymptotically to $\sim~0.75\%$ of the total variance.
+ 
 \end{frame}
 
 % ---------------------------------------------------------------
 
 \begin{frame}
-  \frametitle{Connectivity: spatial scale}
+  \frametitle{Semi-variogram}
+    \begin{columns}[c]
+      \begin{column}{.5\textwidth}
+          \begin{figure}
+            \centering
+            \includegraphics[width=1.0\textwidth]{\ecomod mpa/matern.jpg}
+            \caption{Mat\'{e}rn semivariance as a function of distance for different values of $\nu$.}
+            \label{fig:matern}
+          \end{figure}
+        \end{column}
+        \begin{column}{.5\textwidth}
   \begin{figure}[h]
     \centering
-    \includegraphics[width=0.6\textwidth]{\mpa oneoffs/{range.bathy}.jpg}
+    \includegraphics[width=1.0\textwidth]{\mpa oneoffs/{range.bathy}.jpg}
     \caption{First estimate of log(spatial range; km) based upon depth variations.}
     \label{fig:spatialrangeBathy}
   \end{figure}
+        \end{column}
+      \end{columns}    
+                
 \end{frame}
 
 % ---------------------------------------------------------------
@@ -996,10 +1012,8 @@ Expensive and/or difficult to monitor and/or with information that is not readil
   \begin{itemize}
     \item MPAs exist in a temporal context
     \item Temporal scale will determine which processes will be relevant and intensity of monitoring effort
-    \begin{itemize}
-      \item Short-range variations require higher sampling effort to resolve/understand the issues and vice-versa.
-      \item Measure: cumulative periodogram -- the cumulative variance found at different wavelengths ($\omega$). It is a discrete sample estimate of the continuous concept of spectral density $\gamma(t)$ 
-    \end{itemize}
+    \item Short-range variations require higher sampling effort to resolve/understand the issues and vice-versa.
+    \item Measure: cumulative periodogram -- the cumulative variance found at different wavelengths ($\omega$). It is a discrete sample estimate of the continuous concept of spectral density $\gamma(t)$ 
   \end{itemize}
 \end{frame}
 
@@ -1008,11 +1022,9 @@ Expensive and/or difficult to monitor and/or with information that is not readil
 
 
 \begin{frame}
-  \frametitle{cumulative periodogram}
-  \begin{columns}[c]
-    \begin{column}{.4\textwidth}
+  \frametitle{Cumulative periodogram}
       \begin{itemize}
-        \item Temporal stochastic process, $y$ defined at some time $t$
+        \item Temporal process, $y$ defined at some time $t$
         \item Then the variability of $y$ changes as a function of wavelength $\omega x$: 
       \end{itemize}
       
@@ -1022,16 +1034,6 @@ Expensive and/or difficult to monitor and/or with information that is not readil
       \end{equation}
       
       DEFINE: Temporal scale = time at which the cumulative variance increases asymptotically to $\sim~0.75\%$ of the total variance.
-    \end{column}
-    \begin{column}{.6\textwidth}
-      \begin{figure}
-        \centering
-        \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
-        \caption{Different expectations of cumulative variance as a function of time.}
-        \label{fig:matern}
-      \end{figure}
-    \end{column}
-  \end{columns}    
   
 \end{frame}
 
@@ -1041,8 +1043,8 @@ Expensive and/or difficult to monitor and/or with information that is not readil
   \frametitle{Connectivity: Space-time models}
 \begin{itemize}
   \item Spatial and temporal patterns coexist and are correlated
-  \item Recent methods, using a Markov Random Field representation of $y$ permits some interesting classes of space-time models to be parameterized. 
-  \item Another class of models known as Stochastic spatio-temporal simulation models, also known as birth-death models show promise.  
+  \item Recent methods, using a Markov Random Field representation of $y$ permits some interesting classes of space-time models to be parameterized that can model $\gamma(t)$ and $\gamma(x)$ simultaneously. 
+  \item Another class of models known as Stochastic spatio-temporal simulation models, also known as "birth-death models" and shows much promise.  
   \item Problem: both are still computationally demanding. 
 \end{itemize} 
 \end{frame}
@@ -1051,9 +1053,9 @@ Expensive and/or difficult to monitor and/or with information that is not readil
 \begin{frame}
   \frametitle{Connectivity: Tagging, mark-recapture}
   \begin{itemize} 
-    \item movement: Acoustic tags (OTN, EMERA, snow crab industry, Oceans)
-    \item mark-recapture studies: sea turtles, seals, sharks ... Data gaps
-    \item genetic similarity (no work) .. Data gap
+    \item Movement: Acoustic tags (OTN, EMERA, snow crab industry, Oceans)
+    \item Mark-recapture studies: sea turtles, seals, sharks ... Data gaps
+    \item Genetic connectivity (no work) .. Data gap
   \end{itemize}
     
 \end{frame}
@@ -1069,31 +1071,25 @@ Expensive and/or difficult to monitor and/or with information that is not readil
       \item Deterministic: Mechanistic model $\rightarrow$ approximations or simulations  $\rightarrow$ error distribution of $y$
       \item Phenomenological: Aggregate statistical model $\rightarrow$ statistical models $\rightarrow$ error distribution of $y$
     \end{itemize}
+    \item Focus upon the phenomenological approach
   \end{itemize}
   
-  Focus upon the phenomenolgoical approach.
+  
 \end{frame}
 
 % ---------------------------------------------------------------
 
 \begin{frame}
   \frametitle{Logistic model}
-  \begin{itemize}
-    \item Describe system state, $y$ (e.g., biomass, biodiversity, habitat, etc) as a logistic equation
-    \item 
-  \end{itemize}
- 
-Use on aggregate estimates of biomass (productivity), biodiversity (biodiversity change), habitat (habitat change) and other indicators of interest
-The discrete form the basic normalised logistic equation is:
 
-\begin{equation} 
-\label{eqLogisticDiscrete}
-y_t  \approx r y_{t-1} (1 - y_{t-1} )
-\end{equation}
-
-with parameters, $\theta=\{r,K\}$
-
-A state space representation where an additional observation model:
+Describe system state, $y$ (e.g., aggregate biomass, biodiversity, habitat, etc) as a logistic model. The discrete form of the basic normalised logistic equation is:
+       
+    \begin{equation} 
+    \label{eqLogisticDiscrete}
+    y_t  \approx r y_{t-1} (1 - y_{t-1} )
+    \end{equation}
+    
+with parameters, $\theta=\{r,K\}$. A state space representation where an additional observation model:
 
 \begin{equation} 
 \label{eqLogisticDiscreteStateSpace}
@@ -1135,11 +1131,17 @@ with parameters, $\theta=\{r,K,q\}$.
     \item Vessel-noise disturbances
   \end{itemize}
 
-Question: How to express the cumulative impacts on productivity, habitat, biodiversity, and endangered or threatened species    
-Way forward: normalise each threat on a zero-one scale to compare the intensity of threats across the region 
-weighted and combined to examine cumulative anthropogenic threats 
+Question: How to express the cumulative impacts on productivity, habitat, biodiversity, and endangered or threatened species?  One possible way forward: normalise each threat on a zero-one scale to compare the intensity of threats across the region 
+weighted and combined to examine cumulative anthropogenic threats. Others? 
 
 \end{frame}
 
+
+% ---------------------------------------------------------------
+
+
+\begin{frame} 
+More to come...
+\end{frame}
 
 \end{document}

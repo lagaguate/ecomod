@@ -14,11 +14,11 @@
     # tau0 = 1/(sqrt(4*pi)*kappa0* p$expected.sigma) 
   
     # load bigmemory data objects pointers
-    p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+    p = spacetime.db( p=p, DS="bigmemory.filenames" )
     
     #---------------------
     # data for modelling 
-    # dependent vars
+    # dependent vars # already link-transformed in spacetime.db("dependent") 
     Y = attach.big.matrix(p$descriptorfile.Y, path=p$tmp.datadir )  
     hasdata = 1:length(Y) 
     bad = which( !is.finite( Y[])) 
@@ -39,6 +39,8 @@
       }
       if (length(bad)> 0 ) hasdata[bad] = NA
     }
+
+    hasdata = na.omit( hasdata )
 
     #---------------------
     # prediction locations and covariates
@@ -85,24 +87,16 @@
       # choose a distance <= p$dist.max where n is within range of reasonable limits to permit a numerical solution  
       # slow ... need to find a faster solution
       ppp = NULL
-      ppp = try( point.in.block( focal[1,c(1,2)], LOCS, dist.max=p$dist.max, n.min=p$n.min, n.max=p$n.max, 
+      ppp = try( point.in.block( focal[1,c(1,2)], LOCS[hasdata,], dist.max=p$dist.max, dist.min=p$dist.min, n.min=p$n.min, n.max=p$n.max, 
         upsampling=p$upsampling, downsampling=p$downsampling, resize=TRUE ) )
       if( is.null(ppp)) next()
       if (class( ppp ) %in% "try-error" ) next()
       dist.cur = ppp$dist.to.nmax
       
-      j = na.omit( hasdata[ppp$indices] )
+      j = hasdata[ppp$indices]
       ndata = length(j) # number of data locations
       if (ndata < p$n.min) next()
 
-      # if data transformation causes infinite values or NA's then ignore rather than failing with the rest of the analysis
-      test.finite = which( is.finite( p$spacetime.link ( Y[j] ) ) )
-      if (length( test.finite) != ndata ) {
-        # altered j, update  count
-        j = j[ test.finite ]
-        ndata = length(j)
-      }
-      if (ndata < p$n.min) next()
       if (debugrun) cat( paste( Sys.time(), deid, "n=", ndata, "dist=", dist.cur, "\n" ), file=p$debug.file, append=TRUE ) 
       locs_noise = runif( ndata*2, min=-p$pres*p$spacetime.noise, max=p$pres*p$spacetime.noise ) # add  noise  to prevent a race condition
       
@@ -154,7 +148,7 @@
       }
 
       obs_ydata = list()
-      obs_ydata[[ p$variables$Y ]] = p$spacetime.link ( Y[j] )
+      obs_ydata[[ p$variables$Y ]] =  Y[j] 
       DATA = inla.stack( tag="obs", data=obs_ydata, A=obs_A, effects=obs_eff, remove.unused=FALSE ) 
       rm ( obs_index, obs_eff, obs_ydata, obs_A )
       # remove.unused=FALSE ensures that we can look at the estimated field effect without

@@ -130,7 +130,7 @@ with(chl, tapply(chl$data_value, jj, function(x) { c(mean(x) , sd(x) )} ))
 i = which( chl$header_start_depth < 20 & chl$year == 2010 & chl$month == 6 )
 X = chl[i, c("header_start_lon", "header_start_lat", "data_value") ]
 names( X ) = c("lon","lat", "chl")
-chltest = variogram.ecomod( X, plot=TRUE )
+chltest = spacetime.variogram( xy=X[,c("lon", "lat")], z=X$chl  )
 
 
 
