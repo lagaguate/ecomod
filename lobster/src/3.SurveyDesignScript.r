@@ -160,7 +160,7 @@
  Relief.plots(subset(towlst$Tows$new.tows,STRATA=='multibeam'),graphic="pdf",file=file.path(project.datadirectory('lobster'),'figures','SurveyDesign','SurveyMB','2016','Tow'),digits=4,gerfiles=1:77,key=file.key)
  
 
-
+save.image(file.path(project.datadirectory("lobster"),"R","LFA34SurveyDesign2016.Rdata"))
 
 
 

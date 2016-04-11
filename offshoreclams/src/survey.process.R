@@ -8,9 +8,9 @@ na.zero<-function(x){
   return(x)
 } 
 
-tows<-read.csv(paste0(project.datadirectory("offshoreclams"),"/Combined/Combined_Tow_dataMMM.csv"))
-catch<-read.csv(paste0(project.datadirectory("offshoreclams"),"/Combined/Combined_Catch_dataMMM.csv"))
-bycatch<-read.csv(paste0(project.datadirectory("offshoreclams"),"/Combined/Combined_ByCatch_DataMMM.csv"))
+tows<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Tow_dataMMM.csv"))
+catch<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Catch_dataMMM.csv"))
+bycatch<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_ByCatch_DataMMM.csv"))
 bycatch<-bycatch[bycatch$ITIS_CODE==80983,] #only surfclams
 
 catchtow<-merge(tows, catch, by=c("INDX"), all.x = T)
@@ -59,4 +59,5 @@ catch_analysis<-  catchtow[,c("INDX","SURVEY.x","TOW.x","SLAT","SLON","ELAT",
 # catch_analysis$WEIGHT_KG<-NULL
 
 catch_analysis<-na.zero(catch_analysis)
-write.csv(catch_analysis, paste0(project.datadirectory("offshoreclams"),"/out/catch_analysis.csv"))
+write.csv(catch_analysis,   file.path(project.datadirectory("offshoreclams"),"R","catch_analysis.csv"))
+
