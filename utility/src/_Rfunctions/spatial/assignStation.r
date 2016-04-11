@@ -46,7 +46,7 @@ assignStation <- function(events,maxdist=0.01,res=0.005,expwin=0.05,map=NULL,lin
 	events<-merge(events,key[c('EID','SID')],all=T)
 	stations<-calcCentroid(polys)[,-1]
 
-	return(list(events=events,stations=stations))
+	return(list(events=events,stations=stations,polys=polys))
 
 
 }

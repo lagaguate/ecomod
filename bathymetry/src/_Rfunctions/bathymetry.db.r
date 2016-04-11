@@ -677,7 +677,7 @@
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" )
 
       # on resolution of statistics
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+      p = spacetime.db( p=p, DS="bigmemory.filenames" )
       Sloc = attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir ) 
       V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
       V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") ) 
