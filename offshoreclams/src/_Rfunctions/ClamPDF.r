@@ -41,7 +41,7 @@ table.num <- 1
 ## note: have already opened database connection and retrieved file "log.data"
 ##       above
 ## Get commercial length frequency data from database
-lf.data <- sqlQuery(RODBCconn, "SELECT * FROM COM_LEN_FREQ")
+lf.data <- sqlQuery(RODBCconn, "SELECT * FROM DRODDICK.COM_LEN_FREQ")
 lf.data <- lf.data[which(lf.data$YEAR <= final.year), ]
 lf.data <- lf.data[which(is.finite(lf.data$SHELL_LEN)), ] ## remove NAs
 ## omit lengths 200 mm and over, they are measurement errors

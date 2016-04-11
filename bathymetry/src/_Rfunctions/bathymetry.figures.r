@@ -2,7 +2,7 @@
 bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
 
   if ( DS=="predictions" ) {
-    p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+    p = spacetime.db( p=p, DS="bigmemory.filenames" )
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
     pps  =  expand.grid( plons=p$plons, plats=p$plats)
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot
@@ -27,7 +27,7 @@ bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
   }
   
   if ( DS=="predictions.error" ) {
-    p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+    p = spacetime.db( p=p, DS="bigmemory.filenames" )
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
     pps  =  expand.grid( plons=p$plons, plats=p$plats)
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot
@@ -52,7 +52,7 @@ bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
   
 
   if ( DS=="statistics" ) {
-    p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+    p = spacetime.db( p=p, DS="bigmemory.filenames" )
     S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
     Sloc = attach.big.matrix(p$descriptorfile.Sloc , path=p$tmp.datadir ) 
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot

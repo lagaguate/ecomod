@@ -1,11 +1,10 @@
 
   spacetime.db = function( DS, p, B=NULL, grp=NULL ) {
     #// usage: low level function to convert data into bigmemory obects to permit parallel
-    #// data access and maipulation
-    #// B is the xyz data to work upon
-    #/+
+    #// data access and manipulation
+    #// B is the xyz  or xytz data to work upon
 
-    if (DS %in% "bigmemory.inla.filenames" ) { 
+    if (DS %in% "bigmemory.filenames" ) { 
 
       # create file backed bigmemory objects
 
@@ -44,9 +43,9 @@
     
     # --------------------------
 
-    if (DS %in% "bigmemory.inla.cleanup" ) { 
+    if (DS %in% "bigmemory.cleanup" ) { 
       # load bigmemory data objects pointers
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+      p = spacetime.db( p=p, DS="bigmemory.filenames" )
       todelete = file.path( p$tmp.datadir,
         c( p$backingfile.P, p$descriptorfile.P, 
            p$backingfile.S, p$descriptorfile.S,
@@ -63,25 +62,25 @@
 
     # ------------------
 
-    if (DS == "bigmemory.inla.inputs.data" ) { 
-      spacetime.db( p=p, DS="bigmemory.inla", B=B, grp="dependent" )
-      spacetime.db( p=p, DS="bigmemory.inla", B=B, grp="coordinates" )
-      spacetime.db( p=p, DS="bigmemory.inla", B=B, grp="covariates" )
+    if (DS == "bigmemory.inputs.data" ) { 
+      spacetime.db( p=p, DS="bigmemory", B=B, grp="dependent" )
+      spacetime.db( p=p, DS="bigmemory", B=B, grp="coordinates" )
+      spacetime.db( p=p, DS="bigmemory", B=B, grp="covariates" )
     }
 
     # ------------------
 
-    if (DS == "bigmemory.inla.inputs.prediction" ) { 
-      spacetime.db( p=p, DS="bigmemory.inla", B=B, grp="prediction.coordinates" )
-      spacetime.db( p=p, DS="bigmemory.inla", B=B, grp="prediction.covariates" )
+    if (DS == "bigmemory.inputs.prediction" ) { 
+      spacetime.db( p=p, DS="bigmemory", B=B, grp="prediction.coordinates" )
+      spacetime.db( p=p, DS="bigmemory", B=B, grp="prediction.covariates" )
     }
 
  
     # ------------------
 
-    if (DS == "bigmemory.inla" ) { 
+    if (DS == "bigmemory" ) { 
       # create file backed bigmemory objects
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )  # load bigmemory data objects pointers
+      p = spacetime.db( p=p, DS="bigmemory.filenames" )  # load bigmemory data objects pointers
      
       if (grp=="dependent") {
         # dependent variable
@@ -94,6 +93,7 @@
         } else if ( "SpatialGridDataFrame" %in% class(B) ) {
           Y[] = as.matrix( slot(B, "data")[, p$variables$Y ]  )
         }
+        if ( exists("spacetime.link", p)) Y[] = p$spacetime.link ( Y[] )
       }
 
       if (grp=="covariates") {
@@ -165,10 +165,10 @@
       if (grp=="statistics.results") {
         # statistics results output file .. initialize
         coords = expand.grid( p$sbbox$plons, p$sbbox$plats )
-        statsvars = c("range", "range.sd", "spatial.error", "observation.error") 
+         
         fn.S = file.path(p$tmp.datadir, p$backingfile.S )
         if ( file.exists( fn.S) ) file.remove( fn.S) 
-        S = filebacked.big.matrix( nrow=nrow(coords), ncol= length( statsvars ), type="double", init=NA, dimnames=NULL, separated=FALSE, 
+        S = filebacked.big.matrix( nrow=nrow(coords), ncol= length( p$statsvars ), type="double", init=NA, dimnames=NULL, separated=FALSE, 
           backingpath=p$tmp.datadir, backingfile=p$backingfile.S, descriptorfile=p$descriptorfile.S ) 
       }
 
@@ -180,7 +180,7 @@
     # ----------------
     if (DS %in% c( "predictions", "predictions.redo", "predictions.bigmemory.initialize" )  ) { 
       # load bigmemory data objects pointers for predictions 
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+      p = spacetime.db( p=p, DS="bigmemory.filenames" )
       rootdir = file.path( p$project.root, "interpolated" )
       dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
       fn.P =  file.path( rootdir, paste( "spacetime", "predictions", p$spatial.domain, "rdata", sep=".") ) 
@@ -224,10 +224,11 @@
 
     if (DS %in% c( "boundary.redo", "boundary" ) )  {
       
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+      p = spacetime.db( p=p, DS="bigmemory.filenames" )
       fn =  file.path(p$tmp.datadir, "boundary.rdata" )
       
       if (DS=="boundary") {
+        boundary = NULL
         if( file.exists(fn)) load( fn)
         return( boundary )
       }
@@ -281,7 +282,7 @@
                    "statistics.bigmemory.size" , "statistics.bigmemory.status"  )  ) { 
       
       # load bigmemory data objects pointers
-      p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+      p = spacetime.db( p=p, DS="bigmemory.filenames" )
       rootdir = file.path( p$project.root, "interpolated" )
       dir.create( rootdir, showWarnings=FALSE, recursive =TRUE) 
       fn.S =  file.path( rootdir, paste( "spacetime", "statistics", p$spatial.domain, "rdata", sep=".") ) 
@@ -294,14 +295,14 @@
  
       if ( DS=="statistics.bigmemory.initialize" ) {
         # statistics storage matrix ( aggregation window, coords ) .. no inputs required
-        spacetime.db( p=p, DS="bigmemory.inla", grp="statistics.coordinates"  ) #Sloc 
-        spacetime.db( p=p, DS="bigmemory.inla", grp="statistics.results"  ) # S
+        spacetime.db( p=p, DS="bigmemory", grp="statistics.coordinates"  ) #Sloc 
+        spacetime.db( p=p, DS="bigmemory", grp="statistics.results"  ) # S
         return( "complete" ) 
       }
 
       if ( DS=="statistics.bigmemory.size" ) { 
         # load bigmemory data objects pointers
-        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+        p = spacetime.db( p=p, DS="bigmemory.filenames" )
         S = bigmemory::attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
         return( nrow(S) )
       }
@@ -309,21 +310,28 @@
       if ( DS=="statistics.bigmemory.status" ) { 
         # find locations for statistic computation and trim area based on availability of data
         # stats:
-        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+        p = spacetime.db( p=p, DS="bigmemory.filenames" )
         S = bigmemory::attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir )
         
-        bnds = spacetime.db( p, DS="boundary" )
+        bnds = try( spacetime.db( p, DS="boundary" ) )
 
-        # problematic and/or no data (e.g., land, etc.) and skipped
-        to.ignore =  which( bnds$inside.polygon == 0 ) # outside boundary
-
-        i = which( is.nan( S[,1] ) & bnds$inside.polygon != 0 )
-     
-        # not yet completed
-        j = which( is.na( S[,1] )  & bnds$inside.polygon != 0 ) 
-
-        # completed 
-        k = which( is.finite (S[,1])  & bnds$inside.polygon != 0 ) # not yet done
+        if (!is.null(bnds)) {
+          if( !("try-error" %in% class(bnds) ) ) {
+            # problematic and/or no data (e.g., land, etc.) and skipped
+            to.ignore =  which( bnds$inside.polygon == 0 ) # outside boundary
+            i = which( is.nan( S[,1] ) & bnds$inside.polygon != 0 )
+            # not yet completed
+            j = which( is.na( S[,1] )  & bnds$inside.polygon != 0 ) 
+            # completed 
+            k = which( is.finite (S[,1])  & bnds$inside.polygon != 0 ) # not yet done
+        } } else {
+            to.ignore = NA
+            i = which( is.nan( S[,1] )  )
+            # not yet completed
+            j = which( is.na( S[,1] )   ) 
+            # completed 
+            k = which( is.finite (S[,1])  ) # not yet done
+        }
 
         return( list(problematic=i, incomplete=j, completed=k, n.total=nrow(S[]), 
                      n.incomplete=length(j), n.problematic=length(i), n.complete=length(k), to.ignore=to.ignore ) )
@@ -332,7 +340,7 @@
       if ( DS =="statistics.redo" ) {
         #\\ spacetime.db( "statsitics.redo") .. statistics are stored at a different resolution than the final grid
         #\\   this fast interpolates the solutions to the final grid
-        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+        p = spacetime.db( p=p, DS="bigmemory.filenames" )
         S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
         ss = as.data.frame( S[] )
         statnames0 = c( "range", "range.sd", "spatial.var", "observation.var"  )
@@ -417,5 +425,6 @@
         }
       }
     } 
+  
   }
   

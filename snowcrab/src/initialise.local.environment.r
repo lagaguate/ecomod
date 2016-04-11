@@ -8,12 +8,30 @@
   #       Copying the following into each relevent file is not a solution as it is error prone and  repetitive. 
   # ----------------------------------------------------------------------------------
 
-  loadfunctions( "snowcrab", functionname="current.assessment.year.r") 
-  loadfunctions( "snowcrab", functionname="parameter.list.snowcrab.r") # load the function first  
+  p = list( project.name = "snowcrab" )
 
-  p = parameter.list.snowcrab ( current.assessment.year=current.assessment.year, set="default")
-  
-  workpath = file.path( project.datadirectory("snowcrab"), "R" )
+  p$project.outdir.root = project.datadirectory( p$project.name, "R" ) #required for interpolations and mapping
+ 
+  p$libs = RLibrary ( c( 
+      "geosphere", "lubridate", "mgcv", "parallel", "DBI", "Cairo", "Hmisc", "chron", 
+      "vegan", "akima", "fields", "lattice", "gstat", "maptools",  "boot", "raster", "grid", 
+      "RColorBrewer", "rasterVis", "rgdal", "sp", "rgeos", "bigmemory"
+    ) )
+    
+  p$init.files = loadfunctions( c( 
+      "spacetime", "utility", "parallel", "polygons", "snowcrab", "groundfish", "netmensuration", "coastline", 
+      "substrate", "temperature", "taxonomy", "habitat", "habitatsuitability", "bathymetry", "plottingmethods" ) )
+ 
+  # read in current assessment year
+  loadfunctions( "snowcrab", functionname="current.assessment.year.r")
+  p$current.assessment.year = current.assessment.year
+
+  p = parameter.list.snowcrab ( p=p )
+  p = spatial.parameters( p ) # region and lon/lats, projections 
+  p = gmt.parameters( p ) 
+
+  ## GLOBAL snowcrab variables follow ..
+  workpath = p$project.outdir.root
   dir.create( workpath, recursive=T, showWarnings=FALSE )
   setwd (workpath)
 

@@ -40,17 +40,12 @@
       
     if ( ! is.null(pts) ) { 
       if ( is.null( pts$plon) ) {
-        pts = lonlat2planar(xyz,  proj.type="utm20") 
+        pts = lonlat2planar(xyz,  proj.type=p$internal.projection) 
         pts = pts[, c("plon", "plat")]
       }
     }
 		
-		pp = spatial.parameters( type=spatial.domain )
-
-    isobs = isobath.db( p=pp, depths=c( 100, 200, 300, 400, 500, 600, 700 ), crs=pp$internal.crs ) 
-    coast = coastline.db(pp, crs=pp$internal.crs)
-
-    lp = levelplot( z ~ plon+plat, data=xyz, aspect="iso", pts=pts, colpts=colpts, annot=annot, isobs=isobs, coast=coast,
+    lp = levelplot( z ~ plon+plat, data=xyz, aspect="iso", pts=pts, colpts=colpts, annot=annot, spatial.domain=spatial.domain,
       annot.cex=annot.cex, xlab="", ylab="", scales=list(draw=F), col.regions=col.regions, at=at, xlim=xlim, ylim=ylim, 
       colorkey=colorkey , rez=rez, leg=leg,  cfa.regions=cfa.regions,
       panel = function(x, y, subscripts, rez=rez,  ...) {
@@ -69,8 +64,11 @@
                   panel = panel.rect, height = rez[1], width = rez[2], ... ) 
           }
         }
+	
+        pp = spatial.parameters( type=spatial.domain )
 
         if (depthcontours) {
+          isobs = isobath.db( p=pp, depths=c( 100, 200, 300, 400, 500, 600, 700 ), crs=pp$internal.crs ) 
           depths1 = c(100, 300, 500, 700 )
           depths2 = c(200, 400, 600)
           for ( i in depths1 ) sp.lines( isobs[as.character(i) ] , col = "darkgrey", cex=0.6 )
@@ -78,7 +76,6 @@
         }
 
         if ( cfa.regions ) {
-
           # coords of boundaries .. to be moved to polygon database ...
           cfa.nens.23 = data.frame( rbind( 
             c(-59.85, 46), 
@@ -97,9 +94,9 @@
           
           names( cfa.nens.23 ) = names( cfa.23.24 ) = names( cfa.4x.24 ) = c("lon", "lat")
 
-          cfa.nens.23 = lonlat2planar( cfa.nens.23, proj.type= "utm20") 
-          cfa.23.24 = lonlat2planar( cfa.23.24, proj.type= "utm20") 
-          cfa.4x.24 = lonlat2planar( cfa.4x.24,  proj.type="utm20") 
+          cfa.nens.23 = lonlat2planar( cfa.nens.23, proj.type=pp$internal.projection ) 
+          cfa.23.24 = lonlat2planar( cfa.23.24, proj.type=pp$internal.projection ) 
+          cfa.4x.24 = lonlat2planar( cfa.4x.24,  proj.type=pp$internal.projection ) 
        
           panel.lines( cfa.nens.23$plon, cfa.nens.23$plat, col = "darkgray", lwd=2 )
           panel.lines( cfa.23.24$plon, cfa.23.24$plat, col = "darkgray", lwd=2 )
@@ -108,7 +105,8 @@
         }
                   
         #coastline
-        sp.lines( coast, col = "black", cex=1 )
+        coast = coastline.db(p=pp, crs=pp$internal.crs)
+        sp.polygons( coast, col = "black", cex=1 )
 
         if (is.null(leg) ) {
 				  xoffset = 30

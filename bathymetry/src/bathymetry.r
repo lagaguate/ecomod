@@ -19,7 +19,8 @@
   if (rebuild.maindatabase) {
 
       p = spacetime.parameters(p)  # load spde defaults
-      p$dist.max = 75 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+      p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+      p$dist.min = 75 # lower than this .. subsampling occurs 
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
       p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
@@ -37,7 +38,7 @@
       p$spacetime.invlink = function( X ) { exp(X) - 1000 }
       p$spacetime.family = "gaussian"
       p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
-      
+      p$statsvars = c("range", "range.sd", "spatial.error", "observation.error")
       
       # if not in one go, then the value must be reconstructed from the correct elements:  
       p$spacetime.posterior.extract = function(s, rnm) { 
@@ -58,8 +59,8 @@
          bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
 
          # transfer data into spacetime methods as bigmemory objects
-         spacetime.db( p=p, DS="bigmemory.inla.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
-         spacetime.db( p=p, DS="bigmemory.inla.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
+         spacetime.db( p=p, DS="bigmemory.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
+         spacetime.db( p=p, DS="bigmemory.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
       
          # reset bigmemory output data objects  (e.g., if you are restarting)
          spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
@@ -99,7 +100,7 @@
         bathymetry.figures( DS="predictions", p=p ) 
         bathymetry.figures( DS="predictions.error", p=p )
 
-        p = spacetime.db( p=p, DS="bigmemory.inla.filenames" )
+        p = spacetime.db( p=p, DS="bigmemory.filenames" )
         S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
         hist(S[,1] )
         o = which( S[,1] > 600 )
@@ -114,7 +115,7 @@
       spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
        
       # clean up bigmemory files
-      spacetime.db( p=p, DS="bigmemory.inla.cleanup" )
+      spacetime.db( p=p, DS="bigmemory.cleanup" )
 
   } ## End rebuild.maindatabase
 
@@ -158,7 +159,7 @@
   
   plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
-  coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )
+  coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap 
   plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
   lines( plygn[ as.character(c( 100, 200, 300 ))], col="gray90" ) # for multiple polygons
   lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygons
@@ -199,5 +200,10 @@
   
   spplot( b, vn, col.regions=mypalette, main=vn, sp.layout=coastLayout, col="transparent" )
 
+
+  #### New method -- "fast"(er) estimation of covariance function
+  # using geoR .. most stable and flexible approach so far, uses ML methods 
+  # spBayes a little to unstable and slow
+  
 
 

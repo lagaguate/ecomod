@@ -38,9 +38,6 @@
   p$nw = 10
  
   p$spatial.knots = 100
-  p$movingdatawindow = 0  # this signifies no moving window ... all in one model
-  # p$movingdatawindow = c( -4:+4 )  # this is the range in years to supplement data to model 
-  p$movingdatawindowyears = length (p$movingdatawindow)
   p$interpolation.distances =  25 # for interpolation of habitat vars
   p$prediction.dyear = 0.75
   p$nw = 10

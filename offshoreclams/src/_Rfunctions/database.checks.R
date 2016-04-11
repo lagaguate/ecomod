@@ -6,7 +6,7 @@ database.checks<-function(){
   require(RODBC)
   RODBCconn <-odbcConnect(oracle.dsn, uid=oracle.clam.user, pwd=oracle.clam.password)
   ## select trips labeled as 2013 or 2014
-  RODBCdat <- sqlQuery(RODBCconn, "SELECT * FROM Dale_log_cpue where TRIP_NO > 201300")
+  RODBCdat <- sqlQuery(RODBCconn, "SELECT * FROM DRODDICK.Dale_log_cpue where TRIP_NO > 201300")
   ## Look at view structure
   str(RODBCdat)
   ## Quick Check of latitudes

@@ -137,6 +137,8 @@
 			# logbooks from historical data tables (1996-2003; but 2002 and 2003 seem to be partial records) 
       lb.historical = logbook.db( DS="fisheries.historical" )
       lb.historical$cfa = NA
+      lb.historical$date.fished = paste( lb.historical$date.fished, "01:00:00" )
+      lb.historical$date.landed = as.POSIXct( lb.historical$date.landed  )
 
       # logbooks from marfissci tables 
       x = logbook.db( DS="odbc.logbook", yrs=1996:p$current.assessment.year )
@@ -156,7 +158,7 @@
 
       prorate=FALSE
 
-      if (prorate) x = logbook.prorate( x )  # assume pro-rating not required for historical data as it was maintained manually by Moncton
+      # if (prorate) x = logbook.prorate( x )  # assume pro-rating not required for historical data as it was maintained manually by Moncton
       
       x$soak.time = x$soak_days * 24  # make into hours
       x$trap.type = "" # dummy value until this can be added to the views .. check with Alan

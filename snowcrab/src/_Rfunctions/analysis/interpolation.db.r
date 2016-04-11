@@ -30,10 +30,13 @@
         return (PS)
       }
     
-      if (exists( "init.files", p)) LoadFiles( p$init.files ) 
+      if (exists( "init.files", p)) {
+        p0 = p
+        LoadFiles( p0$init.files ) 
+        p=p0
+      }
       if (exists( "libs", p)) RLibrary( p$libs ) 
       if (is.null(ip)) ip = 1:p$nruns
-
 
       if (DS %in% c("interpolation.simulation")  ) {
         out = NULL
@@ -106,6 +109,12 @@
         PS$dt.seasonal = PS$tmean - PS$t 
         PS$dt.annual = PS$tmean - PS$tmean.cl
         PS$sa = 1
+        PS$dyear = p$prediction.dyear
+  
+        # PS$dZ = log( PS$dZ)
+        # PS$ddZ = log( PS$ddZ)
+        if (exists("tamp", PS)) PS$tamp = log(PS$tamp)
+        if (exists("tamp.cl", PS)) PS$tamp.cl = log(PS$tamp.cl)
 
 				# posterior simulations
         Hmodel = NULL
@@ -119,7 +128,6 @@
 
         oops = which( is.na(Hsim) ) 
         if (length(oops) > 0)  Hsim[oops ] = 0  # assume to be zero
-        #Hsim = round(Hsim)  # force binary
         
         Amodel = NULL
 			  Amodel = habitat.model.db( DS="abundance", v=v, yr=y )
@@ -153,18 +161,13 @@
         PS$abundance.sd =  apply( Asim, 1, sd, na.rm=T )
 
         # iAbundance = which ( PS$abundance.mean >= qs[1] )  #  consider abundance only if it is sufficiently precise (low associated variance)
-        # iHabitat = which( PS$habitat.mean >= 0.5 )        #  consider habitat only if p>0.5
-        # iHabitat = which( (PS$habitat.mean - 2*PS$habitat.sd) > 0 )   #  consider habitat only if it is sufficiently precise (low associated variance)
-        # iHabitat = which( PS$habitat.mean > 0 )
         iHabitat = which( PS$habitat.mean > p$habitat.threshold.quantile  & (PS$habitat.mean - 2 * PS$habitat.sd) > 0 )
-
         iStations = filter.prediction.locations( DS="limit.to.near.survey.stations", PS=PS, y=y, p=p )  # consider locations only if close to a survey location (minimal extrapolation)
         # iHA = intersect(iHabitat, iAbundance)  # good locations for habitat and abundance prediction
 				iE = union( iStations, intersect(iHabitat, iStations ))  #  good locations for habitat and abundance prediction, but filtered for proximity to survey stations
 				rm( iStations); gc()
  
         # levelplot( habitat.mean ~ plon + plat, data=PS[,], aspect="iso" )
-        # levelplot( habitat.mean ~ plon + plat, data=PS[iHA,], aspect="iso" )
         # levelplot( habitat.mean ~ plon + plat, data=PS[iE,], aspect="iso" )
 
         fn.res = file.path( loc.sol, paste( "PS.simulation.means", v, y, "rdata", sep="." ) )

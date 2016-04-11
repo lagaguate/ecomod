@@ -36,7 +36,7 @@
         annot = paste ("Survey locations", y)
         fn = paste("survey.locations", y, sep=".") 
         print(fn)
-        map( toplot, cfa.regions=T, depthcontours=T, annot=annot, fn=fn, loc=basedir, corners=planar.corners )
+        map( toplot, cfa.regions=T, depthcontours=T, annot=annot, fn=fn, loc=basedir, corners=p$planar.corners )
        
       }
     }

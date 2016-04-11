@@ -1,0 +1,1212 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang4105{\fonttbl{\f0\fmodern\fprq1\fcharset0 Courier New;}{\f1\fmodern Courier New;}{\f2\fmodern\fcharset0 Courier New;}{\f3\fmodern\fprq1 Courier New;}{\f4\fnil\fcharset0 Courier New;}{\f5\fswiss\fprq2\fcharset0 Arial;}}
+{\colortbl ;\red0\green128\blue0;\red0\green0\blue0;\red240\green32\blue0;\red176\green16\blue16;\red0\green0\blue255;}
+\viewkind4\uc1\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs18 // Script for working with 2004 Banquereau survey data\cf2\lang1033\par
+/* --------------------------------------------------------------------------------------------------------- */\par
+Function read_delimited_\lang4105 By_catch_\lang1033 file(in_path,file_name,fomat_type,delim_char)\{\par
+\tab Character_Read(cat(0,in_path,file_name),"bdata");\par
+\lang4105\tab bdata = drop(1 0,bdata);                                          // drop header line\lang1033\par
+\tab Original\lang4105 BC\lang1033 Data = bdata;\par
+\pard    Num_\lang4105 B_\lang1033 recs = len(bdata)[1];\par
+   Tempcm = set_parse(bdata,delim_char)\par
+\lang4105    B_Tow\lang1033  = num(parse_cm2(1,tempCM,ncols));                       \lang4105     \lang1033 /\lang4105 / Tow number\lang1033\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105    Species\lang1033  = parse_cm2(2,tempCM,ncols);                       \lang4105        \lang1033 /\lang4105 /\lang1033   \lang4105 Species name\lang1033                                    \par
+\tab\lang4105 Common\lang1033  = parse_cm2(3,tempCM,ncols);                        \lang4105       \lang1033  /\lang4105 / Common name\lang1033\par
+\tab\lang4105 Sp_code\lang1033  =  num(parse_cm2(\lang4105 4\lang1033 ,tempCM,ncols));                        /\lang4105 / Species code as per MFD codes some coded 0\lang1033\par
+\tab IT_\lang4105 Sp_code\lang1033  =  num(parse_cm2(\lang4105 5\lang1033 ,tempCM,ncols));                     /\lang4105 / ITIS species codes some coded 0\lang1033\par
+\tab\lang4105 Weight\lang1033  = num(parse_cm2(\lang4105 6\lang1033 ,tempCM,ncols));                          \lang4105 /\lang1033 /\lang4105  Weight caught kg\lang1033\par
+\tab\lang4105 Number\lang1033  = num(parse_cm2(\lang4105 7\lang1033 ,tempCM,ncols));                          \lang4105 //\lang1033  \lang4105 Number caught\lang1033\par
+\tab\lang4105 B_Comment\lang1033  = parse_cm2(\lang4105 8\lang1033 ,tempCM,ncols);                            /\lang4105 / Comments\lang1033\par
+\tab\lang4105 Dummy\lang1033  = \cf3 parse_cm2\cf2 (10,tempCM,ncols);                               \cf1 /\lang4105 / dummy column of 0's\cf2\lang1033\par
+\};\par
+//------------------------------------------------------------------------------------------\par
+Function read_delimited_\lang4105 Len_freq_data_\lang1033 file(in_path,file_name,fomat_type,delim_char)\{\par
+\tab Character_Read(cat(0,in_path,file_name),"lfdata");\par
+\lang4105\tab\lang1033 lf\lang4105 data = drop(1 0,\lang1033 lf\lang4105 data);                                        // drop header line\lang1033\par
+\tab Original\lang4105 LenFreq\lang1033 Data = lfdata;\par
+\pard    Num_lf\lang4105 _\lang1033 recs = len(lfdata)[1];\par
+   Tempcm = set_parse(lfdata,delim_char)\par
+\lang4105    \lang1033 lf\lang4105 _Species\lang1033  = num(parse_cm2(\lang4105 1\lang1033 ,tempCM,ncols));                      /\lang4105 / Species code\lang1033\par
+\lang4105    \lang1033 lf\lang4105 _Tow\lang1033  = num(parse_cm2(\lang4105 2\lang1033 ,tempCM,ncols));                        \lang4105   \lang1033 /\lang4105 / Tow number\lang1033\par
+\lang4105    \lang1033 lf\lang4105 _Len\lang1033  = num(parse_cm2(\lang4105 3\lang1033 ,tempCM,ncols));                         \lang4105  \lang1033 /\lang4105 / Shell Length (mm)\lang1033\par
+\lang4105    \lang1033 lf\lang4105 _N_at_len\lang1033  = num(parse_cm2(\lang4105 4\lang1033 ,tempCM,ncols));                     /\lang4105 / Number at shell length\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160    \lang1033 lf\lang4105 _N_at_len[\cf4 bindex\cf2 (\lang1033 lf\lang4105 _N_at_len == \cf4 NAN\cf2 ())] = 0;\par
+\lang1033\tab\lang4105 Dummy\lang1033  = \cf3 parse_cm2\cf2 (5,tempCM,ncols);                               \lang4105  \cf1\lang1033 /\lang4105 / dummy column of 0's\cf2\lang1033\par
+\pard\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160 //------------------------------------------------------------------------------------------\par
+\cf5\f1 Function\cf2  \cf3 read_delimited_\lang4105\f2 Morphometrics_\lang1033\f1 file\cf2 (in_path,file_name,fomat_type,delim_char)\{\par
+\tab Character_Read(cat(0,in_path,file_name),"tdata");\par
+\tab OriginalData = tdata;\par
+   cdata = \cf4 drop\cf2 (\lang4105\f2 2\lang1033\f1  0,tdata);\cf1 //drop header line\lang4105\f2 s\cf2\lang1033\f1\par
+\pard\f3    num_recs = len(cdata)[1];\par
+   Tempcm = set_parse(cdata,\f1 delim_char\f3 )\par
+   \lang4105\f0 M_Date\lang1033\f3  = parse_cm2(1,tempCM,ncols);                     \cf1 //\lang4105\f0 Date mm/dd/yy\cf2\lang1033\f3\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f1\tab Day = \cf4 num\cf2 (\lang4105\f2 M_date[;1 2]\lang1033\f1 );                \lang4105\f2              \lang1033\f1    \cf1 // Day\cf2\par
+\tab Mon = \cf4 num\cf2 (\lang4105\f2 M_date[;4 5]\lang1033\f1 );                \lang4105\f2               \lang1033\f1   \cf1 // Month\cf2\par
+\tab Year = \cf4 num\cf2 (\lang4105\f2 M_date[;7 8]\lang1033\f1 );               \lang4105\f2              \lang1033\f1   \cf1 // Year\cf2\par
+\tab\lang4105\f2 M_\lang1033\f1 T\lang4105\f2 ow\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 2\lang1033\f1 ,tempCM,ncols));                \cf1 // t\lang4105\f2 ow\lang1033\f1  number\cf2\par
+\tab Clam = \cf4 num\cf2 (parse_cm2(\lang4105\f2 3\lang1033\f1 ,tempCM,ncols));                 \cf1 // Number of clam in sample\cf2\par
+\tab TotWgt = \cf4 num\cf2 (parse_cm2(\lang4105\f2 4\lang1033\f1 ,tempCM,ncols));               \cf1 // Total weight (g)\cf2\par
+\tab Leng = \cf4 num\cf2 (parse_cm2(\lang4105\f2 5\lang1033\f1 ,tempCM,ncols));                 \cf1 // Shell Length (mm)\cf2\par
+\tab Hgt = \cf4 num\cf2 (parse_cm2(\lang4105\f2 6\lang1033\f1 ,tempCM,ncols));                  \cf1 // Shell Height (mm)\cf2\par
+\tab Width = \cf4 num\cf2 (parse_cm2(\lang4105\f2 7\lang1033\f1 ,tempCM,ncols));                \cf1 // Shell width (mm)\cf2\par
+\tab\lang4105\f2 Shucked\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 8\lang1033\f1 ,tempCM,ncols));              \cf1 // \lang4105\f2 Shucked\lang1033\f1  weight\cf2\par
+\tab ShWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 9\lang1033\f1 ,tempCM,ncols));                \cf1 // Shell wet weight (g)\cf2\par
+\tab ShCode = \cf4 num\cf2 (parse_cm2(\lang4105\f2 10\lang1033\f1 ,tempCM,ncols));               \cf1 // Shell code, no missing piecies of foot = 1\cf2\par
+\tab ShCo\lang4105\f2 lour\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 11\lang1033\f1 ,tempCM,ncols));             \cf1 // Shell co\lang4105\f2 lour code\lang1033\f1 , \cf2\par
+\tab Ft\lang4105\f2 pan\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 12\lang1033\f1 ,tempCM,ncols));                \cf1 // Foot \lang4105\f2 pan\lang1033\f1  weight (g)\cf2\par
+\tab FtWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 13\lang1033\f1 ,tempCM,ncols));                \cf1 // Foot wet weight (g)\cf2\par
+\tab Ft\lang4105\f2 gutted\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 14\lang1033\f1 ,tempCM,ncols));             \cf1 // \lang4105\f2 Gutted \lang1033\f1 Foot wet weight (g)\cf2\par
+\tab FtCode = \cf4 num\cf2 (parse_cm2(\lang4105\f2 15\lang1033\f1 ,tempCM,ncols));               \cf1 // Foot code, no missing piecies of foot = 1\cf2\par
+\tab Bd\lang4105\f2 pan\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 1\lang1033\f1 6,tempCM,ncols));                \cf1 // Body \lang4105\f2 pan\lang1033\f1  weight (g)\cf2\par
+\tab BdWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 17\lang1033\f1 ,tempCM,ncols));                \cf1 // Body wet weight (g)\cf2\par
+\tab BdCode = \cf4 num\cf2 (parse_cm2(\lang4105\f2 1\lang1033\f1 8,tempCM,ncols));               \cf1 // Body code, no missing pieces of body = 1\cf2\par
+\tab Gonad = \cf4 num\cf2 (parse_cm2(\lang4105\f2 19\lang1033\f1 ,tempCM,ncols));                \cf1 // Stage of development of gonad\cf2\par
+\tab FtDry = \cf4 num\cf2 (parse_cm2(2\lang4105\f2 0\lang1033\f1 ,tempCM,ncols));                \cf1 // Foot \lang4105\f2 & pan \lang1033\f1 dry weight (g)\cf2\par
+\tab BdDry = \cf4 num\cf2 (parse_cm2(2\lang4105\f2 1\lang1033\f1 ,tempCM,ncols));                \cf1 // Body \lang4105\f2 & pan \lang1033\f1 dry weight (g)\cf2\par
+\lang4105\f2\tab\lang1033\f1 ShDry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 22\lang1033\f1 ,tempCM,ncols));                \cf1 // Shell dry weight (g)\cf2\par
+\tab SndDry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 23\lang1033\f1 ,tempCM,ncols));               \cf1 // Dry weight of sand\lang4105\f2  & pan\lang1033\f1  (g)\cf2\par
+\tab SndWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 24\lang1033\f1 ,tempCM,ncols));               \cf1 // Wet weight of sand (g)\cf2\par
+\tab SandPA = \cf4 num\cf2 (parse_cm2(\lang4105\f2 25\lang1033\f1 ,tempCM,ncols));               \cf1 // Sand presence-absence\cf2\par
+\tab Age = \cf4 num\cf2 (parse_cm2(\lang4105\f2 26\lang1033\f1 ,tempCM,ncols));             \lang4105\f2      \cf1\lang1033\f1 // Age from \lang4105\f2 Raoufs\lang1033\f1 's ageing\cf2\par
+\tab pConf = \cf4 num\cf2 (parse_cm2(\lang4105\f2 27\lang1033\f1 ,tempCM,ncols));                \cf1 // % confidence in age\cf2\par
+\tab\lang4105\f2 Comments\lang1033\f1  = parse_cm2(\lang4105\f2 28\lang1033\f1 ,tempCM,ncols);               \lang4105\f2   \lang1033\f1  \cf1 // \lang4105\f2 Comments\cf2\lang1033\f1\par
+\pard    \lang4105\f2 Dummy\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 29\lang1033\f1 ,tempCM,ncols));   \lang4105\f2             \lang1033\f1  \cf1 // \lang4105\f2 Dummy 0 filled column\cf2\lang1033\f1\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\};\par
+\f0 //------------------------------------------------------------------------------------------\par
+\cf5\f1 Function\cf2  \cf3 read_delimited_\lang4105\f2 Morphometrics_\lang1033\f1 file\lang4105\f2 _common\cf2\lang1033\f1 (in_path,file_name,fomat_type,delim_char)\{\par
+\tab Character_Read(cat(0,in_path,file_name),"tdata");\par
+\tab OriginalData = tdata;\par
+   cdata = \cf4 drop\cf2 (\lang4105\f2 2\lang1033\f1  0,tdata);\cf1 //drop header line\lang4105\f2 s\cf2\lang1033\f1\par
+\pard\f3    num_recs = len(cdata)[1];\par
+   Tempcm = set_parse(cdata,\f1 delim_char\f3 )\par
+   \lang4105\f0 M_Date\lang1033\f3  = parse_cm2(1,tempCM,ncols);                     \cf1 //\lang4105\f0 Date mm/dd/yy\cf2\lang1033\f3\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f1\tab Day = \cf4 num\cf2 (\lang4105\f2 M_date[;1 2]\lang1033\f1 );                \lang4105\f2              \lang1033\f1    \cf1 // Day\cf2\par
+\tab Mon = \cf4 num\cf2 (\lang4105\f2 M_date[;4 5]\lang1033\f1 );                \lang4105\f2               \lang1033\f1   \cf1 // Month\cf2\par
+\tab Year = \cf4 num\cf2 (\lang4105\f2 M_date[;7 8]\lang1033\f1 );               \lang4105\f2              \lang1033\f1   \cf1 // Year\cf2\par
+\tab\lang4105\f2 M_\lang1033\f1 T\lang4105\f2 ow\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 2\lang1033\f1 ,tempCM,ncols));                \cf1 // t\lang4105\f2 ow\lang1033\f1  number\cf2\par
+\tab Clam = \cf4 num\cf2 (parse_cm2(\lang4105\f2 3\lang1033\f1 ,tempCM,ncols));                 \cf1 // Number of clam in sample\cf2\par
+\tab TotWgt = \cf4 num\cf2 (parse_cm2(\lang4105\f2 4\lang1033\f1 ,tempCM,ncols));               \cf1 // Total weight (g)\cf2\par
+\tab Leng = \cf4 num\cf2 (parse_cm2(\lang4105\f2 5\lang1033\f1 ,tempCM,ncols));                 \cf1 // Shell Length (mm)\cf2\par
+\tab Hgt = \cf4 num\cf2 (parse_cm2(\lang4105\f2 6\lang1033\f1 ,tempCM,ncols));                  \cf1 // Shell Height (mm)\cf2\par
+\tab Width = \cf4 num\cf2 (parse_cm2(\lang4105\f2 7\lang1033\f1 ,tempCM,ncols));                \cf1 // Shell width (mm)\cf2\par
+\tab ShCode = \cf4 num\cf2 (parse_cm2(\lang4105\f2 8\lang1033\f1 ,tempCM,ncols));               \cf1 // Shell code, no missing piecies of foot = 1\cf2\par
+\tab Ft\lang4105\f2 pan\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 9\lang1033\f1 ,tempCM,ncols));                \cf1 // Foot \lang4105\f2 pan\lang1033\f1  weight (g)\cf2\par
+\tab FtWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 10\lang1033\f1 ,tempCM,ncols));                \cf1 // Foot wet weight (g)\cf2\par
+\tab Ft\lang4105\f2 gutted\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 11\lang1033\f1 ,tempCM,ncols));             \cf1 // \lang4105\f2 Gutted \lang1033\f1 Foot wet weight (g)\cf2\par
+\tab Bd\lang4105\f2 pan\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 12\lang1033\f1 ,tempCM,ncols));                \cf1 // Body \lang4105\f2 pan\lang1033\f1  weight (g)\cf2\par
+\tab BdWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 13\lang1033\f1 ,tempCM,ncols));                \cf1 // Body wet weight (g)\cf2\par
+\tab ShWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 14\lang1033\f1 ,tempCM,ncols));                \cf1 // Shell wet weight (g)\cf2\par
+\tab Gonad = \cf4 num\cf2 (parse_cm2(\lang4105\f2 15\lang1033\f1 ,tempCM,ncols));                \cf1 // Stage of development of gonad\cf2\par
+\tab\lang4105\f2 BD\lang1033\f1 Co\lang4105\f2 lour\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 16\lang1033\f1 ,tempCM,ncols));             \cf1 // \lang4105\f2 Body\lang1033\f1  co\lang4105\f2 lour code\lang1033\f1 , \cf2\par
+\tab Ft\lang4105\f2 Pan\lang1033\f1 Dry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 17\lang1033\f1 ,tempCM,ncols));             \cf1 // Foot \lang4105\f2 & pan \lang1033\f1 dry weight (g)\cf2\par
+\tab FtDry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 18\lang1033\f1 ,tempCM,ncols));                \cf1 // Foot\lang4105\f2  \lang1033\f1 dry weight (g)\cf2\par
+\tab Bd\lang4105\f2 Pan\lang1033\f1 Dry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 19\lang1033\f1 ,tempCM,ncols));             \cf1 // Body \lang4105\f2 & pan \lang1033\f1 dry weight (g)\cf2\par
+\tab BdDry = \cf4 num\cf2 (parse_cm2(2\lang4105\f2 0\lang1033\f1 ,tempCM,ncols));                \cf1 // Body dry weight (g)\cf2\par
+\lang4105\f2\tab\lang1033\f1 ShDry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 21\lang1033\f1 ,tempCM,ncols));                \cf1 // Shell dry weight (g)\cf2\par
+\tab Snd\lang4105\f2 Pan\lang1033\f1 Dry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 22\lang1033\f1 ,tempCM,ncols));            \cf1 // Dry weight of sand\lang4105\f2  & pan\lang1033\f1  (g)\cf2\par
+\tab SndDry = \cf4 num\cf2 (parse_cm2(\lang4105\f2 23\lang1033\f1 ,tempCM,ncols));               \cf1 // Dry weight of sand(g)\cf2\par
+\tab BdCode = \cf4 num\cf2 (parse_cm2(\lang4105\f2 24\lang1033\f1 ,tempCM,ncols));               \cf1 // Body code, no missing pieces of body = 1\cf2\par
+\tab Snd\lang4105\f2 Pan\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 25\lang1033\f1 ,tempCM,ncols));            \lang4105\f2    \cf1\lang1033\f1 // \lang4105\f2 W\lang1033\f1 eight of sand\lang4105\f2  pan\lang1033\f1  (g)\cf2\par
+\tab SndWet = \cf4 num\cf2 (parse_cm2(\lang4105\f2 26\lang1033\f1 ,tempCM,ncols));               \cf1 // Wet weight of sand (g)\cf2\par
+\tab FtCode = \cf4 num\cf2 (parse_cm2(\lang4105\f2 27\lang1033\f1 ,tempCM,ncols));               \cf1 // Foot code, no missing piecies of foot = 1\cf2\par
+\tab Age = \cf4 num\cf2 (parse_cm2(\lang4105\f2 28\lang1033\f1 ,tempCM,ncols));             \lang4105\f2      \cf1\lang1033\f1 // Age from \lang4105\f2 Raoufs\lang1033\f1 's ageing\cf2\par
+\tab pConf = \cf4 num\cf2 (parse_cm2(\lang4105\f2 29\lang1033\f1 ,tempCM,ncols));                \cf1 // % confidence in age\cf2\par
+\tab\lang4105\f2 Comments\lang1033\f1  = parse_cm2(\lang4105\f2 30\lang1033\f1 ,tempCM,ncols);               \lang4105\f2   \lang1033\f1  \cf1 // \lang4105\f2 Comments\cf2\lang1033\f1\par
+\pard    \lang4105\f2 Dummy\lang1033\f1  = \cf4 num\cf2 (parse_cm2(\lang4105\f2 31\lang1033\f1 ,tempCM,ncols));   \lang4105\f2             \lang1033\f1  \cf1 // \lang4105\f2 Dummy 0 filled column\cf2\lang1033\f1\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\};\par
+\cf1\f3 //------------------------------------------------------------------------------------------\cf2\par
+\f0 F\cf5 unction\cf2  \cf3 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,file_name,fomat_type,delim_char)\{\par
+\tab Character_Read(cat(0,in_path,file_name),"cdata");\par
+\lang4105\tab cdata = drop(1 0,cdata);                                          // drop header line\lang1033\par
+\tab Original\lang4105 Catch\lang1033 Data = cdata;\par
+\pard    Num_\lang4105 C_\lang1033 recs = len(cdata)[1];\par
+   Tempcm = set_parse(cdata,delim_char)\par
+\lang4105    C_Tow\lang1033  = num(parse_cm2(\lang4105 1\lang1033 ,tempCM,ncols));                        \lang4105     \lang1033 /\lang4105 / Tow number\lang1033\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tab\lang4105 Tot_Catch_bu\lang1033  = num(parse_cm2(\lang4105 2\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                     /\lang4105 /\lang1033   \lang4105 Total Catch Bu\lang1033                                    \par
+\tab\lang4105 Tot_Catch_kg\lang1033  = num(parse_cm2(\lang4105 3\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                     /\lang4105 /\lang1033   \lang4105 Total Catch Kg\lang1033                                    \par
+\tab\lang4105 BU_Main_Sample\lang1033  = num(parse_cm2(\lang4105 4\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;            \lang4105        \lang1033 /\lang4105 /\lang1033   \lang4105 Number of bushels in Main catch sample\lang1033  \par
+\tab Bu_main_Sample[Bindex(\lang4105 BU_Main_Sample == NAN())] = 0.;\lang1033                                   \par
+\tab\lang4105 Kg_Main_Sample\lang1033  = num(parse_cm2(\lang4105 5\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;            \lang4105        \lang1033 /\lang4105 /\lang1033   \lang4105 Kg in Main catch sample\lang1033  \par
+\tab Kg_main_Sample[Bindex(\lang4105 Kg_Main_Sample == NAN())] = 0.;\lang1033                                   \par
+\tab\lang4105 BU_B_Sample\lang1033  = num(parse_cm2(\lang4105 6\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                      /\lang4105 /\lang1033   \lang4105 Number of bushels in by-catch sample\lang1033                                   \par
+\tab\lang4105 BU_B_Sample\lang1033 [Bindex(\lang4105 BU_B_Sample == NAN())] = 0.;\lang1033                                   \par
+\tab\lang4105 Kg_B_Sample\lang1033  = num(parse_cm2(\lang4105 7\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                      /\lang4105 /\lang1033   \lang4105 Kg in by-catch sample\lang1033  \par
+\tab\lang4105 Kg_B_Sample\lang1033 [Bindex(\lang4105 Kg_B_Sample == NAN())] = 0.;\lang1033                                   \par
+\tab\lang4105 qua_kg\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 8\lang1033 ,tempCM,ncols\lang4105 )\lang1033 );                         \lang4105   \cf1\lang1033 /\lang4105 /\lang1033   \lang4105 Kg of Arctic surfclams in Main sample\lang1033                            \cf2\par
+\lang4105     qua_kg[\cf4 bindex\cf2 (qua_kg == \cf4 NAN\cf2 ())] = 0;\par
+\lang1033\tab\lang4105 Prop_Kg\lang1033  = num(parse_cm2(\lang4105 9\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                         \lang4105  \lang1033 /\lang4105 /\lang1033   \lang4105 Kg of Propellerclams in Main sample\lang1033                                   \par
+\tab\lang4105 Prop_kg[bindex(prop_kg == NAN())]=0;\par
+\lang1033\tab\lang4105 ArSurf_kg\lang1033  =  \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 10\lang1033 ,tempCM,ncols));              \lang4105        \lang1033  \cf1 /\lang4105 /  Kg of Quahogs in Main sample\lang1033  \cf2\par
+\tab\lang4105 ArSurf_kg[\cf4 bindex\cf2 (ArSurf_kg == \cf4 NAN\cf2 ())]=0;\par
+\lang1033\tab\lang4105 AtSurf_kg\lang1033  = num(parse_cm2(\lang4105 11\lang1033 ,tempCM,ncols));                       \lang4105 /\lang1033 /\lang4105   Kg of Atlantic surfclams in Main sample\lang1033  \par
+\tab\lang4105 AtSurf_kg[bindex(AtSurf_kg == NAN())]=0;\par
+   Scal_kg\lang1033  = num(parse_cm2(\lang4105 12\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                          \lang4105 //\lang1033  \lang4105 Kg of Sea scallops in Main sample\lang1033  \par
+\lang4105     Scal_kg[bindex(Scal_kg == NAN())]=0;\par
+\lang1033\tab\lang4105 Cock_kg\lang1033  = num(parse_cm2(\lang4105 13\lang1033 ,tempCM,ncols\lang4105 )\lang1033 );                          /\lang4105 / Kg of Greenland cockles in Main sample\lang1033  \par
+\tab\lang4105 Cock_kg[bindex(Cock_kg == NAN())]=0;\par
+\lang1033\tab\lang4105 IScal_kg\lang1033  = num(parse_cm2(\lang4105 13\lang1033 ,tempCM,ncols\lang4105 )\lang1033 );                         /\lang4105 / Kg of Iclandic scallops in Main sample\lang1033  \par
+\tab\lang4105 IScal_kg[bindex(IScal_kg == NAN())]=0;\par
+\lang1033\tab\lang4105 Rock_kg\lang1033  =  num(parse_cm2(\lang4105 15,\lang1033 tempCM,ncols));                     \lang4105     \lang1033 /\lang4105 / Kg of Rock in Main sample\lang1033  \par
+\tab\lang4105 Rock_kg[bindex(Rock_kg == NAN())]=0;\par
+\lang1033\tab\lang4105 C_Comment\lang1033  =  parse_cm2(\lang4105 16\lang1033 ,tempCM,ncols);                  \lang4105             \cf1\lang1033 /\lang4105 / comments\cf2\par
+\lang1033\tab\lang4105 Dummy\lang1033  = parse_cm2(\lang4105 17\lang1033 ,tempCM,ncols);                                 \cf1 /\lang4105 / dummy column of 0's\cf2\par
+\};\lang1033\par
+//------------------------------------------------------------------------------------------\par
+Function read_delimited_\lang4105 FreqSample_\lang1033 file(in_path,file_name,fomat_type,delim_char)\{\par
+\tab Character_Read(cat(0,in_path,file_name),"fsdata");\par
+\lang4105\tab\lang1033 fs\lang4105 data = drop(1 0,\lang1033 fs\lang4105 data);                                          // drop header line\lang1033\par
+\tab Original\lang4105 FreqSample\lang1033 Data = fsdata;\par
+\pard    Num_fs\lang4105 _\lang1033 recs = len(fsdata)[1];\par
+   Tempcm = set_parse(fsdata,delim_char)\par
+   \lang4105 FS_tow \lang1033 =num(parse_cm2(1,tempCM,ncols));                        \lang4105      \lang1033 /\lang4105 / Tow Number\par
+\lang1033    \lang4105 num_measured \lang1033 =num(parse_cm2(2,tempCM,ncols));                       /\lang4105 / Number of clams measured for Length Frequency\par
+\lang1033    \lang4105 Weight_Measured \lang1033 =\cf4 num\cf2 (\cf3 parse_cm2\cf2 (3,tempCM,ncols));                    \cf1 /\lang4105 / Total weight of measured clams\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160    Weight_Measured[\cf4 bindex\cf2 (Weight_Measured == \cf4 NAN\cf2 ())] = 0;\par
+\pard\lang1033    \lang4105 Num_unmesured \lang1033 =\cf4 num\cf2 (\cf3 parse_cm2\cf2 (4,tempCM,ncols));                      \cf1 /\lang4105 / Number of unmeasured quahogs\cf2\par
+\lang1033    \lang4105 Weight_unmeasured \lang1033 =\cf4 num\cf2 (\cf3 parse_cm2\cf2 (5,tempCM,ncols));                  \cf1 /\lang4105 / Weight of unmeasured quahogs\cf2\par
+\lang1033    \lang4105 Weight_morph \lang1033 =\cf4 num\cf2 (\cf3 parse_cm2\cf2 (6,tempCM,ncols));                       \cf1 /\lang4105 / Weight of clams measured and retained for morphometrics\cf2\par
+\lang1033    \lang4105 Weight_Not_retained \lang1033 =\cf4 num\cf2 (\cf3 parse_cm2\cf2 (7,tempCM,ncols));                \cf1 /\lang4105 / Weight of clams measured and not retained\cf2\par
+   fs_Comments = \cf3\lang1033 parse_cm2\cf2 (8,tempCM,ncols);                        \lang4105     \cf1\lang1033 /\lang4105 / Comments\cf2\par
+   Dummy = \cf4\lang1033 num\cf2 (\cf3 parse_cm2\cf2 (9,tempCM,ncols));                             \cf1 // Dummy column\cf2\lang4105\par
+\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang1033 //------------------------------------------------------------------------------------------\cf2\par
+Function read_delimited_\lang4105 Tow_data_\lang1033 file(in_path,file_name,fomat_type,delim_char)\{\par
+\tab Character_Read(cat(0,in_path,file_name),"tdata");\par
+\lang4105\tab tdata = drop(1 0,tdata);                                             // drop header line\lang1033\par
+\tab\lang4105 //drop selectivity tows S1,S2 andS3\par
+\tab tdata\lang1033  =\lang4105 tdata\lang1033  \lang4105 [bindex(shape(cat(0,len(tdata)[1],1),tdata[;10]) != "S");];\par
+\lang1033\tab Original\lang4105 Tow\lang1033 Data = tdata;\par
+\pard    Num_\lang4105 T_\lang1033 recs = len(tdata)[1];\par
+   Tempcm = set_parse(tdata,delim_char)\par
+   \lang4105 Date \lang1033 =parse_cm2(1,tempCM,ncols);                        \lang4105               \lang1033 /\lang4105 / mm/dd/yy\par
+   T_Tow\lang1033  = num(parse_cm2(\lang4105 2\lang1033 ,tempCM,ncols));                        \lang4105        \lang1033 /\lang4105 / Tow number\lang1033\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tab\lang4105 Station\lang1033  = num(parse_cm2(\lang4105 3\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                         \lang4105     \lang1033 /\lang4105 /\lang1033   \lang4105 Station Number\lang1033  \par
+\tab\cf1 //Quality = num(parse_cm2(\lang4105 4\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                         \lang4105     \lang1033 /\lang4105 /\lang1033   \lang4105 data quality 1 = good\lang1033                                   \cf2\par
+\tab\lang4105 Bearing\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 4\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                         \lang4105     \cf1\lang1033 /\lang4105 /\lang1033   \lang4105 Tow Direction\lang1033                                    \cf2\par
+\tab\lang4105 Depth\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 5\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                         \lang4105       \cf1\lang1033 /\lang4105 /\lang1033   \lang4105 Depth (m)\lang1033                                    \cf2\par
+\tab\lang4105 Speed\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 6\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                         \lang4105       \cf1\lang1033 /\lang4105 /\lang1033   \lang4105 Towing speed (knots)\lang1033                                    \cf2\par
+\tab\lang4105 S_Lat\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 7\lang1033 ,tempCM,ncols\lang4105 )\lang1033 );                         \lang4105       \cf1\lang1033 /\lang4105 /\lang1033   \lang4105 Start Latitude\lang1033      \lang4105 ddmm.mm\lang1033                             \cf2\par
+\tab\lang4105 S_long\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 8\lang1033 ,tempCM,ncols)\lang4105 )\lang1033 ;                         \lang4105      \cf1\lang1033 /\lang4105 /\lang1033   \lang4105 Start Longitude\lang1033      \lang4105 ddmm.mm\lang1033                                    \cf2\par
+\tab\lang4105 S_Time\lang1033  = \cf3 parse_cm2\cf2 (\lang4105 9\lang1033 ,tempCM,ncols);                        \lang4105            \cf1\lang1033 /\lang4105 / Start Time  hh:mm\cf2\lang1033\par
+\tab\lang4105 E_Lat\lang1033  =  \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 10\lang1033 ,tempCM,ncols));              \lang4105         \lang1033        \cf1 /\lang4105 / End Latitude\lang1033      \lang4105 ddmm.mm\cf2\lang1033\par
+\tab\lang4105 E_Long\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 11\lang1033 ,tempCM,ncols));                          \lang4105    \cf1 /\lang1033 /\lang4105   End  Longitude\lang1033      \lang4105 ddmm.mm\cf2\lang1033\par
+\lang4105        E_Time\lang1033  = \cf3 parse_cm2\cf2 (\lang4105 12\lang1033 ,tempCM,ncols);                           \lang4105    \cf1 //\lang1033  \lang4105  End Time  hh:mm\cf2\lang1033\par
+\tab\lang4105 Dist\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 13\lang1033 ,tempCM,ncols\lang4105 )\lang1033 );                               \cf1 /\lang4105 / Distance towed nm\cf2\lang1033\par
+\tab S\lang4105 Dist\lang1033  = \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 14\lang1033 ,tempCM,ncols\lang4105 )\lang1033 );                              \cf1 /\lang4105 / Smoothed distance towed nm\cf2\lang1033\par
+\tab\lang4105 Bottom\lang1033  = \cf3 parse_cm2\cf2 (\lang4105 15\lang1033 ,tempCM,ncols);                                 \lang4105  \cf1\lang1033 /\lang4105 / bottom type\cf2\lang1033\par
+\tab\lang4105 Wave_Hgt\lang1033  =  \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 16\lang1033 ,tempCM,ncols));                          \cf1 /\lang4105 / Wave height (m)\cf2\lang1033\par
+\tab\lang4105 Wind_speed\lang1033  =  \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 17\lang1033 ,tempCM,ncols));                        \cf1 /\lang4105 / Wind Speed \cf2\par
+\lang1033\tab\lang4105 Hawser\lang1033  =  \cf4 num\cf2 (\cf3 parse_cm2\cf2 (\lang4105 18\lang1033 ,tempCM,ncols));                            \cf1 /\lang4105 / Length of towing Hawser (feet)\cf2\lang1033\par
+\tab\lang4105 T_Comment\lang1033  =  \cf3 parse_cm2\cf2 (\lang4105 19\lang1033 ,tempCM,ncols);                  \lang4105             \cf1\lang1033 /\lang4105 / comments\cf2\par
+\lang1033\tab\lang4105 Dummy\lang1033  = \cf3 parse_cm2\cf2 (\lang4105 20\lang1033 ,tempCM,ncols);                                 \lang4105   \cf1\lang1033 /\lang4105 / dummy column of 0's\cf2\par
+\lang1033    //----------------------------------------------------------------\par
+\lang4105\tab // Now do conversions necessary\par
+\tab S_lat = \lang1033 int(\lang4105 S_lat \lang1033 /100.) + mod(\lang4105 S_lat \lang1033 ,100)/60.\lang4105 ;\lang1033\par
+\lang4105\tab S_long = -1*(\lang1033 int(\lang4105 S_long \lang1033 /100.) + mod(\lang4105 S_long \lang1033 ,100)/60.\lang4105 );\lang1033\par
+\lang4105\tab E_lat = \lang1033 int(\lang4105 E_lat \lang1033 /100.) + mod(\lang4105 E_lat \lang1033 ,100)/60.\lang4105 ;\lang1033\par
+\lang4105\tab E_long = -1*(\lang1033 int(\lang4105 E_long\lang1033 /100.) + mod(\lang4105 E_long \lang1033 ,100)/60.\lang4105 );\lang1033\par
+\lang4105    Month = \cf4 num\cf2 (date[;4 5]);\par
+   Day = \cf4 num\cf2 (date[;1 2]);\par
+   Year = 2000 + \cf4 num\cf2 (date[;7 8]);\par
+   Pos = cat(2,ave(cat(2,S_long,E_long),2),Ave(cat(2,S_lat,E_lat),2));\par
+   dist[\cf4 bindex\cf2 (dist == \cf4 NAN\cf2 ())] == 300.; \cf1 // Default distance where missing\cf2\par
+   \cf1 // Don't use tows 73, 152 were repeated\cf2\par
+\lang1033\};\par
+//------------------------------------------------------------------------------------------\par
+\pard function set_Parse(cmatrix,delim)\{\par
+  nrecs = len(cmatrix)[1];\par
+  ncols = len(strfold(cmatrix[1;],delim))[1];\par
+  cmatrix2 = cat(2,cmatrix,shape(cat(0,nrecs,1),delim));           // add delimiter to end of each record\par
+  cc = (strfold(ravel(cmatrix2),delim));                           // matrix of 1 column all cells\par
+  return(cc);\par
+\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160 // ------------------------------------------------------------------------------------------------------------\par
+\pard function parse_cm2(column,set_cm,ncols)\{ \par
+  ncells = len(set_cm)[1];  \par
+  cdata = trim(set_cm[seq(column,ncells,ncols);]);\par
+  return(trim(cdata));                                             // second trim needed, different delimiter??\par
+\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160 // ------------------------------------------------------------------------------------------------------------\par
+\cf1\f2 //RoxAnn_rocky = shape(4 3,257 44.0232 -61.1014 265 43.9305 -61.1374 242 43.8733 -61.0193 \f4 214 44.3121 -60.9091\f2 );\cf2\par
+\f0 // ------------------------------------------------------------------------------------------------------------\par
+\cf5 Function\cf2  \cf3 back_map\cf2 (con_all)\{\par
+\lang4105   Line_Width(pts(0.5));\par
+\pard   \lang1033 Line_Colour("\lang4105 BLACK\lang1033 ");\par
+\lang4105   Fill\lang1033 _Colour("\lang4105 BLACK\lang1033 ");\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105   Line_Type(0);\par
+\cf0\f4 Page_Orientation(1);\par
+data_projection("MERCATOR");\par
+Data_Viewport(mm(50),mm(230),mm(60),mm(170));\cf2\par
+\cf4 Data_Window\cf2 (-60.1,-57.2,44.0,45.05);\cf0\par
+Axis(1.000000,1.000000,0.000000,0.000000,1,0,1,0,0);\par
+Line_Colour("RED"); Line_Type(0);\cf2\par
+\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq500m.xyp"));\cf0\par
+Line_Type(1);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq400m.xyp"));\};\cf0\par
+Line_Type(2);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq300m.xyp"));\};\cf0\par
+Line_Type(3);\cf2\par
+\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq200m.xyp"));\cf0\par
+Line_Type(4);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq175m.xyp"));\};\cf0\par
+Line_Colour("BLUE"); Line_Type(0);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq150m.xyp"));\};\cf0\par
+Line_Type(1);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq125m.xyp"));\};\cf0\par
+Line_Type(0);Line_Colour("BLACK");\cf2\par
+\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq100m.xyp"));\cf0\par
+Line_Type(3);Line_Colour("BLUE");\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq90m.xyp"));\};\cf0\par
+Line_Type(4);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq80m.xyp"));\};\cf0\par
+Line_Colour("GREEN"); Line_Type(0);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq70m.xyp"));\};\cf0\par
+Line_Type(1);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq60m.xyp"));\};\cf0\par
+Line_Type(2);\cf2\par
+\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq50m.xyp"));\cf0\par
+Line_Type(3);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq40m.xyp"));\};\cf0\par
+Line_Type(4);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq30m.xyp"));\};\cf0\par
+Line_Colour("YELLOW"); Line_Type(0);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq20m.xyp"));\};\cf0\par
+Line_Type(1);\cf2\par
+\cf5 if\cf2 (con_all == 1)\{\cf4 Overlay_XYP_File\cf2 (\cf4 cat\cf2 (overlay_path,"Banq10m.xyp"));\};\cf0\par
+Line_Colour("BLACK");Line_Type(0);\cf2\par
+\lang1033\f0\};\par
+//------------------------------------------------------------------------------------\par
+\lang4105 //Plot Proposed Gully Marine Protected Area\par
+Function plot_gully_Mpa()\{\par
+\tab gully_mpa = shape(7 2,decimal_matrix(-5906. 4413. -5835. 4347. -5835. 4335. -5908. 4335. -5908. 4355. -5920. 4406.));\par
+\tab data_line(gully_mpa);\par
+\};\par
+\lang1033\f1 //------------------------------------------------------------------------------------\par
+\cf5\lang4105\f0 Function\cf2  \cf3 Map_objects\cf2 (Gully, Stone_fence)\{\par
+\tab Line_Type(1);\par
+   \cf5 If\cf2 (Gully == 1)\{\par
+      Line_Colour("SALMON");\par
+      Fill_Colour("SALMON");\par
+      plot_gully_Mpa()\lang1033 ;\par
+    \};\par
+\lang4105    \cf5 If\cf2 (Stone_fence == 1)\{\par
+      Line_Colour("SALMON");\par
+      Fill_Colour("SALMON");\par
+      \cf3\f4 Coral_stone_fence\cf2\f0 (1)\lang1033 ;\par
+    \};\par
+\lang4105     \cf4 Line_Type\cf2 (0);\par
+\pard\lang1033     Line_Colour("\lang4105 black\lang1033 ");\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105     Fill_Colour("black");\par
+\};\par
+\cf1\lang1033 //------------------------------------------------------------------------------------\cf2\par
+\cf5 Function\cf2  \cf3 Get_catch\cf2 (Sel_species,Standardize)\{\par
+\tab mc_species = 4304 4312 4355 4317 4321 4343 4322; // Species recorded in main catch\par
+   txt_vars = strfold("qua_kg/Prop_kg/ArSurf_kg/AtSurf_kg/Scal_kg/Cock_kg/IScal_kg","/");\par
+\lang4105\f4    catch_factor = shape(len(c_tow),1.); // Set factor up as vector of 1's to start\par
+\f0    T_catch= cat(2,C_tow,\f4 catch_factor,\f0 shape(cat(0,len(c_tow),2),0.))\par
+\lang1033\f4    smain = txt_vars[\cf4 bindex\cf2 (\f0 Sel_species\f4  == mc_species);]\par
+\f0    if(len(smain)[1] > 0)\{    // One of main species\par
+      execute(cat("T_catch[;3] = ",ravel(smain)))  // Catch from main catch sampling\par
+   \};\par
+   \lang4105 Bidx = \cf4 bindex\cf2 (sp_code == \lang1033 Sel_species\lang4105 ); \cf1 // index of species records in by_catch table\cf2\par
+ \lang1033   \lang4105 insert(T_catch,B_tow[bidx],int(shape(len(bidx),4)),weight[bidx]); // insert by_catch weight into T_catch matrix\par
+\lang1033    zidx = bindex(\lang4105 (\lang1033 Kg_Main_sample + Kg_B_sample) > 0);\par
+\lang4105    t_catch[\lang1033 zidx\lang4105 ;2] = Tot_Catch_kg[\lang1033 zidx]\lang4105 /(\lang1033 Kg_Main_sample[zidx] + Kg_B_sample[zidx]); //Catch factor to convert to total catch weight\lang4105\par
+\f4    catch_factor = \f0 t_catch[;1 2];  // Keep as Global variable\f4\par
+\lang1033\f0    Catch = \lang4105 (\lang1033 T_catch[;3] + T_catch[;4]) * \lang4105 t_catch[;2]; // Adjust catch by weight to total weight caught\par
+   If( Standardize == 1)\{\par
+\tab   Stdtow = 500.0;\par
+   \}\cf5 else\cf2  \cf5 if\cf2 ( Standardize == 2)\{\par
+  \tab   Stdtow = 529.592;                \cf1 // Actual Average tow area\cf2\par
+   \};\par
+   Standard_factor = Stdtow/(69.5/39.36996*SDist);           \cf1 //Sandardize to set area tow using smoothed distance\cf2\par
+   \cf1 // Area_msquare(/69.5inch blade/39.36996 in/m * dist(m))\cf2\par
+   Catch = Catch * Standard_factor;                       \cf1 // Catch in kg/500m square tow\cf2\par
+   Catch[\cf4 bindex\cf2 (catch==\cf4 NAN\cf2 ())] = 0.;  \cf1 // Change NAN values to zero\cf2\par
+   \cf5 return\cf2 (\cf4 cat\cf2 (2,C_tow,catch));\par
+\};\lang1033\par
+//------------------------------------------------------------------------------------\par
+\cf5\f4 Function\cf2  \cf3 Set_Banquereau_contours\cf2 ()\{\par
+\tab\cf1 // extract contiguous contours around Sable Island\cf2\par
+\lang4105\f2    \cf4 Matrix_Read\cf2 (\cf4 cat\cf2 (overlay_path,"Banq100m.xyp"),"bb100DATA",0);\par
+   \cf4 Matrix_Read\cf2 (\cf4 cat\cf2 (overlay_path,"Banq90m.xyp"),"bb90DATA",0);\par
+   \cf4 Matrix_Read\cf2 (\cf4 cat\cf2 (overlay_path,"Banq80m.xyp"),"bb80DATA",0);\par
+   \cf4 Matrix_Read\cf2 (\cf4 cat\cf2 (overlay_path,"Banq50m.xyp"),"bb50DATA",0);\par
+   \cf4 Matrix_Read\cf2 (\cf4 cat\cf2 (overlay_path,"Banq40m.xyp"),"bb40DATA",0);\par
+\f0    Banquereau_100m_c = \f2 bb100DATA\f0 [\cf4 seq\cf2 (3083,6151);1 2];   \cf1 // contiguous 100 m contour around Banquereau Bank\cf2\par
+   Banquereau_90m_c = \f2 bb90DATA\f0 [\cf4 seq\cf2 (1787,4623);1 2];     \cf1 // contiguous  90 m contour around Banquereau Bank\cf2\par
+   Banquereau_80m_c = (bb80data[\cf4 seq\cf2 (1059,3645);1 2]);   \cf1 // contiguous  80 m contour around Banquereau Bank\cf2\par
+   Banquereau_50mE_c = \f2 bb50DATA\f0 [\cf4 seq\cf2 (361,659);1 2];     \cf1 // contiguous  50 m contour on East end Banquereau Bank\cf2\par
+   Banquereau_50mW_c = \f2 bb50DATA\f0 [\cf4 seq\cf2 (660,1684);1 2];     \cf1 // contiguous  50 m contour on West end Banquereau Bank\cf2\par
+   Banquereau_40m_c = \f2 bb40DATA\f0 [\cf4 seq\cf2 (389,1119);1 2];     \cf1 // contiguous  40 m contour around Banquereau Bank\cf2\par
+\};\par
+\cf1\lang1033 //------------------------------------------------------------------------------------\cf2\par
+\cf5\lang4105\f4 Function\cf2  \cf3 Plot_Deep_Rocky\cf2 (deep,Rocky,xpos,ypos,plot)\{\par
+    \cf4 Matrix_Read\cf2 ("F:\\Dale\\Clam Work\\2004 Banquereau Survey\\Data\\Stations.txt","sDATA",0);\par
+\lang1033\tab rocky_stns= 5 11 24 32 35 38 43 45 48 55 63 75 80 89 91 97 98 102 115 117 121 136 148 151 154 155 157 184;\par
+\tab rocky_stns= \cf4 cat\cf2 (0,rocky_stns, 195, 205, 210, 221, 227, 229, 230, 233, 234, 237, 241, 245, 247, 249);\par
+\pard\lang4105    Deep_stns = 201 96 56 173 16 197 216 82 83 12 165 166 193;\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\tab ridx = \cf4 bindex\cf2 (\cf4 member\cf2 (rocky_stns,sdata[;3]));\par
+\tab didx = bindex(member(deep_stns,sdata[;3]));\par
+\tab\cf5 if\cf2 (plot == 1)\{\par
+\tab   colours = \cf4 strfold\cf2 ("Green/Blue","/");\par
+\tab   \cf4 Marker_Type\cf2 (1);\par
+\tab   \cf4 Line_Colour\cf2 (\cf4 trim\cf2 (colours[1;]));\par
+\tab   \cf4 Fill_Colour\cf2 (\cf4 trim\cf2 (colours[1;]));\par
+\tab   \cf4 Marker_Height\cf2 (\cf4 mm\cf2 (3));\par
+\tab   \cf4 data_points\cf2 (sdata[ridx;1 2]);     \cf1 // Too Rocky\cf2\par
+\tab   \cf4 Line_Colour\cf2 (\cf4 trim\cf2 (colours[2;]));\par
+\tab   \cf4 Fill_Colour\cf2 (\cf4 trim\cf2 (colours[2;]));\par
+\tab   \cf4 Marker_Type\cf2 (0);\par
+\tab   \cf4 Marker_Height\cf2 (\cf4 mm\cf2 (3.5));           \cf1 // circle looks smaller than square so increase size\cf2\par
+\tab   \cf4 data_points\cf2 (sdata[didx;1 2]);     \cf1 // Too deep\cf2\par
+\tab   \cf4 Marker_Height\cf2 (\cf4 mm\cf2 (1));\par
+\tab   \cf4 Line_Colour\cf2 ("Black");\par
+\tab   \cf4 Fill_Colour\cf2 ("Black");\par
+\lang4105\f0      \cf4 Colour_Legend\cf2 (xpos, ypos, Colours, \cf4 Strfold\cf2 (\lang1033\f4 "Too Rocky \cf5 for\cf2  Dredge/Too Deep \cf5 for\cf2  Dredge\lang4105\f0 ","/"));\par
+  \};\par
+\};\par
+\cf1\lang1033\f1 /* ---------------------------------------------------------------------------------------------------------- */\cf2\par
+Function mke_legend(xpos,ypos) \{\par
+  \lang4105\f2 //\lang1033\f1 Data_Clip_Window(0);\lang4105\f2   // have to convert to use data_clip_polygon\lang1033\f1\par
+  Line_Type(0);\par
+   Fill_Colour("white");\par
+   Line_Colour("white");\par
+   Marker_Type(3);\par
+   Marker_Height(mm(45.));\par
+   Draw_marker(cat(0,xpos,ypos));  /* trying to draw background for legend, not working */\par
+   Fill_Colour("Black");\par
+   Line_Colour("Black");\par
+   Character_Height(pts(10.));\par
+   Marker_Height(mm(\lang4105\f2 2\lang1033\f1 .));\par
+  \lang4105\f2  \lang1033\f1 Decimal_Digits(0);\par
+   GreyScale_Legend(xpos - mm(2\lang4105\f2 0\lang1033\f1 .),ypos + mm(15.));\par
+   Character_Alignment(1); \par
+\f2    x_off = mm(10.); // offset in x axis direction\f1\par
+   draw_text(xpos\f2  +\f1  \f2 x_off\f1 ,ypos + mm(11),\lang4105\f0 sprintf("%9.0f",\f2 acon_biomass\lang1033\f1 [3;2 3]));\par
+   draw_text(xpos\f2  +\f1  \f2 x_off\f1 ,ypos + mm(5.5),\lang4105\f0 sprintf("%9.0f"\lang1033\f1 ,\lang4105\f2 acon_biomass\lang1033\f1 [4;2 3]));\par
+   draw_text(xpos\f2  +\f1  \f2 x_off\f1 ,ypos - mm(0),\lang4105\f0 sprintf("%9.0f"\lang1033\f1 ,\lang4105\f2 acon_biomass\lang1033\f1 [5;2 3]));\par
+   draw_text(xpos\f2  +\f1  \f2 x_off\f1 ,ypos - mm(5.5),\lang4105\f0 sprintf("%9.0f"\lang1033\f1 ,\lang4105\f2 acon_biomass\lang1033\f1 [6;2 3]));\par
+   draw_text(xpos\f2  +\f1  \f2 x_off\f1 ,ypos - mm(11),\lang4105\f0 sprintf("%9.0f"\lang1033\f1 ,\lang4105\f2 acon_biomass\lang1033\f1 [7;2 3]));\par
+   draw_text(xpos\f2  +\f1  \f2 x_off\f1 ,ypos - mm(1\lang4105\f2 6.5\lang1033\f1 ),\lang4105\f0 sprintf("%9.0f"\lang1033\f1 ,\lang4105\f2 acon_biomass\lang1033\f1 [\lang4105\f2 8\lang1033\f1 ;2 3]));\par
+   Character_Alignment(0); \par
+   \cf4 draw_text\cf2 (xpos - \cf4 mm\cf2 (21),ypos + \cf4 mm\cf2 (18),"\lang4105\f2 t\lang1033\f1 /\lang4105\f2 km sq.\lang1033\f1 "); \par
+   draw_text(xpos + mm(1),ypos + mm(18),"Area k2"); \par
+   draw_text(xpos + mm(15),ypos + mm(18),"mt\lang4105\f2  \lang1033\f1 "); \par
+   Marker_Type(0);\par
+\};\par
+\cf1\f0 //------------------------------------------------------------------------------------\cf2\par
+\cf1\lang4105\f4 //Plot Multi-species catch\cf2\par
+\lang1033\f0 F\cf5 unction\cf2  \cf3 multi_Plot\cf2 (species_cds,Species_names,Title)\{\par
+  \cf3 back_map\cf2 (0)\lang4105 ;\par
+  \cf3 Map_objects\cf2 (1,1);\par
+\cf1\lang1033 /*  read_delimited_\lang4105 By_catch_\lang1033 file(in_path,\lang4105 "BycatchData.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   read_delimited_\lang4105 Tow_data_\lang1033 file(in_path,\lang4105 "towdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   read_delimited_\lang4105 Catch_data_\lang1033 file(in_path,\lang4105 "catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+*/\par
+\cf2   \lang1033 n_sp = \cf4 len\cf2 (species_cds);\par
+\lang4105   Datam = \cf4 cat\cf2 (2,t_tow,pos,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (t_tow),\lang1033 n_sp\lang4105 ),0.))\par
+\lang1033   \cf5 For\cf2 (s=1; S<= n_sp; s=s++)\{\par
+\tab sp_catch = \cf3 Get_catch\cf2 (species_cds[s],1);  \cf1 //get catch for species s\cf2\par
+\tab Datam[\cf4\lang4105\f4 index\cf2 (t_tow,\lang1033\f0 sp_catch[;1]\lang4105\f4 );3+s] = \lang1033\f0 sp_catch\lang4105\f4 [;2];\par
+\lang1033\f0   \};\par
+\lang4105   \cf4 Line_Colour\cf2 ("BLACK"); \cf4 Line_Width\cf2 (\cf4 pts\cf2 (0.5));\par
+  Colours = \cf4 strfold\cf2 ("RED GREEN BLUE YELLOW ORANGE PURPLE PINK OLIVEDRAB LIGHTSALMON");\par
+  \cf4 Continuous_Scaling\cf2 (1, 0, \cf4 mm\cf2 (1.), \cf4 mm\cf2 (5), 0.1, 2000., 1. 100. 500. 1000. 2000.);\par
+  \cf4 Continuous_Scaling\cf2 (1, 0, \cf4 mm\cf2 (1.), \cf4 mm\cf2 (5), 0.01, 2., 0.01 0.1 .5 1. 2.);\par
+  \cf4 Scaled_Symbols\cf2 (datam[;\cf4 seq\cf2 (2,n_sp + 3)],Colours[\cf4 seq\cf2 (1,n_sp);]);\par
+  \cf4 Colour_Legend\cf2 (\cf4 getview\cf2 (1) + \cf4 mm\cf2 (2), \cf4 getview\cf2 (4) - \cf4 mm\cf2 (10), Colours[\cf4 seq\cf2 (1,n_sp);], Species_names);\par
+  \cf4 Symbol_Legend\cf2 (\cf4 getview\cf2 (1) + \cf4 mm\cf2 (30),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (10));\par
+\};\par
+\cf1\lang1033 //------------------------------------------------------------------------------------\cf2\par
+\cf5 Function\cf2  \cf3 set_paths\cf2 (computer)\{\par
+\tab\cf5 if\cf2 (computer == 1)\{                                                 \cf1 // Desktop Paths\cf2\par
+\tab\tab\cf4 search_paths\cf2 ("C:\\ACONw95\\\lang4105 dale\lang1033 _library\\"); \par
+       \cf4 search_paths\cf2 ("C:\\ACONw95\\Clam_library\\Map_objects\\");\par
+\lang4105        in_path = \f4 "C:\\Common\\Banquereau 2004\\TextData\\\f0 ";               \cf1 // Desktop Common folder path\cf2\par
+\pard\f4        Overlay_Path = "C:\\Aconw95\\Banq_xyp\\";\par
+    \}\cf5 else\cf2  \cf5 if\cf2  (computer == 2) \{\lang1033\f0                                         \cf1 // Laptop paths\cf2\lang4105\f4\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\f0        \cf4 search_paths\cf2 ("\lang4105\f4 C:\\Program Files\\ACON\\Clam_library\\\lang1033\f0 ");\par
+       \cf4 search_paths\cf2 ("\lang4105\f4 C:\\Program Files\\ACON\\Dale_library\\\lang1033\f0 ");\par
+       \cf4 search_paths\cf2 ("\lang4105\f4 C:\\Program Files\\ACON\\Dale_library\\\lang1033\f0 Map_objects\\");\par
+\pard\lang4105        in_path = \f4 "F:\\Dale\\Clam Work\\2004 Banquereau Survey\\Data\\TextData\\";           \cf1 // Laptop folder path\cf2\par
+       Overlay_Path = "C:\\Program Files\\ACON\\Banq_xyp\\";\f0                                        \cf1 // Laptop overlay folder path\cf2\par
+\f4     \};\par
+\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang1033\f0 //------------------------------------------------------------------------------------\cf2\par
+set_paths(2);\par
+\cf1\lang4105 // Reading in files\cf2\par
+\lang1033 r\cf3 ead_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 Bycatch.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 TowdataOld.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Len_freq_data_\lang1033 file\cf2 (in_path,\lang4105 "\f2 Banquereau Survey data 2004 Length Freq.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 FreqSample_\lang1033 file\cf2 (in_path,"\lang4105\f2 Banquereau Survey 2004 Freq Sample data.txt\lang1033\f0 ",2,"\tab ");\lang4105\par
+\lang1033\f1 read_delimited_\lang4105\f2 Morphometrics_\lang1033\f1 file\lang4105\f2 _common\lang1033\f1 (in_path,\lang4105\f2 "Banquereau Survey Data 2004 Morphometrics.txt"\lang1033\f1 ,\lang4105\f2 2\lang1033\f1 ,\lang4105\f2 "\tab "\lang1033\f1 )\par
+\pard\sb100\sa100\lang4105\f0\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f4 // map tow locations with labels\cf2\par
+\cf3\lang1033\f0 back_map\cf2 (1)\lang4105 ;\par
+\pard\cf1\f4 //Map_objects(0,0,1,0,0,0);\cf2\par
+\cf3 Map_objects\cf2 (1,1);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang1033\f0 //read_delimited_\lang4105 Tow_data_\lang1033 file(in_path,\lang4105 "\f4 Banquereau Survey data 2004 TowdataOld.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\cf2\par
+Datam = \cf4 cat\cf2 (2,t_tow,pos,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (t_tow),2),0.))\par
+\cf4 Line_Colour\cf2 ("BLACK"); \cf4 Line_Width\cf2 (\cf4 pts\cf2 (0.5));\par
+\cf4 Data_points\cf2 (datam[;2 3 1]);\par
+\cf4 Data_labels\cf2 (datam[;2 3 1]);\par
+\cf4 Line_Colour\cf2 ("Purple");\par
+\cf3\lang1033\f4 Set_Banquereau_contours\cf2 ();\par
+\cf4\lang4105\f2 data_line\cf2 (Banquereau_80m_c[;2 1]);\par
+\f0\par
+\cf1\f4 //Plot skate catch\cf2\par
+\cf3\lang1033\f0 read_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 Bycatch.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 Towdata.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+Datam = \cf4 cat\cf2 (2,t_tow,pos,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (t_tow),3),0.));\par
+W_Sk\lang1033  = \cf3 Get_catch\cf2 (204,1); \cf1 // Standardized Winter skate catch\cf2\par
+\lang4105 Datam[\cf4\f4 index\cf2 (t_tow,\f0 W_Sk\lang1033 [;1]\lang4105\f4 );4] = \f0 W_Sk\f4 [;2];\par
+\f0 B_Sk\lang1033  = \cf3 Get_catch\cf2 (200,1); \cf1 // Standardized Barndoor skate catch\cf2\par
+\lang4105 Datam[\cf4\f4 index\cf2 (t_tow,\f0 B_Sk\lang1033 [;1]\lang4105\f4 );5] = \f0 B_Sk\f4 [;2];\par
+\cf1\f0 // Fudge as we want the number of egg cases instead of weight\cf2\par
+SE_idx = \cf4 bindex\cf2 (sp_code == 1224);\par
+temp = weight[SE_idx]; \cf1 // save weights\cf2\par
+weight[SE_idx] = number[SE_idx]; \cf1 // replace weight with number\cf2\par
+Sk_Egg\lang1033  = \cf3 Get_catch\cf2 (\lang4105 1224\lang1033 ,1); \cf1 // Standardized Number of skate egg cases \cf2\par
+\lang4105 weight[SE_idx] = temp; \cf1 // put weights back\cf2\par
+Datam[\cf4\f4 index\cf2 (t_tow,\f0 Sk_Egg\lang1033 [;1]\lang4105\f4 );6] = \f0 Sk_Egg\f4 [;2];\par
+\cf4\f0 Line_Colour\cf2 ("BLACK"); \cf4 Line_Width\cf2 (\cf4 pts\cf2 (0.5));\par
+\cf3\lang1033 back_map\cf2 (0)\lang4105 ;\par
+\cf3 Map_objects\cf2 (1,1);\par
+Colours = \cf4 strfold\cf2 ("RED GREEN");\par
+\cf4 Continuous_Scaling\cf2 (1, 0, \cf4 mm\cf2 (1.), \cf4 mm\cf2 (5), 0.1, 20., 1. 5. 10. 15. 20.);\par
+\cf4 Scaled_Symbols\cf2 (datam[;2 3 4 5],Colours);\par
+\cf4 Colour_Legend\cf2 (\cf4 mm\cf2 (152), \cf4 mm\cf2 (55), Colours, \cf4 Strfold\cf2 ("Winter/Little Barndoor"," "));\par
+\cf4 Symbol_Legend\cf2 (\cf4 mm\cf2 (175), \cf4 mm\cf2 (65));\par
+\par
+\cf1\lang1033 // seperate map for egg cases\cf2\par
+\cf3 back_map\cf2 (1)\lang4105 ;\par
+\cf3 Map_objects\cf2 (1,1);\par
+\cf4 Continuous_Scaling\cf2 (1, 0, \cf4 mm\cf2 (1.), \cf4 mm\cf2 (7.5), 0.1, 50., 1. 10. 25. 50.);\par
+\cf4 Scaled_Symbols\cf2 (datam[;2 3 6]);\par
+\cf4 Symbol_Legend\cf2 (\cf4 mm\cf2 (175), \cf4 mm\cf2 (65));\par
+\par
+\cf1\lang1033 //Plot catch of Major bivalves\cf2\par
+species_cds= 4355 4304 4312 4317 4321;   \cf1 //Major bivalves\cf2\par
+Species_names = \cf4 strfold\cf2 ("Arctic_surf Quahogs Propeller_clams surf_clams Scallops"," ");\par
+\cf3 multi_Plot\cf2 (species_cds,Species_names,"Kg/T0w")\lang4105\par
+\par
+\par
+\cf1 // plot length frequency  Note: weighted by total clam catch weight\cf2\par
+\cf5\lang1033 function\cf2  \cf3 plot_length_frequency\cf2 ()\{\par
+  \cf3 read_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 Bycatch.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 Towdata.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Len_freq_data_\lang1033 file\cf2 (in_path,\lang4105 "\f2 Banquereau Survey data 2004 Length Freq.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 FreqSample_\lang1033 file\cf2 (in_path,"\lang4105\f2 Banquereau Survey 2004 Freq Sample data.txt\lang1033\f0 ",2,"\tab ");\lang4105\par
+\lang1033   clams = \cf3 Get_catch\cf2 (4355,1); \cf1 // Standardized surfclam catch \cf2\par
+\f4   tt = \cf4 cat\cf2 (2,fs_tow,weight_measured,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (fs_tow),2),\cf4 cat\cf2 (0,0.,1.)));  \cf1 // weights of measured clams per tow\cf2\par
+\lang4105\f0   tt[\cf4\f4 index\cf2 (fs_tow,\lang1033\f0 clams[;1]\lang4105\f4 );3] = \lang1033\f0 clams\lang4105\f4 [;2];                               \cf1 // Matching standardized quahog catch per tow\cf2\par
+  z_indx = \cf4 bindex\cf2 (tt[;2]>0)\par
+  tt[z_indx;4] = tt[z_indx;3]/tt[z_indx;2];                \cf1 // factor to go from measured sample to total clam catch\cf2\par
+\f0   datam = \cf4 cat\cf2 (2,lf_tow,lf_len,\lang1033 lf\lang4105 _N_at_len,\cf4 shape\cf2 (\cf4 len\cf2 (lf_len),1.));               \cf1 // Set up matrix for data aggregation\cf2\par
+\lang1033   datam[;4]= tt[\cf4 index\cf2 (tt[;1],datam[;1]);4];\par
+\lang4105\f4   \cf4 Data_Window\cf2 (0,125,0,15000);\par
+  \cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (40),\cf4 mm\cf2 (192),\cf4 mm\cf2 (30),\cf4 mm\cf2 (140));\par
+  \cf4 data_projection\cf2 ("NIL")\par
+  \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+  \cf4 Axis\cf2 (10.,2000.,1.0,500.,1,0,1,0,0);\par
+\f0   \cf4 Aggregation_Type\cf2 ("TOTAL");\par
+  \cf1 //Aggdata = aggregate(1.,1.,cat(2,lf_len,shape(len(lf_len),1.),\lang1033 datam[;3]*datam[;4]\lang4105 ));\cf2\par
+  Aggdata = \cf4 aggregate\cf2 (1.,1.,\cf4 cat\cf2 (2,lf_len,\cf4 shape\cf2 (\cf4 len\cf2 (lf_len),1.),\lang1033 lf\lang4105 _N_at_len));\par
+  \cf4 Data_Histogram\cf2 (1.,0.,aggdata[;1 3 3]);\par
+  \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (7.),\cf4 cat\cf2 ("Sampled n = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (lf_N_at_len)))));\par
+  \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (12.),\cf4 cat\cf2 ("Estimated total n = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (aggdata[;3])))));\par
+\};\par
+\lang1033 plot_length_frequency()\par
+\par
+\cf1\f1 /* ---------------------------------------------------------------------------------------------------------- */\cf2\par
+\cf5\lang4105\f2 Function\cf2  \cf3 select_stations\cf2 (deep,zero_deep,rocky,zero_rocky)\{\par
+   \cf1 //----------------------------------------------------------------------------------------------------------\cf2\par
+   \cf1 // set up to handle deep and rocky tows\cf2\par
+   \cf1 //----------------------------------------------------------------------------------------------------------\cf2\par
+     Station_list = t_tow;  \cf1 // start with all completed tows\cf2\par
+\lang1033\f4\tab   \cf3\lang4105 Plot_Deep_Rocky\cf2 (1,1,\cf4 mm\cf2 (10.),\cf4 mm\cf2 (10.),0);  \cf1 // read deep and rocky, don't plot\cf2\par
+\tab   \lang1033 Add_stns = \cf4 shape\cf2 (0,0.);\lang4105\par
+\tab   r_IDX = \cf4 member\cf2 (\lang1033 sdata[ridx;3],\lang4105 station);   \cf1 // index of tows completed but too rocky\cf2\par
+\tab   \cf5 If\cf2 (rocky == 1)\{\par
+\tab     r_IDX2 = \cf4 bindex\cf2 (\cf4 member\cf2 (station,\lang1033 sdata[ridx;3]\lang4105 ) ==0);   \cf1 // index of stations too rocky that were not occupied\cf2\par
+\lang1033\tab     Add_stns = sdata[\cf4 bindex\cf2 (\cf4 member\cf2 (ridx[\lang4105 r_IDX2],sdata[;3]));];\cf1 // unoccupied stations too rocky to tow\cf2\par
+\lang1033      \};\par
+\lang4105\tab   \cf5 If\cf2 (Deep == 1)\{\par
+\tab     d_IDX2 = \cf4 bindex\cf2 (\cf4 member\cf2 (station,\lang1033 sdata[didx;3]\lang4105 ) == 0);   \cf1 // index of stations too deep that were unoccupied\cf2\par
+\lang1033\tab     Add_stns = \cf4 cat\cf2 (1,add_stns,sdata[\cf4 bindex\cf2 (\cf4 member\cf2 (\lang4105 didx[d_IDX2],sdata[;3]));]);\cf1 // unoccupied stations too deep to tow\cf2\par
+\lang1033       \};\par
+\lang4105\tab   \cf5 if\cf2 (((\f2 zero_rocky\f4  == 1)&&(\cf4\f2 sum\cf2 (\lang1033\f1 r_IDX)\lang4105\f2  > 0))\f4 )\{\par
+\tab\tab     Use_data[\cf4 bindex\cf2 (r_IDX);4 5] = \cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 sum\cf2 (r_idx),2),0.0);    \cf1 //Zero catch for rocky tows completed\cf2\par
+\tab   \};  \par
+\pard\lang1033\f0      d_IDX = \cf4 member\cf2 (sdata[\f4 didx\f0 ;3],station);   \cf1 // index of completed but thought too deep\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105\f4\tab    \cf5 if\cf2 (((\f2 zero_deep\f4  == 1)&&(\cf4\f2 sum\cf2 (D\lang1033\f1 _IDX)\lang4105\f2  > 0))\f4 )\{\par
+\tab\tab     Use_data[\cf4 bindex\cf2 (d_IDX);4 5] = \cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 sum\cf2 (d_idx),2),0.0);   \cf1 //  Zero catch for deep tows completed\cf2\par
+\tab    \};\par
+\lang1033\tab    Add_stns2 = \cf4 cat\cf2 (2,Add_stns[;1 2],\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (Add_stns)[1],3),0.0));  \cf1 // wrong order\cf2\par
+      Add_stns2 = Add_stns2[;5 1 2 3 4];\par
+    \lang4105\f2   Use_data = \cf4 cat\cf2 (1,Use_data\f0 ,\lang1033\f4 Add_stns2\lang4105\f0 );               \cf1\f2 // Add unoccupied Deep tows as 0 catch\cf2\par
+   \cf1 //----------------------------------------------------------------------------------------------------------\cf2\par
+ \f4   \f2 Use_data\f4  = \f2 Use_data\f4 [\cf4 Bindex\cf2 (\cf4 member\cf2 (73 152 213,\f2 Use_data\f4 [;1])==0);];  \cf1 // Delete tows 73, 152 and 213 as they were redone\cf2\par
+\cf5\f2\par
+\par
+\cf2\par
+\cf1\lang1033\f1 /* ---------------------------------------------------------------------------------------------------------- */\cf2\lang4105\f2\par
+\cf5 Function\cf2  \cf3 Simple_biomass\cf2 (area,survey_polygon,deep,zero_deep,rocky,zero_rocky,standardized_tow)\{\par
+\tab\cf1 // NOTE: Natural Mortality and species selected is hard coded \cf2\par
+\tab\cf3\lang1033\f0 back_map\cf2 (0);\par
+\lang4105\f2\tab\cf3\f0 Map_objects\cf2 (1,1);\f1\par
+\f2    \cf4 Draw_filled\cf2 (0);\par
+\lang1033\f4    Character_Height(pts(20));\par
+\lang4105    \cf4 Draw_text\cf2 (\cf4 Ave\cf2 (\cf4 getview\cf2 (1),\cf4 getview\cf2 (2)) - \cf4 mm\cf2 (45),\cf4 getview\cf2 (4) + \cf4 mm\cf2 (0.5),"2004 Banquereau Bank Survey")\par
+\lang1033    \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+\lang4105\f1\tab\cf4 Contour_Method\cf2 (0);\par
+\tab Data_Subtriangles(16);\par
+\f2\tab\cf4\f1 Data_Contour_Levels\cf2 (0  ,\f2 .9\f1  ,\f2 75.\f1   ,0.\f2 7\f1 5 ,\f2 100.\f1   ,0.5 ,\f2 150.\f1   ,0.\f2 3\f1 5 ,\f2 300.\f1   ,0.2 ,\f2 500.\f1 0 ,0 );\f2        \cf1 //levels for comparison with Grand Bank survey\cf2\f1\par
+\f2\tab\cf1 //\f1 Data_Contour_Levels(0  ,\f2 .9\f1  ,\f2 50.\f1   ,0.\f2 7\f1 5 ,\f2 100.\f1   ,0.5 ,\f2 200.\f1   ,0.\f2 3\f1 5 ,\f2 400.\f1   ,0.2 ,\f2 800.\f1 0 ,0 );\cf2\par
+\f2\tab\cf1 //\f1 Data_Contour_Levels(0  ,\f2 .9\f1  ,\f2 50.\f1   ,0.\f2 7\f1 5 ,\f2 200.\f1   ,0.5 ,\f2 500.\f1   ,0.\f2 3\f1 5 ,\f2 750.\f1   ,0.2 ,\f2 1000.\f1 0 ,0 );\cf2\par
+\f2\tab\cf1 //\f1 Data_Contour_Levels(0  ,\f2 .9\f1  ,\f2 25.\f1   ,0.\f2 7\f1 5 ,\f2 100.\f1   ,0.5 ,\f2 500.\f1   ,0.\f2 3\f1 5 ,\f2 750.\f1   ,0.2 ,\f2 1000.\f1 0 ,0 );\cf2\par
+\tab Data_Interpolation(0,2,0);\par
+\cf1\f2 /*\tab --Clip to polygons instead of using blanking\par
+   Blanking_Distance(0.5);\f1\par
+\f2    \f4 Bnk_pts =  -59.197778 44.406198 -59.168133 44.403090 -59.151056 44.397104 -59.121411 44.391003 -59.104333 44.387894;\par
+   Bnk_pts = cat(0,Bnk_pts,-59.083067, 44.381792, -59.061961, 44.375804, -59.027967, 44.3697, -58.998161, 44.3697);\par
+   Bnk_pts = cat(0,Bnk_pts,-58.972706, 44.363596, -58.951439, 44.342284, -58.938711, 44.330069, -58.938711, 44.320964);\par
+   Bnk_pts = cat(0,Bnk_pts,-58.951439, 44.317851, -58.972706, 44.314854, -58.989622, 44.308744, -59.002350, 44.305747);\par
+   Bnk_pts = cat(0,Bnk_pts,-59.010889, 44.296522, -59.010889, 44.290410, -59.023617, 44.278300, -59.023617, 44.275186);\par
+   Bnk_pts = cat(0,Bnk_pts,-59.027967, 44.269072, -59.036344, 44.263072, -59.049233, 44.253841, -59.176672, 44.400097);\par
+   Blanking_points(shape(25 3,bnk_pts));\par
+\f2 */\cf2\par
+\lang1033\f1    \cf4 Marker_Height\cf2 (\cf4 mm\cf2 (\lang4105\f2 2\lang1033\f1 .));\par
+\f0    Clam = \cf3 Get_catch\cf2 (4355,\lang4105\f2 standardized_tow\lang1033\f0 ); \cf1 // Standardized Arctic surfclam catch. \lang4105\f4 Note: Area of a standard tow set in Get_Catch\cf2\lang1033\f0\par
+\lang4105    Datam = \cf4 cat\cf2 (2,t_tow,pos,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (t_tow),2),0.))\par
+   Datam[\cf4\f4 index\cf2 (\f0 Datam[;1]\f4 ,\lang1033\f0 Clam[;1]\lang4105\f4 );4] = clam[;2];           \par
+   Survey_area = \cf4 polygon_area\cf2 (\f2 survey_polygon\f4 );\par
+   \cf4 Print\cf2 ("Survey Area  on Banquereau = ",Survey_area,"m.");\par
+\f2    \cf4 Print\cf2 ("Volume calculation \cf5 for\cf2  Survey area");\par
+   \cf1 // for ACON contouring convert kg/std_tow(m_square) to t/km_square\cf2\par
+   Factor_stdTow = \f4 1000000./stdtow/1000.;\par
+\cf1\f2 //\cf2\par
+   Use_data = \cf4 cat\cf2 (2,\f0 Datam[;1 2 3],Datam[;4],Datam[;4]*\f2 Factor_stdTow\f0 );\cf1\f2 // Add catch in tonnes/km square as column 5\cf2\par
+   occ_idx\f4  = \cf4 Bindex\cf2 (\cf4 member\cf2 (73 152 213,\f2 Use_data\f4 [;1])==0);  \cf1 // index omitting tows 73, 152 and 213 as they were redone\cf2\par
+\f2    Use_data\f4  = \f2 Use_data\f4 [\f2 occ_idx\f4 ;];  \cf1 // Delete tows 73, 152 and 213 as they were redone\cf2\par
+   Towed_stns = \cf4 len\cf2 (use_data)[1];\par
+\f2    \cf1 //----------------------------------------------------------------------------------------------------------\cf2\par
+   \cf1 // set up to handle deep and rocky tows\cf2\par
+   \cf1 //----------------------------------------------------------------------------------------------------------\cf2\par
+\lang1033\f4\tab   \cf3\lang4105 Plot_Deep_Rocky\cf2 (1,1,\cf4 mm\cf2 (10.),\cf4 mm\cf2 (10.),0);  \cf1 // read deep and rocky, don't plot\cf2\par
+\tab   \lang1033 Add_stns = \cf4 shape\cf2 (0 3,0.);\lang4105\par
+\tab   r_IDX = \cf4 member\cf2 (\lang1033 sdata[ridx;3],\lang4105 station[\f2 occ_idx]\f4 );   \cf1 // index of tows completed but too rocky\cf2\par
+\tab   \cf5 If\cf2 (rocky == 1)\{\par
+\tab     r_IDX2 = \cf4 bindex\cf2 (\cf4 member\cf2 (station[\f2 occ_idx]\f4 ,\lang1033 sdata[ridx;3]\lang4105 ) ==0);   \cf1 // index of stations too rocky that were not occupied\cf2\par
+\lang1033\tab     Add_stns = sdata[\cf4 bindex\cf2 (\cf4 member\cf2 (ridx[\lang4105 r_IDX2],sdata[;3]));];\cf1 // unoccupied stations too rocky to tow\cf2\par
+\lang1033      \};\par
+\lang4105\tab   \cf5 if\cf2 (((\f2 zero_rocky\f4  == 1)&&(\cf4\f2 sum\cf2 (\lang1033\f1 r_IDX)\lang4105\f2  > 0))\f4 )\{\par
+\tab\tab     Use_data[\cf4 bindex\cf2 (r_IDX);4 5] = \cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 sum\cf2 (r_idx),2),0.0);    \cf1 //Zero catch for rocky tows completed\cf2\par
+\tab   \};  \par
+\pard\lang1033\f0      d_IDX = \cf4 member\cf2 (sdata[\f4 didx\f0 ;3],station\lang4105\f4 [\f2 occ_idx]\lang1033\f0 );   \cf1 // binary index of completed but thought too deep\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105\f4\tab   \cf5 If\cf2 (Deep == 1)\{\par
+\tab     d_IDX2 = \cf4 bindex\cf2 (\cf4 member\cf2 (station[\f2 occ_idx]\f4 ,\lang1033 sdata[didx;3]\lang4105 ) == 0);   \cf1 // index of stations too deep that were unoccupied\cf2\par
+\lang1033\tab     Add_stns = \cf4 cat\cf2 (1,add_stns,sdata[\cf4 bindex\cf2 (\cf4 member\cf2 (\lang4105 didx[d_IDX2],sdata[;3]));]);\cf1 // unoccupied stations too deep to tow\cf2\par
+\lang1033       \};\par
+\lang4105\tab    \cf5 if\cf2 (((\f2 zero_deep\f4  == 1)&&(\cf4\f2 sum\cf2 (D\lang1033\f1 _IDX)\lang4105\f2  > 0))\f4 )\{\par
+\tab\tab     Use_data[\cf4 bindex\cf2 (d_IDX);4 5] = \cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 sum\cf2 (d_idx),2),0.0);   \cf1 //  Zero catch for deep tows completed\cf2\par
+\tab    \};\par
+\lang1033\tab    Add_stns2 = \cf4 cat\cf2 (2,Add_stns[;1 2],\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (Add_stns)[1],3),0.0));  \cf1 // wrong order\cf2\par
+      Add_stns2 = Add_stns2[;5 1 2 3 4];\par
+    \lang4105\f2   Use_data = \cf4 cat\cf2 (1,Use_data\f0 ,\lang1033\f4 Add_stns2\lang4105\f0 );               \cf1\f2 // Add unoccupied Deep tows as 0 catch\cf2\par
+   \cf1 //----------------------------------------------------------------------------------------------------------\cf2\par
+  \cf1 // testing use of deep tows actual catches \cf2\par
+\pard   \cf1 //  \f4 use_data[bindex(d_idx);4 5] = deep_multiplier * use_data[bindex(d_idx);4 5]\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f2    \cf1 //----------------------------------------------------------------------------------------------------------\cf2\par
+   \cf4 Volume_polygon\cf2 (survey_polygon,Use_data[;2 3 5]);  \cf1 // Use column 5 for catch in tonnes/km square\cf2\par
+   \cf4 Draw_filled\cf2 (1);\par
+   \cf4\f1 polygon_Shade_contours\cf2 (\f2 survey_polygon,Use_data[;2 3 5]\f1 )\f2 ; \cf1 // Shade clipped to polygon 40-90m\cf2\f1\par
+\f2    \cf4 Draw_filled\cf2 (0);\par
+   \cf4 polygon_draw\cf2 (Banquereau_90m_c);\par
+\f4    \cf3 Plot_Deep_Rocky\cf2 (1,1,\cf4 getview\cf2 (2)-\cf4 mm\cf2 (45),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (15),1); \cf1 // Stations too deep or rocky, plot under data points\cf2\par
+\lang1033\f2   \lang4105  \cf4\f4 Marker_Height\cf2 (\cf4 mm\cf2 (2.0));\par
+\f2    \cf4 data_points\cf2\lang1033\f1 (\lang4105\f0 Use_data[;2 3 4]\lang1033\f1 );\par
+\f4    \cf4 Marker_Type\cf2 (0);\par
+   \cf4 Fill_Colour\cf2 ("BLACK");\par
+\lang4105\f2    \cf4 polygon_border\cf2 ("BBcatch",Use_data\f0 [;2 3 4]\f2 );                           \cf1 // polygon from data points\cf2\par
+   Dataarea = \cf4 polygon_area\cf2 (BBcatch);                                  \cf1 // area of Data points polygon\cf2\par
+   \cf4 Print\cf2 ("Area of polygon defined by data points = ",Dataarea);\par
+   \cf4 line_colour\cf2 ("RED");\par
+   Sur_poly = \cf4\f4 polygon_intersect\cf2 (\f2 survey_polygon\f4 ,\f2 BBcatch\f4 ,0);             \cf1 // Intersect data_polygon &  40_to_90m polygon\cf2\par
+\f2    Surarea = \cf4 polygon_area\cf2 (Sur_poly);                                  \cf1 // area of data and contour polygon\cf2\par
+   \cf4 Print\cf2 ("Area of polygon defined by data points & survey polygon = ",Surarea);\par
+\f4    \cf4 polygon_draw\cf2 (\f2 Sur_poly\f4 );                                            \cf1 // Draw on map\cf2\par
+\f2    \cf4 line_colour\cf2 ("BLACK");\par
+   acon_biomass = \cf4 volume_polygon\cf2 (Sur_poly,Use_data[;2 3 5]); \cf1 // Calculate volume of intersected polygon\cf2\par
+   \cf3\lang1033\f1 mke_legend\cf2 (\cf4 getview\cf2 (\lang4105\f2 1\lang1033\f1 ) \lang4105\f2 +\lang1033\f1  \cf4 mm\cf2 (\lang4105\f2 25\lang1033\f1 .),\cf4 getview\cf2 (\lang4105\f2 4\lang1033\f1 ) \lang4105\f2 -\lang1033\f1  \cf4 mm\cf2 (\lang4105\f2 25\lang1033\f1 .)); \cf1 // draw legend on map\cf2\par
+\lang4105\f2    \cf4 print\cf2 (acon_biomass);\par
+   \cf1 // Now do simple Math biomass estimate with confidence intervals\cf2\par
+   \cf1 // stdTow = 666. * \f0 69.5/39.36996\f2 ; // Area of a standard tow Note: Catch was standardized to a 1000 m sq tow for simplicity\cf2\par
+\pard    \cf1\f4 // Note: Make sure this agrees with the Get_catch function as to what it is standardizing to\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f2    \cf1 // stdTow // Area of a standard tow Note: set in  get_catch \cf2\par
+   \cf4 Print\cf2 ("Area of a standard tow = ",stdtow," m sq");\par
+\f0    \cf4\f2 Print\cf2 (" ");\par
+   \cf4 Print\cf2 ("Using polygon defined by station boundry and Survey polygon"); \par
+\pard    \lang1033\f4 Real_stns = \cf4 seq\cf2 (1,towed_stns);  \cf1 // index of towed stations\cf2\lang4105\par
+   deprockidx = \cf4 seq\cf2 (\lang1033 towed_stns + 1\lang4105 ,\cf4 len\cf2 (use_data)[1]);  \cf1 // index of extra stations (deep and rocky)\cf2\par
+\f2    Inside_data = Use_data[\cf4 bindex\cf2 (\cf4\f4 inside\cf2 (\f2 Survey_polygon\f4 ,use_data[;2 3],1));];\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f2    \cf4 Print\cf2 ("Number of tows used in analysis = ",\cf4 str\cf2 (\cf4 len\cf2 (Inside_data)[1])); \par
+   \cf4 Print\cf2 ("Ave catch per standard tow = ",\cf4 ave\cf2 (Inside_data\f0 [;4]\f2 )," kg");\par
+   factor = Surarea * 1000000./stdtow; \cf1 // Number of tows possible in survey area\cf2\par
+   Biomass = \cf4 ave\cf2 (Inside_data\f0 [;4]\f2 )* factor;   \cf1 //Ave(Std Catch/1000 m sq tow adjusted to Std Tow) * #poss tows\cf2\par
+   MSY = .5*.08*biomass; \cf1 // Maximum sustainable yield with M = .08\cf2\par
+   MCY = .33*.08*biomass; \cf1 // Maximum constant yield with M = .08\cf2\par
+\lang1033\f1    sample_sd = \cf4 stdev\cf2 (\lang4105\f2 Inside_data\f0 [;4]\lang1033\f1 );\par
+   tCI = 1.96 * \cf4 sqrt\cf2 ((\cf4 pow\cf2 (\lang4105\f2 factor\lang1033\f1 ,2) * sample_sd/\cf4\lang4105\f2 len\cf2 (Inside_data)[1]\lang1033\f1 ) * ((\lang4105\f2 factor\lang1033\f1  - \cf4\lang4105\f2 len\cf2 (Inside_data)[1]\lang1033\f1 )/\lang4105\f2 factor\lang1033\f1 ));\par
+\lang4105\f2    \cf4 Print\cf2 (\cf4\f0 sprintf\cf2 (\f2 "Number of tows possible in survey area = \f0 %14.0f\f2 ",factor));\par
+   \cf4 Print\cf2 ("Area used = ",Surarea," km sq");\par
+\f0    \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Survey Biomass (Ave catch per tow* #tows possible) =   %14.0f",biomass)," kg");\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("                    95 percent confidence interval =    +- %10.0f",\lang1033\f1 tCI\lang4105\f0 )," kg")\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Estimated MSY  =   %10.0f",msy)," kg");\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Estimated 2/3 MSY = %9.0f",0.6667 * msy)," kg");\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Estimated MCY  =   %10.0f",mcy)," kg");\par
+   \cf4\f2 Print\cf2 (" ");\par
+   \cf1 //Using 90 m contour line\cf2\par
+   \cf4 Print\cf2 ("Using Survey Polygon"); \par
+   \cf4 Print\cf2 ("Number of tows used in analysis = ",\cf4 str\cf2 (\cf4 len\cf2 (Inside_data)[1])); \par
+   \cf4 Print\cf2 ("Ave catch per standard tow = ",\cf4 ave\cf2 (Inside_data\f0 [;4]\f2 )," kg");\par
+   factor = \f4 Survey_area\f2  * 1000000./stdtow; \cf1 // Number of tows possible in survey area\cf2\par
+   Biomass = \cf4 ave\cf2 (Inside_data\f0 [;4]\f2 )* factor;   \cf1 //Ave(Std Catch/1000 m sq tow adjusted to Std Tow) * #poss tows\cf2\par
+   MSY = .5*.08*biomass; \cf1 // Maximum sustainable yield with M = .08\cf2\par
+   MCY = .35*.08*biomass; \cf1 // Maximum constant yield .35MB0 with M = .08\cf2\par
+\lang1033\f1    sample_sd = \cf4 stdev\cf2 (\lang4105\f2 Inside_data\f0 [;4]\lang1033\f1 );\par
+   tCI = 1.96 * \cf4 sqrt\cf2 ((\cf4 pow\cf2 (\lang4105\f2 factor\lang1033\f1 ,2) * sample_sd/\cf4\lang4105\f2 len\cf2 (Inside_data)[1]\lang1033\f1 ) * ((\lang4105\f2 factor\lang1033\f1  - \cf4\lang4105\f2 len\cf2 (Inside_data)[1]\lang1033\f1 )/\lang4105\f2 factor\lang1033\f1 ));\par
+\lang4105\f2    \cf4 Print\cf2 (\cf4\f0 sprintf\cf2 (\f2 "Number of tows possible in survey area = \f0 %14.0f\f2 ",factor));\par
+   \cf4 Print\cf2 ("Area used = ",\f4 Survey_area\f2 ," km sq");\par
+\f0    \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Survey Biomass (Ave catch per tow* #tows possible) =   %14.0f",biomass)," kg");\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("                    95 percent confidence interval =    +- %10.0f",\lang1033\f1 tCI\lang4105\f0 )," kg")\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Estimated MSY  =   %10.0f",msy)," kg");\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Estimated 2/3 MSY = %9.0f",0.6667 * msy)," kg");\par
+   \cf4\f2 Print\cf2 (\cf4\f0 sprintf\cf2 ("Estimated MCY  =   %10.0f",mcy)," kg");\par
+\f2\};\lang1033\f1\par
+\cf1 /* ---------------------------------------------------------------------------------------------------------- */\cf2\par
+\f4    \cf3 Set_Banquereau_contours\cf2 ();  \cf1 // extracts contiguous Banquereau contours for 40,90 and 100m named Banquereau_XXm_c\cf2\par
+   \lang4105\f2 cc80area = \cf4 polygon_area\cf2 (\f0 Banquereau_80m_c\f2 ); \cf1 // area of contiguous 90 m polygon\cf2\par
+   cc40area = \cf4 polygon_area\cf2 (\f0 Banquereau_40m_c\f2 ); \cf1 // area of contiguous 40 m polygon\cf2\par
+   \cf4 Print\cf2 ("Area of polygon defined by 80 m contour = ",cc80area);\par
+   \cf4 Print\cf2 ("Area of Banquereau defined by contiguous 40 m contour = ",cc40area);\par
+\f4    poly40_to_80m = \cf4 polygon_intersect\cf2 (Banquereau_80m_c,Banquereau_40m_c,1); \cf1 // Area between 40 and 90m contours\cf2\par
+deep_multiplier = 0.0;\f2\par
+\cf3 Simple_biomass\cf2 (2,\f4 poly40_to_80m,\f2 1,0,1,1,2);   \cf1 // Use tows as they are Add stations that were too deep or rocky to occupy as zero catches\cf2\par
+\cf3\f4 Non_fishing_polygons_2010\cf2 (1);\par
+\cf3\f2 Simple_biomass\cf2 (2,\f4 SE_poly,\f2 1,0,1,1,2);   \cf1 // Use tows as they are Add stations that were too deep or rocky to occupy as zero catches\cf2\par
+\cf3 Simple_biomass\cf2 (2,\f4 NW_poly,\f2 1,0,1,1,2);   \cf1 // Use tows as they are Add stations that were too deep or rocky to occupy as zero catches\cf2\par
+\cf3 Simple_biomass\cf2 (2,\f4 Cen_poly,\f2 1,0,1,1,2);   \cf1 // Use tows as they are Add stations that were too deep or rocky to occupy as zero catches\cf2\par
+\cf3 Simple_biomass\cf2 (2,\f4 WE_poly,\f2 1,0,1,1,2);   \cf1 // Use tows as they are Add stations that were too deep or rocky to occupy as zero catches\cf2\par
+\par
+\par
+\cf3 Simple_biomass\cf2\f0 (2,0,0,0,1,2)\f2 ;   \cf1 // Use tows as they are\cf2\par
+Simple_biomass(area,deep,zero_deep,rocky,zero_rocky,std_tow)\f0\par
+\par
+\cf3\f4 Non_fishing_polygons_2010\cf2 (0);\cf1 // set up for polygons not fished between 2004 and 2010 surveys\cf2\f2\par
+\f0\par
+\cf1\lang1033\f4 //****************************************************************************************************************************************\cf2\par
+\cf1 //  Save contours to compare with 2010 contours\cf2\par
+\cf1 //****************************************************************************************************************************************\cf2\par
+\cf3 Set_Banquereau_contours\cf2 ();  \cf1 // extracts contiguous Banquereau contours for 40,90 and 100m named Banquereau_XXm_c\cf2\par
+\cf3\lang4105\f2 Simple_biomass\cf2 (2,\f0 Banquereau_90m_c\f4 ,\f2 1,0,1,1,2);   \cf1 // Use tows as they are Add stations that were too deep or rocky to occupy as zero catches\cf2\par
+\pard\cf4\f1 Data_Contour_Levels\cf2 (0  ,\f2 .9\f1  ,\f2 100.\f1   ,0.\f2 7\f1 5 ,\f2 200.\f1   ,0.5 ,\f2 300.\f1   ,0.\f2 3\f1 5 ,\f2 400.\f1   ,0.2 ,\f2 500.\f1 0 ,0 );\par
+\f4 M_2004_contours = \cf4 List_contour_polygons\cf2 (\f2 Use_data[;2 3 5]); \par
+\cf4\f4 Matrix_write\cf2 ("F:\\Dale\\Garb\\garb",M_2004_contours)\par
+\cf4 Convert_blanks_to_Tabs\cf2 ("F:\\Dale\\Garb\\garb","F:\\Dale\\Clam Work\\2010 Banquereau Survey\\Results\\M_2004_contours.txt");\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang1033 //****************************************************************************************************************************************\cf2\par
+\lang4105\f0\par
+\par
+\f4 Function Plot_processed_tows()\{\par
+  //Plots colour coded tows for: no clams, processed samples, samples still to do\par
+\lang1033\f0   \cf3 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 Towdata.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 FreqSample_\lang1033 file\cf2 (in_path,"\lang4105\f2 Banquereau Survey 2004 Freq Sample data.txt\lang1033\f0 ",2,"\tab ");\lang4105\par
+  \cf1 //towsWithOutClams = FS_tow[bindex(Weight_Measured == 0)];\cf2\par
+  C_Catch\lang1033  = \cf3 Get_catch\cf2 (4355,1); \cf1 // Standardized catch\cf2\par
+\lang4105\f2   \f0 towsWithOutClams = c_catch[\cf4 bindex\cf2 (c_catch[;2] == 0);1]\f2\par
+  \cf3\lang1033\f1 read_delimited_\lang4105\f2 Morphometrics_\lang1033\f1 file\cf2 (in_path,\lang4105\f2 "Banquereau Survey Data 2004 Morphometrics.txt"\lang1033\f1 ,\lang4105\f2 2\lang1033\f1 ,\lang4105\f2 "\tab "\lang1033\f1 )\par
+\lang4105\f0   processed_tows = \cf4 distinct\cf2 (m_tow);\par
+\lang1033   \cf3 back_map\cf2 (0)\lang4105 ;\par
+  \cf1 //Map_objects(1,1,1,1,1);\cf2\par
+\f4   Marker_Height(mm(2.5));\par
+  Fill_Colour("BLUE");\par
+\f0   data_points(pos[\f4 bindex(member(towswithoutclams,t_tow));]);\par
+  \cf4 data_points\cf2 (\cf4 shape\cf2 (1 2,\cf4 NDC\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (147.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (17.))))\par
+  Fill_Colour("Green");\par
+\f0   data_points(pos[\f4 bindex(member(\f0 processed_tows\f4 ,t_tow));]);\f0\par
+\f4   \cf4 data_points\cf2 (\cf4 shape\cf2 (1 2,\cf4 NDC\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (147.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (12.))))\par
+  Fill_Colour("RED");\par
+  to_do = distinct(cat(0,towswithoutclams,\f0 processed_tows));\f4\par
+\f0   data_points(pos[bindex(\f4 member(to_do,t_tow)*-1 + 1);]);\f0\par
+\f4   \cf4 data_points\cf2 (\cf4 shape\cf2 (1 2,\cf4 NDC\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (147.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (7.))))\par
+  Fill_Colour("BLACK");\par
+  Character_Height(pts(6));\par
+\f0   data_labels(cat(2,pos[;1 2],T_Tow));\par
+\f4   Character_Height(pts(12));\par
+\lang1033\f1   \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (1)+ \cf4 mm\cf2 (150.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (15.)\lang1033\f1 ,\lang4105\f2 "No Clams"\lang1033\f1 );\par
+  \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (1)+ \cf4 mm\cf2 (150.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (10.)\lang1033\f1 ,\lang4105\f2 "Processed"\lang1033\f1 );\par
+  \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (1)+ \cf4 mm\cf2 (150.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (5.)\lang1033\f1 ,\lang4105\f2 "Still to \cf5 Do\cf2 "\lang1033\f1 );\par
+  \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (1)+ \cf4 mm\cf2 (70.),\cf4 getview\cf2 (4) + \cf4 mm\cf2 (2.)\lang1033\f1 ,\lang4105\f2 "2004 Banquereau Clam Survey"\lang1033\f1 );\par
+\lang4105\f2\};\lang1033\f1\par
+\lang4105\f4 Plot_processed_tows()\f0\par
+\par
+\f4 //Plot catch of selected species\par
+Function Plot_species(species_cd,Area,Title)\{\par
+\lang1033\f0   \cf3 read_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 Bycatch.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 towdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+  Datam = cat(2,t_tow,pos,shape(cat(0,len(t_tow),1),0.));\par
+  C_Catch\lang1033  = \cf3 Get_catch\cf2 (\cf4 scalar\cf2 (\lang4105\f4 species_cd)\lang1033\f0 ,1); \cf1 // Standardized catch\cf2\par
+\lang4105   Datam[\f4 index(t_tow,\f0 C_Catch\lang1033 [;1]\lang4105\f4 );4] = \f0 C_Catch\f4 [;2];\par
+\f0   Line_Colour("BLACK"); Line_Width(pts(0.5));\par
+\lang1033   \cf3 back_map\cf2 (0)\lang4105 ;\par
+  \cf3 Map_objects\cf2 (1,1);\par
+  \cf1 //Continuous_Scaling(1, 0, mm(1.), mm(5), 0.1, 2500., 1. 250. 750. 1500. 2500.);\cf2\par
+  \cf4 Continuous_Scaling\cf2 (1, 0, \cf4 mm\cf2 (1.), \cf4 mm\cf2 (5), 0.1, 5., 1. 2. 3. 4. 5.);\par
+\f4   \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+\f0   Scaled_Symbols(datam[;2 3 4]);\par
+  \cf4 Symbol_Legend\cf2 (\cf4 getview\cf2 (2)- \cf4 mm\cf2 (17.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (35.));\par
+\lang1033\f1   \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (2)- \cf4 mm\cf2 (50.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (10.)\lang1033\f1 ,\lang4105\f2 Title\lang1033\f1 );\par
+  \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (2) - \cf4 mm\cf2 (50.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 ( 5.)\lang1033\f1 ,\lang4105\f2 "Kg/500 m sq"\lang1033\f1 );\par
+\lang4105\f4   \cf4 Character_Height\cf2 (\cf4 pts\cf2 (18));\par
+\lang1033\f1   \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (1)+\cf4 mm\cf2 (55.),\cf4 getview\cf2 (4) + \cf4 mm\cf2 (1.)\lang1033\f1 ,\lang4105\f2 "2004 Banquereau Clam Survey"\lang1033\f1 );\par
+\lang4105\f4   \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+\f0\};\par
+\f4 Plot_species(4304,2,"Ocean Quahogs")\f0\par
+\cf3 Map_objects\cf2 (1);\par
+\f4\par
+\cf3 Plot_species\cf2 (4355,2,"Arctic surfclams")\f0\par
+\cf3 Map_objects\cf2 (1);\par
+\f4\par
+\cf3 Plot_species\cf2 (4312,2,"Northern Propellerclam")\f0\par
+\cf3 Map_objects\cf2 (1);\par
+\par
+\cf1 // Whelk distribution\cf2\par
+Buccinum_codes = 73726 73803 73817 73727 73777 73737 73795;\par
+Colus_codes = 73892 73918 73920 73922 567390;\par
+Neptunea_codes = 73975 567952 74010 73984;\par
+\pard\f4 bn_idx = \cf4 bindex\cf2 (\cf4 member\cf2 (buccinum_codes,\lang1033\f0 IT_\lang4105 Sp_code\f4 ))\par
+co_idx = \cf4 bindex\cf2 (\cf4 member\cf2 (\f0 Colus_codes\f4 ,\lang1033\f0 IT_\lang4105 Sp_code\f4 ))\par
+Np_idx = \cf4 bindex\cf2 (\cf4 member\cf2 (\f0 Neptunea_codes\f4 ,\lang1033\f0 IT_\lang4105 Sp_code\f4 ))\par
+\cf1 // Note: Have to read bycatch file back in again to remove changes\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0 sp_code[\f4 bn_idx] = 700;\f0\par
+sp_code[\f4 co_idx] = 800;\f0\par
+sp_code[\f4 Np_idx] = 900;\f0\par
+\cf3\lang1033 multi_Plot\cf2 ((700 800 900),\cf4 strfold\cf2 ("Buccinum/Colus/Neptunea","/"),"Whelk Distribution")\lang4105\f4\par
+\par
+function nice_scale2(x)\{\par
+   s = .1 .25 .5 .75 1. * x;\par
+   print("s = ",s);\par
+\tab iexp = (floor(log10(s)));\par
+\tab print("iexp = ",iexp);\par
+   s = (s*pow(10,-1*iexp));\par
+   sdx = bindex((mod(s,1.) > .25)&&(mod(s,1)<.75))\par
+   s = round(0,s);\par
+\tab print("round s = ",s);\par
+   s[sdx] = s[sdx] - .5;\par
+\tab print("s = ",s);\par
+  return(s*pow(10,iexp));\par
+\}\par
+function nice_scale3(x)\{\par
+   s = .1 .25 .5 .75 1. * x;\par
+   //print("s = ",s);\par
+\tab iexp = (floor(log10(s)));\par
+\tab //print("iexp = ",iexp);\par
+   s = (s*pow(10,-1*iexp));\par
+\tab //print("s = ",s);\par
+   sdx = ((mod(s,1.) > .25)&&(mod(s,1)<.75))\par
+ \tab //print("mod s = ",mod(s,1.));\par
+   s = round(0,s);\par
+   t = (s - rot(1,s)) == 0.;\par
+   sind = bindex((sdx+cat(0,drop(-1,t),0.))==2);\par
+   if(len(sind)>0)\{s[sind] = s[sind] - .5;\}; \par
+   sind = bindex((sdx+t)==1);\par
+   //s[sind] = s[sind] + .5; \par
+  return(s*pow(10,iexp));\par
+\}\par
+\par
+function good_scale(max_value)\{\par
+  Catch_scale = .1 .25 .5 1. * max_value;\par
+  Dig = floor(log10(Catch_scale))\par
+  N_scale = round(Dig-2,Catch_scale/pow(10,Dig))*pow(10,Dig);\par
+  return(n_scale);\par
+\};  \par
+\f0\par
+\f4 //Plot catch of selected species  - trying to automate scale\par
+Function Plot_species(species_cd,Area,Title)\{\par
+\lang1033\f0   read_delimited_\lang4105 By_catch_\lang1033 file(in_path,\lang4105 "BycatchData.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   read_delimited_\lang4105 Tow_data_\lang1033 file(in_path,\lang4105 "towdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   read_delimited_\lang4105 Catch_data_\lang1033 file(in_path,\lang4105 "catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+  Datam = cat(2,t_tow,pos,shape(cat(0,len(t_tow),1),0.));\par
+  C_Catch\lang1033  = Get_catch(\lang4105\f4 species_cd\lang1033\f0 ,1); // Standardized catch\par
+\lang4105   Datam[\f4 index(t_tow,\f0 C_Catch\lang1033 [;1]\lang4105\f4 );4] = \f0 C_Catch\f4 [;2];\par
+\f0   Line_Colour("BLACK"); Line_Width(pts(0.5));\par
+\lang1033   back_map(\lang4105\f4 Area\lang1033\f0 )\lang4105 ;\par
+  \cf3 Map_objects\cf2 (0,0,1,1,0,0);\par
+\f4   Catch_scale = rmin(.1 .25 .5 .75 1. * \f0 max(datam[;4]\f4 ));\par
+  Continuous_Scaling(1, 0, mm(1.), mm(5.),0.1, \f0 max(datam[;4])\f4 ,cat(0, 1., Catch_scale));\par
+  Character_Height(pts(12));\par
+\f0   Marker_Height(mm(1.5));\par
+  Scaled_Symbols(datam[;2 3 4]);\par
+  Symbol_Legend(mm(175), mm(71));\par
+\lang1033\f1   draw_text(\lang4105\f0 getview(1)+mm(105.),getview(3) + mm(20.)\lang1033\f1 ,\lang4105\f2 Title\lang1033\f1 );\par
+  draw_text(\lang4105\f0 getview(1)+mm(105.),getview(3) + mm(15.)\lang1033\f1 ,\lang4105\f2 "Kg/1000 m sq"\lang1033\f1 );\par
+  \cf4 draw_text\cf2 (\cf4\lang4105\f0 getview\cf2 (1)+\cf4 mm\cf2 (55.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (2.)\lang1033\f1 ,\lang4105\f2 "2004 Banquereau survey"\lang1033\f1 );\par
+\lang4105\f0\};\par
+\f4 Plot_species(9200,2,"Rock and Stones");\par
+\lang1033\f2    \f4 Fill_Colour("RED");\par
+\f2    \f4 Marker_Type(1);\par
+\f2    \lang4105\f1 data_points(\f0 RoxAnn_rocky[;3 2]\f1 );\par
+\lang1033\f4    Marker_Type(0);\par
+   Fill_Colour("BLACK");\par
+\lang4105\f0\par
+\f4 Plot_species(4321,2,"Sea Scallops");\par
+\lang1033\f2    \f4 Fill_Colour("RED");\par
+\f2    \f4 Marker_Type(1);\par
+\f2    \lang4105\f1 data_points(\f0 RoxAnn_rocky[;3 2]\f1 );\par
+\lang1033\f4    Marker_Type(0);\par
+   Fill_Colour("BLACK");\par
+\lang4105\f0\par
+\f4 Plot_species(6611,2,"Sea Cucumbers")\f0\par
+\par
+\cf3\f4 Plot_species\cf2 (9801,2,"Shell")\f0\par
+\par
+\f4 Plot_species(4304,2,"Ocean Quahogs")\f0\par
+\lang1033\f2 Line\f4 _Colour("RED");\par
+Overlay_File("C:\\ACONw95\\Overlays\\HydrographyContoursxyz\\Depth10");\par
+\f2 Line\f4 _Colour("GREEN");\par
+Overlay_File("C:\\ACONw95\\Overlays\\HydrographyContoursxyz\\Depth20");\par
+\f2 Line\f4 _Colour("BLUE");\par
+Overlay_File("C:\\ACONw95\\Overlays\\HydrographyContoursxyz\\Depth30");\par
+\f2 Line\f4 _Colour("BLACK");\par
+\lang4105\f0\par
+\cf1 //Thompson_Bell Y/R\cf2\par
+frange = 0.0 0.0001 0.0002 .01 .02 .04 .06 .08 .1 .2 .4 .6 .8 1.0 1.5 2.0;  \cf1 // range of f's to use\cf2\par
+yield = biomass = \cf4 shape\cf2 (\cf4 len\cf2 (frange),0.0);                              \cf1 // set up empty vectors for output\cf2\par
+F01max = y01max = 0.0 0.0;                                             \cf1 // set up empty vectors for output\cf2\par
+Ages = \cf4 seq\cf2 (1,150);                              \cf1 // Ages to use\cf2\par
+Laa = 90.322*(1-\cf4 exp\cf2 (-0.044*(Ages + 4.707)));    \cf1 // Length at age from growth curve\cf2\par
+Waa = 0.0001*\cf4 pow\cf2 (Laa,3.148447);                 \cf1 // Weight at age from morphometrics\cf2\par
+\cf1 //selin = pow((exp(-12.8376+0.1498*laa)/(laa + exp(-12.8376+0.1498*laa))),(1/3.598)); // Selectivity at age from curve\cf2\par
+selin = 1/(1+\cf4 exp\cf2 (-1.06*(laa-28.97))); \cf1 // Selectivity at age from curve\cf2\par
+na = \cf4 len\cf2 (selin);                                \cf1 // Number of ages used\cf2\par
+maa = \cf4 exp\cf2 (-3.74894 + 0.458356*ages)/(1 + \cf4 exp\cf2 (-3.74894 + 0.458356*ages));  \cf1 //Maturity at age from curve fit\cf2\par
+T\cf4 hompson_Bell\cf2 (selin,waa,maa,0,frange,yield,biomass,f01max,y01max)\par
+\cf4 Data_viewport\cf2 (\cf4 mm\cf2 (30),\cf4 mm\cf2 (150),\cf4 mm\cf2 (200), \cf4 mm\cf2 (250));\par
+\cf4 plot_lines\cf2 (frange,yield,\cf4 cat\cf2 ("Yield at F0.1 and Fmax = ",\cf4 str\cf2 (\cf4 int\cf2 (y01max)))); \par
+\par
+\par
+\cf1 // select tows with catch > 100g/m square\cf2\par
+C_Catch\lang1033  = \cf3 Get_catch\cf2 (4355,1); \cf1 // Standardized catch\cf2\par
+\lang4105 tows_100 = C_Catch[\cf4 bindex\cf2 ((C_Catch[;2]*2.)>100.);1];\par
+no_morph_samp = t_tow[\cf4 bindex\cf2 (\cf4 member\cf2 (\cf4 distinct\cf2 (m_tow),t_tow) == 0)]; \cf1 // tows with no morphometrics samples\cf2\lang1033\par
+\lang4105 priority_tows = \cf4 member\cf2 (tows_100,no_morph_samp)\par
+\par
+\cf1 // set of stations\cf2\par
+Good_stns = t_tow[\cf4 bindex\cf2 (\cf4 member\cf2 (73 152 213,t_tow) == 0)];\par
+\cf1 // Remember deep and rocky stations as well\cf2\par
+\cf4 print\cf2 ("Number of good stations = ",\cf4 str\cf2 (\cf4 len\cf2 (good_stns)));\par
+\cf4 print\cf2 ("Number of rocky stations = ",\cf4 str\cf2 (\cf4 len\cf2 (ridx)));\par
+\cf4 print\cf2 ("Number of deep stations = ",\cf4 str\cf2 (\cf4 len\cf2 (didx)));\par
+\par
+\par
+\cf1\lang1033\f3 // ------------------------------------------------------------------------------------------------------------\cf2\par
+\cf1\lang4105\f0 // Total length frequency  Note: weighted by total clam catch weight\cf2\par
+\lang1033 f\cf5 unction\cf2  \cf3 Total_length_frequency\cf2 (S_species,S_tows)\{\par
+  \cf3 read_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 Bycatch.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 Towdata.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Len_freq_data_\lang1033 file\cf2 (in_path,\lang4105 "\f2 Banquereau Survey data 2004 Length Freq.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 FreqSample_\lang1033 file\cf2 (in_path,"\lang4105\f2 Banquereau Survey 2004 Freq Sample data.txt\lang1033\f0 ",2,"\tab ");\lang4105\par
+\f2   \cf3\lang1033\f1 read_delimited_\lang4105\f2 Morphometrics_\lang1033\f1 file\cf2 (in_path,\lang4105\f2 "Banquereau Survey Data 2004 Morphometrics.txt"\lang1033\f1 ,\lang4105\f2 2\lang1033\f1 ,\lang4105\f2 "\tab "\lang1033\f1 )\par
+\lang4105\f4   mfreq = \cf4 aggregate\cf2 (M_tow,"Total",\lang1033\f1 TotWgt\lang4105\f2 /1000.0\f4 );                   \cf1 // correct tows that show no frequency sample date\cf2\par
+  mfreq = \cf4 cat\cf2 (2,mfreq,weight_measured[\cf4 index\cf2 (fs_tow,mfreq[;1])]);    \cf1 // but have morphometrics samples\cf2\par
+  weight_measured[\cf4 bindex\cf2 (mfreq[;2] > mfreq[;3])] = mfreq[;2];       \cf1 //\cf2\par
+\lang1033\f0   s_catch = \cf3 Get_catch\cf2 (4355,1); \cf1 // Standardized catch \cf2\par
+ \f4  tt = \cf4 cat\cf2 (2,fs_tow,weight_measured,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (fs_tow),2),\cf4 cat\cf2 (0,0.,1.)));  \cf1 // weights of measured clams per tow\cf2\par
+\lang4105\f0   tt[\cf4\f4 index\cf2 (fs_tow,\lang1033\f0 s_catch[;1]\lang4105\f4 );3] = \lang1033\f0 s_catch\lang4105\f4 [;2];                               \cf1 // Matching standardized clam catch per tow\cf2\par
+  z_indx = \cf4 bindex\cf2 (tt[;2]>0)\par
+  tt[z_indx;4] = tt[z_indx;3]/tt[z_indx;2];                \cf1 // factor to go from measured sample to total clam catch\cf2\par
+\f0   lf_datam = \cf4 cat\cf2 (2,lf_tow,lf_len,\lang1033 lf\lang4105 _N_at_len,\cf4 shape\cf2 (\cf4 len\cf2 (lf_len),1.));               \cf1 // Set up matrix for data aggregation\cf2\par
+\lang1033   \lang4105 lf_\lang1033 datam[;4]= tt[\cf4 index\cf2 (tt[;1],\lang4105 lf_\lang1033 datam[;1]);4];                \cf1 // Datam = tow length n_at_len factor\cf2\par
+\f4   G_IDX = \cf4 bindex\cf2 (\cf4 member\cf2 (s_tows,\lang4105\f0 lf_\lang1033 datam\f4 [;1]));   \cf1 // Index of tows to use in analysis, \par
+  \lang4105\f0 lf_\lang1033 datam = \lang4105 lf_\lang1033 datam[G_idx;];                          // Remove bad tows from analysis\cf2\f4\par
+\lang4105\f0   \cf4 Aggregation_Type\cf2 ("TOTAL");\par
+  Aggdata = \cf4 aggregate\cf2 (1.,1.,\cf4 cat\cf2 (2,lf_len[g_idx],\cf4 shape\cf2 (\cf4 len\cf2 (lf_len[g_idx]),1.),lf_\lang1033 datam[;3]*\lang4105 lf_\lang1033 datam[;4]\lang4105 ));\par
+  \cf5 return\cf2 (aggdata);\par
+\};\par
+\cf1\lang1033 // ------------------------------------------------------------------------------------------------------------\cf2\par
+\cf5\lang4105\f4 Function\cf2  \cf3 total_age_freq\cf2 (aldata,incr,plot)\{ \cf1 // Bump sample length frequency numbers up to total numbers at length per tow \cf2\par
+  datam = \cf4 cat\cf2 (2,t_tow,\cf4 shape\cf2 (\cf4 CAT\cf2 (0,\cf4 len\cf2 (t_tow),3),0 0 1.))\f0 ;            \cf1 // Set up matrix for aggregated data with tow numbers\cf2\par
+\lang1033   Total_length_frequency();                               \cf1 // Add estimated total numbers per tow\cf2\par
+\cf3\lang4105\f2   t2 = aggregate(lf_datam[;1],"SUM",(lf_datam[;3]*lf_datam[;4]));\par
+  miss_tows = \cf2\lang1033\f0 bindex(member(t2[;1],datam[;1])==0);                   // no len freq records for these tows\par
+  t2 = cat(1,t2,cat(2,miss_tows,shape(len(miss_tows),0)));           // Add records for missing tows\par
+\lang4105\f4   \lang1033\f0 datam[;2]= t2[index(t2[;1],datam[;1]);2];\par
+\lang4105\f4   tt = \cf4 aggregate\cf2 (lf_tow,"sum",lf_n_at_len);                          \cf1 // Aggregate numbers measured per tow\cf2\par
+\lang1033\f0   zero_tows = \cf4 bindex\cf2 (\cf4 index\cf2 (tt[;1],datam[;1])==0);                    \cf1 // List of tows with no length frequencies(catch)\cf2\par
+  tt = \cf4 cat\cf2 (1,tt,\cf4 cat\cf2 (2,zero_tows,\cf4 shape\cf2 (\cf4 len\cf2 (zero_tows),0)));           \cf1 // Add to aggregated list with zero numbers measured\cf2\par
+  datam[;3]= tt[\cf4 index\cf2 (tt[;1],datam[;1]);2];                          \cf1 // Add numbers measured per tow to datam matrix\cf2\par
+  datam[\cf4 bindex\cf2 (datam[;3] > datam[;2]);2] = datam[\cf4 bindex\cf2 (datam[;3] > datam[;2]);3]; \cf1 // Correct tows with est# < actual lenfreq\cf2\par
+  datam[;4]= datam[;2]/datam[;3];                                    \cf1 // factor to bump sample number up to total numbers\cf2\lang4105\par
+  datatemp = \cf4 cat\cf2 (2,lf_tow,lf_len,lf_n_at_len,\cf4 shape\cf2 (\cf4 len\cf2 (lf_len),1.)); \cf1 // Set up matrix of len freq data\cf2\par
+  datatemp[;4] = datatemp[;3] * \lang1033 datam[\cf4 index\cf2 (datam[;1],datatemp[;1]);4];  \cf1 // Add calculated total numbers at length per tow  \cf2\lang4105\par
+\f4   tot_lf = \cf4 aggregate\cf2 (datatemp[;2],incr,"sum",datatemp[;4]);           \cf1 // Aggregate total numbers at length\cf2\par
+  \cf3 make_key\cf2 (aldata,incr);                                                     \cf1 // Construct age-length key\cf2\par
+  \cf1 // Now have to account for problems in matching aged and length frequency data\cf2\par
+\lang1033\f0   miss_lens = lengths[\cf4 bindex\cf2 (\cf4 member\cf2 (tot_lf[;1],lengths)==0.)];        \cf1 // Lengths in key but not in Len-Freq data (T. Rowells data)\cf2\par
+\lang4105\f4   if(len(miss_lens) > 0)\{\par
+    tot_lf=\cf4 cat\cf2 (1,tot_lf,\cf4 cat\cf2 (2,miss_lens,\cf4 shape\cf2 (\cf4 len\cf2 (miss_lens),0)));      \cf1 // Add zeros for miss_lens to total n_at_length\cf2\par
+\lang1033\f0     tot_lf = tot_lf[\cf4 ascending\cf2 (tot_lf[;1]);];                             \cf1 // sort frequencies by length\par
+\cf2   \};\par
+  extra_lens = tot_lf[\cf4 bindex\cf2 (\cf4 member\cf2 (lengths,tot_lf[;1])==0.);1];      \cf1 // Lengths in Len_freq data but not in key (largest not aged)\par
+\cf2\lang4105\f4   if(len(extra_lens) > 0)\{\par
+    larger = extra_lens[bindex(\lang1033\f0 extra_lens > max(lengths))]\lang4105\f4\par
+    if(len(Larger) > 0) \{\par
+       top5percent=\cf4 sum\cf2 (al_key[\cf4 bindex\cf2 (\cf4 cum_sum\cf2 (\cf4 sum\cf2 (al_key,2)/\cf4 sum\cf2 (al_key)) >= .95);],1);  \cf1 // sum of age at len for top 5% of size distibution\cf2\par
+\lang1033\f0        al_key = \cf4 cat\cf2 (1,al_key,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (\lang4105\f4 larger\lang1033\f0 ),n_ages),top5percent));  \cf1 // add to key for extra ages based on top 5%\par
+    \};\par
+\cf2  \lang4105\f4    Smaller = extra_lens[bindex(\lang1033\f0 extra_lens < min(lengths))];\par
+\lang4105\f4     if(len(smaller) > 0) \{\par
+      lowest5percent=\cf4 sum\cf2 (al_key[\cf4 bindex\cf2 (\cf4 cum_sum\cf2 (\cf4 sum\cf2 (al_key,2)/\cf4 sum\cf2 (al_key)) <= .05);],1);  \cf1 // sum of age at len for first 5% of size distibution\cf2\par
+\lang1033\f0       al_key = \cf4 cat\cf2 (1,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (\lang4105\f4 smaller\lang1033\f0 ),n_ages),\lang4105\f4 lowest5percent\lang1033\f0 ),al_key);  \cf1 // add to key for extra ages based on top 5%\par
+    \};\par
+\cf2  \};\par
+\lang4105\f2   Per_key = al_key/\cf4 transpose\cf2 (\cf4 shape\cf2 (\cf4 cat\cf2 (0,n_ages,\cf4\f4 len\cf2 (al_key)[1]\f2 ),\cf4 sum\cf2 (al_key,2)));  \cf1 // Redo Percent age-len key\cf2\par
+\pard   Per_key[\cf4 bindex\cf2 (\cf4 sum\cf2 (al_key,2)==0);]=0;                                \cf1 // for 0/0 cases, fill with zeros instead of 1's\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\f0   t1 = \cf4 transpose\cf2 (\cf4 shape\cf2 (\cf4 cat\cf2 (0,n_ages, \cf4\lang4105\f4 len\cf2 (al_key)[1]\lang1033\f0 ),tot_lf[;2])) * per_key;  \cf1 // Put numbers through \lang4105\f2 Percent \lang1033\f0 Age-length key\cf2\par
+  age_freq = \cf4 sum\cf2 (t1,1);\par
+\lang4105\f2   d2 = \cf4 cat\cf2 (2,ages,age_freq); \cf1 // ages and # at age\cf2\par
+  Agg_d2 =  \cf4 aggregate\cf2 (d2[;1],5,"SUM",d2[;2]);   \cf1 // aggregate into 5 year age groups\cf2\par
+\f4   \cf5 if\cf2 (plot == 1)\{\par
+\tab  ymax = \cf4 max\cf2 (\f2 Agg_d2[;2]\f4 ) * 1.1;\par
+\tab  xmax = max(ages)*1.1;\par
+    \cf4 Data_Window\cf2 (0,xmax,0,ymax);\par
+    \cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (40),\cf4 mm\cf2 (192),\cf4 mm\cf2 (170),\cf4 mm\cf2 (260));\par
+    \cf4 data_projection\cf2 ("NIL")\par
+    \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+    \cf4 Axis\cf2 (20.,5000.,5.0,1000.,1,0,1,0,0);\par
+\f0     \cf4 Data_Histogram\cf2 (5.,0.,\cf4 cat\cf2 (2,\f2 Agg_d2[;1] + 2.5,agg_d2[;2])\f0 );\par
+    \cf4 Draw_text\cf2 (\cf4 getview\cf2 (2)- \cf4 mm\cf2 (55.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (16.),\cf4 cat\cf2 ("Estimated number caught = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (\f2 Agg_d2[;2]\f0 )))));\par
+    \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1) + .5 * (\cf4 getview\cf2 (2)-\cf4 getview\cf2 (1))- \cf4 mm\cf2 (5.),\cf4 getview\cf2 (3) - \cf4 mm\cf2 (12.),"Age");\par
+    \cf4 Character_rotation\cf2 (90);\par
+    \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1) - \cf4 mm\cf2 (14.),\cf4 getview\cf2 (3) + .5 * (\cf4 getview\cf2 (4)-\cf4 getview\cf2 (3))- \cf4 mm\cf2 (5.),"Frequency");\par
+    \cf4 Character_rotation\cf2 (0);\par
+  \};\par
+  \cf5 return\cf2 (\f2 Agg_d2\f0 );\par
+\};\par
+\lang1033\f3 // ------------------------------------------------------------------------------------------------------------\par
+\lang4105\f0\par
+\lang1033 LF_tows_100 = \cf3 Total_length_frequency\cf2 (4355,tows_100)\par
+\lang4105\f4   \cf4 Data_Window\cf2 (0,160,0,30000);\par
+  \cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (40),\cf4 mm\cf2 (192),\cf4 mm\cf2 (30),\cf4 mm\cf2 (140));\par
+  \cf4 data_projection\cf2 ("NIL")\par
+  \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+  \cf4 Axis\cf2 (10.,2000.,1.0,500.,1,0,1,0,0);\par
+\f0   \cf4 Data_Histogram\cf2 (1.,0.,\lang1033 LF_tows_100\lang4105 [;1 3 3]);\par
+  \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (7.),\cf4 cat\cf2 ("Sampled n = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (lf_N_at_len)))));\par
+  \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (12.),\cf4 cat\cf2 ("Estimated total n = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (aggdata[;3])))));\par
+\lang1033\par
+\lang4105\par
+\par
+\cf4 Data_Window\cf2 (0,15,0,250);\par
+data_projection("NIL")\par
+Data_Viewport(mm(50),mm(230),mm(60),mm(170));\par
+\cf4 Axis\cf2 (5.0,25.000000,1.0,5.0,1,0,1,0,0);\par
+Data_points(weight_measured,num_measured)\par
+\par
+\cf5\lang1033 function\cf2  \cf3 plot_morph_length_frequency\cf2 (\lang4105 s_tows\lang1033 )\{\par
+\lang4105\f2   \cf3\lang1033\f1 read_delimited_\lang4105\f2 Morphometrics_\lang1033\f1 file\cf2 (in_path,\lang4105\f2 "Banquereau Survey Data 2004 Morphometrics.txt"\lang1033\f1 ,\lang4105\f2 2\lang1033\f1 ,\lang4105\f2 "\tab "\lang1033\f1 )\par
+\lang4105\f0   datam = \cf4 cat\cf2 (2,m_tow,leng,\cf4 shape\cf2 (\cf4 len\cf2 (leng),1.));               \cf1 // Set up matrix for data aggregation\cf2\par
+\cf0\f4   datam = datam[bindex((member(s_tows,datam[;1])&&(leng != 0)));];\cf2\par
+  \cf4 Data_Window\cf2 (0,160,0,70);\par
+  \cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (40),\cf4 mm\cf2 (192),\cf4 mm\cf2 (30),\cf4 mm\cf2 (140));\par
+  \cf4 data_projection\cf2 ("NIL")\par
+  \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+  \cf4 Axis\cf2 (10.,10.,1.0,1.,1,0,1,0,0);\par
+\f0   \cf4 Aggregation_Type\cf2 ("TOTAL");\par
+  Aggdata = \cf4 aggregate\cf2 (5.,1.,\lang1033 datam[;2 3 3]\lang4105 );\par
+  \cf4 Data_Histogram\cf2 (1.,0.,aggdata[;1 3 3]);\par
+  \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (7.),\cf4 cat\cf2 ("Sampled n = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (\lang1033 datam[;3]\lang4105 )))));\par
+\};\par
+\lang1033 plot_morph_length_frequency(\lang4105 tows_100\lang1033 )\par
+\cf0\lang4105\par
+\f4 t = aggdata\cf2\par
+\cf5 Function\cf2  \cf3 select_Random_sample\cf2 (tdata,s_tows)\{\par
+  tdata[;3] = \cf4 min\cf2 (tdata[;3],\cf4 shape\cf2 (\cf4 len\cf2 (tdata)[1],30));  \cf1 // minimum of clams sampled or 30\cf2\par
+  nclams = \cf4 sum\cf2 (t[;3]); \cf1 // Number of clams to process\cf2\par
+  outm = \cf4 shape\cf2 (0 3,0.0); \cf1 // empty output matrix\cf2\par
+  s = \cf4 len\cf2 (tdata)[1];\par
+  \cf5 for\cf2 (i = 1; i <= s; i = i++)\{\par
+    min_size = t[i;1] - 2.5;\par
+    max_size = t[i;1] + 2.5;\par
+     \cf1 // index of Morph sample clams in desired size range and from selected tows\cf2\par
+    t_idx = \cf4 bindex\cf2 ((leng > min_size)&&(leng <= max_size)&&(\cf4 member\cf2 (s_tows,m_tow))&&(leng \cf5 !\cf2 = 0.0));\par
+    \cf5 if\cf2 (\cf4 len\cf2 (t_idx) < 30)\{\par
+\tab     outm = \cf4 cat\cf2 (1,outm,\cf4 cat\cf2 (2,m_tow[t_idx],clam[t_idx],leng[t_idx]));\par
+    \}\cf5 else\cf2\{\par
+\tab     \cf4 rand_seed\cf2 ();\par
+\tab     r = \cf4 shape\cf2 (0,0); \cf1 // empty vestor to start\cf2\par
+\tab     \cf5 while\cf2  (\cf4 len\cf2 (\cf4 distinct\cf2 (r)) < 30)\{\par
+\tab\tab     r = \cf4 cat\cf2 (0,r,1 + \cf4 rand\cf2 (\cf4 len\cf2 (t_idx)-1)); \cf1 // randon selection of samples\cf2\par
+\tab     \};\par
+\tab     r_idx = \cf4 distinct\cf2 (r); \cf1 // random index of 30 samples\cf2\par
+\tab\tab  outm = \cf4 cat\cf2 (1,outm,\cf4 cat\cf2 (2,m_tow[t_idx[r_idx]],clam[t_idx[r_idx]],leng[t_idx[r_idx]]));\par
+\tab\};\par
+  \};\par
+  \cf5 return\cf2 (outm);\par
+\};\par
+age_samp_List = \cf3 select_Random_sample\cf2 (t,tows_100)\par
+age_samp_List = age_samp_List[\cf4 ascending\cf2 (age_samp_List[;1]);];\par
+\par
+\f0\par
+\cf1 // histogram of last digit in length frequencies\cf2\par
+\f4   \cf4 Data_Window\cf2 (-1,9.9,0,4000);\par
+  \cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (40),\cf4 mm\cf2 (192),\cf4 mm\cf2 (30),\cf4 mm\cf2 (140));\par
+  \cf4 data_projection\cf2 ("NIL")\par
+  \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+  \cf4 Axis\cf2 (1.,1000.,1.0,500.,1,0,1,0,0);\par
+\f0   \cf4 Aggregation_Type\cf2 ("TOTAL");\par
+\f4   tt=\cf4 mod\cf2 (lf_len,10); \cf1 //last digit\cf2\par
+  ldagg = \cf4 aggregate\cf2 (1,1,\cf4 cat\cf2 (2,tt,\cf4 shape\cf2 (\cf4 len\cf2 (tt),1),lf_n_at_len))\par
+  ldagg[;1] = ldagg[;1]-0.5;\par
+\f0   \cf4 Data_Histogram\cf2 (.75,0.,\f4 ldagg\f0 [;1 3 3]);\par
+\par
+\cf1 // Combine Sable and Banquereau data\cf2\par
+\cf4\lang1033 search_paths\cf2 ("C:\\ACONw95\\Clam_library\\Map_objects\\");\par
+\lang4105 in_path = \f4 "C:\\Common\\Banquereau 2004\\TextData\\\f0 ";               \cf1 // Desktop Common folder path\cf2\par
+\cf1 // Reading in Banquereau files\cf2\par
+\lang1033 r\cf3 ead_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 Bycatch.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 Towdata.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 Len_freq_data_\lang1033 file\cf2 (in_path,\lang4105 "\f2 Banquereau Survey data 2004 Length Freq.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\cf3\lang1033 read_delimited_\lang4105 FreqSample_\lang1033 file\cf2 (in_path,"\lang4105\f2 Banquereau Survey 2004 Freq Sample data.txt\lang1033\f0 ",2,"\tab ");\lang4105\par
+\cf3\lang1033\f1 read_delimited_\lang4105\f2 Morphometrics_\lang1033\f1 file\cf2 (in_path,\lang4105\f2 "Banquereau Survey Data 2004 Morphometrics.txt"\lang1033\f1 ,\lang4105\f2 2\lang1033\f1 ,\lang4105\f2 "\tab "\lang1033\f1 )\par
+\cf1\lang4105\f0 // Reading in Sable files\cf2\par
+in_path = \f4 "C:\\Dale\\Clam Work\\Propeller&Quahogs\\quahaug\\2003 Sable Survey\\DataFolder\\";      //Desktop Path\f0\par
+\cf3\lang1033 read_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "BycatchData.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033 read_delimited_\lang4105 Tow_data_\lang1033 file(in_path,\lang4105 "towdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033 read_delimited_\lang4105 Catch_data_\lang1033 file(in_path,\lang4105 "catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033 read_delimited_\lang4105 Len_freq_data_\lang1033 file(in_path,\lang4105 "lenfreqdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033 read_delimited_\lang4105 FreqSample_\lang1033 file(in_path,"FreqSampleData\lang4105 .txt\lang1033 ",2,"\tab ");\par
+\lang4105\par
+\par
+\cf1 // plot length frequency  Note: weighted by total clam catch weight\cf2\par
+\cf5\lang1033 function\cf2  \cf3 plot_length_frequency\cf2 (species, tow, scale_to_catch)\{\par
+  \cf3 read_delimited_\lang4105 By_catch_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 Bycatch.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Tow_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 Towdata.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Catch_data_\lang1033 file\cf2 (in_path,\lang4105 "\f4 Banquereau Survey data 2004 \f0 catchdata.txt"\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 Len_freq_data_\lang1033 file\cf2 (in_path,\lang4105 "\f2 Banquereau Survey data 2004 Length Freq.txt\f0 "\lang1033 ,\lang4105 2\lang1033 ,\lang4105 "\tab "\lang1033 )\lang4105 ;\par
+\lang1033   \cf3 read_delimited_\lang4105 FreqSample_\lang1033 file\cf2 (in_path,"\lang4105\f2 Banquereau Survey 2004 Freq Sample data.txt\lang1033\f0 ",2,"\tab ");\lang4105\par
+\lang1033   clams = \cf3 Get_catch\cf2 (species,1); \cf1 // Standardized surfclam catch \cf2\par
+\f4   \cf1 // -----------------------------------------------------------------------------------\cf2\par
+  \cf1 // Will have to add other species to Freq_Sample Data file\cf2\par
+  \cf1 // -----------------------------------------------------------------------------------\cf2\par
+  tt = \cf4 cat\cf2 (2,fs_tow,weight_measured,\cf4 shape\cf2 (\cf4 cat\cf2 (0,\cf4 len\cf2 (fs_tow),2),\cf4 cat\cf2 (0,0.,1.)));  \cf1 // weights of measured clams per tow\cf2\par
+\lang4105\f0   tt[\cf4\f4 index\cf2 (fs_tow,\lang1033\f0 clams[;1]\lang4105\f4 );3] = \lang1033\f0 clams\lang4105\f4 [;2];                               \cf1 // Matching standardized quahog catch per tow\cf2\par
+  z_indx = \cf4 bindex\cf2 (tt[;2]>0)\par
+  tt[z_indx;4] = tt[z_indx;3]/tt[z_indx;2];                \cf1 // factor to go from measured sample to total clam catch\cf2\par
+\f0   datam = \cf4 cat\cf2 (2,lf_tow,lf_len,\lang1033 lf\lang4105 _N_at_len,\cf4 shape\cf2 (\cf4 len\cf2 (lf_len),1.));               \cf1 // Set up matrix for data aggregation\cf2\par
+\lang1033   datam[;4]= tt[\cf4 index\cf2 (tt[;1],datam[;1]);4];\par
+  datam = datam[\cf4 bindex\cf2 (datam[;3] > 0);];     \cf1 // remove lengths with no clams\cf2\par
+\lang4105\f4   Datam = datam[\cf4 bindex\cf2 (datam[;1] == tow);];  \cf1 // select single tow\cf2\par
+\f0   \cf4 Aggregation_Type\cf2 ("TOTAL");\par
+  \cf5 if\cf2 (\lang1033 scale_to_catch == 1)\{\par
+\lang4105\tab   Aggdata = \cf4 aggregate\cf2 (1.,1.,\cf4 cat\cf2 (2,\lang1033 datam[;2]\lang4105 ,\cf4 shape\cf2 (\cf4 len\cf2 (\lang1033 datam[;2]\lang4105 ),1.),\lang1033 datam[;3]*datam[;4]\lang4105 ));    \cf1 // total catch\cf2\par
+  \} \cf5 else\cf2  \{\par
+\tab   Aggdata = \cf4 aggregate\cf2 (5.,1.,\cf4 cat\cf2 (2,\lang1033 datam[;2]\lang4105 ,\cf4 shape\cf2 (\cf4 len\cf2 (\lang1033 datam[;2]\lang4105 ),1.),\lang1033 datam[;3]\lang4105 ));              \cf1 // measured catch\cf2\par
+\f4   \};\par
+  \cf4 Data_Window\cf2 (0,150,0,10.*\cf4 ceil\cf2 (1.05*\cf4 max\cf2 (aggdata[;3])/10.));\par
+  \cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (40),\cf4 mm\cf2 (192),\cf4 mm\cf2 (30),\cf4 mm\cf2 (140));\par
+  \cf4 data_projection\cf2 ("NIL")\par
+  \cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+  \cf4 Axis\cf2 (10.,10.,1.0,5.,1,0,1,0,0);\par
+\f0   \cf4 Data_Histogram\cf2 (5.,0.,aggdata[;1 3 3]);\par
+  \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (7.),\cf4 cat\cf2 ("Sampled n = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (\lang1033 datam[;3]\lang4105 )))));\par
+  \cf4 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (17.),\cf4 cat\cf2 ("Tow = ",\cf4 str\cf2 (tow)));\par
+  \cf5 if\cf2 (\lang1033 scale_to_catch == 1)\{\cf4\lang4105 Draw_text\cf2 (\cf4 getview\cf2 (1)+\cf4 mm\cf2 (5.),\cf4 getview\cf2 (4) - \cf4 mm\cf2 (12.),\cf4 cat\cf2 ("Estimated total n = ",\cf4 str\cf2 (\cf4 int\cf2 (\cf4 sum\cf2 (aggdata[;3])))));\};\par
+\};\par
+\cf3\lang1033 plot_length_frequency\cf2 (4355,69,0)\par
+\cf3 plot_length_frequency\cf2 (4355,13,0)\par
+\lang4105\par
+\par
+\cf1 // histogram of catch at depth\cf2\par
+tt = \cf3 get_catch\cf2 (4355,1);\par
+tt = \cf4 cat\cf2 (2,tt,\cf4 shape\cf2 (\cf4 len\cf2 (tt)[1],0.));\par
+\cf4 insert\cf2 (TT,T_tow,\cf4 int\cf2 (\cf4 shape\cf2 (\cf4 len\cf2 (depth),3)),depth); \cf1 // insert depth into TT matrix\cf2\par
+\cf4\f4 Data_Window\cf2 (0,100,0,210);\par
+\cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (40),\cf4 mm\cf2 (192),\cf4 mm\cf2 (30),\cf4 mm\cf2 (140));\par
+\cf4 data_projection\cf2 ("NIL")\par
+\cf4 Character_Height\cf2 (\cf4 pts\cf2 (12));\par
+\cf4 Axis\cf2 (10.,50.,5.0,10.,1,0,1,0,0);\par
+tt = tt[\cf4 bindex\cf2 (tt[;3] \cf5 !\cf2 = \cf4 NAN\cf2 ());];\par
+\f0 Aggdata = \cf4 aggregate\cf2 (tt[;3],5,"average",tt[;2]);\par
+\cf4 Data_Histogram\cf2 (5.,5.,aggdata[;1 2]);\par
+\cf4 Draw_text\cf2 (\cf4 ave\cf2 (\cf4 getview\cf2 (1),\cf4 getview\cf2 (2))- \cf4 mm\cf2 (5.),\cf4 getview\cf2 (3) - \cf4 mm\cf2 (12.)," Depth (m)");\par
+\pard\cf0\lang1033\f5\fs20 Character_Rotation(90);\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf4\lang4105\f0\fs18 Draw_text\cf2 (\cf4 getview\cf2 (1) - \cf4 mm\cf2 (10.),\cf4 Ave\cf2 (\cf4 getview\cf2 (3),\cf4 getview\cf2 (4)) - \cf4 mm\cf2 (15.)," Average Catch per tow (kg)");\lang1033\f5\fs20\par
+\pard\cf4 Character_Rotation\cf2 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105\f0\fs18\par
+\cf1 //Quick and dirty estimate of production\cf2\par
+\cf1 // run simple biomass first to set parameters and stations\cf2\par
+\cf1 // use area <= 100 g/m sq (4242 km sq); tows with catches >= this (Use_data[;5])\cf2\par
+sel_tows = use_data[\cf4 bindex\cf2 (use_data[;5] >= 100.);1]; \cf1 // select stations with catch > 100 g/msq - have to run biomass first\cf2\par
+\lang1033 TLF = \cf3 Total_length_frequency\cf2 (4355,\lang4105 sel_tows\lang1033 );\par
+\pard\cf0\lang4105\f4 Pmatrix = shape(cat(0,len(tlf)[1], 6),0);\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0 Pmatrix[;1 2] = tlf[;1 3];                                             \cf1 // Present length and Numbers at length\cf2\par
+Pmatrix[;3] = (115.39 - pmatrix[;1])*(1 - \cf4 exp\cf2 (-0.077222*1.0));         \cf1 // One years growth, linear form of growth curve\cf2\par
+Pmatrix[;4] = 0.000053*\cf4 pow\cf2 (pmatrix[;1],3.182097);                      \cf1 // Present weight\cf2\par
+Pmatrix[;5] = 0.000053*\cf4 pow\cf2 ((pmatrix[;1] + pmatrix[;3]),3.182097);      \cf1 // Weight next year\cf2\par
+Pmatrix[;4 5] = Pmatrix[;4 5]* 1/(1-0.196);  \cf1 // Accounts for 19.6% water loss in processed clams\cf2\par
+\pard Pmatrix[;6] = (Pmatrix[;5] - Pmatrix[;4]) *(Pmatrix[;2] * \cf4\f4 exp\cf2 (-.08))\f0 ; \cf1 // Production per length bin in grams, includes M\cf2\par
+\cf0\f4 len20 = 115.39*(1-exp(-0.077222*(20+2.22266))); // length at age 20\par
+115.39*(1-exp(-0.077222*(20+2.22266)))\par
+survey_prod = sum(pmatrix[;6]);          // All size classes\par
+survey_prod_20 = sum(pmatrix[bindex(pmatrix[;1] >= len20);6]);          // Restrict to >= Age 20 size\par
+Ave_prod = survey_prod/len(sel_tows);  // Account for deep and rocky tows can just put number of stations to base it on\par
+Ave_prod_20 = survey_prod_20/len(sel_tows);  // As above for ages 20+ sizes\par
+Area40to90 = polygon_area(poly40_to_90m);\par
+Stdtow = 529.592;\par
+//factor = Area40to90 * 1000000./stdtow; // Number of tows possible in survey area\par
+factor = 4242. * 1000000/Stdtow;  // Number of tows possible in area > 100\par
+total_prod = ave_prod * factor;\par
+total_prod_20 = ave_prod_20 * factor;\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0 Recruitment  = 4879. \cf1 // recruitment number based on entire survey\cf2\par
+Recruitment  = \lang1033\f5\fs24 5886\lang4105\f0\fs18 . \cf1 // recruitment number based on entire survey\cf2\par
+Ave_rec = Recruitment/\cf4 len\cf2 (use_data)[1];  \cf1 // ave recruitment per tow based on entire survey \cf2\par
+\cf1 //tot_recruitment = Ave_rec * len(sel_tows); // recruitment in area > 100\cf2\par
+tot_recruitment = Ave_rec * \f2 factor\f0 ; \cf1 // recruitment in area > 100\cf2\par
+Recruitment_age = 20.;\par
+Recruit_length = 115.39*(1 - \cf4 exp\cf2 (-0.077222*(Recruitment_age + 2.22266)));  \cf1 // length at Recruitment_age\cf2\par
+Rec_weight = tot_recruitment*0.000053*\cf4 pow\cf2 (Recruit_length,3.182097)/1000000.0;        \cf1 // total recruitment #'s * weight at recruitment length\cf2\par
+p\cf4 rint\cf2 ("Estimate of total growth production = ",\cf4 str\cf2 (\cf4 int\cf2 (total_prod/1000000.))," t");\par
+\cf4 print\cf2 ("Estimate of Age 20+ growth production = ",\cf4 str\cf2 (\cf4 int\cf2 (total_prod_20/1000000.))," t");\par
+\cf4 print\cf2 ("Estimate of recruitment weight = ",\cf4 str\cf2 (\cf4 int\cf2 (Rec_weight))," t");\par
+\cf4 print\cf2 ("Estimate of total production = ",\cf4 str\cf2 (\cf4 int\cf2 ((Rec_weight)+(total_prod/1000000.)))," t");\par
+\par
+\cf1 // Rock vs clam catch\cf2\par
+\pard\cf4\f4 Data_Window\cf2 (-9.9,600,0,1010);\par
+\cf4 Data_Viewport\cf2 (\cf4 mm\cf2 (50),\cf4 mm\cf2 (180),\cf4 mm\cf2 (100),\cf4 mm\cf2 (200));\cf0\par
+data_projection("NIL")\cf2\par
+\cf0 Line_Width(pts(0.5));\cf2\par
+\cf4 Axis\cf2 (50.0,100.0,10.0,50.0,1,0,1,0,0);\par
+\cf4 Marker_Height\cf2 (\cf4 mm\cf2 (3.0));\par
+\cf4 Data_points\cf2 (rc[;2 3]);\par
+extreme = rc[\cf4 bindex\cf2 (rc[;2]>\cf4 getwind\cf2 (2));2];  \cf1 // values > window i.e. extremes to right\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf4\f0 draw_text\cf2 (\cf4 getview\cf2 (2) - \cf4 mm\cf2 (20.),\cf4 getview\cf2 (3) + \cf4 mm\cf2 (5),\cf4 str\cf2 (extreme));\par
+\par
+\par
+\f4 Stns2004 = 7 10 11 16 17 18 19 20 22 23 27 28 29 30 31 36 37 38 42 50 80 81 85 98 100 101 103 104 106 138 161 172 174 176 178 193;  \cf1 // 2004 stations with surfclam catch where VMS and logs indicate no fishing from 2004 to 2010\cf2\par
+tows_2004rep = t_tow[\cf4 index\cf2 (t_tow,Stns2004)]\par
+\lang1033\f0 Catchrep = \cf3 Get_catch\cf2 (4355,1)   \cf1 // Standardized catch per tow for selected species and tows  \cf2\par
+\pard\cf4\lang4105\f4 cat\cf2 (2,tows_2004rep,\cf3 DD_to_DDMM\cf2 (s_lat[\cf4 index\cf2 (t_tow,tows_2004rep)]),\cf3 DD_to_DDMM\cf2 (s_long[\cf4 index\cf2 (t_tow,tows_2004rep)]),catchrep[\cf4 index\cf2 (catchrep[;1],tows_2004rep);])\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\par
+\f0\par
+\par
+\par
+}
+ 

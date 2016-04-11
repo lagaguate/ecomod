@@ -811,16 +811,17 @@ age_length_weight$FLEN<-NULL
 ################################################################################
 ###                          AGE CALCULATIONS                                   
 
-lengths<-ColTotalsLength[1:length(ColTotalsLength)-1] 
-lengths1<-as.data.frame(lengths)
-lengths1$FLEN<-names(lengths)
-lengths1<-merge(ages_prop,lengths1,all.x=T)
 
 
 ages_prop<-prop.table(as.matrix(age.length.key),1) 
 ages_prop<-ifelse(is.nan(ages_prop),0,ages_prop)
 ages_prop<-as.data.frame(ages_prop)
 theseages<-c(names(ages_prop))
+
+lengths<-ColTotalsLength[1:length(ColTotalsLength)-1] 
+lengths1<-as.data.frame(lengths)
+lengths1$FLEN<-names(lengths)
+lengths1<-merge(ages_prop,lengths1,all.x=T)
 
 age_table<-na.zero(ages_prop*lengths1$lengths)
 
