@@ -7,7 +7,6 @@
   p$libs = RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "geosphere", "sp", "raster", "rgeos" ))
   
   # default (= only supported resolution of 0.5 km discretization)  .. do NOT change 
-  # use "spde_complete" to project/downscale/upscale onto other grids/resolutions
   p = spatial.parameters( type="canada.east.highres", p=p ) 
   
   # worldHires coastlines from mapdata (still pretty crude ..)

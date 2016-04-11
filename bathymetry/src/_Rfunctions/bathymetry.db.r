@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), grids.new=NULL, return.format="dataframe" ) {
+  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), return.format="dataframe" ) {
     RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields"))
 
@@ -270,6 +270,265 @@
     }
 
 
+    # --------------
+
+    if ( DS == "gmt.retired" ) {
+      # *** THIS is deprecated. ***
+      # *** THIS is deprecated. ***
+      # *** THIS is deprecated. ***
+
+      # It is stored for historical purposes or as a fast method if you do not have access to 
+      # large computational resources
+
+      p=list()
+      p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
+      p$libs = RLibrary( "rgdal", "lattice", "parallel" )
+
+      # ------------------
+      # glue all data sources (spherical coords) 
+      # ... right now this is about 17 GB in size when expanded .... SLOW .... 
+      # and it takes about 52+ GB RAM (due to addition of Greenlaw's DEM )
+      # run on servers only unless your machine can handle it
+      redo.bathymetry.rawdata = FALSE
+      if ( redo.bathymetry.rawdata ) { 
+        p = spatial.parameters( type="canada.east", p=p )
+        bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+     }
+
+      # ------------------
+      # GMT-based methods:
+      # NOTE: too many clusters will overload the system as data files are large ~(11GB RAM required to block) 
+      # for the high resolution maps .. the temporary files can be created deleted/overwritten files 
+      # in the temporary drives 
+      redo.isobaths = FALSE
+      if (redo.isobaths) {
+        area = c( "snowcrab", "SSE", "ecnasap", "canada.east" ) 
+        for (sp in area) {
+          p$spatial.domain = sp
+          p = spatial.parameters( p=p )
+          p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
+          # override defaults in gmt.parameters as additional ones are used by other systems including lattice
+          p$isobaths = c( 0, seq(50, 450, by=50), seq( 500, 1000, by=100 )  ) #override defaults 
+          p = make.list( list( depths=p$isobaths ), Y=p )
+          p$clusters = rep( "localhost", 1 )  
+          #isobath.db( p=p, DS="gmt.redo" ) 
+          parallel.run( isobath.db,  p=p, DS="gmt.redo" ) 	
+        }
+      }
+
+      # ------------------
+      # intermediary base maps with location definitions, annotations and isobaths ... to speed up PS map production .. only for GMT maps
+      redo.basemap.gmt = FALSE  
+      if ( redo.basemap.gmt ) {
+        area = c( "snowcrab", "SSE", "ecnasap", "canada.east" ) 
+        for (sp in area) {
+          p$spatial.domain = sp
+          p = spatial.parameters( p=p )
+          p = gmt.parameters(p)  # interpolation parameters ... currently using GMT's isobaths whcih are specified in gmt.parameters
+          # or if you want to override the isobaths plotted define them here (but make sure they were created in the previous step)
+          # p$isobaths = c( seq(50, 450, by=100)  )
+          gmt.basemap(p)
+        }
+      }
+
+      # ------------------
+      # prepare finalised bathymetry data for use in ecomod
+      complete.bathymetry.db = FALSE
+      areas = c( "canada.east", "SSE" ) # only two are currently used  
+      for ( sp in areas ) {
+        p = spatial.parameters( type=sp, p=p )
+        p = gmt.parameters(p)
+        bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT's math functions ...
+        bathymetry.db ( p, DS="Z.redo" )
+        bathymetry.db ( p, DS="dZ.redo" )
+        bathymetry.db ( p, DS="ddZ.redo" )
+        bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
+        bathymetry.db ( p, DS="complete.redo" ) # glue all together 
+      }
+     
+      # ------------------
+      # "snowcrab" subsets do exist but are simple subsets of SSE 
+      # so only the lookuptable below is all that is important as far as bathymetry is concerned
+      # both share the same initial domains + resolutions
+      p = spatial.parameters( type="snowcrab", p=p )
+      bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
+      bathymetry.db( DS="lookuptable.sse.snowcrab.redo" ) 
+    
+      # ------------------
+      ## a few lattice-based maps: for SSE only right now
+      p = spatial.parameters( type="SSE" )
+      x = bathymetry.db ( p, DS="baseline" )
+      
+      snowcrab.area=F
+      if (snowcrab.area) {
+        # this is used below
+        sc = intersect( 
+            which( x$plon< 990 & x$plon > 220  & x$plat< 5270 & x$plat > 4675 ) ,
+            filter.region.polygon( x[, c("plon", "plat") ], "cfaall", planar=T) 
+        )
+        x = x[sc,]
+      }
+      
+      x$z =log( x$z )
+      
+      outdir = file.path(project.datadirectory("bathymetry","maps"), p$spatial.domain) 
+
+      dr = quantile( x$z, probs=c(0.005, 0.995))
+      datarange = seq(dr[1], dr[2], length.out=100)
+      cols = color.code( "blue.black", datarange )
+      outfn = "depth"
+      annot = "ln ( Depth; m )"
+      map( xyz=x[,c("plon", "plat", "z")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
+        fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
+      
+      
+      x = bathymetry.db ( p, DS="dZ.planar" )
+      if (snowcrab.area) x = x[sc,]
+      dr = quantile( x$dZ, probs=c(0.005, 0.995))
+      datarange = seq(dr[1], dr[2], length.out=100)
+      cols = color.code( "blue.black", datarange )
+      outfn = "slope"
+      annot = "ln ( Slope; m/m )"
+      map( xyz=x[ ,c("plon", "plat", "dZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
+        fn=outfn, loc=outdir, at=datarange , col.regions=cols , spatial.domain=p$spatial.domain )
+
+     
+      x = bathymetry.db ( p, DS="ddZ.planar" )
+      if (snowcrab.area) x = x[sc,]
+      dr = quantile( x$ddZ, probs=c(0.005, 0.995))
+      datarange = seq(dr[1], dr[2], length.out=100)
+      cols = color.code( "blue.black", datarange )
+      outfn = "curvature"
+      annot = "ln ( Curvature; m/m/m )"
+      map( xyz=x[,c("plon", "plat", "ddZ")], cfa.regions=F, depthcontours=T, pts=NULL, annot=annot, 
+        fn=outfn, loc=outdir, at=datarange , col.regions=cols, spatial.domain=p$spatial.domain )
+ 
+      # Googleearth overlays: 
+
+      # common functions:
+      loadfunctions( c("spacetime", "utility", "bathymetry")) 
+      
+      cmd = function(x, ...) { system(paste(x, ...)) }
+
+      tmpdir = tempdir()
+
+      # 1.  map of bathymetry contours : colour background and lines
+
+      gmt = list()
+      gmt$out = file.path(project.datadirectory("bathymetry"), "ss.bathymetry.colour.platecarre.ps" )
+      gmt$outputs = c( "colourscale", "colourcontour", "bathymetry.redo" )
+      gmt$region=" -R-72/-52/40/50"    
+      gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+      gmt$resolution="-I0.25m" #  resolution
+      gmt$inp = file.path(project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
+      gmt$tension ="-T0.35"
+      gmt$cpt = "-Cjet -T-350/350/10 -Z -D"
+      gmt$incscale = "-B50"
+      gmt$font = "14p"
+      gmt$annot.base = "-63.7 47.25 24 0 Helvetica LT"  # lon0, lat0, fontsize, angle, font, justification
+      gmt$annot.text = "Bathymetry (m)"
+      gmt$scale.location = "-D4.75i/0.75i/2.6i/0.16ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
+      # gmt$scale.location = "-D4.75i/0.75i/1i/0.1ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
+      
+      setwd( dirname( gmt$out ) )
+      gmt.map.simple(gmt)
+      cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -Tg -S" ) 
+      
+      #  cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -TG -Qg2 -S" ) 
+      
+     # 2. map point-kriged data .. used for overlaying onto google-earth to id new stations ---------
+     # fishable biomass density
+     
+      required.libraries = c( 
+        "mgcv", "chron", "lattice"
+      )
+      for ( L in required.libraries) require( L, character.only=T )
+
+      loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
+
+      gmt = list()
+      gmt$out = file.path( project.datadirectory("snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
+      gmt$outputs = c( "colourscale", "colourcontour" )
+      gmt$region=" -R-72/-52/40/50"    
+      gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+      gmt$resolution="-I0.25m" #  resolution
+      gmt$inp = NULL 
+      gmt$tension ="-T1"
+     
+      gmt$cpt = "-Cseis -T-3/2/0.1 -Z -I -D"
+      gmt$incscale = "-B2"
+      gmt$font = "14p"
+      gmt$annot.base = "-63.7 47.25 24 0 Helvetica LT"  # lon0, lat0, fontsize, angle, font, justification
+      gmt$annot.text = "Fishable biomass (log10; kg/km2)"
+      gmt$scale.location = "-D4.25i/0.75i/0.75i/0.075ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
+      
+      gmt$bathy.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz")
+      gmt$bathy.grid = file.path(tmpdir, make.random.string(".gmt.grid"))
+
+      PS = kriging.db( DS="UK.point.PS", p=list(v="R0.mass", y=2008, r="cfaall", transgaussian.kriging=T)  )
+      PS$R0.mass.pred = log10( PS$R0.mass.pred ) 
+      PS = planar2lonlat( PS, proj.type="utm20" )
+
+      gmt$dat = PS[, c("lon", "lat", "R0.mass.pred" )] 
+      
+      # determine colour ranges:
+      hist( gmt$dat[,3]) # log scale ssems to work best: -3 to 2
+     
+      gmt.map.simple(gmt)
+      
+      setwd( dirname( gmt$out ) ) # ps2raster has difficulties with different directories
+
+      cmd( "ps2raster", basename(gmt$out), "-V -Au -P -E300 -Tg -S" ) 
+      #  cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -TG -Qg2 -S" ) 
+
+      # then use Gimp or something like it to replace white with transparent
+
+     # 3. map point-kriged data .. used for overlaying onto google-earth to id new stations ---------
+     # SD in fishable biomass
+      
+      required.libraries = c( 
+        "mgcv", "chron", "lattice"
+      )
+      for ( L in required.libraries) require( L, character.only=T )
+
+      loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
+
+      gmt = list()
+      gmt$out = file.path( project.datadirectory("snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )
+      gmt$outputs = c( "colourscale", "colourcontour" )
+      gmt$region=" -R-72/-52/40/50"    
+      gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
+      gmt$resolution="-I0.25m" #  resolution
+      gmt$inp = NULL 
+      gmt$tension ="-T1"
+      gmt$bathy.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz")
+      gmt$bathy.grid = file.path(tmpdir, make.random.string(".gmt.grid"))
+
+      PS = kriging.db( DS="UK.point.PS", p=list(v="R0.mass", y=2008, r="cfaall", transgaussian.kriging=T)  )
+      PS = planar2lonlat( PS, proj.type="utm20" )
+      PS$R0.mass.sd = sqrt( PS$R0.mass.var )
+      gmt$dat = PS[, c("lon", "lat", "R0.mass.sd" )] 
+      gmt$dat = gmt$dat[ which( gmt$dat[,3] <=14 ) ,]
+      # determine colour ranges:
+      hist( gmt$dat[,3] )
+      hist( log10( gmt$dat[,3] ) ) # log scale ssems to work best: -3 to 2
+      
+      gmt$cpt = "-Cseis -T1/12/0.1 -Z -I -D"
+      gmt$incscale = "-B2"
+      gmt$font = "14p"
+      gmt$annot.base = "-63.7 47.25 24 0 Helvetica LT"  # lon0, lat0, fontsize, angle, font, justification
+      gmt$annot.text = "Fishable biomass SD (log10; kg/km2)"
+      gmt$scale.location = "-D4.25i/0.75i/0.75i/0.075ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
+      
+      gmt.map.simple(gmt)
+        
+      setwd( dirname( gmt$out ) ) # ps2raster has difficulties with different directories
+      #  cmd( "ps2raster", gmt$out, "-V -Au -P -E300 -TG -Qg2 -S" ) 
+      cmd( "ps2raster", basename(gmt$out), "-V -Au -P -E300 -Tg -S" ) 
+
+      ### END GMT-based methods
+    }
+    
     # --------------
 
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
@@ -551,23 +810,24 @@
         load( outfile )
         return (Z)
       }
-     
-      if ( p$spatial.domain == "snowcrab" ) {
-        # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions 
-        Z = bathymetry.db( p=spatial.parameters( type="SSE", p=p ), DS="spde_complete", return.format = "dataframe.filtered"  )
-        
-      } else {
-        Z = bathymetry.db( p=p , DS="spde_complete", return.format = "dataframe.filtered"  )
+
+      for (domain in p$new.grids) { 
+        pn = spatial.parameters( type=domain )
+        if ( pn$spatial.domain == "snowcrab" ) {
+          # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions 
+          Z = bathymetry.db( p=spatial.parameters( type="SSE", p=pn ), DS="complete", return.format = "dataframe.filtered"  )
+        } else {
+          Z = bathymetry.db( p=pn , DS="complete", return.format = "dataframe.filtered"  )
+        }
+        names0 = names( Z)
+        Z = as.data.frame(Z)
+        names(Z) = c( names0, "plon", "plat")
+        Z = Z[, c("plon", "plat", "z")] 
+        save (Z, file=outfile, compress=T )
+        print( outfile )
       }
-      names0 = names( Z)
-      Z = as.data.frame(Z)
-      names(Z) = c( names0, "plon", "plat")
-      Z = Z[, c("plon", "plat", "z")] 
-   
-      # Z = filter.bathymetry( DS=p$spatial.domain, Z=Z ) ## extra filters based upon depth and locations 
-      save (Z, file=outfile, compress=T )
-			return( paste( "Baseline data file completed:", outfile )  )
       # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
+			return( "completed" )
     }
 
 
@@ -751,30 +1011,202 @@
       }
     }
 
+    # ------------
+ 
+    if ( DS %in% c( "spde", "spde.redo" ) ) {
+      #// substrate.db( DS="spde" .. ) returns the spatial interpolations from inla
+      Z = NULL
+      rootdir = file.path( p$project.root, "spacetime" )
+      fn.results =  file.path( rootdir, paste( "spatial", "covariance", p$spatial.domain, "rdata", sep=".") ) 
+
+      if  (DS %in% c("covariance.spatial"))  {
+        stats = NULL
+        if (file.exists( fn.results) ) load( fn.results )
+        return(stats)
+      }
+           
+      p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
+      p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
+      p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+      p$variables = list( Y="z", LOCS=c("plon", "plat") )
+      
+      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude 
+      p$spacetime.invlink = function( X ) { exp(X) - 1000 }
+
+
+      p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+      p$dist.min = 75 # lower than this .. subsampling occurs 
+      p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
+      p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
+      p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
+
+      p$expected.range = 50 #+units=km km , with dependent var on log scale
+      p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
+      
+      p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
+      p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla (below)
+
+      p$spacetime.family = "gaussian"
+      p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
+      p$statsvars = c("range", "range.sd", "spatial.error", "observation.error")
+      
+      # if not in one go, then the value must be reconstructed from the correct elements:  
+      p$spacetime.posterior.extract = function(s, rnm) { 
+        # rnm are the rownames that will contain info about the indices ..
+        # optimally the grep search should only be done once but doing so would 
+        # make it difficult to implement in a simple structure/manner ... 
+        # the overhead is minimal relative to the speed of modelling and posterior sampling
+        i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+        i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
+        return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
+      }
+      
+      reset.bigmemory.objects = FALSE
+      if ( reset.bigmemory.objects ) {
+         # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
+         bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
+
+         # transfer data into spacetime methods as bigmemory objects
+         spacetime.db( p=p, DS="bigmemory.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
+         spacetime.db( p=p, DS="bigmemory.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
+      
+         # reset bigmemory output data objects  (e.g., if you are restarting)
+         spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
+         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
+         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
+            file=p$debug.file, append=FALSE ) # init
+        
+        # define boundary polygon for data .. this trims the prediction/statistics locations to speed things up a little ..
+        p$mesh.boundary.resolution = 150
+        p$mesh.boundary.convex = -0.025
+        spacetime.db( p, DS="boundary.redo" ) # ~ 5 min 
+        # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?  
+      }
+
+       
+      # run the beast .. warning this will take a very long time! (weeks)
+      sS = spacetime.db( p, DS="statistics.bigmemory.status" )
+      sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
+   
+      p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
+      parallel.run( spacetime.interpolate.inla, p=p ) # no more GMT dependency! :)  
+      # spacetime.interpolate.inla( p=p, debugrun=TRUE )  # if testing serial process
+
+      if (0) {
+        # for checking status of outputs during parallel runs:
+        bathymetry.figures( DS="statistics", p=p ) 
+        bathymetry.figures( DS="predictions", p=p ) 
+        bathymetry.figures( DS="predictions.error", p=p )
+
+        p = spacetime.db( p=p, DS="bigmemory.filenames" )
+        S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+        hist(S[,1] )
+        o = which( S[,1] > 600 )
+        S[o,] = NA
+        S[sS$problematic,] = NA
+        o = which( S[,1] < 10 )
+        S[o,] = NA
+      }
+
+      # save to file 
+      spacetime.db( p=p, DS="predictions.redo" )  
+      spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
+       
+      # clean up bigmemory files
+      spacetime.db( p=p, DS="bigmemory.cleanup" )
+
+    }
+
+    
+    # ------------
+ 
+    if ( DS %in% c( "covariance.spatial", "covariance.spatial.redo" ) ) {
+      #// substrate.db( DS="covariance" .. ) returns the spatial covariance estimates
+      Z = NULL
+      rootdir = file.path( p$project.root, "spacetime" )
+      fn.results =  file.path( rootdir, paste( "spatial", "covariance", p$spatial.domain, "rdata", sep=".") ) 
+
+      if  (DS %in% c("covariance.spatial"))  {
+        stats = NULL
+        if (file.exists( fn.results) ) load( fn.results )
+        return(stats)
+      }
+  
+      p$variogram.engine = "gstat"  # "geoR" seg faults frequently ..
+      p$dist.max = 150 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+      p$dist.min = 100 # length scale (km) of local analysis .. beyond which subsampling occurs
+      p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+      p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
+      p$n.max = 10000 # numerical time/memory constraint -- anything larger takes too much time
+      p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
+      p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25 ) # local block search fractions  -- need to adjust based upon data density
+      p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+      p$variables = list( Y="z", LOCS=c("plon", "plat") )
+      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude 
+      p$spacetime.invlink = function( X ) { exp(X) - 1000 }
+
+      p$statsvars = c("varTot", "varSpatial", "varObs", "range", "phi", "kappa" )
+         
+      # set up the data and problem using bigmemory data objects
+      p = spacetime.db( p=p, DS="bigmemory.filenames" )
+      print( paste( "Temporary files are being created at:", p$tmp.datadir ) )
+      spacetime.db( p=p, DS="bigmemory.inputs.data", B=substrate.db( p=p, DS="substrate.spacetime.inputs.data" ) )
+      spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
+      spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
+
+      if (0) {
+        # to reset results manually .. just a template
+        # p = spacetime.db( p=p, DS="bigmemory.filenames" )
+        S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+        hist(S[,1] )
+        o = which( S[,1] > xxx )
+        S[o,] = NA
+        S[sS$problematic,] = NA
+        o = which( S[,1] < yyy )
+        S[o,] = NA
+        # etc ...
+      }
+      
+      sS = spacetime.db( p, DS="statistics.bigmemory.status" )
+      sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
+ 
+      p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
+      parallel.run( spacetime.covariance.spatial, p=p ) # no more GMT dependency! :)  
+      # spacetime.covariance.spatial( p=p )  # if testing serial process
+  
+      print( paste( "Results are being saved to:", fn.results ) )
+      stats = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
+      stats = as.data.frame( stats[] )
+      save(stats, file=fn.results, compress=TRUE ) 
+      
+      print( paste( "Temporary files are being deleted at:", p$tmp.datadir, "tmp" ) )
+      spacetime.db( p=p, DS="bigmemory.cleanup" )
+
+      return( fn.results )
+    }
+
+
     # -------------
     
-    if ( DS %in% c( "complete", "complete.redo", "spde_complete", "spde_complete.redo" ) ) {
+    if ( DS %in% c( "complete", "complete.redo") ) {
       #// underlying storage data format is as a list of rasters
       #// regridding and selection to area of interest as specificied by girds.new=c("SSE", etc)
       Z = NULL
       
-      if ( DS %in% c("spde_complete", "complete") ) {
+      if ( DS %in% c( "complete") ) {
         
-        if  (DS %in% c("complete")) {
-          # for backwards compatibility
-          Z = bathymetry.db( p=p, DS="spde_complete", return.format = "dataframe" )
-          return (Z)
-        }
-
-        # DS="spde_complete"
         domain = NULL
         if ( is.null(domain)) {
           if ( exists("spatial.domain", p)) {
             domain = p$spatial.domain 
-          } else if ( !is.null(grids.new)) { # over-rides p$spatial domain
-            if( length( grids.new )== 1 ) {
-              domain = grids.new
+          } else if ( !is.null(p$grids.new)) { # over-rides p$spatial domain
+            if( length( p$grids.new )== 1 ) {
+              domain = p$grids.new
         } } }
+        
         fn = file.path( project.datadirectory("bathymetry", "interpolated"), 
           paste( "bathymetry", "spde_complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
@@ -810,6 +1242,10 @@
         if ( return.format %in% c("list") ) return( Z  )
       }
 
+      # bring together stats and predictions and any other required computations: slope and curvature
+      bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )  
+
+
       p0 = p  # the originating parameters
       Z0 = bathymetry.db( p=p0, DS="bathymetry.spacetime.finalize" )
       coordinates( Z0 ) = ~ plon + plat 
@@ -819,7 +1255,7 @@
  
       Z = list()
       
-      grids = unique( c( p$spatial.domain, grids.new ))
+      grids = unique( c( p$spatial.domain, p$grids.new ))
       
       for (gr in grids ) {
         p1 = spatial.parameters( type=gr )

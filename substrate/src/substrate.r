@@ -15,7 +15,11 @@
                      "sp", "raster", "colorspace" ,  "splancs", "fields",
                      "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" )
   p = spatial.parameters( type="canada.east.highres", p=p ) # highest resolution still 
-   
+  
+  p = spacetime.parameters(p)  # load defaults
+ 
+
+
   make.substrate.db = FALSE
   if (make.substrate.db) {
     substrate.db ( DS="substrate.initial.redo" ) # bring in Kostelev's data ... stored as a SpatialGridDataFrame
@@ -23,60 +27,16 @@
   }
 
   spatial.covariance.redo = FALSE
-  if (spatial.covariance.redo) {
-  
-    # workspace for tmp and outputs
-    p$project.root = project.datadirectory( p$project.name, "analysis", "spatial.covariance" )
-    p = spacetime.parameters(p)  # load spde defaults
-    p$dist.max = 150 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-    p$dist.min = 100 # length scale (km) of local analysis .. beyond which subsampling occurs
-    p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-    p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
-    p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-    p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
-    p$upsampling = c( 1.1, 1.2, 1.5, 2, 2.5, 3 )  # local block search fractions
-    p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
-    p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-    p$variables = list( Y="substrate", LOCS=c("plon", "plat") )
-
-    p$spacetime.link = function( X ) { log(X)  } 
-    p$spacetime.invlink = function( X ) { exp(X)  }
-    p$statsvars = c("varTot", "varSpatial", "varObs", "range", "phi", "kappa" )
-   
-    spacetime.covariance(p=p, DS="bigmemory.initialize", B=substrate.db( p=p, DS="substrate.spacetime.inputs.data" ) )
-    
-    sS = spacetime.db( p, DS="statistics.bigmemory.status" )
-    sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
-      
-    p$clusters = rep( "localhost", 6 )
-    p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
-    parallel.run( spacetime.covariance.spatial, p=p ) # no more GMT dependency! :)  
-    # spacetime.covariance.spatial( p=p )  # if testing serial process
-
-      if (0) {
-        p = spacetime.db( p=p, DS="bigmemory.filenames" )
-        S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
-        hist(S[,1] )
-        o = which( S[,1] > xxx )
-        S[o,] = NA
-        S[sS$problematic,] = NA
-        o = which( S[,1] < yyy )
-        S[o,] = NA
-        
-        sS = spacetime.db( p, DS="statistics.bigmemory.status" )
-        sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
-        
-        p$clusters = rep( "localhost", 6 )
-        p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus 
-          parallel.run( spacetime.covariance.spatial, p=p ) # no more GMT dependency! :)  
-        # spacetime.covariance.spatial( p=p )  # if testing serial process
-      }
-
-    spacetime.covariance( p=p, DS="spatial.redo" )  # copies bigmemeory results and saves
-    spacetime.db( p=p, DS="bigmemory.cleanup" )
+  if (spatial covariance.redo) {
+    p$dist.max = 200 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+    p$dist.min = 100 # lower than this .. subsampling occurs 
+    p$n.min = 100 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
+    p$n.max = 10000 # numerical time/memory constraint -- anything larger takes too much time
+    substrate.db( p=p DS="covariance.spatial.redo" ) 
   }
+  covSp = substrate.db( p=p DS="covariance.spatial" ) 
 
-
+  
   interpolations.redo = FALSE
   if (interpolations.redo) {
    
@@ -178,11 +138,11 @@
  
   # as the interpolation process is so expensive, regrid based off the above run
   # if you want more, will need to add to the list and modify the selection criteria
-  substrate.db( p=p, DS="spde_complete.redo", grids.new=c( "canada.east.highres", "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
+  substrate.db( p=p, DS="complete.redo", grids.new=c( "canada.east.highres", "canada.east", "SSE", "snowcrab", "SSE.mpa" ) ) 
 
   # test outputs/ access methods
-  # plot( substrate.db( p, DS="spde_complete", return.format="brick" )$substrate ) # raster brick
-  # spplot( substrate.db( p, DS="spde_complete", return.format="sp" ), "substrate" ) # spatial points/grid data frame
+  # plot( substrate.db( p, DS="complete", return.format="brick" )$substrate ) # raster brick
+  # spplot( substrate.db( p, DS="complete", return.format="sp" ), "substrate" ) # spatial points/grid data frame
    
 
 
