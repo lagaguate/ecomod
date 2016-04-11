@@ -1,7 +1,7 @@
 
 outerBounds = function(pointData, round.digit= 3){
 
-#// creates a tight polygon containing a set of points
+#// for creating a tight polygon around a dense set of points
 
 	require(PBSmapping)
 

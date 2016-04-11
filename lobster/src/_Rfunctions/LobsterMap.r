@@ -220,7 +220,7 @@ options(stringsAsFactors=F)
 	if('lfa'%in%labels) addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0,0,0,0.5),cex=labcex,font=2)
 	if('grid'%in%labels) addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=labcex)
 	if('subarea'%in%labels) addLabels(subset(grids.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.5),cex=labcex)
-	else addLabels(labels[[1]],polyProps=labels[[2]])
+	if(is.list(labels)) addLabels(labels[[1]],polyProps=labels[[2]])
 
 
 	box(lwd=2)
