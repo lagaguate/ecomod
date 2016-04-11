@@ -7,7 +7,7 @@
   p$project.root = project.datadirectory( p$project.name )
          
   p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "coastline", "polygons" )  )
-  p$libs = RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
+  p$libs = RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "gstat", "geoR",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",
     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" ) )
   
@@ -16,21 +16,33 @@
   p = spatial.parameters( type="canada.east.highres", p=p ) 
    
   p = spacetime.parameters(p)  # load defaults
-
+ 
+  p$bathymetry.bigmemory.reset = FALSE 
+  
   # cluster definition
   nc = 1
   # nc = 5
   p$clusters = rep( "localhost", nc )
   # p$clusters = c( rep( "nyx", nc ), rep ("tartarus", nc), rep("kaos", nc ) )
 
+
+  ### -----------------------------------------------------------------
+  make.bathymetry.db = FALSE
+  if (make.bathymetry.db) {
+    # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
+    bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", 
+      additional.data=c("snowcrab", "groundfish") )
+  }
+
   
   ### -----------------------------------------------------------------
   spatial.covariance.redo = FALSE
   if (spatial.covariance.redo) {
     p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) )
-    bathymetry.db( p=p DS="covariance.spatial.redo" ) 
+    # p$bathymetry.bigmemory.reset = TRUE   # reset needed if variables entering are changing (eg., addiing covariates with interpolation, etc)
+    bathymetry.db( p=p, DS="covariance.spatial.redo" ) 
   }
-  covSp = bathymetry.db( p=p DS="covariance.spatial" ) 
+  covSp = bathymetry.db( p=p, DS="covariance.spatial" ) 
 
 
   ### -----------------------------------------------------------------
@@ -39,6 +51,8 @@
     # do not use all CPU's as INLA itself is partially run in parallel
     # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
     p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
+    # p$bathymetry.bigmemory.reset = TRUE   # reset needed if variables entering are changing (eg., addiing covariates with interpolation, etc)
+    # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
     bathymetry.db( p=p DS="spde.redo" ) 
   }
   predSp = bathymetry.db( p=p DS="spde" ) 

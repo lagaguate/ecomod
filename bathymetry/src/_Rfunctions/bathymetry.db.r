@@ -1012,6 +1012,32 @@
     }
 
     # ------------
+
+
+     if (DS=="reset.bigmemory.objects" ) {
+
+         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
+
+         # transfer data into spacetime methods as bigmemory objects
+         spacetime.db( p=p, DS="bigmemory.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
+         spacetime.db( p=p, DS="bigmemory.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
+      
+         # reset bigmemory output data objects  (e.g., if you are restarting)
+         spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
+         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
+         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
+            file=p$debug.file, append=FALSE ) # init
+        
+        # define boundary polygon for data .. this trims the prediction/statistics locations to speed things up a little ..
+        p$mesh.boundary.resolution = 150
+        p$mesh.boundary.convex = -0.025
+        spacetime.db( p, DS="boundary.redo" ) # ~ 5 min 
+    }
+
+
+    # ------------
+
  
     if ( DS %in% c( "spde", "spde.redo" ) ) {
       #// substrate.db( DS="spde" .. ) returns the spatial interpolations from inla
@@ -1051,6 +1077,7 @@
       p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
       p$statsvars = c("range", "range.sd", "spatial.error", "observation.error")
       
+      
       # if not in one go, then the value must be reconstructed from the correct elements:  
       p$spacetime.posterior.extract = function(s, rnm) { 
         # rnm are the rownames that will contain info about the indices ..
@@ -1062,31 +1089,8 @@
         return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
       }
       
-      reset.bigmemory.objects = FALSE
-      if ( reset.bigmemory.objects ) {
-         # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
-         bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
-
-         # transfer data into spacetime methods as bigmemory objects
-         spacetime.db( p=p, DS="bigmemory.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
-         spacetime.db( p=p, DS="bigmemory.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
+      if (p$bathymetry.bigmemory.reset) substrate.db( p=p, DS="reset.bigmemory.objects" )
       
-         # reset bigmemory output data objects  (e.g., if you are restarting)
-         spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
-         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
-         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
-            file=p$debug.file, append=FALSE ) # init
-        
-        # define boundary polygon for data .. this trims the prediction/statistics locations to speed things up a little ..
-        p$mesh.boundary.resolution = 150
-        p$mesh.boundary.convex = -0.025
-        spacetime.db( p, DS="boundary.redo" ) # ~ 5 min 
-        # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?  
-      }
-
-       
       # run the beast .. warning this will take a very long time! (weeks)
       sS = spacetime.db( p, DS="statistics.bigmemory.status" )
       sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
@@ -1152,7 +1156,10 @@
          
       # set up the data and problem using bigmemory data objects
       p = spacetime.db( p=p, DS="bigmemory.filenames" )
+      if (p$bathymetry.bigmemory.reset) substrate.db( p=p, DS="reset.bigmemory.objects" )
+
       print( paste( "Temporary files are being created at:", p$tmp.datadir ) )
+      
       spacetime.db( p=p, DS="bigmemory.inputs.data", B=substrate.db( p=p, DS="substrate.spacetime.inputs.data" ) )
       spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
       spacetime.db( p=p, DS="predictions.bigmemory.initialize" ) 
@@ -1202,7 +1209,7 @@
         if ( is.null(domain)) {
           if ( exists("spatial.domain", p)) {
             domain = p$spatial.domain 
-          } else if ( !is.null(p$grids.new)) { # over-rides p$spatial domain
+          } else if ( exists( "grids.new", p) ) { # over-rides p$spatial domain
             if( length( p$grids.new )== 1 ) {
               domain = p$grids.new
         } } }
