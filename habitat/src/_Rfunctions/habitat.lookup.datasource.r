@@ -10,7 +10,7 @@
       }
 
       if ( DS %in% c("depth", "depth.complete") ) {
-        H = bathymetry.db( p=p,  DS="spde_complete", return.format = "dataframe" )
+        H = bathymetry.db( p=p,  DS="complete", return.format = "dataframe" )
       }
 
       if ( DS=="substrate") {
