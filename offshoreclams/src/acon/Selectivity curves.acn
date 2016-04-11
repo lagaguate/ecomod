@@ -1,0 +1,118 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang4105{\fonttbl{\f0\fnil\fcharset0 Courier New;}{\f1\froman\fprq2\fcharset0 Times New Roman;}{\f2\fmodern\fprq1 Courier New;}{\f3\fmodern\fcharset0 Courier New;}{\f4\fmodern Courier New;}{\f5\fmodern\fprq1\fcharset0 Courier New;}}
+{\colortbl ;\red0\green0\blue0;\red0\green0\blue255;\red240\green32\blue0;\red0\green128\blue0;\red176\green16\blue16;}
+\viewkind4\uc1\pard\f0\fs18 // --------------------------------------------------------------------------------\par
+// Plot selectivity curves\par
+// --------------------------------------------------------------------------------\par
+// -------------------Set up curve parameters -------------------------------------\par
+RichGB2009 = -11.2440473 0.1572978 1.9208243;\par
+RichBanq2004 = -8.6572194 0.1028071 0.7856736;\cf1\par
+RichBanq2010 = \f1\fs24 -14.2175879   0.1894616   3.6212438;\cf0\f0\fs18\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang1033\f2 // ------------------------------------------------------------------------------------------------------------\par
+\cf2\lang4105\f3 // ---------------- Function definitions ----------------------------------------------------------------------\lang1033\f4\par
+\cf1\f2 // ------------------------------------------------------------------------------------------------------------\par
+\cf2\f4 function\cf1  \cf3\lang4105\f3 Draw_logistic_Curve\cf1\lang1033\f4 (x\lang4105\f3 ,param\lang1033\f4 )\{\lang4105\f3   \cf4 // Draw logistic curve\cf1\lang1033\f4\par
+\lang4105\f3\tab\lang1033\f4 minx=\cf5 min\cf1 (x);\cf0\par
+\lang4105\f3\tab\lang1033\f4 maxx=\cf5 max\cf0 (x);\cf1\par
+\lang4105\f3\tab\lang1033\f4 x\lang4105\f3 s\lang1033\f4 =\cf5 seq\cf1 (minx,maxx);\par
+\lang4105\f3\tab\lang1033\f4 y\lang4105\f3 s\lang1033\f4 =\lang4105\f3 (exp(param[1] + param[2]*\lang1033\f4 x\lang4105\f3 s)/(1 + exp(param[1] + param[2]*\lang1033\f4 x\lang4105\f3 s)))\lang1033\f4 ;\par
+\lang4105\f3\tab\cf5\lang1033\f4 data_line\cf1 (x\lang4105\f3 s\lang1033\f4 ,y\lang4105\f3 s\lang1033\f4 );\par
+\lang4105\f0     L50 = (-1*param[1])/param[2]; \cf4 // 50% selectivity\cf1\par
+\lang1033\f4\}\par
+\f2 // ------------------------------------------------------------------------------------------------------------\par
+\cf2\lang4105\f0 Function\cf1  \cf3 Draw_Richards_Curve\cf1 (x,param) \{     \cf4 // Draw \f5 Richard's Selectivity Curve\cf1\f0\par
+ //\cf0  xv = seq(min(x),max(x),(max(x) - min(x))/60.);\par
+\cf1   xv = seq(1,180);\par
+  yv = \cf5 pow\cf1 ((\cf5 exp\cf1 (param[1]+param[2]*xv)/(1+\cf5 exp\cf1 (param[1] + param[2] * xv))),1./param[3]);\par
+  \cf5 data_Line\cf1 (xv,yv);\cf0\par
+\cf1   L50 = (\cf5 log\cf1 (\cf5 pow\cf1 (0.5,param[3])/(1-\cf5 pow\cf1 (0.5,param[3])))-param[1])/param[2]; \cf4 // 50% selectivity\cf1\par
+\};\cf0\par
+//----------------------------------------------------------------------------------------------\cf1\par
+\pard\cf2\f5 Function\cf1  \cf3 Plot_Selectivity_Curve_Background\cf1 ()\{\par
+  \lang1033\f2 data_projection("NIL")\par
+\lang4105\f3   \lang1033\f4 D\cf5 ata_Viewport\cf1 (\cf5 mm\cf1 (40),\cf5 mm\cf1 (180),\cf5 mm\cf1 (100),\cf5 mm\cf1 (230));\par
+\cf5\lang4105\f3   \lang1033\f4 Data_Window\cf1 (0,\lang4105\f3 180\lang1033\f4 ,0,1\lang4105\f3 .05\lang1033\f4 );\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf0\lang4105\f0   Line_Width(pts(1.0));\cf1\par
+\cf5   Fill_Colour\cf1 ("Black");\cf0\par
+  Line_Colour("\cf1 Black\cf0 ");\cf1\par
+\pard\f3   \cf5\lang1033\f4 Axis\cf1 (\lang4105\f3 10\lang1033\f4 ,\lang4105\f3 .2\lang1033\f4 ,\lang4105\f3 5\lang1033\f4 ,\lang4105\f3 .1\lang1033\f4 ,1,0,1,0,0);\lang4105\f3  \lang1033\f4\par
+\lang4105\f3  \f5  \cf5\lang1033\f2 Draw_text\cf1 (\cf5\lang4105\f5 Ave\cf1 (\cf5\lang1033\f2 getview\cf1 (1)\lang4105\f5 ,\cf5\lang1033\f2 getview\cf1 (\lang4105\f5 2\lang1033\f2 )\lang4105\f5 )\lang1033\f2  \lang4105\f5 -\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 17\lang1033\f2 ),\cf5 getview\cf1 (\lang4105\f5 3\lang1033\f2 ) - \cf5 mm\cf1 (\lang4105\f5 10\lang1033\f2 ),"\lang4105\f5 Shell Length (mm)"\lang1033\f2 );\par
+\lang4105\f5   //\cf5\lang1033\f2 Draw_text\cf1 (\cf5 getview\cf1 (1) + \cf5 mm\cf1 (5),\cf5 getview\cf1 (4) - \cf5 mm\cf1 (10),\lang4105\f5 Title\lang1033\f2 );\par
+\lang4105\f5   //\cf5\lang1033\f2 Draw_text\cf1 (\cf5 getview\cf1 (1) + \cf5 mm\cf1 (5),\cf5 getview\cf1 (4) - \cf5 mm\cf1 (1\lang4105\f5 5\lang1033\f2 ),"\lang4105\f5 Mactromeris polynyma\lang1033\f2 ");\par
+\lang4105\f0   \cf5 Character_Rotation\cf1 (90);\par
+\f5   \cf5\lang1033\f2 Draw_text\cf1 (\cf5 getview\cf1 (\lang4105\f5 1\lang1033\f2 ) - \cf5 mm\cf1 (\lang4105\f5 10\lang1033\f2 )\lang4105\f5 ,\cf5 Ave\cf1 (\cf5\lang1033\f2 getview\cf1 (\lang4105\f5 3\lang1033\f2 )\lang4105\f5 ,\cf5\lang1033\f2 getview\cf1 (\lang4105\f5 4\lang1033\f2 )\lang4105\f5 )\lang1033\f2  \lang4105\f5 -\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 10\lang1033\f2 ),"\lang4105\f5 % Retention"\lang1033\f2 );\par
+\cf0\lang4105\f0   Character_Rotation(0);\par
+\cf1   \cf5 Line_Type\cf1 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\};\par
+\lang1033\f2 // ------------------------------------------------------------------------------------------------------------\par
+\pard\cf2\lang4105\f5 Function\cf1  \cf3 Add_curve\cf1 (Curve_type,X_dat\f3 ,\f5 L_type,L_colour,L_params,L_title,Title_pos)\{\par
+  // Title_pos is the line label position in mm from the right and Bottom edges of the graph\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160   \cf5\f0 Fill_Colour\cf1 (\f5 L_colour\f0 );\cf0\par
+  Line_Colour(\cf1\f5 L_colour\cf0\f0 );\cf1\par
+\pard\cf0   Line_Type(\cf1\f5 L_type\cf0\f0 );\cf1\par
+\f3   \cf2 if\cf1 (((curve_type == "Logistic")||(curve_type == "LOGISTIC")))\{\par
+\tab\cf3 Draw_logistic_Curve\cf1\lang1033\f4 (\lang4105\f5 X_dat\f3 ,\f5 L_params\lang1033\f4 )\lang4105\f3 ;\par
+\f0   \}\cf2 else\cf1  \cf2 if\cf1  (((curve_type == "Richards")||(curve_type == "RICHARDS")))\{\par
+\tab Draw_Richards_Curve(\f5 X_dat\f3 ,\f5 L_params);\par
+\f0   \};\cf0\par
+\cf5\f5   \lang1033\f2 Draw_text\cf1 (\cf5 getview\cf1 (\lang4105\f5 2\lang1033\f2 ) \lang4105\f5 -\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[1]\lang1033\f2 ),\cf5 getview\cf1 (\lang4105\f5 3\lang1033\f2 ) \lang4105\f5 +\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[2]\lang1033\f2 ),\lang4105\f5 L_title\lang1033\f2 );\par
+\lang4105\f5   Draw_line(\cf5\lang1033\f2 getview\cf1 (\lang4105\f5 2\lang1033\f2 ) \lang4105\f5 -\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[1] + 12\lang1033\f2 ),\cf5 getview\cf1 (\lang4105\f5 3\lang1033\f2 ) \lang4105\f5 +\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[2]+2\lang1033\f2 ),\cf5 getview\cf1 (\lang4105\f5 2\lang1033\f2 ) \lang4105\f5 -\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[1] + 2\lang1033\f2 ),\cf5 getview\cf1 (\lang4105\f5 3\lang1033\f2 ) \lang4105\f5 +\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[2] + 2\lang1033\f2 )\lang4105\f5 );\par
+  \cf5\lang1033\f2 Draw_text\cf1 (\cf5 getview\cf1 (\lang4105\f5 2\lang1033\f2 ) \lang4105\f5 -\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[1]\lang1033\f2 )\lang4105\f5 -\cf5 mm\cf1 (10)\lang1033\f2 ,\cf5 getview\cf1 (\lang4105\f5 3\lang1033\f2 ) \lang4105\f5 +\lang1033\f2  \cf5 mm\cf1 (\lang4105\f5 Title_pos[2] - 5\lang1033\f2 ),\cf5\lang4105\f5 cat\cf1 (0,"Parameters: ",\cf5 str\cf1 (L_params))\lang1033\f2 );\par
+\cf0\lang4105\f0   Line_Type(\cf1\f5 0\cf0\f0 );\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f5   \cf5\f0 Fill_Colour\cf1 (\f5 "BLACK"\f0 );\cf0\par
+  Line_Colour(\cf1\f5 "BLACK"\cf0\f0 );\cf1\par
+\pard\f5\};\lang1033\f2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf0\lang4105\f0 //----------------------------------------------------------------------------------------------\cf1\par
+\cf2 Function\cf1  \cf3 Add_selectivity_data\cf1 (\lang1033\f5 in_path,file_name\lang4105\f0 )\{\par
+\lang1033\f5\tab\cf5 Character_Read\cf1 (\cf5 cat\cf1 (0,in_path,file_name),"Sel_data");\par
+   Sel_header = "\lang4105 Sel_SURVEY\tab Sel_TOW\tab Sel_species\tab D_or_C\tab Clam\tab Length\tab Num_A_L"\par
+\f3    \lang1033\f5 Sel_\lang4105\f3 data = \cf3\lang1033\f5 replace_header\cf1 (Sel_data,1,Sel_header);\par
+\pard\lang4105\f3  \lang1033\f5   Num_Sel\lang4105 _\lang1033 recs = \cf5 len\cf1 (Sel_data)[1] -1;\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105\f3    \cf3\lang1033\f4 extract_fields\cf1 (\f5 Sel_data\f4 ,\lang4105\f3 0\lang1033\f4 )\lang4105\f3 ;\par
+   \cf4 // \f5 Sel_SURVEY = \f3 SURVEY ID\cf1\par
+   \cf4 // \f5 Sel_TOW = \f3 Tow number\cf1\par
+   \cf4 // \f5 Sel_species = species code\cf1\f3\par
+   \cf4 // \f5 D_or_C = Retained in \f3 Dredge or Cover\cf1\par
+   \cf4 // \f5 Clam = \f3 Clam number\cf1\par
+   \cf4 // Length = Shell Length (mm)\cf1\par
+   \cf4 // \f5 Num_A_L = \f3 Numbers at Length\cf1\par
+ \cf4 //  Erase_variable("\lang1033\f5 Sel_\lang4105\f3 data");\cf1\par
+\pard\f0\tab dc = 1+(d_or_C == "C     "); \cf4 // 1=dredge, 2=Cover\cf1\par
+\tab aggdata = \cf5 aggregate\cf1 (\cf3 round_IEC\cf1 (0,Length),"sum",(dc==1),"sum",(dc==2)); \cf4 // aggegate into 1 mm groups centered on mm lengths\cf1\par
+  aggdata=\cf5 cat\cf1 (2,aggdata, aggdata[;2]/\cf5 sum\cf1 (aggdata[;2 3],2))\par
+\f5   \cf5\lang1033\f2 Draw_text\cf1 (\cf5 getview\cf1 (1) + \cf5 mm\cf1 (5),\cf5 getview\cf1 (4) - \cf5 mm\cf1 (\lang4105\f5 20\lang1033\f2 ),\cf5\lang4105\f5 cat\cf1 (0,\lang1033\f2 "\lang4105\f5 n = \lang1033\f2 "\lang4105\f5 ,\cf5 str\cf1 (\cf5 int\cf1 (\cf5 sum\cf1 (\f0 aggdata[;2 3]\f5 )\f3 )\f5 ))\lang1033\f2 );\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang4105\f0   \cf5 Marker_Type\cf1 (2);\par
+\cf5   Marker_Halo\cf1 (\cf5 mm\cf1 (0.1));\par
+\pard   \cf4 //Continuous_Scaling(1,0,mm(1),mm(5),0.1,300,1,100,200,300);\cf1\par
+  \cf5 Continuous_Scaling\cf1 (1,0,\cf5 mm\cf1 (1),\cf5 mm\cf1 (5),0.1,20,1,5,10,20);\par
+  \cf5 Scaled_Symbols\cf1 (aggdata[;1],aggdata[;4],\cf5 sum\cf1 (aggdata[;2 3],2));         \cf4 // plot symbols scaled by number of clams\cf1\par
+ \cf0  Symbol_Legend(\cf5\lang1033\f2 getview\cf1 (1) + \cf5 mm\cf1 (5),\cf5 getview\cf1 (4) - \cf5 mm\cf1 (\lang4105\f5 37\lang1033\f2 )\cf0\lang4105\f0 );\cf1\par
+\f5   \cf5\lang1033\f2 Draw_text\cf1 (\cf5 getview\cf1 (1) + \cf5 mm\cf1 (5),\cf5 getview\cf1 (4) - \cf5 mm\cf1 (\lang4105\f5 35\lang1033\f2 ),\lang4105\f5 "Number of Clams"\lang1033\f2 );\par
+\lang4105\f0   \cf5 Line_Type\cf1 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f3\};\lang1033\f5\par
+\cf4\f2 //------------------------------------------------------------------------------------------\cf1\par
+\cf5\f5 search_paths\cf1 ("C:\\Program Files\\ACON\\\lang4105 dale\lang1033 _library\\");\par
+\cf5 search_paths\cf1 ("C:\\Program Files\\ACON\\Clam_library\\");\par
+in_path = "F:\\Dale\\Clam Work\\2010 Banquereau Survey\\Selectivity\\";\par
+File_name = "Selectivity_LF_2010.txt";\par
+\par
+\pard\cf3\lang4105 Plot_Selectivity_Curve_Background\cf1 ();\par
+X_data = seq(1,180.);\par
+Curve_type = "Richards";\par
+\cf3 Add_curve\cf1 (Curve_type,X_data \f3 ,\f5 2,\f0 "RED"\f5 ,\f0 RichBanq2010\f5 ,"Richard's curve",(120 120)); \par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0 Yvec_GB = yv;\cf5\par
+Line_type\cf1 (3);\par
+\cf5 data_line\cf1 (\cf5 shape\cf1 (3 2,\cf5 cat\cf1 (0,0., .5, L50, .5, L50, 0.)));\par
+\cf5 Line_type\cf1 (0);\par
+\cf5\f5 Draw_text\cf1 (\cf5 getview\cf1 (1)+\cf5 mm\cf1 (5.),\cf5 yuser\cf1 (.5) + \cf5 mm\cf1 (1.),\cf5 cat\cf1 ("Size at 50% Selectivity = ",\cf5\f0 sprintf\cf1 ("%4.1f",L50)\f5 ));\par
+\pard\cf3 Add_curve\cf1 (Curve_type,X_data \f3 ,\f5 2,\f0 "BLUE"\f5 ,\cf0\f0 RichBanq2004\cf1\f5 ,"Richard's curve",(45 5)); \par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0 Yvec_Banq = yv;\par
+Line_type\cf1 (3);\par
+\cf5 data_line\cf1 (\cf5 shape\cf1 (3 2,\cf5 cat\cf1 (0,0., .5, L50, .5, L50, 0.)));\par
+\cf5 Line_type\cf1 (0);\par
+\cf5\f5 Draw_text\cf1 (\cf5 xuser(L50) + mm(3)\cf1 ,\cf5 yuser\cf1 (.5) + \cf5 mm\cf1 (1.),\cf5\f0 sprintf\cf1 ("%4.1f",L50)\f5 );\par
+\pard\cf0\f0\par
+Sel_percent = cat(2,xv,round(2,100.*(yvec_Banq/yvec_GB)));  // 2006 and 8 selectivity as percentage of 2009 selectivity\cf1\par
+\par
+\cf3 Add_selectivity_data\cf1 (\lang1033\f5 in_path,file_name\lang4105\f0 )\par
+}
+ 

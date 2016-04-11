@@ -1,0 +1,411 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fmodern\fprq1\fcharset0 Courier New;}{\f1\fmodern\fprq1 Courier New;}{\f2\fnil\fcharset0 Courier New;}{\f3\fmodern Courier New;}{\f4\fmodern\fcharset0 Courier New;}{\f5\froman\fprq2\fcharset0 Times New Roman;}}
+{\colortbl ;\red0\green128\blue0;\red0\green0\blue0;\red0\green0\blue255;\red240\green32\blue0;\red176\green16\blue16;\red128\green0\blue0;}
+\viewkind4\uc1\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\lang4105\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 // Grand Bank surfclam yield and SSB per recruit analysis, method from Framework meeting April 2007\cf2\lang1033\f1\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1\lang1033\f1 //'full' version with separate cat and pop waa and incidental/discard mortalities\cf2\par
+\cf1\lang4105\f0 //\lang1033\f1 $_=search_paths("c:/\lang4105\f0 projects/\lang1033\f1 util_fns/");\cf2\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\f2\fs18 F\cf3 unction\cf2  \cf4 qmax\cf2 (xy)\{\par
+\pard\tab\cf1 // find quadratic maximun of line xy\cf2\par
+\tab\cf0 $np = \cf5 scalar\cf0 (\cf5 take\cf0 (1,\cf5 len\cf0 (xy)));\par
+\tab ix = \cf5 min\cf0 ($np - 1,\cf5 max\cf0 (2,\cf5 take\cf0 (1,\cf5 descending\cf0 (xy[;2]))))\par
+\tab co = \cf4 lagr\cf0 (xy[\cf5 cat\cf0 (0,ix -1,ix,ix+1);],3)\par
+\tab xmax = co[2] / (-2. * co[3]);\par
+\cf3\tab return\cf0 (\cf5 cat\cf0 (0,xmax,\cf5 in_prod\cf0 ( \cf5 pow\cf0 (xmax,\cf5 seq\cf0 (0,2)) ,co)))\par
+\};\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\pard\cf3\f2\fs18 Function\cf2  \cf4 lagr\cf2 (xy,n)\{\cf0\par
+\cf1\tab // lagrangian coefficients of m x 2 xy of degree n at point\cf0\par
+\cf3\tab return\cf0 (\cf5 in_prod\cf0 (\cf5 inverse\cf0 (\cf5 out_pow\cf0 (xy[;1],\cf5 seq\cf0 (0,n-1))),xy[;2]))\par
+\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\pard\cf3\f2\fs18 Function\cf2  \cf4 op1\cf2 (xy)\{ \cf1 /*find 0.1 point of line xy */\cf0\par
+\tab $np = \cf5 scalar\cf0 (\cf5 take\cf0 (1,\cf5 len\cf0 (xy)));\par
+\tab tem = 0.1 * \cf4 lagr\cf0 (xy[1 2 3;],3)[2]\par
+\tab ix = \cf5 min\cf0 ($np - 1,\cf5 max\cf0 (2,\cf5 sum\cf0 ( (tem) < (\cf5 drop\cf0 (-1,xy[;2]) - \cf5 drop\cf0 (1,xy[;2])) / (\cf5 drop\cf0 (-1,xy[;1]) - \cf5 drop\cf0 (1,xy[;1])))))\par
+\tab co = \cf4 lagr\cf0 (xy[\cf5 cat\cf0 (0,ix -1,ix,ix+1);],3)\par
+\tab xop1 = ((tem) - co[2]) / (2. * co[3]);\par
+\cf3\tab return\cf0 (\cf5 cat\cf0 (0,xop1,\cf5 in_prod\cf0 ( \cf5 pow\cf0 (xop1,\cf5 seq\cf0 (0,2)) ,co)))\cf2\par
+\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\cf3 Function\cf2  \cf4 Add_Percent_SSB_points\cf2 (SSB,per_SSB)\{\par
+\tab fpers = \cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,ssb/ssb[1],frange),per_SSB)   \cf1 // F for .25 .35 .45% of initial SSB\cf2\par
+    ypers = \cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,frange,ssb),fpers)          \cf1 // Yield for f of .25 .35 .45 \cf2\par
+\pard\f2\fs18     \cf5 Marker_Height\cf2 (\cf5 mm\cf2 (2.0));\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0\fs16     \cf5 data_points\cf2 (fpers,ypers) \par
+    \cf5 data_labels\cf2 (\cf5 cat\cf2 (2,fpers,ypers,per_SSB))\par
+\pard\f2\fs18     \cf5 Marker_Height\cf2 (\cf5 mm\cf2 (1.0));\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0\fs16     \cf3 return\cf2 (\cf5 cat\cf2 (2,per_SSB,fpers,ypers))\par
+\};   \par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf3 Function\cf2  \cf4 Add_F0.1_Fmax\cf2 (Yie,remo)\{\par
+\i    fymx0 = \cf4\lang1033\i0\f1 qmax\cf2 (\cf5 cat\cf2 (2,frange,yie))\lang4105\f0    \cf1 // maximum of catch yield curve\cf2\lang1033\f1\par
+\lang4105\i\f0    \i0 fy010\i = \cf4\lang1033\i0\f1 op1\cf2 (\cf5 cat\cf2 (2,frange,yie))\lang4105\f0     \cf1 // f0.1 of catch yield\cf2\par
+\pard    \cf5 data_line\cf2 (\cf5\f2\fs18 shape\cf2 (2 2,\cf5 cat\cf2 (0,\i\f0\fs16 fymx0\i0\f2\fs18 [1], 0.0,  \i\f0\fs16 fymx0\i0\f2\fs18 [1], \i\f0\fs16 fymx0\i0\f2\fs18 [2])))\par
+\f0\fs16    \cf5 data_line\cf2 (\cf5\f2\fs18 shape\cf2 (2 2,\cf5 cat\cf2 (0,fy010[1], 0.0,  fy010[1], fy010[2])))\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\i\f0\fs16    Fmax_R = \cf4\lang1033\f1 qmax\cf2\i0 (\cf5 cat\cf2 (2,frange,remo))\lang4105\f0           \cf1 // maximum of total removals yield\cf2\lang1033\f1\par
+\lang4105\i\f0    F01_R = \cf4\lang1033\f1 op1\cf2\i0 (\cf5 cat\cf2 (2,frange,remo))\lang4105\f0            \cf1 // fo.1 of total removals\cf2\par
+\pard\f2\fs18    \cf5 Print\cf2 (\cf5 cat\cf2 ("f0.1 y/r = ",\cf5 str\cf2 (\f0\fs16 fy010\i ),", fmax y/r = ",\cf5 str\cf2 (fymx0)))\i0\f2\fs18\par
+   \cf5 Print\cf2 (\cf5 cat\cf2 ("f0.1 r/r = ",\cf5 str\cf2 (\i\f0\fs16 F01_R),", fmax r/r = ",\cf5 str\cf2 (Fmax_R)))\i0\f2\fs18\par
+\};\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\cf3\lang1033\f1 Function\cf2  \cf4 YPRfull\cf2 (selc,waac,fracti,waap,maa,mataa,frange\lang4105\f0 ,plusflag\lang1033\f1 )\{\par
+\tab nf = \cf6 scalar\cf2 (\cf6 len\cf2 (frange));\par
+\tab catt = catc =  cati = pop = \cf6 shape\cf2 (na,nf,0.0);\par
+\tab ia = \cf6 seq\cf2 (1,na-1);\par
+\tab\cf3 for\cf2 (f = 1; f <= nf; f++)\{\par
+\tab\tab faa = selc * frange[f];\par
+\tab\tab zaa = maa + faa;\par
+\tab\tab tz = -1. * \cf6 drop\cf2 (-1,\cf6 cat\cf2 (0,0.,zaa));\par
+\tab\tab pop[;f] = \cf6 exp\cf2 (\cf6 cum_sum\cf2 (tz));\par
+\tab\tab\cf3\lang4105\f0 if\cf2 (plusflag) pop[na;f] /=zaa[na] \par
+\lang1033\f1\tab\tab catt[;f] = faa * pop[;f] * (1 - \cf5 exp\cf2 (-1. * zaa))/zaa; \cf1 //removals\cf2\par
+\tab\tab cati[;f] = catt[;f] * fracti \cf1 // incidentals + discards \cf2\par
+\tab\tab catc[;f] = catt[;f] - cati[;f] \cf1 // retained catch (= landings)\cf2\par
+\tab\}\par
+\tab yie = \cf5 in_prod\cf2 (waac,catc);\lang4105\f0                        \cf1 // Yield per recruit\cf2\lang1033\f1\par
+\tab remo = yie + \cf5 in_prod\cf2 (waap,cati);\lang4105\f0                 \cf1 // Total removals, catch + incidentals + discards\cf2\lang1033\f1\par
+\tab bio = \cf5 in_prod\cf2 (waap,pop);\lang4105\f0                         \cf1 // Population biomass\cf2\lang1033\f1\par
+\tab ssb = \cf5 in_prod\cf2 (waap*mataa,pop);\lang4105\f0                   \cf1 // Spawning stock biomass\cf2\lang1033\f1\par
+\tab\cf3 return\cf2 (null);\par
+\}\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\cf3 Function\cf2  \cf4 logistic_curve\cf2 (a,b,ns)\{\par
+\tab\cf3 return\cf2 (\cf5 exp\cf2 (a + b*ns)/(1+\cf5 exp\cf2 (a+b*ns)););\par
+\};\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf3\lang1033\f1 Function\cf2  \cf4 YPRfull\lang4105\f0 _inc\cf2\lang1033\f1 (selc,waac,\lang4105\f0 Tot_incid,\lang1033\f1 waap,maa,mataa,frange\lang4105\f0 ,plusflag\lang1033\f1 )\{\par
+\tab nf = \cf5 scalar\cf2 (\cf5 len\cf2 (frange));\lang4105\f0 na = \cf5 len\cf2 (ages)\lang1033\f1\par
+\tab catt = catc =  cati = cat\lang4105\f0 n = \lang1033\f1 pop = \cf5 shape\cf2 (na,nf,0.0);\par
+\lang4105\f0\tab incid = \cf5 shape\cf2 (na,0.0);\lang1033\f1\par
+\tab ia = \cf6 seq\cf2 (1,na-1);\par
+\tab\cf3 for\cf2 (f = 1; f <= nf; f++)\{\par
+\pard\lang4105\f2\fs18        PNR = 1 - selc                               \cf1 // proportion not retained, \cf2\par
+       part_idx = \cf5 bindex\cf2 (PNR > 0.05)                \cf1 // cut PNR off at 95% selectivity, \cf2\par
+\cf1 //       incid[part_idx] = PNR[part_idx]/sum(PNR[part_idx])*\f0\fs16 Tot_incid   // divide total incidental mortality proportional to PNR\cf2\f2\fs18\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0\fs16        \f2\fs18 incid[part_idx] = PNR[part_idx]*tot_incid    \cf1 // full incid mortality of "tot_incid" on non retained\cf2\lang1033\f1\fs16\par
+\tab\tab\lang4105\f0 totprop = \cf5\f2\fs18 min\cf2 (1,(selc + \f0\fs16 incid)\f2\fs18 );             \cf1 // total fraction of F, selectivity + incidentals\cf2\par
+\lang1033\f1\fs16\tab\tab\lang4105\f0 taa = totprop * frange[f];                   \cf1 // Total fishing(F+I) mortality at age\cf2\lang1033\f1\par
+\tab\tab faa = selc * frange[f];\lang4105\f0                       \cf1 // F at Age\cf2\lang1033\f1\par
+\tab\tab zaa = maa + \lang4105\f0 taa\lang1033\f1 ;\lang4105\f0                              \cf1 // total mortalty, M + F + I\cf2\lang1033\f1\par
+\tab\tab tz = -1. * \cf6 drop\cf2 (-1,\cf6 cat\cf2 (0,0.,zaa));\par
+\tab\tab pop[;f] = \cf6 exp\cf2 (\cf6 cum_sum\cf2 (tz));\par
+\tab\tab\cf3\lang4105\f0 if\cf2 (plusflag) pop[na;f] /=zaa[na] \par
+\lang1033\f1\tab\tab catt[;f] = pop[;f] * (1 - \cf5 exp\cf2 (-1. * zaa)); \lang4105\f0   \cf1\lang1033\f1 //\lang4105\f0  Total fishing mortality      = N*A\cf2\lang1033\f1\par
+\tab\tab cati[;f] = \lang4105\f0 (frange[f]*incid)\lang1033\f1 /zaa * catt[;f];\lang4105\f0    \cf1\lang1033\f1 // \lang4105\f0 I\lang1033\f1 ncidentals + discards \lang4105\f0       = N*A* I/Z\cf2\lang1033\f1\par
+\tab\tab catc[;f] = \lang4105\f0 (frange[f]*selc)\lang1033\f1 /zaa * catt[;f];\lang4105\f0   \cf1\lang1033\f1 // \lang4105\f0 R\lang1033\f1 etained catch (= landings)\lang4105\f0   = N*A* F/Z\cf2\lang1033\f1\par
+\tab\tab cat\lang4105\f0 n\lang1033\f1 [;f] = \lang4105\f0 maa\lang1033\f1 /zaa *\lang4105\f0  \lang1033\f1 catt[;f];\lang4105\f0                \cf1\lang1033\f1 // \lang4105\f0 Natural mortality            = N*A* M/Z\cf2\par
+\lang1033\f1\tab\}\par
+\tab yie = \cf5 in_prod\cf2 (waac,catc);\lang4105\f0                        \cf1 // Yield per recruit\cf2\lang1033\f1\par
+\tab remo = yie + \cf5 in_prod\cf2 (waap,cati);\lang4105\f0                 \cf1 // Total removals, catch + incidentals + discards\cf2\lang1033\f1\par
+\tab bio = \cf5 in_prod\cf2 (waap,pop);\lang4105\f0                         \cf1 // Population biomass\cf2\lang1033\f1\par
+\tab ssb = \cf5 in_prod\cf2 (waap*mataa,pop);\lang4105\f0                   \cf1 // Spawning stock biomass\cf2\lang1033\f1\par
+\tab\cf3 return\cf2 (null);\par
+\}\par
+\fs18 // ------------------------------------------------------------------------------------------------------------\par
+\cf3\lang4105\f2 Function\cf2  \cf4 Draw_Richards_Curve\cf2 (x,param,Line_draw) \{     \cf1 // Draw \f0 Richard's Curve\cf2\f2\par
+ //\cf0  xv = seq(min(x),max(x),(max(x) - min(x))/60.);\cf2\par
+  xv = x;\par
+  yv = \cf5 pow\cf2 ((\cf5 exp\cf2 (param[1]+param[2]*xv)/(1+\cf5 exp\cf2 (param[1] + param[2] * xv))),1./param[3]);\par
+  \cf3 if\cf2  (line_draw == 1)\{ \cf5 data_Line\cf2 (xv,yv);\};\cf0\par
+\cf2   L50 = (\cf5 log\cf2 (\cf5 pow\cf2 (0.5,param[3])/(1-\cf5 pow\cf2 (0.5,param[3])))-param[1])/param[2]; \cf1 // 50% value of x\cf2\par
+  \cf3 return\cf2 (Yv);\par
+\};\cf0\par
+//----------------------------------------------------------------------------------------------\cf2\par
+\cf1\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 //plot_lines(ages,waap)\cf2\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+f\cf3 unction\cf2  \cf4 set_parameters\cf2 (set)\{\par
+   \lang1033\f1 frange = \cf5 cat\cf2 (0,0. 0.0001 0.0002, \cf5 seq\cf2 (.0\lang4105\f0 01\lang1033\f1 ,\lang4105\f0 .75\lang1033\f1 ,.0\lang4105\f0 2\lang1033\f1 ));\par
+\lang4105\f0    na = 80\par
+   ages = \cf5 seq\cf2 (1.,na)\par
+   laap = \lang1033\fs18 98.104754\lang4105\fs16  *(1.0 - \cf5 exp\cf2 (-\lang1033\fs18 0.081807\lang4105\fs16  * (ages + \lang1033\fs18 2.222728\lang4105\fs16 )));            \cf1 // growth curve GB 2009 weighted to population\cf2\par
+   \lang1033\f1 maa = \cf5 shape\cf2 (na,.\lang4105\f0 08\lang1033\f1 )\lang4105\f0                                                \cf1 // est mortality GB surfclams 0.08\cf2\lang1033\f1\par
+\lang4105\f0    \lang1033\f1 fracti = \cf5\lang4105\f0 shape\cf2 (na,0.)\par
+   fracti[\cf5 seq\cf2 (1,16)] = 1.\par
+\tab\cf3 if\cf2 (set == 1) \{                 \cf1 //Bob's Original\cf2\par
+       waac = waap = \lang1033\fs18 233.58032632\lang4105\fs16  * (1 - \cf5 exp\cf2 (-\lang1033\fs18 0.02936496\lang4105\fs16  * (ages - \lang1033\fs18 6.45072866\lang4105\fs16 )))  \cf1\lang1033\fs18 //GB 2009\cf2\lang4105\fs16\par
+       \lang1033\f1 selc = \cf5\lang4105\f0 shape\cf2 (na,1.)\cf1\lang1033\f1 //catch selectivity\cf2\par
+\lang4105\f0        selc[\cf5 seq\cf2 (1,16)] = .15\par
+       \lang1033\f1 m\lang4105\f0 at\lang1033\f1 aa = \cf5 shape\cf2 (na,\lang4105\f0 1\lang1033\f1 )\par
+\lang4105\f0        mataa[\cf5 seq\cf2 (1,6)] = 0\par
+   \}\cf3 else\cf2  \cf3 if\cf2  (set == 2)\{            \cf1 // Using actual data fits\cf2\par
+       waac = waap = \lang1033\fs18 233.58032632\lang4105\fs16  * (1 - \cf5 exp\cf2 (-\lang1033\fs18 0.02936496\lang4105\fs16  * (ages - \lang1033\fs18 6.45072866\lang4105\fs16 ))); \cf1 // GB2006-2009, but uses length-weight conversion below\cf2\par
+       waac[\cf5 seq\cf2 (1,6)] = waap[\cf5 seq\cf2 (1,6)] = \cf5 linear_interpolate\cf2 (\cf5 shape\cf2 (2 2,\cf5 cat\cf2 (0, 0.,  0.,  7.,  waac[7])),\cf5 seq\cf2 (1,6)); \cf1 // interpolate over negatives\cf2\par
+       len_wgt_params = \lang1033\f3\fs18 0.00005\lang4105\f4 893\f0\fs16  \lang1033\f3\fs18 3.1\lang4105\f4 59\f0\fs16 ; \cf1 // fit to GB data\cf2\par
+       waac = waap = len_wgt_params[1]*\cf5 pow\cf2 (laap,len_wgt_params[2]);\par
+\tab\tab\cf1 // \f2\fs18 Draw_Richards_Curve(\f0\fs16 laap\f2\fs18 ,(-11.2440473 0.1572978 1.9208243),0);   // Selectivity for survey dredge Arctic Surfclams GB 2009\cf2\f0\fs16\par
+  \tab\tab selc = \cf4\f2\fs18 Draw_Richards_Curve\cf2 (\f0\fs16 laap\f2\fs18 ,(\f5\fs24 -2.70209482 0.05173582 0.23665877\f2\fs18 ),0);   \cf1 // Selectivity Arctic Surfclams Commercial dredge on size at age\cf2\f0\fs16\par
+       sel50 = L50;  \cf1 // from richards curve function above\cf2\par
+       mataa = \cf4\f2\fs18 Draw_Richards_Curve\cf2 (\f0\fs16 ages\f2\fs18 ,( 4.94942 0.24728 0.00276878),0);\f0\fs16   \cf1 // Age at maturity curve for Grand Bank\cf2\par
+       mat50 = L50;\par
+   \};\par
+\};\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 // Bob Mohn's (almost) original code\cf2\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf4 set_parameters\cf2 (2);\par
+lmatsel50 = \cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,laap,ages),50. 77 87. 100)\par
+\lang1033\f1 maa = \cf5 shape\cf2 (na,.\lang4105\f0 09\lang1033\f1 )\par
+\cf1 //fraction of c-a-a that goes to  inci's or discards\cf2\par
+frange = \cf5 cat\cf2 (0,0. 0.0001 0.0002, \cf5 seq\cf2 (.0\lang4105\f0 01\lang1033\f1 ,\lang4105\f0 1.75\lang1033\f1 ,.0\lang4105\f0 2\lang1033\f1 ));\par
+\cf1\lang4105\f0 //\lang1033\f1 frange = cat(0,0. 0.0001 0.0002, \lang4105\f0 .1\lang1033\f1 );\cf2\par
+\cf4\i yprfull\cf2\i0 (selc,waap,fracti * 0.,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\par
+base = \cf5 cat\cf2 (2,frange,yie,ssb,remo)\lang4105\f0                                        \lang1033\f1\par
+\cf4\i yprfull\cf2\i0 (selc,waap,fracti,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\cf1 //test fracti\cf2\par
+test = \cf6 cat\cf2 (2,frange,yie,ssb,remo)\par
+test/base\\2\par
+\cf5 Data_Viewport\cf2 (\cf5 mm\cf2 (\lang4105\f0 3\lang1033\f1 0.),\cf5 mm\cf2 (180.),\cf5 mm\cf2 (\lang4105\f0 14\lang1033\f1 0.),\cf5 mm\cf2 (\lang4105\f0 22\lang1033\f1 0.));\par
+\cf5 plot_lines\cf2 (\cf5\lang4105\f0 cat\cf2 (2,\lang1033\f1 test\lang4105\f0 [;1 2],base[;2])\lang1033\f1 )\par
+\cf5\lang4105\f0 Draw_text\cf2 (\cf5 getview\cf2 (1) + 0.5*(\cf5 getview\cf2 (2)-\cf5 getview\cf2 (1))-\cf5 mm\cf2 (3), \cf5 getview\cf2 (3) - \cf5 mm\cf2 (12),"F")\lang1033\f1\par
+\cf5 Data_Viewport\cf2 (\cf5 mm\cf2 (\lang4105\f0 3\lang1033\f1 0.),\cf5 mm\cf2 (180.),\cf5 mm\cf2 (\lang4105\f0 4\lang1033\f1 0.),\cf5 mm\cf2 (1\lang4105\f0 2\lang1033\f1 0.));\par
+\cf5 plot_lines\cf2 (\lang4105\f0 test\lang1033\f1 )\par
+\cf1\lang4105\f0 //scaled\cf2\par
+p\cf5 lot_lines\cf2 (\cf5 cat\cf2 (2,test[;1],test[;2]/\cf5 max\cf2 (test[;2]),test[;3]/\cf5 max\cf2 (test[;3]),test[;4]/\cf5 max\cf2 (test[;4])));\par
+\cf5 Draw_text\cf2 (\cf5 getview\cf2 (1) + 0.5*(\cf5 getview\cf2 (2)-\cf5 getview\cf2 (1))-\cf5 mm\cf2 (3), \cf5 getview\cf2 (3) - \cf5 mm\cf2 (12),"F")\lang1033\f1\par
+\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 //Alternate with pre-recruit incidental mortality a total of 15%\cf2\lang1033\f1\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\cf4 set_parameters\cf2 (2);\par
+\cf4\lang1033\f1 YPRfull\lang4105\f0 _inc\cf2\lang1033\f1 (selc,waap, 0.,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\par
+base = \cf5 cat\cf2 (2,frange,yie,ssb,remo)\lang4105\f0                                        \lang1033\f1\par
+\cf4 YPRfull\lang4105\f0 _inc\cf2\lang1033\f1 (selc,waap,\lang4105\f0 0.15\lang1033\f1 ,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\cf1 //test fracti\cf2\par
+test = \cf6 cat\cf2 (2,frange,yie,ssb,remo)\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1\i /*\par
+\i0 //-------------------------------------------------------------------------------------------\par
+\i // Using Bob's Code \lang1033\f1\par
+\lang4105\i0\f0 //-------------------------------------------------------------------------------------------\par
+\lang1033\i\f1 yprfull\i0 (selc,waap,fracti * 0.,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\par
+base = cat(2,frange,yie,ssb,remo)\lang4105\f0                                        \lang1033\f1\par
+\i yprfull\i0 (selc,waap,fracti,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )//test fracti\par
+test = cat(2,frange,yie,ssb,remo)\par
+\lang4105\f0 */\cf2\par
+\cf1 // Alternative plot with labels etc.\cf2\lang1033\f1\par
+D\cf5 ata_Viewport\cf2 (\cf5 mm\cf2 (\lang4105\f0 3\lang1033\f1 0.),\cf5 mm\cf2 (180.),\cf5 mm\cf2 (\lang4105\f0 14\lang1033\f1 0.),\cf5 mm\cf2 (\lang4105\f0 22\lang1033\f1 0.));\par
+\pard\cf5\lang4105\f2\fs18 Data_Window\cf2 (0,\cf5 max\cf2 (frange)*1.05,0,\cf5 max\cf2 (\cf5 cat\cf2 (0,test[;2],base[;2])*1.05));\par
+\cf5 Line_Type\cf2 (0);\cf5 Line_Width\cf2 (\cf5 pts\cf2 (1));\par
+\cf5 Axis\cf2 (0.10,2.,0.0,1.0,1,0,1,0,0);\par
+\cf5 Line_Width\cf2 (\cf5 pts\cf2 (.75));\par
+\cf5 Data_line\cf2 (\f0\fs16 base[;1 2]);                     \cf1 // Draw Y/R with no incidental mortality\cf2\par
+\cf5\f2\fs18 Line_Width\cf2 (\cf5 pts\cf2 (.5));\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf4\f0\fs16 Add_F0.1_Fmax\cf2 (base[;2],base[;4])\par
+\pard\cf5\f2\fs18 Line_Type\cf2 (1);\par
+\cf5 Line_Width\cf2 (\cf5 pts\cf2 (.75));\par
+\cf5 Data_line\cf2 (\lang1033\f1\fs16 test\lang4105\f0 [;1 2]);                     \cf1 // Draw Y/R with incidental mortality\cf2\par
+\cf5\f2\fs18 Line_Width\cf2 (\cf5 pts\cf2 (0.5));\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf4\f0\fs16 Add_F0.1_Fmax\cf2 (\lang1033\f1 test\lang4105\f0 [;2],\lang1033\f1 test\lang4105\f0 [;4])\par
+\pard\cf5\f2\fs18 Line_Type\cf2 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 Draw_text\cf2 (\cf5 getview\cf2 (1) + 0.5*(\cf5 getview\cf2 (2)-\cf5 getview\cf2 (1))-\cf5 mm\cf2 (10), \cf5 getview\cf2 (3) - \cf5 mm\cf2 (12),"Fishing Mortality")\lang1033\f1\par
+\pard\cf0\lang4105\f2\fs18 Character_Rotation(90);\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 Draw_text\cf2 (\cf5 getview\cf2 (1) - \cf5 mm\cf2 (15), \cf5 getview\cf2 (3) + 0.5*(\cf5 getview\cf2 (4)-\cf5 getview\cf2 (3))-\cf5 mm\cf2 (3),"Yield/Recruit (g)")\lang1033\f1\par
+\pard\cf5\lang4105\f2\fs18 Character_Rotation\cf2 (0);\par
+\cf5 Data_Window\cf2 (0,\cf5 max\cf2 (frange)*1.05,0,\cf5 max\cf2 (test[;3])*1.05);   \cf1 // Set up window for SSB with axis on right\cf2\par
+L\cf0 ine_Width(pts(1));\cf2\par
+\cf5 Axis\cf2 (0.10,50.,0.0,10.0,0,1,1,0,0);\par
+\cf5 Line_Width\cf2 (\cf5 pts\cf2 (0.75));\par
+\cf5 Data_line\cf2 (\f0\fs16 base[;1 3]);                            \cf1 // Add SSB curve\cf2\par
+\f2\fs18 L\cf5 ine_Type\cf2 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0\fs16 Decimal_digits(2);\par
+\cf4 Add_Percent_SSB_points\cf2 (base[;3],.25 .35 .45)      \cf1 // plot and label % initial SSB points\cf2\par
+\pard\cf5\f2\fs18 Line_Type\cf2 (2);\par
+\cf5 Line_Colour\cf2 ("RED");\cf5 Fill_colour\cf2 ("RED");\par
+\cf5 Data_line\cf2 (\f0\fs16 test[;1 3]);                            \cf1 // Add SSB curve\cf2\par
+\f2\fs18 L\cf5 ine_Type\cf2 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0\fs16 Decimal_digits(2);\par
+\cf4 Add_Percent_SSB_points\cf2 (test[;3],.25 .35 .45)      \cf1 // plot and label % initial SSB points\cf2\par
+D\cf5 ecimal_digits\cf2 (0);\par
+\pard\cf5\f2\fs18 Character_Rotation\cf2 (90);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 Draw_text\cf2 (\cf5 getview\cf2 (2) + \cf5 mm\cf2 (15), \cf5 getview\cf2 (3) + 0.5*(\cf5 getview\cf2 (4)-\cf5 getview\cf2 (3))-\cf5 mm\cf2 (3),"SSB/Recruit (g)")\lang1033\f1\par
+\pard\cf5\lang4105\f2\fs18 Line_Colour\cf2 ("BLACK");\cf5 Fill_colour\cf2 ("BLACK");\par
+\cf5 Character_Rotation\cf2 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\par
+\par
+\tab\lang1033\f1\par
+\par
+\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\pard\cf4 set_parameters\cf2 (2)\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5 line_width\cf2 (\cf5 mm\cf2 (1))                                           \cf1 // plot of growth as log(fraction weight increase per year)\cf2\par
+\lang1033\f1 D\cf5 ata_Viewport\cf2 (\cf5 mm\cf2 (\lang4105\f0 3\lang1033\f1 0.),\cf5 mm\cf2 (180.),\cf5 mm\cf2 (80.),\cf5 mm\cf2 (1\lang4105\f0 6\lang1033\f1 0.));\lang4105\f0            \cf1 // and overlay mortality rate???\cf2\lang1033\f1\par
+\lang4105\f0 p\cf5 lot_lines\cf2 (\cf5 seq\cf2 (1,57),\cf5 log\cf2 (\cf5 drop\cf2 (1,waac[\cf5 seq\cf2 (3,60)])/\cf5 drop\cf2 (-1,waac[\cf5 seq\cf2 (3,60)])),"g and m ",1,60,0,.5)\par
+\cf5 line_colour\cf2 ("red")\par
+\cf5 data_line\cf2 (1 60, .08 .08)      \cf1 // overlay mortality rate\cf2\par
+l\cf5 ine_colour\cf2 ("black")\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 // Maybe alternate to above? See script for biomass per recruit with no fishing below\cf2\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\pard\cf4 set_parameters\cf2 (2)\par
+Growth = \cf5 drop\cf2 (1,waac) - \cf5 drop\cf2 (-1,waac)                       \cf1 // Growth in grams/year\cf2\par
+Loss = \f2\fs18 (1-\cf5 exp\cf2 (-.08)) * waac\f0\fs16                                  \cf1 //loss in grams per year         \cf2\par
+\f2\fs18 loss[\cf5 bindex\cf2 (loss <= 0.)]=.00 \par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 plot_lines\cf2 (\cf5 drop\cf2 (-1,ages),growth,\cf5 drop\cf2 (-1,loss),1,60,0,25)      \par
+\pard intercept = \cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,growth - \cf5 drop\cf2 (-1,loss),\cf5 drop\cf2 (-1,ages)), 0.0)\par
+\cf5 print\cf2 ("Age where growth = mortality = ",\cf5 str\cf2 (intercept))\par
+y = \cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,ages,loss), intercept);\par
+data_line(shape(2 2,cat(0,intercept, 0., intercept, y)))\par
+\cf5 decimal_digits\cf2 (1)\par
+\cf5 data_labels\cf2 (\cf5 cat\cf2 (2,intercept + 0.25, 0.1,intercept))\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\pard\cf0\f2\fs18 cat(2,drop(-1,ages),drop(-1,waac),growth,drop(-1,loss),growth - (drop(-1,loss)))\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0\fs16\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 // Data dialog for yield plot with dragable mortality plot\cf2\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\lang1033\f3\fs18 F\cf3 unction\cf2  \cf4 plot_yield\cf2  (windptr,left,right,bot,top) \{\cf0\par
+ $a = left+mm(20); $b = right-mm(10); $c = bot+mm(15); $d = top-mm(5);\par
+ Data_Viewport($a,$b,$c,$d);\cf2\par
+ \cf5 plot_lines\cf2 (frange,\cf5 cat\cf2 (2,yield0,yi\lang4105\f4 e\lang1033\f3 ),\lang4105\f4 " "\lang1033\f3 ,0,\lang4105\f4 .6\lang1033\f3 ,0.,\lang4105\f4 4\lang1033\f3 0)\cf0\par
+   Marker_Type(0);\cf2\par
+   \cf5 data_points\cf2 (\cf5\lang4105\f4 cat\cf2 (2,\f0\fs16 fpers\f4\fs18 ,\f0\fs16 ypers\lang1033\f3\fs18 )\lang4105\f4 )\lang1033\f3\par
+   \cf5\lang4105\f0\fs16 line_colour\cf2 ("red")\par
+\pard\f2\fs18    \cf5 data_line\cf2 (\cf5 shape\cf2 (2 2,\cf5 cat\cf2 (0,fpts[1], 0,  fpts[1],  ypts[1])))\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\f3    \cf5\lang4105\f0\fs16 line_colour\cf2 ("green")\par
+\pard\f2\fs18    \cf5 data_line\cf2 (\cf5 shape\cf2 (2 2,\cf5 cat\cf2 (0,fpts[2], 0,  fpts[2],  ypts[2])))\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\f3    \cf5\lang4105\f0\fs16 line_colour\cf2 ("black")\par
+\lang1033\f3\fs18\};\cf0\par
+\cf1\lang4105\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\cf3\lang1033\f3\fs18 Function\cf2  \cf4 Dialog_ypr\cf2 (windptr,left,right,bot,top) \{\par
+ \lang4105\f4  \lang1033\f3 wt = wtloc;\par
+\lang4105\i\f0\fs16   \cf4\lang1033\f1 yprfull\cf2\i0 (selc,waap,fracti,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\cf1 //test fracti\cf2\par
+\f3\fs18  \lang4105\f4  \i\f0\fs16 fy01 = \cf4\lang1033\i0\f1 op1\cf2 (\cf5 cat\cf2 (2,frange,yie))\par
+\lang4105\i\f0   fymx = \cf4\lang1033\i0\f1 qmax\cf2 (\cf5 cat\cf2 (2,frange,yie))\par
+\lang4105\f0   fpers = \cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,ssb/ssb[1],frange),.25 .35 .45)\par
+  ypers = \cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,frange,yie),fpers)\par
+\f4\fs18   fpts = \cf5 cat\cf2 (0,fy01[1],\i\f0\fs16 fymx\i0\f4\fs18 [2])\par
+  ypts = \cf5 cat\cf2 (0,fy01[2],\i\f0\fs16 fymx\i0\f4\fs18 [2])\par
+  \cf4\lang1033\f3 plot_yield\cf2 (windptr,left,right,bot,top);\cf0\par
+\};\par
+\cf1\lang4105\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\f4\fs18 yield0 = yie\lang1033\f3\par
+\pard\cf5\lang4105\f2 Marker_Height\cf2 (\cf5 mm\cf2 (2.5));\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs16 //-------------------------------------------------------------------------------------------\cf2\par
+\cf5\lang1033\f3\fs18 Data_Dialog_Update\cf2 (2); \cf1 /* update during dragging */\cf0\par
+w1 = Data_Dialog(4,"Dialog_ypr");\par
+\cf6\f1\fs16 data_dialog_position\cf2 (w1,310,5,680,390)\cf1 //left top right bottom \cf2\par
+\f3\fs18 w4 = \cf5 Data_Dialog\cf2 (2,"maa");\cf0\par
+\cf6\f1\fs16 data_dialog_position\cf2 (w4,10,375,300,550)\cf1 //left top right bottom \cf2\par
+\cf1\lang4105\f0 //-------------------------------------------------------------------------------------------\cf2\par
+\lang1033\f3\fs18\par
+\lang4105\f0\fs16\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 // Plot of biomass per recruit with no fishing\cf2\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+selc_z = \cf5 shape\cf2 (na,0.0); \cf1 // No fishing case, what age is maximum cohort biomass\cf2\par
+\cf1 //\lang1033\f1 YPRfull(selc\lang4105\f0 _z\lang1033\f1 ,waap,fracti * 0.,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\cf2\par
+\cf4 YPRfull\lang4105\f0 _inc\cf2\lang1033\f1 (selc\lang4105\f0 _z\lang1033\f1 ,waap,\lang4105\f0 0.0\lang1033\f1 ,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\par
+\lang4105\f0 coh_bio = waap*pop[;1];\par
+\lang1033\f1 D\cf5 ata_Viewport\cf2 (\cf5 mm\cf2 (\lang4105\f0 3\lang1033\f1 0.),\cf5 mm\cf2 (180.),\cf5 mm\cf2 (\lang4105\f0 14\lang1033\f1 0.),\cf5 mm\cf2 (\lang4105\f0 22\lang1033\f1 0.));\par
+\pard\cf1\lang4105\f2\fs18 //Data_Window(0,60,0,max(\f0\fs16 coh_bio\f2\fs18 )*1.05);\cf2\par
+\cf5 Data_Window\cf2 (0,60,0,40.);\par
+\cf5 Line_Type\cf2 (0);\cf5 Decimal_digits\cf2 (0);\par
+\cf5 Axis\cf2 (10.,5.,5.0,1.0,1,0,1,0,0);\par
+\cf5 Data_line\cf2 (\cf5\lang1033\f1\fs16 cat\cf2 (2,\lang4105\f0 ages,coh_bio\lang1033\f1 )\lang4105\f0 );\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5 Draw_text\cf2 (\cf5 getview\cf2 (1) + 0.5*(\cf5 getview\cf2 (2)-\cf5 getview\cf2 (1))-\cf5 mm\cf2 (3), \cf5 getview\cf2 (3) - \cf5 mm\cf2 (12),"Age")\lang1033\f1\par
+\pard\cf0\lang4105\f2\fs18 Character_Rotation(90);\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 Draw_text\cf2 (\cf5 getview\cf2 (1) - \cf5 mm\cf2 (15), \cf5 getview\cf2 (3) + 0.5*(\cf5 getview\cf2 (4)-\cf5 getview\cf2 (3))-\cf5 mm\cf2 (15),"Biomass per recruit")\lang1033\f1\par
+\pard\cf5\lang4105\f2\fs18 Character_Rotation\cf2 (0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\i\f0\fs16 max_cb = \cf4\lang1033\f1 qmax\cf2\i0 (\cf5 cat\cf2 (2,\lang4105\f0 ages,coh_bio\lang1033\f1 ))\par
+\pard\cf0\lang4105\f2\fs18 data_points(shape(1 2,max_cb))\cf2\par
+\cf5 Decimal_digits\cf2 (2);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 draw_text\cf2 (\cf5 xuser\cf2 (max_cb[1]),\cf5 mm\cf2 (2)+\cf5 yuser\cf2 (max_cb[2]),\cf5 cat\cf2 (0,"max w/r = ",\cf5 str\cf2 (max_cb[2])," at age ",\cf5 str\cf2 (max_cb[1])))\par
+\par
+\par
+\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf1 //Plot showing age based parameters for sensitivity to exploitation\cf2\par
+\cf1 //-------------------------------------------------------------------------------------------\cf2\par
+\cf4 set_parameters\cf2 (2);\par
+\pard Growth = \cf5 drop\cf2 (1,waac) - \cf5 drop\cf2 (-1,waac)                       \cf1 // Growth in grams/year\cf2\par
+Loss = \f2\fs18 (1-\cf5 exp\cf2 (-1*maa)) * waac\f0\fs16                                \cf1 // Mortality (M) loss in grams per year         \cf2\par
+\f2\fs18 loss[\cf5 bindex\cf2 (loss <= 0.)]=.00 \par
+col_mat = \cf5 strfold\cf2 ("Green Red")\par
+\cf5 line_type\cf2 (0); \cf5 line_colour\cf2 ("BLACK"); \cf5 fill_colour\cf2 ("BLACK");\cf5 Line_width\cf2 (\cf5 pts\cf2 (1.));\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\f0\fs16 //plot_lines(drop(-1,ages),growth,drop(-1,loss),1,60,0,25,\f2\fs18 col_mat\f0\fs16 )      \cf2\par
+\pard\cf1 //intercept = linear_interpolate(cat(2,growth - drop(-1,loss),drop(-1,ages)), 0.0)\cf2\par
+\cf1 //print("Age where growth = mortality = ",str(intercept))\cf2\par
+\cf1 //y = linear_interpolate(cat(2,ages,loss), intercept);\cf2\par
+\cf1 //data_line(shape(2 2,cat(0,intercept, 0., intercept, y)))\cf2\par
+\cf1 //decimal_digits(1)\cf2\par
+\cf1 //data_labels(cat(2,intercept + 0.25, 0.1,intercept))\cf2\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\lang1033\f1 D\cf5 ata_Viewport\cf2 (\cf5 mm\cf2 (\lang4105\f0 3\lang1033\f1 0.),\cf5 mm\cf2 (180.),\cf5 mm\cf2 (\lang4105\f0 14\lang1033\f1 0.),\cf5 mm\cf2 (\lang4105\f0 22\lang1033\f1 0.));\par
+\pard\cf5\lang4105\f2\fs18 Data_Window\cf2 (0,na,0,20.);\par
+\cf5 Line_Type\cf2 (0);\cf5 Decimal_digits\cf2 (0);\par
+\cf5 Axis\cf2 (10.,5.,5.0,1.0,1,0,1,0,0);\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\f0\fs16 selc_z = \cf5 shape\cf2 (\cf5 len\cf2 (ages),0.0); \cf1 // No fishing case, what age is maximum cohort biomass\cf2\par
+\cf4\lang1033\f1 YPRfull\lang4105\f0 _inc\cf2\lang1033\f1 (selc\lang4105\f0 _z\lang1033\f1 ,waap,\lang4105\f0 0.0\lang1033\f1 ,waap,maa,mataa,frange\lang4105\f0 ,plflag = false\lang1033\f1 )\par
+\lang4105\f0 coh_bio = waap*pop[;1];\par
+\pard\cf5\f2\fs18 Data_line\cf2 (\cf5\lang1033\f1\fs16 cat\cf2 (2,\lang4105\f0 ages,coh_bio\lang1033\f1 )\lang4105\f0 );\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160 max_bio = \cf4 qmax\cf2 (\cf5 cat\cf2 (2,ages,coh_bio));\par
+\pard\cf5 marker_height\cf2 (\cf5 mm\cf2 (2));\par
+\cf5 data_points\cf2 (\cf5 shape\cf2 (1 2,max_bio));\par
+\cf5 draw_text\cf2 (\cf5 xuser\cf2 (max_bio[1]),\cf5 yuser\cf2 (max_bio[2])+\cf5 mm\cf2 (1.0),\cf5 cat\cf2 ("Maximum ",\cf5 str\cf2 (max_bio[2])," at age ",\cf5 str\cf2 (max_bio[1])));\par
+\cf5\f2\fs18 Data_Window\cf2 (0,na,0,1.);\par
+\cf5 Axis\cf2 (10.,.1,5.0,.05,0,1,0,0,0);\par
+\cf5 Line_Type\cf2 (1);\cf5 Line_Colour\cf2 ("BLUE");\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 Data_line\cf2 (\cf5 cat\cf2 (2,ages,Mataa));\par
+\pard\cf5\f2\fs18 Line_Type\cf2 (3);\cf5 Line_Colour\cf2 ("ORANGE");\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 Data_line\cf2 (\cf5 cat\cf2 (2,ages,selc));\par
+\pard\cf5\f2\fs18 line_type\cf2 (0); \cf5 line_colour\cf2 ("BLACK"); \cf5 Line_width\cf2 (\cf5 pts\cf2 (0.5));\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf5\f0\fs16 Data_points\cf2 (\cf5 shape\cf2 (2 2,\cf5 cat\cf2 (0,mat50,0.5,SelA50=\cf5 linear_interpolate\cf2 (\cf5 cat\cf2 (2,laap,ages),sel50),0.5)));\par
+\cf5 print\cf2 ("maximum Biomass per recruit is ",\cf5 str\cf2 (max_bio[2]),", and occurs at age ",\cf5 str\cf2 (max_bio[1]));\par
+\cf5 print\cf2 ("Age at 50% selectivity is ",\cf5 str\cf2 (SelA50));\par
+\cf5 print\cf2 ("Age at 50% Maturity is ",\cf5 str\cf2 (mat50));\lang1033\f1\par
+\cf1\lang4105\f2\fs18 //----------------------------------------------------------------------------------------------\cf2\par
+F\cf3 unction\cf2  \cf4 Fit_line_C\cf2 (xv) \{   \cf1 // Richards curve\cf2\par
+  yv = 100*\cf5 pow\cf2 ((\cf5 exp\cf2 (param[1]+param[2]*xv)/(1+\cf5 exp\cf2 (param[1] + param[2] * xv))),1./param[3]);\cf0\par
+  data_Line(xv,yv);\cf2\par
+  \cf3 return\cf2 (yv);\cf0\par
+\};\par
+//----------------------------------------------------------------------------------------------\cf2\par
+\cf1\f0\fs16 //Sable Quahog parameters\cf2\par
+Ages = \cf5 seq\cf2 ( 1,200);\par
+na = \cf5 len\cf2 (ages)\par
+laap = 90.4781 * (1 - \cf5 exp\cf2 (-.04619 * (ages +1.4433)));                    \cf1 // Growth curve from 2003 survey samples\cf2\par
+waac = waap = 172.178 * (1 - \cf5 exp\cf2 (-.02576 * (ages - 9.7288))); \cf1 // S-PLUS fit to 2003 survy data\cf2\par
+\f2\fs18 P\cf0 aram =  -12.8376 0.1498 3.598;  // Parameters from solver fit to \cf2\f0 Richards Selectivity Curve\f2\par
+\f0\fs16 selc = 1./100.*\cf4\f2\fs18 Fit_line_C\cf2 (\f0\fs16 laap\f2\fs18 )\f0\fs16 ;     \cf1 // Selectivity curve for 2003 quahog survey gear\cf2\par
+mataa = \cf4 logistic_curve\cf2 (-3.7489, 0.4584,ages);  \cf1 // Age at maturity curve for Sable quahogs\cf2\par
+\lang1033\f1 maa = \cf5 shape\cf2 (\lang4105\f0 na\lang1033\f1 ,.\lang4105\f0 03\lang1033\f1 )\lang4105\f0             \cf1 // natural mortality\cf2\lang1033\f1\par
+\lang4105\f0\par
+\par
+\lang1033\f1\par
+\cf1\lang4105\f0 // St. Marys quahog parameters\cf2\par
+Ages = \cf5 seq\cf2 ( 1,75);\par
+na = \cf5 len\cf2 (ages);\par
+laap = \fs18 87.5351\fs16  * (1 - \cf5 exp\cf2 (-\fs18 0.0515809\fs16  * (ages + \fs18 4.01516\fs16 )));                    \cf1 // Growth curve from 2002 survey samples\cf2\par
+waac = waap = 187.619 * (1 - \cf5 exp\cf2 (-.0214803 * (ages + 0.871799))); \cf1 // S-PLUS fit to 2002 survy data\cf2\par
+\f2\fs18 P\cf0 aram =  -12.8376 0.1498 3.598;  // Parameters from solver fit to \cf2\f0 Richards Selectivity Curve\f2\par
+\f0\fs16 selc_Z = \cf5 shape\cf2 (\cf5 len\cf2 (ages),0.0);     \cf1 // Selectivity curve set to zero\cf2\par
+mataa = \cf5 shape\cf2 (\cf5 len\cf2 (ages),0.0);  \cf1 // Age at maturity curve unknown\cf2\lang1033\f1\par
+maa = \cf5 shape\cf2 (na,.\lang4105\f0 0325\lang1033\f1 )\lang4105\f0             \cf1 // natural mortality\cf2\lang1033\f1\par
+frange = \cf5 cat\cf2 (0,0. 0.0001 0.0002, \cf5 seq\cf2 (.0\lang4105\f0 01\lang1033\f1 ,\lang4105\f0 .75\lang1033\f1 ,.0\lang4105\f0 2\lang1033\f1 ));\par
+\pard\lang4105\f5\fs24\par
+\f0\fs18\par
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\cf1\fs16 //Grand Bank Arctic surfclam parameters\cf2\par
+Ages = \cf5 seq\cf2 ( 1,200);\par
+na = \cf5 len\cf2 (ages)\par
+laap = 998.1048 * (1 - \cf5 exp\cf2 (-0.0818 * (ages +2.2228)));                    \cf1 // Growth curve from Grand Bank survey samples\cf2\par
+\par
+\par
+waac = waap = 172.178 * (1 - \cf5 exp\cf2 (-.02576 * (ages - 9.7288))); \cf1 // S-PLUS fit to 2003 survy data\cf2\par
+\f2\fs18 P\cf0 aram =  -12.8376 0.1498 3.598;  // Parameters from solver fit to \cf2\f0 Richards Selectivity Curve\f2\par
+\f0\fs16 selc = 1./100.*\cf4\f2\fs18 Fit_line_C\cf2 (\f0\fs16 laap\f2\fs18 )\f0\fs16 ;     \cf1 // Selectivity curve for 2003 quahog survey gear\cf2\par
+mataa = \cf4 logistic_curve\cf2 (-3.7489, 0.4584,ages);  \cf1 // Age at maturity curve for Sable quahogs\cf2\par
+\lang1033\f1 maa = \cf5 shape\cf2 (\lang4105\f0 na\lang1033\f1 ,.\lang4105\f0 03\lang1033\f1 )\lang4105\f0             \cf1 // natural mortality\cf2\lang1033\f1\par
+\par
+\par
+\par
+\par
+\par
+\par
+}
+ 
