@@ -1,4 +1,21 @@
 
+
+% to reduce the size of the PDF:
+% use ghostscript:
+% gs -q -dSAFER -dNOPAUSE -sDEVICE=pdfwrite -sPDFSETTINGS=printer -sOutputFile="resdoc2006sc.pdf" resdoc2006sc.pdf 
+
+% the key being sPDFSETTINGS: with options: default, screen, ebook, printer, preprint
+% try also:  -sCompressPages=true
+% -sDownsampleColorImages=true
+% -sColorImageResolution=300
+% -sGrayImageResolution=300
+% -sMonoImageResolution=300
+% final choice to get it under 8MB :
+
+% gs -q -dSAFER -dNOPAUSE -sDEVICE=pdfwrite -dPDFSETTINGS=/printer -dColorImageResolution=150 -dMonoImageResolution=150 -dGrayImageResolution=150  -dCompatibilityLevel=1.4 -sOutputFile="resdoc2006sc.printer.pdf" resdoc2006sc.pdf  < /dev/null
+
+
+
 \documentclass[letterpaper,portrait,11pt]{scrartcl}
 
 \usepackage[T1,T3]{fontenc}
@@ -150,7 +167,8 @@ hyperref,
 
 \begin{document}
 
-\maketitle
+% \include{\mpa /tex/sab/sab/csas_coverpage.tex}
+% \maketitle
 
 \setlength{\parskip}{12 pt} % spacing between paragraphs
 \setlength{\parindent}{0cm}
@@ -967,19 +985,23 @@ For these rather simple and obvious reasons, defining the spatial scale of a giv
 
 Any spatially defined observation can be seen as a realization of some stochastic spatial process. Such  processes are known as \textbf{spatial random fields} or \textbf{spatial stochastic process}, $y$, defined at some location $x$. The manner in which the variability of $y$ changes as a function of distance $\Delta x$ is informative and is known as the \textbf{semivariogram} $\gamma$:
 
-\begin{eqnarray*}
+\begin{equation}
 \label{eq:semivariogram}
-\gamma(x) &=& \frac{1}{2} \ \textrm{Var} [ y(x) - y(x + \Delta x)]  \\
-&=& \sigma^2 [1-c(x)] 
-\end{eqnarray*}
+\gamma(x) = \frac{1}{2} \ \textrm{Var} [ y(x) - y(x + \Delta x)]  
+\end{equation}
 
-where $\sigma^2$ is the total variance in observations $y$. It has a clear relationship to the spatial correlation function $c(x)$ and therefore related to the fractal dimension of the system (\cite{Schepers:2002:fractals}). 
+Empirically, one generally observes that the variability is lower between locations closer together and higher for locations further apart. Eventually this variability levels off where observations at one location is completely disconnected from another. This spatial dependence or autocorrelation is important as it directly defines the spatial scales of a given process. 
 
-Empirically, one generally observes that the variability is lower between locations closer together and higher for locations further apart. Eventually this variability levels off where observations at one location is completely disconnected from another. This spatial dependence or autocorrelation is important as it directly defines the spatial scales of a given process. When short-ranged patterns are involved, 
+It is related to the spatial correlation function $\rho(x)$ by the factor $\sigma^2$ the spatial variance in observations $y$, and the non-spatial (nugget) variance usually associated with observation/measurement error $\tau^2$: 
 
-Numerous models are used to parameterize the shape of this relationship. Well known ones include: spherical, exponential, Gaussian and Mat\'{e}rn models. In this report, we utilize the Mat\'{e}rn (Appendix~\ref{sec:matern}), due to its flexibility and direct relationship to Stochastic Partial Differential Equation (SPDE) representation of Random Markov Fields, which will become important later for interpolation purposes. 
+\begin{equation}
+  \label{eq:semivariogram_correl}
+  \gamma(x) = \tau^2 + \sigma^2 (1- \rho(x) ) 
+\end{equation}
 
-The INLA (\cite{rinla}) estimation procedure is used to estimate spatial scale scale which is defined as the distance at which the spatial variance increases asymptotically to $\sim~0.75\%$ of the total variance. Our intent is to focus upon spatial patterns larger than 1 km in resolution and of course smaller than the size of study area. 
+Numerous models are used to parameterize the shape of this relationship $\rho(x)$. Well known ones include: spherical, exponential, Gaussian and Mat\'{e}rn models. In this report, we utilize the Mat\'{e}rn (Appendix~\ref{sec:matern}), due to its flexibility and direct relationship to Stochastic Partial Differential Equation (SPDE) representations of Random Markov Fields, which will become important later for interpolation purposes. 
+
+The geoR library is used to estimate the spatial scale which is defined as the distance at which the spatial autocorrelation decreases asymptotically to $\rho(x) \rightarrow 0.05$ ("practical" range). Our intent is to focus upon spatial patterns larger than 1 km in resolution and of course smaller than the size of study area. 
 
 \subsubsection{Temporal scale}
 \label{sec:interpolationTS}
@@ -1409,23 +1431,119 @@ Finally the numerical and biomass density for each species per unit surface area
 where counts refer to number of organisms encountered in the sample, $\text{depth}_{\text{start}}$ and $\text{depth}_{\text{end}}$ to the start and end depth of the net deployment, split fraction to the fraction of the sample analyzed and volume to the sample volume. The final filtered dataset includes 126 missions in the time period 1999 to 2014, with 2,367 net deployments and more than 400 taxonomic species. 
 
 
-\section{Mat\'{e}rn function}
+\section{Spatial process}
+\label{sec:spatialProcess}
 
+When one observes some quantity $\textbf{y}$ at locations $\textbf{s} = \{s_1 .. s_n \}$, then the spatially  observations $\textbf{y(s)}$ can be seen as realizations of some underlying spatial process or field $\textbf{x(s)}$. Generally, this spatial field is not directly observable and so is called a latent spatial field. In some fixed subset of real space $\Omega \in \Re^d$:
+ 
 \begin{equation}
-\gamma(x) = \tau^2 + \sigma^2 [ 1 - \frac{{(2\sqrt{\nu}x)}^\nu}{2^{\nu-1} \rho^{\nu} \Gamma(\nu)}
-K_\nu(\frac{2\sqrt{\nu}x}{\rho} ) ]
+\textbf{x(s)} \equiv \{ \textbf{y(s)}, \textbf{s} \in \Omega \in \Re^2 | \theta \}
 \end{equation}
 
-Here, $\tau^2$ is the variance offset often known as the nugget variance, the variability at local scales (usually associated with sampling error; $\nu$ controls smoothness/curviness; $\Gamma(\nu)$ is the Gamma function; and $K_{\nu}$ is the modified Bessel function of the second kind and order $\nu$. 
+and the task is to estimate the parameters $\theta$. In the spatial case, these are usually assumed to be parameters of some spatial autocorrelation function, such as for example the Mat\'{e}rn function (Appendix \ref{sec:matern}).
 
-When $\nu=1/2$ then this become the exponential (or Laplacian) model. When $\nu \longrightarrow \infty$, the model becomes the Gaussian model. The spatial range can be recovered from this as the distance at which spatial dependence drops to some arbitrary asymptotic low level. 
+
+\section{Mat\'{e}rn function}
+\label{sec:matern}
+
+The Mat\'{e}rn \textit{correlation} function is parameterised in several ways and nomenclature of variables have also been inconsistent and can potentially cause confusion. The geoR library \parencite{diggle:2007, ribeiro:2001} defines it as:
+
+\begin{equation}
+    \rho(x) = \frac{1}{2^{\kappa-1} \Gamma(\kappa)}
+    {\left( \frac{x}{\phi} \right)  }^{\kappa} K_{\kappa}\left( \frac{x}{\phi} \right)
+\end{equation}
+
+where, $\phi > 0$ is the "range parameter";  $\kappa > 0$ is the shape (smoothness) parameter; $K_{\kappa}()$ is the modified Bessel function of the third kind of order $\kappa$; and $\Gamma()$ is the Gamma function. It is also related to the fractal dimension of the surface complexity (\cite{Schepers:2002:fractals, constantine:1994}). 
+
+spBayes's \parencite{finley:2007} parameterization just a little different as well as is the nomenclature:
+
+\begin{equation}
+\rho(x) = \frac{ 1 }{ 2^{\nu-1} \; \Gamma(\nu) }  \left( \phi x \right) ^{\nu} K_{\nu} \left( \phi x  \right) 
+\end{equation}
+
+
+INLA's \parencite{rinla:2015} parameterization is the same as spBayes', but nomenclature is slightly different again:
+
+\begin{equation}
+  \rho(x) = \frac{ 1 }{ 2^{\lambda-1} \; \Gamma(\lambda) }  \left( \kappa x \right) ^{\lambda} K_{\lambda} \left( \kappa x  \right) 
+\end{equation}
+
+Thus, the following identities are important to interpret the discussions and outputs from these authors:
+
+\begin{eqnarray}
+  \kappa_{geoR} &\equiv& \nu_{spBayes}  \equiv  \lambda_{INLA} \\
+  1/\phi_{geoR} &\equiv& \phi_{spBayes} \equiv \kappa_{INLA}
+\end{eqnarray}
+
+
+Additionally, INLA defines $range_{13\%} = \sqrt{8 \lambda} / \kappa$. The following adopts the notation used by INLA.
+
+
+
+The Mat\'{e}rn \textit{covariance} function, $\gamma(x)$ is the correlation function $\rho(x)$ scaled by the variance. An offset of $\tau^2$ the variability at local scales associated with sampling error smaller than the unit of measurement (sometimes called "nugget" variance) is also modeled:
+
+\begin{equation}
+\gamma(x) = \tau^2 + \sigma^2 ( 1- \rho(x)) 
+\end{equation}
+
+
+When $\nu_{spBayes} = 1/2$, this become the exponential model. When $\nu_{spBayes}  \rightarrow \infty$, the model becomes the Gaussian model. The curves become only incrementally different once $\nu_{spBayes} > 2$ and so \textcite{finley:2007} suggests limiting the prior to the interval (0,2) as a pragmatic solution to speeding up MCMC convergence. We have used the interval $\nu_{spBayes}= (0,5)$, just to be sure. 
+
+Further, the effective range of spatial dependence (distance at which the correlation drops to 0.05 is given by $-ln(0.05)/\phi_{spBayes}$ \parencite{finley:2007}. As such, they recommend a uniform prior in the interval of ($\phi_{spBayes}, -ln(0.05)$). 
+
+The spatial scale we define as exactly this practical or effective spatial range: the distance at which spatial dependence drops asymptotically to $\rho(x) \rightarrow 0.05$. To clarify, it should be noted that INLA defines this effective range at $\sqrt{8}/\phi_{spBayes}$ which is the approximate distance where the correlation falls to 0.13 (vs 0.05) because of eq. \ref{eq:inlaRange}. 
+
+This Mat\'{e}rn covariance happens to be the stationary solution to the SPDE:
+
+\begin{equation}
+(\kappa^2 - \Delta)^{\alpha/2} ( \tau \xi(s)) = W(s)
+\end{equation}
+
+where $W(s)$ is gaussian spatial white noise and $\tau$ controls the variance and $\kappa$ is the scale parameter. More precisely,
+
+\begin{equation}
+  \begin{cases}
+    \lambda  &=  \alpha - d/2 \\
+    \sigma^2 &=  \frac{\Gamma(\lambda)}{\Gamma(\alpha)(4\pi)^{d/2}{\kappa}^{2\lambda} \tau^2 }
+  \end{cases}
+\end{equation}
+
+which for d=2 dimensions:
+
+\begin{equation}
+\begin{cases}
+\lambda  &=  \alpha - 1 \\
+\sigma^2 &=  \frac{\Gamma(\lambda)}{\Gamma(\alpha)(4\pi){\kappa}^{2\lambda} \tau^2 }
+\end{cases}
+\end{equation}
+
+and $\alpha=2$ by default and so $\lambda=1$ such that:
+
+
+\begin{equation}
+\label{eq:inlaRange}
+\begin{cases}
+  range    &=  \sqrt{8} / \kappa \\
+  \sigma^2 &=  \frac{1}{4 \pi \kappa^2 \tau^2 }
+\end{cases}
+\end{equation}
+ 
+
+\begin{eqnarray}
+\text{range} = \sqrt{8} / \kappa 
+\end{eqnarray} 
+
+
+
 
 \begin{figure}
   \centering
   \includegraphics[width=0.5\textwidth]{\ecomod mpa/matern.jpg}
-  \caption{Mat\'{e}rn semivariance as a function of distance for different values of $\nu$.}
+  \caption{Mat\'{e}rn semivariance as a function of distance for different values of $\kappa$.}
   \label{fig:matern}
 \end{figure}
+
+
 
 
 \section{Logistic model}
