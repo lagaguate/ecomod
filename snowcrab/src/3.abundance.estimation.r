@@ -110,8 +110,8 @@
       if(moving.window) p = make.list( list(v=p$vars.to.model, yrs=p$years.to.model  ), Y=p )
       if(!moving.window)p = make.list( list(v=p$vars.to.model  ), Y=p )
   
-      # parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
-      habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
+      parallel.run( habitat.model.db, DS="habitat.redo", p=p )  
+      #habitat.model.db( DS="habitat.redo", p=p, yr=p$years.to.model )   
       #  --- parallel mode is not completing ... FIXME
 
       # ---------------------

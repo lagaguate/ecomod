@@ -13,18 +13,15 @@
   # ------------------------------------------
    # Time-series: Fisheries landings
    figure.landings.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts", outfile2="landings.ts.sm" )
-   #figure.landings.timeseries( yearmax=2016, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts", outfile2="landings.ts.sm" )
-   
+
   # ------------------------------------------
   # Time-series: Fisheries effort 
    figure.effort.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts", outfile2="effort.ts.sm" )
-   #figure.effort.timeseries( yearmax=2016, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts", outfile2="effort.ts.sm" )
-   
+
   # ------------------------------------------
   # Time-series: Fisheries CPUE
    figure.cpue.timeseries( yearmax=p$current.assessment.year, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts", outfile2="cpue.sm.ts" )
-   #figure.cpue.timeseries( yearmax=2016, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts", outfile2="cpue.sm.ts" )
-   
+
   # ------------------------------------------
   # Size frequency distributions, broken down by moult category from at-sea observed data 
     figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )   
@@ -127,10 +124,13 @@
 
   # ------------------------------------------   
   loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
-  # Map:Fisheries logbook data (Effort, CPU, Landings)
+  # Map:Fisheries logbook data (Effort, CPUE, Landings)
   # MG: This is not working properly, you must open the script and run through once by hand???
   # MG: To fix
-    map.fisheries.data( p)
+    #map.fisheries.data( p)
+    raster.map.variables( p, grid.fun=mean, variables = c("effort", "landings", "cpue"))
+  # Map: fisheries logbook data (Effort, CPUE, Landings)  with a colour scale stretched only over the past two years
+    raster.map.variables.current.year( p, grid.fun=mean, variables = c("effort", "landings", "cpue"), years=c('2014', '2015'))
 
   # ------------------------------------------
   # Map: Survey locations

@@ -2,7 +2,7 @@
 #Function to summarize and map raster variables
 #Cell size can also be adjusted to change the default cell size that is mapped, default = 6km
 
-	raster.map.variables = function(p=p, grid.fun, variables, cell=NULL) {
+	raster.map.variables.current.year = function(p=p, grid.fun, variables, cell=NULL, years=years) {
 	  
 	  browser()
 	  
@@ -10,13 +10,12 @@
 	  #x$landings = x$landings/1000  # convert kg to ton #MG code this out so that it calculates quantiles properly
 	  K$sa = 1  # this a dummy variable required by the mapping routine
 	  K = K [filter.region.polygon( K, region="isobath1000m"),]
-	  K = K[ which(x$effort <= 300) ,]
-	  K = K[ which(x$cpue < 500),]
+	  K = K[ which(K$effort <= 300) ,]
+	  K = K[ which(K$cpue < 500),]
 	  
 	  polydir = file.path(project.datadirectory("polygons"), "data", "Basemaps", "Marine", "Coastline")
-	  shpdir = file.path(project.datadirectory("snowcrab"), "maps", "shapefiles", "logbook")
 	  rasdir = file.path(project.datadirectory("snowcrab"), "maps", "rasters", "logbook")
-	  mapdir = file.path(project.datadirectory("snowcrab"), "maps", "images", "logbook")
+	  mapdir = file.path(project.datadirectory("snowcrab"), "maps", "images", "logbook", "currentyear")
 	  
 	  plottimes = p$plottimes
 		extent=p$extUTM
@@ -31,7 +30,6 @@
 		                 #, return.lonlat=TRUE 
 		                 )
 		
-
 		#Import coastline
 		#MG: Switch this to the smaller coastline with no islands
 		setwd(polydir)
@@ -46,15 +44,6 @@
 			cell.big <- 0.083
 		}
 
-		#Write Shapefile of Fisheries Data
-		#fd <- K
-		#fd$date.landed <- as.character(fd$date.landed)
-		#fd.cords <- K[, c("lon", "lat")]
-		#sfd <- SpatialPointsDataFrame(fd.cords, data=fd)
-		#proj4string(sfd) <-geog.proj
-		#setwd(shpdir)
-		#writeOGR(sfd, ".", "FisheriesDataUpdate", driver="ESRI Shapefile", overwrite=T)
-		
 		#Set rows and columns for blank grid
 		ncols <- length(p.ext2[2]:p.ext2[1])/cell
 		nrows <- (length(p.ext2[4]:p.ext2[3])-1)/cell
@@ -64,7 +53,6 @@
 		nrows.big <- (length(p.ext2[4]:p.ext2[3])-1)/cell.big
 
 		#Create the color palette for each variable
-		setwd(shpdir)
 		for (v in variables) {
 			print(v)
 			#Extract data for the raster creation
@@ -79,8 +67,9 @@
 			rstack <- stack()
 	
 			#Loop through and create a raster-based plot for each year
-			for (i in 1:length(sort(unique(M$yr)))) {
-				y= sort(unique(M$yr))
+			for (i in 1:length(sort(unique(years)))) {
+			  y= years
+			  #y= sort(unique(M$yr))
 				name<- y[i]
 				print(name)
 				s= subset(M, M$yr==name)
@@ -89,17 +78,17 @@
 				cor = s[, c("lon", "lat")]
 				sPDF <- SpatialPointsDataFrame (cor, data=s)
 				proj4string(sPDF)<-(geog.proj)
-				#spatial.name <- paste(v, name, sep="")
-				#writeOGR(sPDF, ".", spatial.name, driver="ESRI Shapefile", overwrite=T)
-			
+
 				ras.name <- paste(v, name, ".tif", sep="")
 				grid.sum <- rasterize(x=sPDF, y=grid, field=variables, fun=grid.fun)
 				grid.sum.big <- rasterize(x=sPDF, y=grid.big, field=variables, fun=grid.fun)
 				setwd(rasdir)
 				writeRaster(grid.sum, filename=ras.name, datatype= 'GTiff', overwrite=T)
+				
 				#Create raster stack to calculate the max and min values for the colour scale
 				rstack <- stack(rstack, grid.sum.big)
 				names(rstack[[i]]) <- name
+				
 				#Define colour scale
 				z <- getValues(rstack)
 				z <- z[is.finite(z)]
@@ -117,7 +106,7 @@
 
 				#MG might want to convert landings /1000 to calculate tons for landings, right now it's using KG
 				quant <- unique(quantile(z, seq(0,1, length.out=75)))
-			#MG check to see if quantiles are being calculated properly for effort, there doesn't seem to be a lot of red on the maps
+			  #MG check to see if quantiles are being calculated properly for effort, there doesn't seem to be a lot of red on the maps
 				quant.small <- unique(quantile(z, seq(0,1, length.out=5)))
 				ckey <- list(at=quant, labels=list(at=quant.small))
 				#Plot the variable	
@@ -136,27 +125,11 @@
 				          alpha= 0.3, 
 				          lwd= 0.8)))
 				dev.off()
-			}
-			stack.name<- paste(v, "stack", ".pdf", sep="")
-			par(mar=c(1,1,1,1))
- 			par(oma=c(0,0,0,0))
-			#png(filename=stack.name, width=6.5, height=5, units="in", res=300)
-			pdf(file=stack.name, width=6.5, height=5, bg='white')
- 			par(mar=c(1,1,1,1))
- 			par(oma=c(0,0,0,0))
-			max.plot <- length(sort(unique(M$yr)))-1
-			min.plot <- max.plot - 8
-			main <- y
-			print(levelplot(rstack[[min.plot:max.plot]], at=quant, colorkey=ckey, col.regions=seis, alpha.regions=1,
-				margin=F, xlab="", ylab="", par.strip.text=list(cex=0.7), scales = list(x=list(cex=0.5), y=list(cex=0.5), main=list(cex=0.5))) 
-				+ layer(sp.polygons(coast, fill='lightgrey')) 
-				+ layer(sp.lines(ib, col='dimgrey', 
-				  alpha=0.6, 
-				  lwd= 0.4)))
-			dev.off()
-			to.print <- paste(v, "completed", sep=" ")
-			print(to.print)
-		}
 		
+		
+			}
+			}
 		return("mapping completed")
-	}
+		}
+
+	

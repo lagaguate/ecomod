@@ -1,5 +1,6 @@
 
   biomass.summary.db = function( DS="complete", p=NULL ) {
+    #browser()
     
     if (DS %in% c("complete", "complete.redo") ) {
       fn = file.path( project.datadirectory("snowcrab"), "R", "bugs.rdata" ) 

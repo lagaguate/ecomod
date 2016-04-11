@@ -154,6 +154,7 @@
         if (length(iy) > 0)  x = x[ -iy, ] 
       }
 
+      prorate=FALSE
 
       if (prorate) x = logbook.prorate( x )  # assume pro-rating not required for historical data as it was maintained manually by Moncton
       
@@ -176,12 +177,18 @@
       
       lb.marfis = x[, to.extract ]
       
+      lb.historical$date.landed = as.POSIXct(lb.historical$date.landed)
+      a = lb.historical$date.fished
+      b = paste(substr(a, 1, 4), "/", substr(a, 5, 6), "/", substr(a, 7, 8), sep="")
+      lb.historical$date.fished = as.POSIXct(b)
+
+      
       x = NULL
       x = rbind( lb.historical, lb.marfis )
       
-      #    dups = which(duplicated(x))
-      #    toremove = sort(unique(c(iy, dups)))
-      # if (length(toremove) > 0) x = x[-toremove,]
+      dups = which(duplicated(x))
+      toremove = sort(unique(c(iy, dups)))
+      if (length(toremove) > 0) x = x[-toremove,]
 
 
       # known errors:  manual fixes
@@ -192,12 +199,15 @@
       x = logbook.determine.region(x)  # using licence info and geographics
 
       i.cfa4x = which( x$cfa == "cfa4x" )
-      i.offset = which( months(x$date.landed) >= "Jan" & months(x$date.landed) <= "Jul" )
+      i.offset = which( lubridate::month(x$date.landed) >= 1 & lubridate::month(x$date.landed) <= 7 )
       to.offset = intersect( i.cfa4x, i.offset)
 
       x$yr = x$year
       x$yr[to.offset] = x$yr[to.offset] - 1
-      x$yr[i.cfa4x] = x$yr[i.cfa4x] + 1  # ie:: fishery from 1999-2000 in 4X is now coded as 2000
+      # x$yr[i.cfa4x] = x$yr[i.cfa4x] + 1  # ie:: fishery from 1999-2000 in 4X is now coded as 2000
+      
+      a= x[which(x$cfa0=='cfa4x'),]
+      head(a)
      
       # enforce bounds in effort and cpue
       oo = which( x$cpue > 650 * 0.454 )  # 600 - 650 lbs / trap is a real/reasonable upper limit

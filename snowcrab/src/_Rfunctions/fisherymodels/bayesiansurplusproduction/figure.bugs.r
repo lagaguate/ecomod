@@ -1,5 +1,6 @@
 
   figure.bugs = function( vname="", type="density", sb=NULL, y=NULL, fn=NULL, labs=c("N-ENS","S-ENS","4X") ,save.plot=T) {
+    #browser()
  
     ntacs = sb$nProj
     yrs0 = as.numeric( as.character( rownames(sb$IOA) ) )
@@ -91,8 +92,8 @@
           pdat = as.vector(y$q[i,,])
         prr=NULL
         prr$class='uniform'
-        prr$max=7
-        prr$min=0.1
+        prr$max=1
+        prr$min=0.001
           plot.freq.distribution.prior.posterior( prior=prr, posterior=pdat )
           legend( "topright", bty="n", legend=paste( labs[i], "\n", vname, " = ", qs[2,i], " {", qs[1,i], ", ",  qs[3,i], "}  ", sep="" )   
       )}}
@@ -176,26 +177,32 @@
           qIOA = sb$IOA[,i] / SI[i]
           IOA = sb$IOA[,i] 
           meanval = apply( y$B[,i,,], 1, mean, na.rm=T  )
+          print("blueline")
+          print(meanval)
+          
+          print("biomass index scaled")
+          print(qIOA)
 
           prs = seq( from=0.025, to=0.975, length.out=600)
           Bq =  apply( y$B[,i,,], 1, quantile, probs=prs, na.rm=T  )
 
           yran = range(c(0, Bq, sb$IOA[,i] ), na.rm=T )*1.01
-          plot( yrs, Bq[1,], type="n", ylim=yran, xlab="", ylab=""  )
+          plot( yrs, Bq[1,], type="n", ylim=yran, xlim=range(yrs0), xlab="", ylab=""  )
           cols = gray.colors( floor(length( prs)/2) )
           cols2 = c(cols[length(cols):1], cols )
           for ( j in 1:length(prs) ) {
-            lines ( yrs, Bq[j,], lwd=4, col=cols2[j] )
+            lines ( yrs0, Bq[j,1:length(yrs0)], lwd=4, col=cols2[j] )
+            # lines ( yrs, Bq[j,], lwd=4, col=cols2[j] )
           }
           # lines( yrs, B, lwd=3, col="darkgreen" )
-          abline (v=yrs.last , lwd=2, lty="dashed" )
+          #abline (v=yrs.last , lwd=2, lty="dashed" )
           if (i==2) title( ylab="Fishable biomass (kt)" ) 
           if (i==3) title( xlab="Year" ) 
-          #points( yrs0, qIOA, pch=20, col="darkgreen" )
-          #lines ( yrs0, qIOA, lwd=3, col="darkgreen", lty="dashed" )
-          lines ( yrs, meanval, lwd=2, col="blue", lty="dotted" )
-          points( yrs0, IOA, pch=20, col="darkred" )
-          lines( yrs0, IOA, lwd=3, lty="dashed", col="red" )
+          points( yrs0, qIOA, pch=20, col="darkgreen" )
+          lines ( yrs0, qIOA, lwd=3, col="darkgreen", lty="dashed" )
+          lines ( yrs0, meanval[1:length(yrs0)], lwd=2, col="blue", lty="dotted" )
+          #points( yrs0, IOA, pch=20, col="darkred" )
+          #lines( yrs0, IOA, lwd=3, lty="dashed", col="red" )
           legend( "topright", bty="n", legend=labs[i])
       }}
 
@@ -222,6 +229,7 @@
 
     if (type=="hcr") {
       if (vname=="default") {
+       # browser()
           B =  apply( y$B, c(1,2), mean, na.rm=T  )
           F =  apply( y$F, c(1,2), mean, na.rm=T  )
           K =  apply( y$K, c(1), mean, na.rm=T  )
@@ -252,24 +260,23 @@
           Bhistorical = mean( B[hdat,i], na.rm=T ) 
           yl = 0.05
          
-            polygon(x=c(Bmsy,Bmsy*2,Bmsy*2, Bmsy),y=c(-0.1,-0.1,FMSY[i],FMSY[i]),col='lightgreen',border=NA)
+          polygon(x=c(Bmsy,Bmsy*2,Bmsy*2, Bmsy),y=c(-0.1,-0.1,FMSY[i],FMSY[i]),col='lightgreen',border=NA)
           polygon(x=c(Bmsy/2,Bmsy,Bmsy, Bmsy/2),y=c(-0.1,-0.1,FMSY[i],FMSY[i]),col='lightgoldenrod',border=NA)
           polygon(x=c(0,Bmsy/2,Bmsy/2, 0),y=c(-0.1,-0.1,FMSY[i],FMSY[i]),col='darksalmon',border=NA)
 
-        lines( B[hdat,i], F[hdat,i],  type="b", xlim=c(0, K[i] * 1.1 ),  
-            ylim=ylims, col="darkblue", cex=0.8, lwd=2, xlab="", ylab="", pch=20 )
+          lines( B[hdat,i], F[hdat,i],  type="b", xlim=c(0, K[i] * 1.1 ),  
+          ylim=ylims, col='gray48', cex=0.8, lwd=2, xlab="", ylab="", pch=20 )
         
-
-
-          abline (h=Fref, lty="solid", col="gray", lwd=2 )
-    
-          abline (h=F10, lty="dotted", col="gray")
-          # text( 0.05*K[i], F10, "10% HR", pos=1 )
+          maxdat = max(hdat)
+          points(B[maxdat,i], F[maxdat,i], type="p", pch=19, cex=1.5, col='black')
+        
+          abline (h=Fref, lty="solid", col="blue", lwd=1 )
+          abline (h=F10, lty="dotted", col="blue")
+          text( 0.05*K[i], F10, "10% HR", pos=1, cex=0.8, col='blue' )
+          abline (h=F30, lty="dotted", col="blue")
+          text( 0.05*K[i], Fref, "20% HR", pos=1, col='blue' )
           
-          abline (h=F30, lty="dotted", col="gray")
-          # text( 0.05*K[i], F30, "30% HR", pos=1 )
- 
-
+          text( 0.05*K[i], F30, "30% HR", pos=1, cex=0.8, col='blue' )
           abline (h=FMSY[i], lty="dashed", col="red" )
 
           # abline (h=Fhistorical, lty="dashed")
@@ -279,19 +286,16 @@
           # text( Bref-0.2, 0.25, "Lower biomass reference point\n (LBRP = 0.2 * BMSY)" , srt=90, pos=3)
 
           abline (v=Bmsy, lty="dotted")
-        
           abline (v=BK, lty="dotted")
-    
           abline (v=BK25, lty="dotted")
    
           text( Bmsy-0.01*K[i], yl, "K/2" , srt=90, pos=3)
           text( BK-0.01*K[i], yl, "K" , srt=90, pos=3)
           text( BK25-0.01*K[i], yl, "K/4" , srt=90, pos=3)
-          text( 0.05*K[i], Fref, "20% HR", pos=1 )
           text( 0.05*K[i], FMSY[i], "FMSY", pos=3, lwd=2, col="red" )
           text( B[hdat,i], F[hdat,i],  labels=yrs0, pos=3, cex= 0.8 )
   
-          text( 0, ylims[2]*0.9,  labels=labs[i], pos=3, cex= 0.85 )
+          text( 0, ylims[2]*0.9,  labels=labs[i], pos=3, cex= 1.2 )
 
           # abline (v=Bhistorical, lty="dashed")
           # text( Bhistorical-0.01*K[i], yl, "Mean" , srt=90, pos=3,  lwd=2)
@@ -367,7 +371,7 @@
           text( BK25-0.01*K[i], yl, "K/4" , srt=90, pos=3)
           text( B[hdat,i], F[hdat,i],  labels=yrs0, pos=3, cex= 0.8 )
   
-          text( 0, ylims[2]*0.9,  labels=labs[i], pos=3, cex= 0.85 )
+          text( 0, ylims[2]*0.9,  labels=labs[i], pos=3, cex= 1.5 )
 
 
 

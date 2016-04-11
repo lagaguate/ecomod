@@ -25,6 +25,7 @@ figure.timeseries.bycatch.wolfish = function(outdir, all.areas = T) {
   )
   td = td[which(td$variable == v) ,]
   td = td[order(td$region, td$year) ,]
+  td = td[which(td$year > 2003),]
   td$region = factor(td$region, levels = areas, labels = regions)
   #   td[ which(td$region=="4X" & td$year < 2004), c("mean", "se", "ub", "lb", "n")] = NA
   

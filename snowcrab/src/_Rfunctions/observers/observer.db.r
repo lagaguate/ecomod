@@ -108,7 +108,7 @@
 
       # cfa 4X has a fishing season that spans two years recode "yr" to "fishyr" to accomodate this
       cfa4x = filter.region.polygon(odb, recode.areas("cfa4x"))
-      to.offset = which( months(odb$chron) >= "Jan" & months(odb$chron) <= "Jul" )
+      to.offset = which( as.numeric(lubridate::month(odb$chron)) >= 1 & as.numeric( lubridate::month(odb$chron)) <= 7 )
       to.offset = sort(intersect(cfa4x, to.offset))
       odb$fishyr = odb$yr
       odb$fishyr[to.offset]  = odb$fishyr[to.offset] - 1

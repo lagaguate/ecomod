@@ -1,5 +1,5 @@
 
-  map.fisheries.data = function(p) {
+  map.fisheries.data = function(p, gridfun, variables) {
     x = logbook.db( DS="logbook" )
     #x$landings = x$landings/1000  # convert kg to ton #MG code this out so that it calculates quantiles properly
     x$sa = 1  # this a dummy variable required by the mapping routine

@@ -38,7 +38,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
   }
   if (type == "line") {
     pts = c(19, 22, 24)
-    lns = c(1, 3, 1)
+    lns = c(1, 1, 1)
     cols = c("grey10", "grey10",  "grey20")
     e[which(e == 0)] = NA
     yrange = range (e, na.rm = T)

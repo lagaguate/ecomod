@@ -16,7 +16,7 @@
     uyrs = as.numeric(rownames(k) ) 
 
     pts = c(19, 22, 24)
-    lns = c(1, 3, 1)
+    lns = c(1, 1, 1)
     cols = c("grey10", "grey10",  "grey20")
 
     yrange = range (k, na.rm=T)

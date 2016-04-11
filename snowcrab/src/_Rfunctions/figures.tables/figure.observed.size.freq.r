@@ -22,25 +22,39 @@
         cc3 = intersect( which( odb$shell==3 ), j )
         cc4 = intersect( which( odb$shell==4 ), j )
         cc5 = intersect( which( odb$shell==5 ), j )
+        
         histcc1= hist(odb$cw[cc1], breaks=breaks, freq=F, plot=F)
         histcc2= hist(odb$cw[cc2], breaks=breaks, freq=F, plot=F)
         histcc3= hist(odb$cw[cc3], breaks=breaks, freq=F, plot=F)
         histcc4= hist(odb$cw[cc4], breaks=breaks, freq=F, plot=F)
         histcc5= hist(odb$cw[cc5], breaks=breaks, freq=F, plot=F)
-        toplot= rbind(histcc1$counts, histcc2$counts, histcc3$counts, histcc4$counts, histcc5$counts)
+        
+        totsum = sum(histcc1$counts + histcc2$counts + histcc3$counts + histcc4$counts + histcc5$counts )
+        
+        histcc1$density = histcc1$counts/totsum * 100
+        histcc2$density = histcc2$counts/totsum * 100
+        histcc3$density = histcc3$counts/totsum * 100
+        histcc4$density = histcc4$counts/totsum * 100
+        histcc5$density = histcc5$counts/totsum * 100
+        
+        toplot= rbind(histcc1$density, histcc2$density, histcc3$density, histcc4$density, histcc5$density)
+        rowcounts = rbind(histcc1$counts, histcc2$counts, histcc3$counts, histcc4$counts, histcc5$counts)
         ntot = sum( toplot)
-        rowtot = rowSums( toplot )
+        rowtot = rowSums(toplot)
+        row.count.tot = rowSums( rowcounts )
         ncc = round( rowtot / ntot * 100, 1)
-        legend.text = c( paste("CC5 - ",ncc[5],"%", " (", rowtot[5], ")", sep=""), 
-                         paste("CC4 - ",ncc[4],"%", " (", rowtot[4], ")",  sep=""), 
-                         paste("CC3 - ",ncc[3],"%", " (", rowtot[3], ")",  sep=""), 
-                         paste("CC2 - ",ncc[2],"%", " (", rowtot[2], ")",  sep=""), 
-                         paste("CC1 - ",ncc[1],"%", " (", rowtot[1], ")",  sep="") )
+        legend.text = c( paste("CC5 - ",ncc[5],"%", "(", row.count.tot[5], ")", sep=""), 
+                         paste("CC4 - ",ncc[4],"%", "(", row.count.tot[4], ")", sep=""), 
+                         paste("CC3 - ",ncc[3],"%", "(", row.count.tot[3], ")", sep=""), 
+                         paste("CC2 - ",ncc[2],"%", "(", row.count.tot[2], ")", sep=""), 
+                         paste("CC1 - ",ncc[1],"%", "(", row.count.tot[1], ")", sep="") )
         maintitle = switch(reg,
           cfanorth = paste("Size frequency distribution in N-ENS --", y), 
           cfasouth = paste("Size frequency distribution in S-ENS --", y),
           cfa4x = paste("Size frequency distribution in 4X --", y)
         )
+        
+        ylim = c(0, 18)
 
         dir.create( outdir, recursive=T, showWarnings=F  )
         fn = file.path( outdir, paste("size.freq", reg, y, ".pdf", sep="") )
@@ -49,7 +63,7 @@
         pdf(file=fn, width=6, height=5, bg='white')
  
            barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=3, 
-             main=maintitle, legend.text=legend.text, xlab="Carapace width (mm)", ylab="Number of crab",
+             main=maintitle, legend.text=legend.text, xlab="Carapace width (mm)", ylab="Percentage", ylim=ylim,
              args.legend=list(x = "topright", cex=0.8) )
            abline( v=12, lty="dashed", lwd=3)  
         dev.off()

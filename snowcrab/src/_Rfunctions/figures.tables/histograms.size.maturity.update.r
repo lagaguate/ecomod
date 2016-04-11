@@ -68,7 +68,7 @@
       par(mar=c(0, 0, 0.4, 0))
 
       # ylim=c(0,400) # for 4X
-      ylim=c(0,1100)
+      ylim=c(0,900)
       xlim=c(0,140)
       cols = c("blue3", "darkslategray1")
 
@@ -87,13 +87,15 @@
           rn = as.numeric(colnames(toplot))
           toplot = toplot[, rn>=xlim[1] & rn<=xlim[2]]
 
-          axes = F
-          if (areas[a]==areas[1] ) axes=T  # first col
-
           axisnames = F
           if (year[y]==year[nrows]) axisnames=T  # last row
 
+          axes = F
           barplot(toplot, space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=0.5)
+      
+          if (areas[a]==areas[1] ) {
+            axis(2, las=2, cex=0.5) # first col
+          }
           
           if (areas[a]==areas[ncols]) {
             text( dim(toplot)[2]-4, ylim[2]*2/3, year[y], cex=1 )
@@ -115,7 +117,7 @@
      }
 
      mtext("Carapace width (mm)", side=1, outer=T, line=2.5, cex=0.75)
-     mtext(expression(paste("No. / ", km^2)), side=2.5, outer=T, line=2, cex=0.75)
+     mtext(expression(paste("No. / ", km^2)), side=2.5, outer=T, line=3, cex=0.75)
      mtext("N-ENS", side=3, outer=T, line=1, at=0.15, cex=0.75)
      mtext("S-ENS", side=3, outer=T, line=1, at=0.5, cex=0.75)
      mtext("4X", side=3, outer=T, line=1, at=0.85, cex=0.75)
@@ -138,7 +140,7 @@
       par(mar=c(0, 0, 0.4, 0))
 
       # ylim=c(0,400)
-      ylim=c(0,1700)
+      ylim=c(0,1100)
       xlim=c(0,100)
 
       cols = c("firebrick1", "lightpink" )
@@ -159,12 +161,16 @@
           toplot = toplot[, rn>=xlim[1] & rn<=xlim[2]]
 
           axes = F
-          if (areas[a]==areas[1] ) axes=T  # first col
 
           axisnames = F
           if (year[y]==year[nrows]) axisnames=T  # last row
 
           barplot(toplot, space=0.1, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=0.7 )
+         
+           if (areas[a]==areas[1] ) {
+            axis(2, las=2, cex=0.5) # first col
+          }
+          
 
           if (areas[a]==areas[ncols]) text( dim(toplot)[2]-4, ylim[2]*2/3, year[y], cex=1.2 )
 
@@ -178,7 +184,7 @@
      }}
 
       mtext("Carapace width (mm)", side=1, outer=T, line=2.5, cex=0.75)
-      mtext(expression(paste("No. / ", km^2)), side=2, outer=T, line=2.5, cex=0.75)
+      mtext(expression(paste("No. / ", km^2)), side=2, outer=T, line=3, cex=0.75)
       mtext("N-ENS", side=3, outer=T, line=1, at=0.15, cex=0.75)
       mtext("S-ENS", side=3, outer=T, line=1, at=0.5, cex=0.75)
       mtext("4X",   side=3, outer=T, line=1, at=0.85, cex=0.75)

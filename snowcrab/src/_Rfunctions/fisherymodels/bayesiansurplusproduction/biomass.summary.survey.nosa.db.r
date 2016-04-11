@@ -1,5 +1,5 @@
 
-  biomass.summary.survey.db = function( DS="complete", p=NULL ) {
+  biomass.summary.survey.nosa.db = function( DS="complete", p=NULL ) {
     #browser()
     
     if (DS %in% c("complete", "complete.redo") ) {
@@ -9,17 +9,17 @@
         if (file.exists(fn)) load(fn)
         return( out )
       }
-      L = biomass.summary.survey.db( DS="L.redo", p=p  )  # must go first as part of biomass estimates
-      B = biomass.summary.survey.db( DS="B.redo", p=p )  # rename to avoid confusion below as B is also used
-      B.sd = biomass.summary.survey.db( DS="B.sd.redo", p=p )  # rename to avoid confusion below as B is also used
-      R = biomass.summary.survey.db( DS="R.redo", p=p  )  # rename to avoid confusion below as B is also used
-      R.sd = biomass.summary.survey.db( DS="R.sd.redo", p=p  )  # rename to avoid confusion below as B is also used
+      L = biomass.summary.survey.nosa.db( DS="L.redo", p=p  )  # must go first as part of biomass estimates
+      B = biomass.summary.survey.nosa.db( DS="B.redo", p=p )  # rename to avoid confusion below as B is also used
+      B.sd = biomass.summary.survey.nosa.db( DS="B.sd.redo", p=p )  # rename to avoid confusion below as B is also used
+      R = biomass.summary.survey.nosa.db( DS="R.redo", p=p  )  # rename to avoid confusion below as B is also used
+      R.sd = biomass.summary.survey.nosa.db( DS="R.sd.redo", p=p  )  # rename to avoid confusion below as B is also used
       
       # geometric means -- sd are on log scale
-      Bg = biomass.summary.survey.db( DS="B_geomean.redo", p=p  )
-      Bg.sd = biomass.summary.survey.db( DS="B_geomean.sd.redo", p=p  )
-      Rg = biomass.summary.survey.db( DS="R_geomean.redo", p=p  )
-      Rg.sd = biomass.summary.survey.db( DS="R_geomean.sd.redo", p=p  )
+      Bg = biomass.summary.survey.nosa.db( DS="B_geomean.redo", p=p  )
+      Bg.sd = biomass.summary.survey.nosa.db( DS="B_geomean.sd.redo", p=p  )
+      Rg = biomass.summary.survey.nosa.db( DS="R_geomean.redo", p=p  )
+      Rg.sd = biomass.summary.survey.nosa.db( DS="R_geomean.sd.redo", p=p  )
  
 
       # cfa4x have had no estimates prior to 2004
@@ -71,42 +71,46 @@
         p$vars.to.model ="R0.mass"
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
-        fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
-        fs <- dir(fdir)
-		fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
-        lo <- c()
-        for(i in 1:length(fs)) {
-        	load(file.path(fdir,fs[i]))
-        lo <- rbind(lo,K)
-        rm(K)
-        }
+        #fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
+        #fs <- dir(fdir)
+		    #fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
+        #lo <- c()
+        #for(i in 1:length(fs)) {
+        #	load(file.path(fdir,fs[i]))
+        #lo <- rbind(lo,K)
+        #rm(K)
+        #}
         
         areas=c("cfanorth", "cfasouth", "cfa4x")
-        td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
+        #td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
         
-		load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
-		ts <- ts[which(ts$variable==p$vars.to.model & ts$region %in% areas),c('year','region','mean')]
-		ts$yr <- ts$year
-		td <- merge(ts,td, by=c('yr','region'),all.x=T)
-		if(any(is.na(td$sa.region))) {
-		j <- td[which(is.na(td$sa.region)),]
-		id <- unique(j[,c('region','yr')])
-			for(i in 1:nrow(id)) {
-			yy <- id[i,'yr']
-			y <- (yy-5):(yy-1)
-			td[which(td$region==id[i,'region'] & td$yr == id[i,'yr']),'sa.region']	 <- mean(td[which(td$region==id[i,'region'] & td$yr %in% y),'sa.region'],na.rm=T)
-			}
-		}
-		td$total <- td$mean*td$sa.region
-        B = tapply( td$total, INDEX=td[,c("yr", "region")], FUN=sum, na.rm=T )  # summation is really returning identity as there is only 1 element
-        B = B / 1000 # kt
+	  	load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
+		  ts <- ts[which(ts$variable==p$vars.to.model & ts$region %in% areas),c('year','region','mean')]
+		  ts$yr <- ts$year
+		#td <- merge(ts,td, by=c('yr','region'),all.x=T)
+		#if(any(is.na(td$sa.region))) {
+		#j <- td[which(is.na(td$sa.region)),]
+		#id <- unique(j[,c('region','yr')])
+		#	for(i in 1:nrow(id)) {
+		#	yy <- id[i,'yr']
+		#	y <- (yy-5):(yy-1)
+		#	td[which(td$region==id[i,'region'] & td$yr == id[i,'yr']),'sa.region']	 <- mean(td[which(td$region==id[i,'region'] & td$yr %in% y),'sa.region'],na.rm=T)
+		#	}
+		#}
+	#	td$total <- td$mean*td$sa.region
+   #     B = tapply( td$total, INDEX=td[,c("yr", "region")], FUN=sum, na.rm=T )  # summation is really returning identity as there is only 1 element
+    #    B = B / 1000 # kt
+     #   B = B[ , areas]
+        
+        B = tapply( ts$mean, INDEX=ts[,c("yr", "region")], FUN=sum, na.rm=T )  # summation is really returning identity as there is only 1 element
+        #B = B / 1000 # kt
         B = B[ , areas]
         B = as.data.frame(B)
         print('Biomass Index Survey')
         print(B)
         save( B, file=fn, compress=T )
         return (B)
-    
+       
     }
    
     
@@ -118,37 +122,37 @@
         return(B)
       } 
        
-            p$vars.to.model ="R0.mass"
+        p$vars.to.model ="R0.mass"
         p = make.list( list(y=p$years.to.model, v=p$vars.to.model ), Y=p )
         
-        fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
-        fs <- dir(fdir)
-		fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
-        lo <- c()
-        for(i in 1:length(fs)) {
-        	load(file.path(fdir,fs[i]))
-        lo <- rbind(lo,K)
-        rm(K)
-        }
+        #fdir <-file.path( project.datadirectory("snowcrab"), "R", "gam","habitat" )
+        #fs <- dir(fdir)
+		    #fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
+        #lo <- c()
+        #for(i in 1:length(fs)) {
+        #	load(file.path(fdir,fs[i]))
+        #lo <- rbind(lo,K)
+        #rm(K)
+        #}
         
         areas=c("cfanorth", "cfasouth", "cfa4x")
-        td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
+        #td = lo[ which( lo$region %in% areas) , c('yr','region','sa.region')]
         
 		load(file.path(project.datadirectory('snowcrab'),"R","ts.rdata"))
 		ts <- ts[which(ts$variable==p$vars.to.model & ts$region %in% areas),c('year','region','se')]
 		ts$yr <- ts$year
-		td <- merge(ts,td, by=c('yr','region'),all.x=T)
-		if(any(is.na(td$sa.region))) {
-		j <- td[which(is.na(td$sa.region)),]
-		id <- unique(j[,c('region','yr')])
-			for(i in 1:nrow(id)) {
-			yy <- id[i,'yr']
-			y <- (yy-5):(yy-1)
-			td[which(td$region==id[i,'region'] & td$yr == id[i,'yr']),'sa.region']	 <- mean(td[which(td$region==id[i,'region'] & td$yr %in% y),'sa.region'],na.rm=T)
-			}
-		}
-		td$total <- td$se*td$sa.region
-        B = tapply( td$total, INDEX=td[,c("yr", "region")], FUN=sum, na.rm=T )  # summation is really returning identity as there is only 1 element
+		#td <- merge(ts,td, by=c('yr','region'),all.x=T)
+		#if(any(is.na(td$sa.region))) {
+		#j <- td[which(is.na(td$sa.region)),]
+		#id <- unique(j[,c('region','yr')])
+		#	for(i in 1:nrow(id)) {
+		#	yy <- id[i,'yr']
+		#	y <- (yy-5):(yy-1)
+		#	td[which(td$region==id[i,'region'] & td$yr == id[i,'yr']),'sa.region']	 <- mean(td[which(td$region==id[i,'region'] & td$yr %in% y),'sa.region'],na.rm=T)
+		#	}
+		#}
+		#td$total <- td$se*td$sa.region
+        B = tapply( ts$se, INDEX=ts[,c("yr", "region")], FUN=sum, na.rm=T )  # summation is really returning identity as there is only 1 element
         B = log(B+1) # kt
         B = B[ , areas]
         B = as.data.frame(B)
