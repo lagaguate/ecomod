@@ -1,6 +1,5 @@
 
   interpolation.db = function( ip=NULL, DS, p=NULL ) {
-    browser()
     
     if ( DS %in% c( "interpolation.redo", "interpolation", "interpolation.simulation", "interpolation.simulation.redo", "interpolation.simulation.complete", "interpolation.simulation.PS" ) ) {
      
