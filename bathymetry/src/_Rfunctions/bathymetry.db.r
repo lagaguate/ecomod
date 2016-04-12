@@ -1039,17 +1039,8 @@
     # ------------
 
  
-    if ( DS %in% c( "spde", "spde.redo" ) ) {
+    if ( DS %in% c( "spde.redo" ) ) {
       #// substrate.db( DS="spde" .. ) returns the spatial interpolations from inla
-      Z = NULL
-      rootdir = file.path( p$project.root, "spacetime" )
-      fn.results =  file.path( rootdir, paste( "spatial", "covariance", p$spatial.domain, "rdata", sep=".") ) 
-
-      if  (DS %in% c("covariance.spatial"))  {
-        stats = NULL
-        if (file.exists( fn.results) ) load( fn.results )
-        return(stats)
-      }
            
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
@@ -1119,6 +1110,9 @@
       spacetime.db( p=p, DS="predictions.redo" )  
       spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
        
+      # bring together stats and predictions and any other required computations: slope and curvature
+      bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )  
+
       # clean up bigmemory files
       spacetime.db( p=p, DS="bigmemory.cleanup" )
 
@@ -1248,10 +1242,6 @@
         } 
         if ( return.format %in% c("list") ) return( Z  )
       }
-
-      # bring together stats and predictions and any other required computations: slope and curvature
-      bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )  
-
 
       p0 = p  # the originating parameters
       Z0 = bathymetry.db( p=p0, DS="bathymetry.spacetime.finalize" )

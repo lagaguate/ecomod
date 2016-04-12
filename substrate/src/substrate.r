@@ -53,9 +53,12 @@
     p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     # p$substrate.bigmemory.reset = TRUE   # reset needed if variables entering are changing (eg., addiing covariates with interpolation, etc)
     substrate.db( p=p, DS="spde.redo" ) 
+    # to see the raw saved versions of the the results:
+    # predSp = spacetime.db( p=p, DS="predictions.redo" )  
+    # statSp = spacetime.db( p=p, DS="statistics.redo" )
+    # to see the assimilated data:
+    # B = substrate.db( p=p, DS="substrate.spacetime.finalize" )
   }
-  predSp = substrate.db( p=p, DS="spde" ) 
-
 
 
   ### -----------------------------------------------------------------

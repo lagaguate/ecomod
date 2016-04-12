@@ -241,7 +241,7 @@
       
       ### prediction grids are the same as the input grid .. do nothing for now
       ### but kept separate from "*...inputs" in case thy diverge in future
-      print( "This is just a placeholder ..  grids are the same as inputs")
+      print( "This is just a placeholder for more elaborate models ..  for now, grids are the same as inputs")
       # substrate = substrate.db( p, DS="substrate.spacetime.inputs.data" ) 
       # save (substrate, file=fn, compress=TRUE)
       return(fn)
@@ -320,15 +320,6 @@
     
     if ( DS %in% c( "spde", "spde.redo" ) ) {
       #// substrate.db( DS="spde" .. ) returns the spatial interpolations from inla
-      Z = NULL
-      rootdir = file.path( p$project.root, "spacetime" )
-      fn.results =  file.path( rootdir, paste( "spatial", "spde", p$spatial.domain, "rdata", sep=".") ) 
-
-      if  (DS %in% c("spde"))  {
-        stats = NULL
-        if (file.exists( fn.results) ) load( fn.results )
-        return(stats)
-      }
            
       p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
       p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
@@ -390,7 +381,10 @@
       # save to file 
       spacetime.db( p=p, DS="predictions.redo" )  
       spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
-       
+         
+      ### bring together stats and predictions and any other required computations
+      substrate.db( p=p, DS="substrate.spacetime.finalize.redo" )  
+    
       # clean up bigmemory files
       spacetime.db( p=p, DS="bigmemory.cleanup" )
 
@@ -491,10 +485,6 @@
         } 
         if ( return.format %in% c("list") ) return( Z  )
       }
- 
-      
-      ### bring together stats and predictions and any other required computations
-      substrate.db( p=p, DS="substrate.spacetime.finalize.redo" )  
 
       p0 = p  # the originating parameters
       Z0 = substrate.db( p=p0, DS="substrate.spacetime.finalize" )

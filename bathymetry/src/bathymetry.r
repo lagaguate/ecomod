@@ -54,11 +54,12 @@
     # p$bathymetry.bigmemory.reset = TRUE   # reset needed if variables entering are changing (eg., addiing covariates with interpolation, etc)
     # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
     bathymetry.db( p=p DS="spde.redo" ) 
+    # to see the raw saved versions of the the results:
+    # predSp = spacetime.db( p=p, DS="predictions.redo" )  
+    # statSp = spacetime.db( p=p, DS="statistics.redo" )
+    # to see the assimilated data:
+    # B = bathymetry( p=p, DS="bathymetry.spacetime.finalize" )
   }
-  # to see the saved versions of the the results:
-  # predSp = spacetime.db( p=p, DS="predictions.redo" )  
-  # statSp = spacetime.db( p=p, DS="statistics.redo" ) 
-       
 
 
   ### -----------------------------------------------------------------
