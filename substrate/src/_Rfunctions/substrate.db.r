@@ -322,9 +322,9 @@
       #// substrate.db( DS="spde" .. ) returns the spatial interpolations from inla
       Z = NULL
       rootdir = file.path( p$project.root, "spacetime" )
-      fn.results =  file.path( rootdir, paste( "spatial", "covariance", p$spatial.domain, "rdata", sep=".") ) 
+      fn.results =  file.path( rootdir, paste( "spatial", "spde", p$spatial.domain, "rdata", sep=".") ) 
 
-      if  (DS %in% c("covariance.spatial"))  {
+      if  (DS %in% c("spde"))  {
         stats = NULL
         if (file.exists( fn.results) ) load( fn.results )
         return(stats)

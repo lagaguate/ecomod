@@ -55,7 +55,10 @@
     # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
     bathymetry.db( p=p DS="spde.redo" ) 
   }
-  predSp = bathymetry.db( p=p DS="spde" ) 
+  # to see the saved versions of the the results:
+  # predSp = spacetime.db( p=p, DS="predictions.redo" )  
+  # statSp = spacetime.db( p=p, DS="statistics.redo" ) 
+       
 
 
   ### -----------------------------------------------------------------

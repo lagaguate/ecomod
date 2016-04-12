@@ -52,9 +52,9 @@
     # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
     p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     # p$substrate.bigmemory.reset = TRUE   # reset needed if variables entering are changing (eg., addiing covariates with interpolation, etc)
-    substrate.db( p=p DS="spde.redo" ) 
+    substrate.db( p=p, DS="spde.redo" ) 
   }
-  predSp = bathymetry.db( p=p DS="spde" ) 
+  predSp = substrate.db( p=p, DS="spde" ) 
 
 
 
