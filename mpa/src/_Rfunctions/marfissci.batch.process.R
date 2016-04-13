@@ -1,14 +1,48 @@
-marfissci.batch.process <- function(df, agg.by="SPECIES_CODE"){
-  combos = unique(df[agg.by])
+marfissci.batch.process <- function(folder=file.path(project.datadirectory("mpa"),"test"), 
+                                    agg.by="SPECIES_CODE"){
+  #' The purpose of this batch process function is to facilitate the mass
+  #' generation of data products from marfis data.  It assumes that data has 
+  #' been extracted via marfissci.get.data(), and the resultant csv file(s) are
+  #' saved locally.
+  #' 
+  #' When called, this batch function will allow the user to select what data 
+  #' (i.e. years, species, and/or gears) should be aggregated together.  It will
+  #' then generate rds files and figures for all the data.
+
+  
+  writeLines("Combining all of the csv files into a single one")
+  all.data=do.call(rbind,lapply(file.path(folder,list.files(path=folder, pattern="\\.csv$")), 
+                                read.csv, header=TRUE, sep=","))
+  
+  #get all of the unique values for the field we want to aggregate by
+  combos = unique(all.data[agg.by])
+ 
+  library(RODBC)
+  channel <- odbcConnect("PTRAN",uid = oracle.personal.username,pwd = oracle.personal.password)
+ if(agg.by == "GEAR_CODE"){
+   query = "SELECT GEAR_CODE, DESC_ENG FROM MARFISSCI.GEARS;"
+ }else{
+   query = "SELECT SPECIES_CODE, DESC_ENG FROM MARFISSCI.SPECIES;"
+ }
+  the.codes = sqlQuery(channel,query)
+  combos=merge(combos,the.codes)
+  
   for (i in 1:nrow(combos)){
-#    print(combos[i,])
-#    print(nrow(df[df$SPECIES_CODE==combos[i,],]))
-    marfissci.process.data(df[df[agg.by]==combos[i,],])
+    writeLines(paste0("Analysing: ", combos[i,2]))
+    #print(paste0("working on ",all.data$DESC_ENG[all.data[agg.by]==combos[i,]]))
+     this <- marfissci.process.data(all.data[all.data[agg.by]==combos[i,1],],
+                                   save.RDS = F,
+                                   save.CSV = F,
+                                   save.SHP = F,
+                                   agg.by.year =F,
+                                   output="RDS")
+     writeLines("Generating a plot...")
+     marfissci.simple.map(this, agg.by = agg.by, save.plot = T, plot.title=combos[i,2])
   }
+  return(all.data)
 }
 
 
-files <- list.files(path=paste0(project.datadirectory("mpa"),"/RDS/"), pattern = "\\.rds$")
-for (f in 1:length(files)){
-  marfissci.simple.map(readRDS(paste0(project.datadirectory("mpa"),"/RDS/",files[f])))
-}
+
+
+
