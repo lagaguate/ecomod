@@ -7,7 +7,8 @@ marfissci.simple.map<-function(rds,
                                valid.only = T,
                                show.legend = T,
                                save.plot = T,
-                               plot.title=""
+                               plot.title="",
+                               nclasses=5
 ){
   proj.metric = '+proj=aea +lat_1=20 +lat_2=60 +lat_0=23 +lon_0=-96 
                  +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m'
@@ -44,7 +45,9 @@ marfissci.simple.map<-function(rds,
 #   df.sp = SpatialPointsDataFrame(cbind(df$LON, df$LAT), df, match.ID = FALSE)
 #   proj4string(df.sp) = CRS("+proj=longlat +datum=WGS84")
 #   
-  classes = classIntervals(rds@data[,c(colour.by)], n=5, style= "quantile", dataPrecision=0)
+  ncheck=length(unique(rds@data[,c(colour.by)]))
+  if (nclasses>ncheck) nclasses=ncheck
+  classes = classIntervals(rds@data[,c(colour.by)], n=nclasses, style= "quantile", dataPrecision=0)
   colcode = findColours(classes, c("#edf8b1","#7fcdbb","#2c7fb8")) #colorblind-friendly yellow-blue
   #c("#deebf7", "#9ecae1","#3182bd") #colorblind-friendly blues
   #c("#fee6ce","#fdae6b","#e6550d") #colorblind-friendly oranges
