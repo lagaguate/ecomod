@@ -43,7 +43,7 @@
 loadfunctions("offshoreclams")
 loadfunctions("polygons")
 
-RLibrary( "gridExtra", "PBSmapping", "reshape", "plotrix" ) # Load required packages
+RLibrary( "gridExtra", "PBSmapping", "reshape", "plotrix", "grid" ) # Load required packages
 
 year.of.interest = 2015 # define or some other final year
 # output.directory = file.path( project.datadirectory("offshoreclams"), "docs" ) # location of output 

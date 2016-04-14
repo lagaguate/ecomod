@@ -3,9 +3,8 @@ FormatTable <- function(in.table, title1.text, title2.text, title3.text,
   ##############################################################################
   ## Format data frame and output as nicely formatted table
   ##############################################################################
-  table <- tableGrob(in.table, cols = colnames(in.table), show.colnames = TRUE,
-                     show.rownames = FALSE, col.just = "center", 
-                     core.just = "right")
+  browser()
+  table <- tableGrob(in.table, cols = colnames(in.table))#, show.colnames = TRUE, show.rownames = FALSE, col.just = "center",core.just = "right")
   if(new.page == TRUE) {
     grid.newpage()
   }
