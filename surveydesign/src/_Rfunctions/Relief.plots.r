@@ -1,18 +1,19 @@
 # source("fn/Relief.plots.r")
 
-Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,file="C:/Assessment/2014/survey/GerTowsMB/Ger2014Tow",kms=1,gerfiles=1:77,key=file.key,tracks=F,trackPath="Y:/Alan/TE15/log files/German/"){
+Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,file="GerTow",kms=1,gerfiles=1:77,key=file.key,tracks=F,trackPath=file.path( project.directory("lobster"),"data","log files","TE17","German")){
 
 	require(PBSmapping)
-	dpkm<-0.008983346
 	require(CircStats)
+	dpkm<-0.008983346
 	aspr=1/cos(rad(mean(tows$Y)))
+	key<-read.csv(file.path( project.datadirectory("bathymetry"),"data","GermanBathy","fileKey.csv"))
 	
 	
 	for(i in 1:nrow(tows)){
 		print(tows$EID[i])
 	
 		if(graphic=="pdf")pdf(paste(file,tows$EID[i],".pdf",sep=''),8.5,8.5)
-		if(graphic=="R")windows(11,11)
+		if(graphic=="R")x11(11,11)
 	
 		if(MBdata=='from.file'){
 					
@@ -20,7 +21,7 @@ Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,fil
 			locdata.lst<-list()
 			if(length(gets)>0){
 				for(f in 1:length(gets)){
-					tmp <-read.table(paste("C:/Users/HubleyB/Documents/JessicaFiles/GermanBathy/gerbk_5/german_",gets[f],".txt",sep=''),header=T)
+					tmp <-read.table(file.path( project.datadirectory("bathymetry"),"data","GermanBathy","gerbk_5",paste("german_",gets[f],".txt",sep='')),header=T)
 					locdata.lst[[f]]<-subset(tmp,X<(tows$X[i]+dpkm*aspr*kms)&X>(tows$X[i]-dpkm*aspr*kms)&Y<(tows$Y[i]+dpkm*kms)&Y>(tows$Y[i]-dpkm*kms))
 				}
 				loc.data<-do.call('rbind',locdata.lst)[,2:4]
@@ -40,7 +41,6 @@ Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,fil
 				res<-persp(towMB.lst$x,towMB.lst$y,towMB.lst$z,col="lightblue",shade=0.5,border=NA,zlim=c(-120,0),phi=50,expand=expd,ticktype="detailed",zlab="Depth",xlab='',ylab='')
 				if('slat'%in%names(tows)){
 					if(tracks){
-						source("fn/getdis.r")
 						dis<-dist.coef(tows$EID[i]-1000,path=trackPath,w=c(1:10,9:1),rule=8,smooth=T,plt=F)[[2]]
 						with(dis,lines(trans3d(X,Y,-tows$depth[i],pmat=res),col='red',lwd=2))
 					}
@@ -49,11 +49,12 @@ Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,fil
 					with(tows,points(trans3d(elon[i],elat[i],-depth[i],pmat=res),pch=16))
 				}
 				else with(tows,points(trans3d(X[i],Y[i],mean(towMB.lst$z,na.rm=T),pmat=res),pch=16,col='red'))
-				title(paste("Tow #",tows$tow[i]),cex=1.5,adj=0.9)
+				title(paste("Station",tows$STATION[i]),cex=1.5,adj=0.9)
 				title(paste("EID",tows$EID[i]),cex=1.5,adj=0.1)
 			}
 		}
 		if(graphic!="R")dev.off()
+		print(Sys.time())
 	}
 }
 
