@@ -54,6 +54,7 @@ Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,fil
 			}
 		}
 		if(graphic!="R")dev.off()
+		print(Sys.time())
 	}
 }
 

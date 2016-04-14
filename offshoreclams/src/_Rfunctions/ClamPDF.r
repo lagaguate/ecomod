@@ -1,4 +1,4 @@
-ClamPDF<-function(final.year, outdir=file.path( project.datadirectory("offshoreclams"), "docs" ) ){
+ClamPDF<-function(final.year, outdir=file.path( project.datadirectory("offshoreclams"), "docs" ) ,update.data=T){
 ################################################################################
 ## actually runs the script, calling the functions as needed.
 ## takes an input value of the final year - e.g. ClamPDF(2015)
@@ -12,8 +12,6 @@ fpath = file.path( outdir, fname)
 
 dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
-# open DB connection  .. need to be defined elsewhere .. private file
-RODBCconn <- MakeConnection( ) 
 
 pdf(file = fpath,
     ## onefile = "TRUE",
@@ -22,7 +20,7 @@ pdf(file = fpath,
     title = "Offshore Surfclam fishery Indices for Monitoring",
 )
 
-log.data <- GetLogData(RODBCconn)
+log.data <- GetLogData(update=update.data)
 log.data <- ProcessLogData(log.data)
 ## reduce to cut off year
 log.data <- log.data[which(log.data$Year <= final.year), ] 
@@ -41,7 +39,8 @@ table.num <- 1
 ## note: have already opened database connection and retrieved file "log.data"
 ##       above
 ## Get commercial length frequency data from database
-lf.data <- sqlQuery(RODBCconn, "SELECT * FROM DRODDICK.COM_LEN_FREQ")
+lf.data <- GetLFData(update=update.data)
+
 lf.data <- lf.data[which(lf.data$YEAR <= final.year), ]
 lf.data <- lf.data[which(is.finite(lf.data$SHELL_LEN)), ] ## remove NAs
 ## omit lengths 200 mm and over, they are measurement errors

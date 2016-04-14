@@ -71,12 +71,12 @@ plot.kml<-function(x, metadata=NULL,
       eval(parse(text = gsub("44adad",the.col.cols[i,], gsub("labelstyle",the.col.codes[i], poly_labelstyle))))
     }
   }else{
-    eval(parse(text = this.style))
-    eval(parse(text = this.label.style))
-    eval(parse(text = this.line.style))
-    eval(parse(text = this.label.line.style))
+    eval(parse(text = pt_style))
+    eval(parse(text = pt_labelstyle))
+    eval(parse(text = ln_style))
+    eval(parse(text = ln_labelstyle))
     eval(parse(text = poly_style))
-    eval(parse(text = this.label.poly.style))
+    eval(parse(text = poly_labelstyle))
   }
   eval(parse(text = pt_vertices))
   

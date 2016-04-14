@@ -1,10 +1,18 @@
 marfissci.simple.map<-function(rds, 
-                               colour.by = "AGG_FIELD.SUM",
+                               agg.by = "SPECIES_CODE",
+                               colour.by = "SUM_RND_WEIGHT_KGS",
                                crs.out="+proj=utm +zone=20 +datum=WGS84",
                                xlim=c(-72,-52),
                                ylim=c(40,50),
-                               valid.only = T
+                               valid.only = T,
+                               show.legend = T,
+                               save.plot = T,
+                               plot.title="",
+                               nclasses=5
 ){
+  proj.metric = '+proj=aea +lat_1=20 +lat_2=60 +lat_0=23 +lon_0=-96 
+                 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m'
+  
   library(classInt)
   library(rgdal)
   limits = data.frame(X = xlim, Y = ylim) 
@@ -37,7 +45,9 @@ marfissci.simple.map<-function(rds,
 #   df.sp = SpatialPointsDataFrame(cbind(df$LON, df$LAT), df, match.ID = FALSE)
 #   proj4string(df.sp) = CRS("+proj=longlat +datum=WGS84")
 #   
-  classes = classIntervals(rds@data[,c(colour.by)], n=5, style= "quantile", dataPrecision=0)
+  ncheck=length(unique(rds@data[,c(colour.by)]))
+  if (nclasses>ncheck) nclasses=ncheck
+  classes = classIntervals(rds@data[,c(colour.by)], n=nclasses, style= "quantile", dataPrecision=0)
   colcode = findColours(classes, c("#edf8b1","#7fcdbb","#2c7fb8")) #colorblind-friendly yellow-blue
   #c("#deebf7", "#9ecae1","#3182bd") #colorblind-friendly blues
   #c("#fee6ce","#fdae6b","#e6550d") #colorblind-friendly oranges
@@ -47,41 +57,56 @@ marfissci.simple.map<-function(rds,
   rds@data = rds@data[order(rds@data$ORD),]
   rds.clipped = rds[boundbox,]  #clip data to bbox
   rds.clipped.pr = spTransform(rds.clipped, CRS(crs.out), match.ID=F)
-  
-  if (!exists("coast") && !exists("coast.clipped")) {
+  if (!exists("coast.aea") || !exists("coast.clipped.aea") || !exists("coast.clipped.pr")
+      || !exists("the.grid") || !exists("grid.pr") || !exists("these.gridlines") || !exists("these.gridlines.pr") ){
     loadfunctions("coastline")
     writeLines("Building the coastline...")
-    coast <<- coastline.db( DS="gshhg coastline highres", 
-                          crs="+proj=longlat +datum=WGS84", 
+    coast.aea <<- coastline.db( DS="gshhg coastline highres", 
+                          crs=proj.metric, 
                           p=NULL, level=1, xlim=NULL, ylim=NULL )
-    if (!exists("coast.clipped")) {  
       library(rgeos)
       writeLines("Trimming the data to match the selected bounding box (so that data can be projected)")
-      coast.clipped <<- gIntersection(gBuffer(coast, byid=TRUE, width=0), boundbox)
-      coast.clipped.pr <<- spTransform(coast.clipped,crs.out)
-    }
-   
+      coast.clipped.aea <<- gIntersection(gBuffer(coast.aea, byid=TRUE, width=0), spTransform(boundbox,proj.metric))
+      coast.clipped.pr <<- spTransform(coast.clipped.aea,crs.out)
+
     #'using the clipped data (pre-projection), capture information for the grid,
     #'including information about the gridlines, as well as their labels
-    grid <- gridat(boundbox, easts=seq(boundbox@"bbox"[1],boundbox@"bbox"[3],by=2), 
+    the.grid <<- gridat(boundbox, easts=seq(boundbox@"bbox"[1],boundbox@"bbox"[3],by=2), 
                      norths=seq(boundbox@"bbox"[2],boundbox@"bbox"[4],by=2))
-    grid.pr <- spTransform(grid, CRS(crs.out))
-    gridlines <- gridlines(boundbox, easts=seq(boundbox@"bbox"[1],boundbox@"bbox"[3],by=1), 
+    grid.pr <<- spTransform(the.grid, CRS(crs.out))
+    these.gridlines <<- gridlines(boundbox, easts=seq(boundbox@"bbox"[1],boundbox@"bbox"[3],by=1), 
                       norths=seq(boundbox@"bbox"[2],boundbox@"bbox"[4],by=1))
-    gridlines.pr <- spTransform(gridlines, CRS(crs.out))
+    these.gridlines.pr <<- spTransform(these.gridlines, CRS(crs.out))
   }
 
+ 
+ if (save.plot){
+   if (range(rds.clipped.pr@data[agg.by])[1] == range(rds.clipped.pr@data[agg.by])[2]) {
+     filename = range(rds.clipped.pr@data[agg.by])[1]
+   }else{
+     filename = paste(range(rds.clipped.pr@data[agg.by]),collapse = "_")
+   }
+   filename=paste0(filename,"_",strftime(Sys.time(),"%Y%m%d_%H%M%S"),".png")
+
+   png(filename=paste0(project.datadirectory("mpa"),"/figures/",filename),
+      width = 1200, height = 1200, units = "px", pointsize = 12,
+      bg = "white", res = NA, family = "", restoreConsole = TRUE,
+      type = c("windows", "cairo", "cairo-png"))
+ }
   plot(boundbox2.pr, border="transparent", add=F, lwd=1) #add transparent boundbox first to ensure all data shown
   plot(coast.clipped.pr, col="navajowhite2", border="navajowhite4", axes=F, add=T )  #add coastline
-  plot(gridlines.pr, col="grey77", lty=2, add=T)                           #gridlines
+  plot(these.gridlines.pr, col="grey77", lty=2, add=T)                           #gridlines
   points(rds.clipped.pr, col = rds.clipped.pr@data$colcode, pch = 22, cex = 0.2)
-  text(coordinates(grid.pr), pos=grid.pr$pos, labels=parse(text=as.character(grid$labels)), 
+  text(coordinates(grid.pr), pos=grid.pr$pos, labels=parse(text=as.character(the.grid$labels)), 
        offset=0.2, col="black", cex=1)
   plot(boundbox.pr, border="black", add=T, lwd=1) #add actual boundbox
-
-  legend(min(boundbox.pr@bbox[1,])+(0.075*(max(boundbox.pr@bbox[1,])-min(boundbox.pr@bbox[1,]))),
+title(sub=plot.title)
+  if (show.legend){
+    legend(min(boundbox.pr@bbox[1,])+(0.075*(max(boundbox.pr@bbox[1,])-min(boundbox.pr@bbox[1,]))),
          min(boundbox.pr@bbox[2,])+(0.95*(max(boundbox.pr@bbox[2,])-min(boundbox.pr@bbox[2,]))),
-         cex=0.5, y.intersp=0.8,
+         cex=1, y.intersp=0.8,
          legend = c(gsub(",","-",names(attr(colcode, "table"))),"no data"), 
          fill = c(attr(colcode, "palette"),"white"))
+  }
+  if (save.plot) dev.off()
 }
