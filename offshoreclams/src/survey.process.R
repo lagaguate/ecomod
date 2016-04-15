@@ -41,7 +41,7 @@ catchtow$ADJCATCH<-(catchtow$ARCTIC_SURF_KG+catchtow$WEIGHT_KG)*catchtow$CATCHFA
 catchtow$STDFACT<-1000/(catchtow$BLADE_WIDTH*catchtow$DIST_M) #some DIST_M are zero!
 catchtow$STDCATCH<-catchtow$STDFACT*catchtow$ADJCATCH
   
-catch_analysis<-  catchtow[,c("INDX","SURVEY.x","TOW.x","SLAT","SLON","ELAT",
+catch_analysis<-  catchtow[,c("INDX","SURVEY.x","DATE","STARTTIME","END_TIME","TOW.x","SLAT","SLON","ELAT",
                               "ELON","TOWTYPE","TOWQUALITY","TOTAL_CATCH_KG",
                               "KG_SAMPLED_MAIN","KG_SAMPLED_BYCATCH",
                               "ARCTIC_SURF_KG","WEIGHT_KG","BLADE_WIDTH","DIST_M",

@@ -160,26 +160,61 @@
  Relief.plots(subset(towlst$Tows$new.tows,STRATA=='multibeam'),graphic="pdf",file=file.path(project.datadirectory('lobster'),'figures','SurveyDesign','SurveyMB','2016','Tow'),digits=4,gerfiles=1:77,key=file.key)
  
 
+
+
 save.image(file.path(project.datadirectory("lobster"),"R","LFA34SurveyDesign2016.Rdata"))
+load(file.path(project.datadirectory("lobster"),"R","LFA34SurveyDesign2016.Rdata"))
+
+
+pdf("Survey2016.pdf",8,11)
+    LobsterMap('34',labels='grid',labcex=0.5)
+    addPolys(innerGridPoly,col=rgb(1,0,0,0.3))
+    addPolys(outerGridPoly,col=rgb(0,0,1,0.3))
+    addPolys(MBpoly,col=rgb(0,1,0,0.3))
+
+    addPoints(towlst$Tows$new.tows,pch=21,cex=0.5,bg='orange')
+    addPoints(towlst$Tows$repeated.tows,pch=21,cex=0.5,bg='orange')
+    MBtows=subset(towlst$Tows$new.tows,Poly.ID==2)
+    MBtows$label=MBtows$EID
+    MBtows$Y= MBtows$Y-0.03
+    addLabels(as.EventData(MBtows),cex=0.7)
+
+
+dev.off()
+
+MBEIDs=c(5,6,9,10,13,15,18,23,24,25,27,28,29,30,31,34,35,36,38,40)
+
+new.tows <- rbind(subset(towlst$Tows$new.tows,Poly.ID==2&EID%in%MBEIDs),subset(towlst$Tows$new.tows,Poly.ID!=2&!EID%in%c(2,51,56)),data.frame(EID=c(2,51,56),X=c(-66.312,-67.031,-66.854),Y=c(42.969,43.5,43.854),Poly.ID=c(1,3,3),STRATA=c("inner","outer","outer"),nndist=NA))
 
 
 
 
+pdf("Survey2016.pdf",8,11)
+    LobsterMap('34',labels='grid',labcex=0.5)
+    addPolys(innerGridPoly,col=rgb(1,0,0,0.3))
+    addPolys(outerGridPoly,col=rgb(0,0,1,0.3))
+    addPolys(MBpoly,col=rgb(0,1,0,0.3))
+
+    addPoints(new.tows,pch=21,cex=0.6,bg='orange')
+    addPoints(towlst$Tows$repeated.tows,pch=21,cex=0.6,bg='red')
+    labtows=rbind(new.tows,towlst$Tows$repeated.tows)
+    labtows$label=labtows$EID
+    labtows$Y= labtows$Y-0.03
+    addLabels(as.EventData(labtows),cex=0.7)
 
 
+dev.off()
 
 
+test.tow=data.frame(EID=1:2,X=c(-66.34800,),Y=c(43.27362,)
+
+new.tows
+
+ file.key<-read.csv(file.path( project.datadirectory("bathymetry"),"data","GermanBathy","fileKey.csv"))
+ Relief.plots(subset(new.tows,STRATA=='multibeam'),graphic="pdf",file=file.path(project.datadirectory('lobster'),'figures','SurveyDesign','SurveyMB','2016','Tow'),digits=4,gerfiles=1:77,key=file.key)
 
 
-
-
-
-
-
-
-
-
-
+Relief.plots(subset(towlst$Tows$repeated.tows,STRATA=='multibeam'),graphic="pdf",file=file.path(project.datadirectory('lobster'),'figures','SurveyDesign','SurveyMB','2016','Tow'),digits=4,gerfiles=1:77,key=file.key)
 
 
 
