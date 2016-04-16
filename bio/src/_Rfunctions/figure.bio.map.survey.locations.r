@@ -1,6 +1,6 @@
 figure.bio.map.survey.locations = function( p ) {
   set = bio.db( DS="set", p=p )
-
+  loadfunctions( "coastline")
   # redo coast to get unclipped version
   coast = coastline.db( DS=" gshhg coastline full redo ", 
         xlim=p$corners$lon, ylim=p$corners$lat, no.clip=TRUE, level=1 )

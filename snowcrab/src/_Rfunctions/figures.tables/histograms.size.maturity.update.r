@@ -47,6 +47,7 @@
         save(f.mat, file=outfile[4], compress=T)
       
       }
+     
       
       set = snowcrab.db( DS="set.clean")
       set$sid = paste(set$trip, set$set, sep="~")
@@ -86,6 +87,8 @@
           toplot = rbind(m.m.means, m.i.means)
           rn = as.numeric(colnames(toplot))
           toplot = toplot[, rn>=xlim[1] & rn<=xlim[2]]
+       
+          # out = rbind( out, cbind( year[y], toplot)) 
 
           axisnames = F
           if (year[y]==year[nrows]) axisnames=T  # last row

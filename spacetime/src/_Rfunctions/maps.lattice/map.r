@@ -7,6 +7,7 @@
     # map using levelplot ... no GMT dependency
 		
 		require( lattice )
+    loadfunctions("coastline")
 
     xlim =ylim = NULL
     colorkey=list(space="right", labels=list(cex=3)) # these are lattice options
