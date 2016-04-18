@@ -6,7 +6,7 @@ GetLFData <- function(vessel.ids=c(), update=T){
    # open DB connection  .. need to be defined elsewhere .. private file
    RODBCconn <- MakeConnection( ) 
    #odbcConnect("PTRAN", uid=oracle.personal.user, pwd=oracle.personal.password)
-   vms.q="MFD_OBFMI.MARFIS_VESSELS_SYN.VESSEL_NAME,
+   vms.q="SELECT MFD_OBFMI.MARFIS_VESSELS_SYN.VESSEL_NAME,
           MFD_OBFMI.MARFIS_VESSELS_SYN.LOA,
           MFD_OBFMI.VMS_POS.*
           FROM MFD_OBFMI.MARFIS_VESSELS_SYN
