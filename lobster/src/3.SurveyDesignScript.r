@@ -189,7 +189,7 @@ new.tows <- rbind(subset(towlst$Tows$new.tows,Poly.ID==2&EID%in%MBEIDs),subset(t
 
 
 
-pdf("Survey2016.pdf",8,11)
+pdf(file.path(project.datadirectory('lobster'),'figures','SurveyDesign','SurveyMB','2016',"Survey2016.pdf"),8,11)
     LobsterMap('34',labels='grid',labcex=0.5)
     addPolys(innerGridPoly,col=rgb(1,0,0,0.3))
     addPolys(outerGridPoly,col=rgb(0,0,1,0.3))
@@ -197,7 +197,7 @@ pdf("Survey2016.pdf",8,11)
 
     addPoints(new.tows,pch=21,cex=0.6,bg='orange')
     addPoints(towlst$Tows$repeated.tows,pch=21,cex=0.6,bg='red')
-    labtows=rbind(new.tows,towlst$Tows$repeated.tows)
+    labtows=rbind(new.tows[,-6],towlst$Tows$repeated.tows)
     labtows$label=labtows$EID
     labtows$Y= labtows$Y-0.03
     addLabels(as.EventData(labtows),cex=0.7)

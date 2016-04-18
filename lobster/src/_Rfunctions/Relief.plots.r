@@ -24,6 +24,7 @@ Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,fil
 					tmp <-read.table(file.path( project.datadirectory("bathymetry"),"data","GermanBathy","gerbk_5",paste("german_",gets[f],".txt",sep='')),header=T)
 					locdata.lst[[f]]<-subset(tmp,X<(tows$X[i]+dpkm*aspr*kms)&X>(tows$X[i]-dpkm*aspr*kms)&Y<(tows$Y[i]+dpkm*kms)&Y>(tows$Y[i]-dpkm*kms))
 				}
+				rm(tmp)
 				loc.data<-do.call('rbind',locdata.lst)[,2:4]
 			}
 			else loc.data<-data.frame()
@@ -55,6 +56,7 @@ Relief.plots<-function(tows,MBdata='from.file',expd=1,graphic="pdf",digits=4,fil
 		}
 		if(graphic!="R")dev.off()
 		print(Sys.time())
+		gc()
 	}
 }
 
