@@ -41,7 +41,7 @@ marfissci.process.data <- function(df, agg.minutes=2,
     writeLines(paste0("With the selected aggregation level (",agg.minutes," minutes), the coastline is being 
 buffered internally by ",round(buff/1000,1), " km.  Data for this project is centered around ~45N, 
 and at this latitude, the aggregate values for any points within this buffer 
-will still overlay the ocean.  Beyond this distance, aggregate points could lie 
+will still overlay the ocean.  Beyond this distance, aggregate points will lie 
 entirely on the land. 
 "))
     coast.aea.buff <<- gBuffer(coast.aea, byid=TRUE, width=-1*buff)
