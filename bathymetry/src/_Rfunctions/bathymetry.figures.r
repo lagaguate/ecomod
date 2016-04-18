@@ -1,7 +1,10 @@
 
 bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
 
+  loadfunctions( "coastline" )
+
   if ( DS=="predictions" ) {
+    
     p = spacetime.db( p=p, DS="bigmemory.filenames" )
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
     pps  =  expand.grid( plons=p$plons, plats=p$plats)

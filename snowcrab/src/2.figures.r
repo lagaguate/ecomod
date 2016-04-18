@@ -4,7 +4,7 @@
 	 loadfunctions( "snowcrab", functionname="initialise.local.environment.r") 
     
    # Think this is fixed now .. ?
-  p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
+   p$do.parallel = FALSE  # mapping in parallel is broken .. must fix ::TODO
   #p$do.parallel = TRUE  # mapping in parallel is broken .. must fix ::TODO
 
    p$clusters = rep("localhost", 24 )

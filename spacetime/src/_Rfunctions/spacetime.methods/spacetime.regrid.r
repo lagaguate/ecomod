@@ -36,7 +36,6 @@ spacetime.regrid = function( Z0, L0, L1, p0, p1, method="fast" ) {
       }
       return( Z)
   }
- 
 }
 
 

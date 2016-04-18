@@ -76,10 +76,22 @@ ProcessLogData <- function(log.data){
                       log.data$B_WIDTH * log.data$N_TOWS / 60.0)
   log.data$AREA[which(is.na(log.data$AREA))] = 0  ## change AREA NA's to 0,
   
-  ## Dates: add time to dates for each watch
-  log.data$RECORD_DATE[log.data$RECORD_NO==2] <- log.data$RECORD_DATE[log.data$RECORD_NO==2]+6*60*60
-  log.data$RECORD_DATE[log.data$RECORD_NO==3] <- log.data$RECORD_DATE[log.data$RECORD_NO==3]+12*60*60
-  log.data$RECORD_DATE[log.data$RECORD_NO==4] <- log.data$RECORD_DATE[log.data$RECORD_NO==4]+18*60*60
+  ## Dates: add time to dates for each watch (there is probably a prettier way to do this)
+  log.data$RECORD_DATE[log.data$RECORD_NO==2&as.numeric(format(log.data$RECORD_DATE,"%H"))==0] <- log.data$RECORD_DATE[log.data$RECORD_NO==2&as.numeric(format(log.data$RECORD_DATE,"%H"))==0]+6*60*60
+  log.data$RECORD_DATE[log.data$RECORD_NO==3&as.numeric(format(log.data$RECORD_DATE,"%H"))==0] <- log.data$RECORD_DATE[log.data$RECORD_NO==3&as.numeric(format(log.data$RECORD_DATE,"%H"))==0]+12*60*60
+  log.data$RECORD_DATE[log.data$RECORD_NO==4&as.numeric(format(log.data$RECORD_DATE,"%H"))==0] <- log.data$RECORD_DATE[log.data$RECORD_NO==4&as.numeric(format(log.data$RECORD_DATE,"%H"))==0]+18*60*60
+  log.data$RECORD_DATE[log.data$RECORD_NO==2&as.numeric(format(log.data$RECORD_DATE,"%H"))==1] <- log.data$RECORD_DATE[log.data$RECORD_NO==2&as.numeric(format(log.data$RECORD_DATE,"%H"))==1]+5*60*60
+  log.data$RECORD_DATE[log.data$RECORD_NO==3&as.numeric(format(log.data$RECORD_DATE,"%H"))==1] <- log.data$RECORD_DATE[log.data$RECORD_NO==3&as.numeric(format(log.data$RECORD_DATE,"%H"))==1]+11*60*60
+  log.data$RECORD_DATE[log.data$RECORD_NO==4&as.numeric(format(log.data$RECORD_DATE,"%H"))==1] <- log.data$RECORD_DATE[log.data$RECORD_NO==4&as.numeric(format(log.data$RECORD_DATE,"%H"))==1]+17*60*60
+
+  # Errors
+  log.data$LON_DD[log.data$LOGRECORD_ID==57984] = -59.44306
+  log.data$LON_DD[log.data$LOGRECORD_ID==58040] = -59.43972
+  log.data$LON_DD[log.data$LOGRECORD_ID==59011] = -58.96639
+  log.data$LON_DD[log.data$LOGRECORD_ID==58943] = -58.34972
+  log.data$LAT_DD[log.data$LOGRECORD_ID==66160] = 45.29833
+  log.data$LAT_DD[log.data$LOGRECORD_ID==66620] = 45.60833
+  log.data$LAT_DD[log.data$LOGRECORD_ID==63002] = 45.08306
 
   ## Set dome global parameters
   Min_lat <<- c(44.0, 43.0)        ## First set of values for Banquereau

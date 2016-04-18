@@ -2,6 +2,7 @@
 substrate.figures = function( DS=NULL, p=NULL ) {
 
   if ( DS=="predictions" ) {
+    loadfunctions( "coastline" )
     p = spacetime.db( p=p, DS="bigmemory.filenames" )
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
     pps  =  expand.grid( plons=p$plons, plats=p$plats)
@@ -20,6 +21,7 @@ substrate.figures = function( DS=NULL, p=NULL ) {
   }
   
   if ( DS=="predictions.error" ) {
+    loadfunctions( "coastline" )
     p = spacetime.db( p=p, DS="bigmemory.filenames" )
     P = attach.big.matrix(p$descriptorfile.P , path=p$tmp.datadir )
     pps  =  expand.grid( plons=p$plons, plats=p$plats)
@@ -38,6 +40,7 @@ substrate.figures = function( DS=NULL, p=NULL ) {
   }
 
   if ( DS=="statistics" ) {
+    loadfunctions( "coastline" )
     p = spacetime.db( p=p, DS="bigmemory.filenames" )
     S = attach.big.matrix(p$descriptorfile.S , path=p$tmp.datadir ) 
     Sloc = attach.big.matrix(p$descriptorfile.Sloc , path=p$tmp.datadir ) 
