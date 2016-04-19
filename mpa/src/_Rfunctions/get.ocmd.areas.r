@@ -1,6 +1,12 @@
 get.ocmd.areas <- function(requested=c("All"), get.detailed=F)
 {
   library(sp)
+  if ("All" %in% requested | "Musquash" %in% requested){
+    #Musquash is so huge that it makes the code load more slowly, and I don't 
+    #want to see it if I don't have to
+   loadfunctions(projectname="mpa", functionname="get.Musquash")
+    }
+    
   get.Haddock_Closed_Area = function(detailed = get.detailed){
     this=SpatialPolygons(list(Polygons(list(
       Polygon(matrix(c(-63.333333,43.35, -63.333333,43.016667, 
@@ -221,6 +227,53 @@ get.ocmd.areas <- function(requested=c("All"), get.detailed=F)
       return(this)
     }
   }
+  get.FundyWhale = function(detailed = get.detailed){
+    this=SpatialPolygons(list(Polygons(list(
+      Polygon(matrix(c(-66.36669999999999,44.55, 
+                       -66.61669999999999,44.43, 
+                       -66.61669999999999,44.7, 
+                       -66.45,44.81667, 
+                       -66.2833,44.7833, 
+                       -66.36669999999999,44.55), 
+                     ncol = 2, byrow=TRUE))
+    ),1)),proj4string = CRS("+proj=longlat +datum=WGS84"))
+    return(this)
+  }
+  get.RosewayWhale = function(detailed = get.detailed){
+    this=SpatialPolygons(list(Polygons(list(
+      Polygon(matrix(c(-64.98333358764648,42.78333473205566, 
+                       -65.51666641235352,42.64999961853027, 
+                       -66.08333206176756,42.86666679382324, 
+                       -64.91666603088379,43.26666831970215, 
+                       -64.98333358764648,42.78333473205566), 
+                     ncol = 2, byrow=TRUE))
+    ),1)),proj4string = CRS("+proj=longlat +datum=WGS84"))
+    return(this)
+  }
+  get.Haldimand = function(detailed = get.detailed){
+    this=SpatialPolygons(list(Polygons(list(
+      Polygon(matrix(c(-57.88472222000002,44.23611111000002, 
+                       -57.88472222000002,44.08472222, 
+                       -58.03472221999993,44.08472222, 
+                       -58.03472221999993,44.25, 
+                       -57.93888888999998,44.3027777800001, 
+                       -57.88472222000002,44.23611111000002), 
+                     ncol = 2, byrow=TRUE))
+    ),1)),proj4string = CRS("+proj=longlat +datum=WGS84"))
+    return(this)
+  }
+  get.Shortland = function(detailed = get.detailed){
+    this=SpatialPolygons(list(Polygons(list(
+      Polygon(matrix(c(-58.28611110999998,44.12222222000003, 
+                       -58.28611110999998,43.96666667000005, 
+                       -58.42916666999997,43.96666667000005, 
+                       -58.42916666999997,44.19583333000003, 
+                       -58.39027777999996,44.19583333000003, 
+                       -58.28611110999998,44.12222222000003), 
+                     ncol = 2, byrow=TRUE))
+    ),1)),proj4string = CRS("+proj=longlat +datum=WGS84"))
+    return(this)
+  }
   
   areas=list()
   if ("All" %in% requested) {
@@ -231,30 +284,35 @@ get.ocmd.areas <- function(requested=c("All"), get.detailed=F)
     areas$Gully=get.Gully()
     areas$NE_Channel=get.NE_Channel()
     areas$St_Ann=get.St_Ann()
+    areas$Musquash=get.Musquash()
+    areas$FundyWhale=get.FundyWhale()
+    areas$RosewayWhale=get.RosewayWhale()
+    areas$Haldimand=get.Haldimand()
+    areas$Shortland=get.Shortland()
+  }else if ("MPA" %in% requested){
+    areas$Gully=get.Gully()
+    areas$Musquash=get.Musquash(get.detailed)
+  }else if ("CCA" %in% requested){
+    areas$Vazella_Emerald=get.Vazella_Emerald()
+    areas$Vazella_Sambro=get.Vazella_Sambro()
+    areas$Lophelia=get.Lophelia()
+    areas$NE_Channel=get.NE_Channel()
+    areas$Gully=get.Gully()
   }else{
     for (i in 1:length(requested)){
       if ("Haddock_Closed_Area" %in% requested[i])  areas$Haddock_Closed_Area=get.Haddock_Closed_Area()
       if ("Vazella_Emerald" %in% requested[i])  areas$Vazella_Emerald=get.Vazella_Emerald()
-      if ("Vazella_Sambro" %in% requested[i])  areas$Vazella_Sambro=get.Vazella_Sambro()
-      if ("Lophelia" %in% requested[i])  areas$Lophelia=get.Lophelia()
+      if ("Vazella_Sambro" %in% requested[i]) areas$Vazella_Sambro=get.Vazella_Sambro()
+      if ("Lophelia" %in% requested[i]) areas$Lophelia=get.Lophelia()
       if ("Gully" %in% requested[i])  areas$Gully=get.Gully()
       if ("NE_Channel" %in% requested[i]) areas$NE_Channel=get.NE_Channel()
       if ("St_Ann" %in% requested[i]) areas$St_Ann=get.St_Ann()
+      if ("Musquash" %in% requested[i]) areas$Musquash=get.Musquash(get.detailed)
+      if ("FundyWhale" %in% requested[i]) areas$FundyWhale=get.FundyWhale()
+      if ("RosewayWhale" %in% requested[i]) areas$RosewayWhale=get.RosewayWhale()
+      if ("Haldimand" %in% requested[i]) areas$Haldimand=get.Haldimand()
+      if ("Shortland" %in% requested[i]) areas$Shortland=get.Shortland()
     }
   }
-  
-  # frame=as.data.frame(matrix(c(-65,-60,40,50),ncol = 2, byrow=TRUE))
-  # coordinates(frame)=c("V1","V2")
-  # proj4string(frame) = CRS("+proj=longlat +datum=WGS84")
-  # frame.sp=spTransform(frame, CRS("+proj=utm +zone=20 +datum=WGS84"))
-  # 
-  # plot(spTransform(frame, CRS("+proj=utm +zone=20 +datum=WGS84")))
-  # for (n in 1:length(areas)){
-  #   this.area=data.frame(areas[[n]][[1]])
-  #   proj4string(this.area) = CRS("+proj=longlat +datum=WGS84")
-  #   this.area.sp=spTransform(this.area, CRS("+proj=utm +zone=20 +datum=WGS84"))
-  #   lines(this.area.sp,lwd=1, col="green")
-  # }
-  
   return(areas)
 }
