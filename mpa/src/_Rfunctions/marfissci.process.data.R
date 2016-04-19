@@ -49,15 +49,13 @@ entirely on the land.
  
     library(lubridate) 
     df$YEAR_FISHED=year(df$DATE_FISHED)
-
   df$VALIDITY = "VALID"  #default validity assumed good - overwrite if otherwise
   #flag data with unknown positions (assigned 0N,0W by marfissci.get.data
   noNA = c(c("LAT","LON"),agg.field) # fields where NA will be replaced with 0
   df[noNA][is.na(df[noNA])] <- 0
   
   df$VALIDITY[which(df$LAT == 0 | df$LON == 0)] = "NO COORDS"
-#   df$VALIDITY[which(is.null(df$LAT) | is.null(df$LON))] = "NO COORDS" 
-#   df$VALIDITY[which(is.na(df$LAT) | is.na(df$LON))] = "NO COORDS" 
+  if (NROW(df[df$VALIDITY=='VALID',])==0) return(NULL) #can't position anything!
   #create temporary spatial df for terrestrial check - this loses the lat and 
   #lon fields, so we add them back in for later convenience
   df.sp = df[df$VALIDITY=='VALID',] 

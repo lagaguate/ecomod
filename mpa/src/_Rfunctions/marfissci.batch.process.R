@@ -27,19 +27,29 @@ marfissci.batch.process <- function(folder=file.path(project.datadirectory("mpa"
   the.codes = sqlQuery(channel,query)
   combos=merge(combos,the.codes)
   
-  for (i in 1:nrow(combos)){
+  for (i in 3:nrow(combos)){
     writeLines(paste0("Analysing: ", combos[i,2]))
     #print(paste0("working on ",all.data$DESC_ENG[all.data[agg.by]==combos[i,]]))
-     this <- marfissci.process.data(all.data[all.data[agg.by]==combos[i,1],],
+     this <- marfissci.process.data(all.data[which(all.data[agg.by]==combos[i,1]),],
+                                   agg.by =agg.by,
                                    save.RDS = T,
                                    save.CSV = F,
                                    save.SHP = T,
                                    agg.by.year =F,
                                    output="RDS")
-     writeLines("Generating a plot...")
-     #SPECIES_CODE
-        marfissci.simple.map(this, agg.by = agg.by, colour.by = "SUM_RND_WEIGHT_KGS", save.plot = T, plot.title=combos[i,2])
-  }
+     if (i==1) gearKeep<<-this
+     if (!is.null(this)){
+       writeLines("Generating a plot...")
+         if(agg.by == "GEAR_CODE") {
+          colour.by = "CNT_RND_WEIGHT_KGS"
+          }else{
+            colour.by = "SUM_RND_WEIGHT_KGS"
+          }
+          marfissci.simple.map(this, agg.by = agg.by, colour.by = colour.by, save.plot = T, plot.title=combos[i,2])
+        }else{
+      writeLines(paste0("Insufficient data to plot a figure for ",combos[i,2]))
+        }
+    }
   return(all.data)
 }
 #loadfunctions("mpa")

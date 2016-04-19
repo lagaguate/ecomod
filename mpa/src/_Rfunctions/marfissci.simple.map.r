@@ -9,7 +9,7 @@ marfissci.simple.map<-function(rds,
                                save.plot = T,
                                plot.title="",
                                nclasses=5,
-                               add.OCMD = T
+                               add.OCMD = c("St_Ann","Gully","Vazella_Emerald","Vazella_Sambro","Lophelia", "NE_Channel")
 ){
   proj.metric = '+proj=aea +lat_1=20 +lat_2=60 +lat_0=23 +lon_0=-96 
                  +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m'
@@ -46,16 +46,15 @@ marfissci.simple.map<-function(rds,
   #Do nrow check AFTER that
   rds.clipped = rds[boundbox,]  #clip data to bbox
   if (valid.only) rds.clipped = rds.clipped[rds.clipped@data$VALIDITY == 'VALID',]
-  if (nrow(rds.clipped@data)==0) return(NULL) #no rows? can't do map
+  if (nrow(rds.clipped@data)<2) return(NULL) #can't classify on a single value
   ncheck=length(unique(rds.clipped@data[,c(colour.by)])) #don't have enough data for requested number of classes
   if (nclasses>ncheck) nclasses=ncheck
   rds.clipped@data$ORD = seq.int(nrow(rds.clipped))
-  
   classes = classIntervals(rds.clipped@data[,c(colour.by)], n=nclasses, style= "quantile", dataPrecision=0)
   colcode = findColours(classes, 
-  #c("#edf8b1","#7fcdbb","#2c7fb8")) #colorblind-friendly yellow-blue
+  c("#c7e9b4","#41b6c4","#225ea8","#081d58")) #colorblind-friendly yellow-blue
   #c("#deebf7", "#9ecae1","#3182bd")) #colorblind-friendly blues
-  c("#fee6ce","#fdae6b","#e6550d")) #colorblind-friendly oranges
+  #c("#fee6ce","#fdae6b","#e6550d")) #colorblind-friendly oranges
   colour.df = as.data.frame(cbind(varname=classes$var,colcode))
   names(colour.df)[names(colour.df)=="varname"] <- colour.by
   rds.clipped@data = merge( rds.clipped@data,unique(colour.df), all.x = T)
@@ -120,10 +119,10 @@ marfissci.simple.map<-function(rds,
   clip.700 <<- gIntersection(spTransform(plygn["700"], CRS(crs.out)), boundbox.pr)
   clip.800 <<- gIntersection(spTransform(plygn["800"], CRS(crs.out)), boundbox.pr)
   clip.900 <<- gIntersection(spTransform(plygn["900"], CRS(crs.out)), boundbox.pr)
-  clip.1000 <<- gIntersection(spTransform(plygn["1000"], CRS(crs.out)), boundbox.pr)
+  #clip.1000 <<- gIntersection(spTransform(plygn["1000"], CRS(crs.out)), boundbox.pr)
   }
   #get the desired OCMD areas
-  if (add.OCMD) OCMD.areas=get.ocmd.areas()
+  if (length(add.OCMD)>0) OCMD.areas=get.ocmd.areas(add.OCMD)
 
  if (save.plot){
    if (range(rds.clipped.pr@data[agg.by])[1] == range(rds.clipped.pr@data[agg.by])[2]) {
@@ -131,7 +130,7 @@ marfissci.simple.map<-function(rds,
    }else{
      the.filename = paste(range(rds.clipped.pr@data[agg.by]),collapse = "_")
    }
-   plot.title.clean=gsub("(\\(|\\)|\\s|,)","_",plot.title) 
+   plot.title.clean=gsub("(\\(|\\)|\\s|\\/|,)","_",plot.title) 
    plot.title.clean=gsub("__","_", plot.title.clean)
    plot.title.clean=substr(plot.title.clean,1,15)
    plot.title.clean=sub('_$', '', plot.title.clean)
@@ -146,18 +145,18 @@ marfissci.simple.map<-function(rds,
   par(mar=c(2,2,1,1),xaxs = "i",yaxs = "i",cex.axis=1.3,cex.lab=1.4)
   plot(boundbox2.pr, border="transparent", add=F, lwd=1) #add transparent boundbox first to ensure all data shown
   plot(coast.clipped.pr, col="navajowhite2", border="navajowhite4", lwd=0.5, axes=F, add=T )  #add coastline
-  lines(clip.1000, col="#79CDCD", lwd=0.5)
-  lines(clip.900, col="#73BDC5", lwd=0.5)
-  lines(clip.800, col="#6EADBE", lwd=0.5)
-  lines(clip.700, col="#689DB7", lwd=0.5)
-  lines(clip.600, col="#638DAF", lwd=0.5)
-  lines(clip.500, col="#5D7DA8", lwd=0.5)
-  lines(clip.400, col="#586DA1", lwd=0.5)
-  lines(clip.300, col="#525D99", lwd=0.5)
-  lines(clip.200, col="#4D4D92", lwd=0.5)
-  lines(clip.100, col="#483D8B", lwd=0.5)
+#   lines(clip.1000, col="#666666", lwd=0.5)
+  lines(clip.900, col="#717171", lwd=0.5)
+  lines(clip.800, col="#7C7C7C", lwd=0.5)
+  lines(clip.700, col="#888888", lwd=0.5)
+  lines(clip.600, col="#939393", lwd=0.5)
+  lines(clip.500, col="#9E9E9E", lwd=0.5)
+  lines(clip.400, col="#AAAAAA", lwd=0.5)
+  lines(clip.300, col="#B5B5B5", lwd=0.5)
+  lines(clip.200, col="#C0C0C0", lwd=0.5)
+  lines(clip.100, col="#CCCCCC", lwd=0.5)
   for (o in 1:length(OCMD.areas)){
-    plot(spTransform(OCMD.areas[[o]], CRS(crs.out)), border="green", lwd=1, add=T)
+    plot(spTransform(OCMD.areas[[o]], CRS(crs.out)), border="olivedrab4", lwd=0.5, add=T)
   }
   plot(these.gridlines.pr, col="grey77", lty=2, lwd=0.5, add=T)                           #gridlines
   points(rds.clipped.pr, col = rds.clipped.pr@data$colcode, pch = 15, cex = 0.5)
