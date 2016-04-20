@@ -1,4 +1,4 @@
-FisheryGridPlot <- function(log.data, p, cpue=T,...){
+FisheryGridPlot <- function(logdata, p, cpue=T, aspr='calculate', ...){
 
   
   ## Grid Plots
@@ -9,9 +9,7 @@ FisheryGridPlot <- function(log.data, p, cpue=T,...){
   catchgrids=list()
   grid.polyData=list()
 
-  log.data = na.omit(subset(log.data, 
-    BANK==b&Year%in%yrs&AREA>p$effort.threshold[1]&AREA<p$effort.threshold[2]&ROUND_CATCH>p$catch.threshold[1]&ROUND_CATCH<p$catch.threshold[2],
-    c("LOGRECORD_ID","LON_DD","LAT_DD","ROUND_CATCH","AREA")))
+  logdata = na.omit(subset(logdata, BANK==b&AREA>p$effort.threshold[1]&AREA<p$effort.threshold[2]&ROUND_CATCH>p$catch.threshold[1]&ROUND_CATCH<p$catch.threshold[2],  c("Year","LOGRECORD_ID","LON_DD","LAT_DD","ROUND_CATCH","AREA")))
 
     # Effort
 
@@ -21,15 +19,18 @@ FisheryGridPlot <- function(log.data, p, cpue=T,...){
      
      for(y in 1:length(yrs)){
 
-      grid.dat=subset( log.data ,Year%in%yrs[[y]],c("LOGRECORD_ID","LON_DD","LAT_DD","AREA"))
+      grid.dat=subset( logdata ,Year%in%yrs[[y]],c("LOGRECORD_ID","LON_DD","LAT_DD","AREA"))
       print(paste(y,Sys.time()))
       print(summary(grid.dat))
       #browser()
       if(nrow(grid.dat)>0){
        
-       effortgrids[[y]]<-gridData(grid.dat,lvls=p$effort.levels,bcol=p$catch.cols,FUN=sum,border=NA,grid.size=p$grid.size,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
+       effortgrids[[y]]<-gridData(grid.dat,lvls=p$effort.levels,bcol=p$catch.cols,FUN=sum,border=NA,grid.size=p$grid.size,aspr=aspr,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
        grid.polyData[[1]][[y]] = effortgrids[[y]][[2]]
-       ClamMap2('Ban',poly.lst=effortgrids[[y]][1:2],title=paste(yrs[[y]],"Surf Clam Effort"),...)
+       
+       titleyr = ifelse(length(yrs[[y]])==1,yrs[[y]],paste(min(yrs[[y]]),max(yrs[[y]]),sep='-'))
+       
+       ClamMap2('Ban',poly.lst=effortgrids[[y]][1:2],title=paste(titleyr,"Surf Clam Effort"),...)
        ContLegend("bottomright",lvls=effortgrids[[y]]$lvls/10^4,Cont.data=effortgrids[[y]],title="Area Fished (ha)",inset=0.02,cex=0.8,bg='white')
        }
      
@@ -45,15 +46,17 @@ FisheryGridPlot <- function(log.data, p, cpue=T,...){
      
      for(y in 1:length(yrs)){
      
-      grid.dat=subset( log.data ,Year%in%yrs[[y]],c("LOGRECORD_ID","LON_DD","LAT_DD","ROUND_CATCH"))
+      grid.dat=subset( logdata ,Year%in%yrs[[y]],c("LOGRECORD_ID","LON_DD","LAT_DD","ROUND_CATCH"))
       print(paste(y,Sys.time()))
       print(summary(grid.dat))
       if(nrow(grid.dat)>0){
        
-       catchgrids[[y]]<-gridData(grid.dat,lvls=p$catch.levels,bcol=p$catch.cols,FUN=sum,border=NA,grid.size=p$grid.size,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
+       catchgrids[[y]]<-gridData(grid.dat,lvls=p$catch.levels,bcol=p$catch.cols,FUN=sum,border=NA,grid.size=p$grid.size,aspr=aspr,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
        grid.polyData[[2]][[y]] = catchgrids[[y]][[2]]
        
-       ClamMap2(p$bank,poly.lst=catchgrids[[y]][1:2],title=paste(yrs[[y]],"Surf Clam Catch"),...)
+       titleyr = ifelse(length(yrs[[y]])==1,yrs[[y]],paste(min(yrs[[y]]),max(yrs[[y]]),sep='-'))
+
+       ClamMap2(p$bank,poly.lst=catchgrids[[y]][1:2],title=paste(titleyr,"Surf Clam Catch"),...)
        ContLegend("bottomright",lvls=catchgrids[[y]]$lvls/10^3,Cont.data=catchgrids[[y]],title="Catch (t)",inset=0.02,cex=0.8,bg='white')
        }
      
@@ -85,7 +88,9 @@ FisheryGridPlot <- function(log.data, p, cpue=T,...){
        
        grid.polyData[[3]][[y]] = cpuegrids[[y]][[2]]
        
-       ClamMap2(p$bank,poly.lst=cpuegrids[[y]][1:2],title=paste(yrs[[y]],"Surf Clam CPUE"),...)
+       titleyr = ifelse(length(yrs[[y]])==1,yrs[[y]],paste(min(yrs[[y]]),max(yrs[[y]]),sep='-'))
+
+       ClamMap2(p$bank,poly.lst=cpuegrids[[y]][1:2],title=paste(titleyr,"Surf Clam CPUE"),...)
        ContLegend("bottomright",lvls=p$cpue.levels,Cont.data=cpuegrids[[y]],title=expression(CPUE (kg/m^2)),inset=0.02,cex=0.8,bg='white')
        }
      }

@@ -74,11 +74,12 @@ abline(v=c(15000,200000),col='red',lwd=2)
 p=list()
 p$bank= "Ban"
 p$yrs= 1988:2015
+#p$yrs= list(1986:2010,2000:2010,2009:2010)
 p$effort.threshold = c(15000,200000)
 p$catch.threshold = c(1500,30000)
-p$effort.levels = c(1000,50000,100000,200000,500000,1000000,2000000)
-p$catch.levels = c(100,5000,10000,20000,50000,100000,200000)
-p$cpue.levels = c(0,0.02,0.04,0.06,0.08,0.1,0.12)
+p$effort.levels = c(1000,50000,100000,200000,500000,1000000,2000000,5000000)
+p$catch.levels = c(100,5000,10000,20000,50000,100000,200000,500000)
+p$cpue.levels = c(0,0.02,0.04,0.06,0.08,0.1,0.12,0.15,0.2)
 p$effort.cols = "YlGnBu"
 p$catch.cols = "YlGnBu"
 p$cpue.cols = "YlGnBu"
@@ -87,86 +88,45 @@ p$Max_lon = -57.0
 p$Min_lat = 44.0
 p$Max_lat = 45.25
 p$grid.size = 2
+#p$grid.size = 1.852
 
-FisheryGridPlot(processed.log.data,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
+grid.out <- FisheryGridPlot(processed.log.data,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all',aspr=1)
 
-  # Effort
-  effortgrids=list()
+ 
+## summary table of catch and effort data
+Years=1986:1015
 
-  pdf(file.path( project.datadirectory("offshoreclams"), "figures","BanEffort.pdf"),11,8)
+Ban.E = with(subset(processed.log.data,BANK==1),tapply(AREA,Year,sum,na.rm=T))
+Ban.C = with(subset(processed.log.data,BANK==1),tapply(ROUND_CATCH,Year,sum,na.rm=T))
+Ban = data.frame(Year=as.numeric(names(Ban.C)),Ban.Catch = Ban.C/10^3, Ban.Effort = Ban.E/10^6, Ban.CPUE = Ban.C/Ban.E)
 
-   
-   for(y in 1:length(yrs)){
+Grand.E = with(subset(processed.log.data,BANK==2),tapply(AREA,Year,sum,na.rm=T))
+Grand.C = with(subset(processed.log.data,BANK==2),tapply(ROUND_CATCH,Year,sum,na.rm=T))
+Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, Grand.Effort = Grand.E/10^6, Grand.CPUE = Grand.C/Grand.E)
 
-    grid.dat=na.omit(subset( processed.log.data ,BANK==1&Year%in%yrs[y],c("LOGRECORD_ID","LON_DD","LAT_DD","AREA")))
-    print(paste(y,Sys.time()))
-    print(summary(grid.dat))
-    if(nrow(grid.dat)>0){
-     
-     effortgrids[[y]]<-gridData(grid.dat,lvls=c(1000,50000,100000,200000,500000,1000000,2000000),FUN=sum,border=NA,grid.size=2,sx=Min_long,sy=Min_lat,ex=Max_long,ey=Max_lat)
-     
-     ClamMap2('Ban',poly.lst=effortgrids[[y]][1:2],title=paste(yrs[y],"Surf Clam Effort"),isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
-     ContLegend("bottomright",lvls=effortgrids[[y]]$lvls/10^4,Cont.data=effortgrids[[y]],title="Area Fished (ha)",inset=0.02,cex=0.8,bg='white')
-     }
-   
-   }
+write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
-  dev.off()
+# distribution of surf clams from survey
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.pdf"),8,11)
 
+for(i in c(2004,2010)){
+  
+  # interpolate abundance
+  lob.contours<-interpolation(subset(lobdat,YEAR==i,c('TOW_SEQ','lon','lat','STDCATCH')),ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.03)
 
-  # Catch
-  catchgrids=list()
+  # define contour lines
+  print(lob.contours$str.def)
+  lvls=c(1, 2, 5, 10, 20, 50)
 
-  pdf(file.path( project.datadirectory("offshoreclams"), "figures","BanCatch.pdf"),11,8)
-   
-   for(y in 1:length(yrs)){
-   
-    grid.dat=na.omit(subset( processed.log.data ,BANK==1&Year%in%yrs[y],c("LOGRECORD_ID","LON_DD","LAT_DD","ROUND_CATCH")))
-    print(paste(y,Sys.time()))
-    print(summary(grid.dat))
-    if(nrow(grid.dat)>0){
-     
-     catchgrids[[y]]<-gridData(grid.dat,lvls=c(100,5000,10000,20000,50000,100000,200000),FUN=sum,border=NA,grid.size=2,sx=Min_long,sy=Min_lat,ex=Max_long,ey=Max_lat)
-     
-     ClamMap2('Ban',poly.lst=catchgrids[[y]][1:2],title=paste(yrs[y],"Surf Clam Catch"),isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
-     ContLegend("bottomright",lvls=catchgrids[[y]]$lvls/10^3,Cont.data=catchgrids[[y]],title="Catch (t)",inset=0.02,cex=0.8,bg='white')
-     }
-   
-   }
+  # generate contour lines
+  cont.lst<-contour.gen(lob.contours$image.dat,lvls,col="YlGn",colorAdj=1)
 
-  dev.off()
-
-
-
-  # CPUE
-  cpuegrids = catchgrids
-
-
-  pdf(file.path( project.datadirectory("offshoreclams"), "figures","BanCPUE.pdf"),11,8)
-   
-   for(y in which(yrs!=1992)){
-
-      cpuegrids[[y]][[2]]$Z <- catchgrids[[y]][[2]]$Z / effortgrids[[y]][[2]]$Z
-      cpuegrids[[y]][[2]]$Z[is.infinite(cpuegrids[[y]][[2]]$Z)] <- NA
-      cpuegrids[[y]][[2]]$Z[cpuegrids[[y]][[2]]$Z==0] <- NA
-    
-      cpuegrids[[y]]$lvls = c(0,0.025.05,0.075,0.1,0.125,0.15,0.175,0.2)
-
-      cols   <- brewer.pal(length(lvls),"YlGnBu") 
-      pdata  <- makeProps(na.omit(cpuegrids[[y]][[2]][,1:3]), c(lvls,max(lvls)*100), "col", cols) 
-      pdata$border  <- NA
-      cpuegrids[[y]][[2]] <- pdata
-     
-     ClamMap2('Ban',poly.lst=cpuegrids[[y]][1:2],title=paste(yrs[y],"Surf Clam CPUE"),isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
-     ContLegend("bottomright",lvls=cpuegrids[[y]]$lvls,Cont.data=cpuegrids[[y]],title=expression(CPUE (kg/m^2)),inset=0.02,cex=0.8,bg='white')
-     }
-   
-   }
-
-  dev.off()
-
-
-
+  # plot Map
+  LobsterMap(ylim=c(44.4,45.2),xlim=c(-67.2,-66.3),mapRes="UR",contours=cont.lst,title=paste("SPA 6 Lobster Density",i),isobath=seq(10,500,10),bathcol=rgb(0,0,1,0.2),bathy.source='bathy',boundaries='scallop',poly.lst=list(ScallopAreas,data.frame(PID=c(16,18))))
+  points(lat~lon,lobdat,subset=YEAR==i,pch=16,cex=0.5)#,col=rgb(0,0,0,0.5))
+  ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="#/standard tow",inset=0.02,cex=0.8,bty='n')
+}
+dev.off()
 
 
 

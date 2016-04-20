@@ -59,5 +59,11 @@ catch_analysis<-  catchtow[,c("INDX","SURVEY.x","DATE","STARTTIME","END_TIME","T
 # catch_analysis$WEIGHT_KG<-NULL
 
 catch_analysis<-na.zero(catch_analysis)
+catch_analysis
+		
+catch_analysis$X<-with(catch_analysis,apply(cbind(ELON,SLON),1,mean))
+catch_analysis$Y<-with(catch_analysis,apply(cbind(ELAT,SLAT),1,mean))
+catch_analysis$EID<-1:nrow(catch_analysis)
+
 write.csv(catch_analysis,   file.path(project.datadirectory("offshoreclams"),"R","catch_analysis.csv"))
 
