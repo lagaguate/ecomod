@@ -59,31 +59,36 @@ ClamMap2('Grand',isobath=seq(50,500,50))
  with(catch_analysis,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
 
 
-      # depletion test
-      test.poly=data.frame(PID=1,POS=1:4,X=c(-59.53,-59.4,-59.53,-59.4),Y=c(44.45,44.45,44.55,44.55))
+# explore distribution of catch and effort data in order to set appropriate bounds to censor the data
 
-      test.logs=with(subset(processed.log.data,Year==2013),na.omit(data.frame(X=LON_DD,Y=LAT_DD,C=ROUND_CATCH,E=AREA_TOWED,T=RECORD_DATE)))
-      test.logs$EID=1:nrow(test.logs)
+par(mfrow=c(2,1))#,mar=c(0.2,0.2,0.2,0.2))  
+with(subset(processed.log.data,ROUND_CATCH>0&ROUND_CATCH<40000),hist(ROUND_CATCH,breaks=100,xlim=c(0,40000),xlab="Reported Catch by Watch (kg)",main=''))
+abline(v=c(1500,30000),col='red',lwd=2)
 
-      key=findPolys(test.logs,test.poly)
+with(subset(processed.log.data,AREA>0&AREA<400000),hist(AREA,breaks=100,xlim=c(0,400000),xlab="Reported Effort by Watch (m2)",main=''))
+abline(v=c(15000,200000),col='red',lwd=2)
 
-      test.logs=subset(test.logs,EID%in%key$EID)
-      test.logs=test.logs[order(test.logs$T),]
-
-      test.logs$CPUE=test.logs$C/test.logs$E
-      test.logs$cumC=cumsum(test.logs$C)
-      plot(CPUE~cumC,test.logs)
-
-      mod=lm(CPUE~cumC,test.logs)
-      abline(mod)
-
-      N1=coef(mod)[1]/-coef(mod)[2]
-
-      u=test.logs$cumC[nrow(test.logs)]/N1
-
-
+     
 ## Grid Plots
-yrs=1986:2015
+
+p=list()
+p$bank= "Ban"
+p$yrs= 1988:2015
+p$effort.threshold = c(15000,200000)
+p$catch.threshold = c(1500,30000)
+p$effort.levels = c(1000,50000,100000,200000,500000,1000000,2000000)
+p$catch.levels = c(100,5000,10000,20000,50000,100000,200000)
+p$cpue.levels = c(0,0.02,0.04,0.06,0.08,0.1,0.12)
+p$effort.cols = "YlGnBu"
+p$catch.cols = "YlGnBu"
+p$cpue.cols = "YlGnBu"
+p$Min_lon = -60.0
+p$Max_lon = -57.0
+p$Min_lat = 44.0
+p$Max_lat = 45.25
+p$grid.size = 2
+
+FisheryGridPlot(processed.log.data,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
 
   # Effort
   effortgrids=list()
@@ -141,7 +146,7 @@ yrs=1986:2015
    
    for(y in which(yrs!=1992)){
 
-      cpuegrids[[y]][[2]]$Z <-  catchgrids[[y]][[2]]$Z / effortgrids[[y]][[2]]$Z
+      cpuegrids[[y]][[2]]$Z <- catchgrids[[y]][[2]]$Z / effortgrids[[y]][[2]]$Z
       cpuegrids[[y]][[2]]$Z[is.infinite(cpuegrids[[y]][[2]]$Z)] <- NA
       cpuegrids[[y]][[2]]$Z[cpuegrids[[y]][[2]]$Z==0] <- NA
     
@@ -159,6 +164,35 @@ yrs=1986:2015
    }
 
   dev.off()
+
+
+
+
+
+
+
+
+      # depletion test
+      test.poly=data.frame(PID=1,POS=1:4,X=c(-59.53,-59.4,-59.53,-59.4),Y=c(44.45,44.45,44.55,44.55))
+
+      test.logs=with(subset(processed.log.data,Year==2013),na.omit(data.frame(X=LON_DD,Y=LAT_DD,C=ROUND_CATCH,E=AREA_TOWED,T=RECORD_DATE)))
+      test.logs$EID=1:nrow(test.logs)
+
+      key=findPolys(test.logs,test.poly)
+
+      test.logs=subset(test.logs,EID%in%key$EID)
+      test.logs=test.logs[order(test.logs$T),]
+
+      test.logs$CPUE=test.logs$C/test.logs$E
+      test.logs$cumC=cumsum(test.logs$C)
+      plot(CPUE~cumC,test.logs)
+
+      mod=lm(CPUE~cumC,test.logs)
+      abline(mod)
+
+      N1=coef(mod)[1]/-coef(mod)[2]
+
+      u=test.logs$cumC[nrow(test.logs)]/N1
 
 
    for(y in which(yrs!=1992)){
