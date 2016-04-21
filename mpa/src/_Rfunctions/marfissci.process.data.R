@@ -5,6 +5,7 @@ marfissci.process.data <- function(df, agg.minutes=2,
                                    save.RDS = T,
                                    save.CSV = F,
                                    save.SHP = F,
+                                   name.det = NULL,
                                    output = "RDS"){
   #' MMM - Apr 6, 2016
   #' This function takes the input raw MARFIS data and summarizes it at 
@@ -47,8 +48,7 @@ entirely on the land.
     coast.aea.buff <<- gBuffer(coast.aea, byid=TRUE, width=-1*buff)
   }
  
-    library(lubridate) 
-    df$YEAR_FISHED=year(df$DATE_FISHED)
+    
   df$VALIDITY = "VALID"  #default validity assumed good - overwrite if otherwise
   #flag data with unknown positions (assigned 0N,0W by marfissci.get.data
   noNA = c(c("LAT","LON"),agg.field) # fields where NA will be replaced with 0
@@ -139,8 +139,14 @@ simply be populated with identical values as ",agg.field))
   
   
   #make a descriptive name so we know what we've got
+  if (!is.null(name.det)){
+    name.detail=name.det
+  }else{
+    name.detail=""
+  }
+  agg.type=paste0(substr(agg.by, 1, 4),"_")
   if (range(df.agg$AGG_BY_FIELD)[1] == range(df.agg$AGG_BY_FIELD)[2]) {
-    agg.file = range(df.agg$AGG_BY_FIELD)[1]
+    agg.file = paste0(range(df.agg$AGG_BY_FIELD)[1],"_")
   }else{
     agg.file = paste(range(df.agg$AGG_BY_FIELD),collapse = "_")
   }
@@ -153,8 +159,8 @@ simply be populated with identical values as ",agg.field))
   }else{
     years.file =""
   }
-  agg.amt=paste0(agg.minutes,"min_")
-  the.filename = paste0("pts_",agg.amt,years.file,agg.file)
+  agg.amt=paste0(agg.minutes,"min")
+  the.filename = paste0(name.detail,agg.type,agg.file,years.file,agg.amt)
 
   #do any field renaming before generating files
   colnames(df.agg)[colnames(df.agg) == 'AGG_BY_FIELD'] <- agg.by
