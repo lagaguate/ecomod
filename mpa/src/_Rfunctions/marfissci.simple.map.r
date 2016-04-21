@@ -3,14 +3,16 @@ marfissci.simple.map<-function(rds,
                                colour.by = "SUM_RND_WEIGHT_KGS",
                                crs.out="+proj=utm +zone=20 +datum=WGS84",
                                xlim=c(-68,-53),
-                               ylim=c(40,48),
+                               ylim=c(40,49),
                                valid.only = T,
                                show.legend = T,
                                save.plot = T,
                                plot.title="",
+                               name.det = NULL,
                                nclasses=5,
                                add.OCMD = c("St_Ann","Gully","Vazella_Emerald","Vazella_Sambro","Lophelia", "NE_Channel")
 ){
+
   proj.metric = '+proj=aea +lat_1=20 +lat_2=60 +lat_0=23 +lon_0=-96 
                  +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m'
   
@@ -46,8 +48,8 @@ marfissci.simple.map<-function(rds,
   #Do nrow check AFTER that
   rds.clipped = rds[boundbox,]  #clip data to bbox
   if (valid.only) rds.clipped = rds.clipped[rds.clipped@data$VALIDITY == 'VALID',]
-  if (nrow(rds.clipped@data)<2) return(NULL) #can't classify on a single value
   ncheck=length(unique(rds.clipped@data[,c(colour.by)])) #don't have enough data for requested number of classes
+  if (ncheck<2) return(NULL) #can't classify on a single value
   if (nclasses>ncheck) nclasses=ncheck
   rds.clipped@data$ORD = seq.int(nrow(rds.clipped))
   classes = classIntervals(rds.clipped@data[,c(colour.by)], n=nclasses, style= "quantile", dataPrecision=0)
@@ -58,9 +60,11 @@ marfissci.simple.map<-function(rds,
   colour.df = as.data.frame(cbind(varname=classes$var,colcode))
   names(colour.df)[names(colour.df)=="varname"] <- colour.by
   rds.clipped@data = merge( rds.clipped@data,unique(colour.df), all.x = T)
-  rds.clipped@data = rds.clipped@data[order(rds.clipped@data$ORD),]
+  #rds.clipped@data = rds.clipped@data[order(rds.clipped@data$ORD),]
   
   rds.clipped.pr = spTransform(rds.clipped, CRS(crs.out), match.ID=F)
+  rds.clipped.pr@data = rds.clipped.pr@data[order(rds.clipped.pr@data$ORD),]
+  
   
   if (!exists("coast.aea") || 
       !exists("coast.clipped.aea") || 
@@ -97,8 +101,7 @@ marfissci.simple.map<-function(rds,
       !exists("clip.600") || 
       !exists("clip.700") || 
       !exists("clip.800") || 
-      !exists("clip.900") || 
-      !exists("clip.1000"))
+      !exists("clip.900"))
   {
   #bathy data
     writeLines("Generating contours")
@@ -107,7 +110,7 @@ marfissci.simple.map<-function(rds,
    p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry", "polygons" ) )
    p$libs = RLibrary( "rgdal", "maps", "mapdata", "maptools", "lattice", "geosphere", "sp", "raster", "colorspace" )
    p = spatial.parameters( type="canada.east.highres", p=p ) 
-   depths = c(100, 200, 300, 400, 500, 600, 700, 800, 900, 1000) #, 2000, 5000 )
+   depths = c(100, 200, 300, 400, 500, 600, 700, 800, 900) #, 2000, 5000 )
    plygn = isobath.db( p=p, DS="isobath", depths=depths  )
    #data must be clipped so it doesn't extend beyond the bounding box
   clip.100 <<- gIntersection(spTransform(plygn["100"], CRS(crs.out)), boundbox.pr)
@@ -125,17 +128,24 @@ marfissci.simple.map<-function(rds,
   if (length(add.OCMD)>0) OCMD.areas=get.ocmd.areas(add.OCMD)
 
  if (save.plot){
+   if (!is.null(name.det)){
+     name.detail=paste0(name.det,"_")
+   }else{
+     name.detail=""
+   }
    if (range(rds.clipped.pr@data[agg.by])[1] == range(rds.clipped.pr@data[agg.by])[2]) {
      the.filename = range(rds.clipped.pr@data[agg.by])[1]
    }else{
      the.filename = paste(range(rds.clipped.pr@data[agg.by]),collapse = "_")
    }
-   plot.title.clean=gsub("(\\(|\\)|\\s|\\/|,)","_",plot.title) 
-   plot.title.clean=gsub("__","_", plot.title.clean)
-   plot.title.clean=substr(plot.title.clean,1,15)
-   plot.title.clean=sub('_$', '', plot.title.clean)
-
-   the.filename=paste0(the.filename,"_",plot.title.clean,"_",strftime(Sys.time(),"%Y%m%d_%H%M%S"),".png")
+#    plot.title.clean=gsub("(\\(|\\)|\\s|\\/|,)","_",plot.title) 
+#    plot.title.clean=gsub("__","_", plot.title.clean)
+#    plot.title.clean=substr(plot.title.clean,1,15)
+#    plot.title.clean=paste0(sub('_$', '', plot.title.clean),"_")
+   
+   agg.type=paste0(substr(agg.by, 1, 4),"_")
+   
+   the.filename=paste0(name.detail,agg.type,the.filename,".png")
    
    png(filename=paste0(project.datadirectory("mpa"),"/figures/",the.filename),
       width = 6, height = 4, units = "in", res= 300, pointsize = 4,
