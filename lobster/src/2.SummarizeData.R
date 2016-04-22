@@ -17,6 +17,8 @@
 	# Scallop Survey
 	CarapaceLengthFrequencies(LFAs='34', DS='ScallopSurvey')
 	CarapaceLengthFrequencies(LFAs='34', DS='ScallopSurvey', Yrs=2010:2015, rel=F, ymax=1, bins=seq(0,200,1), fn='v2')
+	CarapaceLengthFrequencies(LFAs=c("35","36","38") , DS='ScallopSurvey', Yrs=2010:2015, rel=F, ymax=1.3, fn='')
+	CarapaceLengthFrequencies(LFAs=c("35","36","38") , DS='ScallopSurvey', Yrs=2010:2015, rel=T, fn='Rel')
 	
 	
 	# at Sea Sampling
@@ -32,4 +34,18 @@
 	CarapaceLengthFrequencies(LFAs= p$lfas, DS='fsrs', by="LFA", bins=seq(0,140,10))
 	CarapaceLengthFrequencies(LFAs= p$lfas, DS='fsrs', by="LFA", bins=c(seq(0,70,10),75,seq(80,200,10)))
 
+
+    ## Scallop Survey Trend
+    SCALSURVsublegals.dat<-ScallopSurveyProcess(Yrs=2005:2015,size.range=c(0,82.5),bin.size=5)
+    lobDenScal38 <- with(subset(SCALSURVsublegals.dat,LFA==38),tapply(LobDen,YEAR,mean))
+    stdts.plt(data.frame(Year=as.numeric(names(lobDenScal38)),LobsterDensity=lobDenScal38),ylim=c(0,2),ylab="sub-legal Lobster Density (#/1000 m2)",graphic='pdf',fn='LFA35scalSurvLobDen')
+
+	LOGcpue.dat<-read.csv(file.path( project.datadirectory("lobster"), "data","products","CommercialCPUE.csv"))
+    stdts.plt(subset(LOGcpue.dat,lfa==38,c('year','cpue')),ylim=c(0,2.5),ylab="CPUE (kg/TH)",graphic='pdf',fn='LFA35CPUE')
+
+
+
+    ## CPUE
+    logsInSeason<-LobsterLogsProcess()
+    CPUEplot(logsInSeason,lfa=c('35','36','38'),yrs=2006:2015,graphic='pdf')
 

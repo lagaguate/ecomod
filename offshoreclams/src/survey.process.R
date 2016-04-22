@@ -34,6 +34,8 @@ catchtow$WEIGHT_KG<-as.numeric(catchtow$WEIGHT_KG)
 
 catchtow<-na.zero(catchtow)
 
+catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] <- catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] * 1852
+
 
 
 catchtow$CATCHFACTOR<-catchtow$TOTAL_CATCH_KG/(catchtow$KG_SAMPLED_MAIN+catchtow$KG_SAMPLED_BYCATCH)
@@ -59,11 +61,15 @@ catch_analysis<-  catchtow[,c("INDX","SURVEY.x","DATE","STARTTIME","END_TIME","T
 # catch_analysis$WEIGHT_KG<-NULL
 
 catch_analysis<-na.zero(catch_analysis)
-catch_analysis
+
+catch_analysis$DATE <- as.Date(catch_analysis$DATE,"%d/%m/%Y")
+catch_analysis$YEAR <- year(catch_analysis$DATE)
 		
 catch_analysis$X<-with(catch_analysis,apply(cbind(ELON,SLON),1,mean))
 catch_analysis$Y<-with(catch_analysis,apply(cbind(ELAT,SLAT),1,mean))
 catch_analysis$EID<-1:nrow(catch_analysis)
 
-write.csv(catch_analysis,   file.path(project.datadirectory("offshoreclams"),"R","catch_analysis.csv"))
+x2 <- with(catch_analysis,merge(data.frame(PID=EID,X=SLON,Y=SLAT),data.frame(PID=EID,X=ELON,Y=ELAT),all=T))
+
+write.csv(catch_analysis,   file.path(project.datadirectory("offshoreclams"),"R","SurveyData.csv"))
 
