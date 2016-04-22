@@ -15,7 +15,7 @@
 
 loadfunctions(c("offshoreclams","lobster","utility"))
 
-RLibrary( "PBSmapping" ) # Load required packages
+RLibrary( "PBSmapping", "lubridate" ) # Load required packages
 
 
 ## Load Data
@@ -112,7 +112,7 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.
 for(i in c(2004,2010)){
   
   # interpolate abundance
-  lob.contours<-interpolation(subset(lobdat,YEAR==i,c('TOW_SEQ','lon','lat','STDCATCH')),ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.03)
+  lob.contours<-interpolation(subset(lobdat,YEAR==i,c('ADJCATCH','X','Y','STDCATCH')),ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.03)
 
   # define contour lines
   print(lob.contours$str.def)

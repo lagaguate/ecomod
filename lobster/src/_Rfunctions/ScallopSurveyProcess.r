@@ -1,4 +1,4 @@
-ScallopSurveyProcess<-function(size.range=c(0,220),SPA,Years,bin.size=5,log=F){
+ScallopSurveyProcess<-function(size.range=c(0,220),SPA,Yrs,bin.size=5,log=F){
 	
 	require(lubridate)
 
@@ -19,14 +19,13 @@ ScallopSurveyProcess<-function(size.range=c(0,220),SPA,Years,bin.size=5,log=F){
 	
 	# subset for area and years
 	if(!missing(SPA))	ScalSurvLob.dat<-subset(ScalSurvLob.dat,MGT_AREA_ID%in%SPA)
-	if(!missing(Years))	ScalSurvLob.dat<-subset(ScalSurvLob.dat,YEAR%in%Years)
+	if(!missing(Yrs))	ScalSurvLob.dat<-subset(ScalSurvLob.dat,YEAR%in%Yrs)
 
 	# 
 	ScalSurvLob.dat$NLobs<-0
 	ScalSurvLob.dat$NLobs[ScalSurvLob.dat$MEAS_VAL>size.range[1]&ScalSurvLob.dat$MEAS_VAL<size.range[2]]<-1
 	ScalSurvLob.dat$lon<-convert.dd.dddd(ScalSurvLob.dat$START_LONG)
 	ScalSurvLob.dat$lat<-convert.dd.dddd(ScalSurvLob.dat$START_LAT)
-	ScalSurvLob.dat$LOG_MEAS_VAL<-log(ScalSurvLob.dat$MEAS_VAL)
 
 
 	tmp<-with(ScalSurvLob.dat,tapply(NLobs,TOW_SEQ,sum))
@@ -37,20 +36,23 @@ ScallopSurveyProcess<-function(size.range=c(0,220),SPA,Years,bin.size=5,log=F){
 	# add columns for length bins
 	bins<-seq(size.range[1],size.range[2],bin.size)
 	sets<-unique(ScalSurvLob.dat$TOW_SEQ)
-	if(log==T){
-		CLF<-data.frame(TOW_SEQ=sets,t(sapply(sets,function(s){with(subset(ScalSurvLob.dat,TOW_SEQ==s&LOG_MEAS_VAL>=min(bins)&LOG_MEAS_VAL<max(bins)),hist(LOG_MEAS_VAL,breaks=bins,plot=F)$count)})))
-		names(CLF)[-1]<-paste0("LCL",bins[-length(bins)])
-	}
-	if(log==F){
-		CLF<-data.frame(TOW_SEQ=sets,t(sapply(sets,function(s){with(subset(ScalSurvLob.dat,TOW_SEQ==s&MEAS_VAL>=min(bins)&MEAS_VAL<max(bins)),hist(MEAS_VAL,breaks=bins,plot=F)$count)})))
-		names(CLF)[-1]<-paste0("CL",bins[-length(bins)])
-	}
+
+	CLF<-data.frame(TOW_SEQ=sets,t(sapply(sets,function(s){with(subset(ScalSurvLob.dat,TOW_SEQ==s&MEAS_VAL>=min(bins)&MEAS_VAL<max(bins)),hist(MEAS_VAL,breaks=bins,plot=F)$count)})))
+	names(CLF)[-1]<-paste0("CL",bins[-length(bins)])
+	
 	ScalSurvLob<-merge(ScalSurvLob,CLF,all=T)
 
 	# standardized to 4000 m^2
 	ScalSurvLob$NLobsStd<-ScalSurvLob$NLobs/ScalSurvLob$AREA_SWEPT*4000
 	ScalSurvLob$LobDen<-ScalSurvLob$NLobs/ScalSurvLob$AREA_SWEPT*1000
 	ScalSurvLob[,which(names(ScalSurvLob)%in%names(CLF)[-1])]<-sweep(ScalSurvLob[,which(names(ScalSurvLob)%in%names(CLF)[-1])],1,FUN="/", ScalSurvLob$AREA_SWEPT/4000)
+
+    # add LFA column
+    events <- with(ScalSurvLob,data.frame(EID=TOW_SEQ,X=lon,Y=lat))
+    LFAPolys<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","LFAPolys.csv"))
+    key <- findPolys(events,LFAPolys)
+    ScalSurvLob <- merge(ScalSurvLob,with(key,data.frame(TOW_SEQ=EID,LFA=PID)),all=T)
+
 
 	print("Lobster Abundance From Scallop Survey")
 	print(sort(unique(ScalSurvLob$YEAR)))
