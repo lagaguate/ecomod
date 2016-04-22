@@ -91,7 +91,7 @@ FisheryGridPlot <- function(logdata, p, cpue=T, aspr='calculate', ...){
        titleyr = ifelse(length(yrs[[y]])==1,yrs[[y]],paste(min(yrs[[y]]),max(yrs[[y]]),sep='-'))
 
        ClamMap2(p$bank,poly.lst=cpuegrids[[y]][1:2],title=paste(titleyr,"Surf Clam CPUE"),...)
-       ContLegend("bottomright",lvls=p$cpue.levels,Cont.data=cpuegrids[[y]],title=expression(CPUE (kg/m^2)),inset=0.02,cex=0.8,bg='white')
+       ContLegend("bottomright",lvls=p$cpue.levels*1000,Cont.data=cpuegrids[[y]],title=expression(CPUE (t/km^2)),inset=0.02,cex=0.8,bg='white')
        }
      }
      

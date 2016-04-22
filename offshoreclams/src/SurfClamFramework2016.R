@@ -37,11 +37,14 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
 
 ####### Mapping
 
+c100 <- read.table(file.path( project.datadirectory("polygons"), "data","Basemaps","Marine","Bathymetry","CHS100.ll"),header=T)
+Banq100 <- na.omit(subset(c100,SID==2392)) # 100m isobath for Banqureau
+
 ClamMap2('all',isobath=seq(50,500,50))
 
  with(subset(processed.log.data,AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.1,col=rgb(0,0,0,0.1)))
  with(subset(processed.log.data,Year==2015&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.2,col=rgb(1,0,0,0.2)))
- with(catch_analysis,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
+ with(surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
  rect(Min_long,Min_lat,Max_long,Max_lat)
 
 ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
@@ -49,14 +52,14 @@ ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
  with(subset(processed.log.data,Year==2015&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(1,0,0,0.2)))
  with(subset(processed.log.data,Year==2014&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(0,1,0,0.2)))
  with(subset(processed.log.data,Year==2013&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
- with(catch_analysis,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,0,0,0.2)))
+ with(surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,0,0,0.2)))
 
 
 ClamMap2('Grand',isobath=seq(50,500,50))
 
  rect(Min_long,Min_lat,Max_long,Max_lat)
  with(subset(processed.log.data,Year==2013&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
- with(catch_analysis,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
+ with(surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
 
 
 # explore distribution of catch and effort data in order to set appropriate bounds to censor the data
@@ -123,7 +126,7 @@ for(i in 1:length(yrs)){
   lvls=c(5000, 10000, 50000, 100000, 200000, 500000, 1000000)
 
   # generate contour lines
-  cont.lst<-contour.gen(clam.contours$image.dat,lvls,col="YlGn",colorAdj=1)
+  cont.lst<-contour.gen(clam.contours$image.dat,lvls,Banq100,col="YlGn",colorAdj=1)
 
   # plot Map
   ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Clam Removals",min(yrs[[i]]),'-',max(yrs[[i]])))
@@ -136,37 +139,41 @@ dev.off()
 ########### Survey ############
 
 ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
-with(subset(catch_analysis,YEAR==2010),segments(SLON, SLAT, ELON, ELAT,col='red'))
-with(subset(catch_analysis,YEAR==2010),points(SLON, SLAT,pch=16,cex=0.3,col='red'))
-with(subset(catch_analysis,YEAR==2004),segments(SLON, SLAT, ELON, ELAT,col='green'))
-with(subset(catch_analysis,YEAR==2004),points(SLON, SLAT,pch=16,cex=0.3,col='green'))
+with(subset(surveyData,YEAR==2010),segments(SLON, SLAT, ELON, ELAT,col='red'))
+with(subset(surveyData,YEAR==2010),points(SLON, SLAT,pch=16,cex=0.3,col='red'))
+with(subset(surveyData,YEAR==2004),segments(SLON, SLAT, ELON, ELAT,col='green'))
+with(subset(surveyData,YEAR==2004),points(SLON, SLAT,pch=16,cex=0.3,col='green'))
 
+# comparing recorded tow distance with the distance between start and end points
+plot(length~DIST_M,surveyData)
+abline(0,1)
 
 # distribution of surf clams from survey
 
-pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.pdf"),8,11)
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.pdf"),11,8)
 
 for(i in c(2004,2010)){
   
   # interpolate abundance
-  lob.contours<-interpolation(subset(lobdat,YEAR==i,c('EID','X','Y','STDCATCH')),ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.03)
+  interp.data <- na.omit(subset(surveyData,YEAR==i,c('EID','X','Y','STDCATCH')))
+  clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=5,blank.dist=0.1)
 
   # define contour lines
-  print(lob.contours$str.def)
-  lvls=c(1, 2, 5, 10, 20, 50)
+  print(clam.contours$str.def)
+  lvls=c(1, 30, 75, 150, 300, 600)
 
   # generate contour lines
-  cont.lst<-contour.gen(lob.contours$image.dat,lvls,col="YlGn",colorAdj=1)
+  cont.lst<-contour.gen(clam.contours$image.dat,lvls,col="YlGn",colorAdj=1)
 
   # plot Map
-  LobsterMap(ylim=c(44.4,45.2),xlim=c(-67.2,-66.3),mapRes="UR",contours=cont.lst,title=paste("SPA 6 Lobster Density",i),isobath=seq(10,500,10),bathcol=rgb(0,0,1,0.2),bathy.source='bathy',boundaries='scallop',poly.lst=list(ScallopAreas,data.frame(PID=c(16,18))))
-  points(lat~lon,lobdat,subset=YEAR==i,pch=16,cex=0.5)#,col=rgb(0,0,0,0.5))
-  ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="#/standard tow",inset=0.02,cex=0.8,bty='n')
+  ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Survey Density",i))
+  points(Y~X,interp.data,pch=16,cex=0.5,col=rgb(0,0,0,0.5))
+  ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="t/km2",inset=0.02,cex=0.8,bty='n')
 }
 dev.off()
 
 
-
+c100 <- read.table(file.path( project.datadirectory("polygons"), "data","Basemaps","Marine","Bathymetry","CHS100.ll"),header=T)
 
 
       # depletion test
