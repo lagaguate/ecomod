@@ -106,13 +106,50 @@ Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, G
 
 write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
+# distribution of surf clams catch
+yrs=list(2004:2010,2011:2015)
+b=1
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","TotalRemovals.pdf"),8,11)
+
+for(i in 1:length(yrs)){
+  
+  # interpolate abundance
+  interp.data <- na.omit(subset(processed.log.data,Year%in%yrs[[i]]&BANK==b&LAT_DD>Min_lat[b]&LAT_DD<Max_lat[b]&LON_DD>Min_long[b]&LON_DD<Max_long[b],c('LOGRECORD_ID','LON_DD','LAT_DD','ROUND_CATCH')))
+  clam.contours <- interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=F,res=0.01,smooth=T,smooth.fun=sum)
+
+  # define contour lines
+  print(clam.contours$str.def)
+  # 0.000    9998.709   28722.120   82390.560  202708.380 2950358.365
+  lvls=c(5000, 10000, 50000, 100000, 200000, 500000, 1000000)
+
+  # generate contour lines
+  cont.lst<-contour.gen(clam.contours$image.dat,lvls,col="YlGn",colorAdj=1)
+
+  # plot Map
+  ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Clam Removals",min(yrs[[i]]),'-',max(yrs[[i]])))
+  #points(LAT_DD~LON_DD,interp.data,pch=16,cex=0.1,col=rgb(0,0,0,0.1))
+  ContLegend("bottomright",lvls=lvls/1000,Cont.data=cont.lst$Cont.data,title=expression(t/NM^2),inset=0.02,cex=0.8,bty='n')
+}
+dev.off()
+
+
+########### Survey ############
+
+ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
+with(subset(catch_analysis,YEAR==2010),segments(SLON, SLAT, ELON, ELAT,col='red'))
+with(subset(catch_analysis,YEAR==2010),points(SLON, SLAT,pch=16,cex=0.3,col='red'))
+with(subset(catch_analysis,YEAR==2004),segments(SLON, SLAT, ELON, ELAT,col='green'))
+with(subset(catch_analysis,YEAR==2004),points(SLON, SLAT,pch=16,cex=0.3,col='green'))
+
+
 # distribution of surf clams from survey
+
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.pdf"),8,11)
 
 for(i in c(2004,2010)){
   
   # interpolate abundance
-  lob.contours<-interpolation(subset(lobdat,YEAR==i,c('TOW_SEQ','lon','lat','STDCATCH')),ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.03)
+  lob.contours<-interpolation(subset(lobdat,YEAR==i,c('EID','X','Y','STDCATCH')),ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=3.5,blank.dist=0.03)
 
   # define contour lines
   print(lob.contours$str.def)
