@@ -27,6 +27,8 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   log.data <- GetLogData(update=update.data)
   processed.log.data <- ProcessLogData(log.data)
 
+  load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
+
   # length frequency data
   lf.data <- GetLFData(update=update.data)
 
@@ -90,7 +92,8 @@ p$Max_lat = 45.25
 p$grid.size = 2
 #p$grid.size = 1.852
 
-grid.out <- FisheryGridPlot(processed.log.data,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all',aspr=1)
+grid.out <- FisheryGridPlot(processed.log.data,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+save(grid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
  
 ## summary table of catch and effort data
@@ -107,14 +110,14 @@ Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, G
 write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
 # distribution of surf clams catch
-yrs=list(2004:2010,2011:2015)
+p$yrs=list(2004:2010,2011:2015)
 b=1
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","TotalRemovals.pdf"),8,11)
 
 for(i in 1:length(yrs)){
   
   # interpolate abundance
-  interp.data <- na.omit(subset(processed.log.data,Year%in%yrs[[i]]&BANK==b&LAT_DD>Min_lat[b]&LAT_DD<Max_lat[b]&LON_DD>Min_long[b]&LON_DD<Max_long[b],c('LOGRECORD_ID','LON_DD','LAT_DD','ROUND_CATCH')))
+  interp.data <- na.omit(subset(processed.log.data,Year%in%p$yrs[[i]]&BANK==b&LAT_DD>Min_lat[b]&LAT_DD<Max_lat[b]&LON_DD>Min_long[b]&LON_DD<Max_long[b],c('LOGRECORD_ID','LON_DD','LAT_DD','ROUND_CATCH')))
   clam.contours <- interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=F,res=0.01,smooth=T,smooth.fun=sum)
 
   # define contour lines
@@ -126,12 +129,15 @@ for(i in 1:length(yrs)){
   cont.lst<-contour.gen(clam.contours$image.dat,lvls,col="YlGn",colorAdj=1)
 
   # plot Map
-  ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Clam Removals",min(yrs[[i]]),'-',max(yrs[[i]])))
+  ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Clam Removals",min(p$yrs[[i]]),'-',max(p$yrs[[i]])))
   #points(LAT_DD~LON_DD,interp.data,pch=16,cex=0.1,col=rgb(0,0,0,0.1))
   ContLegend("bottomright",lvls=lvls/1000,Cont.data=cont.lst$Cont.data,title=expression(t/NM^2),inset=0.02,cex=0.8,bty='n')
 }
 dev.off()
 
+# Seasonal patterns
+
+fishing.season(subset(processed.log.data,Year%in%p$yrs[[i]]&BANK==b))
 
 ########### Survey ############
 
@@ -191,14 +197,22 @@ dev.off()
 
       u=test.logs$cumC[nrow(test.logs)]/N1
 
+  min.n=10
+   for(y in which(p$yrs!=1992)){
 
-   for(y in which(yrs!=1992)){
+    logCE = na.omit(subset( processed.log.data ,BANK==1&Year%in%p$yrs[[y]]&ROUND_CATCH>0,c("LOGRECORD_ID","LON_DD","LAT_DD","RECORD_DATE","ROUND_CATCH","AREA")))
+    names(logCE)[1:3] <- c("EID","X","Y")
+    locData = findCells(logCE, grid.out$grid)
+    logCE = merge(logCE,locData,all=T) 
+    logCE = logCE[order(logCE$RECORD_DATE),]
+    logCE$gridID = paste( logCE$PID,logCE$SID,sep='.') 
 
-    grid.dat=na.omit(subset( processed.log.data ,BANK==1&Year%in%yrs[y],c("LOGRECORD_ID","LON_DD","LAT_DD","RECORD_DATE","ROUND_CATCH","AREA")))
-    names(grid.dat)[1:3] <- c("EID","X","Y")
-    locData<- findCells(grid.dat, effortgrids[[y]][[1]])
-    
-    subset(effortgrids[[y]][[2]],Z>threshold)
+    Depletion.data = split(logCE,logCE$gridID)
+    Depletion.data = Depletion.data[which( unlist(lapply(Depletion.data,nrow))>min.n)]
+
+
+    with(logCE,tapply(ROUND_CATCH,gridID,length)) 
+    polyData = subset(grid.out$grid.polyData[[1]][[28]],Z>p$effort.threshold[1])
 
 
 

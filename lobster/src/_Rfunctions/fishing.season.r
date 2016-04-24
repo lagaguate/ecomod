@@ -1,6 +1,6 @@
 # source("fn/fishing.season.r")
 
-# dat is two columns date and variable to plot
+#// dat is two columns date and variable to plot
 
 fishing.season<-function(dat,scale=2,off=330,outer=F,clr='grey80',fun=sum,smooth=0,title='', pointer=NULL){
  
