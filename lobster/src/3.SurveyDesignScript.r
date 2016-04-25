@@ -289,159 +289,135 @@ Relief.plots(subset(towlst$Tows$repeated.tows,STRATA=='multibeam'),graphic="pdf"
 # addPoints(na.omit(gic[which(gic$yr>=1999),c('X','Y','EID')]),pch=16,col='red',cex=0.75)
 # addPoints(na.omit(gic[which(gic$yr>=1999 & gic$totno>0),c('X','Y','EID')]),pch=16,col='green',cex=0.75) #lobster only
 
-
-
-
-
-
-#equire(PBSmapping)
-#equire(RColorBrewer)
-#oadfunctions('lobster')
-
+#
+#require(PBSmapping)
+#require(RColorBrewer)
+#loadfunctions('lobster')
+#
 #extent<-data.frame(PID=1,POS=1:4,X=c(-66.3,-65.4,-65.4,-66.3),Y=c(43.15,43.15,43.8,43.8))
 #attr(extent,"projection")<-"LL"
-
-
-#oad(file.path(project.datadirectory("substrate"),"data","InshoreSubstrate.rdata"))
-
-#ubpoly.data<-read.csv(file.path(project.datadirectory("substrate"),"data","SubPolyData.csv"))
-#ubpoly.data$col<-brewer.pal(10,"Set3")
-#ubpoly.data$border<-NA
-
-#ttr(substrate,"projection")<-"UTM"
-#ttr(substrate,"zone")<-20
-#ubstrate<-convUL(substrate,km=F)
-
-#Bsubstrate<-joinPolys(substrate,extent,operation="INT")
-
-#df(file.path(project.datadirectory("lobster"),"figures","LFA34Substrate.pdf"),9,9)
-#obsterMap('34',poly.lst=list(substrate,subpoly.data),isobath=c(50,100,200),bathy.source='bathy',mapRes="UR",labels='grid',labcex=0.5)
-#ith(subset(subpoly.data,PID%in%unique(substrate$PID)),legend('topright',PName,fill=col,inset=0.02,cex=0.8,bg='white'))
-#ev.off()
-# 
-
-# german MB res 50m
-#df(file.path(project.datadirectory("lobster"),"figures","LFA34Multibeam.pdf"),9,9)
-#erbk50 <-read.table(file.path( project.datadirectory("bathymetry"),"data","GermanBathy","gerbk_50.txt"),header=T)
-#erMB.dat<-with(na.omit(gerbk50),data.frame(X=X,Y=Y,Z=-DEPTH))			
-#erMB.lst<-makeTopography(gerMB.dat,digits=4)
-#obsterMap('34',image.lst=with(na.omit(gerbk50),list(x=X,y=Y,z=-DEPTH)),isobath=c(50,100,200),bathy.source='bathy',mapRes="UR",labels='grid',labcex=0.5)
-
-# key to files for german MB res 5m]
-#df(file.path(project.datadirectory("lobster"),"figures","LFA34MultibeamExtent.pdf"),9,9)
-#ey<-read.csv(file.path( project.datadirectory("bathymetry"),"data","GermanBathy","fileKey.csv"))
-# LobsterMap('34',labels='grid',labcex=0.5,isobath=c(50,100,200),bathy.source='bathy')
-#ith(key,rect(X1,Y1,X2,Y2,col='black'))
-#ev.off()
-
-
-
-# # -------------------------------------------------------------------------------------
-
-#		
-#oad(file.path( project.datadirectory("lobster"), "data","maps", "bathy", "bathyPoly1.rdata"))
-#Bsubstrate<-joinPolys(LBsubstrate,subset(bathy.poly,Z==40),operation="INT")
-#FAs<-read.csv(file.path(project.datadirectory('lobster'),'data','maps','Polygons_LFA.csv'))
-#Bsubstrate<-joinPolys(LBsubstrate,subset(LFAs,LFA=='34'),operation="INT")
 #
-
-# repeated index stations
-#FA34TrawlStations2015<-read.csv(file.path(project.datadirectory("lobster"),"data","LFA34TrawlStations2015.csv"))
-#FA34TrawlStations2015$EID<-1:nrow(LFA34TrawlStations2015)
-#ames(LFA34TrawlStations2015)[2:3]<-c("Y","X")
-#ey<-findPolys(LFA34TrawlStations2015,LBsubstrate)
-#epeatStations<-merge(LFA34TrawlStations2015,key)
-
-#B.towlst<-alloc.poly(poly.lst=list(LBsubstrate, subpoly.data),ntows=20,mindist=2)
-
-#df(file.path(project.datadirectory("lobster"),"R","LobsterBaySurvey2015.pdf"),9,9)
-#obsterMap(xlim=c(-66.35,-65.35),ylim=c(43.1,43.85),poly.lst=list(LBsubstrate,subpoly.data),isobath=c(20,40,70,100),bathy.source='bathy',mapRes="UR")
-#ith(subset(subpoly.data,PID%in%unique(LBsubstrate$PID)),legend('topright',paste(PID,PName),fill=col,inset=0.02,cex=0.8,bg='white'))
-#ddPoints(LB.towlst$Tows)
-#oints(Y~X,repeatStations,pch=2)
-#ev.off()
-#rite.csv(LB.towlst$Tows,file.path(project.datadirectory('lobster'),'R','LFA34extraSurveyStation2015.csv'))
-
-# Take 2
-
-#xtent<-data.frame(PID=1,POS=1:4,X=c(-66.05,-65.7,-65.7,-66.05),Y=c(43.15,43.15,43.8,43.8))
-#ttr(extent,"projection")<-"LL"
-
-
-#oad(file.path(project.datadirectory("substrate"),"data","InshoreSubstrate.rdata"))
-
-#athpoly.data<-data.frame
-#ubpoly.data$col<-brewer.pal(10,"Set3")
-#ubpoly.data$border<-NA
-
-#ttr(substrate,"projection")<-"UTM"
-#ttr(substrate,"zone")<-20
-#ubstrate<-convUL(substrate,km=F)
-
-#Bsubstrate<-joinPolys(substrate,extent,operation="INT")
-
-#df(file.path(project.datadirectory("lobster"),"R","LobsterBaySubstrate.pdf"),9,9)
-#obsterMap(xlim=c(-66.35,-65.35),ylim=c(43.1,43.85),poly.lst=list(LBsubstrate,subpoly.data),isobath=40,bathcol='blue',bathy.source='bathy',mapRes="UR")
-#ith(subset(subpoly.data,PID%in%unique(LBsubstrate$PID)),legend('topright',PName,fill=col,inset=0.02,cex=0.8,bg='white'))
-#ev.off()
-
-
-# 			
-#oad(file.path( project.datadirectory("lobster"), "data","maps", "bathy", "bathy1Poly1.rdata"))
-#	junk<-data.frame(PID=1,POS=1:4,X=c(162,161,161,162),Y=c(-41,-41,-40,-40))
-
-#Bbathy<-joinPolys(subset(bathy.poly,Z%in%c(10,25,40)),extent,operation="INT")
-#athpoly.data<-data.frame(PID=c(10,25,40),PName=c("<10m","10-25m","25-40m"),col=brewer.pal(3,"Blues"),border=NA)
-
-#df(file.path(project.datadirectory("lobster"),"R","LobsterBayDepth.pdf"),9,9)
-#obsterMap(xlim=c(-66.2,-65.5),ylim=c(43.1,43.85),poly.lst=list(LBbathy,bathpoly.data),isobath=c(10,25,40,70,100),bathy.source='bathy',mapRes="UR")
-#ith(bathpoly.data,legend('topright',legend=paste(PID[-length(PID)],'-',PID[-1],sep=''),fill=col[-1],inset=0.02,cex=0.8,bg='white'))
-#ev.off()
-
-#40<-joinPolys(subset(LBbathy,PID==40),junk,operation="DIFF")
-#25<-joinPolys(subset(LBbathy,PID==25),junk,operation="DIFF")
-#10<-joinPolys(subset(LBbathy,PID==10),junk,operation="DIFF")
-
-#trata2<-joinPolys(b40,b25,operation="DIFF")
-#trata2<-joinPolys(strata2,junk,operation="DIFF")
-#trata2<-joinPolys(strata2,strata1,operation="DIFF")
-
-#trata1<-joinPolys(b25,b10,operation="DIFF")
-#trata1<-joinPolys(strata1,junk,operation="DIFF")
-#trata1<-joinPolys(strata1,strata2,operation="DIFF")
-
-
-#Bbathy<-rbind(strata1,strata2)
-#Bbathy<-joinPolys(LBbathy,junk,operation="DIFF")
-
-#Bsubstrate<-joinPolys(LBsubstrate,subset(bathy.poly,Z==40),operation="INT")
-#FAs<-read.csv(file.path(project.datadirectory('lobster'),'data','maps','Polygons_LFA.csv'))
-#Bsubstrate<-joinPolys(LBsubstrate,subset(LFAs,LFA=='34'),operation="INT")
 #
-
-# repeated index stations
-#FA34TrawlStations2015<-read.csv(file.path(project.datadirectory("lobster"),"data","LFA34TrawlStations2015.csv"))
-#FA34TrawlStations2015$EID<-1:nrow(LFA34TrawlStations2015)
-#ames(LFA34TrawlStations2015)[2:3]<-c("Y","X")
-#ey<-findPolys(LFA34TrawlStations2015,LBsubstrate)
-#epeatStations<-merge(LFA34TrawlStations2015,key)
-
-#B.towlst<-alloc.poly(poly.lst=list(LBbathy, bathpoly.data),ntows=40,mindist=2)
-
-#df(file.path(project.datadirectory("lobster"),"R","LobsterBaySurvey2015.pdf"),8,10)
-#obsterMap(xlim=c(-66.2,-65.5),ylim=c(43.1,43.85),poly.lst=list(LBbathy,bathpoly.data),isobath=c(10,25,40,70,100),bathy.source='bathy',mapRes="UR")
-#ith(bathpoly.data,legend('topright',legend=paste(PID[-length(PID)],'-',PID[-1],sep=''),fill=col[-1],inset=0.02,cex=0.8,bg='white'))
-#ddPoints(LB.towlst$Tows)
-#oints(Y~X,repeatStations,pch=2)
-#ev.off()
-#rite.csv(LB.towlst$Tows,file.path(project.datadirectory('lobster'),'R','LFA34extraSurveyStation2015.csv'),row.names=F)
-
-
-#B.towlst$Tows$EID<-LB.towlst$Tows$EID+100
-
-#B.towlst$Tows$STATION<-paste0('extra',1:40)
-#llTows<-merge(LFA34TrawlStations2015,LB.towlst$Tows,all=T)
-#llTows<-allTows[order(allTows$EID),]
-
-#	Relief.plots(allTows,graphic="pdf",file=file.path(project.datadirectory('lobster'),'R','SurveyMB','Tow'),digits=4,gerfiles=1:77,key=file.key)
-
+#load(file.path(project.datadirectory("substrate"),"data","InshoreSubstrate.rdata"))
+#
+#subpoly.data<-read.csv(file.path(project.datadirectory("substrate"),"data","SubPolyData.csv"))
+#subpoly.data$col<-brewer.pal(10,"Set3")
+#subpoly.data$border<-NA
+#
+#attr(substrate,"projection")<-"UTM"
+#attr(substrate,"zone")<-20
+#substrate<-convUL(substrate,km=F)
+#
+#LBsubstrate<-joinPolys(substrate,extent,operation="INT")
+#
+#pdf(file.path(project.datadirectory("lobster"),"R","LobsterBaySubstrate.pdf"),9,9)
+#LobsterMap(xlim=c(-66.35,-65.35),ylim=c(43.1,43.85),poly.lst=list(LBsubstrate,subpoly.data),isobath=40,bathcol='blue',bathy.source='bathy',mapRes="UR")
+#with(subset(subpoly.data,PID%in%unique(LBsubstrate$PID)),legend('topright',PName,fill=col,inset=0.02,cex=0.8,bg='white'))
+#dev.off()
+#        
+#load(file.path( project.datadirectory("lobster"), "data","maps", "bathy", "bathyPoly1.rdata"))
+#LBsubstrate<-joinPolys(LBsubstrate,subset(bathy.poly,Z==40),operation="INT")
+#LFAs<-read.csv(file.path(project.datadirectory('lobster'),'data','maps','Polygons_LFA.csv'))
+#LBsubstrate<-joinPolys(LBsubstrate,subset(LFAs,LFA=='34'),operation="INT")
+#  
+#
+## repeated index stations
+#LFA34TrawlStations2015<-read.csv(file.path(project.datadirectory("lobster"),"data","LFA34TrawlStations2015.csv"))
+#LFA34TrawlStations2015$EID<-1:nrow(LFA34TrawlStations2015)
+#names(LFA34TrawlStations2015)[2:3]<-c("Y","X")
+#key<-findPolys(LFA34TrawlStations2015,LBsubstrate)
+#repeatStations<-merge(LFA34TrawlStations2015,key)
+#
+#LB.towlst<-alloc.poly(poly.lst=list(LBsubstrate, subpoly.data),ntows=20,mindist=2)
+#
+#pdf(file.path(project.datadirectory("lobster"),"R","LobsterBaySurvey2015.pdf"),9,9)
+#LobsterMap(xlim=c(-66.35,-65.35),ylim=c(43.1,43.85),poly.lst=list(LBsubstrate,subpoly.data),isobath=c(20,40,70,100),bathy.source='bathy',mapRes="UR")
+#with(subset(subpoly.data,PID%in%unique(LBsubstrate$PID)),legend('topright',paste(PID,PName),fill=col,inset=0.02,cex=0.8,bg='white'))
+#addPoints(LB.towlst$Tows)
+#points(Y~X,repeatStations,pch=2)
+#dev.off()
+#write.csv(LB.towlst$Tows,file.path(project.datadirectory('lobster'),'R','LFA34extraSurveyStation2015.csv'))
+#
+## Take 2
+#
+#extent<-data.frame(PID=1,POS=1:4,X=c(-66.05,-65.7,-65.7,-66.05),Y=c(43.15,43.15,43.8,43.8))
+#attr(extent,"projection")<-"LL"
+#
+#
+#load(file.path(project.datadirectory("substrate"),"data","InshoreSubstrate.rdata"))
+#
+#bathpoly.data<-data.frame
+#subpoly.data$col<-brewer.pal(10,"Set3")
+#subpoly.data$border<-NA
+#
+#attr(substrate,"projection")<-"UTM"
+#attr(substrate,"zone")<-20
+#substrate<-convUL(substrate,km=F)
+#
+#LBsubstrate<-joinPolys(substrate,extent,operation="INT")
+#
+#pdf(file.path(project.datadirectory("lobster"),"R","LobsterBaySubstrate.pdf"),9,9)
+#LobsterMap(xlim=c(-66.35,-65.35),ylim=c(43.1,43.85),poly.lst=list(LBsubstrate,subpoly.data),isobath=40,bathcol='blue',bathy.source='bathy',mapRes="UR")
+#with(subset(subpoly.data,PID%in%unique(LBsubstrate$PID)),legend('topright',PName,fill=col,inset=0.02,cex=0.8,bg='white'))
+#dev.off()
+#
+#
+#        
+#load(file.path( project.datadirectory("lobster"), "data","maps", "bathy", "bathy1Poly1.rdata"))
+#    junk<-data.frame(PID=1,POS=1:4,X=c(162,161,161,162),Y=c(-41,-41,-40,-40))
+#
+#LBbathy<-joinPolys(subset(bathy.poly,Z%in%c(10,25,40)),extent,operation="INT")
+#bathpoly.data<-data.frame(PID=c(10,25,40),PName=c("<10m","10-25m","25-40m"),col=brewer.pal(3,"Blues"),border=NA)
+#
+#pdf(file.path(project.datadirectory("lobster"),"R","LobsterBayDepth.pdf"),9,9)
+#LobsterMap(xlim=c(-66.2,-65.5),ylim=c(43.1,43.85),poly.lst=list(LBbathy,bathpoly.data),isobath=c(10,25,40,70,100),bathy.source='bathy',mapRes="UR")
+#with(bathpoly.data,legend('topright',legend=paste(PID[-length(PID)],'-',PID[-1],sep=''),fill=col[-1],inset=0.02,cex=0.8,bg='white'))
+#dev.off()
+#
+#b40<-joinPolys(subset(LBbathy,PID==40),junk,operation="DIFF")
+#b25<-joinPolys(subset(LBbathy,PID==25),junk,operation="DIFF")
+#b10<-joinPolys(subset(LBbathy,PID==10),junk,operation="DIFF")
+#
+#strata2<-joinPolys(b40,b25,operation="DIFF")
+#strata2<-joinPolys(strata2,junk,operation="DIFF")
+#strata2<-joinPolys(strata2,strata1,operation="DIFF")
+#
+#strata1<-joinPolys(b25,b10,operation="DIFF")
+#strata1<-joinPolys(strata1,junk,operation="DIFF")
+#strata1<-joinPolys(strata1,strata2,operation="DIFF")
+#
+#
+#LBbathy<-rbind(strata1,strata2)
+#LBbathy<-joinPolys(LBbathy,junk,operation="DIFF")
+#
+#LBsubstrate<-joinPolys(LBsubstrate,subset(bathy.poly,Z==40),operation="INT")
+#LFAs<-read.csv(file.path(project.datadirectory('lobster'),'data','maps','Polygons_LFA.csv'))
+#LBsubstrate<-joinPolys(LBsubstrate,subset(LFAs,LFA=='34'),operation="INT")
+#  
+#
+## repeated index stations
+#LFA34TrawlStations2015<-read.csv(file.path(project.datadirectory("lobster"),"data","LFA34TrawlStations2015.csv"))
+#LFA34TrawlStations2015$EID<-1:nrow(LFA34TrawlStations2015)
+#names(LFA34TrawlStations2015)[2:3]<-c("Y","X")
+#key<-findPolys(LFA34TrawlStations2015,LBsubstrate)
+#repeatStations<-merge(LFA34TrawlStations2015,key)
+#
+#LB.towlst<-alloc.poly(poly.lst=list(LBbathy, bathpoly.data),ntows=40,mindist=2)
+#
+#pdf(file.path(project.datadirectory("lobster"),"R","LobsterBaySurvey2015.pdf"),8,10)
+#LobsterMap(xlim=c(-66.2,-65.5),ylim=c(43.1,43.85),poly.lst=list(LBbathy,bathpoly.data),isobath=c(10,25,40,70,100),bathy.source='bathy',mapRes="UR")
+#with(bathpoly.data,legend('topright',legend=paste(PID[-length(PID)],'-',PID[-1],sep=''),fill=col[-1],inset=0.02,cex=0.8,bg='white'))
+#addPoints(LB.towlst$Tows)
+#points(Y~X,repeatStations,pch=2)
+#dev.off()
+#write.csv(LB.towlst$Tows,file.path(project.datadirectory('lobster'),'R','LFA34extraSurveyStation2015.csv'),row.names=F)
+#
+#
+#LB.towlst$Tows$EID<-LB.towlst$Tows$EID+100
+#
+#LB.towlst$Tows$STATION<-paste0('extra',1:40)
+#allTows<-merge(LFA34TrawlStations2015,LB.towlst$Tows,all=T)
+#allTows<-allTows[order(allTows$EID),]
+#
+#    Relief.plots(allTows,graphic="pdf",file=file.path(project.datadirectory('lobster'),'R','SurveyMB','Tow'),digits=4,gerfiles=1:77,key=file.key)
+#

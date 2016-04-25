@@ -1,4 +1,4 @@
-gridData <- function(Data,domain.poly,lvls,bcol="YlGnBu",border=1,FUN=mean,grid.size=1,aspr,sx,sy,ex,ey) {  
+gridData <- function(Data,domain.poly,lvls,bcol="YlGnBu",border=1,FUN=mean,grid.size=1,aspr="calculate",sx,sy,ex,ey) {  
 
 #// summarizes data onto a grid, creates PBSmapping polySet and polyData 
 
@@ -9,20 +9,20 @@ gridData <- function(Data,domain.poly,lvls,bcol="YlGnBu",border=1,FUN=mean,grid.
 	# Domain polygon to select data
 	if(!missing(domain.poly))Data <- subset(Data,EID%in%findPolys(Data,domain.poly)$EID)
 
-	# Aspect ratio
-	if(missing(aspr)){
-		require(CircStats)
-		aspr=1/cos(rad(mean(Data$Y)))
-	}
-
-	# Make grid
-	gx = grid.size/111.12 * aspr
-	gy = grid.size/111.12
 	if(missing(sx)) sx = floor(min(Data$X))
 	if(missing(sy))	sy = floor(min(Data$Y))
 	if(missing(ex)) ex = ceiling(max(Data$X))
 	if(missing(ey))	ey = ceiling(max(Data$Y))
 
+	# Aspect ratio
+	if(aspr=="calculate"){
+		require(CircStats)
+		aspr=1/cos(rad(mean(c(sy,ey))))
+	}
+
+	# Make grid
+	gx = grid.size/111.12 * aspr
+	gy = grid.size/111.12
 	grid   <- makeGrid(x=seq(sx,ex,gx),y=seq(sy,ey,gy),projection="LL")
 	
 	

@@ -31,17 +31,18 @@ marfissci.batch.process <- function(folder=file.path(project.datadirectory("mpa"
     writeLines(paste0("Analysing: ", combos[i,2]))
     #print(paste0("working on ",all.data$DESC_ENG[all.data[agg.by]==combos[i,]]))
      this <- marfissci.process.data(all.data[all.data[agg.by]==combos[i,1],],
-                                   save.RDS = F,
+                                   save.RDS = T,
                                    save.CSV = F,
-                                   save.SHP = F,
+                                   save.SHP = T,
                                    agg.by.year =F,
                                    output="RDS")
      writeLines("Generating a plot...")
-     marfissci.simple.map(this, agg.by = agg.by, save.plot = T, plot.title=combos[i,2])
+     #SPECIES_CODE
+        marfissci.simple.map(this, agg.by = agg.by, colour.by = "SUM_RND_WEIGHT_KGS", save.plot = T, plot.title=combos[i,2])
   }
   return(all.data)
 }
-
+#loadfunctions("mpa")
 
 
 

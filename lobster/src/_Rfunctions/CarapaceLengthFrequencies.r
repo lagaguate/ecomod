@@ -11,7 +11,7 @@ CarapaceLengthFrequencies<-function(DS="atSea", LFAs=c("27", "28", "29", "30", "
         mls=cbind(mls[mls$Year%in%Yrs,which(mlslfas%in%LFAs)+1])
         
   
-        if(LFAs[1]=='34'){
+        if(length(LFAs)==1&&LFAs=='34'){
         ## from surveys in LFA 34 only
         
             if(DS=='LobsterSurvey'){
@@ -37,8 +37,8 @@ CarapaceLengthFrequencies<-function(DS="atSea", LFAs=c("27", "28", "29", "30", "
                 # SFA 29 : Aug-Oct 2000-
                 # SPA 3 : Aug-Sep 1991-2003; May-Jul 2004-
 
-                SCALSURV3.dat<-ScallopSurveyProcess(SPA="3",Years=Yrs,size.range=range(bins),bin.size=diff(bins)[1])
-                SCALSURV29.dat<-ScallopSurveyProcess(SPA="29",Years=Yrs,size.range=range(bins),bin.size=diff(bins)[1])
+                SCALSURV3.dat<-ScallopSurveyProcess(SPA="3",Yrs=Yrs,size.range=range(bins),bin.size=diff(bins)[1])
+                SCALSURV29.dat<-ScallopSurveyProcess(SPA="29",Yrs=Yrs,size.range=range(bins),bin.size=diff(bins)[1])
                 
                 # Construct CLF
                 ScalSurvey<-list()
@@ -51,6 +51,27 @@ CarapaceLengthFrequencies<-function(DS="atSea", LFAs=c("27", "28", "29", "30", "
                 return(ScalSurvey)
             }
         }
+
+
+        if(DS=='ScallopSurvey'){
+
+            SCALSURV.dat<-ScallopSurveyProcess(Yrs=Yrs,size.range=range(bins),bin.size=diff(bins)[1])
+            
+            # Construct CLF
+            ScalSurvey<-list()
+            for(i in 1:length(LFAs)){
+
+                ScalSurvey[[i]]<-t(sapply(Yrs,function(y){colMeans(subset(SCALSURV.dat,YEAR==y&LFA==LFAs[i],paste0("CL",bins[-length(bins)])),na.rm=T)}))
+              
+            }
+            names(ScalSurvey) <- paste("LFA",LFAs)
+            
+            # plot
+            BarPlotCLF(ScalSurvey,yrs=Yrs,bins=bins,col='grey',filen=file.path(rootdir,paste0("CLFScalSurv",fn,".pdf")),LS=mls, ...)
+            #BubblePlotCLF(ScalSurvey,inch=0.2,bg=rgb(0,1,0,0.1),yrs=Yrs,bins=bins,filen="ScalSurveyLFA34",prop=T)
+            return(ScalSurvey)
+        }
+    
 
 
         if(DS=='atSea'){

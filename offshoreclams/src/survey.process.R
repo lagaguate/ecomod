@@ -13,6 +13,9 @@ catch<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combi
 bycatch<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_ByCatch_DataMMM.csv"))
 bycatch<-bycatch[bycatch$ITIS_CODE==80983,] #only surfclams
 
+lenfreq<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Freq_sample_dataPBH.csv"))
+morphs<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Morphometrics_dataPBH.csv"))
+
 catchtow<-merge(tows, catch, by=c("INDX"), all.x = T)
 catchtow$SURVEY.y<-NULL
 catchtow$BLADE_WIDTH<-0
@@ -33,6 +36,8 @@ catchtow<-merge(catchtow, bycatch, by="INDX", all.x=T)
 catchtow$WEIGHT_KG<-as.numeric(catchtow$WEIGHT_KG)
 
 catchtow<-na.zero(catchtow)
+
+catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] <- catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] * 1852
 
 
 
@@ -59,5 +64,15 @@ catch_analysis<-  catchtow[,c("INDX","SURVEY.x","DATE","STARTTIME","END_TIME","T
 # catch_analysis$WEIGHT_KG<-NULL
 
 catch_analysis<-na.zero(catch_analysis)
-write.csv(catch_analysis,   file.path(project.datadirectory("offshoreclams"),"R","catch_analysis.csv"))
+
+catch_analysis$DATE <- as.Date(catch_analysis$DATE,"%d/%m/%Y")
+catch_analysis$YEAR <- year(catch_analysis$DATE)
+		
+catch_analysis$X<-with(catch_analysis,apply(cbind(ELON,SLON),1,mean))
+catch_analysis$Y<-with(catch_analysis,apply(cbind(ELAT,SLAT),1,mean))
+catch_analysis$EID<-1:nrow(catch_analysis)
+
+x2 <- with(catch_analysis,merge(data.frame(PID=EID,X=SLON,Y=SLAT),data.frame(PID=EID,X=ELON,Y=ELAT),all=T))
+
+write.csv(catch_analysis,   file.path(project.datadirectory("offshoreclams"),"R","SurveyData.csv"))
 
