@@ -95,9 +95,9 @@ ProcessLogData <- function(log.data){
 
   ## Set dome global parameters
   Min_lat <<- c(44.0, 43.0)        ## First set of values for Banquereau
-  Max_lat <<- c(45.25, 46.5)       ## Second set for Grand Bank
-  Min_long <<- c(-60.083, -51.5)
-  Max_long <<- c(-57.0, -48.5)
+  Max_lat <<- c(45.2, 46.5)       ## Second set for Grand Bank
+  Min_long <<- c(-60.1, -51.5)
+  Max_long <<- c(-57.1, -48.5)
   Area <<- c(10908.1, 49473.0)
 
   return(log.data[order(log.data$RECORD_DATE),])

@@ -39,40 +39,52 @@ catchtow<-na.zero(catchtow)
 
 catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] <- catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] * 1852
 
-
-
 catchtow$CATCHFACTOR<-catchtow$TOTAL_CATCH_KG/(catchtow$KG_SAMPLED_MAIN+catchtow$KG_SAMPLED_BYCATCH)
 catchtow$ADJCATCH<-(catchtow$ARCTIC_SURF_KG+catchtow$WEIGHT_KG)*catchtow$CATCHFACTOR 
-catchtow$STDFACT<-1000/(catchtow$BLADE_WIDTH*catchtow$DIST_M) #some DIST_M are zero!
-catchtow$STDCATCH<-catchtow$STDFACT*catchtow$ADJCATCH
   
-catch_analysis<-  catchtow[,c("INDX","SURVEY.x","DATE","STARTTIME","END_TIME","TOW.x","SLAT","SLON","ELAT",
+surveyData <-  catchtow[,c("INDX","SURVEY.x","DATE","STARTTIME","END_TIME","TOW.x","SLAT","SLON","ELAT",
                               "ELON","TOWTYPE","TOWQUALITY","TOTAL_CATCH_KG",
                               "KG_SAMPLED_MAIN","KG_SAMPLED_BYCATCH",
                               "ARCTIC_SURF_KG","WEIGHT_KG","BLADE_WIDTH","DIST_M",
-                              "CATCHFACTOR","ADJCATCH","STDFACT","STDCATCH")]
-# catch_analysis$FLAG="Good"
-# catch_analysis[is.infinite(catch_analysis$STDFACT),]$FLAG<-"Bad"
+                              "CATCHFACTOR","ADJCATCH")]
+# surveyData$FLAG="Good"
+# surveyData[is.infinite(surveyData$STDFACT),]$FLAG<-"Bad"
 # GBSurveys<-c("CK2006-01","T12008-01","T12009-01")
-# catch_analysis[!catch_analysis$SURVEY.x %in% GBSurveys,]$FLAG<-"Bad"
-# catch_analysis$CATCHFACTOR<-NULL
-# catch_analysis$ADJCATCH<-NULL
-# catch_analysis$STDFACT<-NULL
-# catch_analysis$STDCATCH<-NULL
-# catch_analysis$DIST_M<-NULL
-# catch_analysis$BLADE_WIDTH<-NULL
-# catch_analysis$WEIGHT_KG<-NULL
+# surveyData[!surveyData$SURVEY.x %in% GBSurveys,]$FLAG<-"Bad"
+# surveyData$CATCHFACTOR<-NULL
+# surveyData$ADJCATCH<-NULL
+# surveyData$STDFACT<-NULL
+# surveyData$STDCATCH<-NULL
+# surveyData$DIST_M<-NULL
+# surveyData$BLADE_WIDTH<-NULL
+# surveyData$WEIGHT_KG<-NULL
 
-catch_analysis<-na.zero(catch_analysis)
+surveyData<-na.zero(surveyData)
 
-catch_analysis$DATE <- as.Date(catch_analysis$DATE,"%d/%m/%Y")
-catch_analysis$YEAR <- year(catch_analysis$DATE)
+surveyData$DATE <- as.Date(surveyData$DATE,"%d/%m/%Y")
+surveyData$YEAR <- year(surveyData$DATE)
+
+
+# errors
+surveyData$SLAT[surveyData$SURVEY.x == "T12010-01" & surveyData$TOW.x == 115]<-44.50738
 		
-catch_analysis$X<-with(catch_analysis,apply(cbind(ELON,SLON),1,mean))
-catch_analysis$Y<-with(catch_analysis,apply(cbind(ELAT,SLAT),1,mean))
-catch_analysis$EID<-1:nrow(catch_analysis)
+#surveyData$X<-with(surveyData,apply(cbind(ELON,SLON),1,mean)) # too many end locations are erroneous
+#surveyData$Y<-with(surveyData,apply(cbind(ELAT,SLAT),1,mean))
+surveyData$X<-surveyData$SLON
+surveyData$Y<-surveyData$SLAT
+surveyData$EID<-1:nrow(surveyData)
 
-x2 <- with(catch_analysis,merge(data.frame(PID=EID,X=SLON,Y=SLAT),data.frame(PID=EID,X=ELON,Y=ELAT),all=T))
 
-write.csv(catch_analysis,   file.path(project.datadirectory("offshoreclams"),"R","SurveyData.csv"))
+x <- with(surveyData,merge(data.frame(PID=EID,POS=1,X=SLON,Y=SLAT),data.frame(PID=EID,POS=2,X=ELON,Y=ELAT),all=T))
+x <-x[order(x$PID),]
+attr(x,"projection") = "LL"
+surveyData <- merge(surveyData,with(subset(calcLength(x),length>0&length<1),data.frame(EID=PID,length=length*1000)),all=T)
+
+surveyData$DIST_M[surveyData$DIST_M==0] <- surveyData$length[surveyData$DIST_M==0] #some DIST_M are zero! replace with length calculated from start and end position
+
+surveyData$STDFACT<-1000/(surveyData$BLADE_WIDTH*surveyData$DIST_M) 
+surveyData$STDCATCH<-surveyData$STDFACT*surveyData$ADJCATCH
+surveyData$STDCATCH[surveyData$ADJCATCH==0] <- 0 
+
+write.csv(surveyData,   file.path(project.datadirectory("offshoreclams"),"R","SurveyData.csv"))
 
