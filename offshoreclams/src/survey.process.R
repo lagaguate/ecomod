@@ -13,6 +13,9 @@ catch<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combi
 bycatch<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_ByCatch_DataMMM.csv"))
 bycatch<-bycatch[bycatch$ITIS_CODE==80983,] #only surfclams
 
+lenfreq<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Freq_sample_dataPBH.csv"))
+morphs<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Morphometrics_dataPBH.csv"))
+
 catchtow<-merge(tows, catch, by=c("INDX"), all.x = T)
 catchtow$SURVEY.y<-NULL
 catchtow$BLADE_WIDTH<-0

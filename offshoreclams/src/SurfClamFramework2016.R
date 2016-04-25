@@ -97,7 +97,7 @@ save(grid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "g
 
  
 ## summary table of catch and effort data
-Years=1986:1015
+Years=1986:2015
 
 Ban.E = with(subset(processed.log.data,BANK==1),tapply(AREA,Year,sum,na.rm=T))
 Ban.C = with(subset(processed.log.data,BANK==1),tapply(ROUND_CATCH,Year,sum,na.rm=T))
@@ -109,12 +109,21 @@ Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, G
 
 write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
+# Seasonal fishing patterns
+p$yrs= 2007:2015
+par(mfrow=c(3,3),mar=c(0,0,0,0))
+for (i in 1:length(p$yrs)) {
+    fishing.season(subset(processed.log.data,Year%in%p$yrs[[i]]&BANK==b,c('RECORD_DATE','AREA')),smooth=0.01,title="")
+    mtext("Relative effort",3,-2,cex=1.2,outer=T) 
+  }
+  # Apparently they fish pretty much all year round except for the winter of 2015, when presumably Banquereau was under 15ft of snow like everywhere else
+
 # distribution of surf clams catch
 p$yrs=list(2004:2010,2011:2015)
 b=1
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","TotalRemovals.pdf"),8,11)
 
-for(i in 1:length(yrs)){
+for(i in 1:length(p$yrs)){
   
   # interpolate abundance
   interp.data <- na.omit(subset(processed.log.data,Year%in%p$yrs[[i]]&BANK==b&LAT_DD>Min_lat[b]&LAT_DD<Max_lat[b]&LON_DD>Min_long[b]&LON_DD<Max_long[b],c('LOGRECORD_ID','LON_DD','LAT_DD','ROUND_CATCH')))
@@ -134,10 +143,6 @@ for(i in 1:length(yrs)){
   ContLegend("bottomright",lvls=lvls/1000,Cont.data=cont.lst$Cont.data,title=expression(t/NM^2),inset=0.02,cex=0.8,bty='n')
 }
 dev.off()
-
-# Seasonal patterns
-
-fishing.season(subset(processed.log.data,Year%in%p$yrs[[i]]&BANK==b))
 
 ########### Survey ############
 
@@ -218,4 +223,4 @@ dev.off()
 
 
 
-
+##### habitat model
