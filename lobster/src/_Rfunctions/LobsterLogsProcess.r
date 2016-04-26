@@ -1,6 +1,6 @@
 LobsterLogsProcess<-function(bumpup=F){
 
-
+	options(stringsAsFactors=F)
 	loadfunctions("lobster")
 	require(lubridate)
 
@@ -11,8 +11,8 @@ LobsterLogsProcess<-function(bumpup=F){
 	lfa <- unique(Fish.Date$LFA)
 	max_trap<-c(825,750,750,750,750,750,750,750,1126,1126,1126,1226)
 	max_lbs<-c(2750,2750,2750,2750,2750,2750,2750,10000,30000,30000,30000,30000)
-	Fish.Date$START_DATE<-as.Date(Fish.Date$START_DATE)
-	Fish.Date$END_DATE<-as.Date(Fish.Date$END_DATE)
+	Fish.Date$START_DATE<-as.Date(Fish.Date$START_DATE,format = "%d/%m/%Y")
+	Fish.Date$END_DATE<-as.Date(Fish.Date$END_DATE,format = "%d/%m/%Y")
 
 
 	# import logs from marfis
