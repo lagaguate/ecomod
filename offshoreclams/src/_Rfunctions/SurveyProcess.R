@@ -1,4 +1,4 @@
-SurveyProcess <- function(bins=1:200,species=80983){
+SurveyProcess <- function(species=80983){
 
   tows<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Tow_dataMMM.csv"))
   catch<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Catch_dataMMM.csv"))
@@ -23,13 +23,10 @@ SurveyProcess <- function(bins=1:200,species=80983){
   #catchtow<-catchtow[catchtow$SURVEY.x=="CK2006-01",]
   catchtow<-merge(catchtow, bycatch, by="INDX", all.x=T)
   catchtow$WEIGHT_KG<-as.numeric(catchtow$WEIGHT_KG)
-
   catchtow<-na.zero(catchtow)
-
   catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] <- catchtow$DIST_M[catchtow$SURVEY.x == "T12010-01"] * 1852
-
   catchtow$CATCHFACTOR<-catchtow$TOTAL_CATCH_KG/(catchtow$KG_SAMPLED_MAIN+catchtow$KG_SAMPLED_BYCATCH)
-  catchtow$ADJCATCH<-(catchtow$ARCTIC_SURF_KG+catchtow$WEIGHT_KG)*catchtow$CATCHFACTOR 
+  if(species==80983)catchtow$ADJCATCH<-(catchtow$ARCTIC_SURF_KG+catchtow$WEIGHT_KG)*catchtow$CATCHFACTOR 
     
   surveyData <-  catchtow[,c("INDX","SURVEY.x","DATE","STARTTIME","END_TIME","TOW.x","SLAT","SLON","ELAT",
                                 "ELON","TOWTYPE","TOWQUALITY","TOTAL_CATCH_KG",
@@ -99,7 +96,7 @@ SurveyProcess <- function(bins=1:200,species=80983){
   Morphs$TowID = paste(Morphs$Survey,Morphs$Set,sep='.')
 
 
-return(list(surveyData,LenFreq.Morphs))
+return(list(surveyData=surveyData,LenFreq=LenFreq,Morphs=Morphs))
 
 }
 

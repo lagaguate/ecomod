@@ -33,8 +33,7 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   lf.data <- GetLFData(update=update.data)
 
   # survey data
-  loadfunctions( "offshoreclams", functionname="survey.process.r") 
-
+  surveyList <- SurveyProcess()
 
 
 ####### Mapping
@@ -46,7 +45,7 @@ ClamMap2('all',isobath=seq(50,500,50))
 
  with(subset(processed.log.data,AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.1,col=rgb(0,0,0,0.1)))
  with(subset(processed.log.data,Year==2015&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.2,col=rgb(1,0,0,0.2)))
- with(surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
+ with(surveyList$surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
  rect(Min_long,Min_lat,Max_long,Max_lat)
 
 ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
@@ -54,14 +53,14 @@ ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
  with(subset(processed.log.data,Year==2015&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(1,0,0,0.2)))
  with(subset(processed.log.data,Year==2014&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(0,1,0,0.2)))
  with(subset(processed.log.data,Year==2013&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
- with(surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,0,0,0.2)))
+ with(surveyList$surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,0,0,0.2)))
 
 
 ClamMap2('Grand',isobath=seq(50,500,50))
 
  rect(Min_long,Min_lat,Max_long,Max_lat)
  with(subset(processed.log.data,Year==2013&AREA>0),points(LON_DD,LAT_DD,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
- with(surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
+ with(surveyList$surveyData,points(SLON,SLAT,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
 
 
 # explore distribution of catch and effort data in order to set appropriate bounds to censor the data
@@ -150,14 +149,29 @@ dev.off()
 ########### Survey ############
 
 ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
-with(subset(surveyData,YEAR==2010),segments(SLON, SLAT, ELON, ELAT,col='red'))
-with(subset(surveyData,YEAR==2010),points(SLON, SLAT,pch=16,cex=0.3,col='red'))
-with(subset(surveyData,YEAR==2004),segments(SLON, SLAT, ELON, ELAT,col='green'))
-with(subset(surveyData,YEAR==2004),points(SLON, SLAT,pch=16,cex=0.3,col='green'))
+with(subset(surveyList$surveyData,YEAR==2010),segments(SLON, SLAT, ELON, ELAT,col='red'))
+with(subset(surveyList$surveyData,YEAR==2010),points(SLON, SLAT,pch=16,cex=0.3,col='red'))
+with(subset(surveyList$surveyData,YEAR==2004),segments(SLON, SLAT, ELON, ELAT,col='green'))
+with(subset(surveyList$surveyData,YEAR==2004),points(SLON, SLAT,pch=16,cex=0.3,col='green'))
 
 # comparing recorded tow distance with the distance between start and end points
-plot(length~DIST_M,surveyData)
+plot(length~DIST_M,surveyList$surveyData)
 abline(0,1)
+
+
+# Length - Weight relationship
+# 2010
+LenWt.data = subset(surveyList$Morphs,Survey=="T12010-01",c("TowID","Length","Total.Weight"))
+names(LenWt.data)[3] <- "Weight"
+LenWt2010.fit<-LengthWeight.lme(LenWt.data,random.effect='TowID',b.par='estimate')
+LengthWeight.plt(LenWt2010.fit,lw=3,ht=8,wd=8,cx=1.5)
+
+# 2004
+names(LenWt.data)[3] <- "Weight"
+LenWt.data = subset(surveyList$Morphs,Survey=="CK2004-01",c("TowID","Length","Total.Weight"))
+names(LenWt.data)[3] <- "Weight"
+LenWt2004.fit<-LengthWeight.lme(LenWt.data,random.effect='TowID',b.par='estimate')
+LengthWeight.plt(LenWt2004.fit,lw=3,ht=8,wd=8,cx=1.5)
 
 # distribution of surf clams from survey
 
@@ -166,7 +180,7 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.
 for(i in c(2004,2010)){
   
   # interpolate abundance
-  interp.data <- na.omit(subset(surveyData,YEAR==i,c('EID','X','Y','STDCATCH')))
+  interp.data <- na.omit(subset(surveyList$surveyData,YEAR==i,c('EID','X','Y','STDCATCH')))
   clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=5,blank.dist=0.1)
 
   # define contour lines
@@ -211,21 +225,37 @@ c100 <- read.table(file.path( project.datadirectory("polygons"), "data","Basemap
 
   min.n=10
    for(y in which(p$yrs!=1992)){
-
-    logCE = na.omit(subset( processed.log.data ,BANK==1&Year%in%p$yrs[[y]]&ROUND_CATCH>0,c("LOGRECORD_ID","LON_DD","LAT_DD","RECORD_DATE","ROUND_CATCH","AREA")))
+   logCE = na.omit(subset( processed.log.data ,BANK==1&Year%in%p$yrs[[y]]&ROUND_CATCH>0&AREA>0,c("LOGRECORD_ID","LON_DD","LAT_DD","RECORD_DATE","ROUND_CATCH","AREA")))
     names(logCE)[1:3] <- c("EID","X","Y")
     locData = findCells(logCE, grid.out$grid)
     logCE = merge(logCE,locData,all=T) 
     logCE = logCE[order(logCE$RECORD_DATE),]
+
     logCE$gridID = paste( logCE$PID,logCE$SID,sep='.') 
 
     Depletion.data = split(logCE,logCE$gridID)
     Depletion.data = Depletion.data[which( unlist(lapply(Depletion.data,nrow))>min.n)]
+    for (i in 1:length(Depletion.data)) {
+      Depletion.data[[i]]$cumC = cumsum(Depletion.data[[i]]$ROUND_CATCH)
+      Depletion.data[[i]]$CPUE = Depletion.data[[i]]$ROUND_CATCH/Depletion.data[[i]]$AREA
+    }
 
+    x11()
+    par(mfrow=c(6,6),mar=c(0,0,0,0))
+    for (i in 1:length(Depletion.data)) {
+      plot(CPUE~cumC,Depletion.data[[i]],axes=F)
+      mod=lm(CPUE~cumC,Depletion.data[[i]])
+      abline(mod)
+    }
+
+
+    stn.lst = assignStation(logCE[,c("EID","X","Y")])
+    ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
+    addPolys(stn.lst$polys,col=rgb(0,0,1,0.3))
+    addPoints(stn.lst$events,pch='.',col='red')
 
     with(logCE,tapply(ROUND_CATCH,gridID,length)) 
     polyData = subset(grid.out$grid.polyData[[1]][[28]],Z>p$effort.threshold[1])
-
 
 
 
