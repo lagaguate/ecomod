@@ -6,11 +6,47 @@ ProcessLogData <- function(log.data){
   ## set up coordinates for Banquereau and Grand Bank
   ##############################################################################
   
+  names(log.data) <- tolower(names(log.data))
+  
+  #add zero to time if only three characters
+  log.data$start_time[!is.na(log.data$start_time)] <- sprintf("%04d",log.data$start_time[!is.na(log.data$start_time)])
+  log.data$start_time[!is.na(log.data$start_time)] <- gsub("(..)\\B", "\\1:", log.data$start_time[!is.na(log.data$start_time)])
+  #There are NAs for start_time, assign watch time for these records
+  log.data$start_time[is.na(log.data$start_time)&log.data$record_no==1] <- "00:00"
+  log.data$start_time[is.na(log.data$start_time)&log.data$record_no==2] <- "06:00"
+  log.data$start_time[is.na(log.data$start_time)&log.data$record_no==3] <- "12:00"
+  log.data$start_time[is.na(log.data$start_time)&log.data$record_no==4] <- "18:00"
+  
+  #Assuming all dates are NS time
+  log.data$record_date <- as.POSIXct(log.data$record_date,tz="America/Halifax")
+  log.data$watch_date <- as.POSIXct(paste(log.data$record_date, log.data$start_time), format="%Y-%m-%d %H:%M",tz="America/Halifax")
+  #create date and time variables
+  log.data$date <- strftime(log.data$watch_date,format="%Y-%m-%d",tz="America/Halifax")
+  log.data$time <- strftime(log.data$watch_date,format="%H:%M:%S",tz="America/Halifax")
+  log.data <- log.data[order(log.data$cfv, log.data$watch_date, log.data$logrecord_id),]  # Order dataframe by vrn, record_date/watch_date, and logrecord_id 
+  
+  #Check for duplicate rows
+  temp<-temp[with(temp,order(cfv,record_date,record_no)),][1:10,]
+  
+  dups <- log.data[duplicated(log.data[,c('cfv','record_date','record_no','lat_dd','lon_dd')]) | duplicated(log.data[,c('cfv','record_date','record_no')], fromLast = TRUE),]
+  dups2 <- log.data[duplicated(log.data[,c('cfv','date','record_no')], fromLast = TRUE),]
+  dups <- merge(dups1,dups2,
+                by=c("vessel_name","cfv","record_date",       
+                     "start_time","year","record_no","trip_no",
+                     "logtrip_id",            
+                     "b_width","sail_date",         
+                     "sail_time","return_date","return_time","fishing_start_date",
+                     "fishing_start_time","fishing_end_date","fishing_end_time","time_zone",         
+                     "watch_date","date","time"))
+  nondups <- log.data[-which(duplicated(log.data[,c('cfv','date','record_no')]) | duplicated(log.data[,c('cfv','date','record_no')], fromLast = TRUE)),]
+  
+  log.data2 <- merge(dups,nondups,all=TRUE)
+    
   ## ADD Year FIELD TO MAKE THINGS EASIER TO MANIPULATE
   log.data$Year <- as.integer(format(log.data$RECORD_DATE, '%Y'))  ## Add Year
   
   ## Change NAs in N_TOWS and ROUND CATCH to 0s, usually valid 0's
-   log.data$N_TOWS[is.na(log.data$N_TOWS)] <- 0  
+  log.data$N_TOWS[is.na(log.data$N_TOWS)] <- 0  
   log.data$ROUND_CATCH[which(is.na(log.data$ROUND_CATCH))] <- 0  
   
   ##############################################################################
