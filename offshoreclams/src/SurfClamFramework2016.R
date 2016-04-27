@@ -32,6 +32,11 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   processed.log.data <- ProcessLogData(log.data)
   #names(processed.log.data) <- tolower(names(processed.log.data))
 
+  #VMS data
+  vms.data <- GetVMSData(update=update.data)
+  processed.vms.data <- ProcessVMSData(vms.data,processed.log.data)
+
+
   load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
   # length frequency data

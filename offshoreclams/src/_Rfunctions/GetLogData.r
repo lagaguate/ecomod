@@ -1,6 +1,6 @@
 GetLogData <- function(update=T){
   ##############################################################################
-  # Get data from database, download whole view "Dale_log_cpue2'
+  # Get data from database
   ##############################################################################
   if(update==T){
    # open DB connection  .. need to be defined elsewhere .. private file

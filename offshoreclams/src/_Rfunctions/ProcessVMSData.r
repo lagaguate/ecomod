@@ -20,26 +20,24 @@ ProcessVMSData <- function(vms.data,log.data){
   vms.data$time <- format(strftime(vms.data$vmsdate.adj,format="%H:%M:%S"), tz="America/Halifax",usetz=TRUE)
   vms.data$year <- format(strftime(vms.data$vmsdate.adj,format="%Y"), tz="America/Halifax",usetz=TRUE)
   vms.data$vmsdatelocal <- as.POSIXct(paste(vms.data$date, vms.data$time), format="%Y-%m-%d %H:%M:%S",tz="America/Halifax")
-  vms.data <- vms.data[!duplicated(vms.data),] # Removes any rows that are fully duplicated
+  #vms.data$time <- as.POSIXct(vms.data$time,format="%H:%M:%S")
+
+
+  # Add Watch number (record_no) to VMS data from local Date:Time 
+  watchTimes = c("06:00:00","12:00:00","18:00:00")
+  vms.data$record_no <- 0
+  vms.data$record_no[vms.data$vmsdatelocal<as.POSIXct(paste(vms.data$date,watchTimes[1]))] <- 1
+  vms.data$record_no[vms.data$vmsdatelocal>=as.POSIXct(paste(vms.data$date,watchTimes[1]))&vms.data$vmsdatelocal<as.POSIXct(paste(vms.data$date,watchTimes[2]))] <- 2
+  vms.data$record_no[vms.data$vmsdatelocal>=as.POSIXct(paste(vms.data$date,watchTimes[2]))&vms.data$vmsdatelocal<as.POSIXct(paste(vms.data$date,watchTimes[3]))] <- 3
+  vms.data$record_no[vms.data$vmsdatelocal>=as.POSIXct(paste(vms.data$date,watchTimes[3]))] <- 4
+  #vms.data <- vms.data[!duplicated(vms.data),] # Removes any rows that are fully duplicated
   
   ########################################	
   # Cross against logs to pull out trips #
   ########################################	
   
-  clam.log <- data.frame(log.data[,c("cfv","date")])
-  clam.log <- unique(clam.log) #Unique vrn and date fished from logs
-  
-  # Select VMS data that has matching VRN and DATE from logs #
-  vms.log <- merge(vms.data, clam.log, by.x = c("vrn", "date"), by.y = c("cfv","date")) #Creates dataframe with CLAM VMS ONLY: vms.log
-  
-  # Select log data that has matching CFV and DATE from logs #
-  clam.vms <- data.frame(vms.log[,c("vrn","date")])
-  clam.vms <- unique(clam.vms) #Unique vrn and date fished from VMS data
-
-  log.vms <- merge(log.data, clam.vms, by.x = c("cfv", "date"), by.y = c("vrn","date")) #Creates dataframe with CLAM VMS ONLY: vms.log
-
-  #Assign record_no and logrecord_id to vms.log
-  vms.data2 <- merge(vms.log,log.vms[,c("logrecord_id","cfv","record_date","start_time","year","record_no","trip_no","logtrip_id","subtrip_no")], by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"),all.x=TRUE) 
+  #Assign logrecord_id to vms.data
+  vms.data <- merge(vms.data,log.data[,c("logrecord_id","cfv","date","record_no")], by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"),all.x=TRUE) 
   
   #Check for outliers in latitude and longitude  
   
