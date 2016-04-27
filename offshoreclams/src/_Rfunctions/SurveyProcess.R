@@ -46,6 +46,8 @@ SurveyProcess <- function(species=80983){
   # surveyData$WEIGHT_KG<-NULL
 
   surveyData<-na.zero(surveyData)
+  
+
 
   surveyData$DATE <- as.Date(surveyData$DATE,"%d/%m/%Y")
   surveyData$YEAR <- year(surveyData$DATE)
@@ -54,25 +56,32 @@ SurveyProcess <- function(species=80983){
   # errors
   surveyData$SLAT[surveyData$SURVEY.x == "T12010-01" & surveyData$TOW.x == 115]<-44.50738
   		
-  #surveyData$X<-with(surveyData,apply(cbind(ELON,SLON),1,mean)) # too many end locations are erroneous
-  #surveyData$Y<-with(surveyData,apply(cbind(ELAT,SLAT),1,mean))
-  surveyData$X<-surveyData$SLON
-  surveyData$Y<-surveyData$SLAT
+  
+
+  # convert to lower case names
+  names(surveyData) <- tolower(names(surveyData))
+
+
+  #surveyData$X<-with(surveyData,apply(cbind(elon,slon),1,mean)) # too many end locations are erroneous
+  #surveyData$Y<-with(surveyData,apply(cbind(elat,slat),1,mean))
+  surveyData$X<-surveyData$slon
+  surveyData$Y<-surveyData$slat
   surveyData$EID<-1:nrow(surveyData)
 
 
-  x <- with(surveyData,merge(data.frame(PID=EID,POS=1,X=SLON,Y=SLAT),data.frame(PID=EID,POS=2,X=ELON,Y=ELAT),all=T))
+  x <- with(surveyData,merge(data.frame(PID=1:nrow(surveyData),POS=1,X=slon,Y=slat),data.frame(PID=1:nrow(surveyData),POS=2,X=elon,Y=elat),all=T))
   x <-x[order(x$PID),]
   attr(x,"projection") = "LL"
   surveyData <- merge(surveyData,with(subset(calcLength(x),length>0&length<1),data.frame(EID=PID,length=length*1000)),all=T)
 
-  surveyData$DIST_M[surveyData$DIST_M==0] <- surveyData$length[surveyData$DIST_M==0] #some DIST_M are zero! replace with length calculated from start and end position
+  surveyData$dist_m[surveyData$dist_m==0] <- surveyData$length[surveyData$dist_m==0] #some dist_m are zero! replace with length calculated from start and end position
 
-  surveyData$STDFACT<-1000/(surveyData$BLADE_WIDTH*surveyData$DIST_M) 
-  surveyData$STDCATCH<-surveyData$STDFACT*surveyData$ADJCATCH
-  surveyData$STDCATCH[surveyData$ADJCATCH==0] <- 0 
+  surveyData$stdfact<-1000/(surveyData$blade_width*surveyData$dist_m) 
+  surveyData$stdcatch<-surveyData$stdfact*surveyData$adjcatch
+  surveyData$stdcatch[surveyData$adjcatch==0] <- 0 
 
-  write.csv(surveyData,   file.path(project.datadirectory("offshoreclams"),"R","SurveyData.csv"))
+  
+write.csv(surveyData,   file.path(project.datadirectory("offshoreclams"),"R","SurveyData.csv"))
 
 
   ##### Length - Frequency #####
@@ -94,6 +103,10 @@ SurveyProcess <- function(species=80983){
   Morphs<-read.csv(  file.path(project.datadirectory("offshoreclams"),"data","Combined","Combined_Morphometrics_dataPBH.csv"))
   Morphs<-subset(Morphs,Species==species) #only surfclams
   Morphs$TowID = paste(Morphs$Survey,Morphs$Set,sep='.')
+
+ # convert to lower case names
+  names(LenFreq) <- tolower(names(LenFreq))
+  names(Morphs) <- tolower(names(Morphs))
 
 
 return(list(surveyData=surveyData,LenFreq=LenFreq,Morphs=Morphs))

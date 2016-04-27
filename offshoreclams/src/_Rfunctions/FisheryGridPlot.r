@@ -9,7 +9,7 @@ FisheryGridPlot <- function(logdata, p, cpue=T, aspr='calculate', ...){
   catchgrids=list()
   grid.polyData=list()
 
-  logdata = na.omit(subset(logdata, BANK==b&AREA>p$effort.threshold[1]&AREA<p$effort.threshold[2]&ROUND_CATCH>p$catch.threshold[1]&ROUND_CATCH<p$catch.threshold[2],  c("Year","LOGRECORD_ID","LON_DD","LAT_DD","ROUND_CATCH","AREA")))
+  logdata = na.omit(subset(logdata, bank==b&area>p$effort.threshold[1]&area<p$effort.threshold[2]&round_catch>p$catch.threshold[1]&round_catch<p$catch.threshold[2],  c("year","logrecord_id","lon_dd","lat_dd","round_catch","area")))
 
     # Effort
 
@@ -19,7 +19,7 @@ FisheryGridPlot <- function(logdata, p, cpue=T, aspr='calculate', ...){
      
      for(y in 1:length(yrs)){
 
-      grid.dat=subset( logdata ,Year%in%yrs[[y]],c("LOGRECORD_ID","LON_DD","LAT_DD","AREA"))
+      grid.dat=subset( logdata ,year%in%yrs[[y]],c("logrecord_id","lon_dd","lat_dd","area"))
       print(paste(y,Sys.time()))
       print(summary(grid.dat))
       #browser()
@@ -46,7 +46,7 @@ FisheryGridPlot <- function(logdata, p, cpue=T, aspr='calculate', ...){
      
      for(y in 1:length(yrs)){
      
-      grid.dat=subset( logdata ,Year%in%yrs[[y]],c("LOGRECORD_ID","LON_DD","LAT_DD","ROUND_CATCH"))
+      grid.dat=subset( logdata ,year%in%yrs[[y]],c("logrecord_id","lon_dd","lat_dd","round_catch"))
       print(paste(y,Sys.time()))
       print(summary(grid.dat))
       if(nrow(grid.dat)>0){

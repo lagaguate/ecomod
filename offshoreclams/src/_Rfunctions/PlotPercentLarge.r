@@ -82,8 +82,8 @@ PlotPercentLarge <- function(fig.num, lf.data, Sel.Bank){
 
   colnames(out.table2) <- c("n Unsorted", 
                             paste("% >= ", sel.txt, sep=""))
-  return(list(p_mat = p_mat, P120 = P120, Table = out.table2))
   par(op) ## reset parameters
+  return(list(p_mat = p_mat, P120 = P120, Table = out.table2))
 } ## end of function PlotPercentLarge
 
 
