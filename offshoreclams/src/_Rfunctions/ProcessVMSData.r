@@ -1,5 +1,5 @@
 
-ProcessVMSData <- function(vms.data){
+ProcessVMSData <- function(vms.data,log.data){
   
   ##############################################################################
   ## Do initial processing, fill in some missing values, 

@@ -26,6 +26,7 @@ ProcessLogData <- function(log.data){
   log.data <- log.data[order(log.data$cfv, log.data$watch_date, log.data$logrecord_id),]  # Order dataframe by vrn, record_date/watch_date, and logrecord_id 
   
   #Check for duplicate rows
+  temp<-log.data[duplicated(log.data[,c('cfv','record_date','record_no','lat_dd','lon_dd')]) | duplicated(log.data[,c('cfv','record_date','record_no')], fromLast = TRUE),]
   temp<-temp[with(temp,order(cfv,record_date,record_no)),][1:10,]
   
   dups <- log.data[duplicated(log.data[,c('cfv','record_date','record_no','lat_dd','lon_dd')]) | duplicated(log.data[,c('cfv','record_date','record_no')], fromLast = TRUE),]
