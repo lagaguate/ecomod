@@ -10,10 +10,6 @@
 ##
 ##
 ##
-##  (◦)
-##    ^ |)  #E.T.
-##  (◦)
-##
 ###############################################################################
 # To run in ecomod, run the following commands
 
@@ -28,15 +24,15 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
 
 
   # log data
-  log.data <- GetLogData(update=update.data)
-  processed.log.data <- ProcessLogData(log.data)
-  #names(processed.log.data) <- tolower(names(processed.log.data))
+  #log.data <- GetLogData(update=update.data)
+  processed.log.data <- ProcessLogData(GetLogData(update=update.data))
+  # save(processed.log.data,file=file.path( project.datadirectory("offshoreclams"), "data", "processedLogdata.Rdata" ))
 
   #VMS data
-  vms.data <- GetVMSData(update=update.data)
-  processed.vms.data <- ProcessVMSData(vms.data,processed.log.data)
-
-
+  #vms.data <- GetVMSData(update=update.data)
+  fisheryList <- ProcessVMSData(GetVMSData(update=update.data),processed.log.data)
+  processed.log.data = fisheryList$processed.log.data
+  processed.vms.data = fisheryList$processed.vms.data
   load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
   # length frequency data
@@ -46,7 +42,6 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   # survey data
   surveyList <- ProcessSurveyData()
 
-
 ####### Mapping
 
 c100 <- read.table(file.path( project.datadirectory("polygons"), "data","Basemaps","Marine","Bathymetry","CHS100.ll"),header=T)
@@ -55,22 +50,25 @@ Banq100 <- na.omit(subset(c100,SID==2392)) # 100m isobath for Banqureau
 ClamMap2('all',isobath=seq(50,500,50))
 
  with(subset(processed.log.data,area>0),points(lon_dd,lat_dd,pch=16,cex=0.1,col=rgb(0,0,0,0.1)))
- with(subset(processed.log.data,Year==2015&area>0),points(lon_dd,lat_dd,pch=16,cex=0.2,col=rgb(1,0,0,0.2)))
+ with(subset(processed.log.data,year==2015&area>0),points(lon_dd,lat_dd,pch=16,cex=0.2,col=rgb(1,0,0,0.2)))
  with(surveyList$surveyData,points(slon,slat,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
  rect(Min_long,Min_lat,Max_long,Max_lat)
 
 ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
 
- with(subset(processed.log.data,Year==2015&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(1,0,0,0.2)))
- with(subset(processed.log.data,Year==2014&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,1,0,0.2)))
- with(subset(processed.log.data,Year==2013&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
+ with(subset(processed.log.data,year==2015&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(1,0,0,0.2)))
+ with(subset(processed.vms.data,year==2014),points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,1)))
+
+
+ with(subset(processed.log.data,year==2014&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,1,0,0.2)))
+ with(subset(processed.log.data,year==2013&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
  with(surveyList$surveyData,points(slon,slat,pch=16,cex=0.2,col=rgb(0,0,0,0.2)))
 
 
 ClamMap2('Grand',isobath=seq(50,500,50))
 
  rect(Min_long,Min_lat,Max_long,Max_lat)
- with(subset(processed.log.data,Year==2013&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
+ with(subset(processed.log.data,year==2013&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
  with(surveyList$surveyData,points(slon,slat,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
 
 
@@ -172,15 +170,15 @@ abline(0,1)
 
 # Length - Weight relationship
 # 2004
-LenWt.data = subset(surveyList$Morphs,Survey=="CK2004-01",c("TowID","Length","Total.Weight"))
+LenWt.data = subset(surveyList$Morphs,survey=="CK2004-01",c("towid","length","total.weight"))
 names(LenWt.data)[3] <- "weight"
-LenWt2004.fit<-LengthWeight.lme(LenWt.data,random.effect='TowID',b.par='estimate')
+LenWt2004.fit<-LengthWeight.lme(LenWt.data,random.effect='towid',b.par='estimate')
 LengthWeight.plt(LenWt2004.fit,lw=3,ht=8,wd=8,cx=1.5)
 
 # 2010
-LenWt.data = subset(surveyList$Morphs,Survey=="T12010-01",c("TowID","Length","Total.Weight"))
+LenWt.data = subset(surveyList$Morphs,survey=="T12010-01",c("towid","length","total.weight"))
 names(LenWt.data)[3] <- "weight"
-LenWt2010.fit<-LengthWeight.lme(LenWt.data,random.effect='TowID',b.par='estimate')
+LenWt2010.fit<-LengthWeight.lme(LenWt.data,random.effect='towid',b.par='estimate')
 LengthWeight.plt(LenWt2010.fit,lw=3,ht=8,wd=8,cx=1.5)
 
 l = 1:200
@@ -188,7 +186,7 @@ wal = l^LenWt2010.fit$B * LenWt2010.fit$A
 
 # LengthFrequencies
 FisheryDataList = list(Logs=processed.log.data,LenFreq=lf.data)
-LengthFrequencies(FisheryDataList, DS="Fishery", bins=seq(0,200,1), Yrs=2005:2014, wal = wal, fn='Banq') {
+LengthFrequencies(FisheryDataList, DS="Fishery", bins=seq(0,200,1), Yrs=2005:2014, wal = wal, fn='Banq') 
 
 
 # distribution of surf clams from survey

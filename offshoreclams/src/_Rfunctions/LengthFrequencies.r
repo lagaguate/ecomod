@@ -33,6 +33,7 @@ LengthFrequencies=function(DataList, DS="Survey", bins=seq(0,200,1), Yrs=2005:20
             logtrips = with(subset(DataList$Logs,year==Yrs[y]),unique(logtrip_id))
             samptrips = lftrips[lftrips%in%logtrips]
 
+browser()
             iCLF[[y]] = t(sapply(samptrips,function(i){with(subset(DataList$LenFreq,logtrip_id==samptrips[i]&length>=min(bins)&length<max(bins)),hist(rep(rlength,number_at_length),breaks=bins,plot=F)$count)}))
             tripCatch[[y]] = with(subset(DataList$Logs,year==Yrs[y]&logtrip_id%in%samptrips),tapply(round_catch,logtrip_id,sum,na.rm=T))
             LFweight[[y]] = rowSums(sweep(iCLF[[y]],1,FUN='*',wal))

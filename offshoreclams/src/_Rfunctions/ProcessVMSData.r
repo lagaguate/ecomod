@@ -7,18 +7,17 @@ ProcessVMSData <- function(vms.data,log.data){
 
   names(vms.data) <- tolower(names(vms.data))
   vms.data$vmsdate <- as.POSIXct(vms.data$vmsdate,tz="GMT")  # VMS data is in UTC, assign timezone
-  vms.data <- vms.data[order(vms.data$vrn, vms.data$vmsdate), ]  # Order dataframe by vrn and DateTime 
   
   ########################################
   # Clean VMS data selected from VMS_pos #
   ########################################
   
   # Shift vmsdate with a duplicate within vrn by one second (duplicate record is moved one second forward)
-  vms.data$vmsdate.adj <- adjust.duplicateTimes(vms.data$vmsdate, vms.data$vrn)
+  #vms.data$vmsdate <- adjust.duplicateTimes(vms.data$vmsdate, vms.data$vrn)
   # Create date and time variables in local time
-  vms.data$date <- format(strftime(vms.data$vmsdate.adj,format="%Y-%m-%d"), tz="America/Halifax",usetz=TRUE)
-  vms.data$time <- format(strftime(vms.data$vmsdate.adj,format="%H:%M:%S"), tz="America/Halifax",usetz=TRUE)
-  vms.data$year <- format(strftime(vms.data$vmsdate.adj,format="%Y"), tz="America/Halifax",usetz=TRUE)
+  vms.data$date <- format(strftime(vms.data$vmsdate,format="%Y-%m-%d"), tz="America/Halifax",usetz=TRUE)
+  vms.data$time <- format(strftime(vms.data$vmsdate,format="%H:%M:%S"), tz="America/Halifax",usetz=TRUE)
+  vms.data$year <- format(strftime(vms.data$vmsdate,format="%Y"), tz="America/Halifax",usetz=TRUE)
   vms.data$vmsdatelocal <- as.POSIXct(paste(vms.data$date, vms.data$time), format="%Y-%m-%d %H:%M:%S",tz="America/Halifax")
   #vms.data$time <- as.POSIXct(vms.data$time,format="%H:%M:%S")
 
@@ -36,18 +35,33 @@ ProcessVMSData <- function(vms.data,log.data){
   # Cross against logs to pull out trips #
   ########################################	
   
-  #Assign logrecord_id to vms.data
-  processed.vms.data <- merge(vms.data,subset(log.data,year>1999,c("logrecord_id","cfv","date","record_no","vessel_name")), by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"))#,all.x=TRUE) 
+  # Assign logrecord_id to vms.data
+  processed.vms.data1 <- merge(vms.data,subset(log.data,year>1999&area>0,c("logrecord_id","cfv","date","record_no","vessel_name")), by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"))#,all.x=TRUE) 
   #processed.vms.data2 <- merge(vms.data,subset(log.data,year>1999,c("logrecord_id","cfv","date","record_no","vessel_name")), by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"),all.y=TRUE) 
   
-  #Check for outliers in latitude and longitude  
+  # Order dataframe by vrn and DateTime 
+  processed.vms.data1 <- processed.vms.data1[order(processed.vms.data1$vrn, processed.vms.data1$vmsdatelocal), ]  # Order dataframe by vrn and DateTime 
+
+
+   # get VMS postion for log data
+   vmsPos <- aggregate(cbind(lon,lat) ~ logrecord_id, data = processed.vms.data1, median)
+   log.data <- merge(log.data,vmsPos,all=T)
+
+
+  # checking for when we have VMS but no log
+  #log.data$vesday=paste(log.data$cfv,log.data$date,sep='.')
+  #processed.vms.data1$vesday=paste(processed.vms.data1$vrn,processed.vms.data1$date,sep='.')
+  #nologs=unique(subset(processed.vms.data1,is.na(logrecord_id))$vesday)
+  #subset(log.data,vesday%in%nologs)
+
+  # Check for outliers in latitude and longitude  
   
-  #Calculate distance travelled between points
+  # Calculate distance travelled between points
   
-  #Remove watches without effort
+  # Remove watches without effort
   #Note we lose catch data by removing watches without effort since there is a delay
   #log.data <- log.data[log.data$n_tows!=0,]
   
-  return(processed.vms.data)
+  return(list(processed.vms.data=processed.vms.data1,processed.log.data=log.data))
 
 } # end of function ProcessLogData
