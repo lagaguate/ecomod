@@ -44,7 +44,7 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   
 
   # survey data
-  surveyList <- SurveyProcess()
+  surveyList <- ProcessSurveyData()
 
 
 ####### Mapping

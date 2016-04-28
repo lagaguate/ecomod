@@ -37,7 +37,8 @@ ProcessVMSData <- function(vms.data,log.data){
   ########################################	
   
   #Assign logrecord_id to vms.data
-  vms.data <- merge(vms.data,log.data[,c("logrecord_id","cfv","date","record_no")], by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"),all.x=TRUE) 
+  processed.vms.data <- merge(vms.data,subset(log.data,year>1999,c("logrecord_id","cfv","date","record_no","vessel_name")), by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"))#,all.x=TRUE) 
+  #processed.vms.data2 <- merge(vms.data,subset(log.data,year>1999,c("logrecord_id","cfv","date","record_no","vessel_name")), by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"),all.y=TRUE) 
   
   #Check for outliers in latitude and longitude  
   
@@ -47,6 +48,6 @@ ProcessVMSData <- function(vms.data,log.data){
   #Note we lose catch data by removing watches without effort since there is a delay
   #log.data <- log.data[log.data$n_tows!=0,]
   
-  return(vms.data)
+  return(processed.vms.data)
 
 } # end of function ProcessLogData
