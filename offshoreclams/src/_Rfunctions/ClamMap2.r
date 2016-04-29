@@ -49,8 +49,8 @@ ClamMap2<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.
 	if(area=='Grand')	{ ylim=c(42.5,48); 		xlim=c(-55,-47)		}
 	
 
-	coast<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","gshhs",paste0("shoreline",mapRes,".csv")))
-	rivers<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","gshhs",paste0("rivers",mapRes,".csv")))
+	coast<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","gshhs",paste0("shoreline",mapRes,".csv")))
+	rivers<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","gshhs",paste0("rivers",mapRes,".csv")))
 	attr(coast,"projection")<-"LL"
 
 
@@ -85,7 +85,7 @@ ClamMap2<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.
 		if(!is.null(isobaths)){
 			bath.lst<-list()
 			for(i in unique(ceiling(isobaths/1000))){
-	 			load(file.path( project.datadirectory("lobster"), "data","maps", bathy.source, paste0("bathy",sn,"Poly",i,".rdata")))
+	 			load(file.path( project.datadirectory("offshoreclams"), "data","maps", bathy.source, paste0("bathy",sn,"Poly",i,".rdata")))
 	 			bath.lst[[i]]<-bathy.poly
 	 		}
  			bathy.poly<-do.call(rbind,bath.lst)
@@ -99,7 +99,7 @@ ClamMap2<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.
 	# NAFO
 	if(!is.null(nafo)){
 		
-        nafo.xy<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","nafo.csv"))
+        nafo.xy<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","nafo.csv"))
         if(nafo[1]=='all')nafo<-unique(nafo.xy$label)
         nafo.sel<-subset(nafo.xy,label%in%nafo)
         nafo.dat<-merge(calcCentroid(nafo.sel),nafo.sel[c("PID","label")])[!duplicated(nafo.sel[c("PID","label")]),]
@@ -131,13 +131,13 @@ ClamMap2<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.
 	}
 
 	if(boundaries=='scallop'){
-		SFA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SFA.csv"))
+		SFA<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","SFA.csv"))
 		addLines(SFA)
-		SPA<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","SPA.csv"))
+		SPA<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","SPA.csv"))
 		addPolys(SPA,col=NULL)
 	}
 		
-	EEZ<-read.csv(file.path( project.datadirectory("lobster"), "data","maps","EEZ.csv"))
+	EEZ<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","EEZ.csv"))
 	addLines(EEZ,lty=4,lwd=2)
 	
 	# plots land
@@ -153,7 +153,7 @@ ClamMap2<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.
 		if(!is.null(topolines)){
 			topo.lst<-list()
 			for(i in unique(ceiling(topolines/1000))){
-	 			load(file.path( project.datadirectory("lobster"), "data", "maps","topex",paste0("topoPoly",i,".rdata")))
+	 			load(file.path( project.datadirectory("offshoreclams"), "data", "maps","topex",paste0("topoPoly",i,".rdata")))
 	 			topo.lst[[i]]<-topo.poly
 	 		}
  			topo.poly<-do.call(rbind,topo.lst)

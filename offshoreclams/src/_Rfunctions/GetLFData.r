@@ -16,12 +16,16 @@ GetLFData <- function(update=T){
    And M.SAMPLETYPE = 'UNSORTED'
    And M.COMSAMPLEPROFILE_ID = P.COMSAMPLEPROFILE_ID(+)"
    lf.data <- sqlQuery(RODBCconn, lf.q)
+   lf.data$YEAR <- year(lf.data$SAMPLE_DATE)
+   names(lf.data) <- tolower(names(lf.data))
    odbcClose(RODBCconn)
 
     save(lf.data,file=file.path( project.datadirectory("offshoreclams"), "data", "LFdata.Rdata" ))
   }
   else {
   	load(file.path( project.datadirectory("offshoreclams"), "data", "LFdata.Rdata" ))
+    names(lf.data) <- tolower(names(lf.data))
+
   }
  return(lf.data)
 }
