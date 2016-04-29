@@ -54,12 +54,8 @@ ClamMap2('all',isobath=seq(50,500,50))
  with(surveyList$surveyData,points(slon,slat,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
  rect(Min_long,Min_lat,Max_long,Max_lat)
 
-ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
 
- with(subset(processed.log.data,year==2015&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(1,0,0,0.2)))
- with(subset(processed.vms.data,year==2014),points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,1)))
-
-
+ClamMap2('Ban',isobath=seq(50,500,50),title=i,bathy.source='bathy',nafo='all')
  with(subset(processed.log.data,year==2014&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,1,0,0.2)))
  with(subset(processed.log.data,year==2013&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
  with(surveyList$surveyData,points(slon,slat,pch=16,cex=0.2,col=rgb(0,0,0,0.2)))
@@ -70,6 +66,25 @@ ClamMap2('Grand',isobath=seq(50,500,50))
  rect(Min_long,Min_lat,Max_long,Max_lat)
  with(subset(processed.log.data,year==2013&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(0,0,1,0.2)))
  with(surveyList$surveyData,points(slon,slat,pch=16,cex=0.2,col=rgb(0,1,0,0.2)))
+
+
+ # VMS Data
+  pdf(file.path( project.datadirectory("offshoreclams"), "figures","FishingLocations.pdf"),11,8)
+  for (i in 2002:2015) {
+  ClamMap2('Ban',isobath=seq(50,500,50),title=i,bathy.source='bathy',nafo='all')
+
+   with(subset(processed.log.data,year==i&area>0),points(lon_dd,lat_dd,pch=16,cex=0.5,col=rgb(1,0,0,0.2)))
+   with(subset(processed.vms.data,year==i),points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+   legend('bottomright',c("logs","vms"),pch=16,col=c(rgb(1,0,0,0.2),rgb(0,0,0,.1)),cex=c(0.5,0.2))
+  }
+  dev.off()
+
+  # VMS GIF!!!
+  VMSgif(fisheryList,tail=7,pie.scale=10,wd=800,ht=600,xlim=c(-60,-57.2),ylim=c(44,45.1))
+
+ ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45))
+ with(processed.vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+
 
 
 # explore distribution of catch and effort data in order to set appropriate bounds to censor the data
@@ -103,7 +118,7 @@ p$Max_lat = 45.25
 p$grid.size = 2
 #p$grid.size = 1.852
 
-grid.out <- FisheryGridPlot(processed.log.data,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+grid.out <- FisheryGridPlot(fisheryList,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 save(grid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
  

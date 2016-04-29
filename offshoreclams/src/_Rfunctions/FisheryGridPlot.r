@@ -1,4 +1,4 @@
-FisheryGridPlot <- function(logdata, p, cpue=T, aspr='calculate', ...){
+FisheryGridPlot <- function(fisherydata, p, cpue=T, aspr='calculate', ...){
 
   
   ## Grid Plots
@@ -9,7 +9,7 @@ FisheryGridPlot <- function(logdata, p, cpue=T, aspr='calculate', ...){
   catchgrids=list()
   grid.polyData=list()
 
-  logdata = na.omit(subset(logdata, bank==b&area>p$effort.threshold[1]&area<p$effort.threshold[2]&round_catch>p$catch.threshold[1]&round_catch<p$catch.threshold[2],  c("year","logrecord_id","lon_dd","lat_dd","round_catch","area")))
+  logdata = na.omit(subset(fisherydata$logdata, bank==b&area>p$effort.threshold[1]&area<p$effort.threshold[2]&round_catch>p$catch.threshold[1]&round_catch<p$catch.threshold[2],  c("year","logrecord_id","lon_dd","lat_dd","round_catch","area")))
 
     # Effort
 
