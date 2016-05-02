@@ -3,8 +3,10 @@ BarPlotCLF<-function(CLF,yrs=2005:2014,CLFyrs=yrs,bins=seq(0,220,5),filen='CLF.p
     mids<-bins[-1]-diff(bins)/2
     
     if(!missing(ymax)&&length(ymax)==1)ymax<-rep(ymax,length(CLF))
-    if(is.null(ncol(LS)))LS=cbind(rep(LS,length(yrs)))
-    if(ncol(LS)==1)LS=matrix(LS,length(yrs),length(CLF))
+    if(!is.null(LS)){
+        if(is.null(ncol(LS)))LS=cbind(rep(LS,length(yrs)))
+        if(ncol(LS)==1)LS=matrix(LS,length(yrs),length(CLF))
+    }
 
     
     if(pdf) pdf(filen, width = wd, height = ht)
