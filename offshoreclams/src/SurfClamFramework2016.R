@@ -31,9 +31,9 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   #VMS data
   #vms.data <- GetVMSData(update=update.data)
   fisheryList <- ProcessVMSData(GetVMSData(update=update.data),processed.log.data)
-  processed.log.data = fisheryList$processed.log.data
-  processed.vms.data = fisheryList$processed.vms.data
-  load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
+  #processed.log.data = fisheryList$log.data
+  #processed.vms.data = fisheryList$vms.data
+  #load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
   # length frequency data
   lf.data <- GetLFData(update=update.data)
@@ -80,10 +80,12 @@ ClamMap2('Grand',isobath=seq(50,500,50))
   dev.off()
 
   # VMS GIF!!!
-  VMSgif(fisheryList,tail=7,pie.scale=10,wd=800,ht=600,xlim=c(-60,-57.2),ylim=c(44,45.1))
+  VMSgif(fisheryList,yrs=2013,tail=7,pie.scale=7000,wd=800,ht=600,xlim=c(-60,-57.2),ylim=c(44,45.1))
 
- ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45))
- with(processed.vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","VMSLocations.pdf"),11,8)
+ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45),isobath=seq(50,500,50),bathy.source='bathy')
+ with(fisheryList$processed.vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+ dev.off()
 
 
 
@@ -101,13 +103,14 @@ abline(v=c(15000,200000),col='red',lwd=2)
 
 p=list()
 p$bank= "Ban"
-p$yrs= 1988:2015
+p$yrs= list(2004:2014)
 #p$yrs= list(1986:2010,2000:2010,2009:2010)
 p$effort.threshold = c(15000,200000)
 p$catch.threshold = c(1500,30000)
+p$cpue.threshold = c(15000)
 p$effort.levels = c(1000,50000,100000,200000,500000,1000000,2000000,5000000)
 p$catch.levels = c(100,5000,10000,20000,50000,100000,200000,500000)
-p$cpue.levels = c(0,0.02,0.04,0.06,0.08,0.1,0.12,0.15,0.2)
+p$cpue.levels = c(0,0.025,0.05,0.075,0.1,0.125,0.15,0.2)
 p$effort.cols = "YlGnBu"
 p$catch.cols = "YlGnBu"
 p$cpue.cols = "YlGnBu"
@@ -115,10 +118,23 @@ p$Min_lon = -60.0
 p$Max_lon = -57.0
 p$Min_lat = 44.0
 p$Max_lat = 45.25
-p$grid.size = 2
+p$grid.size = 1
 #p$grid.size = 1.852
 
-grid.out <- FisheryGridPlot(fisheryList,p,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+
+p$yrs= 2004:2014
+
+#grid.out <- FisheryGridPlot(fisheryList,p,fn='annualLog',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+AnnGrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='annualVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+summarize.gridout(AnnGrid.out)
+p$yrs= list(2004:2006,2005:2007,2006:2008,2007:2009,2008:2010,2009:2011,2010:2012,2011:2013,2012:2014)
+
+
+#grid.out <- FisheryGridPlot(fisheryList,p,fn='Log',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='VMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+
+
 save(grid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
  
@@ -196,12 +212,12 @@ names(LenWt.data)[3] <- "weight"
 LenWt2010.fit<-LengthWeight.lme(LenWt.data,random.effect='towid',b.par='estimate')
 LengthWeight.plt(LenWt2010.fit,lw=3,ht=8,wd=8,cx=1.5)
 
-l = 1:200
+l = seq(2.5,200,5)
 wal = l^LenWt2010.fit$B * LenWt2010.fit$A 
 
 # LengthFrequencies
-FisheryDataList = list(Logs=processed.log.data,LenFreq=lf.data)
-LengthFrequencies(FisheryDataList, DS="Fishery", bins=seq(0,200,1), Yrs=2005:2014, wal = wal, fn='Banq') 
+FisheryDataList = c(fisheryList,list(lf.data=lf.data))
+LengthFrequencies(FisheryDataList, DS="Fishery", bins=seq(0,200,5), Yrs=2009:2014, wal = wal, fn='BanqCatch', rel=F, ymax=40000,ylab="Number of Clams") 
 
 
 # distribution of surf clams from survey

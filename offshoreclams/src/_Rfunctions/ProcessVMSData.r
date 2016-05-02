@@ -62,6 +62,6 @@ ProcessVMSData <- function(vms.data,log.data){
   #Note we lose catch data by removing watches without effort since there is a delay
   #log.data <- log.data[log.data$n_tows!=0,]
   
-  return(list(processed.vms.data=processed.vms.data1,processed.log.data=log.data))
+  return(list(vms.data=processed.vms.data1,log.data=log.data))
 
 } # end of function ProcessLogData
