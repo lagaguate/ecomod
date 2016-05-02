@@ -33,10 +33,10 @@ GetVMSData <- function(update=T){
  #                AND p.vrn IN ('",vrn.list,"')",
  #                 sep=""
  # ) 
-v#ms.q <- paste("SELECT rownum vesid,
-                  p.longitude, p.latitude, 
+vms.q <- paste("SELECT rownum vesid,
+                  p.longitude lon, p.latitude lat, 
                  NVL(v.vessel_name,p.vr_number) vessel_name, 
-                 p.vr_number,
+                 p.vr_number vrn,
                  to_char(p.POSITION_UTC_DATE, 'YYYY/MM/DD HH24:MI:SS') vmsdate,
                  p.speed_knots 
                  FROM mfd_obfmi.vms_all p, mfd_obfmi.marfis_vessels_syn v

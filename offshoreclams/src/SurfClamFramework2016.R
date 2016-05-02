@@ -90,6 +90,7 @@ ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45),isobath=seq(50,500,50),bathy.source='
 
 
 # explore distribution of catch and effort data in order to set appropriate bounds to censor the data
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","CatchEffortDist.pdf"),8,11)
 
 par(mfrow=c(2,1))#,mar=c(0.2,0.2,0.2,0.2))  
 with(subset(processed.log.data,round_catch>0&round_catch<40000),hist(round_catch,breaks=100,xlim=c(0,40000),xlab="Reported Catch by Watch (kg)",main=''))
@@ -98,17 +99,18 @@ abline(v=c(1500,30000),col='red',lwd=2)
 with(subset(processed.log.data,area>0&area<400000),hist(area,breaks=100,xlim=c(0,400000),xlab="Reported Effort by Watch (m2)",main=''))
 abline(v=c(15000,200000),col='red',lwd=2)
 
-     
+  dev.off()
+    
 ## Grid Plots
 
 p=list()
 p$bank= "Ban"
-p$yrs= list(2004:2014)
+p$yrs= list(2004:2015)
 #p$yrs= list(1986:2010,2000:2010,2009:2010)
 p$effort.threshold = c(15000,200000)
 p$catch.threshold = c(1500,30000)
 p$cpue.threshold = c(15000)
-p$effort.levels = c(1000,50000,100000,200000,500000,1000000,2000000,5000000)
+p$effort.levels = c(1000,50000,100000,200000,500000,1000000)#,2000000,5000000)
 p$catch.levels = c(100,5000,10000,20000,50000,100000,200000,500000)
 p$cpue.levels = c(0,0.025,0.05,0.075,0.1,0.125,0.15,0.2)
 p$effort.cols = "YlGnBu"
@@ -123,11 +125,11 @@ p$grid.size = 1
 
 grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 
-p$yrs= 2004:2014
+p$yrs= 2004:2015
 
 #grid.out <- FisheryGridPlot(fisheryList,p,fn='annualLog',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 AnnGrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='annualVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
-summarize.gridout(AnnGrid.out)
+write.csv(data.frame(Year=p$yrs,summarize.gridout(AnnGrid.out)),file=file.path( project.datadirectory("offshoreclams"), "R", "SpatialExploitationSummary.csv"),row.names=F )
 p$yrs= list(2004:2006,2005:2007,2006:2008,2007:2009,2008:2010,2009:2011,2010:2012,2011:2013,2012:2014)
 
 
@@ -151,14 +153,17 @@ Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, G
 
 write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","SeasonalFishingPattern.pdf"),8,11)
+
 # Seasonal fishing patterns
 p$yrs= 2007:2015
 par(mfrow=c(3,3),mar=c(0,0,0,0))
 for (i in 1:length(p$yrs)) {
-    fishing.season(subset(processed.log.data,year%in%p$yrs[[i]]&bank==b,c('record_date','area')),smooth=0.01,title="")
+    fishing.season(subset(fisheryList$log.data,year%in%p$yrs[[i]]&bank==1,c('record_date','area')),smooth=0.01,title="")
     mtext("Relative effort",3,-2,cex=1.2,outer=T) 
   }
   # Apparently they fish pretty much all year round except for the winter of 2015, when presumably Banquereau was under 15ft of snow like everywhere else
+dev.off()
 
 # distribution of surf clams catch
 p$yrs=list(2004:2010,2011:2015)
@@ -227,15 +232,15 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.
 for(i in c(2004,2010)){
   
   # interpolate abundance
-  interp.data <- na.omit(subset(surveyList$surveyData,YEAR==i,c('EID','X','Y','stdcatch')))
+  interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
   clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=5,blank.dist=0.1)
 
   # define contour lines
   print(clam.contours$str.def)
-  lvls=c(1, 30, 75, 150, 300, 600)
+  lvls=c(1, 15, 35, 75, 150, 300)
 
   # generate contour lines
-  cont.lst<-contour.gen(clam.contours$image.dat,lvls,col="YlGn",colorAdj=1)
+  cont.lst<-contour.gen(clam.contours$image.dat,lvls,Banq100,col="YlGn",colorAdj=1)
 
   # plot Map
   ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Survey Density",i))
@@ -244,7 +249,8 @@ for(i in c(2004,2010)){
 }
 dev.off()
 
-
+  grid.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
+surveygrids<-gridData(grid.dat,lvls=c(1, 30, 75, 150, 300, 600),bcol="YlGn",FUN=mean,border=NA,grid.size=p$grid.size,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
 
 
       # depletion test
