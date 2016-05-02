@@ -21,18 +21,29 @@ GetVMSData <- function(update=T){
   # Select VMS #	
   ##############
    
-  vms.q <- paste("SELECT rownum vesid,
-                  p.lon, p.lat, 
-                 NVL(v.vessel_name,p.vrn) vessel_name, 
-                 p.vrn, 'V_'||p.vrn vr_number,
-                 to_char(p.pdate, 'YYYY/MM/DD HH24:MI:SS') vmsdate,
-                 p.hailout,
+ # vms.q <- paste("SELECT rownum vesid,
+ #                 p.lon, p.lat, 
+ #                NVL(v.vessel_name,p.vrn) vessel_name, 
+ #                p.vrn, 'V_'||p.vrn vr_number,
+ #                to_char(p.pdate, 'YYYY/MM/DD HH24:MI:SS') vmsdate,
+ #                p.hailout,
+ #                p.speed_knots 
+ #                FROM mfd_obfmi.vms_pos p, mfd_obfmi.marfis_vessels_syn v
+ #                WHERE p.vrn = v.vr_number(+) 
+ #                AND p.vrn IN ('",vrn.list,"')",
+ #                 sep=""
+ # ) 
+v#ms.q <- paste("SELECT rownum vesid,
+                  p.longitude, p.latitude, 
+                 NVL(v.vessel_name,p.vr_number) vessel_name, 
+                 p.vr_number,
+                 to_char(p.POSITION_UTC_DATE, 'YYYY/MM/DD HH24:MI:SS') vmsdate,
                  p.speed_knots 
-                 FROM mfd_obfmi.vms_pos p, mfd_obfmi.marfis_vessels_syn v
-                 WHERE p.vrn = v.vr_number(+) 
-                 AND p.vrn IN ('",vrn.list,"')",
+                 FROM mfd_obfmi.vms_all p, mfd_obfmi.marfis_vessels_syn v
+                 WHERE p.VR_NUMBER = v.vr_number(+)  
+                 AND p.vr_number IN ('",vrn.list,"')",
                   sep=""
-  ) 
+  )
 
   vms.data <- sqlQuery(RODBCconn, vms.q, believeNRows=FALSE)  
   odbcClose(RODBCconn)
