@@ -22,7 +22,7 @@
 # stippling = adds stippling to land (purely for visual effect)
 # lol = adds water colored border to coastline (purely for visual effect)
 
-LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs',bathy.source='topex',isobaths=seq(100,1000,100),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,pt.cex=1,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,labels='lfa',labcex=1.5,LT=T,plot.rivers=T,addSummerStrata=F,addsubareas=F,...){
+LobsterMap<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.col='wheat',title='',nafo=NULL,boundaries='LFAs',bathy.source='topex',isobaths=seq(100,1000,100),bathcol=rgb(0,0,1,0.1),topolines=NULL,topocol=rgb(0.8,0.5,0,0.2),points.lst=NULL,pt.cex=1,lines.lst=NULL,poly.lst=NULL,contours=NULL,image.lst=NULL,color.fun=tim.colors,zlim,grid=NULL,stippling=F,lol=F,labels='lfa',labcex=1.5,LT=T,plot.rivers=T,addSummerStrata=F,addsubareas=F,subsetSummerStrata=NULL,...){
 
 options(stringsAsFactors=F)		
 	require(PBSmapping)|| stop("Install PBSmapping Package")
@@ -121,8 +121,11 @@ options(stringsAsFactors=F)
 			  b = find.ecomod.gis('strat.gf',return.one.match=F)
 			  b = read.table(b)
 			  names(b) <- c('X','Y','PID')
+		if(!is.null(subsetSummerStrata)) {
+			  b = b[which(b$PID %in% c(subsetSummerStrata)),]
+				}
 			  b = within(b,{POS <- ave(PID,list(PID),FUN=seq_along)})
-			  addPolys(b,lty=1,border='black',col=NULL)
+			  addPolys(b,lty=1,border='lightblue',col=adjustcolor('blue',alpha.f=0.15))
 			 # addLabels(a,cex=0.6)
 			}
   # Boundries
@@ -161,6 +164,12 @@ options(stringsAsFactors=F)
 			LFAgrid$label[LFAgrid$label==311]<-'31A'
 			LFAgrid$label[LFAgrid$label==312]<-'31B'
     		LFAgrid.dat<-merge(calcCentroid(LFAgrid,1),LFAgrid[c("PID","label")])
+    		LFAgrid.dat <- subset(LFAgrid.dat,!duplicated(label))
+    		il = which(LFAgrid.dat$label==36)
+    		LFAgrid.dat$Y[il] = 45.02
+    		il = which(LFAgrid.dat$label==35)
+			LFAgrid.dat$Y[il] = 45.23
+    		
 			#addLabels(subset(LFAgrid.dat,!duplicated(label)),col=rgb(0.5,0.5,0.5,0.8),cex=1.5)
 		}
 
