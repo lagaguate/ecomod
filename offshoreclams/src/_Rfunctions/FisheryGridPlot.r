@@ -83,11 +83,9 @@ FisheryGridPlot <- function(fisheryList, p, boundPoly, vms=FALSE, fn='',cpue=TRU
     dev.off()
 
 
-
     # CPUE
     grid.polyData[[3]]<-list()
     cpuegrids = catchgrids
-
 
     pdf(file.path( project.datadirectory("offshoreclams"), "figures",paste0(fn,p$bank,"CPUE.pdf")),11,8)
      
@@ -111,16 +109,11 @@ FisheryGridPlot <- function(fisheryList, p, boundPoly, vms=FALSE, fn='',cpue=TRU
        ClamMap2(p$bank,poly.lst=cpuegrids[[y]][1:2],title=paste(titleyr,"Surf Clam CPUE"),...)
        ContLegend("bottomright",lvls=p$cpue.levels*1000,Cont.data=cpuegrids[[y]],title=expression(CPUE (t/km^2)),inset=0.02,cex=0.8,bg='white')
        }
-     
-     
 
     dev.off()
 
+
   # EXPLOITATION
-    grid.polyData[[3]]<-list()
-    exploitgrids = catchgrids
-
-
     pdf(file.path( project.datadirectory("offshoreclams"), "figures",paste0(fn,p$bank,"Exploitation.pdf")),11,8)
      
      for(y in which(!unlist(lapply(effortgrids,is.null)))){
@@ -130,12 +123,14 @@ FisheryGridPlot <- function(fisheryList, p, boundPoly, vms=FALSE, fn='',cpue=TRU
        ClamMap2(p$bank,poly.lst=effortgrids[[y]][1:2],title=paste(titleyr,"Surf Clam Exploitation"),...)
        ContLegend("bottomright",lvls=p$effort.levels/10^6/p$grid.size^2,Cont.data=effortgrids[[y]],title="Exploitation Rate",inset=0.02,cex=0.8,bg='white')
        }
-     
-     
 
     dev.off()
 
-
+ 
+    names(grid.polyData[[1]]) = yrs
+    names(grid.polyData[[2]]) = yrs
+    names(grid.polyData[[3]]) = yrs
+    names(grid.polyData) = c("effort","catch","cpue")
 
      return(list(grid=catchgrids[[length(yrs)]][[1]], grid.polyData=grid.polyData))
   }

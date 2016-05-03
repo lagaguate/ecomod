@@ -124,20 +124,16 @@ p$grid.size = 1
 #p$grid.size = 1.852
 
 grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+p$yrs= list(2004:2006,2005:2007,2006:2008,2007:2009,2008:2010,2009:2011,2010:2012,2011:2013,2012:2014,2013:2015)
+grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='3yrVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 
 p$yrs= 2004:2015
 
 #grid.out <- FisheryGridPlot(fisheryList,p,fn='annualLog',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 AnnGrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='annualVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 write.csv(data.frame(Year=p$yrs,summarize.gridout(AnnGrid.out)),file=file.path( project.datadirectory("offshoreclams"), "R", "SpatialExploitationSummary.csv"),row.names=F )
-p$yrs= list(2004:2006,2005:2007,2006:2008,2007:2009,2008:2010,2009:2011,2010:2012,2011:2013,2012:2014)
 
-
-#grid.out <- FisheryGridPlot(fisheryList,p,fn='Log',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
-grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='VMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
-
-
-save(grid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
+save(AnnGrid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
  
 ## summary table of catch and effort data
@@ -153,6 +149,7 @@ Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, G
 
 write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
+
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","SeasonalFishingPattern.pdf"),8,11)
 
 # Seasonal fishing patterns
@@ -164,6 +161,7 @@ for (i in 1:length(p$yrs)) {
   }
   # Apparently they fish pretty much all year round except for the winter of 2015, when presumably Banquereau was under 15ft of snow like everywhere else
 dev.off()
+
 
 # distribution of surf clams catch
 p$yrs=list(2004:2010,2011:2015)
@@ -190,6 +188,11 @@ for(i in 1:length(p$yrs)){
   ContLegend("bottomright",lvls=lvls/1000,Cont.data=cont.lst$Cont.data,title=expression(t/NM^2),inset=0.02,cex=0.8,bty='n')
 }
 dev.off()
+
+
+
+
+
 
 ########### Survey ############
 
@@ -249,8 +252,37 @@ for(i in c(2004,2010)){
 }
 dev.off()
 
+
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyCPUEcompare.pdf"),11,8)
+
+for(i in c(2004,2010)){
+
+  # compare survey to fishery catch rates in 2010
+
   grid.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
-surveygrids<-gridData(grid.dat,lvls=c(1, 30, 75, 150, 300, 600),bcol="YlGn",FUN=mean,border=NA,grid.size=p$grid.size,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
+  surveygrids<-gridData(grid.data,lvls=c(1, 30, 75, 150, 300, 600),bcol="YlGn",FUN=mean,border=NA,grid.size=p$grid.size,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
+
+  fisherycpue = AnnGrid.out$grid.polyData$cpue[[as.character(i)]]
+
+  fisherycpue$FisheryClamDensity = fisherycpue$Z*1000
+  surveycpue = surveygrids$polyData
+  surveycpue$SurveyClamDensity = surveycpue$Z
+  comparison.data = merge(fisherycpue[,c("PID","SID","FisheryClamDensity")],surveycpue[,c("PID","SID","SurveyClamDensity")])
+  Compare.points = subset(grid.data,EID%in%subset(findPolys(grid.data,surveygrids$polys),paste(PID,SID)%in%with(comparison.data,paste(PID,SID)))$EID)
+
+  plot.comparison = function(comparison.data){
+    plot(SurveyClamDensity~FisheryClamDensity,comparison.data,xlim=c(0,515),ylim=c(0,515))
+    #abline(lm(SurveyClamDensity~FisheryClamDensity-1,comparison.data))
+    abline(a=0,b=1)
+  }
+
+  ClamMap2(ylim=c(43.6,45.1), xlim=c(-60.2,-56.8),poly.lst=list(AnnGrid.out$grid,fisherycpue),title=paste("Surf Clam CPUE Comparison",i),isobath=seq(50,500,50),bathy.source='bathy',nafo='all')
+  #ContLegend("topleft",lvls=p$cpue.levels*1000,Cont.data=list(AnnGrid.out$grid,fisherycpue2010),title=expression(CPUE (t/km^2)),inset=0.02,cex=0.8,bg='white')
+  points(Y~X,Compare.points,pch=21,bg='red')
+  points(Y~X,grid.data)
+ subplot(plot.comparison(comparison.data),x=-57.3,y=44.08,size=c(2,1.8))
+}
+dev.off()
 
 
       # depletion test
