@@ -1,5 +1,5 @@
 
-  lobster.db = function( DS="complete.redo") {
+  lobster.db = function( DS="complete.redo",p=p) {
 
 
   require(lubridate)
@@ -27,18 +27,61 @@
         lobster.db( DS="fsrs.redo")
         lobster.db( DS="scallop.redo")
         lobster.db( DS="survey.redo")
+        lobster.db( DS="annual.landings.redo")
+        lobster.db( DS="seasonal.landings.redo")
+        lobster.db( DS="historical.landings.redo")
+        }
       }
-    }
+
+ if(DS %in% c('annual.landings','annual.landings.redo')) {
+      if(DS == 'annual.landings') {
+            load(file=file.path(fn.root,'annual.landings.rdata'))
+            return(annual.landings)
+              }
+    
+              con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+              annual.landings = sqlQuery(con,'select * from LOBSTER.SLIP_LAND_ANNUAL')
+              print('Last two years of landings data may be incomplete, make sure to check with Cheryl.Denton@dfo-mpo.gc.ca on last update')
+              print('LFA27 for >2015 does not have Gulf landings yet.....')
+              save(annual.landings,file=file.path(fn.root,'annual.landings.rdata'))
+        }
+
+if(DS %in% c('seasonal.landings','seasonal.landings.redo')) {
+      if(DS == 'seasonal.landings') {
+            load(file=file.path(fn.root,'seasonal.landings.rdata'))
+            return(seasonal.landings)
+              }
+    
+              con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+              seasonal.landings = sqlQuery(con,'select * from LOBSTER.SLIP_LAND_SEASONAL')
+              print('Last two years of landings data may be incomplete, make sure to check with Cheryl.Denton@dfo-mpo.gc.ca on last update')
+              print('LFA27 for >2015 does not have Gulf landings yet.....')
+              save(seasonal.landings,file=file.path(fn.root,'seasonal.landings.rdata'))
+        }
+
+
+if(DS %in% c('historical.landings','historical.landings.redo')) {
+      if(DS == 'historical.landings') {
+            load(file=file.path(fn.root,'historical.landings.rdata'))
+            return(historical.landings)
+              }
+    
+              con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+              historical.landings = sqlQuery(con,'select * from LOBSTER.SLIP_LAND_HISTORICAL')
+              save(historical.landings,file=file.path(fn.root,'historical.landings.rdata'))
+        }
+
+
 
 ### Inshore Commercial Logs and slips
     if (DS %in% c("logs.redo", "logs") ) {
 
      if (DS=="logs.redo") {
         require(RODBC)
-        con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+       con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
         
         # logs
-        logs = sqlQuery(con, "select * from marfissci.lobster_sd_log")
+         logs = sqlQuery(con, "select * from marfissci.lobster_sd_log")
         save( logs, file=file.path( fn.root, "logs.rdata"), compress=T)
        
         # slips

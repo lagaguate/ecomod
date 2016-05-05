@@ -5,22 +5,41 @@
 loadfunctions( "lobster", functionname="initialise.local.environment.r") 
 
 ##### lumped function lobster.db
+#be sure to update current.assessment.year.r 
+
+p$yrs = 1947:p$current.assessment.year
 
         # run in windows emvironment
-        lobster.db(DS="complete.redo")
+        if(redo.all) lobster.db(DS="complete.redo")
+        
+        lobster.db( DS = "logs.redo",    p=p)        # Inshore logs summary documents
+        lobster.db( DS = "logs41.redo",  p=p)   # Offshore logs monitoring documents
+        lobster.db( DS = "atSea.redo",   p=p)        # at Sea sampling from materialized view
+        lobster.db( DS = "cris.redo",    p=p)     # CRIS database
+        lobster.db( DS = "port.redo",    p=p)     # Port Sampling
+        lobster.db( DS = "vlog.redo",    p=p)     # Voluntary logs
+        lobster.db( DS = "fsrs.redo",    p=p)     # FSRS recruitment traps
+        lobster.db( DS = "scallop.redo", p=p)  # scallop survey bycatch
+        lobster.db( DS = "survey.redo",  p=p)   # ITLS Lobster Survey
+        lobster.db( DS = 'annual.landings.redo', p=p) #static annual landings tabke needs to be updated by CDenton
+        lobster.db( DS = 'seasonal.landings.redo', p=p) #static seasonal landings table needs to be updated by CDenton
 
 
 	# load .RData objects
 
-        lobster.db( DS="logs")		# Inshore logs summary documents
-        lobster.db( DS="logs41")	# Offshore logs monitoring documents
-        lobster.db( DS="atSea")		# at Sea sampling from materialized view
-        lobster.db( DS="cris")		# CRIS database
-        lobster.db( DS="port")		# Port Sampling
-        lobster.db( DS="vlog")		# Voluntary logs
-        lobster.db( DS="fsrs")		# FSRS recruitment traps
-        lobster.db( DS="scallop")	# scallop survey bycatch
-        lobster.db( DS="survey")	# ITLS Lobster Survey
+        lobster.db( DS="logs",  p=p)		# Inshore logs summary documents
+        lobster.db( DS="logs41", p=p)	# Offshore logs monitoring documents
+        lobster.db( DS="atSea", p=p)		# at Sea sampling from materialized view
+        lobster.db( DS="cris", p=p)		# CRIS database
+        lobster.db( DS="port", p=p)		# Port Sampling
+        lobster.db( DS="vlog", p=p)		# Voluntary logs
+        lobster.db( DS="fsrs", p=p)		# FSRS recruitment traps
+        lobster.db( DS="scallop", p=p)	# scallop survey bycatch
+        lobster.db( DS="survey", p=p)	# ITLS Lobster Survey
+        lobster.db( DS = 'annual.landings', p=p) #static annual landings tabke needs to be updated by CDenton
+        lobster.db( DS = 'seasonal.landings', p=p) #static seasonal landings table needs to be updated by CDenton
+
+
 
 #### Data Processing
 
