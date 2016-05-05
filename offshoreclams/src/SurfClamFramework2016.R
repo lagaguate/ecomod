@@ -13,7 +13,7 @@
 ###############################################################################
 # To run in ecomod, run the following commands
 
-loadfunctions(c("offshoreclams","lobster","utility"))
+loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.general"))
 
 RLibrary( "PBSmapping", "lubridate", "trip" ) # Load required packages
 
@@ -283,6 +283,31 @@ for(i in c(2004,2010)){
  subplot(plot.comparison(comparison.data),x=-57.3,y=44.08,size=c(2,1.8))
 }
 dev.off()
+
+ 
+############## Production model ################
+
+
+
+  interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
+
+  res = with(interp.data,spacetime.variogram(data.frame(X,Y),stdcatch,methods="gstat")) 
+ 
+  params = c(r=1, K=300000, q=0.1 , B0=200000 )
+
+  # basic Surplus production
+  SPmodel(params,1986)
+
+
+
+
+
+
+
+
+
+
+  
 
 
       # depletion test
