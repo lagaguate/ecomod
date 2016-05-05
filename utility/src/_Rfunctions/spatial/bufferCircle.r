@@ -1,8 +1,8 @@
 bufferCircle <- function(lonlat, radius) {
-	cat('**radius must be in km** \n**this treats the globe as a sphere**\n')
+	#//**radius must be in km, this treats the globe as a sphere**
 	     
 		 Rearth <- 6378.137 
-	     Dd <- rep(radius / Rearth,100)
+	     Dd <- rep(radius / Rearth,101)
 	     
 	     Cc <- seq(0, 2*pi, by=2*pi/100) #turning direction
 	
