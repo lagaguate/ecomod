@@ -122,7 +122,7 @@
      scale_y_continuous(limits=c(0,5000),breaks=seq(0, 5000, 1000))  + scale_x_continuous(breaks=seq(1947, 2015, 4)) + 
      ggtitle("LFA 27") + theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
      panel.border=element_rect(fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),axis.title.y= element_text(size=15)) +
-     xlab('') + ylab('Landings (MT)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=1629,xend=2015,yend=1629),
+     xlab('') + ylab('Landings (t)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=1629,xend=2015,yend=1629),
      col="#0072B2",linetype="dashed", size=1.0) + geom_segment(aes(x=1947,y=814,xend=2015,yend=814),col="#009E73",linetype="solid", size=1.0) +
      geom_text(aes(1947,4500,label = '- - - USR (80%)'),col="#0072B2",size=4,hjust=0) + geom_text(aes(1947,4000,label = '------ LRP (40%)'),col="#009E73",size=4,hjust=0) + 
      geom_text(aes(1947,3500,label = 'Gulf Landings'),col="#D55E00",size=4,hjust=0)
@@ -131,7 +131,7 @@
      scale_y_continuous(limits=c(0,5000),breaks=seq(0, 5000, 1000))  + scale_x_continuous(breaks=seq(1947, 2015, 4)) +
      ggtitle("LFA 28-32") + theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
      panel.border=element_rect(fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),axis.title.y= element_text(size=15)) + 
-     xlab('') + ylab('Landings (MT)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=691,xend=2015,yend=691), 
+     xlab('') + ylab('Landings (t)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=691,xend=2015,yend=691), 
      col="#0072B2",linetype="dashed", size=1.0) + geom_segment(aes(x=1947,y=346,xend=2015,yend=346), col="#009E73",linetype="solid", size=1.0) +
      geom_text(aes(1947,4500,label = '- - - USR (80%)'),col="#0072B2",size=4,hjust=0) + geom_text(aes(1947,4000,label = '------ LRP (40%)'),col="#009E73",size=4,hjust=0)
  
@@ -141,7 +141,7 @@
      scale_y_continuous(limits=c(0,8000),breaks=seq(0, 8000, 1000)) + scale_x_continuous(breaks=seq(1947, 2015, 4)) + ggtitle("LFA 33") +
      theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
          panel.border=element_rect(,fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),
-         axis.title.y= element_text(size=15)) + xlab('') + ylab('Landings (MT)') +
+         axis.title.y= element_text(size=15)) + xlab('') + ylab('Landings (t)') +
      geom_segment(aes(x=1947,y=1794,xend=2015,yend=1794), col="#0072B2",linetype="dashed", size=1.0) +
      geom_segment(aes(x=1947,y=897,xend=2015,yend=897),col="#009E73",linetype="solid", size=1.0) + 
      geom_text(aes(1947,7000,label = '- - - USR (80%)'),col="#0072B2",size=4, hjust=0) + geom_text(aes(1947,6300,label = '----- LRP (40%)'),col="#009E73",size=4,hjust=0)
@@ -162,7 +162,7 @@
      scale_y_continuous(limits=c(0,5000),breaks=seq(0, 5000, 1000))  + scale_x_continuous(breaks=seq(1947, 2015, 4)) + 
      ggtitle("LFA 27") + theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
      panel.border=element_rect(fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),axis.title.y= element_text(size=15)) +
-     xlab('') + ylab('Landings (MT)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=1629,xend=2015,yend=1629),
+     xlab('') + ylab('Landings (t)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=1629,xend=2015,yend=1629),
      col="#0072B2",linetype="dashed", size=1.0) + geom_segment(aes(x=1947,y=814,xend=2015,yend=814),col="#009E73",linetype="solid", size=1.0) +
      geom_text(aes(1947,4500,label = '- - - USR (80%)'),col="#0072B2",size=4,hjust=0) + geom_text(aes(1947,4000,label = '------ LRP (40%)'),col="#009E73",size=4,hjust=0) + 
      geom_text(aes(1947,3500,label = 'Gulf Landings'),col="#D55E00",size=4,hjust=0)
@@ -171,7 +171,7 @@
      scale_y_continuous(limits=c(0,5000),breaks=seq(0, 5000, 1000))  + scale_x_continuous(breaks=seq(1947, 2015, 4)) +
      ggtitle("LFA 28-32") + theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
      panel.border=element_rect(fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),axis.title.y= element_text(size=15)) + 
-     xlab('') + ylab('Landings (MT)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=691,xend=2015,yend=691), 
+     xlab('') + ylab('Landings (t)') + scale_fill_manual(breaks=factor('LFA'),values=cbPalette) + geom_segment(aes(x=1947,y=691,xend=2015,yend=691), 
      col="#0072B2",linetype="dashed", size=1.0) + geom_segment(aes(x=1947,y=346,xend=2015,yend=346), col="#009E73",linetype="solid", size=1.0) +
      geom_text(aes(1947,4500,label = '- - - USR (80%)'),col="#0072B2",size=4,hjust=0) + geom_text(aes(1947,4000,label = '------ LRP (40%)'),col="#009E73",size=4,hjust=0)
  
@@ -181,7 +181,7 @@
      scale_y_continuous(limits=c(0,8000),breaks=seq(0, 8000, 1000)) + scale_x_continuous(breaks=seq(1947, 2015, 4)) + ggtitle("LFA 33") +
      theme(axis.text.x=element_text(size=10, colour='black'),panel.background=element_rect(colour='black'),
          panel.border=element_rect(,fill=NA,colour='black'),axis.text.y=element_text(size=10, colour='black'),
-         axis.title.y= element_text(size=15)) + xlab('') + ylab('Landings (MT)') +
+         axis.title.y= element_text(size=15)) + xlab('') + ylab('Landings (t)') +
      geom_segment(aes(x=1947,y=1794,xend=2015,yend=1794), col="#0072B2",linetype="dashed", size=1.0) +
      geom_segment(aes(x=1947,y=897,xend=2015,yend=897),col="#009E73",linetype="solid", size=1.0) + 
      geom_text(aes(1947,7000,label = '- - - USR (80%)'),col="#0072B2",size=4, hjust=0) + geom_text(aes(1947,6300,label = '----- LRP (40%)'),col="#009E73",size=4,hjust=0)
