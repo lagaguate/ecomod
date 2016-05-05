@@ -84,7 +84,7 @@ ClamMap2('Grand',isobath=seq(50,500,50))
 
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","VMSLocations.pdf"),11,8)
 ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45),isobath=seq(50,500,50),bathy.source='bathy')
- with(fisheryList$processed.vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+ with(fisheryList$vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
  dev.off()
 
 
@@ -120,10 +120,10 @@ p$Min_lon = -60.0
 p$Max_lon = -57.0
 p$Min_lat = 44.0
 p$Max_lat = 45.25
-p$grid.size = 1
+p$grid.size = 2
 #p$grid.size = 1.852
 
-grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+Totalgrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 p$yrs= list(2004:2006,2005:2007,2006:2008,2007:2009,2008:2010,2009:2011,2010:2012,2011:2013,2012:2014,2013:2015)
 grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='3yrVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 
@@ -235,7 +235,7 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.
 for(i in c(2004,2010)){
   
   # interpolate abundance
-  interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
+  interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1)&towquality%in%c(1,2),c('EID','X','Y','stdcatch')))
   clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=5,blank.dist=0.1)
 
   # define contour lines
@@ -300,6 +300,23 @@ dev.off()
 
 
 
+useGrids = with(Totalgrid.out,subset(grid,paste(PID,SID)%in%with(subset(grid.polyData$effort[[1]],Z>100000),paste(PID,SID))))
+gridPoints = calcCentroid(useGrids)
+
+r = 5
+circles = data.frame(PID=sort(rep(1:nrow(gridPoints),100)),POS=rep(1:100,nrow(gridPoints)))
+
+for (i in 1:nrow(gridPoints)) {
+  bufcircs = bufferCircle(c(gridPoints$X[i],gridPoints$Y[i]),r)
+  circles$X[1:100+100*(i-1)] = bufcircs$lon[-101]
+  circles$Y[1:100+100*(i-1)] = bufcircs$lat[-101]
+}
+
+
+
+ClamMap2("Ban")
+addPolys(circles,col=rgb(1,0,0,0.1),border=rgb(0,0,0,0.1))
+with(fisheryList$vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
 
 
 
@@ -307,7 +324,8 @@ dev.off()
 
 
 
-  
+
+
 
 
       # depletion test
