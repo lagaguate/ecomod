@@ -90,7 +90,7 @@ ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45),isobath=seq(50,500,50),bathy.source='
 
 
 # explore distribution of catch and effort data in order to set appropriate bounds to censor the data
-pdf(file.path( project.datadirectory("offshoreclams"), "figures","CatchEffortDist.pdf"),8,11)
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","CatchEffortDist.pdf"),8,8)
 
 par(mfrow=c(2,1))#,mar=c(0.2,0.2,0.2,0.2))  
 with(subset(processed.log.data,round_catch>0&round_catch<40000),hist(round_catch,breaks=100,xlim=c(0,40000),xlab="Reported Catch by Watch (kg)",main=''))
@@ -123,6 +123,7 @@ p$Max_lat = 45.25
 p$grid.size = 2
 #p$grid.size = 1.852
 
+# Banquereau
 Totalgrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 p$yrs= list(2004:2006,2005:2007,2006:2008,2007:2009,2008:2010,2009:2011,2010:2012,2011:2013,2012:2014,2013:2015)
 grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='3yrVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
@@ -136,16 +137,25 @@ write.csv(data.frame(Year=p$yrs,summarize.gridout(AnnGrid.out)),file=file.path( 
 save(AnnGrid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
  
+# GrandBank
+p$yrs= list(2004:2015)
+p$bank= "Grand"
+p$Min_lon = -51.5
+p$Max_lon = -48.5
+p$Min_lat = 43.0
+p$Max_lat = 46.5
+GrandTotalgrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='GrandTotalVMS',isobath=seq(50,500,50),nafo='all',lg.place="topleft",ht=8,wd=6,outsideBorder=T)#,aspr=1)
+
 ## summary table of catch and effort data
 Years=1986:2015
 
 Ban.E = with(subset(processed.log.data,bank==1),tapply(area,year,sum,na.rm=T))
 Ban.C = with(subset(processed.log.data,bank==1),tapply(round_catch,year,sum,na.rm=T))
-Ban = data.frame(Year=as.numeric(names(Ban.C)),Ban.Catch = Ban.C/10^3, Ban.Effort = Ban.E/10^6, Ban.CPUE = Ban.C/Ban.E)
+Ban = data.frame(Year=as.numeric(names(Ban.C)),Ban.Catch = Ban.C/10^3, Ban.Effort = Ban.E/10^6, Ban.CPUE = Ban.C/Ban.E*1000)
 
 Grand.E = with(subset(processed.log.data,bank==2),tapply(area,year,sum,na.rm=T))
 Grand.C = with(subset(processed.log.data,bank==2),tapply(round_catch,year,sum,na.rm=T))
-Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, Grand.Effort = Grand.E/10^6, Grand.CPUE = Grand.C/Grand.E)
+Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, Grand.Effort = Grand.E/10^6, Grand.CPUE = Grand.C/Grand.E*1000)
 
 write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
@@ -259,7 +269,7 @@ for(i in c(2004,2010)){
 
   # compare survey to fishery catch rates in 2010
 
-  grid.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
+  grid.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality%in%c(1,2),c('EID','X','Y','stdcatch')))
   surveygrids<-gridData(grid.data,lvls=c(1, 30, 75, 150, 300, 600),bcol="YlGn",FUN=mean,border=NA,grid.size=p$grid.size,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
 
   fisherycpue = AnnGrid.out$grid.polyData$cpue[[as.character(i)]]
@@ -302,22 +312,27 @@ dev.off()
 
 useGrids = with(Totalgrid.out,subset(grid,paste(PID,SID)%in%with(subset(grid.polyData$effort[[1]],Z>100000),paste(PID,SID))))
 gridPoints = calcCentroid(useGrids)
+ncells = nrow(gridPoints)
 
 r = 5
-circles = data.frame(PID=sort(rep(1:nrow(gridPoints),100)),POS=rep(1:100,nrow(gridPoints)))
+circles = data.frame(PID=sort(rep(1:ncells,100)),POS=rep(1:100,ncells))
 
-for (i in 1:nrow(gridPoints)) {
+for (i in 1:ncells) {
   bufcircs = bufferCircle(c(gridPoints$X[i],gridPoints$Y[i]),r)
   circles$X[1:100+100*(i-1)] = bufcircs$lon[-101]
   circles$Y[1:100+100*(i-1)] = bufcircs$lat[-101]
 }
 
-
+vmslogdata = assignLogData2VMS(fisheryList, p)
+vmslogdata$X = vmslogdata$lon
+vmslogdata$Y = vmslogdata$lat
 
 ClamMap2("Ban")
 addPolys(circles,col=rgb(1,0,0,0.1),border=rgb(0,0,0,0.1))
-with(fisheryList$vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+with(vmslogdata,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
 
+
+key = findPolys(vmslogdata,circles,maxRows=1e+07)
 
 
 

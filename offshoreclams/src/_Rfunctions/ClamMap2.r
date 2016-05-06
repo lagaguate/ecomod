@@ -46,9 +46,9 @@ ClamMap2<-function(area='custom',ylim=c(40,52),xlim=c(-74,-47),mapRes='HR',land.
 	if(area=='Mid')		{ ylim=c(44.2,44.9);	xlim=c(-61.3,-60.1) }
 	if(area=='Ban')		{ ylim=c(43.7,45.2); 	xlim=c(-60.5,-57)	}
 	if(area=='SPB')		{ ylim=c(44.5,47.5);	xlim=c(-58,-55)		}
-	if(area=='Grand')	{ ylim=c(42.5,48); 		xlim=c(-55,-47)		}
+	if(area=='Grand')	{ ylim=c(43,46.5); 		xlim=c(-51.5,-48.5)		}
+	if(area=='Grand2')	{ ylim=c(42.5,48); 		xlim=c(-55,-47)		}
 	
-
 	coast<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","gshhs",paste0("shoreline",mapRes,".csv")))
 	rivers<-read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","gshhs",paste0("rivers",mapRes,".csv")))
 	attr(coast,"projection")<-"LL"
