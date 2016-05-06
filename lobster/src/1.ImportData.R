@@ -25,6 +25,10 @@ p$yrs = 1947:p$current.assessment.year
         lobster.db( DS = 'seasonal.landings.redo', p=p) #static seasonal landings table needs to be updated by CDenton
 
 
+    #process log book data
+
+        lobster.db(DS='process.logs.redo', p=p)
+
 	# load .RData objects
 
         lobster.db( DS="logs",  p=p)		# Inshore logs summary documents

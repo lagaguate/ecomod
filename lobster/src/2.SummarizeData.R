@@ -46,6 +46,6 @@
 
 
     ## CPUE
-    logsInSeason<-LobsterLogsProcess()
+    logsInSeason<-lobster.db('process.logs')
     CPUEplot(logsInSeason,lfa=c('35','36','38'),yrs=2006:2015,graphic='pdf')
 
