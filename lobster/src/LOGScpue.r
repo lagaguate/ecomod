@@ -1,8 +1,8 @@
 
 ## TOTAL LANDINGS
-AnnualLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","inputs","AnnualSlipLand.csv"))
-HistoricLand.dat<-read.delim(file.path(project.datadirectory('lobster'),"data","inputs","LFA34_Landings_1892-2004.txt"))
-SeasonalLand.dat<-read.csv(file.path(project.datadirectory('lobster'),"data","inputs","SeasonalSlipLand.csv"))
+AnnualLand.dat<-lobster.db('annual.landings')
+HistoricLand.dat<-lobster.db('historical.landings')
+SeasonalLand.dat<-lobster.db('seasonal.landings')
 
 Annual.dat<-reshape(AnnualLand.dat,idvar="YEAR",varying=names(AnnualLand.dat)[-1],times=substr(names(AnnualLand.dat)[-1],4,6),direction='long',timevar="LFA",v.names="CATCH")
 Season.dat<-reshape(SeasonalLand.dat,idvar="SEASON",varying=names(SeasonalLand.dat)[-1],times=substr(names(SeasonalLand.dat)[-1],4,6),direction='long',timevar="LFA",v.names="CATCH")
@@ -23,7 +23,7 @@ write.csv(Landings.dat,file.path( project.datadirectory("lobster"), "data","prod
 
 
 ## LOGS
-logsInSeason<-LobsterLogsProcess()
+logsInSeason<-lobster.db('process.logs')
 	
 
 ### SUMMERIZE CPUE
