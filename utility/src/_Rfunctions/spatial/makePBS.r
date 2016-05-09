@@ -5,6 +5,7 @@ makePBS <- function(x,polygon=T,projection="LL") {
 	if(any(names(x) %in% c('longitude','latitude'))) x <- rename.df(x,n0=c('longitude','latitude'),n1=c('X','Y'))
 	if(any(names(x) %in% c('y','x'))) x <- rename.df(x,n0=c('x','y'),n1=c('X','Y'))
 	if(any(names(x) %in% c('LAT','LON'))) x <- rename.df(x,n0=c('LON','LAT'),n1=c('X','Y'))
+	if(any(names(x) %in% c('DDLAT','DDLON'))) x <- rename.df(x,n0=c('DDLON','DDLAT'),n1=c('X','Y'))
 	
 	if(polygon) {
 			x$PID <- 1
