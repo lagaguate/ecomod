@@ -28,7 +28,7 @@
         lobster.db( DS="seasonal.landings.redo")
         lobster.db( DS="historical.landings.redo")
         lobster.db( DS="season.dates.redo")
-
+        lobster.db(DS = "lfa41.vms.redo")
         }
       
 
@@ -260,6 +260,7 @@ if(DS %in% c('process.logs', 'process.logs.redo')) {
               load (file.path( fnODBC, "logs41.rdata"), .GlobalEnv)
               load (file.path( fnODBC, "slip41.rdata"), .GlobalEnv)
               print("Objects are called 'logs41' and 'slips41'")
+              return(logs41)
       
     }
 
@@ -461,7 +462,49 @@ if(DS %in% c('process.logs', 'process.logs.redo')) {
       
     }
 
-### At Sea sampling from Cheryl's view 
+
+#vms data
+if(DS %in% c('lfa41.vms', 'lfa41.vms.redo')) {
+      if(DS == 'lfa41.vms.redo') {
+           require(RODBC)
+           con = odbcConnect(oracle.server , uid=oracle.username, pwd=oracle.password, believeNRows=F) # believeNRows=F required for oracle db's
+        
+  #Define a list of VRNs from offshore lobster vrns
+          vrn.vector = paste(c(100989,4056,1530,1532,4034,4005,129902,101315,2735,1578,107314),collapse="','")
+ 
+ vms.q <- paste("SELECT rownum vesid,
+                  p.longitude lon, p.latitude lat, 
+                 NVL(v.vessel_name,p.vr_number) vessel_name, 
+                 p.vr_number vrn,
+                 to_char(p.POSITION_UTC_DATE, 'YYYY/MM/DD HH24:MI:SS') vmsdate,
+                 p.speed_knots 
+                 FROM mfd_obfmi.vms_all p, mfd_obfmi.marfis_vessels_syn v
+                 WHERE p.VR_NUMBER = v.vr_number(+)  
+                 AND p.vr_number IN ('",vrn.vector,"')",
+                  sep="" )
+
+      vms.data <- sqlQuery(con, vms.q, believeNRows=FALSE)  
+      odbcClose(con)
+        vms.data$VMSDATE <- as.POSIXct(vms.data$VMSDATE,tz="GMT")  # VMS data is in UTC, assign timezone
+  
+  # Create date and time variables in local time
+      vms.data$DATE <- format(strftime(vms.data$VMSDATE,format="%Y-%m-%d"), tz="America/Halifax",usetz=TRUE)
+      vms.data$TIME <- format(strftime(vms.data$VMSDATE,format="%H:%M:%S"), tz="America/Halifax",usetz=TRUE)
+      vms.data$YEAR <- format(strftime(vms.data$VMSDATE,format="%Y"), tz="America/Halifax",usetz=TRUE)
+      vms.data$VMSDATElocal <- as.POSIXct(paste(vms.data$DATE, vms.data$TIME), format="%Y-%m-%d %H:%M:%S",tz="America/Halifax")
+
+      save(vms.data,file=file.path( fnODBC,"vms.data.rdata"))
+      return(paste('File is saved as', file.path( fnODBC,"vms.data.rdata"),sep=" "))
+           }
+    
+      load(file.path( fnODBC, "vms.data.rdata" ))
+      return(vms.data)
+    }
+
+
+### At Sea sampling from Cheryl's view
+
+
     if (DS %in% c("atSea.redo", "atSea") ) {
 
          if (DS=="atSea.redo") {
