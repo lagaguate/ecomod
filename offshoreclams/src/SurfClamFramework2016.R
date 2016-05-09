@@ -15,7 +15,7 @@
 
 loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.general"))
 
-RLibrary( "PBSmapping", "lubridate", "trip" ) # Load required packages
+RLibrary( "PBSmapping", "lubridate", "trip" ,"spatstat") # Load required packages
 
 
 ## Load Data
@@ -32,7 +32,7 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   #vms.data <- GetVMSData(update=update.data)
   fisheryList <- ProcessVMSData(GetVMSData(update=update.data),processed.log.data)
   #processed.log.data = fisheryList$log.data
-  #processed.vms.data = fisheryList$vms.data
+  processed.vms.data = fisheryList$vms.data
   #load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
 
   # length frequency data
@@ -42,10 +42,12 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   # survey data
   surveyList <- ProcessSurveyData()
 
-####### Mapping
+  # bounding polygon at 100m isobath for Banquereau
+  c100 <- read.table(file.path( project.datadirectory("polygons"), "data","Basemaps","Marine","Bathymetry","CHS100.ll"),header=T)
+  Banq100 <- na.omit(subset(c100,SID==2392)) # 100m isobath for Banqureau
 
-c100 <- read.table(file.path( project.datadirectory("polygons"), "data","Basemaps","Marine","Bathymetry","CHS100.ll"),header=T)
-Banq100 <- na.omit(subset(c100,SID==2392)) # 100m isobath for Banqureau
+
+####### Maps
 
 ClamMap2('all',isobath=seq(50,500,50))
 
@@ -82,10 +84,10 @@ ClamMap2('Grand',isobath=seq(50,500,50))
   # VMS GIF!!!
   VMSgif(fisheryList,yrs=2013,tail=7,pie.scale=7000,wd=800,ht=600,xlim=c(-60,-57.2),ylim=c(44,45.1))
 
-pdf(file.path( project.datadirectory("offshoreclams"), "figures","VMSLocations.pdf"),11,8)
-ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45),isobath=seq(50,500,50),bathy.source='bathy')
- with(fisheryList$vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
- dev.off()
+  pdf(file.path( project.datadirectory("offshoreclams"), "figures","VMSLocations.pdf"),11,8)
+  ClamMap2(xlim=c(-60,-57.2),ylim=c(44.1,45),isobath=seq(50,500,50),bathy.source='bathy')
+   with(fisheryList$vms.data,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+   dev.off()
 
 
 
@@ -290,52 +292,34 @@ for(i in c(2004,2010)){
   #ContLegend("topleft",lvls=p$cpue.levels*1000,Cont.data=list(AnnGrid.out$grid,fisherycpue2010),title=expression(CPUE (t/km^2)),inset=0.02,cex=0.8,bg='white')
   points(Y~X,Compare.points,pch=21,bg='red')
   points(Y~X,grid.data)
- subplot(plot.comparison(comparison.data),x=-57.3,y=44.08,size=c(2,1.8))
+  subplot(plot.comparison(comparison.data),x=-57.3,y=44.08,size=c(2,1.8))
 }
 dev.off()
 
  
 ############## Production model ################
 
-
+  
 
   interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
 
   res = with(interp.data,spacetime.variogram(data.frame(X,Y),stdcatch,methods="gstat")) 
- 
-  params = c(r=1, K=300000, q=0.1 , B0=200000 )
+   
+ # distribute Catch and Effort data over VMS locations
+  vmslogdata = assignLogData2VMS(fisheryList, p)
+  vmslogdata = subset(vmslogdata,EID%in%findPolys(vmslogdata,Banq100, maxRows = 1e+06)$EID)
+  
+  # create a polygon from vms density as a proxy for clam habitat
+  VMSden.poly = vmsDensity(vmslogdata,sig=0.1,res=0.25,lvl=30)
 
-  # basic Surplus production
-  SPmodel(params,1986)
-
-
-
-useGrids = with(Totalgrid.out,subset(grid,paste(PID,SID)%in%with(subset(grid.polyData$effort[[1]],Z>100000),paste(PID,SID))))
-gridPoints = calcCentroid(useGrids)
-ncells = nrow(gridPoints)
-
-r = 5
-circles = data.frame(PID=sort(rep(1:ncells,100)),POS=rep(1:100,ncells))
-
-for (i in 1:ncells) {
-  bufcircs = bufferCircle(c(gridPoints$X[i],gridPoints$Y[i]),r)
-  circles$X[1:100+100*(i-1)] = bufcircs$lon[-101]
-  circles$Y[1:100+100*(i-1)] = bufcircs$lat[-101]
-}
-
-vmslogdata = assignLogData2VMS(fisheryList, p)
-vmslogdata$X = vmslogdata$lon
-vmslogdata$Y = vmslogdata$lat
-
-ClamMap2("Ban")
-addPolys(circles,col=rgb(1,0,0,0.1),border=rgb(0,0,0,0.1))
-with(vmslogdata,points(lon,lat,pch=16,cex=0.2,col=rgb(0,0,0,.1)))
+  ClamMap2("Ban")
+  addPolys(VMSden.poly)
 
 
-key = findPolys(vmslogdata,circles,maxRows=1e+07)
+  SPMdata = SPMsetup(vmslogdata,Totalgrid.out,VMSden.poly,effort.min=100000,r=5,n.min=7)
 
 
-
+  res = SpatialProductionModel(SPMdata,params = c(r=1, K=20000, q=1 , B0=10000 ))
 
 
 

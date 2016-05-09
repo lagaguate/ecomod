@@ -12,7 +12,7 @@ FisheryGridPlot <- function(fisheryList, p, boundPoly, vms=FALSE, fn='',cpue=TRU
   # setup data to summarize by grid
   if(vms) {
     logdata = assignLogData2VMS(fisheryList, p)
-    logdata = logdata[,c("year","EID","lon","lat","C","A")]
+    logdata = logdata[,c("year","EID","X","Y","C","A")]
   }
   else {
     logdata = na.omit(subset(fisheryList$log.data, bank==b&area>p$effort.threshold[1]&area<p$effort.threshold[2]&round_catch>p$catch.threshold[1]&round_catch<p$catch.threshold[2],  c("year","logrecord_id","lon_dd","lat_dd","round_catch","area")))
