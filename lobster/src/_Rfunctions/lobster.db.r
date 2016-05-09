@@ -259,6 +259,7 @@ if(DS %in% c('process.logs', 'process.logs.redo')) {
               }
               load (file.path( fnODBC, "logs41.rdata"), .GlobalEnv)
               load (file.path( fnODBC, "slip41.rdata"), .GlobalEnv)
+              print("Objects are called 'logs41' and 'slips41'")
       
     }
 
