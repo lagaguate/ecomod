@@ -28,5 +28,9 @@ vmsDensity = function(vmslogdata,sig=0.1,res=0.25,lvl=30){
   attr(VMSden.poly,'zone')<-21
   VMSden.poly = convUL(VMSden.poly)
 
+  junk<-data.frame(PID=1,POS=1:4,X=c(162,161,161,162),Y=c(-41,-41,-40,-40))
+  VMSden.poly = joinPolys(VMSden.poly,junk,operation="DIFF")
+
+
   return(VMSden.poly)
 }
