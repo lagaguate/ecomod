@@ -1,0 +1,62 @@
+redfish.track.selector<-function(sp.code){
+  #'Mike McMahon May 2016
+  #'For a given species code, this script will extract all of the sets from the 
+  #'redfish dataset where that species was caught, as well as all of the 
+  #'other (i.e. null) sets.
+  #'This is similar to:
+  #' groundfish.track.selector.R (which also takes a start.year) and 
+  #' capechidley.track.selector.R
+library(RODBC)
+  channel <-  odbcConnect("PTRAN",uid = oracle.personal.username,pwd = oracle.personal.password)
+query = paste0("SELECT 
+BRANTON.RFINF.CRUNO,
+BRANTON.RFINF.SETNO,
+BRANTON.RFINF.DMAX,
+BRANTON.RFINF.WIND,
+BRANTON.RFINF.TYPE,
+BRANTON.RFINF.DMIN,
+BRANTON.RFINF.SDATE,
+BRANTON.RFINF.TIME,
+BRANTON.RFINF.STRAT,
+(SUBSTR(BRANTON.RFINF.SLONG,1,2)+ROUND(((BRANTON.RFINF.SLONG-(SUBSTR(BRANTON.RFINF.SLONG,1,2)*100))/60),2))*-1 SLONG,
+(SUBSTR(BRANTON.RFINF.SLAT,1,2)+ROUND(((BRANTON.RFINF.SLAT-(SUBSTR(BRANTON.RFINF.SLAT,1,2)*100))/60),2)) SLAT,
+(SUBSTR(BRANTON.RFINF.ELONG,1,2)+ROUND(((BRANTON.RFINF.ELONG-(SUBSTR(BRANTON.RFINF.ELONG,1,2)*100))/60),2))*-1 ELONG,
+(SUBSTR(BRANTON.RFINF.ELAT,1,2)+ROUND(((BRANTON.RFINF.ELAT-(SUBSTR(BRANTON.RFINF.ELAT,1,2)*100))/60),2)) ELAT,
+BRANTON.RFINF.DIST,
+BRANTON.RFCAT.TOTWGT,
+BRANTON.RFCAT.TOTNO
+FROM BRANTON.RFCAT, BRANTON.RFINF
+WHERE BRANTON.RFINF.SETNO = BRANTON.RFCAT.SETNO
+AND  BRANTON.RFINF.CRUNO = BRANTON.RFCAT.CRUNO
+AND BRANTON.RFCAT.SPEC = ",sp.code)
+data <- sqlQuery(channel,query)
+
+null.query = "SELECT 
+BRANTON.RFINF.CRUNO,
+BRANTON.RFINF.SETNO,
+BRANTON.RFINF.DMAX,
+BRANTON.RFINF.WIND,
+BRANTON.RFINF.TYPE,
+BRANTON.RFINF.DMIN,
+BRANTON.RFINF.SDATE,
+BRANTON.RFINF.TIME,
+BRANTON.RFINF.STRAT,
+(SUBSTR(BRANTON.RFINF.SLONG,1,2)+ROUND(((BRANTON.RFINF.SLONG-(SUBSTR(BRANTON.RFINF.SLONG,1,2)*100))/60),2))*-1 SLONG,
+(SUBSTR(BRANTON.RFINF.SLAT,1,2)+ROUND(((BRANTON.RFINF.SLAT-(SUBSTR(BRANTON.RFINF.SLAT,1,2)*100))/60),2)) SLAT,
+(SUBSTR(BRANTON.RFINF.ELONG,1,2)+ROUND(((BRANTON.RFINF.ELONG-(SUBSTR(BRANTON.RFINF.ELONG,1,2)*100))/60),2))*-1 ELONG,
+(SUBSTR(BRANTON.RFINF.ELAT,1,2)+ROUND(((BRANTON.RFINF.ELAT-(SUBSTR(BRANTON.RFINF.ELAT,1,2)*100))/60),2)) ELAT,
+BRANTON.RFINF.DIST,
+0 TOTWGT,
+0 TOTNO
+FROM BRANTON.RFINF"
+null.data <- sqlQuery(channel,null.query)
+
+all.recs=merge(null.data,data, by=c("CRUNO", "SETNO","DMAX","WIND","TYPE", "DMIN", "SDATE","TIME","STRAT","SLAT","SLONG","ELAT","ELONG","DIST"), all.x=T)
+all.recs = na.zero(all.recs)
+all.recs$TOTNO.x = NULL
+all.recs$TOTWGT.x = NULL
+colnames(all.recs)[which(names(all.recs) == "TOTWGT.y")] = "TOTWGT"
+colnames(all.recs)[which(names(all.recs) == "TOTNO.y")] = "TOTNO"
+
+return(all.recs)
+}
