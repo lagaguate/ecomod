@@ -1,4 +1,4 @@
-SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,yrs=2002:2015,effort.min=100000,r=5,n.min=7){
+SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,yrs=2003:2015,effort.min=100000,r=5,n.min=7){
   
   if(missing(subpolys)){
 
@@ -56,7 +56,7 @@ SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,yrs=2002:2015,effort.mi
 
   # select only dataset with more than n.min years of data
   SPdata = SPdata[which(n>=n.min)]
-  model.lst=list(yrs=yrs,NJ=nnodes,NY=length(yrs),C=sapply(1:nnodes,function(i){SPdata[[i]]$C}),O=sapply(1:nnodes,function(i){SPdata[[i]]$O}))
+  model.lst=list(NJ=nnodes,NY=length(yrs),C=sapply(1:nnodes,function(i){SPdata[[i]]$C}),O=sapply(1:nnodes,function(i){SPdata[[i]]$O}))
  
   return(list(SPMdata=SPdata,SPMdataList=model.lst))
 

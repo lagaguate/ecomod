@@ -1,4 +1,4 @@
-model;
+model
 {
 
   # PRIORS
@@ -35,7 +35,8 @@ model;
   }
   
   # priors for catchabilities
-  q ~ dbeta(q.a, q.b)
+  #q ~ dbeta(q.a, q.b)
+  q ~ dunif(q.a, q.b)
   
   # priors for error terms
   
@@ -51,14 +52,14 @@ model;
   for(j in 1:NJ){	
   
     # State equation - Biomass dynamics
-    Pmed[1,j] <-log(B0/K)
+    Pmed[1,j] <-log(B0[j]/K[j])
     P[1,j] ~ dlnorm(Pmed[1,j], isigma2) # initialize P (K scaled biomass)
     
     
     for(t in 2:NY){	
     
       # Dynamics equation (Pmed is the log of the predicted scaled biomass from the biomass dynamics)
-      Pmed[t,j] <- log(max(P[t-1,j] + r * P[t-1,j] * (1 - P[t-1,j]) - C[t-1,j]/K, 0.0001))
+      Pmed[t,j] <- log(max(P[t-1,j] + r * P[t-1,j] * (1 - P[t-1,j]) - C[t-1,j]/K[j], 0.0001))
       
       # Process equation (Pmed is fit to the 'actual' scaled biomass (P) using the estimated process error (sigma) expressed as a precision (isigma2))
       P[t,j] ~ dlnorm(Pmed[t,j], isigma2) 

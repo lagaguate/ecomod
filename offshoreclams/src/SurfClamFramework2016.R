@@ -33,7 +33,7 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   fisheryList <- ProcessVMSData(GetVMSData(update=update.data),processed.log.data)
   #processed.log.data = fisheryList$log.data
   processed.vms.data = fisheryList$vms.data
-  #load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
+  load(file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryDataTotal.Rdata" ))
 
   # length frequency data
   lf.data <- GetLFData(update=update.data)
@@ -133,6 +133,7 @@ p$grid.size = 2
 
 # Banquereau
 Totalgrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
+save(Totalgrid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryDataTotal.Rdata" ))
 p$yrs= list(2004:2006,2005:2007,2006:2008,2007:2009,2008:2010,2009:2011,2010:2012,2011:2013,2012:2014,2013:2015)
 grid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='3yrVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 
@@ -142,7 +143,7 @@ p$yrs= 2004:2015
 AnnGrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='annualVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 write.csv(data.frame(Year=p$yrs,summarize.gridout(AnnGrid.out)),file=file.path( project.datadirectory("offshoreclams"), "R", "SpatialExploitationSummary.csv"),row.names=F )
 
-save(AnnGrid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryData.Rdata" ))
+save(AnnGrid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryDataAnnual.Rdata" ))
 
  
 # GrandBank
@@ -323,22 +324,24 @@ dev.off()
   addPolys(VMSden.poly,col=rgb(0,0,0,0.2))
   addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
 
-  SPMdata = SPMsetup(vmslogdata,Totalgrid.out,VMSden.poly,CWzones,effort.min=100000,r=5,n.min=7)
+  SPMdata = SPMsetup(vmslogdata,Totalgrid.out,VMSden.poly,CWzones,yrs=2003:2015,effort.min=100000,r=5,n.min=7)
 
   SPMdataList = SPMdata$SPMdataList
   NJ = SPMdataList$NJ
+  logK.u=log(apply(SPMdataList$O,2,max,na.rm=T))
+  logB0.u=log(SPMdataList$O[1,])
 
     SPMpriors=list(
-      logK=        list(a=8,     b=8,        d="dnorm",    i1=7,   i2=5,   l=NJ   ),    # carrying capacity
-      logB0=       list(a=8,     b=8,        d="dnorm",    i1=7,   i2=5,   l=NJ   ),    # initial biomass
-      r.u=         list(a=0,     b=1,        d="dlnorm",   i1=0.2, i2=0.9, l=1  ),    # intrinsic rate of increase
-      r.sd=        list(a=0,     b=1,        d="dlnorm",   i1=0.2, i2=0.9, l=1  ),    # intrinsic rate of increase
-      q=           list(a=1,     b=1,        d="dbeta",    i1=0.2, i2=0.5, l=1   ),    # clam dredge efficiency
-      sigma=       list(a=0,     b=5,        d="dunif",    i1=2,   i2=3,   l=1   ),    # process error (SD)
-      itau2=       list(a=3,     b=0.44629,  d="dgamma",   i1=15,  i2=30,  l=1   )    # observation error (precision)
+      logK=        list(a=logK.u,  b=rep(8,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # carrying capacity
+      logB0=       list(a=logB0.u, b=rep(8,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # initial biomass
+      r.u=         list(a=1,       b=2,          d="dunif",    i1=1.2, i2=1.1, l=1   ),    # intrinsic rate of increase
+      r.sd=        list(a=0,       b=2,          d="dunif",    i1=1.2, i2=0.9, l=1   ),    # intrinsic rate of increase
+      q=           list(a=0.3,     b=1,          d="dunif",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
+      sigma=       list(a=0,       b=5,          d="dunif",    i1=2,   i2=3,   l=1   ),    # process error (SD)
+      itau2=       list(a=3,       b=0.44629,    d="dgamma",   i1=15,  i2=30,  l=1   )    # observation error (precision)
     ) 
 
-    SPmodel.out<-runBUGS("SPhyper", SPMdataList, SPMpriors, SPMdataList$yrs, n = 60000, burn = 30000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P','r'),sw='jags')
+    SPmodel.out<-runBUGS("SPhyper", SPMdataList, SPMpriors, SPMdataList$yrs, n = 600, burn = 300, thin = 1,debug=F,parameters=c(names(SPMpriors),'K','P','r','r.a','r.b'),sw='jags')
 
 
 
