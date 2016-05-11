@@ -323,22 +323,22 @@ dev.off()
   addPolys(VMSden.poly,col=rgb(0,0,0,0.2))
   addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
 
-  SPMdata = SPMsetup(vmslogdata,Totalgrid.out,VMSden.poly,effort.min=100000,r=5,n.min=7)
+  SPMdata = SPMsetup(vmslogdata,Totalgrid.out,VMSden.poly,CWzones,effort.min=100000,r=5,n.min=7)
 
-
-  #res = SpatialProductionModel(SPMdata)
-
+  SPMdataList = SPMdata$SPMdataList
+  NJ = SPMdataList$NJ
 
     SPMpriors=list(
-      logK=        list(a=8,     b=8,        d="dnorm",    i1=7,   i2=5,   l=1   ),    # carrying capacity
-      logB0=       list(a=8,     b=8,        d="dnorm",    i1=7,   i2=5,   l=1   ),    # initial biomass
-      r=           list(a=0,     b=1,        d="dlnorm",   i1=0.2, i2=0.9, l=NY  ),    # intrinsic rate of increase
+      logK=        list(a=8,     b=8,        d="dnorm",    i1=7,   i2=5,   l=NJ   ),    # carrying capacity
+      logB0=       list(a=8,     b=8,        d="dnorm",    i1=7,   i2=5,   l=NJ   ),    # initial biomass
+      r.u=         list(a=0,     b=1,        d="dlnorm",   i1=0.2, i2=0.9, l=1  ),    # intrinsic rate of increase
+      r.sd=        list(a=0,     b=1,        d="dlnorm",   i1=0.2, i2=0.9, l=1  ),    # intrinsic rate of increase
       q=           list(a=1,     b=1,        d="dbeta",    i1=0.2, i2=0.5, l=1   ),    # clam dredge efficiency
       sigma=       list(a=0,     b=5,        d="dunif",    i1=2,   i2=3,   l=1   ),    # process error (SD)
-      itau2=       list(a=3,     b=0.44629,  d="dgamma",   i1=15,  i2=30,  l=1   ),    # observation error (precision)
+      itau2=       list(a=3,     b=0.44629,  d="dgamma",   i1=15,  i2=30,  l=1   )    # observation error (precision)
     ) 
 
-    SPmodel.out<-runBUGS("SPhyper", SPMdata, SPMpriors, yrs, n = 60000, burn = 30000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P'),sw='jags')
+    SPmodel.out<-runBUGS("SPhyper", SPMdataList, SPMpriors, SPMdataList$yrs, n = 60000, burn = 30000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P','r'),sw='jags')
 
 
 

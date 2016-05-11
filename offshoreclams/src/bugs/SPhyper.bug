@@ -69,8 +69,8 @@ model;
     
     for(t in 1:NY){
       # Commercial catch rate
-      Imed[t,j] <- log(q * K[j] * P[t,j])			# predicted survey index in log space 
-      I[t,j] ~ dlnorm(Imed[t,j], itau2)			# fit to survey index with log of predicted survey index and estimated survey precision
+      Omed[t,j] <- log(q * K[j] * P[t,j])			# predicted cpue index in log space 
+      O[t,j] ~ dlnorm(Omed[t,j], itau2)			# fit to cpue index with log of predicted cpue index and estimated precision
     }
   }
 }

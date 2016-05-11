@@ -1,4 +1,4 @@
-SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,effort.min=100000,r=5,n.min=7){
+SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,yrs=2002:2015,effort.min=100000,r=5,n.min=7){
   
   if(missing(subpolys)){
 
@@ -42,12 +42,12 @@ SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,effort.min=100000,r=5,n
 
       # select data points
       tmpdata =  subset(vmslogdata,EID%in%subset(key,PID==i)$EID)
-      yrs = min(tmpdata$year):max(tmpdata$year)
+      #yrs = min(tmpdata$year):max(tmpdata$year)
       C = with(tmpdata,tapply(C,year,sum))/1000 # catch in tons
       E = with(tmpdata,tapply(A,year,sum)) / 10^6  # effort (area swept in km2)
       O = C / E * clamhabitatarea # catch per unit effort in t / area of clam habitat
       n[i] = length(C)
-      SPdata[[i]] = merge(data.frame(yrs=yrs,H=clamhabitatarea),data.frame(yrs=as.numeric(names(C)),C=C,O=O),all=T)
+      SPdata[[i]] = merge(data.frame(yrs=yrs,PID=i,H=clamhabitatarea),data.frame(yrs=as.numeric(names(C)),C=C,O=O),all.x=T)
       SPdata[[i]]$C[is.na(SPdata[[i]]$C)] = 0
     }
     else print("No habitat!")
@@ -56,7 +56,8 @@ SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,effort.min=100000,r=5,n
 
   # select only dataset with more than n.min years of data
   SPdata = SPdata[which(n>=n.min)]
+  model.lst=list(yrs=yrs,NJ=nnodes,NY=length(yrs),C=sapply(1:nnodes,function(i){SPdata[[i]]$C}),O=sapply(1:nnodes,function(i){SPdata[[i]]$O}))
  
-  return(SPdata)
+  return(list(SPMdata=SPdata,SPMdataList=model.lst))
 
 }
