@@ -6,6 +6,10 @@ LengthFrequencies=function(DataList, DS="Survey", bins=seq(0,200,1), Yrs=2005:20
 
     if(DS=='Survey'){
 
+        LF = merge(DataList$LenFreq,DataList$surveyData[,c('survey.x','tow.x','stdcatch')],by.x=c('survey','tow'),by.y=c('survey.x','tow.x'),all.x=T)
+
+  p<- merge(vms.data,subset(log.data,year>1999&area>0,c("logrecord_id","cfv","date","record_no","vessel_name")), by.x = c("vrn", "date", "record_no"), by.y = c("cfv","date","record_no"))#,all.x=TRUE) 
+
         # Gets  Survey Data
         surveys34=SurveyProcess(lfa="34",yrs=Yrs,mths=c("Jul","Jun"),size.range=range(bins),bin.size=diff(bins)[1])
 
