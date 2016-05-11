@@ -6,6 +6,7 @@ marfissci.process.data <- function(df, agg.minutes=2,
                                    save.CSV = F,
                                    save.SHP = F,
                                    name.det = NULL,
+                                   out.folder = "marfissci",
                                    output = "RDS"){
   #' MMM - Apr 6, 2016
   #' This function takes the input raw MARFIS data and summarizes it at 
@@ -55,25 +56,37 @@ entirely on the land.
   df[noNA][is.na(df[noNA])] <- 0
   
   df$VALIDITY[which(df$LAT == 0 | df$LON == 0)] = "NO COORDS"
+  df$VALIDITY[which(df$LAT > 90 | df$LAT < -90)] = "BAD COORDS"
+  df$VALIDITY[which(df$LON > 180 | df$LON < -180)] = "BAD COORDS"
   if (NROW(df[df$VALIDITY=='VALID',])==0) return(NULL) #can't position anything!
   #create temporary spatial df for terrestrial check - this loses the lat and 
   #lon fields, so we add them back in for later convenience
-  df.sp = df[df$VALIDITY=='VALID',] 
+  df.sp = df[which(df$VALIDITY=='VALID'),] 
   coordinates(df.sp) = c("LON", "LAT")
   proj4string(df.sp) = CRS("+proj=longlat +datum=WGS84")
   df.sp@data$LON = coordinates(df.sp)[,1]
   df.sp@data$LAT = coordinates(df.sp)[,2]
   df.sp.proj.metric= spTransform(df.sp,CRS(proj.metric))
   writeLines(paste0("Finding points that exceed the allowable distance from the sea for this 
-aggregation level (",round(buff/1000,1), " km), and marking them as 'INVALID'.
+aggregation level (",round(buff/1000,1), " km), and marking them as 'INLAND'.
 "))
+
    df.sp.proj.metric@data$INLAND =over(df.sp.proj.metric,coast.aea.buff)
 #   df = cbind(df,INLAND = df.sp.proj.metric@data$INLAND)
 
   df.sp.proj.metric@data$VALIDITY[which(!is.na(df.sp.proj.metric@data$INLAND))] = "INLAND" 
   df.sp.proj.metric@data$INLAND = NULL
   #reorder columns for imminent rbind
-  df.sp.proj.metric@data = df.sp.proj.metric@data[,c(1:12,16,15,13,14)]
+  if (out.folder=="marfissci"){
+    df.sp.proj.metric@data = df.sp.proj.metric@data[,c(1:12,16,15,13,14)]
+  }else if (out.folder=="cl") {
+    df.sp.proj.metric@data = df.sp.proj.metric@data[,c(8,7,1:6)]
+    }else if (out.folder=="whalesitings") {
+      df.sp.proj.metric@data = df.sp.proj.metric@data[,c(1,2,6,5,3,4)]
+  }else{
+    writeLines("unrecognized data columns")
+  return(NULL)
+    }
   df = rbind(df[!df$VALIDITY=='VALID',],df.sp.proj.metric@data)
   #  round the coordinates to the desired aggregation so we can group by the new 
   # 'points', giving a lot less data to process
@@ -169,22 +182,22 @@ simply be populated with identical values as ",agg.field))
   colnames(df.agg)[colnames(df.agg) == 'CNT'] <- paste0("CNT_",agg.field)
   colnames(df.agg)[colnames(df.agg) == 'SUM'] <- paste0("SUM_",agg.field) 
   
-  df.agg.sp = df.agg
+  df.agg.sp = df.agg[which(df.agg$VALIDITY!="BAD COORDS"),]
   coordinates(df.agg.sp) = c("LON", "LAT")
   proj4string(df.agg.sp) = CRS("+proj=longlat +datum=WGS84")
 
   
   if (save.RDS) {
-    saveRDS(df.agg.sp, file=paste0(project.datadirectory("mpa"),"/rds/",the.filename,".rds"))
-    writeLines(paste0("rds file written to ",project.datadirectory("mpa"),"/rds/",the.filename,".rds"))
+    saveRDS(df.agg.sp, file=paste0(project.datadirectory("mpa"),"/",out.folder,"/rds/",the.filename,".rds"))
+    writeLines(paste0("rds file written to ",project.datadirectory("mpa"),"/",out.folder,"/rds/",the.filename,".rds"))
   }
   if (save.CSV) {
-    write.csv(df.agg,file=paste0(project.datadirectory("mpa"),"/csv/aggregated/",the.filename,".csv"))
-    writeLines(paste0("csv file written to ",project.datadirectory("mpa"),"/csv/aggregated/",the.filename,".csv"))
+    write.csv(df.agg,file=paste0(project.datadirectory("mpa"),"/",out.folder,"/csv/",the.filename,".csv"))
+    writeLines(paste0("csv file written to ",project.datadirectory("mpa"),"/",out.folder,"/csv/",the.filename,".csv"))
   }
   if(save.SHP) {
-    writeOGR(df.agg.sp,dsn=paste0(project.datadirectory("mpa"),"/shapes"), layer=the.filename, driver='ESRI Shapefile', overwrite_layer=TRUE)
-    writeLines(paste0("shp file written to ",project.datadirectory("mpa"),"/shapes/",the.filename,".*"))
+    writeOGR(df.agg.sp,dsn=paste0(project.datadirectory("mpa"),"/",out.folder,"/shapes"), layer=the.filename, driver='ESRI Shapefile', overwrite_layer=TRUE)
+    writeLines(paste0("shp file written to ",project.datadirectory("mpa"),"/",out.folder,"/shapes/",the.filename,".*"))
   }
   if (output == "RDS"){
     the.output = df.agg.sp

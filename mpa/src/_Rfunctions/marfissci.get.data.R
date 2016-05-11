@@ -154,7 +154,7 @@ marfissci.get.data <- function(spp = NULL, gear=NULL, years = NULL, get.nonlandi
     }else{
       years.file = paste0("_",paste(range(years),collapse = "_"))
     }
-    file.output = paste0(project.datadirectory("mpa"),"/csv/raw/marfissci_raw",years.file,gear.file,spp.file,".csv")
+    file.output = paste0(project.datadirectory("mpa"),"/marfissci/raw_data/",years.file,gear.file,spp.file,".csv")
     write.csv(data.raw, file.output, row.names = F)
     print(paste0("CSV written to ",file.output))
   }

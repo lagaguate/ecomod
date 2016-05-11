@@ -1,4 +1,6 @@
-marfissci.batch.process <- function(folder=file.path(project.datadirectory("mpa"),"csv","raw","batch"), combine=T){
+marfissci.batch.process <- function(folder=file.path(project.datadirectory("mpa"),"marfissci","raw_data"), 
+                                    out.folder="marfissci",
+                                    combine=T){
   #' The purpose of this batch process function is to facilitate the mass
   #' generation of data products from marfis data.  It assumes that data has 
   #' been extracted via marfissci.get.data(), and the resultant csv file(s) are
@@ -44,6 +46,7 @@ marfissci.batch.process <- function(folder=file.path(project.datadirectory("mpa"
                                        save.SHP = T,
                                        agg.by.year =F,
                                        name.det=paste0(years.file,"_"),
+                                       out.folder=out.folder,
                                        output="RDS")
         if (i==1) gearKeep<<-this
         if (!is.null(this)){
@@ -53,7 +56,7 @@ marfissci.batch.process <- function(folder=file.path(project.datadirectory("mpa"
           }else{
             colour.by = "SUM_RND_WEIGHT_KGS"
           }
-          marfissci.simple.map(this, agg.by = agg.by[a], colour.by = colour.by, save.plot = T, name.det=years.file, plot.title=paste0(combos[i,2]," ",  years.file))
+          marfissci.simple.map(this, agg.by = agg.by[a], colour.by = colour.by, save.plot = T, out.folder=out.folder,name.det=years.file, plot.title=paste0(combos[i,2]," ",  years.file))
         }else{
           writeLines(paste0("Insufficient data to plot a figure for ",combos[i,2]))
         }

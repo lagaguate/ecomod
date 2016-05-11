@@ -7,15 +7,14 @@ marfissci.simple.map<-function(rds,
                                valid.only = T,
                                show.legend = T,
                                save.plot = T,
+                               out.folder = "marfissci",
                                plot.title="",
                                name.det = NULL,
                                nclasses=5,
                                add.OCMD = c("St_Ann","Gully","Vazella_Emerald","Vazella_Sambro","Lophelia", "NE_Channel")
 ){
-
   proj.metric = '+proj=aea +lat_1=20 +lat_2=60 +lat_0=23 +lon_0=-96 
                  +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m'
-  
   library(classInt)
   library(rgdal)
   limits = data.frame(X = xlim, Y = ylim) 
@@ -147,7 +146,7 @@ marfissci.simple.map<-function(rds,
    
    the.filename=paste0(name.detail,agg.type,the.filename,".png")
    
-   png(filename=paste0(project.datadirectory("mpa"),"/figures/",the.filename),
+   png(filename=paste0(project.datadirectory("mpa"),"/",out.folder,"/figures/",the.filename),
       width = 6, height = 4, units = "in", res= 300, pointsize = 4,
       bg = "white", family = "", restoreConsole = TRUE,
       type = c("windows", "cairo", "cairo-png"))
