@@ -1,30 +1,30 @@
 
   net.configuration = function( N, t0=NULL, t1=NULL, tchron=NULL, yr=NULL, plotdata=FALSE ) {
-    
-    # N is netmind data 
-    # t0 is current best estimate of start and end time 
-    # tchron is timestamp from set-log .. alternate if there is no other useful time marker 
-    
+
+    # N is netmind data
+    # t0 is current best estimate of start and end time
+    # tchron is timestamp from set-log .. alternate if there is no other useful time marker
+
     # create default output should the following fail
-    out = data.frame( slon=NA, slat=NA, distance=NA, spread=NA, spread_sd=NA, 
+    out = data.frame( slon=NA, slat=NA, distance=NA, spread=NA, spread_sd=NA,
       surfacearea=NA, vel=NA, vel_sd=NA, netmind_n=NA, t0=NA, t1=NA, dt=NA, yr=NA )
-    
+
     n.req = 30
     t0_multiple = NULL
 
     if(length(t0)>1) {t0 = NULL}
-    
+
     #changed this switch from depgth filed to lat as if there is not depth info can still run script
 	  if ( length( which( is.finite( N$lat))) < n.req ) print(N[1,])
-    
+
     if(is.na(t0)) t0 = NULL
     if(is.na(t1)) t1 = NULL
-    
+
     problem = F
 
     # time checks
     if ( is.null(t0) & !is.null(tchron) ) {
-      t0 = tchron  # no data in t0 ,, use tchron as alternate 
+      t0 = tchron  # no data in t0 ,, use tchron as alternate
       tchron =NULL # remove to cause no more effects
     }
 
@@ -32,61 +32,61 @@
      t0_multiple = t0 = tchron
      tchron =NULL
     }
-  
+
     if(N$netmind_uid[1] =='netmind.S26092014.9.541.17.48.304') return(out)
- 
+
     if ( any( is.null( t1 ) || is.null(t0) ) )   {
-      # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream 
-     
+      # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream
+
       M = N[, c("timestamp", "depth") ]
-      
+
       oo = which( is.finite( M$depth ))
-      if ( length(oo) < n.req ) return(out) 
+      if ( length(oo) < n.req ) return(out)
 
       if(!is.null(tchron)) settimestamp=tchron
       if(is.null(tchron)) settimestamp=t0
       time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(9) )
-      
-      bcp = list( 
-        id=N$netmind_uid[1], datasource="snowcrab", nr=nrow(M), 
-        tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), 
+
+      bcp = list(
+        id=N$netmind_uid[1], nr=nrow(M),
+        tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30),
         depthproportion=0.6, noisefilter.inla.h = 0.02, eps.depth = 2 # m
       )
-      
+
       bcp = bottom.contact.parameters( bcp ) # add other default parameters
-   
+
       bc = NULL
       bc = bottom.contact( x=M, bcp=bcp )
-        
+
       if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
-         bc = bottom.contact( x=M, bcp=bcp ) 
+         bc = bottom.contact( x=M, bcp=bcp )
       }
-   
+
       if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
         # try once more with random settings
         bcp$noisefilter.inla.h =  0.1
-        bc = bottom.contact( x=M, bcp=bcp ) 
+        bc = bottom.contact( x=M, bcp=bcp )
       }
-   
+
       if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
         # try once more with random settings
-        M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+        M$depth = jitter( M$depth, amount = bcp$eps.depth/10 )
         bcp$noisefilter.inla.h =  0.01
-        bc = bottom.contact( x=M, bcp=bcp ) 
+        bc = bottom.contact( x=M, bcp=bcp )
       }
-  
+
       if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
         # try once more with random settings
-        M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
+        M$depth = jitter( M$depth, amount = bcp$eps.depth/10 )
         bcp$noisefilter.inla.h =  0.1
-        bc = bottom.contact( x=M, bcp=bcp ) 
+        bc = bottom.contact( x=M, bcp=bcp )
       }
 
       if (plotdata)  bottom.contact.plot( bc)  # to visualize/debug
-      
+
       if (is.null(t0) & !is.null(bc$bottom0) ) t0 = bc$bottom0
       if (is.null(t1) & !is.null(bc$bottom1) ) t1 = bc$bottom1
-      N = N[ bc$bottom.contact , ] 
+      N = N[ bc$bottom.contact , ]
     }
 
     if (all(is.na(t0))) t0=NA
@@ -101,7 +101,7 @@
 
     # if we are here, it is because a reasonable amount of data is present ..
     # do some more checks and get a first estimate of some parameters in case other errors/limits are found
-    
+
     out$slon=N$lon[1]
     out$slat=N$lat[1]
     out$spread=mean( N$doorspread, na.rm=T ) / 1000
@@ -129,32 +129,32 @@
       }
     }
 
-    
+
     if (!is.null( t0_multiple )) {
-      
+
       if( !any(is.na(t0_multiple) )) { # two estimates of t0
       timediff = abs( as.numeric( t0_multiple[1] - t0_multiple[2] ))
-      if ( is.finite( timediff )) { 
+      if ( is.finite( timediff )) {
       if (timediff > 20 ) { # more than XX seconds
         # check bounds
         if (!is.null( t1) ) {
-   
+
           dts =  abs( as.numeric( t1 - t0_multiple ))
           if(all(is.chron(dts))) igood = which( dts > 5/60/24 &  dts < 7/60/24 )
           if(any(!is.chron(dts))) igood = which( dts > 300 &  dts < 420 )
           if(any(dts<12)) igood = which( dts > 5 &  dts < 7 )
-          
+
           if (length(igood)==0 ) t0=mean(t0_multiple) # both not good, take mean
           if (length(igood)==1 ) t0=t0_multiple[igood]
           if (length(igood)==2 ) t0=min( t0_multiple )  # both good, no info which is best .. take the longer tow to be conservative
         }
       } else {
         t0 = min( t0_multiple ) # this is to be more conservative in SA estimates ... better to be wrong by estimating too large a SA
-      } 
+      }
       }
     }
     }
-    
+
     if ( length(t0)>1) t0 = NA
     out$t0 = t0
     out$t1 = t1
@@ -171,7 +171,7 @@
       out$t0 = t0
       out$t1 = NA
       out$dt = NA
-      return(out) 
+      return(out)
     }
 
     # eOR checks
@@ -179,7 +179,7 @@
       N = N[ itime, ]
 
       if(nrow(N)>1) {
-  
+
         # t1 gives the approximate time of net lift-off from bottom
         # this is not good enough as there is a potential backdrift period before net lift off
         # this means distance trawled calculations must use the geo-positioning of the boat
@@ -190,7 +190,7 @@
         end = which.max( distance.from.start)
         if( !is.finite(end) ) end=nrow(N)
         n = N[ 1:end , ]
-        
+
 	      out$vel = mean(n$speed, na.rm=T, trim=0.1)
 	      out$vel_sd = sd(n$speed, na.rm=T)
 	      out$slon=n$lon[1]
@@ -199,21 +199,21 @@
 
       delta.distance = NULL
 	    n$distance = NA
-  
-     if (nrow(n) > 10) {	
+
+     if (nrow(n) > 10) {
       # integrate area:: piece-wise integration is used as there is curvature of the fishing track (just in case)
-      delta.distance = geosphere::distGeo ( n[ 1:(end-1), pos ], n[ 2:end, pos ] ) / 1000 ## in meters convert to km 
+      delta.distance = geosphere::distGeo ( n[ 1:(end-1), pos ], n[ 2:end, pos ] ) / 1000 ## in meters convert to km
       n$distances = c( 0, cumsum( delta.distance  ) ) # cumsum used to do piecewise integration of distance
-	
+
       # model/smooth/interpolate the spreads
       n$doorspread.predicted = NA
       ii = which( is.finite( n$doorspread ) )
       if ( length(ii) > n.req ) {
-           
+
          n$doorspread.predicted = approx( x=n$distances, y=n$doorspread, xout=n$distances, method="linear", rule=2 )$y
-         
-         
-       #turned off gam model in December 20, 2013 giving unrealistic values for spread as the new esnoar files have 0 and NA whereas older netmind are filled with previous value 
+
+
+       #turned off gam model in December 20, 2013 giving unrealistic values for spread as the new esnoar files have 0 and NA whereas older netmind are filled with previous value
 			      	#gam.model = try( gam( doorspread ~ s(distances, k=5, bs="ts"), data=n[ii,], optimizer=c("outer", "nlm")), silent = T )
 			        #if ( ! "try-error" %in% class( gam.model )) {
 			        #  n$doorspread.predicted = predict( gam.model, newdata=n, newdata.guaranteed=T )
