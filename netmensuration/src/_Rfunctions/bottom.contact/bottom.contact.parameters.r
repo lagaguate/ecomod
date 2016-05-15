@@ -22,11 +22,11 @@
     if ( !exists("noisefilter.var.window", bcp)) bcp$noisefilter.var.window = 9  # 1/2 of moving window used to compute local variance and moving window mean
     if ( !exists("noisefilter.inla.h", bcp)) bcp$noisefilter.inla.h = 0.05
     if ( !exists("noisefilter.inla.diagonal", bcp)) bcp$noisefilter.inla.diagonal = 0.05
-    if ( !exists("noisefilter.inla.ngroups", bcp)) bcp$noisefilter.inla.ngroups = 400
+    if ( !exists("noisefilter.inla.ngroups", bcp)) bcp$noisefilter.inla.ngroups = 500
 
     if ( !exists("noisefilter.quants", bcp)) bcp$noisefilter.quants = c(0.05, 0.95)
-    if ( !exists("noisefilter.target.r2", bcp)) bcp$noisefilter.target.r2 = 0.8 # for noise filtering  .. ignore variations less than this threshold
-    if ( !exists("noisefilter.sd.multiplier", bcp)) bcp$noisefilter.sd.multiplier = 4 # for noise filtering  .. ignore variations less than this threshold
+    if ( !exists("noisefilter.target.r2", bcp)) bcp$noisefilter.target.r2 = 0.9 # for noise filtering  .. ignore variations less than this threshold
+    if ( !exists("noisefilter.sd.multiplier", bcp)) bcp$noisefilter.sd.multiplier = 5 # for noise filtering  .. ignore variations less than this threshold
     if ( !exists("noisefilter.postfilter.method", bcp)) bcp$noisefilter.smoother = "inla" # for noise filtering  .. ignore variations less than this threshold
 
     if ( !exists("smooth.filter.quants", bcp)) bcp$smooth.filter.quants=c(0.05, 0.95) # for dZ

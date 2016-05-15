@@ -900,9 +900,10 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         }
 
         # low-level hacks:: over-ride of bottom contact parameters for strange data
-        if (id %in% c("NED2013028.172", "TEL2004530.84")) bcp$depth.range = c(-70, 120)
-        if (id %in% c("NED2013022.192", "")) bcp$depth.range = c(-300, 300) # not sure why this has such a large range!
-        if (id=="NED2013022.193") bcp$depth.range = c(-250, 150)
+        if (id %in% c("TEL2004529.18" )) bcp$depth.range = c(-120, 120) # not sure why this has such a large range!
+        if (id %in% c("NED2013028.172", "TEL2004530.84", "TEL2004530.50")) bcp$depth.range = c(-70, 120)
+        if (id %in% c("NED2013022.192" )) bcp$depth.range = c(-300, 300) # not sure why this has such a large range!
+        if (id %in% c("NED2013022.193")) bcp$depth.range = c(-250, 150)
 
         if (id=="TEL2004529.16") {
           bcp$depth.range = c(-150, 150)
