@@ -2,11 +2,11 @@
 bottom.contact.gating.variance = function( x, good, bcp ) {
 
   ## -----------------------------------
-  ## A variance based-criterion for gating 
-  # compute SD in the area of interest and compare with a lagged process to 
+  ## A variance based-criterion for gating
+  # compute SD in the area of interest and compare with a lagged process to
   # start from centre and move left and continue until sd of residuals begins to deviate sustantially
-  # from centre to left 
- 
+  # from centre to left
+
   aoi.range = range( which( good & is.finite(x$depth) ) )
   aoi.min = aoi.range[1]
   aoi.max = aoi.range[2]
@@ -22,20 +22,22 @@ bottom.contact.gating.variance = function( x, good, bcp ) {
 
   if (length(oo)> 10 ) {
     bot.range = range( oo) ## first pass (fast/rough) estimate of likely range of bottom indices
-    aoi.mid = trunc( mean( range( oo)) ) 
-  } 
-    
-  aoi.sd = sd( x$depth, na.rm=TRUE )  ## SD 
+    aoi.mid = trunc( mean( range( oo)) )
+  }
+
+  aoi.sd = sd( x$depth, na.rm=TRUE )  ## SD
   buffer = trunc(length(aoi)/10) # additional points to add beyond midpoint to seed initial SD estimates
   if(any((aoi.mid-buffer)<1)) buffer = aoi.mid-1 #keep the index positive
-  duration = 0 
-  
+  duration = 0
+
   target.sd = aoi.sd * bcp$noisefilter.sd.multiplier
   Ndata0 = length(aoi)
-  Ndata = 0 
-  
+  Ndata = 0
+
+  # browser()
+
   while (Ndata < Ndata0 ) {
-    for ( j0 in aoi.mid:aoi.min  ) {#  begin from centre to right 
+    for ( j0 in aoi.mid:aoi.min  ) {#  begin from centre to right
       sdtest = sd(( x$depth[ (aoi.mid + buffer):j0]), na.rm=T)
       if ( is.na(sdtest) ) next()
       if ( sdtest  >= target.sd ) break()

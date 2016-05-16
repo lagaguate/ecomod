@@ -1,6 +1,6 @@
-	
+
   minilog.db = function( DS="", Y=NULL ){
-    
+
     minilog.dir = project.datadirectory("snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
 
@@ -18,7 +18,7 @@
           for (yy in Y ) {
             ll = grep( yy, flist)
             if (length(ll)==0) return( NULL) # nothing to do
-            if (length(ll)>0 ) mm = c( mm, ll) 
+            if (length(ll)>0 ) mm = c( mm, ll)
           }
           if (length(mm) > 0 ) flist= flist[mm]
         }
@@ -37,7 +37,7 @@
           for (yy in Y ) {
             ll = grep( yy, flist)
             if (length(ll)==0) return( NULL ) # nothing to do
-            if (length(ll)>0 ) mm = c( mm, ll) 
+            if (length(ll)>0 ) mm = c( mm, ll)
           }
           if (length(mm) > 0 ) flist= flist[mm]
         }
@@ -48,7 +48,7 @@
         }
         return( out )
       }
- 
+
       # default is to "load"
       dirlist = list.files(path=minilog.rawdata.location, full.names=T, recursive=T)
       oo = grep("backup", dirlist)
@@ -58,16 +58,16 @@
       }
 
       nfiles = length(dirlist)
-      filelist = matrix( NA, ncol=3, nrow=nfiles) 
-     
+      filelist = matrix( NA, ncol=3, nrow=nfiles)
+
       for (f in 1:nfiles) {
-        yr = minilogDate( fnMini=dirlist[f] ) 
+        yr = minilogDate( fnMini=dirlist[f] )
         if (is.null(yr) ) next()
         if ( yr %in% Y ) filelist[f,] = c( f, dirlist[f], yr )
       }
       filelist = filelist[ which( !is.na( filelist[,1] ) ) , ]
 
-      set = snowcrab.db( DS="setInitial" )  # set$chron is in local time America/Halifax  
+      set = snowcrab.db( DS="setInitial" )  # set$chron is in local time America/Halifax
 
       for ( yr in Y ) {
         print(yr)
@@ -85,38 +85,38 @@
           } else {
             j = load.minilog.rawdata( fn=fs[f], f=f, set=set)  # variable naming conventions in the past
           }
-          if (is.null(j)) next() 
+          if (is.null(j)) next()
           metadata = rbind( metadata, j$metadata)
           basedata = rbind( basedata, j$basedata)
         }
-        
-        # now do a last pass for the "backups" .... 
+
+        # now do a last pass for the "backups" ....
         # incomplete ....
         add.backup.minilogs=FALSE
         if (add.backup.minilogs) {
           fb = backups[ which( as.numeric(backups[,3])==yr ) , 2 ]
           for (f in 1:length(fb)) {
             j = load.minilog.rawdata.backups( fn=fb[f], f=f, set=set)  # variable naming conventions in the past
-            if (is.null(j)) next() 
+            if (is.null(j)) next()
             metadata = rbind( metadata, j$metadata)
             basedata = rbind( basedata, j$basedata)
           }
         }
 
-        save( metadata, file=fn.meta, compress=TRUE ) 
-        save( basedata, file=fn.raw, compress=TRUE ) 
+        save( metadata, file=fn.meta, compress=TRUE )
+        save( basedata, file=fn.raw, compress=TRUE )
 
       }
 
       minilog.db( DS="set.minilog.lookuptable.redo" )
-        
+
       return ( minilog.dir )
     }
 
     # -----------------------------------------------
 
     if (DS %in% c("stats", "stats.redo" ) ) {
-      
+
       if (DS %in% c("stats") ){
         flist = list.files(path=minilog.dir, pattern="stats", full.names=T, recursive=FALSE)
         if (!is.null(Y)) {
@@ -124,7 +124,7 @@
           for (yy in Y ) {
             ll = grep( yy, flist)
             if (length(ll)==0) return(NULL) # nothing to do
-            if (length(ll)>0 ) mm = c( mm, ll) 
+            if (length(ll)>0 ) mm = c( mm, ll)
           }
           if (length(mm) > 0 ) flist= flist[mm]
         }
@@ -134,24 +134,24 @@
           mini.stat = rbind( mini.stat, miniStats )
         }
         mini.meta = minilog.db( DS="metadata", Y=Y )
-        res = merge( mini.meta, mini.stat,  by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE ) 
+        res = merge( mini.meta, mini.stat,  by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
         if(any(duplicated(res[,c('trip','set')]))) {
             res = removeDuplicateswithNA(res,cols=c('trip','set'),idvar='dt')
           }
-  
+
         # TODO:: move the following to the load.minilog funcition .. and remove chron dependence
         res$t0 = as.POSIXct( as.chron(res$t0), tz=tzone, origin=lubridate::origin )
         res$t1 = as.POSIXct( as.chron(res$t1), tz=tzone, origin=lubridate::origin )
         res$dt = as.numeric( res$t1 - res$t0  )
         res$timestamp = lubridate::ymd_hms( res$timestamp)
-       
+
         return (res)
        }
 
 
       # "stats.redo" is the default action
-      tzone = "America/Halifax" 
-      
+      tzone = "America/Halifax"
+
       for ( yr in Y ) {
         print (yr )
         fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rdata", sep=".") )
@@ -165,32 +165,32 @@
         rid = minilog.db( DS="set.minilog.lookuptable" )
         rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
-        rid = rid[ which(rid$yr== yr) ,] 
-        #rid = rid[grepl('S19092004',rid$minilog_uid),] 
+        rid = rid[ which(rid$yr== yr) ,]
+        #rid = rid[grepl('S19092004',rid$minilog_uid),]
         if (nrow(rid) == 0 ) next()
-        
+
         for ( i in 1:nrow(rid)  ) {
 
           id = rid$minilog_uid[i]
-          sso.trip = rid$trip[i] 
+          sso.trip = rid$trip[i]
           sso.set = rid$set[i]
           sso.station = rid$station[i]
 
           Mi = which( miniRAW$minilog_uid == id )
           if (length( Mi) == 0 ) next()
           M = miniRAW[ Mi, ]
-          
+
           M$timestamp = as.POSIXct( M$chron, tz=tzone, origin=lubridate::origin )
           settimestamp= as.POSIXct( rid$setChron[i] , tz=tzone , origin=lubridate::origin )
           time.gate =  list( t0=settimestamp - dminutes(5), t1=settimestamp + dminutes(11) )
-            
+
           print( paste( i, ":", id) )
-     
+
           # default, empty container
           res = data.frame(z=NA, t=NA, zsd=NA, tsd=NA, n=NA, t0=NA, t1=NA, dt=NA)
 
-          bad.list = c( 
-#'minilog.S20052000.10.NA.NA.NA.13', 
+          bad.list = c(
+#'minilog.S20052000.10.NA.NA.NA.13',
 #'minilog.S19092004.8.389.NA.NA.321',
 #'minilog.S19062000.8.NA.NA.NA.165' ,
 #"minilog.S07092002.12.NA.NA.NA.245",
@@ -202,19 +202,19 @@
 # "minilog.S21102010.9.341.14.51.252",
 # "minilog.S25092010.8.36.NA.NA.33",
 # "minilog.S27102010.3.918.8.11.423"
-          ) 
-          
-          if (! ( id %in% bad.list ) ) { 
-            
+          )
+
+          if (! ( id %in% bad.list ) ) {
+
             ndat = length(M$depth[!is.na(M$depth)])
             if( ndat > 15 ) {
               # defaults appropriate for more modern scanmar data have > 3500 pings
               # depth resolution is about 4-5 m
-              bcp = list( 
-                id=id, datasource="snowcrab", nr=nrow(M), YR=yr,
+              bcp = list(
+                id=id, nr=nrow(M), YR=yr,
                 tdif.min=3, tdif.max=9, time.gate=time.gate, depth.min=20, depth.range=c(-20,30), eps.depth = 1
               )
- 
+
               #if(id=="minilog.S18092004.6.392.13.9.326") browser()
               # if(id=="minilog.S22061999.8.NA.NA.NA.84") browser()
               # if(id=="minilog.S04102007.12.903.17.10.378") browser()
@@ -223,31 +223,31 @@
               bc =  NULL
               bc = bottom.contact( x=M, bcp=bcp )
               ## bottom.contact.plot (bc)
-    
+
               if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
-                 bc = bottom.contact( x=M, bcp=bcp ) 
-              }
-           
-              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
-                bcp$noisefilter.inla.h =0.1
-                bc = bottom.contact( x=M, bcp=bcp ) 
-              }
-   
-              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
-                M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
-                bcp$noisefilter.inla.h = 0.01
-                bc = bottom.contact( x=M, bcp=bcp ) 
-              }
- 
-              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
-                M$depth = jitter( M$depth, amount = bcp$eps.depth/10 ) 
-                bcp$noisefilter.inla.h = 0.1
-                bc = bottom.contact( x=M, bcp=bcp ) 
+                 bc = bottom.contact( x=M, bcp=bcp )
               }
 
-              if ( !is.null(bc$res) & exists( "res", bc) ) res = bc$res 
-            } 
-           
+              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+                bcp$noisefilter.inla.h =0.1
+                bc = bottom.contact( x=M, bcp=bcp )
+              }
+
+              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+                M$depth = jitter( M$depth, amount = bcp$eps.depth/10 )
+                bcp$noisefilter.inla.h = 0.01
+                bc = bottom.contact( x=M, bcp=bcp )
+              }
+
+              if ( is.null(bc) || ( exists( "res", bc) && ( ( !is.finite(bc$res$t0 ) || !is.finite(bc$res$t1 ) ) ) )) {
+                M$depth = jitter( M$depth, amount = bcp$eps.depth/10 )
+                bcp$noisefilter.inla.h = 0.1
+                bc = bottom.contact( x=M, bcp=bcp )
+              }
+
+              if ( !is.null(bc$res) & exists( "res", bc) ) res = bc$res
+            }
+
             if( ndat == 0) {
               # nothing to do now ...
               # headerall = rid[i,'headerall'] , z = NA, t =  NA, zsd =NA, tsd =NA, n = NA,t0 =NA , t1=NA, dt =NA)
@@ -259,7 +259,7 @@
           if (FALSE) {
             # to visualize/debug
             bottom.contact.plot(bc)
-            ## --- NOTE modal seems to work best ... but 
+            ## --- NOTE modal seems to work best ... but
             # no single best method .. use the default which is the mean of all methods
             ##  likely due to greater precision and data density relative to minilog
             #            res$t0 = bc$smooth.method[1]
@@ -268,16 +268,16 @@
           }
           res$t0 = as.POSIXct(res$t0,origin=lubridate::origin, tz=tzone )
           res$t1 = as.POSIXct(res$t1,origin=lubridate::origin, tz=tzone )
-          res$dt = as.numeric(res$dt) 
+          res$dt = as.numeric(res$dt)
           miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
         }
-        
+
         miniStats$minilog_uid =  as.character(miniStats$minilog_uid)
         minidt = miniStats$dt
         miniStats$dt = NA
         i = which(!is.na( minidt ) )
         if (length(i) >0 ) miniStats$dt[i] = times( minidt[i] )
-  
+
         save( miniStats, file=fn, compress=TRUE )
       }
 
@@ -287,19 +287,19 @@
     # --------------------------------
 
     if (DS %in% c("set.minilog.lookuptable", "set.minilog.lookuptable.redo") ) {
-  
+
       fn = file.path( minilog.dir, "set.minilog.lookuptable.rdata" )
-     
+
       if (DS=="set.minilog.lookuptable" ) {
         B = NULL
         if ( file.exists( fn) ) load (fn)
         return (B)
       }
-     
+
       B = minilog.db( DS="metadata" )
-      
+
       # double check .. should not be necessary .. but in case
-      uuid = paste( B$trip, B$set, sep="." ) 
+      uuid = paste( B$trip, B$set, sep="." )
       dups = which( duplicated( uuid) )
 
       if (length(dups > 0 ) ) {
@@ -307,7 +307,7 @@
         for (i in dups) {
           di = which( uuid == uuid[i] )
           tdiff = B$setChron[di] - B$timestamp[di]
-          oo = which.min( abs( tdiff) ) 
+          oo = which.min( abs( tdiff) )
           toremove = c(toremove, di[-oo] )
           print("----")
           print( "Matching based upon closest time stamps")
@@ -322,7 +322,7 @@
       B = B[, c("trip", "set", "minilog_uid" )]
       save(B, file=fn, compress=TRUE )
       return(fn)
-    } 
+    }
 	}
- 
+
 
