@@ -797,7 +797,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
 
     if ( !is.null( debugid ) ) {
-      YRS = as.numeric( substring( debugid, 4,7) )
+      YRS = unique( as.numeric( substring( debugid, 4,7) ))
       if (! YRS %in% c(1990:1992, 2004:p$current.year) ) {
         stop( paste( "Year did not parse correctly? ", YRS ) )
       }
@@ -899,23 +899,75 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         #   bcp$noisefilter.target.r2 = 0.9
         }
 
-        # low-level hacks:: over-ride of bottom contact parameters for strange data
+        # low-level hacks:: over-ride of bottom contact parameters for strange/extreme data
         if (id %in% c("TEL2004529.18" )) bcp$depth.range = c(-120, 120) # not sure why this has such a large range!
-        if (id %in% c("NED2013028.172", "TEL2004530.84", "TEL2004530.50")) bcp$depth.range = c(-70, 120)
-        if (id %in% c("NED2013022.192" )) bcp$depth.range = c(-300, 300) # not sure why this has such a large range!
-        if (id %in% c("NED2013022.193")) bcp$depth.range = c(-250, 150)
-
-        if (id=="TEL2004529.16") {
-          bcp$depth.range = c(-150, 150)
-          bcp$noisefilter.smoother = "loess"
-          bcp$noisefilter.quants = c(0.01, 0.99)
+        if (id %in% c("NED2013028.172", "TEL2004530.84" )) {
+          bcp$depth.range = c(-70, 120)
         }
 
-        if (id=="NED2015002.12") {
-         # bcp$noisefilter.smoother = "loess"
-          bcp$noisefilter.quants = c(0.01, 0.99)
+        if (id=="TEL2004529.16") {
+          bcp$depth.range = c(-200, 200)
+          bcp$noisefilter.trim = 0.025
+          bcp$noisefilter.quants = c(0.025, 0.975)
+        }
+
+        if (id=="NED2013028.10") {
+          bcp$depth.range = c(-10, 10)
+          bcp$noisefilter.var.window = 5
+          bcp$noisefilter.quants = c(0.025, 0.975)
+        }
+
+        if (id=="TEL2004530.85") {
+          baddata = which( nmii$timestamp < "2004-07-27 00:37:00 ADT" | nmii$timestamp > "2004-07-27 01:09:00 ADT" )
+          nmii$depth[ baddata ] = NA
+          bcp$noisefilter.trim = 0.05
+          bcp$noisefilter.var.window = 5
+          bcp$depth.range = c(-80, 80)
+        }
+
+
+        if (id=="TEL2004529.20") {
+          bcp$noisefilter.quants = c(0.1, 0.9)
           bcp$noisefilter.target.r2 = 0.95
-          bcp$depth.range = c(-25, 25)
+          bcp$depth.range = c(-80, 80)
+        }
+
+        if (id=="TEL2004529.16") {
+          # bcp$noisefilter.quants = c(0.05, 0.95)
+          # bcp$noisefilter.trim = 0.05
+          bcp$noisefilter.var.window = 5
+          bcp$noisefilter.target.r2 = 0.9
+          bcp$depth.range = c(-80, 80)
+        }
+
+        if (id=="NED2010001.36") {
+          bcp$noisefilter.trim = 0.01
+          bcp$noisefilter.var.window = 5
+        }
+
+        if (id=="NED2010002.3") {
+          bcp$depth.range = c(-20, 20)
+          bcp$noisefilter.target.r2 = 0.95
+        }
+
+        if (id=="NED2014101.19") {
+          bcp$depth.range = c(-60, 50)
+          bcp$noisefilter.target.r2 = 0.9
+          bcp$noisefilter.trim = 0.1
+        }
+
+        if (id=="TEL2004530.50") {
+          bcp$noisefilter.trim = 0.1
+          bcp$noisefilter.quants = c(0.1, 0.9)
+          bcp$noisefilter.target.r2 = 0.9
+          bcp$depth.range = c(-45, 55)
+          bcp$noisefilter.var.window = 5
+        }
+
+        if (id=="NED2009027.68") {
+          # bcp$noisefilter.quants = c(0.1, 0.9)
+          bcp$noisefilter.target.r2 = 0.95
+          bcp$depth.range = c(-35, 25)
         }
 
         # two depth sensors were used simultaneously but they are not calibrated!

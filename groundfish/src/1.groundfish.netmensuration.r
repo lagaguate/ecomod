@@ -20,9 +20,12 @@ p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992
 # two depth sensors were used simultaneously but they are not calibrated!
 # they are remarkably hard to filter out while still maintaining current methods
 # instead: send a trigger to bottom.contact to operate on this properly
-p$id.double.depth.sensors = paste( "NED2015002", c( 51:54, 55:64), sep="." )
+p$id.double.depth.sensors = paste( "NED2015002", c( 47:64 ), sep="." )
+#p$id.double.depth.sensors = c( p$id.double.depth.sensors )
+
 # set id's that should be skipped
-p$problem.sets = c("NED2014018.27")
+p$problem.sets = c("NED2014018.27", "NED2014101.11", "NED2014101.12", "NED2014101.13",  "NED2014101.14",
+        "NED2010027.143")  # data looks corrupted/improper due to faulty sensor data
 
 
 # steps required to recreate a local database of all data
@@ -49,39 +52,26 @@ scanmar.db( DS="sanity.checks.redo",  p=p )      # QA/QC of data
 # usually insufficient data for these or just flat-lines .. no reliable data
 
 if (FALSE) {
-  # simple:
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.1") # simple, low n
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.47")
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2010027.139" ) # n=1851 ??  smooth get chopped up?
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.27") # normal .. lots of data
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.55") # ???
+  # challenging tests
+  totest = c("TEL2004529.20", "TEL2004529.16", "TEL2004530.84",  "TEL2004530.85", "NED2015002.12",
+             "NED2010001.36", "NED2010002.1",
+   )
 
-  # challenging tests:
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.20") # no tail, humped
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.16") # very large range
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2013028.10") # simple, n=1663, strange tail
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.12") # missing a tail
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004530.84") # missing a tail
+  # nomatch in gsinf?
+  totest = c( "NED2010027.62", "NED2010027.117", "NED2010027.118",  "NED2010027.201",
+   "NED2014101.16", "NED2014101.21", "NED2014101.14", "NED2014101.16", "NED2014101.21",
+  "NED2014002.1", "NED2014102.5",
+  "NED2014102.29", "NED2014102.33", "NED2014102.34", "NED2014102.37", "NED2014102.39", "NED2015002.57")
 
-  # no data?
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.59") # two depth sensors  in the same log ! --
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2015002.64") # two depth sensors  --
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "NED2014018.27")  ## a lot of data ???
+  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid=totest )  ## a lot of data ???
 
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004529.11")  ## a lot of data ???
-
-
-
-
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004530.84")  ## a lot of data ???
-  bc = scanmar.db( DS="bottom.contact.redo",  p=p , debugid= "TEL2004530.85")  ## a lot of data ???
+  # lots of 20 min tows in 2012 and 2014
+  # and some are really 15 min !
 
   # to  load a single result and view
   # bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2010027.53") # strange wingspreads
   # bottom.contact.plot( bc, netspread=TRUE )
 }
-
-
 
 scanmar.db( DS="bottom.contact.redo",  p=p )  # bring in estimates of bottom contact times from scanmar
 
@@ -248,7 +238,7 @@ gr = abs(g$dist_km - (g$wing.sa / g$wing.mean)*1000)
 strange = which ( gr > 1 & g$gear==9 & g$settype==1 )
 g[strange, "id"]
 
-"NED2014101.23" "NED2011002.6"  "NED2014101.13" "NED2014101.15" "NED2015002.20"
+"NED2014101.23" "NED2011002.6"  "NED2014101.15" "NED2015002.20"
 
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2014018.71")  # depth sensor not working
 bc = scanmar.db( DS="bottom.contact",  p=p , setid= "NED2013022.192") # large depth range
