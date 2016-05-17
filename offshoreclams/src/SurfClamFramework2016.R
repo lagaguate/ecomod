@@ -53,6 +53,30 @@ update.data=FALSE # TRUE accesses data from database if on a DFO windows machine
   #write.csv(CWzones[,c("PID","POS","X","Y")],file.path( project.datadirectory("offshoreclams"), "data","maps","CWzones.csv"),row.names=F)
   CWzones <- read.csv(file.path( project.datadirectory("offshoreclams"), "data","maps","CWzones.csv"))
 
+## parameters
+
+  p=list()
+  p$bank= "Ban"
+  p$yrs= list(2004:2015)
+  #p$yrs= list(1986:2010,2000:2010,2009:2010)
+  p$effort.threshold = c(15000,200000)
+  p$catch.threshold = c(1500,30000)
+  p$cpue.threshold = c(15000)
+  p$effort.levels = c(1000,50000,100000,200000,500000,1000000)#,2000000,5000000)
+  p$catch.levels = c(100,5000,10000,20000,50000,100000,200000,500000)
+  p$cpue.levels = c(0,0.025,0.05,0.075,0.1,0.125,0.15,0.2)
+  p$effort.cols = "YlGnBu"
+  p$catch.cols = "YlGnBu"
+  p$cpue.cols = "YlGnBu"
+  p$Min_lon = -60.0
+  p$Max_lon = -57.0
+  p$Min_lat = 44.0
+  p$Max_lat = 45.25
+  p$grid.size = 2
+  #p$grid.size = 1.852
+
+
+
 ####### Maps
 
 ClamMap2('all',isobath=seq(50,500,50))
@@ -111,26 +135,6 @@ abline(v=c(15000,200000),col='red',lwd=2)
     
 ## Grid Plots
 
-p=list()
-p$bank= "Ban"
-p$yrs= list(2004:2015)
-#p$yrs= list(1986:2010,2000:2010,2009:2010)
-p$effort.threshold = c(15000,200000)
-p$catch.threshold = c(1500,30000)
-p$cpue.threshold = c(15000)
-p$effort.levels = c(1000,50000,100000,200000,500000,1000000)#,2000000,5000000)
-p$catch.levels = c(100,5000,10000,20000,50000,100000,200000,500000)
-p$cpue.levels = c(0,0.025,0.05,0.075,0.1,0.125,0.15,0.2)
-p$effort.cols = "YlGnBu"
-p$catch.cols = "YlGnBu"
-p$cpue.cols = "YlGnBu"
-p$Min_lon = -60.0
-p$Max_lon = -57.0
-p$Min_lat = 44.0
-p$Max_lat = 45.25
-p$grid.size = 2
-#p$grid.size = 1.852
-
 # Banquereau
 Totalgrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='totalVMS',boundPoly=Banq100,isobath=seq(50,500,50),bathy.source='bathy',nafo='all')#,aspr=1)
 save(Totalgrid.out,file=file.path( project.datadirectory("offshoreclams"), "data", "griddedFisheryDataTotal.Rdata" ))
@@ -155,6 +159,7 @@ p$Min_lat = 43.0
 p$Max_lat = 46.5
 GrandTotalgrid.out <- FisheryGridPlot(fisheryList,p,vms=T,fn='GrandTotalVMS',isobath=seq(50,500,50),nafo='all',lg.place="topleft",ht=8,wd=6,outsideBorder=T)#,aspr=1)
 
+
 ## summary table of catch and effort data
 Years=1986:2015
 
@@ -168,10 +173,9 @@ Grand = data.frame(Year=as.numeric(names(Grand.C)),Grand.Catch = Grand.C/10^3, G
 
 write.csv(merge(Ban,Grand,all=T),file.path( project.datadirectory("offshoreclams"), "R","CatchEffort.csv"),row.names=F)
 
-
+## exploration of seasonal fishing patterns
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","SeasonalFishingPattern.pdf"),8,11)
 
-# Seasonal fishing patterns
 p$yrs= 2007:2015
 par(mfrow=c(3,3),mar=c(0,0,0,0))
 for (i in 1:length(p$yrs)) {
@@ -182,9 +186,13 @@ for (i in 1:length(p$yrs)) {
 dev.off()
 
 
-# distribution of surf clams catch
+# distribution of surf clams catch from log data
 p$yrs=list(2004:2010,2011:2015)
 b=1
+  
+  # or use this
+  vmslogdata = assignLogData2VMS(fisheryList, p)
+
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","TotalRemovals.pdf"),8,11)
 
 for(i in 1:length(p$yrs)){
@@ -245,6 +253,7 @@ wal = l^LenWt2010.fit$B * LenWt2010.fit$A
 # LengthFrequencies
 FisheryDataList = c(fisheryList,list(lf.data=lf.data))
 LengthFrequencies(FisheryDataList, DS="Fishery", bins=seq(0,200,5), Yrs=2009:2014, wal = wal, fn='BanqCatch', rel=F, ymax=40000,ylab="Number of Clams") 
+LengthFrequencies(FisheryDataList, DS="Survey", bins=seq(0,200,5), Yrs=c(2004,2010), wal = wal, fn='BanqSurv', rel=F, ymax=40000,ylab="Clams / km2") 
 
 
 # distribution of surf clams from survey
@@ -306,6 +315,7 @@ dev.off()
  
 ############## Production model ################
 
+loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.general"))
   
 
   interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
@@ -315,7 +325,11 @@ dev.off()
  # distribute Catch and Effort data over VMS locations
   vmslogdata = assignLogData2VMS(fisheryList, p)
   vmslogdata = subset(vmslogdata,EID%in%findPolys(vmslogdata,Banq100, maxRows = 1e+06)$EID)
-  
+
+  oldlogdata = na.omit(subset(fisheryList$log.data, year<2003&bank==1&area>p$effort.threshold[1]&area<p$effort.threshold[2]&round_catch>p$catch.threshold[1]&round_catch<p$catch.threshold[2],  c("logrecord_id","lon_dd","lat_dd","round_catch","area","year","record_date")))
+  names(oldlogdata) = names(vmslogdata)
+  oldlogdata = subset(oldlogdata,EID%in%findPolys(oldlogdata,Banq100, maxRows = 1e+06)$EID)
+ 
   # create a polygon from vms density as a proxy for clam habitat
   VMSden.poly = vmsDensity(vmslogdata,sig=0.2,res=0.1,lvl=30)
 
@@ -324,7 +338,11 @@ dev.off()
   addPolys(VMSden.poly,col=rgb(0,0,0,0.2))
   addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
 
-  SPMdata = SPMsetup(vmslogdata,Totalgrid.out,VMSden.poly,CWzones,yrs=2003:2015,effort.min=100000,r=5,n.min=7)
+  combineddata = rbind(oldlogdata,vmslogdata)
+  combineddata$EID = 1:nrow(combineddata) 
+
+  yrs = 1988:2015
+  SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,CWzones,yrs=yrs,effort.min=100000,r=5,n.min=7)
 
   SPMdataList = SPMdata$SPMdataList
   NJ = SPMdataList$NJ
@@ -332,41 +350,61 @@ dev.off()
   logB0.u=log(SPMdataList$O[1,])
 
     SPMpriors=list(
-      logK=        list(a=logK.u,  b=rep(8,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # carrying capacity
-      logB0=       list(a=logB0.u, b=rep(8,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # initial biomass
-      r.u=         list(a=1,       b=2,          d="dunif",    i1=1.2, i2=1.1, l=1   ),    # intrinsic rate of increase
-      r.sd=        list(a=0,       b=2,          d="dunif",    i1=1.2, i2=0.9, l=1   ),    # intrinsic rate of increase
-      q=           list(a=0.3,     b=1,          d="dunif",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
+      logK=        list(a=logK.u,  b=rep(4,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # carrying capacity
+      logB0=       list(a=logB0.u, b=rep(4,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # initial biomass
+      #r=           list(a=3,       b=0.5,        d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.u=         list(a=0,       b=2,          d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.sd=        list(a=-0.35,    b=3.5,          d="dlnorm",    i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
+      q=           list(a=0.2,     b=1,          d="dunif",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
       sigma=       list(a=0,       b=5,          d="dunif",    i1=2,   i2=3,   l=1   ),    # process error (SD)
       itau2=       list(a=3,       b=0.44629,    d="dgamma",   i1=15,  i2=30,  l=1   )    # observation error (precision)
     ) 
 
-    SPmodel.out<-runBUGS("SPhyper", SPMdataList, SPMpriors, SPMdataList$yrs, n = 600, burn = 300, thin = 1,debug=F,parameters=c(names(SPMpriors),'K','P','r','r.a','r.b'),sw='jags')
+    SPmodel.out<-runBUGS("SPhyper", SPMdataList, SPMpriors, SPMdataList$yrs, n = 60000, burn = 30000, thin = 1,debug=F,parameters=c(names(SPMpriors),'K','P','r','B0'),sw='jags')
 
 
+  ## Plotting model results
+
+    # plot fits to abundance indices 
+    SPMfit.plt(SPmodel.out, yrs=yrs, CI=T,graphic='R',H = SPMdata$Habitat, ht=8,wd=6,rows=5)
+
+    # plot the posterior distributions of the estimated parameters
+    SPMpost.plt(SPmodel.out,SPMpriors, graphic='R',nr=3,nc=3,wd=15)
+    #post.plt(SPmodel.out,SPmodelpriors,years=yrs, graphic='R',nr=2,nc=3,wd=15,multi=T)
+
+    # plot the biomass estimates for commercial and recruit size scallops
+    #SPMbiomass.plt(SPmodel.out,years=yrs, graphic='R') 
+
+    # plot the expliotion rate and natural survival fraction
+    SPMexploit.plt(SPmodel.out, years=yrs, plt=c('f','m','mR'),graphic='R')
+
+    # plot residuals for the fit and process (process residuals represent the difference between what the dynamics and the data say about biomass)
+    # Note: with current version of the data there are some large process reiduals 
+    SPMdiag.plt(SPmodel.out, yrs,graphic='R')
 
 
-      # depletion test
-      test.poly=data.frame(PID=1,POS=1:4,X=c(-59.53,-59.4,-59.53,-59.4),Y=c(44.45,44.45,44.55,44.55))
+# depletion test
 
-      test.logs=with(subset(processed.log.data,Year==2013),na.omit(data.frame(X=lon_dd,Y=lat_dd,C=round_catch,E=area_towed,T=record_date)))
-      test.logs$EID=1:nrow(test.logs)
+  test.poly=data.frame(PID=1,POS=1:4,X=c(-59.53,-59.4,-59.53,-59.4),Y=c(44.45,44.45,44.55,44.55))
 
-      key=findPolys(test.logs,test.poly)
+  test.logs=with(subset(processed.log.data,Year==2013),na.omit(data.frame(X=lon_dd,Y=lat_dd,C=round_catch,E=area_towed,T=record_date)))
+  test.logs$EID=1:nrow(test.logs)
 
-      test.logs=subset(test.logs,EID%in%key$EID)
-      test.logs=test.logs[order(test.logs$T),]
+  key=findPolys(test.logs,test.poly)
 
-      test.logs$CPUE=test.logs$C/test.logs$E
-      test.logs$cumC=cumsum(test.logs$C)
-      plot(CPUE~cumC,test.logs)
+  test.logs=subset(test.logs,EID%in%key$EID)
+  test.logs=test.logs[order(test.logs$T),]
 
-      mod=lm(CPUE~cumC,test.logs)
-      abline(mod)
+  test.logs$CPUE=test.logs$C/test.logs$E
+  test.logs$cumC=cumsum(test.logs$C)
+  plot(CPUE~cumC,test.logs)
 
-      N1=coef(mod)[1]/-coef(mod)[2]
+  mod=lm(CPUE~cumC,test.logs)
+  abline(mod)
 
-      u=test.logs$cumC[nrow(test.logs)]/N1
+  N1=coef(mod)[1]/-coef(mod)[2]
+
+  u=test.logs$cumC[nrow(test.logs)]/N1
 
   min.n=10
    for(y in which(p$yrs!=1992)){
