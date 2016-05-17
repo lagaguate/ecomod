@@ -14,24 +14,28 @@ model
     B0[j] <- exp(logB0[j])
   }
   
-  
+    
+    
   # priors for intrinsic rate of increase 
   
   # hyperprior on mean r 
   r.u ~ dunif(r.u.a,r.u.b)
   # hyperprior on sd r 
-  r.sd ~ dunif(r.sd.a,r.sd.b)
+  r.sd ~ dlnorm(r.sd.a,r.sd.b)
+  #r.sd ~ dunif(r.sd.a,r.sd.b)
+  #r.sd <- 5
   
   # convert mean and sd to hyperparameters for prior
-  #r.b<-pow(log(r.sd),-2)
-  #r.a<-log(r.u)
-  r.b<-(pow(r.sd,2)/r.u) # for gamma prior
-  r.a<-pow(r.sd,2)/pow(r.b,2) # for gamma prior
-  
+  r.b<-pow(log(r.sd),-2)
+  r.a<-log(r.u)
+  #r.b<-(pow(r.u,2)/r.u) # for gamma prior
+  #r.a<-pow(r.sd,2)/pow(r.b,2) # for gamma prior
+
   # prior for r
   for(j in 1:NJ){
-    #r[j] ~ dlnorm(r.a, r.b)
-    r[j] ~ dgamma(r.a, r.b) # gamma prior
+    r[j] ~ dlnorm(r.a, r.b)
+    #r[j] ~ dgamma(r.a, r.b) # gamma prior
+    #r[j] ~ dunif(r.a, r.b) # gamma prior
   }
   
   # priors for catchabilities

@@ -32,22 +32,23 @@ SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,yrs=2003:2015,effort.mi
   # assign dataset to each node
   SPdata = list()
   n = c()
+  clamhabitatarea = c()
   for (i in 1:nnodes){
     cat(i)
     # calculate clam habitat
     clamhabitat = joinPolys(vmspoly,subset(subpolys,PID==i),operation="INT")
     if(!is.null(clamhabitat)){
       attr(clamhabitat,"projection") = "LL"
-      clamhabitatarea = calcArea(clamhabitat,1)$area # area of clam habitat with the circle
+      clamhabitatarea[i] = calcArea(clamhabitat,1)$area # area of clam habitat with the circle
 
       # select data points
       tmpdata =  subset(vmslogdata,EID%in%subset(key,PID==i)$EID)
       #yrs = min(tmpdata$year):max(tmpdata$year)
       C = with(tmpdata,tapply(C,year,sum))/1000 # catch in tons
       E = with(tmpdata,tapply(A,year,sum)) / 10^6  # effort (area swept in km2)
-      O = C / E * clamhabitatarea # catch per unit effort in t / area of clam habitat
+      O = C / E * clamhabitatarea[i] # catch per unit effort in t / area of clam habitat
       n[i] = length(C)
-      SPdata[[i]] = merge(data.frame(yrs=yrs,PID=i,H=clamhabitatarea),data.frame(yrs=as.numeric(names(C)),C=C,O=O),all.x=T)
+      SPdata[[i]] = merge(data.frame(yrs=yrs,PID=i,H=clamhabitatarea[i]),data.frame(yrs=as.numeric(names(C)),C=C,E=E,O=O),all.x=T)
       SPdata[[i]]$C[is.na(SPdata[[i]]$C)] = 0
     }
     else print("No habitat!")
@@ -58,6 +59,6 @@ SPMsetup = function(vmslogdata,grid.out,vmspoly,subpolys,yrs=2003:2015,effort.mi
   SPdata = SPdata[which(n>=n.min)]
   model.lst=list(NJ=nnodes,NY=length(yrs),C=sapply(1:nnodes,function(i){SPdata[[i]]$C}),O=sapply(1:nnodes,function(i){SPdata[[i]]$O}))
  
-  return(list(SPMdata=SPdata,SPMdataList=model.lst))
+  return(list(SPMdata=SPdata,SPMdataList=model.lst,Habitat=clamhabitatarea))
 
 }
