@@ -1,7 +1,7 @@
 gridData <- function(Data,domain.poly,lvls,bcol="YlGnBu",border=1,FUN=mean,grid.size=1,aspr="calculate",sx,sy,ex,ey) {  
 
 #// summarizes data onto a grid, creates PBSmapping polySet and polyData 
-
+	print("Mike's a dork")
 	require(PBSmapping)
 	require(RColorBrewer)
 	names(Data)[1:4]<-c("EID","X","Y","Z")
@@ -30,7 +30,6 @@ gridData <- function(Data,domain.poly,lvls,bcol="YlGnBu",border=1,FUN=mean,grid.
 	locData<- findCells(Data, grid) 
 	pdata  <- combineEvents(Data, locData, FUN=FUN)
 
-	#browser()
 	cols   <- brewer.pal(length(lvls),bcol) 
 	pdata  <- makeProps(pdata, c(lvls,max(lvls)*100), "col", cols) 
 	pdata$border<-border

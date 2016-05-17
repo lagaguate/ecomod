@@ -1,6 +1,6 @@
 RLibrary("lubridate","dplyr","ggplot2")
 
-loadfunctions(c('lobster','groundfish','BIOsurvey'))
+loadfunctions(c('lobster','groundfish','BIOsurvey','utility'))
 
 ##______________________##
 ##                      ##
