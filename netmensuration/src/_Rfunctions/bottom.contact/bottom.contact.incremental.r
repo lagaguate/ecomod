@@ -9,7 +9,7 @@ bottom.contact.incremental = function( sm, bcp=bcp )  {
     sm =data.frame( Z=bc$Z)
     sm$timestamp=bc$timestamp
     sm$ts=bc$ts
-    good = bc$good 
+    good = bc$good
     sm$Z[ !good] = NA
   }
 
@@ -35,13 +35,13 @@ bottom.contact.incremental = function( sm, bcp=bcp )  {
   }
 
   sm$slope.cleaned = interpolate.xy.robust( sm[, c("ts", "slope")], method="sequential.linear" , probs=bcp$incremental.quants )
-  
+
   slope.imax = which.max( sm$slope )  # descent has a positive slope start search from maximal slope
   slope.imin = which.min( sm$slope )  # ascending limb has a negative slope .. start search from min slope
   slope.mid = trunc( (slope.imin + slope.imax) /2 )
   slope.modes = modes( sm$slope )
   # sm$slope.smoothed = interpolate.xy.robust( sm[, c("ts", "slope")], method="inla" )
- 
+
   if ( !is.finite(slope.modes$sd ) || slope.modes$sd < 1e-3) {
     return(res)
   }
@@ -56,19 +56,20 @@ bottom.contact.incremental = function( sm, bcp=bcp )  {
     if (sm$slope[i1] > slope.modes$lb2 ) break()
   }
 
-  res =  c( sm$timestamp[i0], sm$timestamp[i1] )    
- 
-  if (0) { 
+  res =  c( sm$timestamp[i0], sm$timestamp[i1] )
+
+  if (0) {
     plot(Z~ts,sm, pch=".")
     points(Z.cleaned~ts,sm, col="red", pch=20)
     abline( v=sm$ts[ c(i0, i1) ], col="blue" )
-     
+
     x11()
     plot(slope~ts, sm, pch=20, col="green" )
     abline( h=slope.modes, col="red" )
     abline( v=sm$ts[ c(i0, i1) ], col="blue" )
   }
-sm$slope.smoothed = interpolate.xy.robust( sm[, c("ts", "slope.cleaned")], method="inla" , probs=bcp$incremental.quants, target.r2=0.9 )
+
+  sm$slope.smoothed = interpolate.xy.robust( sm[, c("ts", "slope.cleaned")], method="inla" , probs=bcp$incremental.quants, target.r2=0.9 )
 
   return(res)
 }

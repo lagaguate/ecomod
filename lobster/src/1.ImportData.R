@@ -23,7 +23,7 @@ p$yrs = 1947:p$current.assessment.year
         lobster.db( DS = "survey.redo",  p=p)   # ITLS Lobster Survey
         lobster.db( DS = 'annual.landings.redo', p=p) #static annual landings tabke needs to be updated by CDenton
         lobster.db( DS = 'seasonal.landings.redo', p=p) #static seasonal landings table needs to be updated by CDenton
-
+        lobster.db( DS = "lfa41.vms.redo")
 
     #process log book data
 
