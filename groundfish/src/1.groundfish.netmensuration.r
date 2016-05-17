@@ -23,6 +23,7 @@ p$netmensuration.years = c(1990:1992, 2004:p$current.year) # NOTE:: 1990 to 1992
 p$id.double.depth.sensors = paste( "NED2015002", c( 47:64 ), sep="." )
 #p$id.double.depth.sensors = c( p$id.double.depth.sensors )
 
+
 # set id's that should be skipped
 p$problem.sets = c("NED2014018.27", "NED2014101.11", "NED2014101.12", "NED2014101.13",  "NED2014101.14",
         "NED2010027.143")  # data looks corrupted/improper due to faulty sensor data

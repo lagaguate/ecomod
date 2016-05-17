@@ -32,9 +32,12 @@ bottom.contact = function( x, bcp, debugrun=FALSE ) {
   if ( exists( "double.depth.sensors", bcp) ) {
     # two depth sensors were used simultaneously but they are not calibrated!
     # remarkably hard to filter this out with any reliability at a later stage ..
-    oi  = interpolate.xy.robust( x[, c("ts", "depth")], method="loess", trim=0.1, probs=c(0.05, 0.95),  target.r2=0.9 )
-    oo = which( (x$depth - oi) < 0)
-    x$depth[oo] = NA
+    om = modes( x$depth )
+    oaoi = range( which( x$depth <= om$ub2 & x$depth >= om$lb2))
+    oj = oaoi[1]:oaoi[2]
+    oi  = interpolate.xy.robust( x[oj, c("ts", "depth")], method="loess", trim=0.05, probs=c(0.05, 0.95),  target.r2=0.5 )
+    oo = which( (x$depth[oj] - oi) < 0)
+    x$depth[oj[oo]] = NA
     if (any( is.na( x$depth))) x$depth = interpolate.xy.robust( x[, c("ts", "depth")], method="simple.linear" )
   }
 
