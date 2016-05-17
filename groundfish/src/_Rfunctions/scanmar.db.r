@@ -840,6 +840,7 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
       if ( skipyear ) next()
 
+
       for ( id in uid) {
         print( id)
         ii = which( nm$id==id )  # rows of nm with scanmar/marport data
@@ -882,22 +883,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
 
         # over ride  defaults
         bcp$depth.range = c(-65, 65)
-        #if ( bcp$nr >= 1200 ) {
-
-        #}
-        # older data tend to be quite a bit more noisy
-        # if ( bcp$nr < 1200 ) {
-        #   bcp$noisefilter.trim = 0.1
-        #   bcp$noisefilter.quants = c(0.1, 0.9)
-        #   bcp$noisefilter.target.r2 = 0.9
-        #   bcp$noisefilter.var.window = 7
-        # }
-
-        if ( bcp$nr < 400 ) {
-        #   bcp$noisefilter.trim = 0.1
-        #   bcp$noisefilter.quants = c(0.1, 0.9 )
-        #   bcp$noisefilter.target.r2 = 0.9
-        }
 
         # low-level hacks:: over-ride of bottom contact parameters for strange/extreme data
         if (id %in% c("TEL2004529.18" )) bcp$depth.range = c(-120, 120) # not sure why this has such a large range!
@@ -965,9 +950,12 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         }
 
         if (id=="NED2009027.68") {
-          # bcp$noisefilter.quants = c(0.1, 0.9)
           bcp$noisefilter.target.r2 = 0.95
           bcp$depth.range = c(-35, 25)
+        }
+
+        if (id=="NED2015002.39") {
+          bcp$depth.range = c(-15, 15)
         }
 
         # two depth sensors were used simultaneously but they are not calibrated!
@@ -1048,12 +1036,14 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         fn.bc = file.path( scanmar.bc.dir, "results", paste( "bc", id, "rdata", sep=".") )
         save ( bc, file=fn.bc, compress=TRUE )
       }
-
-      ## END of re-run area ...
-      gsinf.tokeep = setdiff( names( gsinf), setdiff(gsinf0.names, "id") )
-      gsinf = gsinf[ , gsinf.tokeep ]
-      fn = file.path( scanmar.bc.dir, paste( "gsinf.bottom.contact", YR, "rdata", sep=".")  )
-      save(gsinf, file=fn, compress= TRUE)
+      if (is.null(debugid))  {
+        # save only if not debug
+        ## END of re-run area ...
+        gsinf.tokeep = setdiff( names( gsinf), setdiff(gsinf0.names, "id") )
+        gsinf = gsinf[ , gsinf.tokeep ]
+        fn = file.path( scanmar.bc.dir, paste( "gsinf.bottom.contact", YR, "rdata", sep=".")  )
+        save(gsinf, file=fn, compress= TRUE)
+      }
 
     }  # end for years
 
@@ -1099,7 +1089,6 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
     gsinf$dist_wing = gsinf$wing.sa / gsinf$wing.mean * 1000  # est of length of the tow (km)
     gsinf$dist_door = gsinf$door.sa / gsinf$door.mean * 1000 # est of length of the tow (km)
     gsinf$yr = lubridate::year(gsinf$sdate)
-
 
       # empirical distribution suggests (above)  hard limits of rn, ~ same as gating limits
       # .. too extreme means interpolation did not work well .. drop

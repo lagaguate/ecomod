@@ -1,6 +1,6 @@
 
 interpolate.xy.robust = function( xy, method, target.r2=0.9, mv.win=10, trim=0.05,
-  probs=c(0.025, 0.975), loess.spans=seq( 0.2, 0.01, by=-0.02 ), inla.model="rw2",
+  probs=c(0.025, 0.975), loess.spans=seq( 0.25, 0.01, by=-0.01 ), inla.model="rw2",
   smoothing.kernel=kernel( "modified.daniell", c(2,1)), nmax=3, inla.h=0.1, inla.diagonal=0.01, inla.ngroups=400 ) {
 
   # simple interpolation methods
