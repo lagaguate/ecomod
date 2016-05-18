@@ -332,8 +332,50 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
       if (is.null( bd ))  skipyear = TRUE
 
       # extract data at modal depth locations for each profile/log
-      nm = summarize.netmensuration( bd )
-      if (is.null( nm) )  skipyear = TRUE
+      # find deepest point (actually modal depth)  for each set
+      # and estimate quantities for matching with gsinf
+      out = NULL
+
+      oo = which( bd$depth > 10 )
+      x = bd [ oo, ]  # depth is a required field to determine bottom contact
+      x = x[ order( x$timestamp), ]
+      iid = sort( unique( x$nm_id ) )
+
+      if (length( oo) > 30 ) {
+        for ( ii in 1:length(iid) ) {
+          v = w = NULL
+          w = which( x$nm_id == iid[ii] )
+          v = w[floor( length(w) / 2)]
+          if ( length(w) > 30 )  {
+            dd = x$depth[w]
+            mm = modes( dd )
+            if (is.finite( mm$lb2+mm$ub2 )) {
+              ww = which( dd > mm$lb2 & dd < mm$ub2 )
+              xx = which.min( x$timestamp[w[ww]]  )
+              v = w[ww[xx]]
+            }
+          }
+          out = c( out, v )
+        }
+      } else {
+        for ( ii in 1:length(iid) ) {
+          v = w = NULL
+          w = which( x$nm_id == iid[ii] )
+          v = w[floor( length(w) / 2)]
+          if ( length(w) > 10 )  {
+            mti = median( x$timestamp[w], na.rm=TRUE )
+            dd = as.numeric( difftime( x$timestamp[w], mti, units="hours" ) )
+            xx = which.min( abs(dd) )
+            v = w[xx]
+          }
+          out = c( out, v )
+        }
+      }
+      if ( length(out) > 1 ) {
+        nm = x[out,]
+      } else {
+        skipyear = TRUE
+      }
 
       if ( ! skipyear ) {
         nnm = nrow( nm)
