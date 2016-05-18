@@ -919,86 +919,17 @@ scanmar.db = function( DS, p, nm=NULL, YRS=NULL, setid=NULL, debugid=NULL){
         # define time gate -20 from t0 and 50 min from t0, assuming ~ 30 min tow
         # time.gate = list( t0=gsinf$sdate[gii] - dminutes(20), t1=gsinf$sdate[gii] + dminutes(50) )
 
-        # defaults appropriate for more modern scanmar data have > 3500 pings
-        bcp = list( id=id, nr=nrow(nmii), tdif.min=9, tdif.max=45 )  ### yes some are as short as 9 min
-        bcp = bottom.contact.parameters( bcp ) # add other default parameters
-
-        # over ride  defaults
-        bcp$depth.range = c(-65, 65)
-
-        # low-level hacks:: over-ride of bottom contact parameters for strange/extreme data
-        if (id %in% c("TEL2004529.18" )) bcp$depth.range = c(-120, 120) # not sure why this has such a large range!
-        if (id %in% c("NED2013028.172", "TEL2004530.84" )) {
-          bcp$depth.range = c(-70, 120)
-        }
-
-        if (id=="TEL2004529.16") {
-          bcp$depth.range = c(-200, 200)
-          bcp$noisefilter.trim = 0.025
-          bcp$noisefilter.quants = c(0.025, 0.975)
-        }
-
-        if (id=="NED2013028.10") {
-          bcp$depth.range = c(-10, 10)
-          bcp$noisefilter.var.window = 5
-          bcp$noisefilter.quants = c(0.025, 0.975)
-        }
-
+        # another hack .. probably best to move these into another function to keep it contained...
         if (id=="TEL2004530.85") {
+          # erratic recording with gaps and large noise signatures...
           baddata = which( nmii$timestamp < "2004-07-27 00:37:00 ADT" | nmii$timestamp > "2004-07-27 01:09:00 ADT" )
           nmii$depth[ baddata ] = NA
-          bcp$noisefilter.trim = 0.05
-          bcp$noisefilter.var.window = 5
-          bcp$depth.range = c(-80, 80)
         }
 
-
-        if (id=="TEL2004529.20") {
-          bcp$noisefilter.quants = c(0.1, 0.9)
-          bcp$noisefilter.target.r2 = 0.95
-          bcp$depth.range = c(-80, 80)
-        }
-
-        if (id=="TEL2004529.16") {
-          # bcp$noisefilter.quants = c(0.05, 0.95)
-          # bcp$noisefilter.trim = 0.05
-          bcp$noisefilter.var.window = 5
-          bcp$noisefilter.target.r2 = 0.9
-          bcp$depth.range = c(-80, 80)
-        }
-
-        if (id=="NED2010001.36") {
-          bcp$noisefilter.trim = 0.01
-          bcp$noisefilter.var.window = 5
-        }
-
-        if (id=="NED2010002.3") {
-          bcp$depth.range = c(-20, 20)
-          bcp$noisefilter.target.r2 = 0.95
-        }
-
-        if (id=="NED2014101.19") {
-          bcp$depth.range = c(-60, 50)
-          bcp$noisefilter.target.r2 = 0.9
-          bcp$noisefilter.trim = 0.1
-        }
-
-        if (id=="TEL2004530.50") {
-          bcp$noisefilter.trim = 0.1
-          bcp$noisefilter.quants = c(0.1, 0.9)
-          bcp$noisefilter.target.r2 = 0.9
-          bcp$depth.range = c(-45, 55)
-          bcp$noisefilter.var.window = 5
-        }
-
-        if (id=="NED2009027.68") {
-          bcp$noisefilter.target.r2 = 0.95
-          bcp$depth.range = c(-35, 25)
-        }
-
-        if (id=="NED2015002.39") {
-          bcp$depth.range = c(-15, 15)
-        }
+        # defaults appropriate for more modern scanmar data have > 3500 pings
+        bcp = list( id=id, nr=nrow(nmii), tdif.min=9, tdif.max=45, depth.range=c(-65, 65) )  ### yes some are as short as 9 min
+        bcp = bottom.contact.parameters( bcp ) # add other default parameters
+        bcp = netmensuration.parameters.local.overrides( id, bcp ) # hacks to make strange profiles work go into this function
 
         # two depth sensors were used simultaneously but they are not calibrated!
         # remarkably hard to filter this out
