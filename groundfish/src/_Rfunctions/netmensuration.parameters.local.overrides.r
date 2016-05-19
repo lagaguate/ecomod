@@ -2,9 +2,10 @@ netmensuration.parameters.local.overrides = function( id , bcp) {
   #\\ some trawl profiles are just really challenging to summarize with a default/fixed set
   #\\ of parameters. This permits a local fix, specific to a sampling program.
   #\\ Ideally, these parameters can be chosen more cleverly inside the system. This is a future TODO.
+  #\\ Most issues can be resolved by modfying the depth range that ultimately gets gated into the analysis.
 
   # low-level hacks:: over-ride of bottom contact parameters for strange/extreme data
-  if (id %in% c("TEL2004529.18" )) bcp$depth.range = c(-120, 120) # not sure why this has such a large range!
+  if (id %in% c("TEL2004529.18" )) bcp$depth.range = c(-120, 120) # a large range!
 
   if (id %in% c("NED2013028.172", "TEL2004530.84" )) {
     bcp$depth.range = c(-70, 120)

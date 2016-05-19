@@ -38,6 +38,8 @@ if ( recreate.perley.db ) {
   # oracle.perley.db = "servername"
   scanmar.db( DS="perley.datadump", p=p ) # ODBC data dump .. this step requires definition of password etc
   scanmar.db( DS="perley.redo", p=p )    # perley had two db's merge them together: from XXXX-2002 and 2006 to 200X
+  ## NOTE:: A cautionary note.. I am suspicious of the ID's that are given in the Perley data series ...
+  ##        Defualt matches using time/location suggest there might have been some errors when entered into the database..
 }
 
 
@@ -94,13 +96,6 @@ if (create.marport.database ) {
   marport.db( DS="gated.redo",  p=p )      # QA/QC of data
   marport = marport.db( DS="gated",  p=p )
 }
-
-
-
-
-
-
-
 
 
 # --- misc stats / analysis
