@@ -2,10 +2,10 @@ loadfunctions(c('lobster','utility','netmensuration'))
 options(stringsAsFactors=F)
 fpath = file.path(project.datadirectory('lobster'),'data','survey','2015')
 
-marpath = file.path(fpath,'marport')
-tpath = file.path(fpath,'temperature')
+#marpath = file.path(fpath,'marport')
+#tpath = file.path(fpath,'temperature')
 
-fm = dir(marpath,full.names=T)
+fm = dir(fpath,full.names=T)
 
 gps = list()
 sensors = list()

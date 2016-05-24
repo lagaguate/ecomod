@@ -28,27 +28,33 @@ for(j in 1:n) {
 	  				}	
   				}
 				jj=jj+1  
-				print(jj)
+				
 			}	
 		
-		out.sensors = data.frame(out.sensors)
-		out.gps = data.frame(out.gps)
-		out.sensors$X1 = do.call(rbind,strsplit(out.sensors$X1,"\\."))[,1]
-		out.gps$X1 = do.call(rbind,strsplit(out.gps$X1,"\\."))[,1]
-
-		out.sensors$X1 = strptime(out.sensors$X1,"%H:%M:%S")
-		out.gps$X1 = strptime(out.gps$X1,"%H:%M:%S")
+		ose = NULL
+		ogp = NULL
+		if(!is.null(out.sensors)) {
+		ose = data.frame(out.sensors)
+		ose$X1 = do.call(rbind,strsplit(ose$X1,"\\."))[,1]
+		ose$X1 = strptime(ose$X1,"%H:%M:%S")
 		
-		out.sensors = out.sensors[,c(1,10,15,16)]
-		names(out.sensors) = c('Time','Measure','X1','X2')
-		out.sensors$X1 = as.numeric(out.sensors$X1)
-		out.sensors$X2 = as.numeric(out.sensors$X2)
-		out.sensors$Station = strsplit(strsplit(file,"/")[[1]],"\\.")[[9]][1]
+		ose = ose[,c(1,10,15,16)]
+		names(ose) = c('Time','Measure','X1','X2')
+		ose$X1 = as.numeric(ose$X1)
+		ose$X2 = as.numeric(ose$X2)
+		ose$Station = strsplit(strsplit(file,"/")[[1]],"\\.")[[9]][1]
+		}
 
-		out.gps = out.gps[,c(1,7,9)]
-		names(out.gps) = c('Time','Y','X')
-		out.gps$X = convert.dd.dddd(as.numeric(out.gps$X))*-1
-		out.gps$Y = convert.dd.dddd(as.numeric(out.gps$Y))
-		out.gps$Station = strsplit(strsplit(file,"/")[[1]],"\\.")[[9]][1]		
-		return(list(out.gps, out.sensors))
+		if(!is.null(out.gps)) {
+		ogp = data.frame(out.gps)
+		ogp$X1 = do.call(rbind,strsplit(ogp$X1,"\\."))[,1]
+		ogp$X1 = strptime(ogp$X1,"%H:%M:%S")
+
+		ogp = ogp[,c(1,7,9)]
+		names(ogp) = c('Time','Y','X')
+		ogp$X = convert.dd.dddd(as.numeric(ogp$X))*-1
+		ogp$Y = convert.dd.dddd(as.numeric(ogp$Y))
+		ogp$Station = strsplit(strsplit(file,"/")[[1]],"\\.")[[9]][1]		
+		}
+		return(list(ogp, ose))
 		}
