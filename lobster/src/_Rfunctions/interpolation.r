@@ -101,7 +101,8 @@ interpolation<-function(contour.dat,ticks,nstrata,str.max,str.min,place=0,aspr,i
 	if(interp.method!='none'){
 		image.lst<-image.prep(dat=contour.dat,method=interp.method,nmax=nmax,idp=idp,log.dat=log.dat,res=res,aspr=aspr,linear=linear,covariate.dat=covariate.dat,regrid=regrid,mod.type=mod.type,subscale=subscale, subset.poly=subset.poly)
 		image.dat<-image.lst[[1]]
-		image.mod<-image.lst[[2]]
+		image.var<-image.lst[[2]]
+		image.mod<-image.lst[[3]]
 		if(!missing(ticks)){
 			if(missing(str.min))str.min<-min(ticks)
 			if(missing(str.max))str.max<-max(ticks)
@@ -136,7 +137,7 @@ interpolation<-function(contour.dat,ticks,nstrata,str.max,str.min,place=0,aspr,i
 
 	areas<-areacal(image.dat,units='km2',strata.def=ticks)
 	
-	output<-list(contour.dat=contour.dat,image.dat=image.dat,image.mod=image.mod,str.def=ticks,areas=areas)
+	output<-list(contour.dat=contour.dat,image.dat=image.dat,image.var=image.var,image.mod=image.mod,str.def=ticks,areas=areas)
 	
 	
 	return(output)
@@ -331,16 +332,28 @@ image.prep<-function(X,Y,Z,dat,aspr=1.345640,res=0.02,summary.dat=F,log.dat=T,me
 		Z.gstat <- gstat(id = "Z", formula = Z ~ 1, locations = ~ X + Y, data = dat,maxdist=maxdist, nmax = nmax, set = list(idp = idp))
 		Z.dat<- predict(Z.gstat, grid.dat)
 		image.data<-makeTopography(Z.dat[c('X','Y','Z.pred')],digits=5)
+		var.data<-NULL
 		if(summary.dat)print(summary(Z.dat$Z.pred))
 		if(matrix.dat==F)image.data<-data.frame(X=Z.dat[,1],Y=Z.dat[,2],Z=Z.dat[,4])
 		spatial.model<-Z.gstat
 	}
 		
-	if(method=='krige'){
+	if(method=='o.krige'){
+		browser()
+		v <- variogram(Z ~ 1, locations = ~ X + Y, data = dat)
+		v.fit <- fit.variogram(v, model = vgm(max(v$gamma), mod.type, median(v$dist), min(v$gamma)))
+		Z.krige <- krige(formula = Z ~ 1, locations = ~ X + Y, data = dat, newdata = grid.dat, model=v.fit)
+		image.data<-makeTopography(Z.krige[,-4])
+		var.data<-makeTopography(Z.krige[,-3])
+		if(matrix.dat==F)image.data<-data.frame(X=Z.krige[,1],Y=Z.krige[,2],Z=Z.krige[,3])
+		spatial.model<-v.fit
+	}
+	if(method=='u.krige'){
 		v <- variogram(Z ~ CoV, locations = ~ X + Y, data = dat)
 		v.fit <- fit.variogram(v, model = vgm(max(v$gamma), mod.type, median(v$dist), min(v$gamma)))
 		Z.krige <- krige(formula = Z ~ CoV, locations = ~ X + Y, data = dat, newdata = grid.dat, model=v.fit)
 		image.data<-makeTopography(Z.krige[,-4])
+		var.data<-makeTopography(Z.krige[,-3])
 		if(matrix.dat==F)image.data<-data.frame(X=Z.krige[,1],Y=Z.krige[,2],Z=Z.krige[,3])
 		spatial.model<-v.fit
 	}
@@ -351,7 +364,7 @@ image.prep<-function(X,Y,Z,dat,aspr=1.345640,res=0.02,summary.dat=F,log.dat=T,me
 	print("image.prep end")
 	print(Sys.time())
 
-	return(list(image.data,spatial.model))
+	return(list(image.data,var.data,spatial.model))
 	
 }
 
