@@ -40,7 +40,7 @@ model
   
   # priors for catchabilities
   #q ~ dbeta(q.a, q.b)
-  q ~ dunif(q.a, q.b)
+  q ~ dbeta(q.a, q.b)T(0.2,1)
   
   # priors for error terms
   

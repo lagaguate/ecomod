@@ -5,7 +5,7 @@ VMSgif<-function(fisheryList,yrs,tail=7,pie.scale=10,wd=800,ht=600,outdir=file.p
 	
 
 	# VMS data
-	VMSdat = fisheryList$processed.vms.data
+	VMSdat = fisheryList$vms.data
 	if(missing(yrs))yrs = unique(VMSdat$year)
 	VMSdat = subset(VMSdat, year%in%yrs)
 	VMSdat$date =	as.Date(VMSdat$date)
@@ -13,7 +13,7 @@ VMSgif<-function(fisheryList,yrs,tail=7,pie.scale=10,wd=800,ht=600,outdir=file.p
 	VMSdat$julian<-julian(VMSdat$date,origin=min(VMSdat$date)-1)
 	
 	# log data
-	fish.dat = fisheryList$processed.log.data
+	fish.dat = fisheryList$log.data
 	fishTmp.dat<-subset(fish.dat,year%in%yrs)
 	fishTmp.dat$julian<-julian(as.Date(fishTmp.dat$date),origin=min(VMSdat$date)-1)
 	BanSum<-sum(subset(fishTmp.dat,bank==1,round_catch))

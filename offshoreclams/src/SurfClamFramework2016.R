@@ -191,15 +191,19 @@ p$yrs=list(2004:2010,2011:2015)
 b=1
   
   # or use this
+ # distribute Catch and Effort data over VMS locations
   vmslogdata = assignLogData2VMS(fisheryList, p)
+  vmslogdata = subset(vmslogdata,EID%in%findPolys(vmslogdata,Banq100, maxRows = 1e+06)$EID)
 
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","TotalRemovals.pdf"),8,11)
 
 for(i in 1:length(p$yrs)){
   
   # interpolate abundance
-  interp.data <- na.omit(subset(processed.log.data,year%in%p$yrs[[i]]&bank==b&lat_dd>Min_lat[b]&lat_dd<Max_lat[b]&lon_dd>Min_long[b]&lon_dd<Max_long[b],c('logrecord_id','lon_dd','lat_dd','round_catch')))
-  clam.contours <- interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=F,res=0.01,smooth=T,smooth.fun=sum)
+  interp.data <- na.omit(subset(processed.log.data,year%in%p$yrs[[i]]&bank==b&lat_dd>Min_lat[b]&lat_dd<Max_lat[b]&lon_dd>Min_long[b]&lon_dd<Max_long[b],c('logrecord_id','lon_dd','lat_dd','round_catch','area')))
+  interp.data <-subset(vmslogdata,year%in%p$yrs[[i]],c('EID','X','Y','C','A')))
+  catch.contours <- interpolation(interp.data[,-5],ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=F,res=1/111.12,sres=1/111.12,smooth=T,smooth.fun=sum)
+  effort.contours <- interpolation(interp.data[,-4],ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=F,res=1/111.12,sres=1/111.12,smooth=T,smooth.fun=sum)
 
   # define contour lines
   print(clam.contours$str.def)
@@ -264,11 +268,35 @@ for(i in c(2004,2010)){
   
   # interpolate abundance
   interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1)&towquality%in%c(1,2),c('EID','X','Y','stdcatch')))
-  clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=0.005,smooth=F,idp=5,blank.dist=0.1)
+  clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=1/111.12,smooth=F,idp=5,blank.dist=0.1)
+  #clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='o.krige',blank=T,res=1/111.12,smooth=F,idp=5,blank.dist=0.1)
+
 
   # define contour lines
   print(clam.contours$str.def)
   lvls=c(1, 15, 35, 75, 150, 300)
+
+
+
+
+    Y<-sort(rep(clam.contours$image.dat$y,length(clam.contours$image.dat$x)))
+    X<-rep(clam.contours$image.dat$x,length(clam.contours$image.dat$y))
+    tmp<-data.frame(EID=1:length(X),X=X,Y=Y,Z=as.vector(clam.contours$image.dat$z))
+    fishedareas = subset(tmp,EID%in%findPolys(tmp,VMSden.poly)$EID)
+
+    grid.dat = gridData(tmp,lvls=lvls,bcol="YlGn",FUN=mean,border=NA,grid.size=1,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
+    ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',poly.lst=grid.dat[1:2],title=paste("Banqureau Surf Survey Density",i))
+
+    fishedarea = joinPolys(grid.dat$polys,VMSden.poly,operation="INT")
+    ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',poly.lst=list(fishedareas,grid.dat[[2]]),title=paste("Banqureau Surf Survey Density",i))
+
+   fishedareas = calcArea(fishedarea)
+   fishedareadensity = merge(fishedareas,grid.dat$polyData)
+   fishedareadensity$biomass = fishedareadensity$Z * fishedareadensity$area
+   sum(fishedareadensity$biomass)
+
+
+  sum(clam.contours$image.dat$z,na.rm=T)
 
   # generate contour lines
   cont.lst<-contour.gen(clam.contours$image.dat,lvls,Banq100,col="YlGn",colorAdj=1)
@@ -312,6 +340,19 @@ for(i in c(2004,2010)){
 }
 dev.off()
 
+#### new areas ####
+  vmslogdata = assignLogData2VMS(fisheryList, p)
+  vmslogdata = subset(vmslogdata,EID%in%findPolys(vmslogdata,Banq100, maxRows = 1e+06)$EID)
+   VMSden.poly = vmsDensity(vmslogdata,sig=0.2,res=0.1,lvl=30)
+   
+    ClamMap2("Ban",isobath=seq(50,500,50),bathy.source='bathy')
+    addPolys(CWzones)
+    addPolys(VMSden.poly,col=rgb(0,0,0,0.2))
+    addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
+
+    outline = joinPolys(CWzones,operation="UNION")
+    addPolys(outline,border='red')
+
  
 ############## Production model ################
 
@@ -333,29 +374,32 @@ loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.g
   # create a polygon from vms density as a proxy for clam habitat
   VMSden.poly = vmsDensity(vmslogdata,sig=0.2,res=0.1,lvl=30)
 
-  ClamMap2("Ban",isobath=seq(50,500,50),bathy.source='bathy')
-  addPolys(CWzones)
-  addPolys(VMSden.poly,col=rgb(0,0,0,0.2))
-  addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
+    ClamMap2("Ban",isobath=seq(50,500,50),bathy.source='bathy')
+    addPolys(CWzones)
+    addPolys(VMSden.poly,col=rgb(0,0,0,0.2))
+    addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
 
   combineddata = rbind(oldlogdata,vmslogdata)
   combineddata$EID = 1:nrow(combineddata) 
 
-  yrs = 1988:2015
+  yrs = 1994:2015
   SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,CWzones,yrs=yrs,effort.min=100000,r=5,n.min=7)
 
   SPMdataList = SPMdata$SPMdataList
   NJ = SPMdataList$NJ
   logK.u=log(apply(SPMdataList$O,2,max,na.rm=T))
-  logB0.u=log(SPMdataList$O[1,])
+  logB0.u=log(colMeans(SPMdataList$O,na.rm=T))
+
+  alpha=2.5
+  beta=(alpha-.1-.45*alpha)/.45
 
     SPMpriors=list(
       logK=        list(a=logK.u,  b=rep(4,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # carrying capacity
       logB0=       list(a=logB0.u, b=rep(4,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # initial biomass
       #r=           list(a=3,       b=0.5,        d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
-      r.u=         list(a=0,       b=2,          d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
-      r.sd=        list(a=-0.35,    b=3.5,          d="dlnorm",    i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
-      q=           list(a=0.2,     b=1,          d="dunif",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
+      r.u=         list(a=0,       b=1,          d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.sd=        list(a=-0.35,    b=0.08,          d="dlnorm",    i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
+      q=           list(a=alpha,     b=beta,          d="dbeta",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
       sigma=       list(a=0,       b=5,          d="dunif",    i1=2,   i2=3,   l=1   ),    # process error (SD)
       itau2=       list(a=3,       b=0.44629,    d="dgamma",   i1=15,  i2=30,  l=1   )    # observation error (precision)
     ) 
