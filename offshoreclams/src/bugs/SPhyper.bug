@@ -26,7 +26,7 @@ model
   #r.sd <- 5
   
   # convert mean and sd to hyperparameters for prior
-  r.b<-pow(log(r.sd),-2)
+  r.b<-pow(r.sd,-2)
   r.a<-log(r.u)
   #r.b<-(pow(r.u,2)/r.u) # for gamma prior
   #r.a<-pow(r.sd,2)/pow(r.b,2) # for gamma prior
