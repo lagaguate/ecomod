@@ -264,8 +264,8 @@ LengthFrequencies(FisheryDataList, DS="Survey", bins=seq(0,200,5), Yrs=c(2004,20
 
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.pdf"),11,8)
 
-for(i in c(2004,2010)){
-  #i=2010
+#for(i in c(2004,2010)){
+  i=2010
   # interpolate abundance
   interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1)&towquality%in%c(1,2),c('EID','X','Y','stdcatch')))
   clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=1/111.12,smooth=F,idp=5,blank.dist=0.1)
@@ -281,31 +281,33 @@ for(i in c(2004,2010)){
 
     Y<-sort(rep(clam.contours$image.dat$y,length(clam.contours$image.dat$x)))
     X<-rep(clam.contours$image.dat$x,length(clam.contours$image.dat$y))
-    tmp<-data.frame(EID=1:length(X),X=X,Y=Y,Z=as.vector(clam.contours$image.dat$z))
-    fishedareas = subset(tmp,EID%in%findPolys(tmp,VMSden.poly)$EID)
+    totalarea = data.frame(EID=1:length(X),X=X,Y=Y,Z=as.vector(clam.contours$image.dat$z))
+    fishedarea = subset(totalarea,EID%in%findPolys(totalarea,VMSden.poly)$EID)
 
-    grid.dat = gridData(tmp,lvls=lvls,bcol="YlGn",FUN=mean,border=NA,grid.size=1,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
-    ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',poly.lst=grid.dat[1:2],title=paste("Banqureau Surf Survey Density",i))
+    #grid.dat = gridData(tmp,lvls=lvls,bcol="YlGn",FUN=mean,border=NA,grid.size=1,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
+    #ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',poly.lst=grid.dat[1:2],title=paste("Banqureau Surf Survey Density",i))
 
-    fishedarea = joinPolys(grid.dat$polys,VMSden.poly,operation="INT")
-    ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',poly.lst=list(fishedareas,grid.dat[[2]]),title=paste("Banqureau Surf Survey Density",i))
+    #fishedarea = joinPolys(grid.dat$polys,VMSden.poly,operation="INT")
+    #ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',poly.lst=list(fishedareas,grid.dat[[2]]),title=paste("Banqureau Surf Survey Density",i))
 
-   fishedareas = calcArea(fishedarea)
-   fishedareadensity = merge(fishedareas,grid.dat$polyData)
-   fishedareadensity$biomass = fishedareadensity$Z * fishedareadensity$area
-   sum(fishedareadensity$biomass)
+   #fishedareas = calcArea(fishedarea)
+   #fishedareadensity = merge(fishedareas,grid.dat$polyData)
+   #fishedareadensity$biomass = fishedareadensity$Z * fishedareadensity$area
+   #sum(fishedareadensity$biomass)
 
 
-  sum(clam.contours$image.dat$z,na.rm=T)
+  total.area.survey.biomass=sum(clam.contours$image.dat$z,na.rm=T)
+  fished.area.survey.biomass=sum(fishedareas$Z,na.rm=T)
 
   # generate contour lines
   cont.lst<-contour.gen(clam.contours$image.dat,lvls,Banq100,col="YlGn",colorAdj=1)
 
   # plot Map
-  ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Survey Density",i))
-  points(Y~X,interp.data,pch=16,cex=0.5,col=rgb(0,0,0,0.5))
+  ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',contours=cont.lst,title=paste("Banqureau Surf Clam Survey Density",i))
+  points(Y~X,interp.data,pch=16,cex=0.5)
+  addPolys(VMSden.poly,border=rgb(1,0,0,0.5))
   ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="t/km2",inset=0.02,cex=0.8,bty='n')
-}
+#}
 dev.off()
 
 
@@ -351,7 +353,7 @@ dev.off()
     addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
 
     outline = joinPolys(CWzones,operation="UNION")
-    addPolys(outline,border='red')
+    #addPolys(outline,border='red')
 
     with(CWzones,points(X,Y))
 
@@ -395,6 +397,7 @@ dev.off()
 
      new.areas = rbind(area1,area2,area3,area4,area5)
 
+pdf(file.path( project.datadirectory("offshoreclams"), "figures","newAreas.pdf"),11,8)
     ClamMap2("Ban",isobath=seq(50,500,50),bathy.source='bathy')
     addPolys(area1,col=rgb(0,1,0,0.2))
     addPolys(area2,col=rgb(1,0,1,0.2))
@@ -404,6 +407,7 @@ dev.off()
     #addPolys(VMSden.poly,col=rgb(0,0,0,0.2),border=NA)
      addPolys(VMSden.poly,border=rgb(0,0,0,0.5))
      addLabels(data.frame(PID=1:5,label=1:5),polys=new.areas,placement="CENTROID",cex=2,font=2)
+     dev.off()
  
 
   attr(new.areas,"projection")<-"LL"
@@ -430,13 +434,18 @@ dev.off()
   areaBiomass = rbind(areaBiomass,colMeans(areaBiomass))
   areaBiomass = cbind(areaBiomass,rowSums(areaBiomass))
   dimnames(areaBiomass)<-list(c(yrs,"Mean"),c(paste("Area",1:5),"Total"))
-  write.csv(areaCatches,file.path( project.datadirectory("offshoreclams"), "R","areaBiomass.csv"))
+  write.csv(areaBiomass,file.path( project.datadirectory("offshoreclams"), "R","areaBiomass.csv"))
 
+  keyf = findPolys(fishedarea,new.areas)
+  keyt = findPolys(totalarea,new.areas)
+  fishedarea = merge(fishedarea,keyf)
+   with(fishedarea,tapply(Z,PID,sum))
+  totalarea = merge(totalarea,keyt) 
 
-  areaSummary = data.frame(totalareas,fished.area = SPMdata$Habitat, avg.annual.catch = colMeans(areaCatchesBU), total.catch.since.2004 = colSums(areaCatchesBU), biomass.survey.2010 =NA, biomass.cpue.2010 =SPMdataList$O['2010',], biomass.cpue.2015 = SPMdataList$O['2015',])
-  areaSummary = rbind(areaSummary,colMeans(areaSummary))
+  areaSummary = data.frame(totalareas,fished.area = SPMdata$Habitat, avg.annual.catch = colMeans(areaCatchesBU), total.catch.since.2004 = colSums(areaCatchesBU), biomass.survey.2010.total.area =with(totalarea,tapply(Z,PID,sum)),biomass.survey.2010 =with(fishedarea,tapply(Z,PID,sum)), biomass.cpue.2010 =SPMdataList$O['2010',], biomass.cpue.2015 = SPMdataList$O['2015',])
+  areaSummary = rbind(areaSummary,colSums(areaSummary))
   areaSummary$PID[6] = "Total"
-  write.csv(areaCatches,file.path( project.datadirectory("offshoreclams"), "R","areaSummary.csv"),row.names=F)
+  write.csv(areaSummary,file.path( project.datadirectory("offshoreclams"), "R","areaSummary.csv"),row.names=F)
 
 ############## Production model ################
 
