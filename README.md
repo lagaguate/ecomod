@@ -4,7 +4,7 @@ Hi everyone, ecomod is now deprecated. Please use "bio tools" which contains the
 
 https://github.com/beothuk/bio.base/
 
-We use the R-package route to ease distribution and user-simplicity. Going forward, it is now called bio.* tools.
+We use the R-package route to ease distribution and simplicity for end-users. Going forward, it is now called bio.* tools.
 
 Thanks,
 Jae
