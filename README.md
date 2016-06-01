@@ -1,4 +1,17 @@
 
+
+Hi everyone, ecomod is now deprecated. Please use "bio tools" which contains the identical functionality:
+
+https://github.com/beothuk/bio.base/
+
+We use the R-package route to ease distribution and user-simplicity. Going forward, it is now called bio.* tools.
+
+Thanks,
+Jae
+
+
+-----------------------------------------------
+
 This is a code repository of various functions, scripts and tools useful for general ecological modelling, population stock assessments and habitat analysis. The code is mostly implemented in the free and open-source R language/environment (http://www.r-project.org/). There is some minimal reliance upon other languages such as Python, JAGS/BUGS, GMT (Generic Mapping Tools), JAVA, Fortran, C, etc., these are being gradually removed.
 
 Some of these subprojects are inter-related in that they refer to each other's functions and data streams. Others are didactic, demonstrating approach or simply documenting the methods (especially as many data sets are not publicly available). However, all the subprojects are here to further collaboration, communication and transparency, to reduce the replication of effort and to permit other researchers to apply these methods and improve upon them. 
