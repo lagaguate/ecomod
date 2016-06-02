@@ -20,7 +20,7 @@ for(i in fm) {
  	
 }
 
-gp = do.call(rbind,gps)
+gps = do.call(rbind,gps)
 sensors = do.call(rbind,sensors)
 save(sensors, file=file.path(project.datadirectory('lobster'),'data','survey','marport.rdata'))
 save(gps, file=file.path(project.datadirectory('lobster'),'data','survey','marport.gps.rdata'))

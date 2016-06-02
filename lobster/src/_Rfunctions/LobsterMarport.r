@@ -56,5 +56,5 @@ for(j in 1:n) {
 		ogp$Y = convert.dd.dddd(as.numeric(ogp$Y))
 		ogp$Station = strsplit(strsplit(file,"/")[[1]],"\\.")[[9]][1]		
 		}
-		return(list(ogp, ose))
+		return(list(ose,ogp))
 		}

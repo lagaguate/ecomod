@@ -3,9 +3,13 @@ loadfunctions('lobster')
 
 	## Landings
 
-	AnnualSlip<-read.csv(file.path(project.datadirectory('lobster'),"data","Commercial","AnnualSlipLand.csv"))
-	#Historic<-read.delim(file.path(project.datadirectory('lobster'),"data","Commercial","LFA35_Landings_1892-2004.txt"))
-	SeasonalSlip<-read.csv(file.path(project.datadirectory('lobster'),"data","Commercial","SeasonalSlipLand.csv"))
+AnnualSlip<-lobster.db( DS="annual.landings.redo")
+SeasonalSlip<-lobster.db( DS="seasonal.landings.redo")
+#Historic<-lobster.db( DS="historical.landings.redo")
+
+AnnualSlip<-lobster.db( DS="annual.landings")
+SeasonalSlip<-lobster.db( DS="seasonal.landings")
+#Historic<-lobster.db( DS="historical.landings")
 
 
 	Annual35<-subset(AnnualSlip,select=c("YEAR","LFA35"))

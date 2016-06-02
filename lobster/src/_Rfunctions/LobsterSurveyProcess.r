@@ -1,5 +1,6 @@
 LobsterSurveyProcess<-function(size.range=c(0,220),lfa,yrs,mths=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"),bin.size=5){
-
+loadfunctions(c('lobster','utility','netmensuration'))
+  
 
 	loadfunctions('lobster')
 	lobster.db("survey")
