@@ -47,17 +47,15 @@ model
   # priors for error terms
   
   # prior for process errors
-  #sigma ~ dunif(sigma.a, sigma.b) # uniform prior on SD
-  #isigma2 <- pow(sigma, -2)
   isigma2 ~ dgamma(isigma2.a, isigma2.b) # gamma prior on precision
   sigma <- pow(isigma2, -0.5) #sd
- 
+  #sigma ~ dunif(sigma.a, sigma.b) # uniform prior on SD
+  #isigma2 <- pow(sigma, -2)
+  
   # prior for measurement errors
   # Commercial catch rate
   itau2 ~ dgamma(itau2.a, itau2.b) # gamma prior on precision
   tau <- pow(itau2, -0.5) #sd
-  inu2 ~ dgamma(inu2.a, inu2.b) # gamma prior on precision
-  nu <- pow(inu2, -0.5) #sd
   #tau ~ dunif(tau.a, tau.b) # uniform prior on SD
   #itau2 <- pow(tau, -2)
   
@@ -83,18 +81,10 @@ model
     for(t in 1:NY){
       # Commercial catch rate
       Omed[t,j] <- log(q * K[j] * P[t,j])			# predicted cpue index in log space 
-    }
-   for(t in 1:Yvms){
-       #O[t,j] ~ dlnorm(Omed[t,j], itau2)     # fit to cpue index with log of predicted cpue index and estimated precision
-      #imu2[t,j]<-itau2*CVW[t,j]
+      #O[t,j] ~ dlnorm(Omed[t,j], itau2)     # fit to cpue index with log of predicted cpue index and estimated precision
+      imu2[t,j]<-itau2+CVW[t,j]
       #itau2[t,j] ~ dgamma(itau2.a[t,j],itau2.b[t,j])
-      O[t,j] ~ dlnorm(Omed[t,j], inu2)     # fit to cpue index with observation errors from cv
-    }
-    for(t in (Yvms+1):NY){
-     #O[t,j] ~ dlnorm(Omed[t,j], itau2)     # fit to cpue index with log of predicted cpue index and estimated precision
-      #imu2[t,j]<-itau2*CVW[t,j]
-      #itau2[t,j] ~ dgamma(itau2.a[t,j],itau2.b[t,j])
-      O[t,j] ~ dlnorm(Omed[t,j], itau2)     # fit to cpue index with observation errors from cv
+      O[t,j] ~ dlnorm(Omed[t,j], imu2[t,j])     # fit to cpue index with observation errors from cv
     }
   }
 }

@@ -15,12 +15,10 @@ ProcessVMSData <- function(vms.data,log.data){
   # Shift vmsdate with a duplicate within vrn by one second (duplicate record is moved one second forward)
   #vms.data$vmsdate <- adjust.duplicateTimes(vms.data$vmsdate, vms.data$vrn)
   # Create date and time variables in local time
-  vms.data$date <- format(strftime(vms.data$vmsdate,format="%Y-%m-%d"), tz="America/Halifax",usetz=TRUE)
-  vms.data$time <- format(strftime(vms.data$vmsdate,format="%H:%M:%S"), tz="America/Halifax",usetz=TRUE)
-  vms.data$year <- format(strftime(vms.data$vmsdate,format="%Y"), tz="America/Halifax",usetz=TRUE)
-  vms.data$vmsdatelocal <- as.POSIXct(paste(vms.data$date, vms.data$time), format="%Y-%m-%d %H:%M:%S",tz="America/Halifax")
+   vms.data$vmsdatelocal <- format(vms.data$vmsdate,format="%Y-%m-%d %H:%M:%S", tz="America/St_Johns",usetz=TRUE)
+  vms.data$date <- as.character(strptime(vms.data$vmsdatelocal,format="%Y-%m-%d"))
+  vms.data$year <- year(vms.data$vmsdate)
   #vms.data$time <- as.POSIXct(vms.data$time,format="%H:%M:%S")
-
 
   # Add Watch number (record_no) to VMS data from local Date:Time 
   watchTimes = c("06:00:00","12:00:00","18:00:00")
@@ -42,7 +40,7 @@ ProcessVMSData <- function(vms.data,log.data){
   # Order dataframe by vrn and DateTime 
   processed.vms.data1 <- processed.vms.data1[order(processed.vms.data1$vrn, processed.vms.data1$vmsdatelocal), ]  # Order dataframe by vrn and DateTime 
 
-
+#browser()
    # get VMS postion for log data
    vmsPos <- aggregate(cbind(lon,lat) ~ logrecord_id, data = processed.vms.data1, median)
    log.data <- merge(log.data,vmsPos,all=T)
