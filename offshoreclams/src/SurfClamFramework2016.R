@@ -261,11 +261,18 @@ LengthFrequencies(FisheryDataList, DS="Survey", bins=seq(0,200,5), Yrs=c(2004,20
 
 
 # distribution of surf clams from survey
+TotalAreaDensity = list()
+FishedAreaDensity = list()
+
+TotalAreaBiomass = list()
+FishedAreaBiomass = list()
+
 
 pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.pdf"),11,8)
 
-#for(i in c(2004,2010)){
-  i=2010
+
+for(i in c(2004,2010)){
+  #i=2010
   # interpolate abundance
   interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1)&towquality%in%c(1,2),c('EID','X','Y','stdcatch')))
   clam.contours<-interpolation(interp.data,ticks='define',place=3,nstrata=5,str.min=0,interp.method='gstat',blank=T,res=1/111.12,smooth=F,idp=5,blank.dist=0.1)
@@ -281,8 +288,8 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.
 
     Y<-sort(rep(clam.contours$image.dat$y,length(clam.contours$image.dat$x)))
     X<-rep(clam.contours$image.dat$x,length(clam.contours$image.dat$y))
-    totalarea = data.frame(EID=1:length(X),X=X,Y=Y,Z=as.vector(clam.contours$image.dat$z))
-    fishedarea = subset(totalarea,EID%in%findPolys(totalarea,VMSden.poly)$EID)
+    TotalAreaDensity[[i]] = data.frame(EID=1:length(X),X=X,Y=Y,Z=as.vector(clam.contours$image.dat$z))
+    FishedAreaDensity[[i]] = subset(totalarea,EID%in%findPolys(totalarea,VMSden.poly)$EID)
 
     #grid.dat = gridData(tmp,lvls=lvls,bcol="YlGn",FUN=mean,border=NA,grid.size=1,sx=p$Min_lon,sy=p$Min_lat,ex=p$Max_lon,ey=p$Max_lat)
     #ClamMap2('Ban',isobath=seq(50,500,50),bathy.source='bathy',nafo='all',poly.lst=grid.dat[1:2],title=paste("Banqureau Surf Survey Density",i))
@@ -296,8 +303,8 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.
    #sum(fishedareadensity$biomass)
 
 
-  total.area.survey.biomass=sum(clam.contours$image.dat$z,na.rm=T)
-  fished.area.survey.biomass=sum(fishedareas$Z,na.rm=T)
+  TotalAreaBiomass[[i]] = sum(clam.contours$image.dat$z,na.rm=T)
+  FishedAreaBiomass[[i]] = sum(fishedareas$Z,na.rm=T)
 
   # generate contour lines
   cont.lst<-contour.gen(clam.contours$image.dat,lvls,Banq100,col="YlGn",colorAdj=1)
@@ -307,7 +314,7 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","SurveyDensity.
   points(Y~X,interp.data,pch=16,cex=0.5)
   addPolys(VMSden.poly,border=rgb(1,0,0,0.5))
   ContLegend("bottomright",lvls=lvls,Cont.data=cont.lst$Cont.data,title="t/km2",inset=0.02,cex=0.8,bty='n')
-#}
+}
 dev.off()
 
 
@@ -343,6 +350,7 @@ for(i in c(2004,2010)){
 dev.off()
 
 #### new areas ####
+  
   vmslogdata = assignLogData2VMS(fisheryList, p)
   vmslogdata = subset(vmslogdata,EID%in%findPolys(vmslogdata,Banq100, maxRows = 1e+06)$EID)
    VMSden.poly = vmsDensity(vmslogdata,sig=0.2,res=0.1,lvl=30)
@@ -396,8 +404,9 @@ dev.off()
     area2$POS=1:nrow(area2)
 
      new.areas = rbind(area1,area2,area3,area4,area5)
+     write.csv(new.areas,file.path( project.datadirectory("offshoreclams"), "R","newareas.csv"),row.names=F)
 
-pdf(file.path( project.datadirectory("offshoreclams"), "figures","newAreas.pdf"),11,8)
+  pdf(file.path( project.datadirectory("offshoreclams"), "figures","newAreas.pdf"),11,8)
     ClamMap2("Ban",isobath=seq(50,500,50),bathy.source='bathy')
     addPolys(area1,col=rgb(0,1,0,0.2))
     addPolys(area2,col=rgb(1,0,1,0.2))
@@ -449,14 +458,14 @@ pdf(file.path( project.datadirectory("offshoreclams"), "figures","newAreas.pdf")
 
 ############## Production model ################
 
-loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.general"))
+  loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.general"))
   
 
-  interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
+  #interp.data <- na.omit(subset(surveyList$surveyData,year==i&towtype%in%c(1,4)&towquality==1,c('EID','X','Y','stdcatch')))
 
-  res = with(interp.data,spacetime.variogram(data.frame(X,Y),stdcatch,methods="gstat")) 
+  #res = with(interp.data,spacetime.variogram(data.frame(X,Y),stdcatch,methods="gstat")) 
    
- # distribute Catch and Effort data over VMS locations
+  # distribute Catch and Effort data over VMS locations
   vmslogdata = assignLogData2VMS(fisheryList, p)
   vmslogdata = subset(vmslogdata,EID%in%findPolys(vmslogdata,Banq100, maxRows = 1e+06)$EID)
 
@@ -465,59 +474,304 @@ loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.g
   oldlogdata = subset(oldlogdata,EID%in%findPolys(oldlogdata,Banq100, maxRows = 1e+06)$EID)
  
   # create a polygon from vms density as a proxy for clam habitat
+  pdf(file.path( project.datadirectory("offshoreclams"), "figures","VMSdensity.pdf"),12,6)
   VMSden.poly = vmsDensity(vmslogdata,sig=0.2,res=0.1,lvl=30)
+  dev.off()
+  new.areas  = read.csv(file.path( project.datadirectory("offshoreclams"), "R","newareas.csv"))
 
   #VMSden.poly = joinPolys(VMSden.poly,junk,operation="DIFF")
 
+  pdf(file.path( project.datadirectory("offshoreclams"), "figures","NewAreas.pdf"),11,8)
     ClamMap2("Ban",isobath=seq(50,500,50),bathy.source='bathy')
     addPolys(VMSden.poly,col=rgb(0,0,0,0.2))
     #addPolys(CWzones)
     #addLabels(data.frame(PID=1:10,label=1:10),polys=CWzones,placement="CENTROID",cex=2,font=2)
     addPolys(new.areas)
     addLabels(data.frame(PID=1:5,label=1:5),polys=new.areas,placement="CENTROID",cex=2,font=2)
+  dev.off()
 
-  combineddata = rbind(oldlogdata,vmslogdata)
+  combineddata = rbind(oldlogdata,subset(vmslogdata,year>2002))
   combineddata$EID = 1:nrow(combineddata) 
 
-  yrs = 2004:2015
+  yrs = 1988:2015
+
+
+
+
+
+################ model run 1: 
+
+  SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,new.areas,yrs=yrs,effort.min=100000,r=5,n.min=7,cv=T,err='sd',cv.min=0.01)
+  log(SPMdata$meanCV^2+1)*3
+
   #SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,CWzones,yrs=yrs,effort.min=100000,r=5,n.min=7)
-  SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,new.areas,yrs=yrs,effort.min=100000,r=5,n.min=7)
+  SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,new.areas,yrs=yrs,effort.min=100000,r=5,n.min=7,cv=F)
   SPMdataList = SPMdata$SPMdataList
 
-  SPMdataList
+  SPMdataList$H = SPMdata$Habitat/mean(SPMdata$Habitat)
+  #SPMdataList$CVW = 1/(SPMdataList$CV/SPMdata$meanCV)
+  #SPMdataList$CVW = 1/(SPMdataList$CV/mean(SPMdataList$CV))
 
-
-
-  
   NJ = SPMdataList$NJ
+  NY = SPMdataList$NY
+
+
+    # SPMdataList$CV[is.na(SPMdataList$CV)|SPMdataList$CV<=cv.min] <- 1
+    #SPMdataList$mu <- log(SPMdataList$CV^2+1)
+    #SPMdataList$imu2 <- SPMdataList$mu^-2
+    #SPMdataList$CV[is.na(SPMdataList$CV)&SPMdataList$CV==0] <- 1
+    #mu=log(SPMdataList$CV^2+1)*0.5
+    #shape=matrix(3,NY,NJ)
+    #rate=mu*shape
+    # dist.plt("gamma",shape,shape*.7,xl=c(0,1))
+    
+  #dist.plt("gamma",3,0.5,xl=c(0,1))
+ 
   logK.u=log(apply(SPMdataList$O,2,max,na.rm=T))
   logB0.u=log(colMeans(SPMdataList$O,na.rm=T))
+  #dist.plt("norm",11,4,xl=c(0,20))
 
   alpha=5
   beta=(alpha-.1-.45*alpha)/.45
+  #dist.plt("beta",alpha,beta,xl=c(0,1))
 
     SPMpriors=list(
-      logK=        list(a=logK.u,  b=rep(1,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # carrying capacity
-      logB0=       list(a=logB0.u, b=rep(1,NJ),  d="dnorm",    i1=7,   i2=5,   l=NJ  ),    # initial biomass
-      #r=           list(a=3,       b=0.5,        d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
-      r.u=         list(a=0,       b=1,          d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
-      r.sd=        list(a=-0.35,    b=0.08,          d="dlnorm",    i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
-      q=           list(a=alpha,     b=beta,          d="dbeta",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
-      sigma=       list(a=0,       b=5,          d="dunif",    i1=2,   i2=3,   l=1   ),    # process error (SD)
-      itau2=       list(a=3,       b=0.44629,    d="dgamma",   i1=15,  i2=30,  l=1   )    # observation error (precision)
+      logK=        list(a=12,      b=2,         d="dnorm",    i1=9,   i2=12,  l=1   ),    # carrying capacity
+      logB0=       list(a=rep(11,NJ), b=rep(1,NJ), d="dnorm",    i1=10,   i2=9,  l=NJ  ),    # initial biomass
+      #r=           list(a=3,       b=0.5,       d="dgamma",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.u=         list(a=0,       b=1,         d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.sd=        list(a=-0.35,   b=0.08,      d="dlnorm",   i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
+      q=           list(a=alpha,   b=beta,      d="dbeta",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
+      #tau=         list(a=0,       b=1,         d="dunif",   i1=2,  i2=3,  l=1   ),   # observation error (precision)
+      itau2=       list(a=3,       b=0.4,   d="dgamma",   i1=15,  i2=30,  l=1   ),   # observation error (precision)
+      #itau2=       list(a=shape,    b=rate,   d="dgamma",   i1=15,  i2=30,  l=NY*NJ   ),   # observation error (precision)
+      sigma=       list(a=0,       b=1,         d="dunif",    i1=2,   i2=3,   l=1   )    # process error (SD)
+      #isigma2=       list(a=3,       b=0.5,         d="dgamma",    i1=2,   i2=3,   l=1   )    # process error (precision)
     ) 
 
-    SPmodel.out<-runBUGS("SPhyper", SPMdataList, SPMpriors, SPMdataList$yrs, n = 600000, burn = 300000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P','r','B0'),sw='jags')
+    SPmodel1.out<-runBUGS("SPhyper1", SPMdataList, SPMpriors, SPMdataList$yrs, n = 50000, burn = 30000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P','r','B0'),sw='jags',inits=F)
+    #save(SPmodel1.out,file=file.path( project.datadirectory("offshoreclams"), "data", "SPM1output.Rdata" ))
+    #load(file=file.path( project.datadirectory("offshoreclams"), "data", "SPM1output.Rdata" ))
+    SPmodel1.out$median
 
+    # hyperprior
+    SPMpriors$r = list(a=log(SPmodel1.out$median$r.u), b=SPmodel1.out$median$r.sd,        d="dlnorm",    i1=0.2, i2=0.1, l=1   )
 
   ## Plotting model results
 
     # plot fits to abundance indices 
-    SPMfit.plt(SPmodel.out, yrs=yrs, CI=T,graphic='R',H = SPMdata$Habitat, ht=8,wd=6,rows=5,alpha=0.5)
+    SPMfit.plt(SPmodel1.out, yrs=yrs, CI=T,CV=F,graphic='pdf',H = SPMdata$Habitat, ht=8,wd=6,rows=5,alpha=c(0.5,0.05),name='SPM1',ymax=420)
 
     # plot the posterior distributions of the estimated parameters
-    SPMpost.plt(SPmodel.out,SPMpriors, graphic='R',nr=3,nc=3,wd=15)
+    SPMpost.plt(SPmodel1.out,SPMpriors, graphic='R',nr=2,nc=3,wd=15,name='SPM1')
     #post.plt(SPmodel.out,SPmodelpriors,years=yrs, graphic='R',nr=2,nc=3,wd=15,multi=T)
+
+
+
+################ model run 2: 
+
+  #SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,CWzones,yrs=yrs,effort.min=100000,r=5,n.min=7)
+  SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,new.areas,yrs=yrs,effort.min=100000,r=5,n.min=7,cv=T,err='sd',cv.min=0.01)
+  SPMdataList = SPMdata$SPMdataList
+
+  SPMdataList$H = SPMdata$Habitat/mean(SPMdata$Habitat)
+  #SPMdataList$CVW = 1/(SPMdataList$CV/SPMdata$meanCV)
+  #SPMdataList$CVW = 1/(SPMdataList$CV/mean(SPMdataList$CV))
+
+  NJ = SPMdataList$NJ
+  NY = SPMdataList$NY
+
+
+    # SPMdataList$CV[is.na(SPMdataList$CV)|SPMdataList$CV<=cv.min] <- 1
+    #SPMdataList$mu <- log(SPMdataList$CV^2+1)
+    #SPMdataList$imu2 <- SPMdataList$mu^-2
+    #SPMdataList$CV[is.na(SPMdataList$CV)&SPMdataList$CV==0] <- 1
+    mu=log(SPMdataList$CV^2+1)*0.5
+    shape=matrix(3,NY,NJ)
+    rate=mu*shape
+    # dist.plt("gamma",shape,shape*.7,xl=c(0,1))
+ 
+  logK.u=log(apply(SPMdataList$O,2,max,na.rm=T))
+  logB0.u=log(colMeans(SPMdataList$O,na.rm=T))
+  #dist.plt("norm",11,4,xl=c(0,20))
+
+  alpha=10
+  beta=(alpha-.1-.45*alpha)/.45
+  #dist.plt("beta",alpha,beta,xl=c(0,1))
+
+    SPMpriors=list(
+      logK=        list(a=12,      b=2,         d="dnorm",    i1=9,   i2=12,  l=1   ),    # carrying capacity
+      logB0=       list(a=rep(11,NJ), b=rep(1,NJ), d="dnorm",    i1=10,   i2=9,  l=NJ  ),    # initial biomass
+      #r=           list(a=3,       b=0.5,       d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.u=         list(a=0,       b=1,         d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.sd=        list(a=-0.35,   b=0.08,      d="dlnorm",   i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
+      q=           list(a=alpha,   b=beta,      d="dbeta",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
+      #tau=         list(a=0,       b=5,         d="dunif",   i1=2,  i2=3,  l=1   ),   # observation error (precision)
+      #itau2=       list(a=3,       b=0.5,   d="dgamma",   i1=15,  i2=30,  l=1   ),   # observation error (precision)
+      itau2=       list(a=shape,    b=rate,   d="dgamma",   i1=15,  i2=30,  l=NY*NJ   ),   # observation error (precision)
+      #sigma=       list(a=0,       b=1,         d="dunif",    i1=2,   i2=3,   l=1   )    # process error (SD)
+      isigma2=       list(a=3,       b=0.5,         d="dgamma",    i1=2,   i2=3,   l=1   )    # process error (precision)
+    ) 
+
+    SPmodel2.out<-runBUGS("SPhyper2", SPMdataList, SPMpriors, SPMdataList$yrs, n = 50000, burn = 30000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P','r','B0'),sw='jags',inits=F)
+    #save(SPmodel2.out,file=file.path( project.datadirectory("offshoreclams"), "data", "SPM2output.Rdata" ))
+    SPmodel2.out$median
+
+    # hyperprior
+    SPMpriors$r = list(a=log(SPmodel2.out$median$r.u), b=SPmodel2.out$median$r.sd,        d="dlnorm",    i1=0.2, i2=0.1, l=1   )
+
+  ## Plotting model results
+
+    # plot fits to abundance indices 
+    SPMfit.plt(SPmodel2.out, yrs=yrs, CI=T,CV=F,graphic='pdf',H = SPMdata$Habitat, ht=8,wd=6,rows=5,alpha=0.5,name='SPM2')
+
+    # plot the posterior distributions of the estimated parameters
+    SPMpost.plt(SPmodel2.out,SPMpriors, graphic='pdf',nr=2,nc=3,wd=15,name='SPM2')
+    #post.plt(SPmodel.out,SPmodelpriors,years=yrs, graphic='R',nr=2,nc=3,wd=15,multi=T)
+
+
+
+################ model run 3: 
+
+  #SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,CWzones,yrs=yrs,effort.min=100000,r=5,n.min=7)
+  SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,new.areas,yrs=yrs,effort.min=100000,r=5,n.min=7,cv=T,err='se',cv.min=0.01)
+  SPMdataList = SPMdata$SPMdataList
+
+  SPMdataList$H = SPMdata$Habitat/mean(SPMdata$Habitat)
+  SPMdataList$CVW = scale(1/SPMdataList$CV,T,rep(10,5))
+  #SPMdataList$CVW = 1/(SPMdataList$CV/mean(SPMdataList$CV))
+
+  NJ = SPMdataList$NJ
+  NY = SPMdataList$NY
+
+
+    # SPMdataList$CV[is.na(SPMdataList$CV)|SPMdataList$CV<=cv.min] <- 1
+    #SPMdataList$mu <- log(SPMdataList$CV^2+1)
+    #SPMdataList$imu2 <- SPMdataList$mu^-2
+    #SPMdataList$CV[is.na(SPMdataList$CV)&SPMdataList$CV==0] <- 1
+    #mu=log(SPMdataList$CV^2+1)*0.5
+    #shape=matrix(3,NY,NJ)
+    #rate=mu*shape
+    # dist.plt("gamma",shape,shape*.7,xl=c(0,1))
+ 
+  logK.u=log(apply(SPMdataList$O,2,max,na.rm=T))
+  logB0.u=log(colMeans(SPMdataList$O,na.rm=T))
+  #dist.plt("norm",11,4,xl=c(0,20))
+
+  alpha=10
+  beta=(alpha-.1-.45*alpha)/.45
+  #dist.plt("beta",alpha,beta,xl=c(0,1))
+
+    SPMpriors=list(
+      logK=        list(a=12,      b=2,         d="dnorm",    i1=9,   i2=12,  l=1   ),    # carrying capacity
+      logB0=       list(a=rep(11,NJ), b=rep(1,NJ), d="dnorm",    i1=10,   i2=9,  l=NJ  ),    # initial biomass
+      #r=           list(a=3,       b=0.5,       d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.u=         list(a=0,       b=1,         d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.sd=        list(a=-0.35,   b=0.08,      d="dlnorm",   i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
+      q=           list(a=alpha,   b=beta,      d="dbeta",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
+      #tau=         list(a=0,       b=5,         d="dunif",   i1=2,  i2=3,  l=1   ),   # observation error (precision)
+      itau2=       list(a=3,       b=0.5,   d="dgamma",   i1=15,  i2=30,  l=1   ),   # observation error (precision)
+      #itau2=       list(a=shape,    b=rate,   d="dgamma",   i1=15,  i2=30,  l=NY*NJ   ),   # observation error (precision)
+      #sigma=       list(a=0,       b=1,         d="dunif",    i1=2,   i2=3,   l=1   )    # process error (SD)
+      isigma2=       list(a=3,       b=0.5,         d="dgamma",    i1=2,   i2=3,   l=1   )    # process error (precision)
+    ) 
+
+    SPmodel3.out<-runBUGS("SPhyper3", SPMdataList, SPMpriors, SPMdataList$yrs, n = 50000, burn = 30000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P','r','B0','imu2'),sw='jags',inits=F)
+    #save(SPmodel3.out,file=file.path( project.datadirectory("offshoreclams"), "data", "SPM3output.Rdata" ))
+    SPmodel3.out$median
+
+    # hyperprior
+    SPMpriors$r = list(a=log(SPmodel3.out$median$r.u), b=SPmodel3.out$median$r.sd,        d="dlnorm",    i1=0.2, i2=0.1, l=1   )
+
+  ## Plotting model results
+
+    # plot fits to abundance indices 
+    SPMfit.plt(SPmodel3.out, yrs=yrs, CI=T,CV=F,graphic='R',H = SPMdata$Habitat, ht=8,wd=6,rows=5,alpha=0.5,name='SPM3')
+
+    # plot the posterior distributions of the estimated parameters
+    SPMpost.plt(SPmodel3.out,SPMpriors, graphic='pdf',nr=2,nc=3,wd=15,name='SPM3')
+    #post.plt(SPmodel.out,SPmodelpriors,years=yrs, graphic='R',nr=2,nc=3,wd=15,multi=T)
+
+
+
+
+################ model run 0: 
+
+  #SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,CWzones,yrs=yrs,effort.min=100000,r=5,n.min=7)
+  SPMdata = SPMsetup(combineddata,Totalgrid.out,VMSden.poly,new.areas,yrs=yrs,effort.min=100000,r=5,n.min=7,cv=F)
+  SPMdataList = SPMdata$SPMdataList
+
+  SPMdataList$H = SPMdata$Habitat/mean(SPMdata$Habitat)
+  #SPMdataList$CVW = 1/(SPMdataList$CV/SPMdata$meanCV)
+  #SPMdataList$CVW = 1/(SPMdataList$CV/mean(SPMdataList$CV))
+
+  NJ = SPMdataList$NJ
+  NY = SPMdataList$NY
+  SPMdataList$Yvms = which(yrs==2003)
+
+
+    # SPMdataList$CV[is.na(SPMdataList$CV)|SPMdataList$CV<=cv.min] <- 1
+    #SPMdataList$mu <- log(SPMdataList$CV^2+1)
+    #SPMdataList$imu2 <- SPMdataList$mu^-2
+    #SPMdataList$CV[is.na(SPMdataList$CV)&SPMdataList$CV==0] <- 1
+    #mu=log(SPMdataList$CV^2+1)*0.5
+    #shape=matrix(3,NY,NJ)
+    #rate=mu*shape
+    # dist.plt("gamma",shape,shape*.7,xl=c(0,1))
+    
+  #dist.plt("gamma",3,0.5,xl=c(0,1))
+ 
+  logK.u=log(apply(SPMdataList$O,2,max,na.rm=T))
+  logB0.u=log(colMeans(SPMdataList$O,na.rm=T))
+  #dist.plt("norm",11,4,xl=c(0,20))
+
+  alpha=10
+  beta=(alpha-.1-.45*alpha)/.45
+  #dist.plt("beta",alpha,beta,xl=c(0,1))
+
+    SPMpriors=list(
+      logK=        list(a=12,      b=2,         d="dnorm",    i1=9,   i2=12,  l=1   ),    # carrying capacity
+      logB0=       list(a=rep(11,NJ), b=rep(1,NJ), d="dnorm",    i1=10,   i2=9,  l=NJ  ),    # initial biomass
+      #r=           list(a=3,       b=0.5,       d="dgamma",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.u=         list(a=0,       b=1,         d="dunif",    i1=0.2, i2=0.1, l=1   ),    # intrinsic rate of increase
+      r.sd=        list(a=-0.35,   b=0.08,      d="dlnorm",   i1=0.7, i2=0.5, l=1   ),    # intrinsic rate of increase
+      q=           list(a=alpha,   b=beta,      d="dbeta",    i1=0.5, i2=0.8, l=1   ),    # clam dredge efficiency
+      #tau=         list(a=0,       b=5,         d="dunif",   i1=2,  i2=3,  l=1   ),   # observation error (precision)
+      itau2=       list(a=3,       b=0.5,       d="dgamma",   i1=5,  i2=10,  l=1   ),   # observation error (precision)
+      inu2=        list(a=3,       b=2,         d="dgamma",   i1=1,  i2=3,  l=1   ),   # observation error (precision)
+      #itau2=       list(a=shape,   b=rate,      d="dgamma",   i1=15,  i2=30,  l=NY*NJ   ),   # observation error (precision)
+      #sigma=       list(a=0,       b=1,         d="dunif",    i1=2,   i2=3,   l=1   )    # process error (SD)
+      isigma2=     list(a=3,       b=0.5,       d="dgamma",    i1=2,   i2=3,   l=1   )    # process error (precision)
+    ) 
+
+    SPmodel.out<-runBUGS("SPhyper", SPMdataList, SPMpriors, SPMdataList$yrs, n = 50000, burn = 30000, thin = 10,debug=F,parameters=c(names(SPMpriors),'K','P','r','B0'),sw='jags',inits=F)
+    #save(SPmodel.out,file=file.path( project.datadirectory("offshoreclams"), "data", "SPMoutput.Rdata" ))
+    SPmodel.out$median
+
+    # hyperprior
+    SPMpriors$r = list(a=log(SPmodel.out$median$r.u), b=SPmodel.out$median$r.sd,        d="dlnorm",    i1=0.2, i2=0.1, l=1   )
+
+  ## Plotting model results
+
+    # plot fits to abundance indices 
+    SPMfit.plt(SPmodel.out, yrs=yrs, CI=T,CV=F,graphic='R',H = SPMdata$Habitat, ht=8,wd=6,rows=5,alpha=0.5,name='SPM')
+
+    # plot the posterior distributions of the estimated parameters
+    SPMpost.plt(SPmodel.out,SPMpriors, graphic='R',nr=3,nc=3,wd=15,name='SPM')
+    #post.plt(SPmodel.out,SPmodelpriors,years=yrs, graphic='R',nr=2,nc=3,wd=15,multi=T)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # plot the biomass estimates for commercial and recruit size scallops
     #SPMbiomass.plt(SPmodel.out,years=yrs, graphic='R') 
@@ -528,6 +782,8 @@ loadfunctions(c("offshoreclams","lobster","utility","spacetime","model.fishery.g
     # plot residuals for the fit and process (process residuals represent the difference between what the dynamics and the data say about biomass)
     # Note: with current version of the data there are some large process reiduals 
     SPMdiag.plt(SPmodel.out, yrs,graphic='R')
+
+
 
 
 # depletion test
