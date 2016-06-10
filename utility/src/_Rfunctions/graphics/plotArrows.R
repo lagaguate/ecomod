@@ -1,13 +1,13 @@
 
-	plotArrows <- function (Y,X) {
+	plotArrows <- function (Y,X,add=F) {
 #//trace arrows around x,y points from start to end
 					xl <- c(min(X),max(X))
 					yl <- c(min(Y),max(Y))
 					if(Y[length(Y)]==0) {Y<-Y[-length(Y)]}
 					if(length(Y) !=length(X)) {X<-X[-length(X)]}
 					n <- length(Y)
-					cl <- rainXow(n)
-					plot(1,1,ylim=yl,xlim=xl,type='n')
+					cl <- rainbow(n)
+					if(add==F) plot(1,1,ylim=yl,xlim=xl,type='n')
 					
 					
 						for(i in 1:n) {
