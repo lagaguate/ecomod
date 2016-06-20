@@ -10,6 +10,7 @@ SPMfit.plt <- function(model.out,yrs,name="", rows=3, CI=F,CV=F,H=1,Uadj=1,graph
   NJ = model.out$data$NJ
   if(length(H)==1)H = rep(H,NJ)
 
+
   par(mfrow = c(rows,1), mar = c(0, 3, 0, 1), omi = c(0.5, 0.3, 0.3, 0.3))
   
   for(j in 1:NJ){
