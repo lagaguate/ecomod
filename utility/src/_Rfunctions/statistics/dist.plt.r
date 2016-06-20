@@ -1,9 +1,9 @@
 #// plots distributions in R, useful for setting up priors in Bayesian analyses
 
-dist.plt<-function(dist="beta",par1,par2,x,xl=c(0,1),col=1,add=F,alpha=0.05,plot.lines=F,title=''){
+dist.plt<-function(dist="beta",par1,par2,x,xl=c(0,1),col=1,add=F,alpha=0.05,plot.lines=F,title='',n=1000){
 
 	
-	z<-get(paste("r",dist,sep=''))(1000,par1,par2)
+	z<-get(paste("r",dist,sep=''))(n,par1,par2)
 	if(missing(xl))xl<-range(z)
 	if(missing(x))x<-seq(xl[1],xl[2],length=1000)
 	y<-get(paste("d",dist,sep=''))(x,par1,par2)
