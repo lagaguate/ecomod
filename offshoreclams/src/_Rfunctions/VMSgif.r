@@ -1,4 +1,4 @@
-VMSgif<-function(fisheryList,yrs,tail=7,pie.scale=10,wd=800,ht=600,outdir=file.path( project.datadirectory("offshoreclams"), "figures"),...){
+VMSgif<-function(fisheryList,yrs,interval=1,pause=0.05,tail=7,pie.scale=10,wd=800,ht=600,ptcex=0.1,ptcol=rgb(1,0,0,0.3),out.dir=file.path( project.datadirectory("offshoreclams"), "figures"),...){
 	
 	require(animation)# for creating gif
 	require(TeachingDemos) # for adding pie charts to map
@@ -22,24 +22,24 @@ VMSgif<-function(fisheryList,yrs,tail=7,pie.scale=10,wd=800,ht=600,outdir=file.p
 
 	### GIF animations ###
 	## set some options first
-	oopt = ani.options(interval = 0.4, nmax = length(min(VMSdat$julian):max(VMSdat$julian)), outdir=getwd())
+	oopt = ani.options(interval = 0.4, nmax = length(min(VMSdat$julian):max(VMSdat$julian)), outdir=out.dir)
 	## use a loop to create images one by one
 	saveGIF({
-	for (i in 1:ani.options("nmax")) {
-	ClamMap2(...,title=min(VMSdat$date)+i-1,isobath=seq(50,500,50),bathy.source='bathy')
-	points(lat~lon,subset(VMSdat,julian<=i&julian>i-tail),pch=16,cex=0.1,col=rgb(1,0,0,0.3)) # add VMS
+	for (i in seq(1,ani.options("nmax"),interval)) {
+	ClamMap2(...,title=min(VMSdat$date)+i-1)
+	points(lat~lon,subset(VMSdat,julian<=i&julian>i-tail),pch=16,cex=ptcex,col=ptcol) # add VMS
 	 print(i)
 	# Catch pie charts
 	BanFSF<-sum(subset(fishTmp.dat,julian<i&bank==1)$round_catch)
 	#browser()
 	subplot(pie(c(BanSum-BanFSF,BanFSF),labels=NA),-57.5,44.3,size=rep(BanS,2))
 
-	if(i == ani.options("nmax"))	 points(lat~lon,VMSdat,pch=16,cex=0.1,col=rgb(1,0,0,0.3)) # add VMS
+	if(i == ani.options("nmax"))	 points(lat~lon,VMSdat,pch=16,cex=ptcex,col=) # add VMS
  
 	 
 	ani.pause() ## pause for a while (’interval’)
 	}
-	}, interval = 0.05, movie.name = "VMS.gif", ani.width = wd, ani.height = ht)
+	}, interval = pause, movie.name = "VMS.gif", ani.width = wd, ani.height = ht)
 }
 
 

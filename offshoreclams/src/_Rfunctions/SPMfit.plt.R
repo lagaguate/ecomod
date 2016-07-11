@@ -16,7 +16,7 @@ SPMfit.plt <- function(model.out,yrs,name="", rows=3, CI=F,CV=F,H=1,Uadj=1,graph
   for(j in 1:NJ){
   
   
-    Bposts = sweep(model.out$sims.list$P[,,j],2,FUN='*',model.out$sims.list$K[,j])
+    Bposts = sweep(model.out$sims.list$P[,,j],1,FUN='*',model.out$sims.list$K[,j])
     Bmed = model.out$median$P[,j]*model.out$median$K[j]
     q = model.out$median$q/H[j]
     O = model.out$data$O[,j]/H[j]
